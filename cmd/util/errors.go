@@ -10,6 +10,7 @@ type NotFound struct {
 }
 // NewNotFound export
 func NewNotFound(resource string) (err *NotFound) {
+    err = new(NotFound)
     err.resource = resource
     return err
 }
@@ -24,6 +25,7 @@ type Conflict struct {
 }
 // NewConflict export
 func NewConflict(resource string) (err *Conflict) {
+    err = new(Conflict)
     err.resource = resource
     return err
 }

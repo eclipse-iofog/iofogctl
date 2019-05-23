@@ -11,17 +11,17 @@ import (
 type Manager struct {
 	configuration configuration
 	filename string
-	namespaceIndex map[string]*namespace
-	controllerIndex map[string]*Controller
-	agentIndex map[string]*Agent
+	namespaceIndex map[string]int
+	controllerIndex map[string][2]int
+	agentIndex map[string][2]int
 }
 
 // NewManager export
 func NewManager(filename string) *Manager {
 	manager := new(Manager)
-	manager.namespaceIndex = make(map[string]*namespace)
-	manager.controllerIndex = make(map[string]*Controller)
-	manager.agentIndex = make(map[string]*Agent)
+	manager.namespaceIndex = make(map[string]int)
+	manager.controllerIndex = make(map[string][2]int)
+	manager.agentIndex = make(map[string][2]int)
 	manager.filename = filename
 
 	// Read the file and unmarshall contents
@@ -50,13 +50,13 @@ func NewManager(filename string) *Manager {
 	util.Check(err)
 
 	// Update Indexes
-	for _, ns := range manager.configuration.Namespaces {
-		manager.namespaceIndex[ns.Name] = &ns
-		for _, ctrl := range ns.Controllers {
-			manager.controllerIndex[ns.Name + ctrl.Name] = &ctrl
+	for nsIdx, ns := range manager.configuration.Namespaces {
+		manager.namespaceIndex[ns.Name] = nsIdx
+		for ctrlIdx, ctrl := range ns.Controllers {
+			manager.controllerIndex[ns.Name + ctrl.Name] = [2]int{nsIdx, ctrlIdx}
 		}
-		for _, agnt := range ns.Agents {
-			manager.agentIndex[ns.Name + agnt.Name] = &agnt
+		for agntIdx, agnt := range ns.Agents {
+			manager.agentIndex[ns.Name + agnt.Name] = [2]int{nsIdx, agntIdx}
 		}
 	}
 
@@ -75,14 +75,14 @@ func (manager *Manager) GetNamespaces() (namespaces []Namespace) {
 // GetAgents export
 func (manager *Manager) GetAgents(namespace string) (agents []Agent, err error) {
 	// Get the requested namespace
-	ns, exists := manager.namespaceIndex[namespace]
+	idx, exists := manager.namespaceIndex[namespace]
 	if !exists {
 		err = util.NewNotFound(namespace)
 		return
 	}
 
 	// Copy the agents
-	copy(agents, ns.Agents)
+	copy(agents, manager.configuration.Namespaces[idx].Agents)
 
 	return
 }
@@ -90,49 +90,49 @@ func (manager *Manager) GetAgents(namespace string) (agents []Agent, err error) 
 // GetControllers export
 func (manager *Manager) GetControllers(namespace string) (controllers []Controller, err error) {
 	// Get the requested namespace
-	ns, exists := manager.namespaceIndex[namespace]
+	idx, exists := manager.namespaceIndex[namespace]
 	if !exists {
 		err = util.NewNotFound(namespace)
 		return
 	}
 
 	// Copy the controllers
-	copy(controllers, ns.Controllers)
+	copy(controllers, manager.configuration.Namespaces[idx].Controllers)
 
 	return
 }
 
 // GetNamespace export
 func (manager *Manager) GetNamespace(name string) (namespace Namespace, err error){
-	ns, exists := manager.namespaceIndex[name]
+	idx, exists := manager.namespaceIndex[name]
 	if !exists {
 		err = util.NewNotFound(name)
 		return 
 	}
-	namespace.Name = ns.Name
+	namespace.Name = manager.configuration.Namespaces[idx].Name
 	return
 }
 
 // GetController export
 func (manager *Manager) GetController(namespace, name string) (controller Controller, err error){
-	ctrl, exists := manager.controllerIndex[namespace + name]
+	idxs, exists := manager.controllerIndex[namespace + name]
 	if !exists {
 		err = util.NewNotFound(namespace + "/" + name)
 		return
 	}
 
-	controller = *ctrl
+	controller = manager.configuration.Namespaces[idxs[0]].Controllers[idxs[1]]
 	return
 }
 
 // GetAgent export
 func (manager *Manager) GetAgent(namespace, name string) (agent Agent, err error){
-	agnt, exists := manager.agentIndex[namespace + name]
+	idxs, exists := manager.agentIndex[namespace + name]
 	if !exists {
 		err = util.NewNotFound(namespace + "/" + name)
 		return
 	}
 
-	agent = *agnt
+	agent = manager.configuration.Namespaces[idxs[0]].Agents[idxs[1]]
 	return
 }
