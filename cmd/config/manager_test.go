@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-var yaml = []byte(`
+var testData = []byte(`
 namespaces:
   - name: first
     controller:
@@ -29,7 +29,7 @@ namespaces:
 `)
 var filename = "/tmp/cli.yml"
 func init() {
-	err := ioutil.WriteFile(filename, yaml, 0644)
+	err := ioutil.WriteFile(filename, testData, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -132,4 +132,9 @@ func TestAgents(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDelete(t *testing.T){
+	manager := NewManager(filename)
+	manager.DeleteAgent("first", "agent1")
 }

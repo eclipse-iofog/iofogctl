@@ -1,10 +1,12 @@
 package config
 
 import (
+	"io/ioutil"
 	"github.com/eclipse-iofog/cli/cmd/util"
 	"fmt"
 	"github.com/spf13/viper"
 	homedir "github.com/mitchellh/go-homedir"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Manager export
@@ -134,5 +136,47 @@ func (manager *Manager) GetAgent(namespace, name string) (agent Agent, err error
 	}
 
 	agent = manager.configuration.Namespaces[idxs[0]].Agents[idxs[1]]
+	return
+}
+
+
+func removeElement(slice []Agent, index int) []Agent {
+    return append(slice[:index], slice[index+1:]...)
+}
+
+// DeleteAgent export
+func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
+	// Check exists
+	idxs, exists := manager.agentIndex[namespace + name]
+	if !exists {
+		err = util.NewNotFound(namespace + "/" + name)
+		return
+	}
+	// Perform deletion
+	nsIdx := idxs[0]
+	ns := &manager.configuration.Namespaces[nsIdx]
+	delIdx := idxs[1]
+	ns.Agents = append(ns.Agents[:delIdx], ns.Agents[delIdx+1:]...)
+	for _, a := range ns.Agents {
+		print(a.Name)
+	}
+	
+	// Delete entry from index
+	delete(manager.agentIndex, namespace + name)
+	// Update index entries for elements after deleted element in the array
+	for idx, agent := range ns.Agents[delIdx:] {
+		manager.agentIndex[namespace + agent.Name] = [2]int{nsIdx, idx}
+	}
+
+	// Write to file
+	marshal, err := yaml.Marshal(&manager.configuration)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(manager.filename, marshal, 0644)
+	if err != nil {
+		panic(err)
+	}
+
 	return
 }
