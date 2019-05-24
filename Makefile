@@ -8,7 +8,7 @@ IMAGE = iofog/cli
 
 # Build variables
 BUILD_DIR ?= bin
-BUILD_PACKAGE = $(PACKAGE)/
+BUILD_PACKAGE = $(PACKAGE)/cmd/iofog
 VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)

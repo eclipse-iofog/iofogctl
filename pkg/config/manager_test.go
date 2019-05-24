@@ -17,6 +17,8 @@ namespaces:
         user: root0
       - name: agent1
         user: root1
+      - name: agent2
+        user: root2
   - name: second
     controller:
         name: controller1
@@ -27,16 +29,21 @@ namespaces:
       - name: agent2
         user: root2
 `)
-var filename = "/tmp/cli.yml"
 func init() {
+	SetFile("/tmp/cli.yml")
 	err := ioutil.WriteFile(filename, testData, 0644)
 	if err != nil {
 		panic(err)
 	}
 }
 
+func TestDelete(t *testing.T){
+	manager := NewManager()
+	manager.DeleteAgent("first", "agent2")
+}
+
 func TestNamespaces(t *testing.T) {
-	manager := NewManager(filename)
+	manager := NewManager()
 	
 	// Test all namespace queries
 	namespaces := manager.GetNamespaces()
@@ -67,7 +74,7 @@ func TestNamespaces(t *testing.T) {
 }
 
 func TestControllers(t *testing.T) {
-	manager := NewManager(filename)
+	manager := NewManager()
 	for nsIdx, ns := range manager.GetNamespaces() {
 		// Test bulk Controller queries
 		ctrls, err := manager.GetControllers(ns.Name)
@@ -101,7 +108,7 @@ func TestControllers(t *testing.T) {
 }
 
 func TestAgents(t *testing.T) {
-	manager := NewManager(filename)
+	manager := NewManager()
 	for nsIdx, ns := range manager.GetNamespaces() {
 		// Test bulk Agent queries
 		agents, err := manager.GetAgents(ns.Name)
@@ -132,9 +139,4 @@ func TestAgents(t *testing.T) {
 			}
 		}
 	}
-}
-
-func TestDelete(t *testing.T){
-	manager := NewManager(filename)
-	manager.DeleteAgent("first", "agent1")
 }

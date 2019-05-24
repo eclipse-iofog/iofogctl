@@ -2,34 +2,39 @@ package config
 
 import (
 	"io/ioutil"
-	"github.com/eclipse-iofog/cli/cmd/util"
+	"github.com/eclipse-iofog/cli/pkg/util"
 	"fmt"
 	"github.com/spf13/viper"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
 )
 
+var filename string
+
+// SetFile sets the config filename from root command
+func SetFile(file string){
+	filename = file
+}
+
 // Manager export
 type Manager struct {
 	configuration configuration
-	filename string
-	namespaceIndex map[string]int
-	controllerIndex map[string][2]int
-	agentIndex map[string][2]int
+	namespaceIndex map[string]int // For O(1) time lookups of namespaces
+	controllerIndex map[string][2]int // For O(1) time lookups of controllers
+	agentIndex map[string][2]int // For O(1) time lookups of agents
 }
 
 // NewManager export
-func NewManager(filename string) *Manager {
+func NewManager() *Manager {
 	manager := new(Manager)
 	manager.namespaceIndex = make(map[string]int)
 	manager.controllerIndex = make(map[string][2]int)
 	manager.agentIndex = make(map[string][2]int)
-	manager.filename = filename
 
 	// Read the file and unmarshall contents
-	if manager.filename != "" {
+	if filename != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(manager.filename)
+		viper.SetConfigFile(filename)
 	} else {
 		// Find home directory.
 		home, err := homedir.Dir()
@@ -139,11 +144,6 @@ func (manager *Manager) GetAgent(namespace, name string) (agent Agent, err error
 	return
 }
 
-
-func removeElement(slice []Agent, index int) []Agent {
-    return append(slice[:index], slice[index+1:]...)
-}
-
 // DeleteAgent export
 func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 	// Check exists
@@ -168,12 +168,13 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 		manager.agentIndex[namespace + agent.Name] = [2]int{nsIdx, idx}
 	}
 
+	// TODO: (Serge) Replace panic with logic to reset configuration datastructure
 	// Write to file
 	marshal, err := yaml.Marshal(&manager.configuration)
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile(manager.filename, marshal, 0644)
+	err = ioutil.WriteFile(filename, marshal, 0644)
 	if err != nil {
 		panic(err)
 	}

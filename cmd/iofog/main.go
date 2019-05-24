@@ -14,8 +14,13 @@
 
 package main
 
-import "github.com/eclipse-iofog/cli/cmd"
+import (
+	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/cli/pkg/root"
+)
 
 func main() {
-	cmd.Execute()
+	rootCmd := root.NewCommand()
+	err := rootCmd.Execute()
+	util.Check(err)
 }
