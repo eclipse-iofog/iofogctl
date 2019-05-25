@@ -22,24 +22,21 @@ import (
 
 //NewCommand export
 func NewCommand() *cobra.Command {
+	// Root command
 	var cmd = &cobra.Command{
-		Use:   "cli",
-		Short: "A brief description of your application",
-		Long: "A brief description of your application",
-		//	Run: func(cmd *cobra.Command, args []string) { },
+		Use:   "iofog",
+		Short: "ioFog Unified Command Line Interface",
+		Long: "ioFog Unified Command Line Interface",
 	}
+
+	// Initialize config filename
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	// Global flags
 	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "config file (default is $HOME/.cli.yaml)")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "--namespace default")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	// Register all commands
 	cmd.AddCommand(get.NewCommand())
 	return cmd
 }

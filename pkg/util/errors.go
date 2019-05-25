@@ -4,32 +4,47 @@ import (
 	"fmt"
 )
 
-// NotFound export
-type NotFound struct {  
+// NotFoundError export
+type NotFoundError struct {  
     resource    string
 }
-// NewNotFound export
-func NewNotFound(resource string) (err *NotFound) {
-    err = new(NotFound)
+// NewNotFoundError export
+func NewNotFoundError(resource string) (err *NotFoundError) {
+    err = new(NotFoundError)
     err.resource = resource
     return err
 }
 // Error export
-func (e *NotFound) Error() string {  
-    return fmt.Sprintf("Error: %s not found.", e.resource)
+func (err *NotFoundError) Error() string {  
+    return fmt.Sprintf("Error: %s not found.", err.resource)
 }
 
-// Conflict export
-type Conflict struct {
+//ConflictError export
+type ConflictError struct {
     resource string
 }
-// NewConflict export
-func NewConflict(resource string) (err *Conflict) {
-    err = new(Conflict)
+// NewConflictError export
+func NewConflictError(resource string) (err *ConflictError) {
+    err = new(ConflictError)
     err.resource = resource
     return err
 }
 // Error export
-func (e *Conflict) Error() string {
-    return fmt.Sprintf("Error: %s already exists.", e.resource)
+func (err *ConflictError) Error() string {
+    return fmt.Sprintf("Error: %s already exists.", err.resource)
+}
+
+// InputError export
+type InputError struct {
+    message string
+}
+//NewInputError export
+func NewInputError(message string) (err *InputError) {
+    err = new(InputError)
+    err.message = message
+    return err
+}
+// Error export
+func (err *InputError) Error() string {
+    return "[ERROR] User Input\n" + err.message
 }

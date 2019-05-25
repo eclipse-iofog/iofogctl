@@ -84,7 +84,7 @@ func (manager *Manager) GetAgents(namespace string) (agents []Agent, err error) 
 	// Get the requested namespace
 	idx, exists := manager.namespaceIndex[namespace]
 	if !exists {
-		err = util.NewNotFound(namespace)
+		err = util.NewNotFoundError(namespace)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (manager *Manager) GetControllers(namespace string) (controllers []Controll
 	// Get the requested namespace
 	idx, exists := manager.namespaceIndex[namespace]
 	if !exists {
-		err = util.NewNotFound(namespace)
+		err = util.NewNotFoundError(namespace)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (manager *Manager) GetControllers(namespace string) (controllers []Controll
 func (manager *Manager) GetNamespace(name string) (namespace Namespace, err error){
 	idx, exists := manager.namespaceIndex[name]
 	if !exists {
-		err = util.NewNotFound(name)
+		err = util.NewNotFoundError(name)
 		return 
 	}
 	namespace.Name = manager.configuration.Namespaces[idx].Name
@@ -124,7 +124,7 @@ func (manager *Manager) GetNamespace(name string) (namespace Namespace, err erro
 func (manager *Manager) GetController(namespace, name string) (controller Controller, err error){
 	idxs, exists := manager.controllerIndex[namespace + name]
 	if !exists {
-		err = util.NewNotFound(namespace + "/" + name)
+		err = util.NewNotFoundError(namespace + "/" + name)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (manager *Manager) GetController(namespace, name string) (controller Contro
 func (manager *Manager) GetAgent(namespace, name string) (agent Agent, err error){
 	idxs, exists := manager.agentIndex[namespace + name]
 	if !exists {
-		err = util.NewNotFound(namespace + "/" + name)
+		err = util.NewNotFoundError(namespace + "/" + name)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 	// Check exists
 	idxs, exists := manager.agentIndex[namespace + name]
 	if !exists {
-		err = util.NewNotFound(namespace + "/" + name)
+		err = util.NewNotFoundError(namespace + "/" + name)
 		return
 	}
 	// Perform deletion

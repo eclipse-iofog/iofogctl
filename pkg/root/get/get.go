@@ -24,8 +24,8 @@ func (get *get) execute(resource string) error {
 	case "microservices":
 		//
 	default:
-		// Print out error
-		return util.NewNotFound("")
+		msg := "Unknown resource: '" + resource + "'"
+		return util.NewInputError(msg)
 	}
 	return nil
 }
