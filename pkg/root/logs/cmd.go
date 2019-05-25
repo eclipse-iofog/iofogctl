@@ -6,15 +6,15 @@ import (
 
 // NewCommand export
 func NewCommand() *cobra.Command {
-	impl := new()
+	logs := new()
 
 	cmd := &cobra.Command{
 		Use:   "logs",
 		Short: "Get logs of running Controller, Agent, or Microservice",
 		Long: "Get logs of running Controller, Agent, or Microservice",
 		Run: func(cmd *cobra.Command, args []string) {
-			impl.validate(args)
-			impl.execute()
+			logs.validate(args)
+			logs.execute()
 		},
 	}
 	return cmd
