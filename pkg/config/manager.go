@@ -27,9 +27,6 @@ type Manager struct {
 // NewManager export
 func NewManager() *Manager {
 	manager := new(Manager)
-	manager.namespaceIndex = make(map[string]int)
-	manager.controllerIndex = make(map[string][2]int)
-	manager.agentIndex = make(map[string][2]int)
 
 	// Read the file and unmarshall contents
 	if filename != "" {
@@ -52,20 +49,8 @@ func NewManager() *Manager {
 	util.Check(err)
 	fmt.Println("Using config file:", viper.ConfigFileUsed())
 
-	// Unmarshall the configuration
-	err = viper.Unmarshal(&manager.configuration)
-	util.Check(err)
-
-	// Update Indexes
-	for nsIdx, ns := range manager.configuration.Namespaces {
-		manager.namespaceIndex[ns.Name] = nsIdx
-		for ctrlIdx, ctrl := range ns.Controllers {
-			manager.controllerIndex[ns.Name + ctrl.Name] = [2]int{nsIdx, ctrlIdx}
-		}
-		for agntIdx, agnt := range ns.Agents {
-			manager.agentIndex[ns.Name + agnt.Name] = [2]int{nsIdx, agntIdx}
-		}
-	}
+	// Initialize the data structure
+	manager.resetFromFile()
 
 	return manager
 }
@@ -168,16 +153,44 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 		manager.agentIndex[namespace + agent.Name] = [2]int{nsIdx, idx}
 	}
 
-	// TODO: (Serge) Replace panic with logic to reset configuration datastructure
 	// Write to file
 	marshal, err := yaml.Marshal(&manager.configuration)
 	if err != nil {
-		panic(err)
+		// Undo the changes we just made to data structure
+		err = manager.resetFromFile()
+		// Fatal error if reset failed
+		util.Check(err)
 	}
 	err = ioutil.WriteFile(filename, marshal, 0644)
 	if err != nil {
-		panic(err)
+		// Undo the changes we just made to data structure
+		err = manager.resetFromFile()
+		// Fatal error if reset failed
+		util.Check(err)
 	}
 
+	return
+}
+
+func (manager *Manager) resetFromFile() (err error) {
+	// Unmarshall the configuration
+	err = viper.Unmarshal(&manager.configuration)
+	if err != nil {
+		return
+	}
+
+	// Update Indexes
+	manager.namespaceIndex = make(map[string]int)
+	manager.controllerIndex = make(map[string][2]int)
+	manager.agentIndex = make(map[string][2]int)
+	for nsIdx, ns := range manager.configuration.Namespaces {
+		manager.namespaceIndex[ns.Name] = nsIdx
+		for ctrlIdx, ctrl := range ns.Controllers {
+			manager.controllerIndex[ns.Name + ctrl.Name] = [2]int{nsIdx, ctrlIdx}
+		}
+		for agntIdx, agnt := range ns.Agents {
+			manager.agentIndex[ns.Name + agnt.Name] = [2]int{nsIdx, agntIdx}
+		}
+	}
 	return
 }
