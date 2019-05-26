@@ -74,7 +74,9 @@ func (manager *Manager) GetAgents(namespace string) (agents []Agent, err error) 
 	}
 
 	// Copy the agents
-	copy(agents, manager.configuration.Namespaces[idx].Agents)
+	srcAgents := &manager.configuration.Namespaces[idx].Agents
+	agents = make([]Agent, len(*srcAgents))
+	copy(agents, *srcAgents)
 
 	return
 }
@@ -89,7 +91,26 @@ func (manager *Manager) GetControllers(namespace string) (controllers []Controll
 	}
 
 	// Copy the controllers
-	copy(controllers, manager.configuration.Namespaces[idx].Controllers)
+	srcControllers := &manager.configuration.Namespaces[idx].Controllers
+	controllers = make([]Controller, len(*srcControllers))
+	copy(controllers, *srcControllers)
+
+	return
+}
+
+// GetMicroservices export
+func (manager *Manager) GetMicroservices(namespace string) (microservices []Microservice, err error) {
+	// Get the requested namespace
+	idx, exists := manager.namespaceIndex[namespace]
+	if !exists {
+		err = util.NewNotFoundError(namespace)
+		return
+	}
+
+	// Copy the microservices
+	srcMicroservices := &manager.configuration.Namespaces[idx].Microservices
+	microservices = make([]Microservice, len(*srcMicroservices))
+	copy(microservices, *srcMicroservices)
 
 	return
 }

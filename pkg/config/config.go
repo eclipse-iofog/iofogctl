@@ -15,6 +15,12 @@ type Agent struct {
 	User string `mapstructure:"user"`
 }
 
+// Microservice export
+type Microservice struct {
+	Name string `mapstructure:"name"`
+	Flow string `mapstructure:"flow"`
+}
+
 // Namespace export
 type Namespace struct {
 	Name string
@@ -22,8 +28,9 @@ type Namespace struct {
 
 type namespace struct {
 	Name       string     `mapstructure:"name"`
-	Controllers []Controller `mapstructure:"controller"`
+	Controllers []Controller `mapstructure:"controllers"`
 	Agents     []Agent    `mapstructure:"agents"`
+	Microservices []Microservice `mapstructure:"microservices"`
 }
 
 type configuration struct {
