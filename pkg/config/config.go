@@ -3,6 +3,9 @@ package config
 import (
 )
 
+// DefaultFilename export
+const DefaultFilename = ".iofog.yaml"
+
 // Controller export
 type Controller struct {
 	Name string `mapstructure:"name"`

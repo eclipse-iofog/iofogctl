@@ -30,19 +30,14 @@ func NewManager() *Manager {
 	manager := new(Manager)
 
 	// Read the file and unmarshall contents
-	if filename != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(filename)
-	} else {
+	if filename == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.Check(err)
 
-		// Search config in home directory with name ".cli" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".cli")
-		filename = home + "/.cli.yaml"
+		filename = home + "/" + DefaultFilename
 	}
+	viper.SetConfigFile(filename)
 
 	viper.AutomaticEnv() // read in environment variables that match
 

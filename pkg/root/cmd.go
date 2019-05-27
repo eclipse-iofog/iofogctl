@@ -23,7 +23,7 @@ func NewCommand() *cobra.Command {
 	cobra.OnInitialize(initConfig)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is $HOME/.cli.yaml)")
+	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is ~/" + config.DefaultFilename + ")")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
 
 	// Register all commands
