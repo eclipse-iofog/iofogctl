@@ -15,10 +15,13 @@ func NewCommand() *cobra.Command {
 iofog deploy microservice my_microservice_name my_agent_name`,
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			println(namespace)
-			
+
+			microservice := new()
+			err = microservice.execute(namespace, name)
+			util.Check(err)
 		},
 	}
 

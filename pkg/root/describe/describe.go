@@ -48,7 +48,14 @@ func (describe *describe) execute(resource, namespace, name string) error {
 		}
 
 	case "microservice":
-		//microservices, err := describe.configManager.GetMicroservice(namespace, name)
+		microservice, err := describe.configManager.GetMicroservice(namespace, name)
+		if err != nil {
+			return err
+		}
+		if err = print(microservice); err != nil {
+			return err
+		}
+
 
 	default:
 		msg := "Unknown resource: '" + resource + "'"

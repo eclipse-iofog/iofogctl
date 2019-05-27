@@ -22,6 +22,7 @@ type Manager struct {
 	namespaceIndex map[string]int // For O(1) time lookups of namespaces
 	controllerIndex map[string][2]int // For O(1) time lookups of controllers
 	agentIndex map[string][2]int // For O(1) time lookups of agents
+	microserviceIndex map[string][2]int // For O(1) time lookups of microservices
 }
 
 // NewManager export
@@ -151,6 +152,18 @@ func (manager *Manager) GetAgent(namespace, name string) (agent Agent, err error
 	return
 }
 
+// GetMicroservice export
+func (manager *Manager) GetMicroservice(namespace, name string) (microservice Microservice, err error){
+	idxs, exists := manager.microserviceIndex[namespace + name]
+	if !exists {
+		err = util.NewNotFoundError(namespace + "/" + name)
+		return
+	}
+
+	microservice = manager.configuration.Namespaces[idxs[0]].Microservices[idxs[1]]
+	return
+}
+
 // AddController export
 func (manager *Manager) AddController(namespace string, controller Controller) error {
 	// Check exists
@@ -192,6 +205,32 @@ func (manager *Manager) AddAgent(namespace string, agent Agent) error {
 
 	// Update index
 	manager.agentIndex[ namespace + agent.Name ] = [2]int{ nsIdx, agentIdx }
+
+	// Write to file
+	if err := manager.updateFile(); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+// AddMicroservice export
+func (manager *Manager) AddMicroservice(namespace string, microservice Microservice) error {
+	// Check exists
+	idxs, exists := manager.microserviceIndex[ namespace + microservice.Name ]
+	if exists {
+		return util.NewConflictError(namespace + "/" + microservice.Name)
+	}
+
+	// Perform addition
+	nsIdx := idxs[0]
+	microservices := &manager.configuration.Namespaces[nsIdx].Microservices
+	msIdx := len(*microservices)
+	*microservices = append(*microservices, microservice)
+
+	// Update index
+	manager.microserviceIndex[ namespace + microservice.Name ] = [2]int{ nsIdx, msIdx }
 
 	// Write to file
 	if err := manager.updateFile(); err != nil {
@@ -261,6 +300,35 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 	return
 }
 
+// DeleteMicroservice export
+func (manager *Manager) DeleteMicroservice(namespace, name string) (err error) {
+	// Check exists
+	idxs, exists := manager.microserviceIndex[namespace + name]
+	if !exists {
+		err = util.NewNotFoundError(namespace + "/" + name)
+		return
+	}
+	// Perform deletion
+	nsIdx := idxs[0]
+	ns := &manager.configuration.Namespaces[nsIdx]
+	delIdx := idxs[1]
+	ns.Microservices = append(ns.Microservices[:delIdx], ns.Microservices[delIdx+1:]...)
+	
+	// Delete entry from index
+	delete(manager.microserviceIndex, namespace + name)
+	// Update index entries for elements after deleted element in the array
+	for idx, ms := range ns.Microservices[delIdx:] {
+		manager.microserviceIndex[namespace + ms.Name] = [2]int{nsIdx, idx}
+	}
+
+	// Write to file
+	if err = manager.updateFile(); err != nil {
+		return
+	}
+
+	return
+}
+
 func (manager *Manager) updateFile() (err error) {
 	marshal, err := yaml.Marshal(&manager.configuration)
 	if err != nil {
@@ -292,6 +360,7 @@ func (manager *Manager) resetFromFile() (err error) {
 	manager.namespaceIndex = make(map[string]int)
 	manager.controllerIndex = make(map[string][2]int)
 	manager.agentIndex = make(map[string][2]int)
+	manager.microserviceIndex = make(map[string][2]int)
 	for nsIdx, ns := range manager.configuration.Namespaces {
 		manager.namespaceIndex[ns.Name] = nsIdx
 		for ctrlIdx, ctrl := range ns.Controllers {
@@ -299,6 +368,9 @@ func (manager *Manager) resetFromFile() (err error) {
 		}
 		for agntIdx, agnt := range ns.Agents {
 			manager.agentIndex[ns.Name + agnt.Name] = [2]int{nsIdx, agntIdx}
+		}
+		for msIdx, ms := range ns.Microservices {
+			manager.microserviceIndex[ns.Name + ms.Name] = [2]int{nsIdx, msIdx}
 		}
 	}
 	return
