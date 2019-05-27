@@ -22,8 +22,10 @@ iofog get microservices`,
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 			
-			get := new()
-			err = get.execute(resource, namespace)
+			exe, err := getExecutor(resource)
+			util.Check(err)
+
+			err = exe.execute(namespace)
 			util.Check(err)
 		},
 	}

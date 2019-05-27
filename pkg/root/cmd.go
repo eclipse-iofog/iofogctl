@@ -6,6 +6,7 @@ import (
 	"github.com/eclipse-iofog/cli/pkg/root/deploy"
 	"github.com/eclipse-iofog/cli/pkg/root/delete"
 	"github.com/eclipse-iofog/cli/pkg/root/describe"
+	"github.com/eclipse-iofog/cli/pkg/root/logs"
 	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
@@ -30,6 +31,7 @@ func NewCommand() *cobra.Command {
 	cmd.AddCommand(deploy.NewCommand())
 	cmd.AddCommand(delete.NewCommand())
 	cmd.AddCommand(describe.NewCommand())
+	cmd.AddCommand(logs.NewCommand())
 
 	return cmd
 }

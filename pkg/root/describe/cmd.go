@@ -34,8 +34,10 @@ iofog describe microservice my_microservice_name`,
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 			
-			describe := new()
-			err = describe.execute(resource, namespace, name)
+			exe, err := getExecutor(resource)
+			util.Check(err)
+
+			err = exe.execute(namespace, name)
 			util.Check(err)
 		},
 	}
