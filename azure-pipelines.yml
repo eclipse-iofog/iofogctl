@@ -1,0 +1,51 @@
+trigger:
+  tags:
+    include:
+      - v*
+  branches:
+    include:
+      - develop
+  paths:
+    exclude:
+      - README.md
+
+variables:
+  GOBIN:  '$(GOPATH)/bin' # Go binaries path
+  GOROOT: '/usr/local/go1.11' # Go installation path
+  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
+  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+
+jobs:
+  - job: CLI
+    pool:
+      vmImage: 'Ubuntu-16.04'
+
+    steps:
+
+      - script: |
+          mkdir -p '$(GOBIN)'
+          mkdir -p '$(GOPATH)/pkg'
+          mkdir -p '$(modulePath)'
+          shopt -s extglob
+          mv !(gopath) '$(modulePath)'
+          echo '##vso[task.prependpath]$(GOBIN)'
+          echo '##vso[task.prependpath]$(GOROOT)/bin'
+        displayName: 'Set up the Go workspace'
+
+      - task: GoTool@0
+        inputs:
+          version: '1.12.1'
+          goPath: $(GOPATH)
+          goBin: $(GOBIN)
+        displayName: 'Install Golang'
+
+      - script: |
+          make bootstrap
+          make dep
+        workingDirectory: '$(modulePath)'
+        displayName: 'Dep Ensure'
+
+      - script: |
+          make test
+        workingDirectory: '$(modulePath)'
+        displayName: 'Run Tests'
