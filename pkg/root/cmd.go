@@ -17,6 +17,7 @@ package root
 import (
 	"github.com/spf13/cobra"
 	"github.com/eclipse-iofog/cli/pkg/root/get"
+	"github.com/eclipse-iofog/cli/pkg/root/deploy"
 	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
@@ -33,11 +34,13 @@ func NewCommand() *cobra.Command {
 	cobra.OnInitialize(initConfig)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "config file (default is $HOME/.cli.yaml)")
-	cmd.PersistentFlags().StringP("namespace", "n", "default", "--namespace default")
+	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is $HOME/.cli.yaml)")
+	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
 
 	// Register all commands
 	cmd.AddCommand(get.NewCommand())
+	cmd.AddCommand(deploy.NewCommand())
+
 	return cmd
 }
 
