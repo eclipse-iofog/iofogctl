@@ -1,4 +1,4 @@
-package deploycontroller
+package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/cli/pkg/config"
@@ -19,13 +19,12 @@ func (ctrl *controller) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	configEntry := config.Controller{ Name: name, User: "none" }
-	err := ctrl.configManager.AddController(namespace, configEntry)
+	err := ctrl.configManager.DeleteController(namespace, name)
 
 	// TODO (Serge) Handle config file error, retry..?
 
 	if err == nil {
-		fmt.Printf("\nController %s/%s successfully deployed.\n", namespace, name)
+		fmt.Printf("\nController %s/%s successfully deleted.\n", namespace, name)
 	}
 	return err
 }

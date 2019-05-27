@@ -40,6 +40,7 @@ func NewManager() *Manager {
 		// Search config in home directory with name ".cli" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".cli")
+		filename = home + "/.cli.yaml"
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
@@ -150,6 +151,61 @@ func (manager *Manager) GetAgent(namespace, name string) (agent Agent, err error
 	return
 }
 
+// AddController export
+func (manager *Manager) AddController(namespace string, controller Controller) error {
+	// Check exists
+	idxs, exists := manager.controllerIndex[ namespace + controller.Name ]
+	if exists {
+		return util.NewConflictError(namespace + "/" + controller.Name)
+	}
+
+	// Perform addition
+	nsIdx := idxs[0]
+	controllers := &manager.configuration.Namespaces[nsIdx].Controllers
+	ctrlIdx := len(*controllers)
+	*controllers = append(*controllers, controller)
+
+	// Update index
+	manager.controllerIndex[ namespace + controller.Name ] = [2]int{ nsIdx, ctrlIdx }
+
+	// Write to file
+	if err := manager.updateFile(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteController export
+func (manager *Manager) DeleteController(namespace, name string) (err error) {
+	// Check exists
+	idxs, exists := manager.controllerIndex[namespace + name]
+	if !exists {
+		err = util.NewNotFoundError(namespace + "/" + name)
+		return
+	}
+
+	// Perform deletion
+	nsIdx := idxs[0]
+	ns := &manager.configuration.Namespaces[nsIdx]
+	delIdx := idxs[1]
+	ns.Controllers = append(ns.Controllers[:delIdx], ns.Controllers[delIdx+1:]...)
+
+	// Delete entry from index
+	delete(manager.controllerIndex, namespace + name)
+	// Update index entries for elements after deleted element in the array
+	for idx, ctrl := range ns.Controllers[delIdx:] {
+		manager.controllerIndex[namespace + ctrl.Name] = [2]int{nsIdx, idx}
+	}
+
+	// Write to file
+	if err = manager.updateFile(); err != nil {
+		return
+	}
+
+	return
+}
+
 // DeleteAgent export
 func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 	// Check exists
@@ -163,9 +219,6 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 	ns := &manager.configuration.Namespaces[nsIdx]
 	delIdx := idxs[1]
 	ns.Agents = append(ns.Agents[:delIdx], ns.Agents[delIdx+1:]...)
-	for _, a := range ns.Agents {
-		print(a.Name)
-	}
 	
 	// Delete entry from index
 	delete(manager.agentIndex, namespace + name)
@@ -175,12 +228,21 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 	}
 
 	// Write to file
+	if err = manager.updateFile(); err != nil {
+		return
+	}
+
+	return
+}
+
+func (manager *Manager) updateFile() (err error) {
 	marshal, err := yaml.Marshal(&manager.configuration)
 	if err != nil {
 		// Undo the changes we just made to data structure
 		err = manager.resetFromFile()
 		// Fatal error if reset failed
 		util.Check(err)
+		return
 	}
 	err = ioutil.WriteFile(filename, marshal, 0644)
 	if err != nil {
@@ -188,8 +250,8 @@ func (manager *Manager) DeleteAgent(namespace, name string) (err error) {
 		err = manager.resetFromFile()
 		// Fatal error if reset failed
 		util.Check(err)
+		return
 	}
-
 	return
 }
 
