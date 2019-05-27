@@ -176,6 +176,32 @@ func (manager *Manager) AddController(namespace string, controller Controller) e
 	return nil
 }
 
+// AddAgent export
+func (manager *Manager) AddAgent(namespace string, agent Agent) error {
+	// Check exists
+	idxs, exists := manager.agentIndex[ namespace + agent.Name ]
+	if exists {
+		return util.NewConflictError(namespace + "/" + agent.Name)
+	}
+
+	// Perform addition
+	nsIdx := idxs[0]
+	agents := &manager.configuration.Namespaces[nsIdx].Agents
+	agentIdx := len(*agents)
+	*agents = append(*agents, agent)
+
+	// Update index
+	manager.agentIndex[ namespace + agent.Name ] = [2]int{ nsIdx, agentIdx }
+
+	// Write to file
+	if err := manager.updateFile(); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 // DeleteController export
 func (manager *Manager) DeleteController(namespace, name string) (err error) {
 	// Check exists

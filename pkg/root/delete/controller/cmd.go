@@ -14,7 +14,6 @@ func NewCommand() *cobra.Command {
 		Example: `iofog delete controller my_controller_name`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)

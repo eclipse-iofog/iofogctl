@@ -14,10 +14,13 @@ func NewCommand() *cobra.Command {
 		Example: `iofog delete agent my_agent_name`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			println(namespace)
-			
+
+			ctrl := new()
+			err = ctrl.execute(namespace, name)
+			util.Check(err)
 		},
 	}
 

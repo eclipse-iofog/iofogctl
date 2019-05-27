@@ -15,10 +15,13 @@ func NewCommand() *cobra.Command {
 iofog deploy agent my_agent_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			println(namespace)
-			
+
+			agent := new()
+			err = agent.execute(namespace, name)
+			util.Check(err)
 		},
 	}
 

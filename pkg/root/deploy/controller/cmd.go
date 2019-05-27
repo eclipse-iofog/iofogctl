@@ -16,7 +16,6 @@ iofog deploy controller my_controller_name --user root --host 32.23.134.3 --key_
 iofog deploy controller my_controller_name --kube-config ~/.kube/conf`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
