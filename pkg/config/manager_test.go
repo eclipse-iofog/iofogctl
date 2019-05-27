@@ -8,26 +8,26 @@ import (
 
 var testData = []byte(`
 namespaces:
-  - name: first
-    controller:
-        name: controller0
-        user: root0
-    agents:
-      - name: agent0
-        user: root0
-      - name: agent1
-        user: root1
-      - name: agent2
-        user: root2
-  - name: second
-    controller:
-        name: controller1
-        user: root1
-    agents:
-      - name: agent1
-        user: root1
-      - name: agent2
-        user: root2
+- name: first
+  controllers:
+  - name: controller0
+    user: root0
+  agents:
+  - name: agent0
+    user: root0
+  - name: agent1
+    user: root1
+  - name: agent2
+    user: root2
+- name: second
+  controllers:
+  - name: controller1
+    user: root1
+  agents:
+  - name: agent1
+    user: root1
+  - name: agent2
+    user: root2
 `)
 func init() {
 	SetFile("/tmp/cli.yml")
@@ -97,7 +97,7 @@ func TestControllers(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error getting single Controller: %s", err.Error())
 			}
-			if singleCtrl.Name != expectedUser {
+			if singleCtrl.Name != expectedName {
 				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedName, singleCtrl.Name)
 			}
 			if singleCtrl.User != expectedUser {
@@ -117,7 +117,7 @@ func TestAgents(t *testing.T) {
 		}
 		for agentIdx, agent := range agents {
 			idx := nsIdx + agentIdx
-			expectedName := "controller" + strconv.Itoa(idx)
+			expectedName := "agent" + strconv.Itoa(idx)
 			if agent.Name != expectedName {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedName, agent.Name)
 			}
@@ -131,7 +131,7 @@ func TestAgents(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error getting single Agent: %s", err.Error())
 			}
-			if singleAgent.Name != expectedUser {
+			if singleAgent.Name != expectedName {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedName, singleAgent.Name)
 			}
 			if singleAgent.User != expectedUser {
