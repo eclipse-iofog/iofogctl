@@ -18,8 +18,10 @@ func NewCommand() *cobra.Command {
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			ctrl := new()
-			err = ctrl.execute(namespace, name)
+			exe, err := getExecutor(namespace, name)
+			util.Check(err)	
+
+			err = exe.execute()
 			util.Check(err)
 		},
 	}
