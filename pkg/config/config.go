@@ -10,6 +10,9 @@ const DefaultFilename = ".iofog.yaml"
 type Controller struct {
 	Name string `mapstructure:"name"`
 	User string `mapstructure:"user"`
+	Host string `mapstructure:"host"`
+	KeyFile string `mapstructure:"keyFile"`
+	KubeConfig string `mapstructure:"kubeConfig"`
 }
 
 // Agent export

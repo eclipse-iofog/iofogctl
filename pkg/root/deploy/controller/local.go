@@ -3,31 +3,35 @@ package deploycontroller
 import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/config"
+	"os/user"
 )
 
-type defaultExecutor struct {
+type localExecutor struct {
 	configManager *config.Manager
 	opt *options
 }
 
-func newDefaultExecutor(opt *options) *defaultExecutor {
-	d := &defaultExecutor{}
-	d.configManager = config.NewManager()
-	d.opt = opt
-	return d
+func newLocalExecutor(opt *options) *localExecutor {
+	l := &localExecutor{}
+	l.configManager = config.NewManager()
+	l.opt = opt
+	return l
 }
 
-func (exe *defaultExecutor) execute(namespace, name string) error {
+func (exe *localExecutor) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
+	currUser, err := user.Current()
+	if err != nil {
+		return err
+	}
 	// Update configuration
 	configEntry := config.Controller{ 
 		Name: name, 
-		User: *exe.opt.user,
-		Host: *exe.opt.host,
-		KeyFile: *exe.opt.keyFile,
+		User: currUser.Username,
+		Host: "localhost",
 	}
-	err := exe.configManager.AddController(namespace, configEntry)
+	err = exe.configManager.AddController(namespace, configEntry)
 
 	// TODO (Serge) Handle config file error, retry..?
 
