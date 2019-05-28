@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/root"
+	"github.com/eclipse-iofog/cli/internal/root"
 	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
