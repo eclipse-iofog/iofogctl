@@ -23,7 +23,7 @@ GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
-all: build install ## Build and install
+all: dep build install ## Get deps, build, and install binary
 
 .PHONY: clean
 clean: ## Clean the working area and the project
