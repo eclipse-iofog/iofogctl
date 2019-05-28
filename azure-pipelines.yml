@@ -40,7 +40,7 @@ jobs:
         displayName: 'Install Golang'
 
       - script: |
-          make bootstrap
+          ./script/bootstrap.sh
           make dep
         workingDirectory: '$(modulePath)'
         displayName: 'Dep Ensure'

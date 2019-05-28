@@ -22,36 +22,35 @@ GOLANG_VERSION = 1.12
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
+.PHONY: all
+all: build install ## Build and install
+
 .PHONY: clean
 clean: ## Clean the working area and the project
 	rm -rf $(BUILD_DIR)/ vendor/
-
-.PHONY: bootstrap
-bootstrap:
-	go get -u github.com/golang/dep/cmd/dep
 
 .PHONY: dep
 dep: ## Install dependencies
 	dep ensure -v -vendor-only
 
-.PHONY: build ## Build the binary
+.PHONY: build
 build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
-build:
+build: ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
 endif
 	go build $(GOARGS) $(BUILD_PACKAGE)
 
-.PHONY: build-img ## Builder the Docker image with tag 'local'
-build-img:
-	docker build --rm -t $(IMAGE):local -f Dockerfile .
+.PHONY: install
+install: ## Install the ioFog binary to /usr/local/bin
+	cp bin/iofog /usr/local/bin/
 
 .PHONY: fmt
-fmt:
+fmt: ## Format the source
 	@gofmt -s -w $(GOFILES_NOVENDOR)
 
 .PHONY: test
-test:
+test: ## Run unit tests
 	set -o pipefail; go list ./... | xargs -n1 go test $(GOARGS) -v -parallel 1 2>&1 | tee test.txt
 
 .PHONY: list
@@ -60,7 +59,7 @@ list: ## List all make targets
 
 .PHONY: help
 .DEFAULT_GOAL := help
-help:
+help: ## Get help output
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 # Variable outputting/exporting rules
