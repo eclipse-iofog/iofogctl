@@ -38,6 +38,11 @@ jobs:
           goPath: $(GOPATH)
           goBin: $(GOBIN)
         displayName: 'Install Golang'
+      
+      - script: |
+          ./script/check_fmt.sh
+        workingDirectory: '$(modulePath)'
+        displayName: 'Check Source Format'
 
       - script: |
           ./script/bootstrap.sh

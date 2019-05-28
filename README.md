@@ -2,8 +2,7 @@
 
 ## Contribute
 
+See all make commands by running:
 ```
-make test
-make build
-bin/iofog
+make
 ```
