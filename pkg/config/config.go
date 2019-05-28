@@ -14,8 +14,10 @@ type Controller struct {
 
 // Agent export
 type Agent struct {
-	Name string `mapstructure:"name"`
-	User string `mapstructure:"user"`
+	Name    string `mapstructure:"name"`
+	User    string `mapstructure:"user"`
+	Host    string `mapstructure:"host"`
+	KeyFile string `mapstructure:"keyFile"`
 }
 
 // Microservice export

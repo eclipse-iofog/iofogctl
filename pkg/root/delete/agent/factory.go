@@ -1,4 +1,4 @@
-package deletecontroller
+package deleteagent
 
 import (
 	"github.com/eclipse-iofog/cli/pkg/config"
@@ -13,7 +13,7 @@ func getExecutor(namespace, name string) (executor, error) {
 	cfg := config.NewManager()
 
 	// Find the requested controller
-	ctrl, err := cfg.GetController(namespace, name)
+	ctrl, err := cfg.GetAgent(namespace, name)
 	if err != nil {
 		return nil, err
 	}
@@ -21,11 +21,6 @@ func getExecutor(namespace, name string) (executor, error) {
 	// Local executor
 	if ctrl.Host == "localhost" {
 		return newLocalExecutor(cfg, namespace, ctrl), nil
-	}
-
-	// Kubernetes executor
-	if ctrl.KubeConfig != "" {
-		return newKubernetesExecutor(cfg, namespace, ctrl), nil
 	}
 
 	// Default executor

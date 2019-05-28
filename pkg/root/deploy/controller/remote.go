@@ -5,19 +5,19 @@ import (
 	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
-type defaultExecutor struct {
+type remoteExecutor struct {
 	configManager *config.Manager
 	opt           *options
 }
 
-func newDefaultExecutor(opt *options) *defaultExecutor {
-	d := &defaultExecutor{}
+func newRemoteExecutor(opt *options) *remoteExecutor {
+	d := &remoteExecutor{}
 	d.configManager = config.NewManager()
 	d.opt = opt
 	return d
 }
 
-func (exe *defaultExecutor) execute(namespace, name string) error {
+func (exe *remoteExecutor) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration

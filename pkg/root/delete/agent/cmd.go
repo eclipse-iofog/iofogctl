@@ -14,12 +14,17 @@ func NewCommand() *cobra.Command {
 		Example: `iofog delete agent my_agent_name`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// Get name and namespace of agent
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			ctrl := new()
-			err = ctrl.execute(namespace, name)
+			// Get an executor for the procedure
+			exe, err := getExecutor(namespace, name)
+			util.Check(err)
+
+			// Run the procedure
+			err = exe.execute()
 			util.Check(err)
 		},
 	}

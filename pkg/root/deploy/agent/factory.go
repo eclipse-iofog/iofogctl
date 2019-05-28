@@ -1,4 +1,4 @@
-package deploycontroller
+package deployagent
 
 import (
 	"github.com/eclipse-iofog/cli/pkg/util"
@@ -12,11 +12,6 @@ func getExecutor(opt *options) (executor, error) {
 	// Local executor
 	if *opt.local == true {
 		return newLocalExecutor(opt), nil
-	}
-
-	// Kubernetes executor
-	if *opt.kubeConfig != "" {
-		return newKubernetesExecutor(opt), nil
 	}
 
 	// Default executor
