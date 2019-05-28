@@ -7,7 +7,7 @@ import (
 
 type defaultExecutor struct {
 	configManager *config.Manager
-	opt *options
+	opt           *options
 }
 
 func newDefaultExecutor(opt *options) *defaultExecutor {
@@ -21,10 +21,10 @@ func (exe *defaultExecutor) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	configEntry := config.Controller{ 
-		Name: name, 
-		User: *exe.opt.user,
-		Host: *exe.opt.host,
+	configEntry := config.Controller{
+		Name:    name,
+		User:    *exe.opt.user,
+		Host:    *exe.opt.host,
 		KeyFile: *exe.opt.keyFile,
 	}
 	err := exe.configManager.AddController(namespace, configEntry)

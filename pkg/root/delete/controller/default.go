@@ -1,14 +1,14 @@
 package deletecontroller
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/config"
 	"fmt"
+	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
 type defaultExecutor struct {
 	configManager *config.Manager
-	namespace string
-	controller config.Controller
+	namespace     string
+	controller    config.Controller
 }
 
 func newDefaultExecutor(cfg *config.Manager, ns string, ctrl config.Controller) *defaultExecutor {

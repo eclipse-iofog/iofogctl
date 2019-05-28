@@ -1,15 +1,15 @@
 package get
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"text/tabwriter"
 )
 
 type row struct {
-	name string
+	name   string
 	status string
-	age string
+	age    string
 }
 
 func print(rows []row) error {

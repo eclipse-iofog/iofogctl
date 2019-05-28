@@ -1,8 +1,8 @@
 package deployagent
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/config"
 	"fmt"
+	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
 type agent struct {
@@ -19,7 +19,7 @@ func (ctrl *agent) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	configEntry := config.Agent{ Name: name, User: "none" }
+	configEntry := config.Agent{Name: name, User: "none"}
 	err := ctrl.configManager.AddAgent(namespace, configEntry)
 
 	// TODO (Serge) Handle config file error, retry..?

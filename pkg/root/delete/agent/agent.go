@@ -1,8 +1,8 @@
 package deleteagent
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/config"
 	"fmt"
+	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
 type agent struct {

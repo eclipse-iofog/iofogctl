@@ -1,17 +1,14 @@
 package config
 
-import (
-)
-
 // DefaultFilename export
 const DefaultFilename = ".iofog.yaml"
 
 // Controller export
 type Controller struct {
-	Name string `mapstructure:"name"`
-	User string `mapstructure:"user"`
-	Host string `mapstructure:"host"`
-	KeyFile string `mapstructure:"keyFile"`
+	Name       string `mapstructure:"name"`
+	User       string `mapstructure:"user"`
+	Host       string `mapstructure:"host"`
+	KeyFile    string `mapstructure:"keyFile"`
 	KubeConfig string `mapstructure:"kubeConfig"`
 }
 
@@ -33,9 +30,9 @@ type Namespace struct {
 }
 
 type namespace struct {
-	Name       string     `mapstructure:"name"`
-	Controllers []Controller `mapstructure:"controllers"`
-	Agents     []Agent    `mapstructure:"agents"`
+	Name          string         `mapstructure:"name"`
+	Controllers   []Controller   `mapstructure:"controllers"`
+	Agents        []Agent        `mapstructure:"agents"`
 	Microservices []Microservice `mapstructure:"microservices"`
 }
 

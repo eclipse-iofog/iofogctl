@@ -6,8 +6,8 @@ import (
 )
 
 var resources = map[string]bool{
-	"controller": true,
-	"agent": true,
+	"controller":   true,
+	"agent":        true,
 	"microservice": true,
 }
 
@@ -16,7 +16,7 @@ func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs resource name",
 		Short: "Get log contents of deployed resource",
-		Long: `Get log contents of deployed resource`,
+		Long:  `Get log contents of deployed resource`,
 		Example: `iofog logs controller my_controller_name
 iofog logs agent my_agent_name
 iofog logs microservice my_microservice_name`,
@@ -32,7 +32,7 @@ iofog logs microservice my_microservice_name`,
 
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			
+
 			exe, err := getExecutor(resource)
 			util.Check(err)
 

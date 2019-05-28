@@ -15,8 +15,8 @@
 package main
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/util"
 	"github.com/eclipse-iofog/cli/pkg/root"
+	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
 func main() {

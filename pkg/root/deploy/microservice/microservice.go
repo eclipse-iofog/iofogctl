@@ -1,8 +1,8 @@
 package deploymicroservice
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/config"
 	"fmt"
+	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
 type microservice struct {
@@ -19,7 +19,7 @@ func (ctrl *microservice) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	configEntry := config.Microservice{ Name: name }
+	configEntry := config.Microservice{Name: name}
 	err := ctrl.configManager.AddMicroservice(namespace, configEntry)
 
 	// TODO (Serge) Handle config file error, retry..?

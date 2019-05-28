@@ -1,8 +1,8 @@
 package config
 
 import (
-	"strconv"
 	"io/ioutil"
+	"strconv"
 	"testing"
 )
 
@@ -29,6 +29,7 @@ namespaces:
   - name: agent2
     user: root2
 `)
+
 func init() {
 	SetFile("/tmp/cli.yml")
 	err := ioutil.WriteFile(filename, testData, 0644)
@@ -37,20 +38,20 @@ func init() {
 	}
 }
 
-func TestDelete(t *testing.T){
+func TestDelete(t *testing.T) {
 	manager := NewManager()
 	manager.DeleteAgent("first", "agent2")
 }
 
 func TestNamespaces(t *testing.T) {
 	manager := NewManager()
-	
+
 	// Test all namespace queries
 	namespaces := manager.GetNamespaces()
 	if len(namespaces) != 2 {
 		t.Errorf("Incorrect number of namespaces: %d", len(namespaces))
 	}
-	expectedNamespaceNames := [2]string{ "first", "second" }
+	expectedNamespaceNames := [2]string{"first", "second"}
 	for idx, nsName := range expectedNamespaceNames {
 		if namespaces[idx].Name != nsName {
 			t.Errorf("Namespaces %d incorrect. Expected: %s, Found: %s", idx, namespaces[idx].Name, nsName)

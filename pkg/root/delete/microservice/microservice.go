@@ -1,8 +1,8 @@
 package deletemicroservice
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/config"
 	"fmt"
+	"github.com/eclipse-iofog/cli/pkg/config"
 )
 
 type microservice struct {

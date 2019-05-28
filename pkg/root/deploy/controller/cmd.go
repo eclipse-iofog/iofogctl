@@ -6,11 +6,11 @@ import (
 )
 
 type options struct {
-	user *string
-	host *string
-	keyFile *string
+	user       *string
+	host       *string
+	keyFile    *string
 	kubeConfig *string
-	local *bool
+	local      *bool
 }
 
 // NewCommand export
@@ -22,7 +22,7 @@ func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "controller name",
 		Short: "Deploy a Controller",
-		Long: `Deploy a Controller`,
+		Long:  `Deploy a Controller`,
 		Example: `iofog deploy controller my_controller_name --local
 iofog deploy controller my_controller_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
 iofog deploy controller my_controller_name --kube-config ~/.kube/conf`,

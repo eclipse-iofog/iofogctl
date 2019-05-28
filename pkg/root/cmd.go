@@ -1,13 +1,13 @@
 package root
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/eclipse-iofog/cli/pkg/root/get"
-	"github.com/eclipse-iofog/cli/pkg/root/deploy"
-	"github.com/eclipse-iofog/cli/pkg/root/delete"
-	"github.com/eclipse-iofog/cli/pkg/root/describe"
-	"github.com/eclipse-iofog/cli/pkg/root/logs"
 	"github.com/eclipse-iofog/cli/pkg/config"
+	"github.com/eclipse-iofog/cli/pkg/root/delete"
+	"github.com/eclipse-iofog/cli/pkg/root/deploy"
+	"github.com/eclipse-iofog/cli/pkg/root/describe"
+	"github.com/eclipse-iofog/cli/pkg/root/get"
+	"github.com/eclipse-iofog/cli/pkg/root/logs"
+	"github.com/spf13/cobra"
 )
 
 //NewCommand export
@@ -16,14 +16,14 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "iofog",
 		Short: "ioFog Unified Command Line Interface",
-		Long: "ioFog Unified Command Line Interface",
+		Long:  "ioFog Unified Command Line Interface",
 	}
 
 	// Initialize config filename
 	cobra.OnInitialize(initConfig)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is ~/" + config.DefaultFilename + ")")
+	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is ~/"+config.DefaultFilename+")")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
 
 	// Register all commands
@@ -37,6 +37,7 @@ func NewCommand() *cobra.Command {
 }
 
 var configFilename string
-func initConfig(){
+
+func initConfig() {
 	config.SetFile(configFilename)
 }

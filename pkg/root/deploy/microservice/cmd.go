@@ -10,7 +10,7 @@ func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "microservice name [agent]",
 		Short: "Deploy a Microservice",
-		Long: `Deploy a Microservice`,
+		Long:  `Deploy a Microservice`,
 		Example: `iofog deploy microservice my_microservice_name
 iofog deploy microservice my_microservice_name my_agent_name`,
 		Args: cobra.MinimumNArgs(1),

@@ -8,7 +8,7 @@ import (
 
 type localExecutor struct {
 	configManager *config.Manager
-	opt *options
+	opt           *options
 }
 
 func newLocalExecutor(opt *options) *localExecutor {
@@ -26,8 +26,8 @@ func (exe *localExecutor) execute(namespace, name string) error {
 		return err
 	}
 	// Update configuration
-	configEntry := config.Controller{ 
-		Name: name, 
+	configEntry := config.Controller{
+		Name: name,
 		User: currUser.Username,
 		Host: "localhost",
 	}

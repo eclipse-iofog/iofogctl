@@ -7,7 +7,7 @@ import (
 
 type kubernetesExecutor struct {
 	configManager *config.Manager
-	opt *options
+	opt           *options
 }
 
 func newKubernetesExecutor(opt *options) *kubernetesExecutor {
@@ -21,8 +21,8 @@ func (exe *kubernetesExecutor) execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	configEntry := config.Controller{ 
-		Name: name, 
+	configEntry := config.Controller{
+		Name:       name,
 		KubeConfig: *exe.opt.kubeConfig,
 	}
 	err := exe.configManager.AddController(namespace, configEntry)
