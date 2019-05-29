@@ -80,8 +80,21 @@ func (k8s *Kubernetes) Clean() error {
 	return nil
 }
 
-// Deploy Controller to Kubernetes cluster
+// CreateController on cluster
 func (k8s *Kubernetes) CreateController() error {
+	env := "KUBECONFIG=" + k8s.configFilename
+	err := util.Exec(env, "helm", "install", "iofog/iofog")
+	if err != nil {
+		return err
+	}
+	err = k8s.waitForPods(k8s.ns)
+	if err != nil {
+		return err
+	}
+	err = k8s.waitForService(k8s.ns)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -90,11 +103,12 @@ func (k8s *Kubernetes) DeleteController() error {
 }
 
 func (k8s *Kubernetes) waitForPods(namespace string) error {
-	// Get kube-system pod details
+	// Get Pods
 	podList, err := k8s.clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
+	podCount := len(podList.Items)
 	watch, err := k8s.clientset.CoreV1().Pods(namespace).Watch(metav1.ListOptions{})
 	if err != nil {
 		return err
@@ -103,18 +117,53 @@ func (k8s *Kubernetes) waitForPods(namespace string) error {
 	// Wait for cluster to be in ready state
 	readyPods := make(map[string]bool, 0)
 	for event := range watch.ResultChan() {
-		p, ok := event.Object.(*corev1.Pod)
+		pod, ok := event.Object.(*corev1.Pod)
 		if !ok {
-			return util.NewInternalError("Failed to wait for Kubernetes cluster to be ready")
+			return util.NewInternalError("Failed to wait for pods in namespace: " + namespace)
 		}
-		_, exists := readyPods[p.Name]
-		if !exists && p.Status.Phase == "Running" {
-			readyPods[p.Name] = true
-			if len(readyPods) == len(podList.Items) {
+		_, exists := readyPods[pod.Name]
+		if !exists && pod.Status.Phase == "Running" {
+			readyPods[pod.Name] = true
+			if len(readyPods) == podCount {
 				watch.Stop()
 			}
 		}
 	}
+	return nil
+}
+
+func (k8s *Kubernetes) waitForService(namespace string) error {
+	// Get Services
+	serviceList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	watch, err := k8s.clientset.CoreV1().Services(namespace).Watch(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	serviceCount := len(serviceList.Items)
+
+	// Wait for Services to have IPs allocated
+	readyServices := make(map[string]bool, 0)
+	for event := range watch.ResultChan() {
+		svc, ok := event.Object.(*corev1.Service)
+		if !ok {
+			return util.NewInternalError("Failed to wait for services in namespace: " + namespace)
+		}
+		_, exists := readyServices[svc.Name]
+		if !exists && len(svc.Status.LoadBalancer.Ingress) > 0 {
+			println("SVC" + svc.Name)
+			for _, ip := range svc.Status.LoadBalancer.Ingress {
+				println(ip.IP)
+			}
+			readyServices[svc.Name] = true
+			if len(readyServices) == serviceCount {
+				watch.Stop()
+			}
+		}
+	}
+
 	return nil
 }
 
