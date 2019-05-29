@@ -23,9 +23,9 @@ func (exe *remoteExecutor) execute(namespace, name string) error {
 	// Update configuration
 	configEntry := config.Controller{
 		Name:    name,
-		User:    *exe.opt.user,
-		Host:    *exe.opt.host,
-		KeyFile: *exe.opt.keyFile,
+		User:    exe.opt.user,
+		Host:    exe.opt.host,
+		KeyFile: exe.opt.keyFile,
 	}
 	err := exe.configManager.AddController(namespace, configEntry)
 

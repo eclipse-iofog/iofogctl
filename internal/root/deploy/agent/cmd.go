@@ -6,10 +6,10 @@ import (
 )
 
 type options struct {
-	user    *string
-	host    *string
-	keyFile *string
-	local   *bool
+	user    string
+	host    string
+	keyFile string
+	local   bool
 }
 
 // NewCommand export
@@ -42,10 +42,10 @@ iofog deploy agent my_agent_name --user root --host 32.23.134.3 --key_file ~/.ss
 	}
 
 	// Set up options
-	opt.user = cmd.Flags().StringP("user", "u", "", "Username of host the Controller is being deployed on")
-	opt.host = cmd.Flags().StringP("host", "o", "", "IP or hostname of host the Controller is being deployed on")
-	opt.keyFile = cmd.Flags().StringP("key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir")
-	opt.local = cmd.Flags().BoolP("local", "l", false, "Configure for local deployment. Cannot be used with other flags")
+	cmd.Flags().StringVarP(&opt.user, "user", "u", "", "Username of host the Controller is being deployed on")
+	cmd.Flags().StringVarP(&opt.host, "host", "o", "", "IP or hostname of host the Controller is being deployed on")
+	cmd.Flags().StringVarP(&opt.keyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir")
+	cmd.Flags().BoolVarP(&opt.local, "local", "l", false, "Configure for local deployment. Cannot be used with other flags")
 	cmd.Flags().Lookup("local").NoOptDefVal = "true"
 
 	return cmd

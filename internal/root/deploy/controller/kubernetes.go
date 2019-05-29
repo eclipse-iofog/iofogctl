@@ -22,11 +22,15 @@ func newKubernetesExecutor(opt *options) *kubernetesExecutor {
 func (exe *kubernetesExecutor) execute(namespace, name string) (err error) {
 	// Check controller already exists
 	_, err = exe.configManager.GetController(namespace, name)
-	if err != nil && err.Error() != util.NewNotFoundError(namespace + "/" + name).Error(){
+	if err != nil && err.Error() != util.NewNotFoundError(namespace+"/"+name).Error() {
 		return
 	}
 
-	k8s := iofog.NewKubernetes(*exe.opt.kubeConfig)
+	k8s, err := iofog.NewKubernetes(exe.opt.kubeConfig)
+	if err != nil {
+		return
+	}
+
 	err = k8s.Init()
 	if err != nil {
 		return
@@ -35,7 +39,7 @@ func (exe *kubernetesExecutor) execute(namespace, name string) (err error) {
 	// Update configuration
 	configEntry := config.Controller{
 		Name:       name,
-		KubeConfig: *exe.opt.kubeConfig,
+		KubeConfig: exe.opt.kubeConfig,
 	}
 	err = exe.configManager.AddController(namespace, configEntry)
 

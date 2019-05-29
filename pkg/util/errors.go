@@ -2,7 +2,15 @@ package util
 
 import (
 	"fmt"
+	"os"
 )
+// Check error and exit
+func Check(err error) {
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
+}
 
 // NotFoundError export
 type NotFoundError struct {
