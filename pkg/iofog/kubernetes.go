@@ -15,11 +15,11 @@ import (
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
 type Kubernetes struct {
 	configFilename string
-	clientset    *kubernetes.Clientset
-	helmClient   *helm.Client
-	ns           string
-	charts       [2]string
-	chartVersion string
+	clientset      *kubernetes.Clientset
+	helmClient     *helm.Client
+	ns             string
+	charts         [2]string
+	chartVersion   string
 }
 
 func NewKubernetes(configFilename string) (*Kubernetes, error) {
@@ -47,11 +47,11 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 
 	return &Kubernetes{
 		configFilename: configFilename,
-		clientset:    clientset,
-		helmClient:   helmClient,
-		ns:           "iofog",
-		charts:       [2]string{"iofog", "iofog-k8s"},
-		chartVersion: "0.1.0",
+		clientset:      clientset,
+		helmClient:     helmClient,
+		ns:             "iofog",
+		charts:         [2]string{"iofog", "iofog-k8s"},
+		chartVersion:   "0.1.0",
 	}, nil
 }
 
@@ -129,7 +129,7 @@ func (k8s *Kubernetes) initHelm() error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Create Tiller Cluster Role Binding
 	roleBinding := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{

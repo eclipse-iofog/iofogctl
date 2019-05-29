@@ -1,8 +1,8 @@
 package util
 
 import (
-	"os"
 	"bytes"
+	"os"
 	"os/exec"
 )
 
@@ -14,10 +14,10 @@ func Exec(env, name string, args ...string) error {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	cmd.Env = os.Environ()
-    cmd.Env = append(cmd.Env, env)
+	cmd.Env = append(cmd.Env, env)
 	err := cmd.Run()
 	if err != nil {
-	    return NewInternalError(stderr.String())
+		return NewInternalError(stderr.String())
 	}
 	//println(out.String())
 	return nil

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 )
+
 // Check error and exit
 func Check(err error) {
 	if err != nil {
