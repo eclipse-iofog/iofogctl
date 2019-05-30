@@ -9,10 +9,8 @@ type Executor interface {
 }
 
 func NewExecutor(namespace, name string) (Executor, error) {
-	// Instantiate config manager
+	// Get controller from config
 	cfg := config.NewManager()
-
-	// Find the requested controller
 	ctrl, err := cfg.GetController(namespace, name)
 	if err != nil {
 		return nil, err
@@ -20,14 +18,14 @@ func NewExecutor(namespace, name string) (Executor, error) {
 
 	// Local executor
 	if ctrl.Host == "localhost" {
-		return newLocalExecutor(cfg, namespace, ctrl), nil
+		return newLocalExecutor(namespace, name), nil
 	}
 
 	// Kubernetes executor
 	if ctrl.KubeConfig != "" {
-		return newKubernetesExecutor(cfg, namespace, ctrl), nil
+		return newKubernetesExecutor(namespace, name), nil
 	}
 
 	// Default executor
-	return newRemoteExecutor(cfg, namespace, ctrl), nil
+	return newRemoteExecutor(namespace, name), nil
 }

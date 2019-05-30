@@ -1,7 +1,11 @@
 package iofog
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
+	"io"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,7 +13,10 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/helm/pkg/helm"
+	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -63,10 +70,7 @@ func (k8s *Kubernetes) Init() (err error) {
 
 	// Create namespace
 	nsSpec := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: k8s.ns}}
-	_, err = k8s.clientset.CoreV1().Namespaces().Create(nsSpec)
-	if err != nil {
-		return
-	}
+	_, _ = k8s.clientset.CoreV1().Namespaces().Create(nsSpec)
 
 	err = k8s.initHelm()
 	if err != nil {
@@ -76,29 +80,119 @@ func (k8s *Kubernetes) Init() (err error) {
 	return nil
 }
 
-func (k8s *Kubernetes) Clean() error {
-	return nil
-}
-
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController() error {
+	// Install Controller/Connector
 	env := "KUBECONFIG=" + k8s.configFilename
-	err := util.Exec(env, "helm", "install", "iofog/iofog")
+	_, err := util.Exec(env, "helm", "install", "iofog/iofog")
 	if err != nil {
 		return err
 	}
+
+	// Wait for Controller and Connector Pods
 	err = k8s.waitForPods(k8s.ns)
 	if err != nil {
 		return err
 	}
-	err = k8s.waitForService(k8s.ns)
+
+	// Wait for Controller and Connector IPs and store them
+	ips, err := k8s.waitForServices(k8s.ns)
 	if err != nil {
 		return err
 	}
+
+	// Connect Controller to Connector
+	podList, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{LabelSelector: "name=controller"})
+	if err != nil {
+		return err
+	}
+	podName := podList.Items[0].Name
+	// TODO: (Serge) Get rid of this exec! Use REST API when implemented for this
+	_, err = util.Exec(env, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
+	if err != nil {
+		return err
+	}
+
+	// Get Controller token through REST API
+	contentType := "application/json"
+	url := fmt.Sprintf("http://%s:%d/api/v3/", ips["controller"], 51121)
+
+	// TODO: (Serge) Create unique user?
+	// Create user
+	signupBody := strings.NewReader("{ \"firstName\": \"Dev\", \"lastName\": \"Test\", \"email\": \"user@domain.com\", \"password\": \"#Bugs4Fun\" }")
+	resp, err := http.Post(url+"user/signup", contentType, signupBody)
+	if err != nil {
+		return err
+	}
+
+	// Login user
+	loginBody := strings.NewReader("{\"email\":\"user@domain.com\",\"password\":\"#Bugs4Fun\"}")
+	resp, err = http.Post(url+"user/login", contentType, loginBody)
+	if err != nil {
+		return err
+	}
+
+	// Read access token from HTTP response
+	var auth map[string]interface{}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	err = json.Unmarshal(buf.Bytes(), &auth)
+	if err != nil {
+		return err
+	}
+	token, exists := auth["accessToken"].(string)
+	if !exists {
+		return util.NewInternalError("Failed to get auth token from Controller")
+	}
+
+	// Install ioFog K8s Extensions
+	_, err = util.Exec(env, "helm", "install", "iofog/iofog-k8s", "--set-string", "controller.token="+token)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (k8s *Kubernetes) DeleteController() error {
+	// Instantiate commands
+	ls := exec.Command("helm", "ls")
+	awk := exec.Command("awk", "$9 ~ /iofog/ { print $1 }")
+	del := exec.Command("xargs", "helm", "delete", "--purge")
+
+	// Set env vars
+	env := "KUBECONFIG=" + k8s.configFilename
+	ls.Env = os.Environ()
+	ls.Env = append(ls.Env, env)
+	awk.Env = os.Environ()
+	awk.Env = append(awk.Env, env)
+	del.Env = os.Environ()
+	del.Env = append(del.Env, env)
+
+	// Wire pipes
+	r1, w1 := io.Pipe()
+	ls.Stdout = w1
+	awk.Stdin = r1
+	r2, w2 := io.Pipe()
+	awk.Stdout = w2
+	del.Stdin = r2
+
+	// Begin
+	ls.Start()
+	awk.Start()
+	del.Start()
+
+	// Wait for list
+	ls.Wait()
+	w1.Close()
+
+	// Wait for filter
+	awk.Wait()
+	w2.Close()
+
+	// Wait for deletion
+	del.Wait()
+
 	return nil
 }
 
@@ -132,31 +226,37 @@ func (k8s *Kubernetes) waitForPods(namespace string) error {
 	return nil
 }
 
-func (k8s *Kubernetes) waitForService(namespace string) error {
+func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, error) {
 	// Get Services
 	serviceList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		return nil, err
 	}
+	// Return ips of services upon completion
+	serviceCount := len(serviceList.Items)
+	ips := make(map[string]string, serviceCount)
+
+	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(namespace).Watch(metav1.ListOptions{})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	serviceCount := len(serviceList.Items)
 
 	// Wait for Services to have IPs allocated
 	readyServices := make(map[string]bool, 0)
 	for event := range watch.ResultChan() {
 		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
-			return util.NewInternalError("Failed to wait for services in namespace: " + namespace)
+			return nil, util.NewInternalError("Failed to wait for services in namespace: " + namespace)
 		}
 		_, exists := readyServices[svc.Name]
-		if !exists && len(svc.Status.LoadBalancer.Ingress) > 0 {
-			println("SVC" + svc.Name)
-			for _, ip := range svc.Status.LoadBalancer.Ingress {
-				println(ip.IP)
+		ipCount := len(svc.Status.LoadBalancer.Ingress)
+		if !exists && ipCount > 0 {
+			// We don't expect multiple IPs for service, lets error here because could be undefined behaviour
+			if ipCount != 1 {
+				return nil, util.NewInternalError("Found unexpected number of IPs for service: " + svc.Name)
 			}
+			ips[svc.Name] = svc.Status.LoadBalancer.Ingress[0].IP
 			readyServices[svc.Name] = true
 			if len(readyServices) == serviceCount {
 				watch.Stop()
@@ -164,17 +264,24 @@ func (k8s *Kubernetes) waitForService(namespace string) error {
 		}
 	}
 
-	return nil
+	return ips, nil
 }
 
 func (k8s *Kubernetes) initHelm() error {
+	// Check whether Helm already configured
+	env := "KUBECONFIG=" + k8s.configFilename
+	_, err := util.Exec(env, "helm", "list")
+	if err == nil {
+		return nil
+	}
+
 	// Create Tiller Service Account
 	serviceAcc := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "tiller",
 		},
 	}
-	_, err := k8s.clientset.CoreV1().ServiceAccounts("kube-system").Create(serviceAcc)
+	_, err = k8s.clientset.CoreV1().ServiceAccounts("kube-system").Create(serviceAcc)
 	if err != nil {
 		return err
 	}
@@ -198,16 +305,15 @@ func (k8s *Kubernetes) initHelm() error {
 	}
 
 	// Execute Helm init commands
-	env := "KUBECONFIG=" + k8s.configFilename
-	err = util.Exec(env, "helm", "init", "--wait", "--service-account", "tiller")
+	_, err = util.Exec(env, "helm", "init", "--wait", "--service-account", "tiller")
 	if err != nil {
 		return err
 	}
-	err = util.Exec(env, "helm", "repo", "add", "iofog", "https://eclipse-iofog.github.io/helm")
+	_, err = util.Exec(env, "helm", "repo", "add", "iofog", "https://eclipse-iofog.github.io/helm")
 	if err != nil {
 		return err
 	}
-	err = util.Exec(env, "helm", "repo", "update", "iofog")
+	_, err = util.Exec(env, "helm", "repo", "update", "iofog")
 	if err != nil {
 		return err
 	}

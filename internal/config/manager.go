@@ -25,9 +25,14 @@ type Manager struct {
 	microserviceIndex map[string][2]int // For O(1) time lookups of microservices
 }
 
+var singleton *Manager
+
 // NewManager export
 func NewManager() *Manager {
-	manager := new(Manager)
+	if singleton != nil {
+		return singleton
+	}
+	singleton = new(Manager)
 
 	// Read the file and unmarshall contents
 	if filename == "" {
@@ -47,9 +52,9 @@ func NewManager() *Manager {
 	fmt.Println("Using config file:", viper.ConfigFileUsed())
 
 	// Initialize the data structure
-	manager.resetFromFile()
+	singleton.resetFromFile()
 
-	return manager
+	return singleton
 }
 
 // GetNamespaces export

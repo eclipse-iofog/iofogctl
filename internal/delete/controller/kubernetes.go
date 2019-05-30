@@ -3,32 +3,45 @@ package deletecontroller
 import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/cli/pkg/iofog"
 )
 
 type kubernetesExecutor struct {
 	configManager *config.Manager
 	namespace     string
-	controller    config.Controller
+	name          string
 }
 
-func newKubernetesExecutor(cfg *config.Manager, ns string, ctrl config.Controller) *kubernetesExecutor {
+func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
 	exe := &kubernetesExecutor{}
-	exe.configManager = cfg
-	exe.namespace = ns
-	exe.controller = ctrl
+	exe.configManager = config.NewManager()
+	exe.namespace = namespace
+	exe.name = name
 	return exe
 }
 
 func (exe *kubernetesExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
+	// Find the requested controller
+	ctrl, err := exe.configManager.GetController(exe.namespace, exe.name)
+	if err != nil {
+		return err
+	}
+
+	// Instantiate Kubernetes object
+	k8s, err := iofog.NewKubernetes(ctrl.KubeConfig)
+
+	// Delete Controller on cluster
+	err = k8s.DeleteController()
+	if err != nil {
+		return err
+	}
 
 	// Update configuration
-	err := exe.configManager.DeleteController(exe.namespace, exe.controller.Name)
-
-	// TODO (Serge) Handle config file error, retry..?
-
-	if err == nil {
-		fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.controller.Name)
+	err = exe.configManager.DeleteController(exe.namespace, exe.name)
+	if err != nil {
+		return err
 	}
-	return err
+
+	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
+	return nil
 }

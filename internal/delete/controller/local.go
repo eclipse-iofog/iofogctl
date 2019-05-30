@@ -8,14 +8,14 @@ import (
 type localExecutor struct {
 	configManager *config.Manager
 	namespace     string
-	controller    config.Controller
+	name          string
 }
 
-func newLocalExecutor(cfg *config.Manager, ns string, ctrl config.Controller) *localExecutor {
+func newLocalExecutor(namespace, name string) *localExecutor {
 	exe := &localExecutor{}
-	exe.configManager = cfg
-	exe.namespace = ns
-	exe.controller = ctrl
+	exe.configManager = config.NewManager()
+	exe.namespace = namespace
+	exe.name = name
 	return exe
 }
 
@@ -23,12 +23,12 @@ func (exe *localExecutor) Execute() error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	err := exe.configManager.DeleteController(exe.namespace, exe.controller.Name)
+	err := exe.configManager.DeleteController(exe.namespace, exe.name)
 
 	// TODO (Serge) Handle config file error, retry..?
 
 	if err == nil {
-		fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.controller.Name)
+		fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
 	}
 	return err
 }
