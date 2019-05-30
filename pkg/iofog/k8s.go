@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
-	"io"
-	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -15,7 +14,6 @@ import (
 	"k8s.io/helm/pkg/helm"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -29,8 +27,8 @@ type Kubernetes struct {
 	chartVersion   string
 }
 
+// NewKubernetes constructs an object to manage cluster
 func NewKubernetes(configFilename string) (*Kubernetes, error) {
-
 	// Check if the kubeConfig file exists.
 	_, err := os.Stat(configFilename)
 	if err != nil {
@@ -62,16 +60,19 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 	}, nil
 }
 
+// Init is used to initialize the cluster
 func (k8s *Kubernetes) Init() (err error) {
+	// Ensure that pods in kube-system namespace are up and running
 	err = k8s.waitForPods("kube-system")
 	if err != nil {
 		return
 	}
 
 	// Create namespace
-	nsSpec := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: k8s.ns}}
+	nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: k8s.ns}}
 	_, _ = k8s.clientset.CoreV1().Namespaces().Create(nsSpec)
 
+	// Install Helm and associated resources
 	err = k8s.initHelm()
 	if err != nil {
 		return
@@ -82,15 +83,26 @@ func (k8s *Kubernetes) Init() (err error) {
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController() error {
-	// Install Controller/Connector
-	env := "KUBECONFIG=" + k8s.configFilename
-	_, err := util.Exec(env, "helm", "install", "iofog/iofog")
-	if err != nil {
-		return err
+	// Start Controller and Connector
+	coreMs := []microservice{
+		controllerMicroservice,
+		connectorMicroservice,
+	}
+	for _, ms := range coreMs {
+		svc := newService(k8s.ns, ms)
+		_, err := k8s.clientset.CoreV1().Services(k8s.ns).Create(svc)
+		if err != nil {
+			return err
+		}
+		dep := newDeployment(k8s.ns, ms)
+		_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Wait for Controller and Connector Pods
-	err = k8s.waitForPods(k8s.ns)
+	err := k8s.waitForPods(k8s.ns)
 	if err != nil {
 		return err
 	}
@@ -108,7 +120,7 @@ func (k8s *Kubernetes) CreateController() error {
 	}
 	podName := podList.Items[0].Name
 	// TODO: (Serge) Get rid of this exec! Use REST API when implemented for this
-	_, err = util.Exec(env, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
+	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
 	if err != nil {
 		return err
 	}
@@ -146,7 +158,7 @@ func (k8s *Kubernetes) CreateController() error {
 	}
 
 	// Install ioFog K8s Extensions
-	_, err = util.Exec(env, "helm", "install", "iofog/iofog-k8s", "--set-string", "controller.token="+token)
+	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "helm", "install", "iofog/iofog-k8s", "--set-string", "controller.token="+token)
 	if err != nil {
 		return err
 	}
@@ -154,45 +166,30 @@ func (k8s *Kubernetes) CreateController() error {
 	return nil
 }
 
+// DeleteController from cluster
 func (k8s *Kubernetes) DeleteController() error {
-	// Instantiate commands
-	ls := exec.Command("helm", "ls")
-	awk := exec.Command("awk", "$9 ~ /iofog/ { print $1 }")
-	del := exec.Command("xargs", "helm", "delete", "--purge")
 
-	// Set env vars
-	env := "KUBECONFIG=" + k8s.configFilename
-	ls.Env = os.Environ()
-	ls.Env = append(ls.Env, env)
-	awk.Env = os.Environ()
-	awk.Env = append(awk.Env, env)
-	del.Env = os.Environ()
-	del.Env = append(del.Env, env)
+	deps, err := k8s.clientset.AppsV1().Deployments(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, dep := range deps.Items {
+		err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(dep.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
 
-	// Wire pipes
-	r1, w1 := io.Pipe()
-	ls.Stdout = w1
-	awk.Stdin = r1
-	r2, w2 := io.Pipe()
-	awk.Stdout = w2
-	del.Stdin = r2
-
-	// Begin
-	ls.Start()
-	awk.Start()
-	del.Start()
-
-	// Wait for list
-	ls.Wait()
-	w1.Close()
-
-	// Wait for filter
-	awk.Wait()
-	w2.Close()
-
-	// Wait for deletion
-	del.Wait()
-
+	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, svc := range svcs.Items {
+		err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -203,6 +200,8 @@ func (k8s *Kubernetes) waitForPods(namespace string) error {
 		return err
 	}
 	podCount := len(podList.Items)
+
+	// Get watch handler to observe changes to pods
 	watch, err := k8s.clientset.CoreV1().Pods(namespace).Watch(metav1.ListOptions{})
 	if err != nil {
 		return err
@@ -210,14 +209,18 @@ func (k8s *Kubernetes) waitForPods(namespace string) error {
 
 	// Wait for cluster to be in ready state
 	readyPods := make(map[string]bool, 0)
+	// Keep reading events indefinitely
 	for event := range watch.ResultChan() {
-		pod, ok := event.Object.(*corev1.Pod)
+		// Get the pod
+		pod, ok := event.Object.(*v1.Pod)
 		if !ok {
 			return util.NewInternalError("Failed to wait for pods in namespace: " + namespace)
 		}
+		// Check pod is in running state
 		_, exists := readyPods[pod.Name]
 		if !exists && pod.Status.Phase == "Running" {
 			readyPods[pod.Name] = true
+			// All pods are ready
 			if len(readyPods) == podCount {
 				watch.Stop()
 			}
@@ -245,10 +248,11 @@ func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, err
 	// Wait for Services to have IPs allocated
 	readyServices := make(map[string]bool, 0)
 	for event := range watch.ResultChan() {
-		svc, ok := event.Object.(*corev1.Service)
+		svc, ok := event.Object.(*v1.Service)
 		if !ok {
 			return nil, util.NewInternalError("Failed to wait for services in namespace: " + namespace)
 		}
+		// Check if the Service has a LB with an IP
 		_, exists := readyServices[svc.Name]
 		ipCount := len(svc.Status.LoadBalancer.Ingress)
 		if !exists && ipCount > 0 {
@@ -256,8 +260,10 @@ func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, err
 			if ipCount != 1 {
 				return nil, util.NewInternalError("Found unexpected number of IPs for service: " + svc.Name)
 			}
+			// Record the IP
 			ips[svc.Name] = svc.Status.LoadBalancer.Ingress[0].IP
 			readyServices[svc.Name] = true
+			// All services are ready
 			if len(readyServices) == serviceCount {
 				watch.Stop()
 			}
@@ -276,7 +282,7 @@ func (k8s *Kubernetes) initHelm() error {
 	}
 
 	// Create Tiller Service Account
-	serviceAcc := &corev1.ServiceAccount{
+	serviceAcc := &v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "tiller",
 		},

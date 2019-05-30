@@ -26,27 +26,30 @@ func (exe *kubernetesExecutor) Execute(namespace, name string) (err error) {
 		return util.NewConflictError(namespace + "/" + name)
 	}
 
-	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig)
-	if err != nil {
-		return
-	}
-
-	err = k8s.Init()
-	if err != nil {
-		return
-	}
-
-	err = k8s.CreateController()
-	if err != nil {
-		return
-	}
-
 	// Update configuration
 	configEntry := config.Controller{
 		Name:       name,
 		KubeConfig: exe.opt.KubeConfig,
 	}
 	err = exe.configManager.AddController(namespace, configEntry)
+	if err != nil {
+		return
+	}
+
+	// Get Kubernetes cluster
+	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig)
+	if err != nil {
+		return
+	}
+
+	// Initialize the cluster
+	err = k8s.Init()
+	if err != nil {
+		return
+	}
+
+	// Create controller on cluster
+	err = k8s.CreateController()
 	if err != nil {
 		return
 	}

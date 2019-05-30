@@ -7,13 +7,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newService(namespace, name string, port int) *v1.Service {
+func newService(namespace string, ms microservice) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      ms.name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"name": name,
+				"name": ms.name,
 			},
 		},
 		Spec: v1.ServiceSpec{
@@ -21,42 +21,42 @@ func newService(namespace, name string, port int) *v1.Service {
 			Ports: []v1.ServicePort{
 				{
 					Name:       "controller",
-					Port:       int32(port),
-					TargetPort: intstr.FromInt(port),
+					Port:       int32(ms.port),
+					TargetPort: intstr.FromInt(ms.port),
 				},
 			},
 		},
 	}
 }
 
-func newDeployment(namespace, name, image, imagePullPolicy string, replicas int32) *appsv1.Deployment {
+func newDeployment(namespace string, ms microservice) *appsv1.Deployment {
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      ms.name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"name": name,
+				"name": ms.name,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
+			Replicas: &ms.replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"name": name,
+					"name": ms.name,
 				},
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"name": name,
+						"name": ms.name,
 					},
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
-							Name:            name,
-							Image:           image,
-							ImagePullPolicy: v1.PullPolicy(imagePullPolicy),
+							Name:            ms.name,
+							Image:           ms.image,
+							ImagePullPolicy: v1.PullPolicy(ms.imagePullPolicy),
 						},
 					},
 				},
