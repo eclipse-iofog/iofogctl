@@ -42,14 +42,6 @@
   version = "2.19.0"
 
 [[projects]]
-  digest = "1:359173d7e6eb3d35eeb3f2ef5c87bd2aff6e775dba5a1dcf8b2a53b86d0af79e"
-  name = "github.com/codeclysm/extract"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "cb78af9c8af24b50533f931fa83bdfd4170bf840"
-  version = "v2.2.0"
-
-[[projects]]
   digest = "1:ec66ad050342a3573ed2f5a4337d51b4c6d5d2a717cc6c9ecf86b081235a5759"
   name = "github.com/cyphar/filepath-securejoin"
   packages = ["."]
@@ -152,19 +144,6 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:4442692c7525ec403b23a5b3e169a089bb1e6ed3b69795be877d39578744bf7a"
-  name = "github.com/h2non/filetype"
-  packages = [
-    ".",
-    "matchers",
-    "matchers/isobmff",
-    "types",
-  ]
-  pruneopts = "UT"
-  revision = "2248f2e2f77cd8cf9694216e3f9589d71005de37"
-  version = "v1.0.8"
-
-[[projects]]
   digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
   name = "github.com/hashicorp/hcl"
   packages = [
@@ -214,14 +193,6 @@
   pruneopts = "UT"
   revision = "0ff49de124c6f76f8494e194af75bde0f1a49a29"
   version = "v1.1.6"
-
-[[projects]]
-  branch = "master"
-  digest = "1:60835a4fa946b3c4b595438a07d447305ed4fc9ce95a7a5d0c06ffeea490d5a9"
-  name = "github.com/juju/errors"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "e65537c515d77e35697c471d6c2755375cb3adc4"
 
 [[projects]]
   digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"
@@ -548,6 +519,20 @@
   revision = "67ef80593b248c87b40adcbff0d564819f27640a"
 
 [[projects]]
+  digest = "1:65226935ef0a84716e327aa46c5a11cf2158ca6d0c79b379202d0b2c2be0e9bc"
+  name = "k8s.io/apiextensions-apiserver"
+  packages = [
+    "pkg/apis/apiextensions",
+    "pkg/apis/apiextensions/v1beta1",
+    "pkg/client/clientset/clientset",
+    "pkg/client/clientset/clientset/scheme",
+    "pkg/client/clientset/clientset/typed/apiextensions/v1beta1",
+  ]
+  pruneopts = "UT"
+  revision = "bf6753f2aa24fe1d69a2abeea1c106042bcf3f5f"
+  version = "kubernetes-1.14.2"
+
+[[projects]]
   branch = "release-1.14"
   digest = "1:78f6a824d205c6cb0d011cce241407646b773cb57ee27e8c7e027753b4111075"
   name = "k8s.io/apimachinery"
@@ -713,13 +698,17 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/codeclysm/extract",
     "github.com/mitchellh/go-homedir",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "gopkg.in/yaml.v2",
+    "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
+    "k8s.io/api/rbac/v1",
+    "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1",
+    "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/util/intstr",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/tools/clientcmd",

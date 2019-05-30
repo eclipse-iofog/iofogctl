@@ -42,12 +42,6 @@ func (exe *kubernetesExecutor) Execute(namespace, name string) (err error) {
 		return
 	}
 
-	// Initialize the cluster
-	err = k8s.Init()
-	if err != nil {
-		return
-	}
-
 	// Create controller on cluster
 	err = k8s.CreateController()
 	if err != nil {

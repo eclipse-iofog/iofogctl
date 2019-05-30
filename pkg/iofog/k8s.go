@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
 	"k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
+	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/helm/pkg/helm"
 	"net/http"
 	"os"
 	"strings"
@@ -21,10 +20,9 @@ import (
 type Kubernetes struct {
 	configFilename string
 	clientset      *kubernetes.Clientset
-	helmClient     *helm.Client
+	extsClientset  *extsclientset.Clientset
+	crdName        string
 	ns             string
-	charts         [2]string
-	chartVersion   string
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -46,119 +44,29 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Instantiate Helm client
-	helmClient := helm.NewClient(helm.ConnectTimeout(15), helm.Host("35.197.185.110:44134"))
+	extsClientset, err := extsclientset.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Kubernetes{
 		configFilename: configFilename,
 		clientset:      clientset,
-		helmClient:     helmClient,
+		extsClientset:  extsClientset,
+		crdName:        "iofogs.k8s.iofog.org",
 		ns:             "iofog",
-		charts:         [2]string{"iofog", "iofog-k8s"},
-		chartVersion:   "0.1.0",
 	}, nil
-}
-
-// Init is used to initialize the cluster
-func (k8s *Kubernetes) Init() (err error) {
-	// Ensure that pods in kube-system namespace are up and running
-	err = k8s.waitForPods("kube-system")
-	if err != nil {
-		return
-	}
-
-	// Create namespace
-	nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: k8s.ns}}
-	_, _ = k8s.clientset.CoreV1().Namespaces().Create(nsSpec)
-
-	// Install Helm and associated resources
-	err = k8s.initHelm()
-	if err != nil {
-		return
-	}
-
-	return nil
 }
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController() error {
-	// Start Controller and Connector
-	coreMs := []microservice{
-		controllerMicroservice,
-		connectorMicroservice,
-	}
-	for _, ms := range coreMs {
-		svc := newService(k8s.ns, ms)
-		_, err := k8s.clientset.CoreV1().Services(k8s.ns).Create(svc)
-		if err != nil {
-			return err
-		}
-		dep := newDeployment(k8s.ns, ms)
-		_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Wait for Controller and Connector Pods
-	err := k8s.waitForPods(k8s.ns)
+	// Install ioFog Core
+	token, ips, err := k8s.createCore()
 	if err != nil {
 		return err
 	}
-
-	// Wait for Controller and Connector IPs and store them
-	ips, err := k8s.waitForServices(k8s.ns)
-	if err != nil {
-		return err
-	}
-
-	// Connect Controller to Connector
-	podList, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{LabelSelector: "name=controller"})
-	if err != nil {
-		return err
-	}
-	podName := podList.Items[0].Name
-	// TODO: (Serge) Get rid of this exec! Use REST API when implemented for this
-	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
-	if err != nil {
-		return err
-	}
-
-	// Get Controller token through REST API
-	contentType := "application/json"
-	url := fmt.Sprintf("http://%s:%d/api/v3/", ips["controller"], 51121)
-
-	// TODO: (Serge) Create unique user?
-	// Create user
-	signupBody := strings.NewReader("{ \"firstName\": \"Dev\", \"lastName\": \"Test\", \"email\": \"user@domain.com\", \"password\": \"#Bugs4Fun\" }")
-	resp, err := http.Post(url+"user/signup", contentType, signupBody)
-	if err != nil {
-		return err
-	}
-
-	// Login user
-	loginBody := strings.NewReader("{\"email\":\"user@domain.com\",\"password\":\"#Bugs4Fun\"}")
-	resp, err = http.Post(url+"user/login", contentType, loginBody)
-	if err != nil {
-		return err
-	}
-
-	// Read access token from HTTP response
-	var auth map[string]interface{}
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	err = json.Unmarshal(buf.Bytes(), &auth)
-	if err != nil {
-		return err
-	}
-	token, exists := auth["accessToken"].(string)
-	if !exists {
-		return util.NewInternalError("Failed to get auth token from Controller")
-	}
-
 	// Install ioFog K8s Extensions
-	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "helm", "install", "iofog/iofog-k8s", "--set-string", "controller.token="+token)
+	err = k8s.createExtension(token, ips)
 	if err != nil {
 		return err
 	}
@@ -168,7 +76,7 @@ func (k8s *Kubernetes) CreateController() error {
 
 // DeleteController from cluster
 func (k8s *Kubernetes) DeleteController() error {
-
+	// Delete Deployments
 	deps, err := k8s.clientset.AppsV1().Deployments(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
 		return err
@@ -180,6 +88,7 @@ func (k8s *Kubernetes) DeleteController() error {
 		}
 	}
 
+	// Delete Services
 	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
 		return err
@@ -190,6 +99,251 @@ func (k8s *Kubernetes) DeleteController() error {
 			return err
 		}
 	}
+
+	// Delete Service Accounts
+	svcAccs, err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, acc := range svcAccs.Items {
+		err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(acc.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Delete Kubelet Cluster Role Binding
+	err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(kubeletMicroservice.name, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	// Delete Roles
+	roles, err := k8s.clientset.RbacV1().Roles(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, role := range roles.Items {
+		err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(role.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Delete Role Bindings
+	roleBinds, err := k8s.clientset.RbacV1().RoleBindings(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, bind := range roleBinds.Items {
+		err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(bind.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Delete CRD
+	err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(k8s.crdName, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err error) {
+	coreMs := []microservice{
+		controllerMicroservice,
+		connectorMicroservice,
+	}
+	// Create Controller and Connector Services and Pods
+	for _, ms := range coreMs {
+		svc := newService(k8s.ns, ms)
+		_, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc)
+		if err != nil {
+			return
+		}
+		svcAcc := newServiceAccount(k8s.ns, ms)
+		_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc)
+		if err != nil {
+			return
+		}
+		dep := newDeployment(k8s.ns, ms)
+		_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep)
+		if err != nil {
+			return
+		}
+	}
+
+	// Wait for Controller and Connector Pods
+	err = k8s.waitForPods(k8s.ns)
+	if err != nil {
+		return
+	}
+
+	// Wait for Controller and Connector IPs and store them
+	ips, err = k8s.waitForServices(k8s.ns)
+	if err != nil {
+		return
+	}
+
+	// Connect Controller to Connector
+	podList, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{LabelSelector: "name=controller"})
+	if err != nil {
+		return
+	}
+	podName := podList.Items[0].Name
+	// TODO: (Serge) Get rid of this exec! Use REST API when implemented for this
+	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
+	if err != nil {
+		return
+	}
+
+	// Get Controller token through REST API
+	contentType := "application/json"
+	url := fmt.Sprintf("http://%s:%d/api/v3/", ips["controller"], controllerMicroservice.port)
+
+	// TODO: (Serge) Create unique user?
+	// Create user
+	signupBody := strings.NewReader("{ \"firstName\": \"Dev\", \"lastName\": \"Test\", \"email\": \"user@domain.com\", \"password\": \"#Bugs4Fun\" }")
+	resp, err := http.Post(url+"user/signup", contentType, signupBody)
+	if err != nil {
+		return
+	}
+
+	// Login user
+	loginBody := strings.NewReader("{\"email\":\"user@domain.com\",\"password\":\"#Bugs4Fun\"}")
+	resp, err = http.Post(url+"user/login", contentType, loginBody)
+	if err != nil {
+		return
+	}
+
+	// Read access token from HTTP response
+	var auth map[string]interface{}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	err = json.Unmarshal(buf.Bytes(), &auth)
+	if err != nil {
+		return
+	}
+	token, exists := auth["accessToken"].(string)
+	if !exists {
+		err = util.NewInternalError("Failed to get auth token from Controller")
+		return
+	}
+
+	return
+}
+
+func (k8s *Kubernetes) createExtension(token string, ips map[string]string) error {
+	// Create Scheduler resources
+	schedDep := newDeployment(k8s.ns, schedulerMicroservice)
+	_, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep)
+	if err != nil {
+		return err
+	}
+	schedAcc := newServiceAccount(k8s.ns, schedulerMicroservice)
+	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc)
+	if err != nil {
+		return err
+	}
+
+	// Create Kubelet resources
+	vkSvcAcc := newServiceAccount(k8s.ns, kubeletMicroservice)
+	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(vkSvcAcc)
+	if err != nil {
+		return err
+	}
+	vkRoleBind := newClusterRoleBinding(k8s.ns, kubeletMicroservice)
+	_, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(vkRoleBind)
+	if err != nil {
+		return err
+	}
+	kubeletMicroservice.containers[0].args = []string{
+		"--namespace",
+		k8s.ns,
+		"--iofog-token",
+		token,
+		"--iofog-url",
+		fmt.Sprintf("http://%s:%d", ips["controller"], controllerMicroservice.port),
+	}
+	vkDep := newDeployment(k8s.ns, kubeletMicroservice)
+	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(vkDep)
+	if err != nil {
+		return err
+	}
+
+	// Create Operator resources
+	opSvcAcc := newServiceAccount(k8s.ns, operatorMicroservice)
+	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc)
+	if err != nil {
+		return err
+	}
+	opRole := newRole(k8s.ns, operatorMicroservice)
+	_, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole)
+	if err != nil {
+		return err
+	}
+	opRoleBind := newRoleBinding(k8s.ns, operatorMicroservice)
+	_, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind)
+	if err != nil {
+		return err
+	}
+	crd := newCustomResourceDefinition(k8s.crdName)
+	_, err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+	if err != nil {
+		return err
+	}
+	opDep := newDeployment(k8s.ns, operatorMicroservice)
+	opDep.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
+		{
+			ContainerPort: int32(operatorMicroservice.port),
+			Name:          "metrics",
+		},
+	}
+	opDep.Spec.Template.Spec.Containers[0].Command = []string{
+		"iofog-operator",
+	}
+	opDep.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
+		Handler: v1.Handler{
+			Exec: &v1.ExecAction{
+				Command: []string{
+					"stat",
+					"/tmp/operator-sdk-ready",
+				},
+			},
+		},
+		InitialDelaySeconds: 4,
+		PeriodSeconds:       10,
+		FailureThreshold:    1,
+	}
+	opDep.Spec.Template.Spec.Containers[0].Env = []v1.EnvVar{
+		{
+			Name: "WATCH_NAMESPACE",
+			ValueFrom: &v1.EnvVarSource{
+				FieldRef: &v1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			},
+		},
+		{
+			Name: "POD_NAME",
+			ValueFrom: &v1.EnvVarSource{
+				FieldRef: &v1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				},
+			},
+		},
+		{
+			Name:  "OPERATOR_NAME",
+			Value: operatorMicroservice.name,
+		},
+	}
+	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -271,58 +425,4 @@ func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, err
 	}
 
 	return ips, nil
-}
-
-func (k8s *Kubernetes) initHelm() error {
-	// Check whether Helm already configured
-	env := "KUBECONFIG=" + k8s.configFilename
-	_, err := util.Exec(env, "helm", "list")
-	if err == nil {
-		return nil
-	}
-
-	// Create Tiller Service Account
-	serviceAcc := &v1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "tiller",
-		},
-	}
-	_, err = k8s.clientset.CoreV1().ServiceAccounts("kube-system").Create(serviceAcc)
-	if err != nil {
-		return err
-	}
-
-	// Create Tiller Cluster Role Binding
-	roleBinding := &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "tiller-cluster-role",
-		},
-		RoleRef: rbacv1.RoleRef{Kind: "ClusterRole", Name: "cluster-admin"},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      "tiller",
-				Namespace: "kube-system",
-			}},
-	}
-	_, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(roleBinding)
-	if err != nil {
-		return err
-	}
-
-	// Execute Helm init commands
-	_, err = util.Exec(env, "helm", "init", "--wait", "--service-account", "tiller")
-	if err != nil {
-		return err
-	}
-	_, err = util.Exec(env, "helm", "repo", "add", "iofog", "https://eclipse-iofog.github.io/helm")
-	if err != nil {
-		return err
-	}
-	_, err = util.Exec(env, "helm", "repo", "update", "iofog")
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
