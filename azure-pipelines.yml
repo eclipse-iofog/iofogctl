@@ -45,9 +45,9 @@ jobs:
         displayName: 'Check Source Format'
 
       - script: |
-          ./script/bootstrap.sh
+          go get -u github.com/golang/dep/cmd/dep
         workingDirectory: '$(modulePath)'
-        displayName: 'Dep Ensure'
+        displayName: 'Bootstrap'
 
       - script: |
           make dep
