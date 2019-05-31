@@ -148,10 +148,24 @@ func (k8s *Kubernetes) DeleteController() error {
 		return err
 	}
 
+	// Delete Namespace
+	err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err error) {
+	// Create namespace
+	ns := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: k8s.ns,
+		},
+	}
+	_, _ = k8s.clientset.CoreV1().Namespaces().Create(ns)
+
 	coreMs := []microservice{
 		controllerMicroservice,
 		connectorMicroservice,
