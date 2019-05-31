@@ -11,6 +11,7 @@ func newDeleteCommand() *cobra.Command {
 		Long:  `Delete existing ioFog resources`,
 	}
 
+	// Add subcommands
 	cmd.AddCommand(
 		newDeleteControllerCommand(),
 		newDeleteAgentCommand(),

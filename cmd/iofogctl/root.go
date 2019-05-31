@@ -8,9 +8,9 @@ import (
 func newRootCommand() *cobra.Command {
 	// Root command
 	var cmd = &cobra.Command{
-		Use:   "iofog",
-		Short: "ioFog Unified Command Line Interface",
-		Long:  "ioFog Unified Command Line Interface",
+		Use:   "iofogctl",
+		Short: "ioFogctl Unified Command Line Interface",
+		Long:  "ioFogctl Unified Command Line Interface",
 	}
 
 	// Initialize config filename
@@ -32,8 +32,10 @@ func newRootCommand() *cobra.Command {
 	return cmd
 }
 
+// Config file set by --config persistent flag
 var configFilename string
 
+// Callback for cobra on initialization
 func initConfig() {
 	config.SetFile(configFilename)
 }

@@ -28,5 +28,5 @@ make
 First, try to build and install:
 ```
 make all
-iofog --help
+iofogctl --help
 ```

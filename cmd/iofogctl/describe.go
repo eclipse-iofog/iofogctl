@@ -11,25 +11,29 @@ func newDescribeCommand() *cobra.Command {
 		Use:   "describe resource name",
 		Short: "Get detailed information of existing resources",
 		Long:  `Get detailed information of existing resources`,
-		Example: `iofog describe controller my_controller_name
-iofog describe agent my_agent_name
-iofog describe microservice my_microservice_name`,
+		Example: `iofogctl describe controller my_controller_name
+iofogctl describe agent my_agent_name
+iofogctl describe microservice my_microservice_name`,
 		Args: cobra.ExactValidArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			// Get resource type and name
 			resource := args[0]
 			name := args[1]
+
+			// Get namespace option
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			// Validate first argument
 			if _, exists := resources[resource]; !exists {
 				util.Check(util.NewNotFoundError(resource))
 			}
 
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
-
+			// Get executor for describe command
 			exe, err := describe.NewExecutor(resource)
 			util.Check(err)
 
+			// Execute the command
 			err = exe.Execute(namespace, name)
 			util.Check(err)
 		},

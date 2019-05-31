@@ -3,12 +3,12 @@ OS = $(shell uname -s)
 
 # Project variables
 PACKAGE = github.com/eclipse-iofog/cli
-BINARY_NAME = iofog
+BINARY_NAME = iofogctl
 IMAGE = iofog/cli
 
 # Build variables
 BUILD_DIR ?= bin
-BUILD_PACKAGE = $(PACKAGE)/cmd/iofog
+BUILD_PACKAGE = $(PACKAGE)/cmd/iofogctl
 VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -43,7 +43,7 @@ endif
 
 .PHONY: install
 install: ## Install the ioFog binary to /usr/local/bin
-	cp bin/iofog /usr/local/bin/
+	cp bin/iofogctl /usr/local/bin/
 
 .PHONY: fmt
 fmt: ## Format the source

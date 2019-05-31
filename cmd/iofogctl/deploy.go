@@ -11,6 +11,7 @@ func newDeployCommand() *cobra.Command {
 		Long:  `Deploy ioFog stack on existing infrastructure`,
 	}
 
+	// Add subcommands
 	cmd.AddCommand(
 		newDeployControllerCommand(),
 		newDeployAgentCommand(),

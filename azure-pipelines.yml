@@ -62,5 +62,5 @@ jobs:
         displayName: 'Build and Install'
 
       - script: |
-          iofog --help
+          iofogctl --help
         displayName: 'Verify Install'
