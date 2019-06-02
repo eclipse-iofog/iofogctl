@@ -22,11 +22,12 @@ func (exe *localExecutor) Execute() error {
 
 	// Update configuration
 	err := config.DeleteController(exe.namespace, exe.name)
-
+	if err != nil {
+		return err
+	}
 	// TODO (Serge) Handle config file error, retry..?
 
-	if err == nil {
-		fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
-	}
-	return err
+	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
+
+	return nil
 }

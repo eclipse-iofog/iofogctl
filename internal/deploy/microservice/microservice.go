@@ -19,11 +19,12 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 	// Update configuration
 	configEntry := config.Microservice{Name: name}
 	err := config.AddMicroservice(namespace, configEntry)
-
+	if err != nil {
+		return err
+	}
 	// TODO (Serge) Handle config file error, retry..?
 
-	if err == nil {
-		fmt.Printf("\nMicroservice %s/%s successfully deployed.\n", namespace, name)
-	}
-	return err
+	fmt.Printf("\nMicroservice %s/%s successfully deployed.\n", namespace, name)
+
+	return nil
 }

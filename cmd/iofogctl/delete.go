@@ -13,6 +13,7 @@ func newDeleteCommand() *cobra.Command {
 
 	// Add subcommands
 	cmd.AddCommand(
+		newDeleteNamespaceCommand(),
 		newDeleteControllerCommand(),
 		newDeleteAgentCommand(),
 		newDeleteMicroserviceCommand(),

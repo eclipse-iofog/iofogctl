@@ -18,11 +18,13 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 
 	// Update configuration
 	err := config.DeleteMicroservice(namespace, name)
+	if err != nil {
+		return err
+	}
 
 	// TODO (Serge) Handle config file error, retry..?
 
-	if err == nil {
-		fmt.Printf("\nMicroservice %s/%s successfully deleted.\n", namespace, name)
-	}
-	return err
+	fmt.Printf("\nMicroservice %s/%s successfully deleted.\n", namespace, name)
+
+	return nil
 }

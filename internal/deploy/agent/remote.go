@@ -27,11 +27,13 @@ func (exe *remoteExecutor) Execute() error {
 		KeyFile: exe.opt.KeyFile,
 	}
 	err := config.AddAgent(exe.opt.Namespace, configEntry)
+	if err != nil {
+		return err
+	}
 
 	// TODO (Serge) Handle config file error, retry..?
 
-	if err == nil {
-		fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
-	}
-	return err
+	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
+
+	return nil
 }

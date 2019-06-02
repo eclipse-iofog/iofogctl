@@ -30,11 +30,13 @@ func (exe *localExecutor) Execute() error {
 		Host: "localhost",
 	}
 	err = config.AddController(exe.opt.Namespace, configEntry)
+	if err != nil {
+		return err
+	}
 
 	// TODO (Serge) Handle config file error, retry..?
 
-	if err == nil {
-		fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
-	}
-	return err
+	fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
+
+	return nil
 }

@@ -144,6 +144,22 @@ func GetMicroservice(namespace, name string) (microservice Microservice, err err
 	return
 }
 
+// AddNamespace export
+func AddNamespace(name string) error {
+	// Check collision
+	_, err := GetNamespace(name)
+	if err == nil {
+		return util.NewConflictError(name)
+	}
+
+	newNamespace := Namespace{Name: name}
+	conf.Namespaces = append(conf.Namespaces, newNamespace)
+	if err := updateFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // AddController export
 func AddController(namespace string, controller Controller) error {
 	_, err := GetController(namespace, controller.Name)
@@ -206,6 +222,34 @@ func AddMicroservice(namespace string, microservice Microservice) error {
 	ns.Microservices = append(ns.Microservices, microservice)
 
 	// Write to file
+	if err := updateFile(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteNamespace export
+func DeleteNamespace(name string) error {
+	ns, err := getNamespace(name)
+	if err != nil {
+		return err
+	}
+
+	hasAgents := len(ns.Agents) > 0
+	hasControllers := len(ns.Controllers) > 0
+	hasMicroservices := len(ns.Microservices) > 0
+
+	if hasAgents || hasControllers || hasMicroservices {
+		return util.NewInputError("Namespace " + name + " not empty")
+	}
+
+	// Delete namespace
+	for idx := range conf.Namespaces {
+		if conf.Namespaces[idx].Name == name {
+			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
+		}
+	}
 	if err := updateFile(); err != nil {
 		return err
 	}
