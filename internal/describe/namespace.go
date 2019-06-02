@@ -5,17 +5,17 @@ import (
 )
 
 type namespaceExecutor struct {
-	configManager *config.Manager
+	name string
 }
 
-func newNamespaceExecutor() *namespaceExecutor {
+func newNamespaceExecutor(name string) *namespaceExecutor {
 	n := &namespaceExecutor{}
-	n.configManager = config.NewManager()
+	n.name = name
 	return n
 }
 
-func (ns *namespaceExecutor) Execute(name string, empty string) error {
-	namespace, err := ns.configManager.GetNamespace(name)
+func (exe *namespaceExecutor) Execute() error {
+	namespace, err := config.GetNamespace(exe.name)
 	if err != nil {
 		return err
 	}

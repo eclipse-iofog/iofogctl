@@ -5,17 +5,19 @@ import (
 )
 
 type agentExecutor struct {
-	configManager *config.Manager
+	namespace string
+	name      string
 }
 
-func newAgentExecutor() *agentExecutor {
+func newAgentExecutor(namespace, name string) *agentExecutor {
 	a := &agentExecutor{}
-	a.configManager = config.NewManager()
+	a.namespace = namespace
+	a.name = name
 	return a
 }
 
-func (ns *agentExecutor) Execute(namespace string, name string) error {
-	agent, err := ns.configManager.GetAgent(namespace, name)
+func (exe *agentExecutor) Execute() error {
+	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}

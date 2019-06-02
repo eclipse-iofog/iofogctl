@@ -6,12 +6,10 @@ import (
 )
 
 type microservice struct {
-	configManager *config.Manager
 }
 
 func New() *microservice {
 	c := &microservice{}
-	c.configManager = config.NewManager()
 	return c
 }
 
@@ -19,7 +17,7 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	err := ctrl.configManager.DeleteMicroservice(namespace, name)
+	err := config.DeleteMicroservice(namespace, name)
 
 	// TODO (Serge) Handle config file error, retry..?
 

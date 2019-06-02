@@ -5,17 +5,19 @@ import (
 )
 
 type microserviceExecutor struct {
-	configManager *config.Manager
+	namespace string
+	name      string
 }
 
-func newMicroserviceExecutor() *microserviceExecutor {
+func newMicroserviceExecutor(namespace, name string) *microserviceExecutor {
 	m := &microserviceExecutor{}
-	m.configManager = config.NewManager()
+	m.namespace = namespace
+	m.name = name
 	return m
 }
 
-func (ns *microserviceExecutor) Execute(namespace string, name string) error {
-	microservice, err := ns.configManager.GetMicroservice(namespace, name)
+func (ms *microserviceExecutor) Execute() error {
+	microservice, err := config.GetMicroservice(ms.namespace, ms.name)
 	if err != nil {
 		return err
 	}

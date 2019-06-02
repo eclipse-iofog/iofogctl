@@ -10,8 +10,7 @@ type Executor interface {
 
 func NewExecutor(namespace, name string) (Executor, error) {
 	// Get controller from config
-	cfg := config.NewManager()
-	ctrl, err := cfg.GetController(namespace, name)
+	ctrl, err := config.GetController(namespace, name)
 	if err != nil {
 		return nil, err
 	}

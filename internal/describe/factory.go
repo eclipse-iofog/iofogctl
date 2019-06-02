@@ -5,21 +5,21 @@ import (
 )
 
 type Executor interface {
-	Execute(string, string) error
+	Execute() error
 }
 
-func NewExecutor(resource string) (Executor, error) {
-	switch resource {
+func NewExecutor(resourceType, namespace, name string) (Executor, error) {
+	switch resourceType {
 	case "namespace":
-		return newNamespaceExecutor(), nil
+		return newNamespaceExecutor(namespace), nil
 	case "controller":
-		return newControllerExecutor(), nil
+		return newControllerExecutor(namespace, name), nil
 	case "agent":
-		return newAgentExecutor(), nil
+		return newAgentExecutor(namespace, name), nil
 	case "microservice":
-		return newMicroserviceExecutor(), nil
+		return newMicroserviceExecutor(namespace, name), nil
 	default:
-		msg := "Unknown resource: '" + resource + "'"
+		msg := "Unknown resourceType: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)
 	}
 }

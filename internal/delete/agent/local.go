@@ -6,16 +6,14 @@ import (
 )
 
 type localExecutor struct {
-	configManager *config.Manager
-	namespace     string
-	agent         config.Agent
+	namespace string
+	name      string
 }
 
-func newLocalExecutor(cfg *config.Manager, ns string, ctrl config.Agent) *localExecutor {
+func newLocalExecutor(namespace, name string) *localExecutor {
 	exe := &localExecutor{}
-	exe.configManager = cfg
-	exe.namespace = ns
-	exe.agent = ctrl
+	exe.namespace = namespace
+	exe.name = name
 	return exe
 }
 
@@ -23,12 +21,12 @@ func (exe *localExecutor) Execute() error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	err := exe.configManager.DeleteAgent(exe.namespace, exe.agent.Name)
+	err := config.DeleteAgent(exe.namespace, exe.name)
 
 	// TODO (Serge) Handle config file error, retry..?
 
 	if err == nil {
-		fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.agent.Name)
+		fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.name)
 	}
 	return err
 }

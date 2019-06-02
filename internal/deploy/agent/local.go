@@ -7,19 +7,17 @@ import (
 )
 
 type localExecutor struct {
-	configManager *config.Manager
-	opt           *Options
+	opt *Options
 }
 
 func newLocalExecutor(opt *Options) *localExecutor {
 	exe := &localExecutor{}
-	exe.configManager = config.NewManager()
 	exe.opt = opt
 
 	return exe
 }
 
-func (exe *localExecutor) Execute(namespace, name string) error {
+func (exe *localExecutor) Execute() error {
 	// TODO (Serge) Execute back-end logic
 
 	currUser, err := user.Current()
@@ -28,16 +26,16 @@ func (exe *localExecutor) Execute(namespace, name string) error {
 	}
 	// Update configuration
 	configEntry := config.Agent{
-		Name: name,
+		Name: exe.opt.Name,
 		User: currUser.Username,
 		Host: "localhost",
 	}
-	err = exe.configManager.AddAgent(namespace, configEntry)
+	err = config.AddAgent(exe.opt.Namespace, configEntry)
 
 	// TODO (Serge) Handle config file error, retry..?
 
 	if err == nil {
-		fmt.Printf("\nAgent %s/%s successfully deployed.\n", namespace, name)
+		fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 	}
 	return err
 }

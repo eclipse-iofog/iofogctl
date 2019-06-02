@@ -5,14 +5,16 @@ import (
 )
 
 type Executor interface {
-	Execute(string, string) error
+	Execute() error
 }
 
 type Options struct {
-	User    string
-	Host    string
-	KeyFile string
-	Local   bool
+	Namespace string
+	Name      string
+	User      string
+	Host      string
+	KeyFile   string
+	Local     bool
 }
 
 func NewExecutor(opt *Options) (Executor, error) {

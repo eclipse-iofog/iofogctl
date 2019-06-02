@@ -5,17 +5,15 @@ import (
 )
 
 type namespaceExecutor struct {
-	configManager *config.Manager
 }
 
 func newNamespaceExecutor() *namespaceExecutor {
 	n := &namespaceExecutor{}
-	n.configManager = config.NewManager()
 	return n
 }
 
-func (ns *namespaceExecutor) Execute(string) error {
-	namespaces := ns.configManager.GetNamespaces()
+func (exe *namespaceExecutor) Execute() error {
+	namespaces := config.GetNamespaces()
 	rows := make([]row, len(namespaces))
 	for idx, ns := range namespaces {
 		rows[idx].name = ns.Name

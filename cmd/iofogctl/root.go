@@ -37,5 +37,5 @@ var configFilename string
 
 // Callback for cobra on initialization
 func initConfig() {
-	config.SetFile(configFilename)
+	config.Init(configFilename)
 }

@@ -20,9 +20,11 @@ iofogctl deploy controller my_controller_name --user root --host 32.23.134.3 --k
 iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+
 			// Get name and namespace of controller
-			name := args[0]
-			namespace, err := cmd.Flags().GetString("namespace")
+			opt.Name = args[0]
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
 			// Get executor for command
@@ -30,7 +32,7 @@ iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf`,
 			util.Check(err)
 
 			// Execute the command
-			err = ctrl.Execute(namespace, name)
+			err = ctrl.Execute()
 			util.Check(err)
 		},
 	}

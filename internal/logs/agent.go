@@ -1,19 +1,17 @@
 package logs
 
-import (
-	"github.com/eclipse-iofog/cli/internal/config"
-)
-
 type agentExecutor struct {
-	configManager *config.Manager
+	namespace string
+	name      string
 }
 
-func newAgentExecutor() *agentExecutor {
+func newAgentExecutor(namespace, name string) *agentExecutor {
 	a := &agentExecutor{}
-	a.configManager = config.NewManager()
+	a.namespace = namespace
+	a.name = name
 	return a
 }
 
-func (ns *agentExecutor) Execute(namespace string, name string) error {
+func (ns *agentExecutor) Execute() error {
 	return nil
 }

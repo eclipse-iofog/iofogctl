@@ -31,23 +31,20 @@ namespaces:
 `)
 
 func init() {
-	SetFile("/tmp/cli.yml")
-	err := ioutil.WriteFile(filename, testData, 0644)
+	Init("/tmp/cli.yml")
+	err := ioutil.WriteFile(confFilename, testData, 0644)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func TestDelete(t *testing.T) {
-	manager := NewManager()
-	manager.DeleteAgent("first", "agent2")
+	DeleteAgent("first", "agent2")
 }
 
 func TestNamespaces(t *testing.T) {
-	manager := NewManager()
-
 	// Test all namespace queries
-	namespaces := manager.GetNamespaces()
+	namespaces := GetNamespaces()
 	if len(namespaces) != 2 {
 		t.Errorf("Incorrect number of namespaces: %d", len(namespaces))
 	}
@@ -58,7 +55,7 @@ func TestNamespaces(t *testing.T) {
 		}
 
 		// Test single namespace queries
-		singleNamespace, err := manager.GetNamespace(nsName)
+		singleNamespace, err := GetNamespace(nsName)
 		if err != nil {
 			t.Errorf("Error getting namespace. Error: %s", err.Error())
 		}
@@ -68,17 +65,16 @@ func TestNamespaces(t *testing.T) {
 	}
 
 	// Negative tests
-	_, err := manager.GetNamespace("falsename")
+	_, err := GetNamespace("falsename")
 	if err == nil {
 		t.Errorf("Expected error when requested non-existing namespace")
 	}
 }
 
 func TestControllers(t *testing.T) {
-	manager := NewManager()
-	for nsIdx, ns := range manager.GetNamespaces() {
+	for nsIdx, ns := range GetNamespaces() {
 		// Test bulk Controller queries
-		ctrls, err := manager.GetControllers(ns.Name)
+		ctrls, err := GetControllers(ns.Name)
 		if err != nil {
 			t.Errorf("Error: %s", err.Error())
 		}
@@ -94,7 +90,7 @@ func TestControllers(t *testing.T) {
 			}
 
 			// Test single Controller queries
-			singleCtrl, err := manager.GetController(ns.Name, expectedName)
+			singleCtrl, err := GetController(ns.Name, expectedName)
 			if err != nil {
 				t.Errorf("Error getting single Controller: %s", err.Error())
 			}
@@ -109,10 +105,9 @@ func TestControllers(t *testing.T) {
 }
 
 func TestAgents(t *testing.T) {
-	manager := NewManager()
-	for nsIdx, ns := range manager.GetNamespaces() {
+	for nsIdx, ns := range GetNamespaces() {
 		// Test bulk Agent queries
-		agents, err := manager.GetAgents(ns.Name)
+		agents, err := GetAgents(ns.Name)
 		if err != nil {
 			t.Errorf("Error: %s", err.Error())
 		}
@@ -128,7 +123,7 @@ func TestAgents(t *testing.T) {
 			}
 
 			// Test single Agent queries
-			singleAgent, err := manager.GetAgent(ns.Name, expectedName)
+			singleAgent, err := GetAgent(ns.Name, expectedName)
 			if err != nil {
 				t.Errorf("Error getting single Agent: %s", err.Error())
 			}

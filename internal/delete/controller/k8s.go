@@ -7,14 +7,12 @@ import (
 )
 
 type kubernetesExecutor struct {
-	configManager *config.Manager
-	namespace     string
-	name          string
+	namespace string
+	name      string
 }
 
 func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
 	exe := &kubernetesExecutor{}
-	exe.configManager = config.NewManager()
 	exe.namespace = namespace
 	exe.name = name
 	return exe
@@ -22,7 +20,7 @@ func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
 
 func (exe *kubernetesExecutor) Execute() error {
 	// Find the requested controller
-	ctrl, err := exe.configManager.GetController(exe.namespace, exe.name)
+	ctrl, err := config.GetController(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}
@@ -37,7 +35,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Update configuration
-	err = exe.configManager.DeleteController(exe.namespace, exe.name)
+	err = config.DeleteController(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}

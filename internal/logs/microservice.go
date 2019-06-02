@@ -1,19 +1,17 @@
 package logs
 
-import (
-	"github.com/eclipse-iofog/cli/internal/config"
-)
-
 type microserviceExecutor struct {
-	configManager *config.Manager
+	namespace string
+	name      string
 }
 
-func newMicroserviceExecutor() *microserviceExecutor {
+func newMicroserviceExecutor(namespace, name string) *microserviceExecutor {
 	m := &microserviceExecutor{}
-	m.configManager = config.NewManager()
+	m.namespace = namespace
+	m.name = name
 	return m
 }
 
-func (ns *microserviceExecutor) Execute(namespace string, name string) error {
+func (ns *microserviceExecutor) Execute() error {
 	return nil
 }

@@ -5,17 +5,17 @@ import (
 )
 
 type controllerExecutor struct {
-	configManager *config.Manager
+	namespace string
 }
 
-func newControllerExecutor() *controllerExecutor {
+func newControllerExecutor(namespace string) *controllerExecutor {
 	c := &controllerExecutor{}
-	c.configManager = config.NewManager()
+	c.namespace = namespace
 	return c
 }
 
-func (ctrl *controllerExecutor) Execute(namespace string) error {
-	controllers, err := ctrl.configManager.GetControllers(namespace)
+func (exe *controllerExecutor) Execute() error {
+	controllers, err := config.GetControllers(exe.namespace)
 	if err != nil {
 		return err
 	}

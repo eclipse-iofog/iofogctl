@@ -30,11 +30,11 @@ iofogctl logs microservice my_microservice_name`,
 			util.Check(err)
 
 			// Instantiate logs executor
-			exe, err := logs.NewExecutor(resource)
+			exe, err := logs.NewExecutor(resource, namespace, name)
 			util.Check(err)
 
 			// Run the logs command
-			err = exe.Execute(namespace, name)
+			err = exe.Execute()
 			util.Check(err)
 		},
 	}

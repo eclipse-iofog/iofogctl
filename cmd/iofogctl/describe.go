@@ -30,11 +30,11 @@ iofogctl describe microservice my_microservice_name`,
 			}
 
 			// Get executor for describe command
-			exe, err := describe.NewExecutor(resource)
+			exe, err := describe.NewExecutor(resource, namespace, name)
 			util.Check(err)
 
 			// Execute the command
-			err = exe.Execute(namespace, name)
+			err = exe.Execute()
 			util.Check(err)
 		},
 	}

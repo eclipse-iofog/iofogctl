@@ -1,19 +1,17 @@
 package logs
 
-import (
-	"github.com/eclipse-iofog/cli/internal/config"
-)
-
 type controllerExecutor struct {
-	configManager *config.Manager
+	namespace string
+	name      string
 }
 
-func newControllerExecutor() *controllerExecutor {
+func newControllerExecutor(namespace, name string) *controllerExecutor {
 	c := &controllerExecutor{}
-	c.configManager = config.NewManager()
+	c.namespace = namespace
+	c.name = name
 	return c
 }
 
-func (ns *controllerExecutor) Execute(namespace string, name string) error {
+func (ns *controllerExecutor) Execute() error {
 	return nil
 }

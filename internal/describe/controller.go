@@ -5,17 +5,19 @@ import (
 )
 
 type controllerExecutor struct {
-	configManager *config.Manager
+	namespace string
+	name      string
 }
 
-func newControllerExecutor() *controllerExecutor {
+func newControllerExecutor(namespace, name string) *controllerExecutor {
 	c := &controllerExecutor{}
-	c.configManager = config.NewManager()
+	c.namespace = namespace
+	c.name = name
 	return c
 }
 
-func (ns *controllerExecutor) Execute(namespace string, name string) error {
-	controller, err := ns.configManager.GetController(namespace, name)
+func (exe *controllerExecutor) Execute() error {
+	controller, err := config.GetController(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}

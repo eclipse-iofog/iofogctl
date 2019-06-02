@@ -6,14 +6,12 @@ import (
 )
 
 type remoteExecutor struct {
-	configManager *config.Manager
-	namespace     string
-	name          string
+	namespace string
+	name      string
 }
 
 func newRemoteExecutor(namespace, name string) *remoteExecutor {
 	exe := &remoteExecutor{}
-	exe.configManager = config.NewManager()
 	exe.namespace = namespace
 	exe.name = name
 	return exe
@@ -23,7 +21,7 @@ func (exe *remoteExecutor) Execute() error {
 	// TODO (Serge) Execute back-end logic
 
 	// Update configuration
-	err := exe.configManager.DeleteController(exe.namespace, exe.name)
+	err := config.DeleteController(exe.namespace, exe.name)
 
 	// TODO (Serge) Handle config file error, retry..?
 

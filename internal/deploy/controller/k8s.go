@@ -8,30 +8,28 @@ import (
 )
 
 type kubernetesExecutor struct {
-	configManager *config.Manager
-	opt           *Options
+	opt *Options
 }
 
 func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
-	k.configManager = config.NewManager()
 	k.opt = opt
 	return k
 }
 
-func (exe *kubernetesExecutor) Execute(namespace, name string) (err error) {
+func (exe *kubernetesExecutor) Execute() (err error) {
 	// Check controller already exists
-	_, err = exe.configManager.GetController(namespace, name)
+	_, err = config.GetController(exe.opt.Namespace, exe.opt.Name)
 	if err == nil {
-		return util.NewConflictError(namespace + "/" + name)
+		return util.NewConflictError(exe.opt.Namespace + "/" + exe.opt.Name)
 	}
 
 	// Update configuration
 	configEntry := config.Controller{
-		Name:       name,
+		Name:       exe.opt.Name,
 		KubeConfig: exe.opt.KubeConfig,
 	}
-	err = exe.configManager.AddController(namespace, configEntry)
+	err = config.AddController(exe.opt.Namespace, configEntry)
 	if err != nil {
 		return
 	}
@@ -48,6 +46,6 @@ func (exe *kubernetesExecutor) Execute(namespace, name string) (err error) {
 		return
 	}
 
-	fmt.Printf("\nController %s/%s successfully deployed.\n", namespace, name)
+	fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 	return nil
 }

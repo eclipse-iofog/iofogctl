@@ -19,9 +19,11 @@ func newDeployAgentCommand() *cobra.Command {
 iofogctl deploy agent my_agent_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+
 			// Get agent name and namespace
-			name := args[0]
-			namespace, err := cmd.Flags().GetString("namespace")
+			opt.Name = args[0]
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
 			// Get executor for the command
@@ -29,7 +31,7 @@ iofogctl deploy agent my_agent_name --user root --host 32.23.134.3 --key_file ~/
 			util.Check(err)
 
 			// Execute the command
-			err = exe.Execute(namespace, name)
+			err = exe.Execute()
 			util.Check(err)
 		},
 	}

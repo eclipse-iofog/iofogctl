@@ -5,10 +5,12 @@ import (
 )
 
 type Executor interface {
-	Execute(string, string) error
+	Execute() error
 }
 
 type Options struct {
+	Name       string
+	Namespace  string
 	User       string
 	Host       string
 	KeyFile    string

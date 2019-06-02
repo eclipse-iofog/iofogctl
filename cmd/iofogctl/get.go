@@ -25,11 +25,11 @@ iofogctl get microservices`,
 			util.Check(err)
 
 			// Get executor for get command
-			exe, err := get.NewExecutor(resource)
+			exe, err := get.NewExecutor(resource, namespace)
 			util.Check(err)
 
 			// Execute the get command
-			err = exe.Execute(namespace)
+			err = exe.Execute()
 			util.Check(err)
 		},
 	}
