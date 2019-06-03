@@ -11,10 +11,11 @@ func newGetCommand() *cobra.Command {
 		Use:   "get resource",
 		Short: "Get information of existing resources",
 		Long:  `Get information of existing resources`,
-		Example: `iofogctl get controllers
+		Example: `iofogctl get all
+iofogctl get controllers
 iofogctl get agents
 iofogctl get microservices`,
-		ValidArgs: []string{"namespaces", "controllers", "agents", "microservices"},
+		ValidArgs: []string{"namespaces", "all", "controllers", "agents", "microservices"},
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg

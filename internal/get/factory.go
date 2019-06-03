@@ -13,6 +13,8 @@ func NewExecutor(resourceType, namespace string) (Executor, error) {
 	switch resourceType {
 	case "namespaces":
 		return newNamespaceExecutor(), nil
+	case "all":
+		return newAllExecutor(namespace), nil
 	case "controllers":
 		return newControllerExecutor(namespace), nil
 	case "agents":

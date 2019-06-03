@@ -1,6 +1,7 @@
 package deploycontroller
 
 import (
+	"github.com/eclipse-iofog/cli/internal/config"
 	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
@@ -19,6 +20,12 @@ type Options struct {
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
+	// Check the namespace exists
+	_, err := config.GetNamespace(opt.Namespace)
+	if err != nil {
+		return nil, err
+	}
+
 	// Local executor
 	if opt.Local == true {
 		return newLocalExecutor(opt), nil

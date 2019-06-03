@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -50,7 +49,6 @@ func Init(filename string) {
 	// If a config file is found, read it in.
 	err := viper.ReadInConfig()
 	util.Check(err)
-	fmt.Println("Using config file:", viper.ConfigFileUsed())
 
 	// Unmarshall the file
 	err = viper.Unmarshal(&conf)
