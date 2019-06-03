@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
 )
 
 // struct that file is unmarshalled into
@@ -29,6 +30,17 @@ func Init(filename string) {
 		confFilename = home + "/" + DefaultFilename
 	} else {
 		confFilename = filename
+	}
+	// Check file exists
+	if _, err := os.Stat(confFilename); os.IsNotExist(err) {
+		// Create default file
+		defaultData := []byte(`namespaces:
+- name: default
+  controllers: []
+  agents: []
+  microservices: []`)
+		err := ioutil.WriteFile(confFilename, defaultData, 0644)
+		util.Check(err)
 	}
 
 	viper.SetConfigFile(confFilename)
