@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	create "github.com/eclipse-iofog/cli/internal/create/namespace"

@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	deploy "github.com/eclipse-iofog/cli/internal/deploy/agent"

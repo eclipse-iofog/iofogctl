@@ -1,11 +1,11 @@
-package main
+package cmd
 
 import (
 	"github.com/eclipse-iofog/cli/internal/config"
 	"github.com/spf13/cobra"
 )
 
-func newRootCommand() *cobra.Command {
+func NewRootCommand() *cobra.Command {
 	// Root command
 	var cmd = &cobra.Command{
 		Use:   "iofogctl",

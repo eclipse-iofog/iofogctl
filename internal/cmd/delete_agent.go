@@ -1,20 +1,20 @@
-package main
+package cmd
 
 import (
-	delete "github.com/eclipse-iofog/cli/internal/delete/controller"
+	delete "github.com/eclipse-iofog/cli/internal/delete/agent"
 	"github.com/eclipse-iofog/cli/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newDeleteControllerCommand() *cobra.Command {
+func newDeleteAgentCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "controller name",
-		Short:   "Delete a Controller",
-		Long:    `Delete a Controller`,
-		Example: `iofogctl delete controller my_controller_name`,
+		Use:     "agent name",
+		Short:   "Delete an Agent",
+		Long:    `Delete an Agent`,
+		Example: `iofogctl delete agent my_agent_name`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get name and namespace of controller
+			// Get name and namespace of agent
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)

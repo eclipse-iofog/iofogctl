@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	delete "github.com/eclipse-iofog/cli/internal/delete/namespace"
