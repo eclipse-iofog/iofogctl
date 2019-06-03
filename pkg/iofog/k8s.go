@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
+	pb "github.com/schollz/progressbar"
 	"k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,13 +61,21 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController() error {
+	// Progress bar object
+	pbCtx := progressBarContext{
+		pb:    pb.New(100),
+		quota: 90,
+	}
+
 	// Install ioFog Core
-	token, ips, err := k8s.createCore()
+	token, ips, err := k8s.createCore(pbCtx)
 	if err != nil {
 		return err
 	}
+
+	pbCtx.quota = 10
 	// Install ioFog K8s Extensions
-	err = k8s.createExtension(token, ips)
+	err = k8s.createExtension(token, ips, pbCtx)
 	if err != nil {
 		return err
 	}
@@ -76,6 +85,9 @@ func (k8s *Kubernetes) CreateController() error {
 
 // DeleteController from cluster
 func (k8s *Kubernetes) DeleteController() error {
+	// Progress bar object
+	pb := pb.New(100)
+
 	// Delete Deployments
 	deps, err := k8s.clientset.AppsV1().Deployments(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
@@ -87,6 +99,7 @@ func (k8s *Kubernetes) DeleteController() error {
 			return err
 		}
 	}
+	pb.Add(10)
 
 	// Delete Services
 	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
@@ -99,6 +112,7 @@ func (k8s *Kubernetes) DeleteController() error {
 			return err
 		}
 	}
+	pb.Add(10)
 
 	// Delete Service Accounts
 	svcAccs, err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).List(metav1.ListOptions{})
@@ -111,12 +125,14 @@ func (k8s *Kubernetes) DeleteController() error {
 			return err
 		}
 	}
+	pb.Add(10)
 
 	// Delete Kubelet Cluster Role Binding
 	err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(kubeletMicroservice.name, &metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
+	pb.Add(10)
 
 	// Delete Roles
 	roles, err := k8s.clientset.RbacV1().Roles(k8s.ns).List(metav1.ListOptions{})
@@ -129,6 +145,7 @@ func (k8s *Kubernetes) DeleteController() error {
 			return err
 		}
 	}
+	pb.Add(10)
 
 	// Delete Role Bindings
 	roleBinds, err := k8s.clientset.RbacV1().RoleBindings(k8s.ns).List(metav1.ListOptions{})
@@ -141,23 +158,28 @@ func (k8s *Kubernetes) DeleteController() error {
 			return err
 		}
 	}
+	pb.Add(10)
 
 	// Delete CRD
 	err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(k8s.crdName, &metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
+	pb.Add(10)
 
 	// Delete Namespace
 	err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
+	pb.Add(30)
 
 	return nil
 }
 
-func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err error) {
+func (k8s *Kubernetes) createCore(pbCtx progressBarContext) (token string, ips map[string]string, err error) {
+	pbSlice := pbCtx.quota / 10
+
 	// Create namespace
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -189,14 +211,18 @@ func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err er
 		}
 	}
 
+	pbCtx.pb.Add(pbSlice)
+
+	pbCtx.quota = pbSlice * 2
 	// Wait for Controller and Connector Pods
-	err = k8s.waitForPods(k8s.ns)
+	err = k8s.waitForPods(k8s.ns, pbCtx)
 	if err != nil {
 		return
 	}
 
+	pbCtx.quota = pbSlice * 4
 	// Wait for Controller and Connector IPs and store them
-	ips, err = k8s.waitForServices(k8s.ns)
+	ips, err = k8s.waitForServices(k8s.ns, pbCtx)
 	if err != nil {
 		return
 	}
@@ -212,6 +238,7 @@ func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err er
 	if err != nil {
 		return
 	}
+	pbCtx.pb.Add(pbSlice)
 
 	// Get Controller token through REST API
 	contentType := "application/json"
@@ -224,6 +251,7 @@ func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err er
 	if err != nil {
 		return
 	}
+	pbCtx.pb.Add(pbSlice)
 
 	// Login user
 	loginBody := strings.NewReader("{\"email\":\"user@domain.com\",\"password\":\"#Bugs4Fun\"}")
@@ -245,11 +273,14 @@ func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err er
 		err = util.NewInternalError("Failed to get auth token from Controller")
 		return
 	}
+	pbCtx.pb.Add(pbSlice)
 
 	return
 }
 
-func (k8s *Kubernetes) createExtension(token string, ips map[string]string) error {
+func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCtx progressBarContext) error {
+	pbSlice := pbCtx.quota / 5
+
 	// Create Scheduler resources
 	schedDep := newDeployment(k8s.ns, schedulerMicroservice)
 	_, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep)
@@ -261,6 +292,7 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) erro
 	if err != nil {
 		return err
 	}
+	pbCtx.pb.Add(pbSlice)
 
 	// Create Kubelet resources
 	vkSvcAcc := newServiceAccount(k8s.ns, kubeletMicroservice)
@@ -268,6 +300,8 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) erro
 	if err != nil {
 		return err
 	}
+	pbCtx.pb.Add(pbSlice)
+
 	vkRoleBind := newClusterRoleBinding(k8s.ns, kubeletMicroservice)
 	_, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(vkRoleBind)
 	if err != nil {
@@ -281,6 +315,7 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) erro
 		"--iofog-url",
 		fmt.Sprintf("http://%s:%d", ips["controller"], controllerMicroservice.port),
 	}
+	pbCtx.pb.Add(pbSlice)
 	vkDep := newDeployment(k8s.ns, kubeletMicroservice)
 	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(vkDep)
 	if err != nil {
@@ -308,6 +343,7 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) erro
 	if err != nil {
 		return err
 	}
+	pbCtx.pb.Add(pbSlice)
 	opDep := newDeployment(k8s.ns, operatorMicroservice)
 	opDep.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
 		{
@@ -357,17 +393,24 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) erro
 	if err != nil {
 		return err
 	}
+	pbCtx.pb.Add(pbSlice)
 
 	return nil
 }
 
-func (k8s *Kubernetes) waitForPods(namespace string) error {
+func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) error {
 	// Get Pods
 	podList, err := k8s.clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
 	podCount := len(podList.Items)
+
+	// Determine progress slice
+	pbSlice := pbCtx.quota / podCount
+	if pbSlice == 0 {
+		pbSlice = 1
+	}
 
 	// Get watch handler to observe changes to pods
 	watch, err := k8s.clientset.CoreV1().Pods(namespace).Watch(metav1.ListOptions{})
@@ -388,6 +431,7 @@ func (k8s *Kubernetes) waitForPods(namespace string) error {
 		_, exists := readyPods[pod.Name]
 		if !exists && pod.Status.Phase == "Running" {
 			readyPods[pod.Name] = true
+			pbCtx.pb.Add(pbSlice)
 			// All pods are ready
 			if len(readyPods) == podCount {
 				watch.Stop()
@@ -397,7 +441,7 @@ func (k8s *Kubernetes) waitForPods(namespace string) error {
 	return nil
 }
 
-func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, error) {
+func (k8s *Kubernetes) waitForServices(namespace string, pbCtx progressBarContext) (map[string]string, error) {
 	// Get Services
 	serviceList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -406,6 +450,12 @@ func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, err
 	// Return ips of services upon completion
 	serviceCount := len(serviceList.Items)
 	ips := make(map[string]string, serviceCount)
+
+	// Determine progress slice
+	pbSlice := pbCtx.quota / serviceCount
+	if pbSlice == 0 {
+		pbSlice = 1
+	}
 
 	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(namespace).Watch(metav1.ListOptions{})
@@ -431,6 +481,7 @@ func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, err
 			// Record the IP
 			ips[svc.Name] = svc.Status.LoadBalancer.Ingress[0].IP
 			readyServices[svc.Name] = true
+			pbCtx.pb.Add(pbSlice)
 			// All services are ready
 			if len(readyServices) == serviceCount {
 				watch.Stop()
@@ -439,4 +490,9 @@ func (k8s *Kubernetes) waitForServices(namespace string) (map[string]string, err
 	}
 
 	return ips, nil
+}
+
+type progressBarContext struct {
+	pb    *pb.ProgressBar
+	quota int
 }

@@ -24,16 +24,6 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return util.NewConflictError(exe.opt.Namespace + "/" + exe.opt.Name)
 	}
 
-	// Update configuration
-	configEntry := config.Controller{
-		Name:       exe.opt.Name,
-		KubeConfig: exe.opt.KubeConfig,
-	}
-	err = config.AddController(exe.opt.Namespace, configEntry)
-	if err != nil {
-		return
-	}
-
 	// Get Kubernetes cluster
 	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig)
 	if err != nil {
@@ -42,6 +32,16 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 
 	// Create controller on cluster
 	err = k8s.CreateController()
+	if err != nil {
+		return
+	}
+
+	// Update configuration
+	configEntry := config.Controller{
+		Name:       exe.opt.Name,
+		KubeConfig: exe.opt.KubeConfig,
+	}
+	err = config.AddController(exe.opt.Namespace, configEntry)
 	if err != nil {
 		return
 	}

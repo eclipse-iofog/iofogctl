@@ -42,10 +42,6 @@
   unused-packages = true
 
 [[constraint]]
-  name = "k8s.io/helm"
-  version = "2.14.0"
-
-[[constraint]]
   name = "k8s.io/apimachinery"
   branch = "release-1.14"
 
@@ -56,3 +52,7 @@
 [[constraint]]
   name = "k8s.io/apiextensions-apiserver"
   version = "kubernetes-1.14.2"
+
+[[constraint]]
+  name = "github.com/schollz/progressbar"
+  version = "v2.13.0"

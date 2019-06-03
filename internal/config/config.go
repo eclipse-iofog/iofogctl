@@ -14,7 +14,7 @@ import (
 var conf configuration
 
 // Name of file
-var confFilename string
+var configFilename string
 
 // DefaultFilename export
 const DefaultFilename = ".iofog.yaml"
@@ -27,23 +27,23 @@ func Init(filename string) {
 		home, err := homedir.Dir()
 		util.Check(err)
 
-		confFilename = home + "/" + DefaultFilename
+		configFilename = home + "/" + DefaultFilename
 	} else {
-		confFilename = filename
+		configFilename = filename
 	}
 	// Check file exists
-	if _, err := os.Stat(confFilename); os.IsNotExist(err) {
+	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
 		// Create default file
 		defaultData := []byte(`namespaces:
 - name: default
   controllers: []
   agents: []
   microservices: []`)
-		err := ioutil.WriteFile(confFilename, defaultData, 0644)
+		err := ioutil.WriteFile(configFilename, defaultData, 0644)
 		util.Check(err)
 	}
 
-	viper.SetConfigFile(confFilename)
+	viper.SetConfigFile(configFilename)
 
 	viper.AutomaticEnv() // read in environment variables that match
 
@@ -344,7 +344,7 @@ func updateFile() (err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(confFilename, marshal, 0644)
+	err = ioutil.WriteFile(configFilename, marshal, 0644)
 	if err != nil {
 		return
 	}
