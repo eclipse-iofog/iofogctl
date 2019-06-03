@@ -31,11 +31,11 @@ namespaces:
 `)
 
 func init() {
-	Init("/tmp/cli.yml")
 	err := ioutil.WriteFile(confFilename, testData, 0644)
 	if err != nil {
 		panic(err)
 	}
+	Init("/tmp/cli.yml")
 }
 
 func TestDelete(t *testing.T) {
