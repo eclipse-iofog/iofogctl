@@ -12,6 +12,7 @@ func newGetCommand() *cobra.Command {
 		Short: "Get information of existing resources",
 		Long:  `Get information of existing resources`,
 		Example: `iofogctl get all
+iofogctl get namespaces
 iofogctl get controllers
 iofogctl get agents
 iofogctl get microservices`,

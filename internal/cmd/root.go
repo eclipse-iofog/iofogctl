@@ -9,8 +9,8 @@ func NewRootCommand() *cobra.Command {
 	// Root command
 	var cmd = &cobra.Command{
 		Use:   "iofogctl",
-		Short: "ioFogctl Unified Command Line Interface",
-		Long:  "ioFogctl Unified Command Line Interface",
+		Short: "ioFog Unified Command Line Interface",
+		Long:  "ioFog Unified Command Line Interface",
 	}
 
 	// Initialize config filename
