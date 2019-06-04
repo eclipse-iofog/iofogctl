@@ -7,6 +7,7 @@ type Controller struct {
 	Host       string `mapstructure:"host"`
 	KeyFile    string `mapstructure:"keyFile"`
 	KubeConfig string `mapstructure:"kubeConfig"`
+	Endpoint   string `mapstructure:"endpoint"`
 }
 
 // Agent export

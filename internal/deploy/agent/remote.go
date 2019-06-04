@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/internal/config"
 	"github.com/eclipse-iofog/cli/pkg/iofog"
+	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -24,7 +25,18 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	err = agent.Configure()
+
+	// Get Controller endpoint
+	controllers, err := config.GetControllers(exe.opt.Namespace)
+	if err != nil {
+		println("You must deploy a Controller to a namespace before deploying any Agents")
+		return err
+	}
+	if len(controllers) != 1 {
+		return util.NewInternalError("Only support 1 controller per namespace")
+	}
+	endpoint := controllers[0].Endpoint
+	err = agent.Configure(endpoint)
 	if err != nil {
 		return err
 	}

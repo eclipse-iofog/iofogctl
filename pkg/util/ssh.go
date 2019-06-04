@@ -92,6 +92,40 @@ func (cl *SecureShellClient) Run(cmd string) error {
 	return nil
 }
 
+func (cl *SecureShellClient) CopyToServer(filename string) error {
+	session, err := cl.conn.NewSession()
+	if err != nil {
+		return err
+	}
+
+	defer session.Close()
+	sessStderr, err := session.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	go io.Copy(os.Stderr, sessStderr)
+
+	// Prepare server stdin
+	stdin, err := session.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	// Prepare file
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(stdin, file)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {
 	// Read priv key file, MUST BE RSA
 	key, err := ioutil.ReadFile(cl.privKeyFilename)

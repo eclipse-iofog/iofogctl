@@ -60,7 +60,7 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController() error {
+func (k8s *Kubernetes) CreateController() (endpoint string, err error) {
 	// Progress bar object
 	pbCtx := progressBarContext{
 		pb:    pb.New(100),
@@ -70,17 +70,18 @@ func (k8s *Kubernetes) CreateController() error {
 	// Install ioFog Core
 	token, ips, err := k8s.createCore(pbCtx)
 	if err != nil {
-		return err
+		return
 	}
+	endpoint = fmt.Sprintf("http://%s:%d/api/v3", ips["controller"], controllerMicroservice.port)
 
 	pbCtx.quota = 10
 	// Install ioFog K8s Extensions
 	err = k8s.createExtension(token, ips, pbCtx)
 	if err != nil {
-		return err
+		return
 	}
 
-	return nil
+	return
 }
 
 // DeleteController from cluster

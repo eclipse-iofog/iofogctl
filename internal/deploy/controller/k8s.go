@@ -31,7 +31,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Create controller on cluster
-	err = k8s.CreateController()
+	endpoint, err := k8s.CreateController()
 	if err != nil {
 		return
 	}
@@ -40,6 +40,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	configEntry := config.Controller{
 		Name:       exe.opt.Name,
 		KubeConfig: exe.opt.KubeConfig,
+		Endpoint:   endpoint,
 	}
 	err = config.AddController(exe.opt.Namespace, configEntry)
 	if err != nil {
