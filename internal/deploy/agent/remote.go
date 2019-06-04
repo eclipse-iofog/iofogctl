@@ -3,6 +3,7 @@ package deployagent
 import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/cli/pkg/iofog"
 )
 
 type remoteExecutor struct {
@@ -17,7 +18,16 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 }
 
 func (exe *remoteExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
+	// Install the agent stack on the server
+	agent := iofog.NewAgent(exe.opt.User, exe.opt.Host, exe.opt.KeyFile)
+	err := agent.Bootstrap()
+	if err != nil {
+		return err
+	}
+	err = agent.Configure()
+	if err != nil {
+		return err
+	}
 
 	// Update configuration
 	configEntry := config.Agent{
@@ -26,7 +36,7 @@ func (exe *remoteExecutor) Execute() error {
 		Host:    exe.opt.Host,
 		KeyFile: exe.opt.KeyFile,
 	}
-	err := config.AddAgent(exe.opt.Namespace, configEntry)
+	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {
 		return err
 	}
