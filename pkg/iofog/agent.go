@@ -2,6 +2,7 @@ package iofog
 
 import (
 	"github.com/eclipse-iofog/cli/pkg/util"
+	pb "github.com/schollz/progressbar"
 )
 
 type Agent struct {
@@ -21,17 +22,23 @@ func (agent *Agent) Bootstrap() error {
 	}
 	defer agent.ssh.Disconnect()
 
-	cmds := []string{
-		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp",
-		"sudo apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
-		"curl https://raw.githubusercontent.com/eclipse-iofog/iofog.org/saeid/jdk/static/linux.sh | sudo tee /opt/linux.sh",
-		"sudo chmod +x /opt/linux.sh",
-		"sudo /opt/linux.sh",
-		"sudo service iofog-agent start",
-		"sudo iofog-agent config -cf 10 -sf 10",
+	cmds := []command{
+		{"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp", 1},
+		{"sudo apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq", 5},
+		{"curl https://raw.githubusercontent.com/eclipse-iofog/iofog.org/saeid/jdk/static/linux.sh | sudo tee /opt/linux.sh", 2},
+		{"sudo chmod +x /opt/linux.sh", 1},
+		{"sudo /opt/linux.sh", 70},
+		{"sudo service iofog-agent start", 3},
+		{"sudo iofog-agent config -cf 10 -sf 10", 1},
+		{"echo '" + waitForAgentScript + "' | tee ~/wait-for-agent.sh", 1},
+		{"chmod +x ~/wait-for-agent.sh", 1},
+		{"~/wait-for-agent.sh", 15},
 	}
+
+	pb := pb.New(100)
 	for _, cmd := range cmds {
-		err = agent.ssh.Run(cmd)
+		err = agent.ssh.Run(cmd.cmd)
+		pb.Add(cmd.pbSlice)
 		if err != nil {
 			return err
 		}
@@ -47,23 +54,28 @@ func (agent *Agent) Configure(controllerBaseURL string) error {
 	}
 	defer agent.ssh.Disconnect()
 
-	cmds := []string{
-		"echo '" + waitForAgentScript + "' | tee ~/wait-for-agent.sh",
-		"chmod +x ~/wait-for-agent.sh",
-		"~/wait-for-agent.sh",
-		"sudo iofog-agent config -a " + controllerBaseURL,
-		"echo '" + initScript + "' | tee ~/init.sh",
-		"chmod +x ~/init.sh",
-		"~/init.sh " + controllerBaseURL,
+	cmds := []command{
+		{"sudo iofog-agent config -a " + controllerBaseURL, 5},
+		{"echo '" + initScript + "' | tee ~/init.sh", 2},
+		{"chmod +x ~/init.sh", 3},
+		{"~/init.sh " + controllerBaseURL, 90},
 	}
+
+	pb := pb.New(100)
 	for _, cmd := range cmds {
-		err = agent.ssh.Run(cmd)
+		err = agent.ssh.Run(cmd.cmd)
+		pb.Add(cmd.pbSlice)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+type command struct {
+	cmd     string
+	pbSlice int
 }
 
 var waitForAgentScript = `STATUS=""

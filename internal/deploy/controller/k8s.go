@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/internal/config"
 	"github.com/eclipse-iofog/cli/pkg/iofog"
-	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -18,12 +17,6 @@ func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Check controller already exists
-	_, err = config.GetController(exe.opt.Namespace, exe.opt.Name)
-	if err == nil {
-		return util.NewConflictError(exe.opt.Namespace + "/" + exe.opt.Name)
-	}
-
 	// Get Kubernetes cluster
 	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig)
 	if err != nil {

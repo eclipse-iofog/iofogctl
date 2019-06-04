@@ -67,62 +67,20 @@ func (cl *SecureShellClient) Disconnect() error {
 }
 
 func (cl *SecureShellClient) Run(cmd string) error {
+	// Establish the session
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return err
 	}
-
 	defer session.Close()
 
-	sessStdOut, err := session.StdoutPipe()
-	if err != nil {
-		panic(err)
-	}
-	go io.Copy(os.Stdout, sessStdOut)
-	sessStderr, err := session.StderrPipe()
-	if err != nil {
-		panic(err)
-	}
-	go io.Copy(os.Stderr, sessStderr)
-
+	// Run the command
 	err = session.Run(cmd)
 	if err != nil {
+		stderr, _ := session.StderrPipe()
+		io.Copy(os.Stderr, stderr)
 		return err
 	}
-	return nil
-}
-
-func (cl *SecureShellClient) CopyToServer(filename string) error {
-	session, err := cl.conn.NewSession()
-	if err != nil {
-		return err
-	}
-
-	defer session.Close()
-	sessStderr, err := session.StderrPipe()
-	if err != nil {
-		panic(err)
-	}
-	go io.Copy(os.Stderr, sessStderr)
-
-	// Prepare server stdin
-	stdin, err := session.StdinPipe()
-	if err != nil {
-		return err
-	}
-
-	// Prepare file
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(stdin, file)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

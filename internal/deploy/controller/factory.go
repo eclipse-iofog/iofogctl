@@ -26,6 +26,12 @@ func NewExecutor(opt *Options) (Executor, error) {
 		return nil, err
 	}
 
+	// Check controller already exists
+	_, err = config.GetController(opt.Namespace, opt.Name)
+	if err == nil {
+		return nil, util.NewConflictError(opt.Namespace + "/" + opt.Name)
+	}
+
 	// Local executor
 	if opt.Local == true {
 		return newLocalExecutor(opt), nil
