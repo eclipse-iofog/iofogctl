@@ -1,8 +1,6 @@
 package iofog
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
 	pb "github.com/schollz/progressbar"
@@ -12,9 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
-	"net/http"
 	"os"
-	"strings"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -60,7 +56,7 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController() (endpoint string, err error) {
+func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) {
 	// Progress bar object
 	pbCtx := progressBarContext{
 		pb:    pb.New(100),
@@ -68,11 +64,11 @@ func (k8s *Kubernetes) CreateController() (endpoint string, err error) {
 	}
 
 	// Install ioFog Core
-	token, ips, err := k8s.createCore(pbCtx)
+	token, ips, err := k8s.createCore(user, pbCtx)
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("http://%s:%d/api/v3", ips["controller"], controllerMicroservice.port)
+	endpoint = fmt.Sprintf("%s:%d", ips["controller"], controllerMicroservice.port)
 
 	pbCtx.quota = 10
 	// Install ioFog K8s Extensions
@@ -178,7 +174,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) createCore(pbCtx progressBarContext) (token string, ips map[string]string, err error) {
+func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token string, ips map[string]string, err error) {
 	pbSlice := pbCtx.quota / 10
 
 	// Create namespace
@@ -241,37 +237,20 @@ func (k8s *Kubernetes) createCore(pbCtx progressBarContext) (token string, ips m
 	}
 	pbCtx.pb.Add(pbSlice)
 
-	// Get Controller token through REST API
-	contentType := "application/json"
-	url := fmt.Sprintf("http://%s:%d/api/v3/", ips["controller"], controllerMicroservice.port)
+	// Connect to controller
+	endpoint := fmt.Sprintf("%s:%d", ips["controller"], controllerMicroservice.port)
+	ctrl := NewController(endpoint)
 
-	// TODO: (Serge) Create unique user?
 	// Create user
-	signupBody := strings.NewReader("{ \"firstName\": \"Dev\", \"lastName\": \"Test\", \"email\": \"user@domain.com\", \"password\": \"#Bugs4Fun\" }")
-	resp, err := http.Post(url+"user/signup", contentType, signupBody)
+	err = ctrl.CreateUser(user)
 	if err != nil {
 		return
 	}
 	pbCtx.pb.Add(pbSlice)
 
-	// Login user
-	loginBody := strings.NewReader("{\"email\":\"user@domain.com\",\"password\":\"#Bugs4Fun\"}")
-	resp, err = http.Post(url+"user/login", contentType, loginBody)
+	// Get token
+	token, err = ctrl.GetAuthToken(user)
 	if err != nil {
-		return
-	}
-
-	// Read access token from HTTP response
-	var auth map[string]interface{}
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	err = json.Unmarshal(buf.Bytes(), &auth)
-	if err != nil {
-		return
-	}
-	token, exists := auth["accessToken"].(string)
-	if !exists {
-		err = util.NewInternalError("Failed to get auth token from Controller")
 		return
 	}
 	pbCtx.pb.Add(pbSlice)
@@ -406,6 +385,9 @@ func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) e
 		return err
 	}
 	podCount := len(podList.Items)
+	if podCount == 0 {
+		return util.NewInternalError("Could not find pods in iofog namespace")
+	}
 
 	// Determine progress slice
 	pbSlice := pbCtx.quota / podCount

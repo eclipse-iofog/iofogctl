@@ -15,9 +15,9 @@ func newDeployControllerCommand() *cobra.Command {
 		Use:   "controller name",
 		Short: "Deploy a Controller",
 		Long:  `Deploy a Controller`,
-		Example: `iofogctl deploy controller my_controller_name --local
-iofogctl deploy controller my_controller_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
-iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf`,
+		Example: `iofogctl deploy controller my_controller_name --local --pass hgh3uj87hyy
+iofogctl deploy controller my_controller_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa --pass hgh3uj87hyy
+iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf --pass hgh3uj87hyy`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -41,9 +41,10 @@ iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf`,
 	cmd.Flags().StringVarP(&opt.User, "user", "u", "", "Username of host the Controller is being deployed on")
 	cmd.Flags().StringVarP(&opt.Host, "host", "o", "", "IP or hostname of host the Controller is being deployed on")
 	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir")
-	cmd.Flags().StringVarP(&opt.KubeConfig, "kube-config", "q", "", "Filename of Kubernetes cluster config file. Cannot be used with other flags")
-	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment. Cannot be used with other flags")
+	cmd.Flags().StringVarP(&opt.KubeConfig, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
+	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment")
 	cmd.Flags().Lookup("local").NoOptDefVal = "true"
+	cmd.Flags().StringVarP(&opt.Password, "pass", "p", "", "Password for ioFog user registered in Controller")
 
 	return cmd
 }

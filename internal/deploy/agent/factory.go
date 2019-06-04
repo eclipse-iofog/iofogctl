@@ -16,6 +16,7 @@ type Options struct {
 	Host      string
 	KeyFile   string
 	Local     bool
+	AgentName string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
@@ -23,6 +24,11 @@ func NewExecutor(opt *Options) (Executor, error) {
 	_, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check Agent Name is specified
+	if opt.AgentName == "" {
+		return nil, util.NewInputError("Must specify agent name")
 	}
 
 	// Check controller already exists

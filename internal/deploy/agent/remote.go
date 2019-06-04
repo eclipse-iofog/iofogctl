@@ -20,13 +20,13 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 
 func (exe *remoteExecutor) Execute() error {
 	// Install the agent stack on the server
-	agent := iofog.NewAgent(exe.opt.User, exe.opt.Host, exe.opt.KeyFile)
+	agent := iofog.NewAgent(exe.opt.User, exe.opt.Host, exe.opt.KeyFile, exe.opt.AgentName)
 	err := agent.Bootstrap()
 	if err != nil {
 		return err
 	}
 
-	// Get Controller endpoint
+	// Get Controller details
 	controllers, err := config.GetControllers(exe.opt.Namespace)
 	if err != nil {
 		println("You must deploy a Controller to a namespace before deploying any Agents")
@@ -36,17 +36,24 @@ func (exe *remoteExecutor) Execute() error {
 		return util.NewInternalError("Only support 1 controller per namespace")
 	}
 	endpoint := controllers[0].Endpoint
-	err = agent.Configure(endpoint)
+	user := iofog.User{
+		Name:     controllers[0].IofogUser.Name,
+		Surname:  controllers[0].IofogUser.Surname,
+		Email:    controllers[0].IofogUser.Email,
+		Password: controllers[0].IofogUser.Password,
+	}
+	err = agent.Configure(endpoint, user)
 	if err != nil {
 		return err
 	}
 
 	// Update configuration
 	configEntry := config.Agent{
-		Name:    exe.opt.Name,
-		User:    exe.opt.User,
-		Host:    exe.opt.Host,
-		KeyFile: exe.opt.KeyFile,
+		Name:      exe.opt.Name,
+		User:      exe.opt.User,
+		Host:      exe.opt.Host,
+		KeyFile:   exe.opt.KeyFile,
+		AgentName: exe.opt.AgentName,
 	}
 	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {

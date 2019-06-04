@@ -17,6 +17,7 @@ type Options struct {
 	KeyFile    string
 	Local      bool
 	KubeConfig string
+	Password   string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
@@ -30,6 +31,11 @@ func NewExecutor(opt *Options) (Executor, error) {
 	_, err = config.GetController(opt.Namespace, opt.Name)
 	if err == nil {
 		return nil, util.NewConflictError(opt.Namespace + "/" + opt.Name)
+	}
+
+	// Check password provided
+	if opt.Password == "" {
+		return nil, util.NewInputError("Must specify a password")
 	}
 
 	// Local executor

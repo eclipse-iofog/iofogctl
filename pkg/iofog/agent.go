@@ -1,17 +1,20 @@
 package iofog
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/cli/pkg/util"
 	pb "github.com/schollz/progressbar"
 )
 
 type Agent struct {
-	ssh *util.SecureShellClient
+	ssh  *util.SecureShellClient
+	name string
 }
 
-func NewAgent(user, host, privKeyFilename string) *Agent {
+func NewAgent(user, host, privKeyFilename, agentName string) *Agent {
 	return &Agent{
-		ssh: util.NewSecureShellClient(user, host, privKeyFilename),
+		ssh:  util.NewSecureShellClient(user, host, privKeyFilename),
+		name: agentName,
 	}
 }
 
@@ -47,21 +50,47 @@ func (agent *Agent) Bootstrap() error {
 	return nil
 }
 
-func (agent *Agent) Configure(controllerBaseURL string) error {
-	err := agent.ssh.Connect()
+func (agent *Agent) Configure(controllerEndpoint string, user User) error {
+	pb := pb.New(100)
+
+	// Connect to controller
+	ctrl := NewController(controllerEndpoint)
+
+	// Log in
+	token, err := ctrl.GetAuthToken(user)
+	if err != nil {
+		return err
+	}
+	pb.Add(20)
+
+	// Create agent
+	uuid, err := ctrl.CreateAgent(token, agent.name)
+	if err != nil {
+		return err
+	}
+	pb.Add(20)
+
+	// Get provisioning key
+	key, err := ctrl.GetAgentProvisionKey(token, uuid)
+	if err != nil {
+		return err
+	}
+	pb.Add(20)
+
+	// Establish SSH to agent
+	err = agent.ssh.Connect()
 	if err != nil {
 		return err
 	}
 	defer agent.ssh.Disconnect()
+	pb.Add(20)
 
+	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
 	cmds := []command{
-		{"sudo iofog-agent config -a " + controllerBaseURL, 5},
-		{"echo '" + initScript + "' | tee ~/init.sh", 2},
-		{"chmod +x ~/init.sh", 3},
-		{"~/init.sh " + controllerBaseURL, 90},
+		{"sudo iofog-agent config -a " + controllerBaseURL, 10},
+		{"sudo iofog-agent provision " + key, 10},
 	}
 
-	pb := pb.New(100)
 	for _, cmd := range cmds {
 		err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
@@ -90,50 +119,3 @@ while [ "$STATUS" != "RUNNING" ] ; do
     STATUS=$(sudo iofog-agent status | cut -f2 -d: | head -n 1 | tr -d '[:space:]')
 done
 exit 0`
-
-var initScript = `#!/usr/bin/env bash
-set -e
-set -x
-
-CONTROLLER_HOST=$1
-
-token=""
-uuid=""
-
-function login() {
-    echo "Logging in"
-    login=$(curl --request POST \
-        --url $CONTROLLER_HOST/user/login \
-        --header "Content-Type: application/json" \
-        --data "{\"email\":\"user@domain.com\",\"password\":\"#Bugs4Fun\"}")
-    echo "$login"
-    token=$(echo $login | jq -r .accessToken)
-}
-
-
-function create-node() {
-    echo "Creating node"
-    node=$(curl --request POST \
-        --url $CONTROLLER_HOST/iofog \
-        --header "Authorization: $token" \
-        --header "Content-Type: application/json" \
-        --data "{\"name\":\"agent-smith\",\"fogType\":0}")
-    echo "$node"
-    uuid=$(echo $node | jq -r .uuid)
-}
-
-function provision() {
-    echo "Provisioning key"
-    provisioning=$(curl --request GET \
-        --url $CONTROLLER_HOST/iofog/$uuid/provisioning-key \
-        --header "Authorization: $token" \
-        --header "Content-Type: application/json")
-    echo "$provisioning"
-    key=$(echo $provisioning | jq -r .key)
-
-    sudo iofog-agent provision $key
-}
-
-login
-create-node
-provision`

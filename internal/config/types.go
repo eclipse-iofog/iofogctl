@@ -1,21 +1,30 @@
 package config
 
+type IofogUser struct {
+	Name     string
+	Surname  string
+	Email    string
+	Password string
+}
+
 // Controller export
 type Controller struct {
-	Name       string `mapstructure:"name"`
-	User       string `mapstructure:"user"`
-	Host       string `mapstructure:"host"`
-	KeyFile    string `mapstructure:"keyFile"`
-	KubeConfig string `mapstructure:"kubeConfig"`
-	Endpoint   string `mapstructure:"endpoint"`
+	Name       string    `mapstructure:"name"`
+	User       string    `mapstructure:"user"`
+	Host       string    `mapstructure:"host"`
+	KeyFile    string    `mapstructure:"keyFile"`
+	KubeConfig string    `mapstructure:"kubeConfig"`
+	Endpoint   string    `mapstructure:"endpoint"`
+	IofogUser  IofogUser `mapstructure:"iofogUser"`
 }
 
 // Agent export
 type Agent struct {
-	Name    string `mapstructure:"name"`
-	User    string `mapstructure:"user"`
-	Host    string `mapstructure:"host"`
-	KeyFile string `mapstructure:"keyFile"`
+	Name      string `mapstructure:"name"`
+	User      string `mapstructure:"user"`
+	Host      string `mapstructure:"host"`
+	KeyFile   string `mapstructure:"keyFile"`
+	AgentName string `mapstructure:"agentName"`
 }
 
 // Microservice export

@@ -24,7 +24,13 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Create controller on cluster
-	endpoint, err := k8s.CreateController()
+	user := iofog.User{
+		Name:     "Automated",
+		Surname:  "Deployment",
+		Email:    "user@domain.com",
+		Password: exe.opt.Password,
+	}
+	endpoint, err := k8s.CreateController(user)
 	if err != nil {
 		return
 	}
@@ -34,6 +40,12 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		Name:       exe.opt.Name,
 		KubeConfig: exe.opt.KubeConfig,
 		Endpoint:   endpoint,
+		IofogUser: config.IofogUser{
+			Name:     user.Name,
+			Surname:  user.Surname,
+			Email:    user.Email,
+			Password: user.Password,
+		},
 	}
 	err = config.AddController(exe.opt.Namespace, configEntry)
 	if err != nil {
