@@ -2,6 +2,8 @@ package get
 
 import (
 	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/cli/pkg/iofog"
+	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
 type controllerExecutor struct {
@@ -15,18 +17,46 @@ func newControllerExecutor(namespace string) *controllerExecutor {
 }
 
 func (exe *controllerExecutor) Execute() error {
+	// Get controller config details
 	controllers, err := config.GetControllers(exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	rows := make([]row, len(controllers))
-	for idx, ctrl := range controllers {
-		rows[idx].name = ctrl.Name
-		// TODO: (Serge) Get runtime info
-		rows[idx].status = "-"
-		rows[idx].age = "-"
+	// Generate table and headers
+	table := make([][]string, len(controllers)+1)
+	headers := []string{"NAME", "STATUS", "AGE"}
+	table[0] = append(table[0], headers...)
+
+	// Populate rows
+	for idx, ctrlConfig := range controllers {
+		// Instantiate connection to controller
+		ctrl := iofog.NewController(ctrlConfig.Endpoint)
+
+		// Ping status
+		status, _, err := ctrl.GetStatus()
+		if err != nil {
+			return err
+		}
+
+		// Get age
+		age, err := util.Elapsed(ctrlConfig.Created, util.Now())
+		if err != nil {
+			return err
+		}
+		row := []string{
+			ctrlConfig.Name,
+			status,
+			age,
+		}
+		table[idx+1] = append(table[idx+1], row...)
 	}
-	err = print(rows)
-	return err
+
+	// Print table
+	err = print(table)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

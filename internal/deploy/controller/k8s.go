@@ -50,6 +50,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 			Email:    user.Email,
 			Password: password,
 		},
+		Created: util.Now(),
 	}
 	err = config.AddController(exe.opt.Namespace, configEntry)
 	if err != nil {

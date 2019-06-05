@@ -56,6 +56,7 @@ func (exe *remoteExecutor) Execute() error {
 		Host:    exe.opt.Host,
 		KeyFile: exe.opt.KeyFile,
 		UUID:    uuid,
+		Created: util.Now(),
 	}
 	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {

@@ -21,15 +21,14 @@ type Options struct {
 
 func NewExecutor(opt *Options) (Executor, error) {
 	// Check the namespace exists
-	_, err := config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check controller already exists
-	_, err = config.GetController(opt.Namespace, opt.Name)
-	if err == nil {
-		return nil, util.NewConflictError(opt.Namespace + "/" + opt.Name)
+	if len(ns.Controllers) > 0 {
+		return nil, util.NewConflictError("Controller already exists in namespace " + opt.Namespace)
 	}
 
 	// Local executor

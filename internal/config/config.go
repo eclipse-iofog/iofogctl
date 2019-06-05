@@ -37,7 +37,8 @@ func Init(filename string) {
 - name: default
   controllers: []
   agents: []
-  microservices: []`)
+  microservices: []
+  created: ` + util.Now())
 		err := ioutil.WriteFile(configFilename, defaultData, 0644)
 		util.Check(err)
 	}
@@ -57,11 +58,7 @@ func Init(filename string) {
 
 // GetNamespaces export
 func GetNamespaces() (namespaces []Namespace) {
-	for _, ns := range conf.Namespaces {
-		newNamespace := Namespace{Name: ns.Name}
-		namespaces = append(namespaces, newNamespace)
-	}
-	return
+	return conf.Namespaces
 }
 
 // GetAgents export
@@ -155,14 +152,17 @@ func GetMicroservice(namespace, name string) (microservice Microservice, err err
 }
 
 // AddNamespace export
-func AddNamespace(name string) error {
+func AddNamespace(name, created string) error {
 	// Check collision
 	_, err := GetNamespace(name)
 	if err == nil {
 		return util.NewConflictError(name)
 	}
 
-	newNamespace := Namespace{Name: name}
+	newNamespace := Namespace{
+		Name:    name,
+		Created: created,
+	}
 	conf.Namespaces = append(conf.Namespaces, newNamespace)
 	if err := updateFile(); err != nil {
 		return err

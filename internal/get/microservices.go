@@ -2,6 +2,7 @@ package get
 
 import (
 	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
 type microserviceExecutor struct {
@@ -19,13 +20,31 @@ func (exe *microserviceExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	rows := make([]row, len(microservices))
+
+	// Generate table and headers
+	table := make([][]string, len(microservices)+1)
+	headers := []string{"NAME", "STATUS", "AGE"}
+	table[0] = append(table[0], headers...)
+
+	// Populate rows
 	for idx, ms := range microservices {
-		rows[idx].name = ms.Name
-		// TODO: (Serge) Get runtime info
-		rows[idx].status = "-"
-		rows[idx].age = "-"
+		age, err := util.Elapsed(ms.Created, util.Now())
+		if err != nil {
+			return err
+		}
+		row := []string{
+			ms.Name,
+			"-",
+			age,
+		}
+		table[idx+1] = append(table[idx+1], row...)
 	}
-	err = print(rows)
-	return err
+
+	// Print the table
+	err = print(table)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

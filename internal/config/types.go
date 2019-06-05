@@ -16,6 +16,7 @@ type Controller struct {
 	KubeConfig string    `mapstructure:"kubeConfig"`
 	Endpoint   string    `mapstructure:"endpoint"`
 	IofogUser  IofogUser `mapstructure:"iofogUser"`
+	Created    string    `mapstructure:"created"`
 }
 
 // Agent export
@@ -25,12 +26,14 @@ type Agent struct {
 	Host    string `mapstructure:"host"`
 	KeyFile string `mapstructure:"keyFile"`
 	UUID    string `mapstructure:"uuid"`
+	Created string `mapstructure:"created"`
 }
 
 // Microservice export
 type Microservice struct {
-	Name string `mapstructure:"name"`
-	Flow string `mapstructure:"flow"`
+	Name    string `mapstructure:"name"`
+	Flow    string `mapstructure:"flow"`
+	Created string `mapstructure:"created"`
 }
 
 type Namespace struct {
@@ -38,6 +41,7 @@ type Namespace struct {
 	Controllers   []Controller   `mapstructure:"controllers"`
 	Agents        []Agent        `mapstructure:"agents"`
 	Microservices []Microservice `mapstructure:"microservices"`
+	Created       string         `mapstructure:"created"`
 }
 
 type configuration struct {

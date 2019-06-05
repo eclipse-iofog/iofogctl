@@ -19,8 +19,39 @@ func NewController(endpoint string) *Controller {
 	}
 }
 
+func (ctrl *Controller) GetStatus() (status string, timestamp string, err error) {
+	url := ctrl.baseURL + "status"
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
+		return
+	}
+
+	var respMap map[string]interface{}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	err = json.Unmarshal(buf.Bytes(), &respMap)
+	if err != nil {
+		return
+	}
+	status, exists := respMap["status"].(string)
+	if !exists {
+		err = util.NewInternalError("Failed to get status from Controller")
+		return
+	}
+	//timestamp, exists = respMap["timestamp"].(string)
+	//if !exists {
+	//	err = util.NewInternalError("Failed to get timestamp from Controller")
+	//	return
+	//}
+	return
+}
+
 func (ctrl *Controller) CreateUser(user User) error {
-	// Create user
 	contentType := "application/json"
 	userString := fmt.Sprintf("{ \"firstName\": \"%s\", \"lastName\": \"%s\", \"email\": \"%s\", \"password\": \"%s\" }", user.Name, user.Surname, user.Email, user.Password)
 	signupBody := strings.NewReader(userString)
@@ -36,7 +67,6 @@ func (ctrl *Controller) CreateUser(user User) error {
 }
 
 func (ctrl *Controller) GetAuthToken(user User) (token string, err error) {
-	// Login user
 	contentType := "application/json"
 	userString := fmt.Sprintf("{\"email\":\"%s\",\"password\":\"%s\"}", user.Email, user.Password)
 	loginBody := strings.NewReader(userString)
