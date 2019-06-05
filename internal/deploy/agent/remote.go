@@ -20,7 +20,7 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 
 func (exe *remoteExecutor) Execute() error {
 	// Install the agent stack on the server
-	agent := iofog.NewAgent(exe.opt.User, exe.opt.Host, exe.opt.KeyFile, exe.opt.AgentName)
+	agent := iofog.NewAgent(exe.opt.User, exe.opt.Host, exe.opt.KeyFile, exe.opt.Name)
 	err := agent.Bootstrap()
 	if err != nil {
 		return err
@@ -42,6 +42,8 @@ func (exe *remoteExecutor) Execute() error {
 		Email:    controllers[0].IofogUser.Email,
 		Password: controllers[0].IofogUser.Password,
 	}
+
+	// Configure the agent with Controller details
 	err = agent.Configure(endpoint, user)
 	if err != nil {
 		return err
@@ -49,11 +51,10 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Update configuration
 	configEntry := config.Agent{
-		Name:      exe.opt.Name,
-		User:      exe.opt.User,
-		Host:      exe.opt.Host,
-		KeyFile:   exe.opt.KeyFile,
-		AgentName: exe.opt.AgentName,
+		Name:    exe.opt.Name,
+		User:    exe.opt.User,
+		Host:    exe.opt.Host,
+		KeyFile: exe.opt.KeyFile,
 	}
 	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {
