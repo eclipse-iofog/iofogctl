@@ -19,7 +19,12 @@ func NewController(endpoint string) *Controller {
 	}
 }
 
-func (ctrl *Controller) GetStatus() (status string, timestamp string, err error) {
+type ControllerStatus struct {
+	Status      string `json:"status"`
+	UptimeMsUTC int64  `json:"timestamp"`
+}
+
+func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
 	url := ctrl.baseURL + "status"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -31,23 +36,12 @@ func (ctrl *Controller) GetStatus() (status string, timestamp string, err error)
 		return
 	}
 
-	var respMap map[string]interface{}
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
-	err = json.Unmarshal(buf.Bytes(), &respMap)
+	err = json.Unmarshal(buf.Bytes(), &status)
 	if err != nil {
 		return
 	}
-	status, exists := respMap["status"].(string)
-	if !exists {
-		err = util.NewInternalError("Failed to get status from Controller")
-		return
-	}
-	//timestamp, exists = respMap["timestamp"].(string)
-	//if !exists {
-	//	err = util.NewInternalError("Failed to get timestamp from Controller")
-	//	return
-	//}
 	return
 }
 

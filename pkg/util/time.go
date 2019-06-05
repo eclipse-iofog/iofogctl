@@ -5,10 +5,14 @@ import (
 	"time"
 )
 
-var timeFormat = time.RFC3339
+var timeFormat = time.UnixDate
 
 func Now() string {
 	return time.Now().Format(timeFormat)
+}
+
+func FromInt(sec int64) string {
+	return time.Unix(sec, 0).Format(timeFormat)
 }
 
 func Elapsed(from, to string) (diff string, err error) {

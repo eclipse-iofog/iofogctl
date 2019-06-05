@@ -25,7 +25,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{"NAME", "STATUS", "AGE"}
+	headers := []string{"NAME", "STATUS", "AGE", "UPTIME"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -34,7 +34,16 @@ func (exe *controllerExecutor) Execute() error {
 		ctrl := iofog.NewController(ctrlConfig.Endpoint)
 
 		// Ping status
-		status, _, err := ctrl.GetStatus()
+		ctrlStatus, err := ctrl.GetStatus()
+		uptimeSec := int64(0)
+		status := "Failing"
+		if err == nil {
+			uptimeSec = ctrlStatus.UptimeMsUTC / int64(1000)
+			status = ctrlStatus.Status
+		}
+
+		// Get uptime
+		uptime, err := util.Elapsed(util.FromInt(uptimeSec), util.Now())
 		if err != nil {
 			return err
 		}
@@ -48,6 +57,7 @@ func (exe *controllerExecutor) Execute() error {
 			ctrlConfig.Name,
 			status,
 			age,
+			uptime,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
