@@ -15,9 +15,9 @@ func newDeployControllerCommand() *cobra.Command {
 		Use:   "controller name",
 		Short: "Deploy a Controller",
 		Long:  `Deploy a Controller`,
-		Example: `iofogctl deploy controller my_controller_name --local --pass hgh3uj87hyy
-iofogctl deploy controller my_controller_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa --pass hgh3uj87hyy
-iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf --pass hgh3uj87hyy`,
+		Example: `iofogctl deploy controller my_controller_name --local
+iofogctl deploy controller my_controller_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
+iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -44,7 +44,6 @@ iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf --pass 
 	cmd.Flags().StringVarP(&opt.KubeConfig, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
 	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment")
 	cmd.Flags().Lookup("local").NoOptDefVal = "true"
-	cmd.Flags().StringVarP(&opt.Password, "pass", "p", "", "Password for ioFog user registered in Controller")
 
 	return cmd
 }

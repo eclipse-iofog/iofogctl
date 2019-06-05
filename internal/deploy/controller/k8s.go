@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/cli/internal/config"
 	"github.com/eclipse-iofog/cli/pkg/iofog"
+	"github.com/eclipse-iofog/cli/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -23,12 +24,15 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return
 	}
 
+	// Generate a password
+	password := util.RandomString(10)
+
 	// Create controller on cluster
 	user := iofog.User{
 		Name:     "Automated",
 		Surname:  "Deployment",
 		Email:    "user@domain.com",
-		Password: exe.opt.Password,
+		Password: password,
 	}
 	endpoint, err := k8s.CreateController(user)
 	if err != nil {
@@ -44,7 +48,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 			Name:     user.Name,
 			Surname:  user.Surname,
 			Email:    user.Email,
-			Password: user.Password,
+			Password: password,
 		},
 	}
 	err = config.AddController(exe.opt.Namespace, configEntry)
