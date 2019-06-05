@@ -9,6 +9,7 @@ type Executor interface {
 }
 
 func NewExecutor(namespace, name string) (Executor, error) {
+	// Check the agent exists
 	agent, err := config.GetAgent(namespace, name)
 	if err != nil {
 		return nil, err

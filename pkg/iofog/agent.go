@@ -50,7 +50,7 @@ func (agent *Agent) Bootstrap() error {
 	return nil
 }
 
-func (agent *Agent) Configure(controllerEndpoint string, user User) error {
+func (agent *Agent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
 	pb := pb.New(100)
 
 	// Connect to controller
@@ -59,28 +59,28 @@ func (agent *Agent) Configure(controllerEndpoint string, user User) error {
 	// Log in
 	token, err := ctrl.GetAuthToken(user)
 	if err != nil {
-		return err
+		return
 	}
 	pb.Add(20)
 
 	// Create agent
-	uuid, err := ctrl.CreateAgent(token, agent.name)
+	uuid, err = ctrl.CreateAgent(token, agent.name)
 	if err != nil {
-		return err
+		return
 	}
 	pb.Add(20)
 
 	// Get provisioning key
 	key, err := ctrl.GetAgentProvisionKey(token, uuid)
 	if err != nil {
-		return err
+		return
 	}
 	pb.Add(20)
 
 	// Establish SSH to agent
 	err = agent.ssh.Connect()
 	if err != nil {
-		return err
+		return
 	}
 	defer agent.ssh.Disconnect()
 	pb.Add(20)
@@ -95,11 +95,11 @@ func (agent *Agent) Configure(controllerEndpoint string, user User) error {
 		err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
-	return nil
+	return
 }
 
 type command struct {

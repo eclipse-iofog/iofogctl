@@ -137,3 +137,23 @@ func (ctrl *Controller) GetAgentProvisionKey(authToken, agentUUID string) (key s
 	}
 	return
 }
+
+func (ctrl *Controller) DeleteAgent(authToken, agentUUID string) error {
+	contentType := "application/json"
+	url := ctrl.baseURL + "iofog/" + agentUUID
+	body := strings.NewReader("")
+	req, err := http.NewRequest("DELETE", url, body)
+	req.Header.Set("Authorization", authToken)
+	req.Header.Set("Content-Type", contentType)
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
+		return err
+	}
+
+	return nil
+}

@@ -44,7 +44,7 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Configure the agent with Controller details
-	err = agent.Configure(endpoint, user)
+	uuid, err := agent.Configure(endpoint, user)
 	if err != nil {
 		return err
 	}
@@ -55,6 +55,7 @@ func (exe *remoteExecutor) Execute() error {
 		User:    exe.opt.User,
 		Host:    exe.opt.Host,
 		KeyFile: exe.opt.KeyFile,
+		UUID:    uuid,
 	}
 	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {

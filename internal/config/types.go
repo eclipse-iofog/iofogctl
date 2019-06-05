@@ -24,6 +24,7 @@ type Agent struct {
 	User    string `mapstructure:"user"`
 	Host    string `mapstructure:"host"`
 	KeyFile string `mapstructure:"keyFile"`
+	UUID    string `mapstructure:"uuid"`
 }
 
 // Microservice export
