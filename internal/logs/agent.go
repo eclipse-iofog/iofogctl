@@ -1,17 +1,42 @@
 package logs
 
+import (
+	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/cli/pkg/util"
+)
+
 type agentExecutor struct {
 	namespace string
 	name      string
 }
 
 func newAgentExecutor(namespace, name string) *agentExecutor {
-	a := &agentExecutor{}
-	a.namespace = namespace
-	a.name = name
-	return a
+	exe := &agentExecutor{}
+	exe.namespace = namespace
+	exe.name = name
+	return exe
 }
 
-func (ns *agentExecutor) Execute() error {
+func (exe *agentExecutor) Execute() error {
+	// Get agent config
+	agent, err := config.GetAgent(exe.namespace, exe.name)
+	if err != nil {
+		return err
+	}
+
+	// Establish SSH connection
+	ssh := util.NewSecureShellClient(agent.User, agent.Host, agent.KeyFile)
+	err = ssh.Connect()
+	if err != nil {
+		return err
+	}
+
+	// Get logs
+	out, err := ssh.Run("sudo cat /var/log/iofog-agent/*")
+	if err != nil {
+		return err
+	}
+	println(out.String())
+
 	return nil
 }

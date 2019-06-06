@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
@@ -66,22 +67,23 @@ func (cl *SecureShellClient) Disconnect() error {
 	return nil
 }
 
-func (cl *SecureShellClient) Run(cmd string) error {
+func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Establish the session
 	session, err := cl.conn.NewSession()
 	if err != nil {
-		return err
+		return
 	}
 	defer session.Close()
+	session.Stdout = &stdout
 
 	// Run the command
 	err = session.Run(cmd)
 	if err != nil {
 		stderr, _ := session.StderrPipe()
 		io.Copy(os.Stderr, stderr)
-		return err
+		return
 	}
-	return nil
+	return
 }
 
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {

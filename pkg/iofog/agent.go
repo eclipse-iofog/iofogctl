@@ -40,7 +40,7 @@ func (agent *Agent) Bootstrap() error {
 
 	pb := pb.New(100)
 	for _, cmd := range cmds {
-		err = agent.ssh.Run(cmd.cmd)
+		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
 		if err != nil {
 			return err
@@ -103,7 +103,7 @@ func (agent *Agent) Configure(controllerEndpoint string, user User) (uuid string
 	}
 
 	for _, cmd := range cmds {
-		err = agent.ssh.Run(cmd.cmd)
+		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
 		if err != nil {
 			return

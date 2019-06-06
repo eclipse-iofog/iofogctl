@@ -7,12 +7,11 @@ import (
 )
 
 // Exec command
-func Exec(env, name string, args ...string) (bytes.Buffer, error) {
+func Exec(env, cmdName string, args ...string) (stdout bytes.Buffer, err error) {
 	// Instantiate command object
-	cmd := exec.Command(name, args...)
+	cmd := exec.Command(cmdName, args...)
 
 	// Instantiate output objects
-	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -22,9 +21,10 @@ func Exec(env, name string, args ...string) (bytes.Buffer, error) {
 	cmd.Env = append(cmd.Env, env)
 
 	// Run command
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		return stdout, NewInternalError(stderr.String())
+		err = NewInternalError(stderr.String())
+		return
 	}
-	return stdout, nil
+	return
 }
