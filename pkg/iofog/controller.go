@@ -19,25 +19,20 @@ func NewController(endpoint string) *Controller {
 	}
 }
 
-type ControllerStatus struct {
-	Status      string `json:"status"`
-	UptimeMsUTC int64  `json:"timestamp"`
-}
-
 func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
 	url := ctrl.baseURL + "status"
-	resp, err := http.Get(url)
+	httpResp, err := http.Get(url)
 	if err != nil {
 		return
 	}
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
 		return
 	}
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
+	buf.ReadFrom(httpResp.Body)
 	err = json.Unmarshal(buf.Bytes(), &status)
 	if err != nil {
 		return
@@ -45,76 +40,93 @@ func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
 	return
 }
 
-func (ctrl *Controller) CreateUser(user User) error {
+func (ctrl *Controller) CreateUser(request User) error {
+	// Prepare request
 	contentType := "application/json"
-	userString := fmt.Sprintf("{ \"firstName\": \"%s\", \"lastName\": \"%s\", \"email\": \"%s\", \"password\": \"%s\" }", user.Name, user.Surname, user.Email, user.Password)
-	signupBody := strings.NewReader(userString)
 	url := ctrl.baseURL + "user/signup"
-	resp, err := http.Post(url, contentType, signupBody)
+	body, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
+
+	// Send request
+	httpResp, err := http.Post(url, contentType, strings.NewReader(string(body)))
+	if err != nil {
+		return err
+	}
+
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		return util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
 	}
 	return nil
 }
 
-func (ctrl *Controller) GetAuthToken(user User) (token string, err error) {
+func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err error) {
+	// Prepare request
 	contentType := "application/json"
-	userString := fmt.Sprintf("{\"email\":\"%s\",\"password\":\"%s\"}", user.Email, user.Password)
-	loginBody := strings.NewReader(userString)
 	url := ctrl.baseURL + "user/login"
-	resp, err := http.Post(url, contentType, loginBody)
+	body, err := json.Marshal(request)
 	if err != nil {
-		return
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
 		return
 	}
 
-	// Read access token from HTTP response
-	var auth map[string]interface{}
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	err = json.Unmarshal(buf.Bytes(), &auth)
+	// Send request
+	httpResp, err := http.Post(url, contentType, strings.NewReader(string(body)))
 	if err != nil {
 		return
 	}
-	token, exists := auth["accessToken"].(string)
-	if !exists {
-		err = util.NewInternalError("Failed to get auth token from Controller")
+
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
 		return
 	}
+
+	// Read response body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(httpResp.Body)
+	err = json.Unmarshal(buf.Bytes(), &response)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
-func (ctrl *Controller) CreateAgent(authToken, agentName string) (uuid string, err error) {
+func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken string) (response CreateAgentResponse, err error) {
+	// Prepare request
 	contentType := "application/json"
-	bodyString := fmt.Sprintf("{\"name\":\"%s\",\"fogType\":0}", agentName)
-	body := strings.NewReader(bodyString)
 	url := ctrl.baseURL + "iofog"
-	req, err := http.NewRequest("POST", url, body)
+	body, err := json.Marshal(request)
 	if err != nil {
 		return
 	}
-	req.Header.Set("Authorization", authToken)
-	req.Header.Set("Content-Type", contentType)
+	httpReq, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
+	if err != nil {
+		return
+	}
+	httpReq.Header.Set("Authorization", accessToken)
+	httpReq.Header.Set("Content-Type", contentType)
+
+	// Send request
 	client := http.Client{}
-	resp, err := client.Do(req)
+	httpResp, err := client.Do(httpReq)
 	if err != nil {
-		return
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
 		return
 	}
 
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		return
+	}
+
+	// TODO: Determine full type returned from this endpoint
 	// Read uuid from response
 	var respMap map[string]interface{}
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
+	buf.ReadFrom(httpResp.Body)
 	err = json.Unmarshal(buf.Bytes(), &respMap)
 	if err != nil {
 		return
@@ -124,58 +136,65 @@ func (ctrl *Controller) CreateAgent(authToken, agentName string) (uuid string, e
 		err = util.NewInternalError("Failed to get new Agent UUID from Controller")
 		return
 	}
+
+	response.UUID = uuid
 	return
 }
 
-func (ctrl *Controller) GetAgentProvisionKey(authToken, agentUUID string) (key string, err error) {
+func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response GetAgentProvisionKeyResponse, err error) {
+	// Prepare request
 	contentType := "application/json"
-	url := ctrl.baseURL + "iofog/" + agentUUID + "/provisioning-key"
+	url := ctrl.baseURL + "iofog/" + UUID + "/provisioning-key"
 	body := strings.NewReader("")
 	req, err := http.NewRequest("GET", url, body)
 	if err != nil {
 		return
 	}
-	req.Header.Set("Authorization", authToken)
+	req.Header.Set("Authorization", accessToken)
 	req.Header.Set("Content-Type", contentType)
+
+	// Send request
 	client := http.Client{}
-	resp, err := client.Do(req)
+	httpResp, err := client.Do(req)
 	if err != nil {
-		return
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
 		return
 	}
 
-	var respMap map[string]interface{}
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	err = json.Unmarshal(buf.Bytes(), &respMap)
-	if err != nil {
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
 		return
 	}
-	key, exists := respMap["key"].(string)
-	if !exists {
-		err = util.NewInternalError("Failed to get provisioning key from Controller")
+
+	// Read body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(httpResp.Body)
+	err = json.Unmarshal(buf.Bytes(), &response)
+	if err != nil {
 		return
 	}
 	return
 }
 
-func (ctrl *Controller) DeleteAgent(authToken, agentUUID string) error {
+func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
+	// Prepare request
 	contentType := "application/json"
-	url := ctrl.baseURL + "iofog/" + agentUUID
+	url := ctrl.baseURL + "iofog/" + UUID
 	body := strings.NewReader("")
 	req, err := http.NewRequest("DELETE", url, body)
-	req.Header.Set("Authorization", authToken)
+	req.Header.Set("Authorization", accessToken)
 	req.Header.Set("Content-Type", contentType)
+
+	// Send request
 	client := http.Client{}
-	resp, err := client.Do(req)
+	httpResp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from Controller", resp.StatusCode))
+
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
 		return err
 	}
 

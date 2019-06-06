@@ -249,10 +249,15 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	pbCtx.pb.Add(pbSlice)
 
 	// Get token
-	token, err = ctrl.GetAuthToken(user)
+	loginRequest := LoginRequest{
+		Email:    user.Email,
+		Password: user.Password,
+	}
+	loginResponse, err := ctrl.Login(loginRequest)
 	if err != nil {
 		return
 	}
+	token = loginResponse.AccessToken
 	pbCtx.pb.Add(pbSlice)
 
 	return

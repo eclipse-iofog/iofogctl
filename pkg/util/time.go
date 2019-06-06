@@ -43,15 +43,15 @@ func formatDuration(duration time.Duration) string {
 	secs := duration / time.Second
 
 	if days > 0 {
-		return fmt.Sprintf("%dd %dh", days, hours)
+		return fmt.Sprintf("%dd%dh", days, hours)
 	}
 
 	if hours > 0 {
-		return fmt.Sprintf("%dh %dm", hours, mins)
+		return fmt.Sprintf("%dh%dm", hours, mins)
 	}
 
 	if mins > 0 {
-		return fmt.Sprintf("%dm %ds", mins, secs)
+		return fmt.Sprintf("%dm%ds", mins, secs)
 	}
 
 	return fmt.Sprintf("%ds", secs)

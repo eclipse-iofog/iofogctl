@@ -40,19 +40,18 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Log into Controller
 	userConfig := ctrlConfigs[0].IofogUser
-	user := iofog.User{
-		Name:     userConfig.Name,
-		Surname:  userConfig.Surname,
+	user := iofog.LoginRequest{
 		Email:    userConfig.Email,
 		Password: userConfig.Password,
 	}
-	token, err := ctrl.GetAuthToken(user)
+	loginResponse, err := ctrl.Login(user)
 	if err != nil {
 		return err
 	}
+	token := loginResponse.AccessToken
 
 	// Perform deletion of Agent through Controller
-	err = ctrl.DeleteAgent(token, agent.UUID)
+	err = ctrl.DeleteAgent(agent.UUID, token)
 	if err != nil {
 		return err
 	}

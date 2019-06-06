@@ -57,25 +57,36 @@ func (agent *Agent) Configure(controllerEndpoint string, user User) (uuid string
 	ctrl := NewController(controllerEndpoint)
 
 	// Log in
-	token, err := ctrl.GetAuthToken(user)
+	loginRequest := LoginRequest{
+		Email:    user.Email,
+		Password: user.Password,
+	}
+	loginResponse, err := ctrl.Login(loginRequest)
 	if err != nil {
 		return
 	}
+	token := loginResponse.AccessToken
 	pb.Add(20)
 
 	// Create agent
-	uuid, err = ctrl.CreateAgent(token, agent.name)
+	createRequest := CreateAgentRequest{
+		Name:    agent.name,
+		FogType: 0,
+	}
+	createResponse, err := ctrl.CreateAgent(createRequest, token)
 	if err != nil {
 		return
 	}
+	uuid = createResponse.UUID
 	pb.Add(20)
 
 	// Get provisioning key
-	key, err := ctrl.GetAgentProvisionKey(token, uuid)
+	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
 	if err != nil {
 		return
 	}
 	pb.Add(20)
+	key := provisionResponse.Key
 
 	// Establish SSH to agent
 	err = agent.ssh.Connect()
