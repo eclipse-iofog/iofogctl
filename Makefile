@@ -43,7 +43,7 @@ endif
 
 .PHONY: install
 install: ## Install the ioFog binary to /usr/local/bin
-	cp bin/iofogctl /usr/local/bin/
+	go install github.com/eclipse-iofog/cli/cmd/iofogctl
 
 .PHONY: fmt
 fmt: ## Format the source
