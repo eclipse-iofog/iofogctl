@@ -35,17 +35,15 @@ func (exe *controllerExecutor) Execute() error {
 
 		// Ping status
 		ctrlStatus, err := ctrl.GetStatus()
-		uptimeSec := int64(0)
+		uptime := ""
 		status := "Failing"
 		if err == nil {
-			uptimeSec = ctrlStatus.UptimeMsUTC / int64(1000)
+			uptimeSec := ctrlStatus.UptimeMsUTC / int64(1000)
+			uptime, err = util.Elapsed(util.FromInt(uptimeSec), util.Now())
+			if err != nil {
+				return err
+			}
 			status = ctrlStatus.Status
-		}
-
-		// Get uptime
-		uptime, err := util.Elapsed(util.FromInt(uptimeSec), util.Now())
-		if err != nil {
-			return err
 		}
 
 		// Get age
