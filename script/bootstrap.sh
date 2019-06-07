@@ -45,7 +45,7 @@ fi
 # Is go-junit-report installed?
 if ! checkForInstallation "go-junit-report"; then
     echoInfo " Attempting to install 'go-junit-report'"
-    go get -u jstemmer/go-junit-report
+    go get -u github.com/jstemmer/go-junit-report
 fi
 
 
