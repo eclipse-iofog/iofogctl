@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"

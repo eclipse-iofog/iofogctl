@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/cli/internal/config"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

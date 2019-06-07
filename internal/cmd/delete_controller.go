@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/cli/internal/delete/controller"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	delete "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 

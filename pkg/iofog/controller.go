@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"net/http"
 	"strings"
 )
@@ -173,6 +173,37 @@ func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response
 	if err != nil {
 		return
 	}
+	return
+}
+
+func (ctrl *Controller) GetAgent(UUID, accessToken string) (response GetAgentResponse, err error) {
+	// Prepare request
+	url := ctrl.baseURL + "iofog/" + UUID
+	body := strings.NewReader("")
+	req, err := http.NewRequest("GET", url, body)
+	req.Header.Set("Authorization", accessToken)
+
+	// Send request
+	client := http.Client{}
+	httpResp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		return
+	}
+
+	// Read body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(httpResp.Body)
+	err = json.Unmarshal(buf.Bytes(), &response)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

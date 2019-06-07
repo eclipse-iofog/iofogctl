@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/spf13/cobra"
 )
 

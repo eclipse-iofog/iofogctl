@@ -2,7 +2,7 @@ package iofog
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	pb "github.com/schollz/progressbar"
 	"k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"

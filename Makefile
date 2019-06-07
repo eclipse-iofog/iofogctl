@@ -2,7 +2,7 @@ SHELL = /bin/bash
 OS = $(shell uname -s)
 
 # Project variables
-PACKAGE = github.com/eclipse-iofog/cli
+PACKAGE = github.com/eclipse-iofog/iofogctl
 BINARY_NAME = iofogctl
 IMAGE = iofog/cli
 
@@ -43,7 +43,7 @@ endif
 
 .PHONY: install
 install: ## Install the ioFog binary to /usr/local/bin
-	go install github.com/eclipse-iofog/cli/cmd/iofogctl
+	go install github.com/eclipse-iofog/iofogctl/cmd/iofogctl
 
 .PHONY: fmt
 fmt: ## Format the source

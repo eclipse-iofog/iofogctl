@@ -2,7 +2,7 @@ package deletemicroservice
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
 func Execute(name string) error {

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/eclipse-iofog/cli/internal/cmd"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/cmd"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func main() {

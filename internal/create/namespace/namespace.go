@@ -2,8 +2,8 @@ package createnamespace
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/cli/internal/config"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func Execute(name string) error {

@@ -2,8 +2,8 @@ package deletecontroller
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/cli/internal/config"
-	"github.com/eclipse-iofog/cli/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 type kubernetesExecutor struct {

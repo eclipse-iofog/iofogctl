@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	deploy "github.com/eclipse-iofog/cli/internal/deploy/microservice"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 

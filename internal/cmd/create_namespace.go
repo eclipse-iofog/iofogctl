@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	create "github.com/eclipse-iofog/cli/internal/create/namespace"
-	"github.com/eclipse-iofog/cli/pkg/util"
+	create "github.com/eclipse-iofog/iofogctl/internal/create/namespace"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 

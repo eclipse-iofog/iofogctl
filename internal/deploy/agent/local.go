@@ -2,7 +2,7 @@ package deployagent
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"os/user"
 )
 

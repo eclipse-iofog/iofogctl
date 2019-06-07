@@ -1,7 +1,9 @@
 package describe
 
 import (
-	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentExecutor struct {
@@ -17,11 +19,39 @@ func newAgentExecutor(namespace, name string) *agentExecutor {
 }
 
 func (exe *agentExecutor) Execute() error {
+	// Get config
 	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}
-	if err = print(agent); err != nil {
+	ctrls, err := config.GetControllers(exe.namespace)
+	if err != nil {
+		return err
+	}
+	if len(ctrls) != 1 {
+		return util.NewInternalError("Expected one controller in namespace " + exe.namespace)
+	}
+
+	// Connect to controller
+	ctrl := iofog.NewController(ctrls[0].Endpoint)
+	loginRequest := iofog.LoginRequest{
+		Email:    ctrls[0].IofogUser.Email,
+		Password: ctrls[0].IofogUser.Password,
+	}
+
+	// Send requests to controller
+	loginResponse, err := ctrl.Login(loginRequest)
+	if err != nil {
+		return err
+	}
+	token := loginResponse.AccessToken
+	getAgentResponse, err := ctrl.GetAgent(agent.UUID, token)
+	if err != nil {
+		return err
+	}
+
+	// Print result
+	if err = print(getAgentResponse); err != nil {
 		return err
 	}
 	return nil

@@ -1,7 +1,7 @@
 package deleteagent
 
 import (
-	"github.com/eclipse-iofog/cli/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
 type Executor interface {
