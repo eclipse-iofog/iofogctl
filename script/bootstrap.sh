@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 # bootstrap.sh will check for and install any dependencies we have for building and using iofogctl
 #

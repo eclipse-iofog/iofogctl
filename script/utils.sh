@@ -1,8 +1,9 @@
-#!/usr/bin/env sh
-# utils.sh - a simple set of functions for use throughout our bash scripts
+#!/usr/bin/env bash
+#
+# utils.sh - a simple set of functions for use throughout our shell scripts
 #
 # Usage : source utils.sh
-
+#
 
 # Export the name of the script for later use
 THIS_SCRIPT="$(basename "${0}")"
@@ -111,8 +112,8 @@ RED="\\033[38;5;1m"
 GREEN="\\033[38;5;28m"
 
 # Need this as bash and sh require different args for the echo command
-if [[ "${ISBASH}" ]]; then
-	PRINTARGS="-e"
+if [ "${BASH_VERSION}" ]; then
+    PRINTARGS="-e"
 fi
 
 # Basic subtle output
