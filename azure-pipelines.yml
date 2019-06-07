@@ -88,12 +88,13 @@ jobs:
         displayName: 'Install package_cloud cli and fpm'
 
       - script: |
-          version="0.0.000"
+          version=$(git describe --always --long --dirty)
           echo $version
           fpm -f -s dir -t deb -n iofogctl -v $version $(GOBIN)/iofogctl=/usr/local/bin/
           package=$(ls | grep *.deb)
           echo $package
           echo "##vso[task.setvariable variable=package_version]$version"
+          cp $package $(Build.ArtifactStagingDirectory) 
         displayName: 'Create Debian package'
 
       - script: |
@@ -117,8 +118,8 @@ jobs:
           echo $(package_version)
           fpm -f -s dir -t rpm -n iofogctl -v $(package_version) $(GOBIN)/iofogctl=/usr/local/bin/
           package=$(ls | grep *.rpm)
-          package=$(pwd)$package
           echo $package
+          cp $package $(Build.ArtifactStagingDirectory) 
         displayName: 'Create RPM package'
 
       - script: |
@@ -136,16 +137,6 @@ jobs:
               package_cloud push iofog/iofogctl-snapshots/el/${version} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
           done
         displayName: 'Publish RPM to package-cloud'
-
-      - task: CopyFiles@2
-        inputs:
-          SourceFolder: $(System.DefaultWorkingDirectory)
-          TargetFolder: $(Build.ArtifactStagingDirectory)
-          Contents: |
-            *.deb
-            *.rpm
-          OverWrite: true
-        displayName: 'Copy all artefacts'
 
       - task: PublishBuildArtifacts@1
         inputs:
