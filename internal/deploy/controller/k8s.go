@@ -27,6 +27,14 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	// Generate a password
 	password := util.RandomString(10)
 
+	// Configure images
+	images := make(map[string]string)
+	err = util.UnmarshalYAML(exe.opt.ImagesFile, images)
+	if err != nil {
+		return err
+	}
+	k8s.SetImages(images)
+
 	// Create controller on cluster
 	user := iofog.User{
 		Name:     "Automated",

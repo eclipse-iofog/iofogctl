@@ -53,12 +53,6 @@ fi
 # All our Kubernetes related stuff
 #
 
-# Is helm installed?
-if ! checkForInstallation "helm"; then
-    echoInfo " Attempting to install helm"
-    brew install kubernetes-helm
-fi
-
 # Is kubernetes-cli installed?
 if ! checkForInstallation "kubectl"; then
     echoInfo " Attempting to install kubernetes-cli"

@@ -17,6 +17,7 @@ type Options struct {
 	KeyFile    string
 	Local      bool
 	KubeConfig string
+	ImagesFile string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {

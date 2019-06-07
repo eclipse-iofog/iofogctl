@@ -20,6 +20,7 @@ type Kubernetes struct {
 	extsClientset  *extsclientset.Clientset
 	crdName        string
 	ns             string
+	ms             map[string]microservice
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -46,13 +47,30 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 		return nil, err
 	}
 
+	microservices := make(map[string]microservice, 0)
+	microservices["controller"] = controllerMicroservice
+	microservices["connector"] = connectorMicroservice
+	microservices["operator"] = operatorMicroservice
+	microservices["scheduler"] = schedulerMicroservice
+	microservices["kubelet"] = kubeletMicroservice
+
 	return &Kubernetes{
 		configFilename: configFilename,
 		clientset:      clientset,
 		extsClientset:  extsClientset,
 		crdName:        "iofogs.k8s.iofog.org",
 		ns:             "iofog",
+		ms:             microservices,
 	}, nil
+}
+
+func (k8s *Kubernetes) SetImages(images map[string]string) {
+	for key := range k8s.ms {
+		image, exists := images[key]
+		if exists {
+			k8s.ms[key].containers[0].image = image
+		}
+	}
 }
 
 // CreateController on cluster
@@ -68,7 +86,7 @@ func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) 
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("%s:%d", ips["controller"], controllerMicroservice.port)
+	endpoint = fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
 
 	pbCtx.quota = 10
 	// Install ioFog K8s Extensions
@@ -125,7 +143,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	pb.Add(10)
 
 	// Delete Kubelet Cluster Role Binding
-	err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(kubeletMicroservice.name, &metav1.DeleteOptions{})
+	err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(k8s.ms["kubelet"].name, &metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -186,8 +204,8 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	_, _ = k8s.clientset.CoreV1().Namespaces().Create(ns)
 
 	coreMs := []microservice{
-		controllerMicroservice,
-		connectorMicroservice,
+		k8s.ms["controller"],
+		k8s.ms["connector"],
 	}
 	// Create Controller and Connector Services and Pods
 	for _, ms := range coreMs {
@@ -238,7 +256,7 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	pbCtx.pb.Add(pbSlice)
 
 	// Connect to controller
-	endpoint := fmt.Sprintf("%s:%d", ips["controller"], controllerMicroservice.port)
+	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
 	ctrl := NewController(endpoint)
 
 	// Create user
@@ -267,12 +285,12 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	pbSlice := pbCtx.quota / 5
 
 	// Create Scheduler resources
-	schedDep := newDeployment(k8s.ns, schedulerMicroservice)
+	schedDep := newDeployment(k8s.ns, k8s.ms["scheduler"])
 	_, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep)
 	if err != nil {
 		return err
 	}
-	schedAcc := newServiceAccount(k8s.ns, schedulerMicroservice)
+	schedAcc := newServiceAccount(k8s.ns, k8s.ms["scheduler"])
 	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc)
 	if err != nil {
 		return err
@@ -280,45 +298,45 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	pbCtx.pb.Add(pbSlice)
 
 	// Create Kubelet resources
-	vkSvcAcc := newServiceAccount(k8s.ns, kubeletMicroservice)
+	vkSvcAcc := newServiceAccount(k8s.ns, k8s.ms["kubelet"])
 	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(vkSvcAcc)
 	if err != nil {
 		return err
 	}
 	pbCtx.pb.Add(pbSlice)
 
-	vkRoleBind := newClusterRoleBinding(k8s.ns, kubeletMicroservice)
+	vkRoleBind := newClusterRoleBinding(k8s.ns, k8s.ms["kubelet"])
 	_, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(vkRoleBind)
 	if err != nil {
 		return err
 	}
-	kubeletMicroservice.containers[0].args = []string{
+	k8s.ms["kubelet"].containers[0].args = []string{
 		"--namespace",
 		k8s.ns,
 		"--iofog-token",
 		token,
 		"--iofog-url",
-		fmt.Sprintf("http://%s:%d", ips["controller"], controllerMicroservice.port),
+		fmt.Sprintf("http://%s:%d", ips["controller"], k8s.ms["controller"].port),
 	}
 	pbCtx.pb.Add(pbSlice)
-	vkDep := newDeployment(k8s.ns, kubeletMicroservice)
+	vkDep := newDeployment(k8s.ns, k8s.ms["kubelet"])
 	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(vkDep)
 	if err != nil {
 		return err
 	}
 
 	// Create Operator resources
-	opSvcAcc := newServiceAccount(k8s.ns, operatorMicroservice)
+	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
 	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc)
 	if err != nil {
 		return err
 	}
-	opRole := newRole(k8s.ns, operatorMicroservice)
+	opRole := newRole(k8s.ns, k8s.ms["operator"])
 	_, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole)
 	if err != nil {
 		return err
 	}
-	opRoleBind := newRoleBinding(k8s.ns, operatorMicroservice)
+	opRoleBind := newRoleBinding(k8s.ns, k8s.ms["operator"])
 	_, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind)
 	if err != nil {
 		return err
@@ -329,10 +347,10 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 		return err
 	}
 	pbCtx.pb.Add(pbSlice)
-	opDep := newDeployment(k8s.ns, operatorMicroservice)
+	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
 	opDep.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
 		{
-			ContainerPort: int32(operatorMicroservice.port),
+			ContainerPort: int32(k8s.ms["operator"].port),
 			Name:          "metrics",
 		},
 	}
@@ -371,7 +389,7 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 		},
 		{
 			Name:  "OPERATOR_NAME",
-			Value: operatorMicroservice.name,
+			Value: k8s.ms["operator"].name,
 		},
 	}
 	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep)
