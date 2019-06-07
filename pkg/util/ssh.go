@@ -74,12 +74,17 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 		return
 	}
 	defer session.Close()
+
+	// Connect pipes
 	session.Stdout = &stdout
+	stderr, err := session.StderrPipe()
+	if err != nil {
+		return
+	}
 
 	// Run the command
 	err = session.Run(cmd)
 	if err != nil {
-		stderr, _ := session.StderrPipe()
 		io.Copy(os.Stderr, stderr)
 		return
 	}

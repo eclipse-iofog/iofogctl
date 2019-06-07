@@ -28,6 +28,7 @@ func NewRootCommand() *cobra.Command {
 		newCreateCommand(),
 		newDescribeCommand(),
 		newLogsCommand(),
+		newLegacyCommand(),
 	)
 
 	return cmd
