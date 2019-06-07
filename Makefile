@@ -13,6 +13,8 @@ VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=$(VERSION) -X main.CommitHash=$(COMMIT_HASH) -X main.BuildDate=$(BUILD_DATE)
+REPORTS_DIR ?= reports
+TEST_REPORT ?= test-report.xml
 export CGO_ENABLED ?= 0
 ifeq ($(VERBOSE), 1)
 	GOARGS += -v
@@ -50,8 +52,8 @@ fmt: ## Format the source
 	@gofmt -s -w $(GOFILES_NOVENDOR)
 
 .PHONY: test
-test: ## Run unit tests
-	set -o pipefail; go list ./... | xargs -n1 go test $(GOARGS) -v -parallel 1 2>&1 | tee test.txt
+test: build ## Run unit tests
+	set -o pipefail; go list ./... | xargs -n1 go test $(GOARGS) -v -parallel 1 2>&1 | go-junit-report > $(TEST_REPORT)
 
 .PHONY: list
 list: ## List all make targets

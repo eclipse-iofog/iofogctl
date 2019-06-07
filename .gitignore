@@ -1,4 +1,5 @@
 bin/*
 vendor/*
 test.txt
+test-report.xml
 .idea/
