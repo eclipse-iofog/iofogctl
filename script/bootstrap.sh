@@ -21,19 +21,20 @@ K8S_VERSION=1.13.4
 
 # Check whether Brew is installed
 # TODO: Current installation method is macos centric, make it work for linux too.
-if ! checkForInstallation "brew"; then
-    echoInfo " Attempting to install Brew"
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-fi
+#if ! checkForInstallation "brew"; then
+#    echoInfo " Attempting to install Brew"
+#    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+#fi
+
 
 #
 # All our Go related stuff
 #
 
 # Is go installed?
-if ! checkForInstallation "go"; then
-    echoInfo " Attempting to install 'golang'"
-    brew install go
+if ! checkForInstallation "goo"; then
+    echoNotify "\nYou do not have Go installed. Please install and re-run bootstrap."
+    exit 1
 fi
 
 # Is dep installed?
@@ -49,12 +50,13 @@ if ! checkForInstallation "go-junit-report"; then
 fi
 
 
+
 #
 # All our Kubernetes related stuff
+##
 #
-
-# Is kubernetes-cli installed?
-if ! checkForInstallation "kubectl"; then
-    echoInfo " Attempting to install kubernetes-cli"
-    brew install kubernetes-cli
-fi
+## Is kubernetes-cli installed?
+#if ! checkForInstallation "kubectl"; then
+#    echoInfo " Attempting to install kubernetes-cli"
+#    brew install kubernetes-cli
+#fi
