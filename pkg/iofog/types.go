@@ -36,6 +36,7 @@ type GetAgentProvisionKeyResponse struct {
 }
 
 type AgentInfo struct {
+	UUID                      string  `json:"uuid" yml:"uuid"`
 	Name                      string  `json:"name" yml:"name"`
 	Location                  string  `json:"location" yml:"location"`
 	Latitude                  float64 `json:"latitude" yml:"latitude"`
@@ -56,6 +57,31 @@ type AgentInfo struct {
 	WatchdogEnabled           bool    `json:"watchdogEnabled" yml:"watchdogEnabled"`
 	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled" yml:"abstractedHardwareEnabled"`
 	FogType                   int64   `json:"fogType" yml:"fogType"`
+	Created                   int64   `json:"createAt" yml:"created"`
+	Updated                   int64   `json:"updatedAt" yml:"updated"`
+	LastActive                int64   `json:"lastActive" yml:"lastActive"`
+	DaemonStatus              string  `json:"daemonStatus" yml:"daemonStatus"`
+	DaemonUptime              int64   `json:"daemonOperatingDuration" yml:"DaemonUptime"`
+	MemoryUsage               float64 `json:"memoryUsage" yml:"memoryUsage"`
+	DiskUsage                 float64 `json:"diskUsage" yml:"diskUsage"`
+	CPUUsage                  float64 `json:"cpuUsage" yml:"cpuUsage"`
+	MemoryViolation           string  `json:"memoryViolation" yml:"memoryViolation"`
+	DiskViolation             string  `json:"diskViolation" yml:"diskViolation"`
+	CPUViolation              string  `json:"cpuViolation" yml:"cpuViolation"`
+	MicroserviceStatus        string  `json:"microserviceStatus" yml:"microserviceStatus"`
+	RepositoryCount           int64   `json:"repositoryCount" yml:"repositoryCount"`
+	RepositoryStatus          string  `json:"repositoryStatus" yml:"repositoryStatus"`
+	LastStatusTime            int64   `json:"lastStatusTime" yml:"LastStatusTime"`
+	IPAddress                 string  `json:"ipAddress" yml:"ipAddress"`
+	ProcessedMessaged         int64   `json:"processedMessages" yml:"ProcessedMessages"`
+	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yml:"microserviceMessageCount"`
+	MessageSpeed              int64   `json:"messageSpeed" yml:"messageSpeed"`
+	LastCommandTime           int64   `json:"lastCommandTime" yml:"lastCommandTime"`
+	NetworkInterface          string  `json:"networkInterface" yml:"networkInterface"`
+	Version                   string  `json:"version" yml:"version"`
+	IsReadyToUpgrade          bool    `json:"isReadyToUpgrade" yml:"isReadyToUpgrade"`
+	IsReadyToRollback         bool    `json:"isReadyToRollback" yml:"isReadyToRollback"`
+	Tunnel                    string  `json:"tunnel" yml:"tunnel"`
 }
 
 type ListAgentsResponse struct {

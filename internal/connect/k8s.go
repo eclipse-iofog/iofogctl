@@ -63,11 +63,22 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
+
+	// Update Agents config
 	for _, agent := range listAgentsResponse.Agents {
+		agentConfig := config.Agent{
+			Name: agent.Name,
+			UUID: agent.UUID,
+		}
+		err = config.AddAgent(exe.opt.Namespace, agentConfig)
+		if err != nil {
+			return err
+		}
 		println(agent.Name)
+		println(agent.UUID)
 	}
 
-	// Update config
+	// Update Controller config
 	ctrlConfig := config.Controller{
 		Name:     exe.opt.Name,
 		Endpoint: endpoint,

@@ -78,6 +78,8 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 		pb:    pb.New(100),
 		quota: 100,
 	}
+	defer pbCtx.pb.Clear()
+
 	ips, err := k8s.waitForServices(k8s.ns, pbCtx)
 	if err != nil {
 		return
@@ -95,6 +97,7 @@ func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) 
 		pb:    pb.New(100),
 		quota: 90,
 	}
+	defer pbCtx.pb.Clear()
 
 	// Install ioFog Core
 	token, ips, err := k8s.createCore(user, pbCtx)
@@ -117,6 +120,7 @@ func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) 
 func (k8s *Kubernetes) DeleteController() error {
 	// Progress bar object
 	pb := pb.New(100)
+	defer pb.Clear()
 
 	// Delete Deployments
 	deps, err := k8s.clientset.AppsV1().Deployments(k8s.ns).List(metav1.ListOptions{})

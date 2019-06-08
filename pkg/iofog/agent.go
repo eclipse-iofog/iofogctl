@@ -39,6 +39,7 @@ func (agent *Agent) Bootstrap() error {
 	}
 
 	pb := pb.New(100)
+	defer pb.Clear()
 	for _, cmd := range cmds {
 		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
@@ -52,6 +53,7 @@ func (agent *Agent) Bootstrap() error {
 
 func (agent *Agent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
 	pb := pb.New(100)
+	defer pb.Clear()
 
 	// Connect to controller
 	ctrl := NewController(controllerEndpoint)

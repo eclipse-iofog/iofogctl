@@ -21,11 +21,11 @@ func Elapsed(from, to string) (diff string, err error) {
 		return
 	}
 	diffTime := time.Now().Sub(fromTime)
-	diff = formatDuration(diffTime)
+	diff = FormatDuration(diffTime)
 	return
 }
 
-func formatDuration(duration time.Duration) string {
+func FormatDuration(duration time.Duration) string {
 	duration = duration.Round(time.Second)
 	// Get days
 	days := duration / (time.Hour * 24)

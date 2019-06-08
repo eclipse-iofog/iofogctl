@@ -25,7 +25,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{"NAME", "STATUS", "AGE", "UPTIME"}
+	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
