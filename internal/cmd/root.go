@@ -22,6 +22,7 @@ func NewRootCommand() *cobra.Command {
 
 	// Register all commands
 	cmd.AddCommand(
+		newConnectCommand(),
 		newGetCommand(),
 		newDeployCommand(),
 		newDeleteCommand(),
