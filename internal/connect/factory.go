@@ -25,13 +25,14 @@ func NewExecutor(opt *Options) (Executor, error) {
 		}
 	}
 
+	// Kubernetes controller
 	if opt.KubeFile != "" {
 		return newKubernetesExecutor(opt), nil
 	}
 
+	// Remote controller needs host address
 	if opt.Host == "" {
 		return nil, util.NewInputError("Must specify Controller IP if connecting to non-Kubernetes Controller")
 	}
-
 	return newRemoteExecutor(opt), nil
 }

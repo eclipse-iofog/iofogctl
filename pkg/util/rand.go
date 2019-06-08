@@ -2,9 +2,14 @@ package util
 
 import (
 	"math/rand"
+	"time"
 )
 
-func RandomString(size int) string {
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
+func RandomString(size int, chars string) string {
 	buf := make([]byte, size)
 	for idx := range buf {
 		buf[idx] = chars[rand.Intn(len(chars))]
@@ -12,4 +17,6 @@ func RandomString(size int) string {
 	return string(buf)
 }
 
-const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const AlphaNum = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const Alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const AlphaLower = "abcdefghijklmnopqrstuvwxyz"

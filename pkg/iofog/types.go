@@ -35,7 +35,7 @@ type GetAgentProvisionKeyResponse struct {
 	ExpireMsUTC int64  `json:"expirationTime"`
 }
 
-type GetAgentResponse struct {
+type AgentInfo struct {
 	Name                      string  `json:"name" yml:"name"`
 	Location                  string  `json:"location" yml:"location"`
 	Latitude                  float64 `json:"latitude" yml:"latitude"`
@@ -56,4 +56,14 @@ type GetAgentResponse struct {
 	WatchdogEnabled           bool    `json:"watchdogEnabled" yml:"watchdogEnabled"`
 	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled" yml:"abstractedHardwareEnabled"`
 	FogType                   int64   `json:"fogType" yml:"fogType"`
+}
+
+type ListAgentsResponse struct {
+	Agents []AgentInfo `json:"fogs"`
+}
+
+type AgentListFilter struct {
+	Key       string `json:"key"`
+	Value     string `json:"value"`
+	Condition string `json:"condition"`
 }

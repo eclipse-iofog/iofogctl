@@ -35,7 +35,7 @@ func (exe *controllerExecutor) Execute() error {
 
 		// Ping status
 		ctrlStatus, err := ctrl.GetStatus()
-		uptime := ""
+		uptime := "-"
 		status := "Failing"
 		if err == nil {
 			uptimeSec := ctrlStatus.UptimeMsUTC / int64(1000)
@@ -47,9 +47,12 @@ func (exe *controllerExecutor) Execute() error {
 		}
 
 		// Get age
-		age, err := util.Elapsed(ctrlConfig.Created, util.Now())
-		if err != nil {
-			return err
+		age := "-"
+		if ctrlConfig.Created != "" {
+			age, err = util.Elapsed(ctrlConfig.Created, util.Now())
+			if err != nil {
+				return err
+			}
 		}
 		row := []string{
 			ctrlConfig.Name,

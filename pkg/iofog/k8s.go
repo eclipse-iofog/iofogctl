@@ -73,6 +73,21 @@ func (k8s *Kubernetes) SetImages(images map[string]string) {
 	}
 }
 
+func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
+	pbCtx := progressBarContext{
+		pb:    pb.New(100),
+		quota: 100,
+	}
+	ips, err := k8s.waitForServices(k8s.ns, pbCtx)
+	if err != nil {
+		return
+	}
+	println("")
+	endpoint = fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
+
+	return
+}
+
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) {
 	// Progress bar object

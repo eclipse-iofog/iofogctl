@@ -57,6 +57,9 @@ func (ctrl *Controller) CreateUser(request User) error {
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		println(buf.String())
 		return util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
 	}
 	return nil
@@ -176,16 +179,57 @@ func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response
 	return
 }
 
-func (ctrl *Controller) GetAgent(UUID, accessToken string) (response GetAgentResponse, err error) {
+func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsResponse, errr error) {
 	// Prepare request
-	url := ctrl.baseURL + "iofog/" + UUID
-	body := strings.NewReader("")
-	req, err := http.NewRequest("GET", url, body)
-	req.Header.Set("Authorization", accessToken)
+	url := ctrl.baseURL + "iofog-list"
+	filter := AgentListFilter{}
+	body, err := json.Marshal(filter)
+	if err != nil {
+		return
+	}
+	httpReq, err := http.NewRequest("GET", url, strings.NewReader(string(body)))
+	if err != nil {
+		return
+	}
+	httpReq.Header.Set("Authorization", accessToken)
 
 	// Send request
 	client := http.Client{}
-	httpResp, err := client.Do(req)
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+		return
+	}
+
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		return
+	}
+
+	// Read body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(httpResp.Body)
+	err = json.Unmarshal(buf.Bytes(), &response)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, err error) {
+	// Prepare request
+	url := ctrl.baseURL + "iofog/" + UUID
+	body := strings.NewReader("")
+	httpReq, err := http.NewRequest("GET", url, body)
+	if err != nil {
+		return
+	}
+	httpReq.Header.Set("Authorization", accessToken)
+
+	// Send request
+	client := http.Client{}
+	httpResp, err := client.Do(httpReq)
 	if err != nil {
 		return
 	}
@@ -213,6 +257,9 @@ func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
 	url := ctrl.baseURL + "iofog/" + UUID
 	body := strings.NewReader("")
 	req, err := http.NewRequest("DELETE", url, body)
+	if err != nil {
+		return err
+	}
 	req.Header.Set("Authorization", accessToken)
 	req.Header.Set("Content-Type", contentType)
 
