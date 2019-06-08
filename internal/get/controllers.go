@@ -38,7 +38,7 @@ func (exe *controllerExecutor) Execute() error {
 		uptime := "-"
 		status := "Failing"
 		if err == nil {
-			uptimeSec := ctrlStatus.UptimeMsUTC / int64(1000)
+			uptimeSec := ctrlStatus.UptimeTimeMsUTC / int64(1000)
 			uptime, err = util.Elapsed(util.FromInt(uptimeSec), util.Now())
 			if err != nil {
 				return err

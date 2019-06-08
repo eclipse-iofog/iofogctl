@@ -56,11 +56,11 @@ func (exe *agentExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		age, err := util.Elapsed(util.FromInt(getAgentResponse.Created), util.Now())
+		age, err := util.Elapsed(util.FromInt(getAgentResponse.CreatedTimeMsUTC), util.Now())
 		if err != nil {
 			return err
 		}
-		uptime := time.Duration(getAgentResponse.DaemonUptime)
+		uptime := time.Duration(getAgentResponse.DaemonUptimeDurationMsUTC)
 		row := []string{
 			agent.Name,
 			getAgentResponse.DaemonStatus,

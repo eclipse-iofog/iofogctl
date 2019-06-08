@@ -8,8 +8,8 @@ type User struct {
 }
 
 type ControllerStatus struct {
-	Status      string `json:"status"`
-	UptimeMsUTC int64  `json:"timestamp"`
+	Status          string `json:"status"`
+	UptimeTimeMsUTC int64  `json:"timestamp"`
 }
 
 type LoginRequest struct {
@@ -31,8 +31,8 @@ type CreateAgentResponse struct {
 }
 
 type GetAgentProvisionKeyResponse struct {
-	Key         string `json:"key"`
-	ExpireMsUTC int64  `json:"expirationTime"`
+	Key             string `json:"key"`
+	ExpireTimeMsUTC int64  `json:"expirationTime"`
 }
 
 type AgentInfo struct {
@@ -57,11 +57,11 @@ type AgentInfo struct {
 	WatchdogEnabled           bool    `json:"watchdogEnabled" yml:"watchdogEnabled"`
 	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled" yml:"abstractedHardwareEnabled"`
 	FogType                   int64   `json:"fogType" yml:"fogType"`
-	Created                   int64   `json:"createAt" yml:"created"`
-	Updated                   int64   `json:"updatedAt" yml:"updated"`
+	CreatedTimeMsUTC          int64   `json:"createAt" yml:"created"`
+	UpdatedTimeMsUTC          int64   `json:"updatedAt" yml:"updated"`
 	LastActive                int64   `json:"lastActive" yml:"lastActive"`
 	DaemonStatus              string  `json:"daemonStatus" yml:"daemonStatus"`
-	DaemonUptime              int64   `json:"daemonOperatingDuration" yml:"DaemonUptime"`
+	DaemonUptimeDurationMsUTC int64   `json:"daemonOperatingDuration" yml:"DaemonUptime"`
 	MemoryUsage               float64 `json:"memoryUsage" yml:"memoryUsage"`
 	DiskUsage                 float64 `json:"diskUsage" yml:"diskUsage"`
 	CPUUsage                  float64 `json:"cpuUsage" yml:"cpuUsage"`
@@ -71,12 +71,12 @@ type AgentInfo struct {
 	MicroserviceStatus        string  `json:"microserviceStatus" yml:"microserviceStatus"`
 	RepositoryCount           int64   `json:"repositoryCount" yml:"repositoryCount"`
 	RepositoryStatus          string  `json:"repositoryStatus" yml:"repositoryStatus"`
-	LastStatusTime            int64   `json:"lastStatusTime" yml:"LastStatusTime"`
+	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yml:"LastStatusTime"`
 	IPAddress                 string  `json:"ipAddress" yml:"ipAddress"`
 	ProcessedMessaged         int64   `json:"processedMessages" yml:"ProcessedMessages"`
 	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yml:"microserviceMessageCount"`
 	MessageSpeed              int64   `json:"messageSpeed" yml:"messageSpeed"`
-	LastCommandTime           int64   `json:"lastCommandTime" yml:"lastCommandTime"`
+	LastCommandTimeMsUTC      int64   `json:"lastCommandTime" yml:"lastCommandTime"`
 	NetworkInterface          string  `json:"networkInterface" yml:"networkInterface"`
 	Version                   string  `json:"version" yml:"version"`
 	IsReadyToUpgrade          bool    `json:"isReadyToUpgrade" yml:"isReadyToUpgrade"`
