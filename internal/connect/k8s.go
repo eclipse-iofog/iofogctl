@@ -74,8 +74,6 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		if err != nil {
 			return err
 		}
-		println(agent.Name)
-		println(agent.UUID)
 	}
 
 	// Update Controller config

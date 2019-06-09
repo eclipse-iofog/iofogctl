@@ -11,6 +11,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
+	"time"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -422,13 +423,16 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 
 func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) error {
 	// Get Pods
-	podList, err := k8s.clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-	podCount := len(podList.Items)
-	if podCount == 0 {
-		return util.NewInternalError("Could not find pods in iofog namespace")
+	podCount := 0
+	for podCount == 0 {
+		podList, err := k8s.clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		podCount = len(podList.Items)
+		if podCount == 0 {
+			time.Sleep(time.Second)
+		}
 	}
 
 	// Determine progress slice
@@ -468,12 +472,18 @@ func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) e
 
 func (k8s *Kubernetes) waitForServices(namespace string, pbCtx progressBarContext) (map[string]string, error) {
 	// Get Services
-	serviceList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return nil, err
+	serviceCount := 0
+	for serviceCount == 0 {
+		serviceList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
+		if err != nil {
+			return nil, err
+		}
+		// Return ips of services upon completion
+		serviceCount = len(serviceList.Items)
+		if serviceCount == 0 {
+			time.Sleep(time.Second)
+		}
 	}
-	// Return ips of services upon completion
-	serviceCount := len(serviceList.Items)
 	ips := make(map[string]string, serviceCount)
 
 	// Determine progress slice
