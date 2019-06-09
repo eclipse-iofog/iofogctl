@@ -19,7 +19,7 @@ func newConnectCommand() *cobra.Command {
 iofogctl connect my_controller_name --kube-config ~/.kube/conf`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get Controller name
+			// Get resource name
 			opt.Name = args[0]
 
 			// Get namespace option

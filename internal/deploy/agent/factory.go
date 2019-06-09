@@ -20,12 +20,17 @@ type Options struct {
 
 func NewExecutor(opt *Options) (Executor, error) {
 	// Check the namespace exists
-	_, err := config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check agent already exists
+	// Check Controller exists
+	if len(ns.Controllers) != 1 {
+		return nil, util.NewInputError("You must deploy a Controller before deploying Agents in this namespace")
+	}
+
+	// Check Agent already exists
 	_, err = config.GetAgent(opt.Namespace, opt.Name)
 	if err == nil {
 		return nil, util.NewConflictError(opt.Namespace + "/" + opt.Name)

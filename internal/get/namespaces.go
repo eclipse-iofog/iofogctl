@@ -18,7 +18,7 @@ func (exe *namespaceExecutor) Execute() error {
 
 	// Generate table and headers
 	table := make([][]string, len(namespaces)+1)
-	headers := []string{"NAME", "AGE"}
+	headers := []string{"NAMESPACE", "AGE"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows

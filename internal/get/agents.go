@@ -19,23 +19,33 @@ func newAgentExecutor(namespace string) *agentExecutor {
 
 func (exe *agentExecutor) Execute() error {
 	// Get Config
-	agents, err := config.GetAgents(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
 	}
-	ctrls, err := config.GetControllers(exe.namespace)
-	if err != nil {
-		return err
+	if len(ns.Controllers) > 1 {
+		return util.NewInternalError("Expected 0 or 1 controller in namespace " + exe.namespace)
 	}
-	if len(ctrls) != 1 {
-		return util.NewInternalError("Expected one controller in namespace " + exe.namespace)
+
+	// Generate table and headers
+	table := make([][]string, len(ns.Agents)+1)
+	headers := []string{"AGENT", "STATUS", "AGE", "UPTIME"}
+	table[0] = append(table[0], headers...)
+
+	// Print empty table if no controller
+	if len(ns.Controllers) == 0 {
+		if len(ns.Agents) != 0 {
+			return util.NewInternalError("Found Agents without a Controller in Namespace " + ns.Name)
+		}
+		print(table)
+		return nil
 	}
 
 	// Connect to controller
-	ctrl := iofog.NewController(ctrls[0].Endpoint)
+	ctrl := iofog.NewController(ns.Controllers[0].Endpoint)
 	loginRequest := iofog.LoginRequest{
-		Email:    ctrls[0].IofogUser.Email,
-		Password: ctrls[0].IofogUser.Password,
+		Email:    ns.Controllers[0].IofogUser.Email,
+		Password: ns.Controllers[0].IofogUser.Password,
 	}
 
 	// Send requests to controller
@@ -45,13 +55,8 @@ func (exe *agentExecutor) Execute() error {
 	}
 	token := loginResponse.AccessToken
 
-	// Generate table and headers
-	table := make([][]string, len(agents)+1)
-	headers := []string{"AGENT", "STATUS", "AGE", "UPTIME"}
-	table[0] = append(table[0], headers...)
-
 	// Populate rows
-	for idx, agent := range agents {
+	for idx, agent := range ns.Agents {
 		getAgentResponse, err := ctrl.GetAgent(agent.UUID, token)
 		if err != nil {
 			return err
