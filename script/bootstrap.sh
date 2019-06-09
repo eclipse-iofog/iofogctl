@@ -4,7 +4,7 @@
 #
 # Usage: ./bootstrap.sh
 #
-#
+
 
 set -e
 
@@ -32,7 +32,7 @@ K8S_VERSION=1.13.4
 #
 
 # Is go installed?
-if ! checkForInstallation "goo"; then
+if ! checkForInstallation "go"; then
     echoNotify "\nYou do not have Go installed. Please install and re-run bootstrap."
     exit 1
 fi
