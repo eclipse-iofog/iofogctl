@@ -68,6 +68,8 @@ jobs:
       - script: |
           make dep
           make test
+          pwd
+          ls -l
         workingDirectory: '$(modulePath)'
         displayName: 'Run Tests'
 
@@ -75,7 +77,7 @@ jobs:
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: 'JUnit'
-          testResultsFiles: 'reports/TEST-*.xml'
+          testResultsFiles: '**/TEST-*.xml'
           searchFolder: '$(System.DefaultWorkingDirectory)'
         displayName: 'Publish Test Results'
       
