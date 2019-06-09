@@ -12,12 +12,12 @@ func newDeployControllerCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "controller name",
+		Use:   "controller NAME",
 		Short: "Deploy a Controller",
 		Long:  `Deploy a Controller`,
-		Example: `iofogctl deploy controller my_controller_name --local
-iofogctl deploy controller my_controller_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
-iofogctl deploy controller my_controller_name --kube-config ~/.kube/conf`,
+		Example: `iofogctl deploy controller NAME --local 
+ iofogctl deploy controller NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
+iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

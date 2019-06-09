@@ -12,11 +12,11 @@ func newDeployAgentCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "agent name",
+		Use:   "agent NAME",
 		Short: "Deploy an Agent",
 		Long:  `Deploy an Agent`,
-		Example: `iofogctl deploy agent my_agent_name --local
-iofogctl deploy agent my_agent_name --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa`,
+		Example: `iofogctl deploy agent NAME --local
+iofogctl deploy agent NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

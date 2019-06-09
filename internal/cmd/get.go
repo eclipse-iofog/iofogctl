@@ -8,7 +8,7 @@ import (
 
 func newGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get resource",
+		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",
 		Long:  `Get information of existing resources`,
 		Example: `iofogctl get all

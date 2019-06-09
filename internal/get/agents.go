@@ -77,5 +77,9 @@ func (exe *agentExecutor) Execute() error {
 
 	// Print table
 	err = print(table)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

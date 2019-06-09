@@ -8,11 +8,11 @@ import (
 
 func newDeleteMicroserviceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "microservice name [agent]",
+		Use:   "microservice NAME [AGENTNAME]",
 		Short: "Delete a Microservice",
 		Long:  `Delete a Microservice`,
-		Example: `iofogctl delete microservice my_microservice_name
-iofogctl delete microservice my_microservice_name`,
+		Example: `iofogctl delete microservice NAME
+iofogctl delete microservice NAME`,
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get microservice name

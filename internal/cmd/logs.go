@@ -8,12 +8,12 @@ import (
 
 func newLogsCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "logs resource name",
+		Use:   "logs RESOURCE NAME",
 		Short: "Get log contents of deployed resource",
 		Long:  `Get log contents of deployed resource`,
-		Example: `iofogctl logs controller my_controller_name
-iofogctl logs agent my_agent_name
-iofogctl logs microservice my_microservice_name`,
+		Example: `iofogctl logs controller NAME
+iofogctl logs agent NAME
+iofogctl logs microservice NAME`,
 		Args: cobra.ExactValidArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get Resource type and name

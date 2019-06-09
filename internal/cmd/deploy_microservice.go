@@ -8,11 +8,11 @@ import (
 
 func newDeployMicroserviceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "microservice name [agent]",
+		Use:   "microservice NAME [AGENTNAME]",
 		Short: "Deploy a Microservice",
 		Long:  `Deploy a Microservice`,
-		Example: `iofogctl deploy microservice my_microservice_name
-iofogctl deploy microservice my_microservice_name my_agent_name`,
+		Example: `iofogctl deploy microservice NAME
+iofogctl deploy microservice NAME AGENTNAME`,
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get microservice name

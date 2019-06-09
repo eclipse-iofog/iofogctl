@@ -12,11 +12,11 @@ func newDisconnectCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "disconnect controller_name",
+		Use:   "disconnect CONTROLLERNAME",
 		Short: "Disconnect from existing ioFog Controller and Agents",
 		Long:  `Disconnect from existing ioFog Controller and Agents`,
-		Example: `iofogctl disconnect my_controller_name
-iofogctl disconnect my_controller_name`,
+		Example: `iofogctl disconnect CONTROLLERNAME
+iofogctl disconnect CONTROLLERNAME`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get Controller name

@@ -8,10 +8,10 @@ import (
 
 func newDeleteNamespaceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace name",
+		Use:     "namespace NAME",
 		Short:   "Delete a Namespace",
 		Long:    `Delete a Namespace`,
-		Example: `iofogctl delete namespace my_namespace_name`,
+		Example: `iofogctl delete namespace NAME`,
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get microservice name

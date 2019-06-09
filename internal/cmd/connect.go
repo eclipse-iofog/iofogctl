@@ -12,11 +12,11 @@ func newConnectCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "connect controller_name",
+		Use:   "connect CONTROLLERNAME",
 		Short: "Connect to existing ioFog Controller and Agents",
 		Long:  `Connect to existing ioFog Controller and Agents`,
-		Example: `iofogctl connect my_controller_name --host 123.321.123.22
-iofogctl connect my_controller_name --kube-config ~/.kube/conf`,
+		Example: `iofogctl connect CONTROLLERNAME --host 123.321.123.22
+iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource name

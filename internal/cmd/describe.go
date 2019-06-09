@@ -8,12 +8,12 @@ import (
 
 func newDescribeCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "describe resource name",
+		Use:   "describe resource NAME",
 		Short: "Get detailed information of existing resources",
 		Long:  `Get detailed information of existing resources`,
-		Example: `iofogctl describe controller my_controller_name
-iofogctl describe agent my_agent_name
-iofogctl describe microservice my_microservice_name`,
+		Example: `iofogctl describe controller NAME
+iofogctl describe agent NAME
+iofogctl describe microservice NAME`,
 		Args: cobra.ExactValidArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

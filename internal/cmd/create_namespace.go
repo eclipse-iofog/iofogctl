@@ -8,10 +8,10 @@ import (
 
 func newCreateNamespaceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace name",
+		Use:     "namespace NAME",
 		Short:   "Create a Namespace",
 		Long:    `Create a Namespace`,
-		Example: `iofogctl create namespace my_namespace_name`,
+		Example: `iofogctl create namespace NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

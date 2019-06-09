@@ -8,10 +8,10 @@ import (
 
 func newDeleteControllerCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "controller name",
+		Use:     "controller NAME",
 		Short:   "Delete a Controller",
 		Long:    `Delete a Controller`,
-		Example: `iofogctl delete controller my_controller_name`,
+		Example: `iofogctl delete controller NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of controller

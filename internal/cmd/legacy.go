@@ -14,13 +14,13 @@ import (
 // NOTE: (Serge) This code will be discarded eventually. Keeping it one file.
 func newLegacyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "legacy resource resource_name command args...",
+		Use:   "legacy resource RESOURCE COMMAND ARGS...",
 		Short: "Execute commands using legacy CLI",
 		Long:  `Execute commands using legacy CLI`,
 		Example: `iofogctl get all
-iofogctl legacy controller my_controller_name status
-iofogctl legacy connector my_controller_name status
-iofogctl legacy agent my_agent_name status`,
+iofogctl legacy controller NAME status
+iofogctl legacy connector NAME status
+iofogctl legacy agent NAME status`,
 		Args: cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg
