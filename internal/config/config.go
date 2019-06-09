@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -43,16 +42,8 @@ func Init(filename string) {
 		util.Check(err)
 	}
 
-	viper.SetConfigFile(configFilename)
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	err := viper.ReadInConfig()
-	util.Check(err)
-
 	// Unmarshall the file
-	err = viper.Unmarshal(&conf)
+	err := util.UnmarshalYAML(configFilename, &conf)
 	util.Check(err)
 }
 
