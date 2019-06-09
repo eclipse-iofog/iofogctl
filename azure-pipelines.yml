@@ -74,9 +74,9 @@ jobs:
       # Publish Test Results
       - task: PublishTestResults@2
         inputs:
-          testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
-          testResultsFiles: '**/TEST-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)/reports' # Optional
+          testResultsFormat: 'JUnit'
+          testResultsFiles: 'reports/TEST-*.xml'
+          searchFolder: '$(System.DefaultWorkingDirectory)'
         displayName: 'Publish Test Results'
       
       - script: |
