@@ -14,7 +14,9 @@ COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=$(VERSION) -X main.CommitHash=$(COMMIT_HASH) -X main.BuildDate=$(BUILD_DATE)
 REPORTS_DIR ?= reports
-TEST_REPORT ?= test-report.xml
+TEST_RESULTS ?= TEST-iofogctl.txt
+TEST_REPORT ?= TEST-iofogctl.xml
+
 export CGO_ENABLED ?= 0
 ifeq ($(VERBOSE), 1)
 	GOARGS += -v
@@ -25,11 +27,12 @@ GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
-all: dep build install ## Get deps, build, and install binary
+all: dep build test install ## Get deps, build, test and install binary
 
 .PHONY: clean
 clean: ## Clean the working area and the project
 	rm -rf $(BUILD_DIR)/ vendor/
+	rm -rf $(REPORTS_DIR)
 
 .PHONY: dep
 dep: ## Install dependencies
@@ -44,7 +47,7 @@ endif
 	go build $(GOARGS) $(BUILD_PACKAGE)
 
 .PHONY: install
-install: ## Install the ioFog binary to /usr/local/bin
+install: ## Install the iofogctl binary to /usr/local/bin
 	go install github.com/eclipse-iofog/iofogctl/cmd/iofogctl
 
 .PHONY: fmt
@@ -53,7 +56,10 @@ fmt: ## Format the source
 
 .PHONY: test
 test: build ## Run unit tests
-	set -o pipefail; go list ./... | xargs -n1 go test $(GOARGS) -v -parallel 1 2>&1 | go-junit-report > $(TEST_REPORT)
+	mkdir -p $(REPORTS_DIR)
+	rm -f $(REPORTS_DIR)/*
+	set -o pipefail; go list ./... | xargs -n1 go test $(GOARGS) -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list
 list: ## List all make targets

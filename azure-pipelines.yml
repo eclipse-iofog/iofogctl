@@ -70,6 +70,14 @@ jobs:
           make test
         workingDirectory: '$(modulePath)'
         displayName: 'Run Tests'
+
+      # Publish Test Results
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
+          testResultsFiles: '**/TEST-*.xml'
+          searchFolder: '$(System.DefaultWorkingDirectory)/reports' # Optional
+        displayName: 'Publish Test Results'
       
       - script: |
           make build
