@@ -28,11 +28,11 @@ jobs:
       - script: |
           COMMIT=$(git rev-parse --short=5 HEAD)
           if [[ $(branch) == 'develop' ]]; then
-            echo "##vso[task.setvariable variable=version]$COMMIT"
+            echo "##vso[task.setvariable variable=version]0.0.0-$COMMIT"
           elif [[ $(ref) == refs/heads/release* ]]; then
-            echo "##vso[task.setvariable variable=version]rc-$COMMIT"
+            echo "##vso[task.setvariable variable=version]0.0.0-rc-$COMMIT"
           elif [[ $(ref) == refs/tags* ]]; then
-            TAG=$(echo $(ref) | sed "s|refs/tags/||g")
+            TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
             echo "##vso[task.setvariable variable=version]$TAG"
           fi
           echo $(version)
