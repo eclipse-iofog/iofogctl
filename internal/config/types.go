@@ -1,5 +1,6 @@
 package config
 
+// IofogUser contains information about users registered against a controller
 type IofogUser struct {
 	Name     string
 	Surname  string
@@ -7,7 +8,7 @@ type IofogUser struct {
 	Password string
 }
 
-// Controller export
+// Controller contains information for configuring a controller
 type Controller struct {
 	Name       string    `mapstructure:"name"`
 	User       string    `mapstructure:"user"`
@@ -19,7 +20,7 @@ type Controller struct {
 	Created    string    `mapstructure:"created"`
 }
 
-// Agent export
+// Agent contains information for configuring an agent
 type Agent struct {
 	Name    string `mapstructure:"name"`
 	User    string `mapstructure:"user"`
@@ -29,13 +30,14 @@ type Agent struct {
 	Created string `mapstructure:"created"`
 }
 
-// Microservice export
+// Microservice contains information for configuring a microservice
 type Microservice struct {
 	Name    string `mapstructure:"name"`
 	Flow    string `mapstructure:"flow"`
 	Created string `mapstructure:"created"`
 }
 
+// Namespace contains information for configuring a namespace
 type Namespace struct {
 	Name          string         `mapstructure:"name"`
 	Controllers   []Controller   `mapstructure:"controllers"`
@@ -44,6 +46,7 @@ type Namespace struct {
 	Created       string         `mapstructure:"created"`
 }
 
+// configuration contains the unmarshalled configuration file
 type configuration struct {
 	Namespaces []Namespace `mapstructure:"namespaces"`
 }

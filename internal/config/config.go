@@ -14,7 +14,7 @@ var conf configuration
 // Name of file
 var configFilename string
 
-// DefaultFilename export
+// DefaultFilename is used if user does not specify a filename
 const DefaultFilename = ".iofog.yaml"
 
 // Init initializes config and unmarshalls the file
@@ -47,12 +47,12 @@ func Init(filename string) {
 	util.Check(err)
 }
 
-// GetNamespaces export
+// GetNamespaces returns all namespaces in config
 func GetNamespaces() (namespaces []Namespace) {
 	return conf.Namespaces
 }
 
-// GetAgents export
+// GetAgents returns all agents within a namespace
 func GetAgents(namespace string) ([]Agent, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
@@ -62,7 +62,7 @@ func GetAgents(namespace string) ([]Agent, error) {
 	return nil, util.NewNotFoundError(namespace)
 }
 
-// GetControllers export
+// GetControllers returns all controllers within a namespace
 func GetControllers(namespace string) ([]Controller, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
@@ -72,7 +72,7 @@ func GetControllers(namespace string) ([]Controller, error) {
 	return nil, util.NewNotFoundError(namespace)
 }
 
-// GetMicroservices export
+// GetMicroservices returns all microservices within a namespace
 func GetMicroservices(namespace string) ([]Microservice, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
@@ -82,7 +82,7 @@ func GetMicroservices(namespace string) ([]Microservice, error) {
 	return nil, util.NewNotFoundError(namespace)
 }
 
-// GetNamespace export
+// GetNamespace returns a single namespace
 func GetNamespace(name string) (namespace Namespace, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == name {
@@ -94,7 +94,7 @@ func GetNamespace(name string) (namespace Namespace, err error) {
 	return
 }
 
-// GetController export
+// GetController returns a single controller within a namespace
 func GetController(namespace, name string) (controller Controller, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
@@ -110,7 +110,7 @@ func GetController(namespace, name string) (controller Controller, err error) {
 	return
 }
 
-// GetAgent export
+// GetAgent returns a single agent within a namespace
 func GetAgent(namespace, name string) (agent Agent, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
@@ -126,7 +126,7 @@ func GetAgent(namespace, name string) (agent Agent, err error) {
 	return
 }
 
-// GetMicroservice export
+// GetMicroservice returns a single microservice within a namespace
 func GetMicroservice(namespace, name string) (microservice Microservice, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
@@ -142,7 +142,7 @@ func GetMicroservice(namespace, name string) (microservice Microservice, err err
 	return
 }
 
-// AddNamespace export
+// AddNamespace adds a new namespace to the config
 func AddNamespace(name, created string) error {
 	// Check collision
 	_, err := GetNamespace(name)
@@ -161,7 +161,7 @@ func AddNamespace(name, created string) error {
 	return nil
 }
 
-// AddController export
+// AddController adds a new controller to the namespace
 func AddController(namespace string, controller Controller) error {
 	_, err := GetController(namespace, controller.Name)
 	if err == nil {
@@ -184,7 +184,7 @@ func AddController(namespace string, controller Controller) error {
 	return nil
 }
 
-// AddAgent export
+// AddAgent adds a new agent to the namespace
 func AddAgent(namespace string, agent Agent) error {
 	_, err := GetAgent(namespace, agent.Name)
 	if err == nil {
@@ -207,7 +207,7 @@ func AddAgent(namespace string, agent Agent) error {
 	return nil
 }
 
-// AddMicroservice export
+// AddMicroservice adds a new microservice to the namespace
 func AddMicroservice(namespace string, microservice Microservice) error {
 	_, err := GetMicroservice(namespace, microservice.Name)
 	if err == nil {
@@ -230,7 +230,7 @@ func AddMicroservice(namespace string, microservice Microservice) error {
 	return nil
 }
 
-// DeleteNamespace export
+// DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx].Name == name {
@@ -244,7 +244,7 @@ func DeleteNamespace(name string) error {
 	return nil
 }
 
-// DeleteController export
+// DeleteController deletes a controller from a namespace
 func DeleteController(namespace, name string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
@@ -264,7 +264,7 @@ func DeleteController(namespace, name string) error {
 	return util.NewNotFoundError(namespace + "/" + name)
 }
 
-// DeleteAgent export
+// DeleteAgent deletes an agent from a namespace
 func DeleteAgent(namespace, name string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
@@ -285,7 +285,7 @@ func DeleteAgent(namespace, name string) error {
 	return util.NewNotFoundError(namespace + "/" + name)
 }
 
-// DeleteMicroservice export
+// DeleteMicroservice deletes a microservice from a namespace
 func DeleteMicroservice(namespace, name string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
@@ -305,6 +305,7 @@ func DeleteMicroservice(namespace, name string) error {
 	return util.NewNotFoundError(namespace + "/" + name)
 }
 
+// getNamespace is a helper function to find a namespace and reference it directly
 func getNamespace(name string) (*Namespace, error) {
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx].Name == name {
@@ -314,11 +315,14 @@ func getNamespace(name string) (*Namespace, error) {
 	return nil, util.NewNotFoundError(name)
 }
 
+// updateFile will write over the config file based on the runtime data of all namespaces
 func updateFile() (err error) {
+	// Marshal the runtime data
 	marshal, err := yaml.Marshal(&conf)
 	if err != nil {
 		return
 	}
+	// Overwrite the file
 	err = ioutil.WriteFile(configFilename, marshal, 0644)
 	if err != nil {
 		return
