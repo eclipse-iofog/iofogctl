@@ -15,5 +15,5 @@ func Execute(name string) error {
 
 	fmt.Printf("\nNamespace %s successfully created.\n", name)
 
-	return nil
+	return config.Flush()
 }

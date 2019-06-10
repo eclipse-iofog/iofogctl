@@ -26,9 +26,8 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	// TODO (Serge) Handle config file error, retry..?
 
 	fmt.Printf("\nMicroservice %s/%s successfully deployed.\n", namespace, name)
 
-	return nil
+	return config.Flush()
 }

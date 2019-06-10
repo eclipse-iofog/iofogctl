@@ -62,9 +62,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	// TODO (Serge) Handle config file error, retry..?
-
 	fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.name)
 
-	return nil
+	return config.Flush()
 }

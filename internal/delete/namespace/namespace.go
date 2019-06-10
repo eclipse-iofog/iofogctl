@@ -29,5 +29,5 @@ func Execute(name string) error {
 
 	fmt.Printf("\nNamespace %s successfully deleted.\n", name)
 
-	return nil
+	return config.Flush()
 }

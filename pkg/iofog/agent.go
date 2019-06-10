@@ -34,7 +34,7 @@ func (agent *Agent) Bootstrap() error {
 		{"sudo service iofog-agent start", 3},
 		{"sudo iofog-agent config -cf 10 -sf 10", 1},
 		{"echo '" + waitForAgentScript + "' | tee ~/wait-for-agent.sh", 1},
-		{"chmod +x ~/wait-for-agent.sh", 1},
+		{"sudo chmod +x ~/wait-for-agent.sh", 1},
 		{"~/wait-for-agent.sh", 15},
 	}
 

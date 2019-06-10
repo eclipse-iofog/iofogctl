@@ -25,12 +25,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure images
-	images := make(map[string]string)
-	err = util.UnmarshalYAML(exe.opt.ImagesFile, images)
-	if err != nil {
-		return err
-	}
-	k8s.SetImages(images)
+	k8s.SetImages(exe.opt.Images)
 
 	// Generate a user
 	password := util.RandomString(10, util.AlphaNum)
@@ -66,5 +61,6 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
-	return nil
+
+	return config.Flush()
 }

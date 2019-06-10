@@ -10,14 +10,15 @@ type IofogUser struct {
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name       string    `mapstructure:"name"`
-	User       string    `mapstructure:"user"`
-	Host       string    `mapstructure:"host"`
-	KeyFile    string    `mapstructure:"keyFile"`
-	KubeConfig string    `mapstructure:"kubeConfig"`
-	Endpoint   string    `mapstructure:"endpoint"`
-	IofogUser  IofogUser `mapstructure:"iofogUser"`
-	Created    string    `mapstructure:"created"`
+	Name       string            `mapstructure:"name"`
+	User       string            `mapstructure:"user"`
+	Host       string            `mapstructure:"host"`
+	KeyFile    string            `mapstructure:"keyFile"`
+	KubeConfig string            `mapstructure:"kubeConfig"`
+	Endpoint   string            `mapstructure:"endpoint"`
+	IofogUser  IofogUser         `mapstructure:"iofogUser"`
+	Created    string            `mapstructure:"created"`
+	Images     map[string]string `mapstructure:"images"`
 }
 
 // Agent contains information for configuring an agent

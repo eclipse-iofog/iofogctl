@@ -22,9 +22,7 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 		return err
 	}
 
-	// TODO (Serge) Handle config file error, retry..?
-
 	fmt.Printf("\nMicroservice %s/%s successfully deleted.\n", namespace, name)
 
-	return nil
+	return config.Flush()
 }

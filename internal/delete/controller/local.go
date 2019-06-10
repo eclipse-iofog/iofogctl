@@ -25,9 +25,8 @@ func (exe *localExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	// TODO (Serge) Handle config file error, retry..?
 
 	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
 
-	return nil
+	return config.Flush()
 }

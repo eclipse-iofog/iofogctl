@@ -18,6 +18,7 @@ type Options struct {
 	Local      bool
 	KubeConfig string
 	ImagesFile string
+	Images     map[string]string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
@@ -39,6 +40,14 @@ func NewExecutor(opt *Options) (Executor, error) {
 
 	// Kubernetes executor
 	if opt.KubeConfig != "" {
+		// If image file specified, read it
+		if opt.ImagesFile != "" {
+			opt.Images = make(map[string]string)
+			err = util.UnmarshalYAML(opt.ImagesFile, opt.Images)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return newKubernetesExecutor(opt), nil
 	}
 

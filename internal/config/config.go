@@ -155,9 +155,6 @@ func AddNamespace(name, created string) error {
 		Created: created,
 	}
 	conf.Namespaces = append(conf.Namespaces, newNamespace)
-	if err := updateFile(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -175,11 +172,6 @@ func AddController(namespace string, controller Controller) error {
 
 	// Append the controller
 	ns.Controllers = append(ns.Controllers, controller)
-
-	// Write to file
-	if err := updateFile(); err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -199,11 +191,6 @@ func AddAgent(namespace string, agent Agent) error {
 	// Append the controller
 	ns.Agents = append(ns.Agents, agent)
 
-	// Write to file
-	if err := updateFile(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -222,11 +209,6 @@ func AddMicroservice(namespace string, microservice Microservice) error {
 	// Append the controller
 	ns.Microservices = append(ns.Microservices, microservice)
 
-	// Write to file
-	if err := updateFile(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -236,9 +218,6 @@ func DeleteNamespace(name string) error {
 		if conf.Namespaces[idx].Name == name {
 			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
 		}
-	}
-	if err := updateFile(); err != nil {
-		return err
 	}
 
 	return nil
@@ -254,9 +233,6 @@ func DeleteController(namespace, name string) error {
 	for idx := range ns.Controllers {
 		if ns.Controllers[idx].Name == name {
 			ns.Controllers = append(ns.Controllers[:idx], ns.Controllers[idx+1:]...)
-			if err := updateFile(); err != nil {
-				return err
-			}
 			return nil
 		}
 	}
@@ -274,10 +250,6 @@ func DeleteAgent(namespace, name string) error {
 	for idx := range ns.Agents {
 		if ns.Agents[idx].Name == name {
 			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
-
-			if err := updateFile(); err != nil {
-				return err
-			}
 			return nil
 		}
 	}
@@ -295,9 +267,6 @@ func DeleteMicroservice(namespace, name string) error {
 	for idx := range ns.Microservices {
 		if ns.Microservices[idx].Name == name {
 			ns.Microservices = append(ns.Microservices[:idx], ns.Microservices[idx+1:]...)
-			if err := updateFile(); err != nil {
-				return err
-			}
 			return nil
 		}
 	}
@@ -315,8 +284,8 @@ func getNamespace(name string) (*Namespace, error) {
 	return nil, util.NewNotFoundError(name)
 }
 
-// updateFile will write over the config file based on the runtime data of all namespaces
-func updateFile() (err error) {
+// Flush will write over the config file based on the runtime data of all namespaces
+func Flush() (err error) {
 	// Marshal the runtime data
 	marshal, err := yaml.Marshal(&conf)
 	if err != nil {

@@ -33,5 +33,5 @@ func Execute(opt *Options) error {
 		return err
 	}
 
-	return nil
+	return config.Flush()
 }

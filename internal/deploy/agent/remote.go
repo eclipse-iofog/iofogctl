@@ -63,9 +63,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	// TODO (Serge) Handle config file error, retry..?
-
 	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 
-	return nil
+	return config.Flush()
 }

@@ -41,5 +41,6 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
-	return nil
+
+	return config.Flush()
 }

@@ -92,5 +92,6 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	return nil
+
+	return config.Flush()
 }
