@@ -46,7 +46,7 @@ func Execute(opt *Options) error {
 	}
 
 	// Only support single controller
-	if len(in.Controllers) != 1 {
+	if len(in.Controllers) > 1 {
 		return util.NewInputError("Only single controller deployments are supported")
 	}
 
@@ -82,6 +82,9 @@ func Execute(opt *Options) error {
 
 	// Deploy agents
 	for _, agent := range in.Agents {
+		if agent.Port == 0 {
+			agent.Port = 22
+		}
 		agentOpt := &deployagent.Options{
 			Namespace: opt.Namespace,
 			Name:      agent.Name,

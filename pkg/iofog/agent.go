@@ -32,9 +32,9 @@ func (agent *Agent) Bootstrap() error {
 	// Instantiate install arguments
 	installURL := "https://raw.githubusercontent.com/eclipse-iofog/platform/feature/dogfood-environment/infrastructure/ansible/scripts/agent.sh"
 	installArgs := ""
-	pkgCloudToken := os.Getenv("PACKAGE_CLOUD_TOKEN")
-	agentVersion := os.Getenv("AGENT_VERSION")
-	if pkgCloudToken != "" {
+	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
+	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
+	if pkgExists && verExists {
 		installArgs += "dev " + pkgCloudToken + " " + agentVersion
 	}
 
@@ -42,9 +42,9 @@ func (agent *Agent) Bootstrap() error {
 	cmds := []command{
 		{"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp", 1},
 		{"sudo apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq", 5},
-		{"curl " + installURL + " sudo tee /opt/linux.sh " + installArgs, 2},
+		{"curl " + installURL + " | sudo tee /opt/linux.sh", 2},
 		{"sudo chmod +x /opt/linux.sh", 1},
-		{"sudo /opt/linux.sh", 70},
+		{"sudo /opt/linux.sh " + installArgs, 70},
 		{"sudo service iofog-agent start", 3},
 		{"sudo iofog-agent config -cf 10 -sf 10", 1},
 		{"echo '" + waitForAgentScript + "' | tee ~/wait-for-agent.sh", 1},

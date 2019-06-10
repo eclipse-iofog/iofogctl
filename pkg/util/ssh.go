@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 )
 
 type SecureShellClient struct {
@@ -52,7 +53,7 @@ func (cl *SecureShellClient) Connect() (err error) {
 	}
 
 	// Connect
-	endpoint := cl.host + ":" + string(cl.port)
+	endpoint := cl.host + ":" + strconv.Itoa(cl.port)
 	cl.conn, err = ssh.Dial("tcp", endpoint, cl.config)
 	if err != nil {
 		return err
