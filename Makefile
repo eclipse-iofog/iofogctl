@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-OS = $(shell uname -s)
+OS = $(shell uname -s | awk '{print tolower($0)}')
 
 # Project variables
 PACKAGE = github.com/eclipse-iofog/iofogctl
@@ -17,13 +17,11 @@ REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
 
+# Go variables
 export CGO_ENABLED ?= 0
-ifeq ($(VERBOSE), 1)
-	GOARGS += -v
-endif
-
+export GOOS ?= $(OS)
+export GOARCH ?= amd64
 GOLANG_VERSION = 1.12
-
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
@@ -58,7 +56,7 @@ fmt: ## Format the source
 test: build ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list ./... | xargs -n1 go test $(GOARGS) -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list
