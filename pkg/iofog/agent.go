@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	pb "github.com/schollz/progressbar"
+	"os"
 )
 
 type Agent struct {
@@ -19,16 +20,27 @@ func NewAgent(user, host, privKeyFilename, agentName string) *Agent {
 }
 
 func (agent *Agent) Bootstrap() error {
+	// Connect to agent over SSH
 	err := agent.ssh.Connect()
 	if err != nil {
 		return err
 	}
 	defer agent.ssh.Disconnect()
 
+	// Instantiate install arguments
+	installURL := "https://raw.githubusercontent.com/eclipse-iofog/platform/feature/dogfood-environment/infrastructure/ansible/scripts/agent.sh"
+	installArgs := ""
+	pkgCloudToken := os.Getenv("PACKAGE_CLOUD_TOKEN")
+	agentVersion := os.Getenv("AGENT_VERSION")
+	if pkgCloudToken != "" {
+		installArgs += "dev " + pkgCloudToken + " " + agentVersion
+	}
+
+	// Execute commands
 	cmds := []command{
 		{"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp", 1},
 		{"sudo apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq", 5},
-		{"curl https://raw.githubusercontent.com/eclipse-iofog/iofog.org/saeid/jdk/static/linux.sh | sudo tee /opt/linux.sh", 2},
+		{"curl " + installURL + " sudo tee /opt/linux.sh " + installArgs, 2},
 		{"sudo chmod +x /opt/linux.sh", 1},
 		{"sudo /opt/linux.sh", 70},
 		{"sudo service iofog-agent start", 3},
@@ -38,8 +50,11 @@ func (agent *Agent) Bootstrap() error {
 		{"~/wait-for-agent.sh", 15},
 	}
 
+	// Prepare progress bar
 	pb := pb.New(100)
 	defer pb.Clear()
+
+	// Execute commands
 	for _, cmd := range cmds {
 		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
@@ -95,15 +110,19 @@ func (agent *Agent) Configure(controllerEndpoint string, user User) (uuid string
 	if err != nil {
 		return
 	}
+
+	// Prepare progress bar
 	defer agent.ssh.Disconnect()
 	pb.Add(20)
 
+	// Instantiate commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
 	cmds := []command{
 		{"sudo iofog-agent config -a " + controllerBaseURL, 10},
 		{"sudo iofog-agent provision " + key, 10},
 	}
 
+	// Execute commands
 	for _, cmd := range cmds {
 		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
