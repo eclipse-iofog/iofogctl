@@ -15,8 +15,8 @@ func newConnectCommand() *cobra.Command {
 		Use:   "connect CONTROLLERNAME",
 		Short: "Connect to existing ioFog Controller and Agents",
 		Long:  `Connect to existing ioFog Controller and Agents`,
-		Example: `iofogctl connect CONTROLLERNAME --host 123.321.123.22
-iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf`,
+		Example: `iofogctl connect CONTROLLERNAME --host 123.321.123.22 --email EMAIL --pass PASS
+iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass PASS`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource name
@@ -38,6 +38,8 @@ iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf`,
 	}
 	cmd.Flags().StringVarP(&opt.Host, "host", "o", "", "IP or hostname of host the Controller is being deployed on")
 	cmd.Flags().StringVarP(&opt.KubeFile, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
+	cmd.Flags().StringVarP(&opt.Email, "email", "e", "", "Email address of user registered against Controller")
+	cmd.Flags().StringVarP(&opt.Password, "pass", "p", "", "Password of user registered against Controller")
 
 	return cmd
 }

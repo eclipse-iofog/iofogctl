@@ -10,6 +10,8 @@ type Options struct {
 	Name      string
 	Host      string
 	KubeFile  string
+	Email     string
+	Password  string
 }
 
 type Executor interface {
@@ -23,6 +25,11 @@ func NewExecutor(opt *Options) (Executor, error) {
 		if len(ns.Agents) != 0 || len(ns.Controllers) != 0 || len(ns.Microservices) != 0 {
 			return nil, util.NewConflictError("You must use an empty namespace to connect to existing ioFog services")
 		}
+	}
+
+	// User details
+	if opt.Email == "" || opt.Password == "" {
+		return nil, util.NewInputError("You must specify email and password of user registered against the Controller")
 	}
 
 	// Kubernetes controller

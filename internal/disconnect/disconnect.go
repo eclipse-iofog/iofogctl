@@ -16,13 +16,6 @@ func Execute(opt *Options) error {
 		return err
 	}
 
-	// TODO: Implement this if we can share resources between users
-	// Connect to controller
-	//if len(ns.Controllers) != 1 {
-	//	return util.NewInternalError("Expected one controller in namespace " + opt.Namespace)
-	//}
-	// Delete user
-
 	// Wipe the namespace
 	err = config.DeleteNamespace(opt.Namespace)
 	if err != nil {

@@ -3,7 +3,6 @@ package connect
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -32,25 +31,10 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	// Connect to Controller
 	ctrl := iofog.NewController(endpoint)
 
-	// Generate a user
-	password := util.RandomString(10, util.AlphaNum)
-	email := util.RandomString(5, util.AlphaLower) + "@domain.com"
-	user := iofog.User{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    email,
-		Password: password,
-	}
-
-	// Sign user up
-	err = ctrl.CreateUser(user)
-	if err != nil {
-		return err
-	}
 	// Login user
 	loginRequest := iofog.LoginRequest{
-		Email:    user.Email,
-		Password: user.Password,
+		Email:    exe.opt.Email,
+		Password: exe.opt.Password,
 	}
 	loginResponse, err := ctrl.Login(loginRequest)
 	if err != nil {
@@ -81,10 +65,8 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		Name:     exe.opt.Name,
 		Endpoint: endpoint,
 		IofogUser: config.IofogUser{
-			Name:     user.Name,
-			Surname:  user.Surname,
-			Email:    user.Email,
-			Password: user.Password,
+			Email:    exe.opt.Email,
+			Password: exe.opt.Password,
 		},
 		KubeConfig: exe.opt.KubeFile,
 	}
