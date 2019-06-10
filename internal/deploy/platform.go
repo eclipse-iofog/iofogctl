@@ -87,6 +87,7 @@ func Execute(opt *Options) error {
 			Name:      agent.Name,
 			User:      agent.User,
 			Host:      agent.Host,
+			Port:      agent.Port,
 			KeyFile:   agent.KeyFile,
 			Local:     local,
 		}

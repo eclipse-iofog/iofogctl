@@ -12,9 +12,11 @@ type Agent struct {
 	name string
 }
 
-func NewAgent(user, host, privKeyFilename, agentName string) *Agent {
+func NewAgent(user, host string, port int, privKeyFilename, agentName string) *Agent {
+	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
+	ssh.SetPort(port)
 	return &Agent{
-		ssh:  util.NewSecureShellClient(user, host, privKeyFilename),
+		ssh:  ssh,
 		name: agentName,
 	}
 }

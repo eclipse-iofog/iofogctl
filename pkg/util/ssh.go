@@ -11,6 +11,7 @@ import (
 type SecureShellClient struct {
 	user            string
 	host            string
+	port            int
 	privKeyFilename string
 	config          *ssh.ClientConfig
 	conn            *ssh.Client
@@ -20,8 +21,13 @@ func NewSecureShellClient(user, host, privKeyFilename string) *SecureShellClient
 	return &SecureShellClient{
 		user:            user,
 		host:            host,
+		port:            22,
 		privKeyFilename: privKeyFilename,
 	}
+}
+
+func (cl *SecureShellClient) SetPort(port int) {
+	cl.port = port
 }
 
 func (cl *SecureShellClient) Connect() (err error) {
@@ -46,7 +52,8 @@ func (cl *SecureShellClient) Connect() (err error) {
 	}
 
 	// Connect
-	cl.conn, err = ssh.Dial("tcp", cl.host+":22", cl.config)
+	endpoint := cl.host + ":" + string(cl.port)
+	cl.conn, err = ssh.Dial("tcp", endpoint, cl.config)
 	if err != nil {
 		return err
 	}

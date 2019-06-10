@@ -14,6 +14,7 @@ type Options struct {
 	Name      string
 	User      string
 	Host      string
+	Port      int
 	KeyFile   string
 	Local     bool
 }

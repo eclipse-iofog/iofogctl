@@ -26,6 +26,7 @@ type Agent struct {
 	Name    string `mapstructure:"name"`
 	User    string `mapstructure:"user"`
 	Host    string `mapstructure:"host"`
+	Port    int    `mapstructure:"port"`
 	KeyFile string `mapstructure:"keyFile"`
 	UUID    string `mapstructure:"uuid"`
 	Created string `mapstructure:"created"`
