@@ -19,16 +19,19 @@ const DefaultFilename = ".iofog.yaml"
 
 // Init initializes config and unmarshalls the file
 func Init(filename string) {
-	// Read the file and unmarshall contents
+	// Remove tilde from filename
+	filename, err := util.ReplaceTilde(filename)
+	util.Check(err)
+
+	// Set default filename if necessary
 	if filename == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.Check(err)
-
-		configFilename = home + "/" + DefaultFilename
-	} else {
-		configFilename = filename
+		filename = home + "/" + DefaultFilename
 	}
+	configFilename = filename
+
 	// Check file exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
 		// Create default file
@@ -43,7 +46,7 @@ func Init(filename string) {
 	}
 
 	// Unmarshall the file
-	err := util.UnmarshalYAML(configFilename, &conf)
+	err = util.UnmarshalYAML(configFilename, &conf)
 	util.Check(err)
 }
 
