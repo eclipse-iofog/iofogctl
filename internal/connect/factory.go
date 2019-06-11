@@ -8,7 +8,7 @@ import (
 type Options struct {
 	Namespace string
 	Name      string
-	Host      string
+	Endpoint  string
 	KubeFile  string
 	Email     string
 	Password  string
@@ -38,8 +38,8 @@ func NewExecutor(opt *Options) (Executor, error) {
 	}
 
 	// Remote controller needs host address
-	if opt.Host == "" {
-		return nil, util.NewInputError("Must specify Controller IP if connecting to non-Kubernetes Controller")
+	if opt.Endpoint == "" {
+		return nil, util.NewInputError("Must specify Controller host and port if connecting to non-Kubernetes Controller")
 	}
 	return newRemoteExecutor(opt), nil
 }
