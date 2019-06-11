@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
-	"os"
 	"time"
 )
 
@@ -26,8 +25,8 @@ type Kubernetes struct {
 
 // NewKubernetes constructs an object to manage cluster
 func NewKubernetes(configFilename string) (*Kubernetes, error) {
-	// Check if the kubeConfig file exists.
-	_, err := os.Stat(configFilename)
+	// Replace ~ in filename
+	configFilename, err := util.ReplaceTilde(configFilename)
 	if err != nil {
 		return nil, err
 	}
