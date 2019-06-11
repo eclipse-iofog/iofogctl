@@ -35,7 +35,7 @@ func (agent *Agent) Bootstrap() error {
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
 	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
 	if pkgExists && verExists {
-		installArgs += "dev " + pkgCloudToken + " " + agentVersion
+		installArgs = "dev " + agentVersion + " " + pkgCloudToken
 	}
 
 	// Execute commands
