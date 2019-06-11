@@ -159,6 +159,13 @@ jobs:
           done
         displayName: 'Publish RPM to package-cloud'
 
+      - script: |
+          GOOS=darwin make build
+          package=bin/iofogctl
+          package_cloud push iofog/iofogctl-snapshots/darwin/$(version) $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+        workingDirectory: '$(modulePath)'
+        displayName: 'Build and publish OSX binary'
+
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
