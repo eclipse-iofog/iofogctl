@@ -161,8 +161,8 @@ jobs:
 
       - script: |
           GOOS=darwin make build
-          package=bin/iofogctl
-          package_cloud push iofog/iofogctl-snapshots/darwin/$(version) $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+          tar -zcf darwin.tar.gz bin/iofogctl
+          cp darwin.tar.gz $(Build.ArtifactStagingDirectory)
         workingDirectory: '$(modulePath)'
         displayName: 'Build and publish OSX binary'
 
