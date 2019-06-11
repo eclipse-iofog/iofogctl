@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
+	"strings"
 	"time"
 )
 
@@ -106,10 +107,9 @@ func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) 
 	}
 	endpoint = fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
 
-	pbCtx.quota = 10
 	// Install ioFog K8s Extensions
-	err = k8s.createExtension(token, ips, pbCtx)
-	if err != nil {
+	pbCtx.quota = 10
+	if err = k8s.createExtension(token, ips, pbCtx); err != nil {
 		return
 	}
 
@@ -125,12 +125,15 @@ func (k8s *Kubernetes) DeleteController() error {
 	// Delete Deployments
 	deps, err := k8s.clientset.AppsV1().Deployments(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	for _, dep := range deps.Items {
-		err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(dep.Name, &metav1.DeleteOptions{})
-		if err != nil {
-			return err
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(dep.Name, &metav1.DeleteOptions{}); err != nil {
+			if !isNotFound(err) {
+				return err
+			}
 		}
 	}
 	pb.Add(10)
@@ -138,12 +141,15 @@ func (k8s *Kubernetes) DeleteController() error {
 	// Delete Services
 	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	for _, svc := range svcs.Items {
-		err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{})
-		if err != nil {
-			return err
+		if err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{}); err != nil {
+			if !isNotFound(err) {
+				return err
+			}
 		}
 	}
 	pb.Add(10)
@@ -151,32 +157,39 @@ func (k8s *Kubernetes) DeleteController() error {
 	// Delete Service Accounts
 	svcAccs, err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	for _, acc := range svcAccs.Items {
-		err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(acc.Name, &metav1.DeleteOptions{})
-		if err != nil {
-			return err
+		if err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(acc.Name, &metav1.DeleteOptions{}); err != nil {
+			if !isNotFound(err) {
+				return err
+			}
 		}
 	}
 	pb.Add(10)
 
 	// Delete Kubelet Cluster Role Binding
-	err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(k8s.ms["kubelet"].name, &metav1.DeleteOptions{})
-	if err != nil {
-		return err
+	if err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(k8s.ms["kubelet"].name, &metav1.DeleteOptions{}); err != nil {
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	pb.Add(10)
 
 	// Delete Roles
 	roles, err := k8s.clientset.RbacV1().Roles(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	for _, role := range roles.Items {
-		err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(role.Name, &metav1.DeleteOptions{})
-		if err != nil {
-			return err
+		if err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(role.Name, &metav1.DeleteOptions{}); err != nil {
+			if !isNotFound(err) {
+				return err
+			}
 		}
 	}
 	pb.Add(10)
@@ -184,27 +197,32 @@ func (k8s *Kubernetes) DeleteController() error {
 	// Delete Role Bindings
 	roleBinds, err := k8s.clientset.RbacV1().RoleBindings(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	for _, bind := range roleBinds.Items {
-		err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(bind.Name, &metav1.DeleteOptions{})
-		if err != nil {
-			return err
+		if err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(bind.Name, &metav1.DeleteOptions{}); err != nil {
+			if !isNotFound(err) {
+				return err
+			}
 		}
 	}
 	pb.Add(10)
 
 	// Delete CRD
-	err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(k8s.crdName, &metav1.DeleteOptions{})
-	if err != nil {
-		return err
+	if err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(k8s.crdName, &metav1.DeleteOptions{}); err != nil {
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	pb.Add(10)
 
 	// Delete Namespace
-	err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{})
-	if err != nil {
-		return err
+	if err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{}); err != nil {
+		if !isNotFound(err) {
+			return err
+		}
 	}
 	pb.Add(30)
 
@@ -220,7 +238,11 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 			Name: k8s.ns,
 		},
 	}
-	_, _ = k8s.clientset.CoreV1().Namespaces().Create(ns)
+	if _, err = k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
+	}
 
 	coreMs := []microservice{
 		k8s.ms["controller"],
@@ -229,19 +251,22 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	// Create Controller and Connector Services and Pods
 	for _, ms := range coreMs {
 		svc := newService(k8s.ns, ms)
-		_, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc)
-		if err != nil {
-			return
+		if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
+			if !isAlreadyExists(err) {
+				return
+			}
 		}
 		svcAcc := newServiceAccount(k8s.ns, ms)
-		_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc)
-		if err != nil {
-			return
+		if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
+			if !isAlreadyExists(err) {
+				return
+			}
 		}
 		dep := newDeployment(k8s.ns, ms)
-		_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep)
-		if err != nil {
-			return
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
+			if !isAlreadyExists(err) {
+				return
+			}
 		}
 	}
 
@@ -249,8 +274,7 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 
 	pbCtx.quota = pbSlice * 2
 	// Wait for Controller and Connector Pods
-	err = k8s.waitForPods(k8s.ns, pbCtx)
-	if err != nil {
+	if err = k8s.waitForPods(k8s.ns, pbCtx); err != nil {
 		return
 	}
 
@@ -270,7 +294,6 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	// TODO: (Serge) Get rid of this exec! Use REST API when implemented for this
 	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
 	if err != nil {
-		return
 	}
 	pbCtx.pb.Add(pbSlice)
 
@@ -279,9 +302,10 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	ctrl := NewController(endpoint)
 
 	// Create user
-	err = ctrl.CreateUser(user)
-	if err != nil {
-		return
+	if err = ctrl.CreateUser(user); err != nil {
+		if !strings.Contains(err.Error(), "already an account associated") {
+			return
+		}
 	}
 	pbCtx.pb.Add(pbSlice)
 
@@ -297,37 +321,42 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	token = loginResponse.AccessToken
 	pbCtx.pb.Add(pbSlice)
 
+	err = nil
 	return
 }
 
-func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCtx progressBarContext) error {
+func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCtx progressBarContext) (err error) {
 	pbSlice := pbCtx.quota / 5
 
 	// Create Scheduler resources
 	schedDep := newDeployment(k8s.ns, k8s.ms["scheduler"])
-	_, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	schedAcc := newServiceAccount(k8s.ns, k8s.ms["scheduler"])
-	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	pbCtx.pb.Add(pbSlice)
 
 	// Create Kubelet resources
 	vkSvcAcc := newServiceAccount(k8s.ns, k8s.ms["kubelet"])
-	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(vkSvcAcc)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(vkSvcAcc); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	pbCtx.pb.Add(pbSlice)
 
 	vkRoleBind := newClusterRoleBinding(k8s.ns, k8s.ms["kubelet"])
-	_, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(vkRoleBind)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(vkRoleBind); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	k8s.ms["kubelet"].containers[0].args = []string{
 		"--namespace",
@@ -339,31 +368,36 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	}
 	pbCtx.pb.Add(pbSlice)
 	vkDep := newDeployment(k8s.ns, k8s.ms["kubelet"])
-	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(vkDep)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(vkDep); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 
 	// Create Operator resources
 	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
-	_, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	opRole := newRole(k8s.ns, k8s.ms["operator"])
-	_, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	opRoleBind := newRoleBinding(k8s.ns, k8s.ms["operator"])
-	_, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	crd := newCustomResourceDefinition(k8s.crdName)
-	_, err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
-	if err != nil {
-		return err
+	if _, err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	pbCtx.pb.Add(pbSlice)
 	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
@@ -411,13 +445,15 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 			Value: k8s.ms["operator"].name,
 		},
 	}
-	_, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep)
-	if err != nil {
-		return err
+	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
 	}
 	pbCtx.pb.Add(pbSlice)
 
-	return nil
+	err = nil
+	return
 }
 
 func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) error {
@@ -529,4 +565,12 @@ func (k8s *Kubernetes) waitForServices(namespace string, pbCtx progressBarContex
 type progressBarContext struct {
 	pb    *pb.ProgressBar
 	quota int
+}
+
+func isAlreadyExists(err error) bool {
+	return strings.Contains(err.Error(), "already exists")
+}
+
+func isNotFound(err error) bool {
+	return strings.Contains(err.Error(), "not found")
 }

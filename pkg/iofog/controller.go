@@ -27,7 +27,9 @@ func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
 	}
 
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return
 	}
 
@@ -59,8 +61,7 @@ func (ctrl *Controller) CreateUser(request User) error {
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(httpResp.Body)
-		println(buf.String())
-		return util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		return util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 	}
 	return nil
 }
@@ -82,7 +83,9 @@ func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return
 	}
 
@@ -121,7 +124,9 @@ func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken stri
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return
 	}
 
@@ -165,7 +170,9 @@ func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return
 	}
 
@@ -202,7 +209,9 @@ func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsRespo
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return
 	}
 
@@ -236,7 +245,9 @@ func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, 
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return
 	}
 
@@ -272,7 +283,9 @@ func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
 
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s", httpResp.StatusCode, url))
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
 		return err
 	}
 

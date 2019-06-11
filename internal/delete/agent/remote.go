@@ -31,7 +31,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 	if len(ctrlConfigs) != 1 {
-		return util.NewInternalError("Expected one Controller in namespace " + exe.namespace)
+		return util.NewInputError("Cannot delete an Agent without a Controller in namespace " + exe.namespace)
 	}
 
 	// Get Controller endpoint and connect to Controller

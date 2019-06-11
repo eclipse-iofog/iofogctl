@@ -27,14 +27,29 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	// Configure images
 	k8s.SetImages(exe.opt.Images)
 
-	// Generate a user
-	password := util.RandomString(10, util.AlphaNum)
-	email := util.RandomString(5, util.AlphaLower) + "@domain.com"
+	var configUser config.IofogUser
+	// Check existing controller
+	ctrl, err := config.GetController(exe.opt.Namespace, exe.opt.Name)
+	if err == nil {
+		// Use existing user
+		configUser = ctrl.IofogUser
+	} else {
+		// Generate new user
+		password := util.RandomString(10, util.AlphaNum)
+		email := util.RandomString(5, util.AlphaLower) + "@domain.com"
+		configUser = config.IofogUser{
+			Name:     "N" + util.RandomString(10, util.AlphaLower),
+			Surname:  "S" + util.RandomString(10, util.AlphaLower),
+			Email:    email,
+			Password: password,
+		}
+	}
+	// Assign user
 	user := iofog.User{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    email,
-		Password: password,
+		Name:     configUser.Name,
+		Surname:  configUser.Surname,
+		Email:    configUser.Email,
+		Password: configUser.Password,
 	}
 	// Create controller on cluster
 	endpoint, err := k8s.CreateController(user)
@@ -51,11 +66,11 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 			Name:     user.Name,
 			Surname:  user.Surname,
 			Email:    user.Email,
-			Password: password,
+			Password: user.Password,
 		},
 		Created: util.Now(),
 	}
-	err = config.AddController(exe.opt.Namespace, configEntry)
+	err = config.UpdateController(exe.opt.Namespace, configEntry)
 	if err != nil {
 		return
 	}

@@ -161,6 +161,25 @@ func AddNamespace(name, created string) error {
 	return nil
 }
 
+// Overwrites or creates new controller to the namespace
+func UpdateController(namespace string, controller Controller) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	// Update existing controller if exists
+	for idx := range ns.Controllers {
+		if ns.Controllers[idx].Name == controller.Name {
+			ns.Controllers[idx] = controller
+			return nil
+		}
+	}
+	// Add new controller
+	AddController(namespace, controller)
+
+	return nil
+}
+
 // AddController adds a new controller to the namespace
 func AddController(namespace string, controller Controller) error {
 	_, err := GetController(namespace, controller.Name)

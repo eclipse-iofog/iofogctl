@@ -29,7 +29,7 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 	if len(ctrls) != 1 {
-		return util.NewInternalError("Expected one controller in namespace " + exe.namespace)
+		return util.NewInputError("Cannot get Agent data without a Controller in namespace " + exe.namespace)
 	}
 
 	// Connect to controller

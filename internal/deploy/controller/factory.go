@@ -23,14 +23,8 @@ type Options struct {
 
 func NewExecutor(opt *Options) (Executor, error) {
 	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
+	if _, err := config.GetNamespace(opt.Namespace); err != nil {
 		return nil, err
-	}
-
-	// Check controller already exists
-	if len(ns.Controllers) > 0 {
-		return nil, util.NewConflictError("Controller already exists in namespace " + opt.Namespace)
 	}
 
 	// Local executor
@@ -43,7 +37,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 		// If image file specified, read it
 		if opt.ImagesFile != "" {
 			opt.Images = make(map[string]string)
-			err = util.UnmarshalYAML(opt.ImagesFile, opt.Images)
+			err := util.UnmarshalYAML(opt.ImagesFile, opt.Images)
 			if err != nil {
 				return nil, err
 			}

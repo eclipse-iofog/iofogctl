@@ -32,43 +32,41 @@ func (exe *agentExecutor) Execute() error {
 	headers := []string{"AGENT", "STATUS", "AGE", "UPTIME"}
 	table[0] = append(table[0], headers...)
 
-	// Print empty table if no controller
-	if len(ns.Controllers) == 0 {
-		if len(ns.Agents) != 0 {
-			return util.NewInternalError("Found Agents without a Controller in Namespace " + ns.Name)
-		}
-		print(table)
-		return nil
-	}
-
 	// Connect to controller
-	ctrl := iofog.NewController(ns.Controllers[0].Endpoint)
-	loginRequest := iofog.LoginRequest{
-		Email:    ns.Controllers[0].IofogUser.Email,
-		Password: ns.Controllers[0].IofogUser.Password,
-	}
+	agentInfos := make([]iofog.AgentInfo, len(ns.Agents))
+	if len(ns.Controllers) > 0 {
+		ctrl := iofog.NewController(ns.Controllers[0].Endpoint)
+		loginRequest := iofog.LoginRequest{
+			Email:    ns.Controllers[0].IofogUser.Email,
+			Password: ns.Controllers[0].IofogUser.Password,
+		}
+		// Send requests to controller
+		loginResponse, err := ctrl.Login(loginRequest)
+		if err != nil {
+			return err
+		}
+		token := loginResponse.AccessToken
 
-	// Send requests to controller
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
-		return err
+		// Get agents from Controller
+		for idx, agent := range ns.Agents {
+			agentInfo, err := ctrl.GetAgent(agent.UUID, token)
+			if err != nil {
+				return err
+			}
+			agentInfos[idx] = agentInfo
+		}
 	}
-	token := loginResponse.AccessToken
 
 	// Populate rows
 	for idx, agent := range ns.Agents {
-		getAgentResponse, err := ctrl.GetAgent(agent.UUID, token)
+		age, err := util.Elapsed(util.FromInt(agentInfos[idx].CreatedTimeMsUTC), util.Now())
 		if err != nil {
 			return err
 		}
-		age, err := util.Elapsed(util.FromInt(getAgentResponse.CreatedTimeMsUTC), util.Now())
-		if err != nil {
-			return err
-		}
-		uptime := time.Duration(getAgentResponse.DaemonUptimeDurationMsUTC)
+		uptime := time.Duration(agentInfos[idx].DaemonUptimeDurationMsUTC)
 		row := []string{
 			agent.Name,
-			getAgentResponse.DaemonStatus,
+			agentInfos[idx].DaemonStatus,
 			age,
 			util.FormatDuration(uptime),
 		}
