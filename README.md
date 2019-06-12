@@ -11,13 +11,21 @@ The following must be installed and configured before performing bootstrap:
 
 ## Install
 
-`iofogctl` can be installed in the usual Go fashion:
+Mac users can use Homebrew:
+
+```bash
+brew tap eclipse-iofog/iofogctl
+brew install iofogctl
+```
+
+Otherwise, `iofogctl` can be installed in the usual Go fashion:
 
 ```bash
 go get -u github.com/eclipse-iofog/cli
 ```
 
 Install dependencies:
+
 ```
 script/bootstrap.sh
 ```
