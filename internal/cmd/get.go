@@ -23,7 +23,9 @@ func newGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",
-		Long:  `Get information of existing resources`,
+		Long: `Get information of existing resources.
+
+Resources like Agents will require a working Controller in the namespace to display all information.`,
 		Example: `iofogctl get all
 iofogctl get namespaces
 iofogctl get controllers

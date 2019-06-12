@@ -21,9 +21,11 @@ import (
 
 func newDeleteNamespaceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace NAME",
-		Short:   "Delete a Namespace",
-		Long:    `Delete a Namespace`,
+		Use:   "namespace NAME",
+		Short: "Delete a Namespace",
+		Long: `Delete a Namespace.
+
+The namespace must not have any resources within it.`,
 		Example: `iofogctl delete namespace NAME`,
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

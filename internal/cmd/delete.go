@@ -20,8 +20,8 @@ import (
 func newDeleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete existing ioFog resources",
-		Long:  `Delete existing ioFog resources`,
+		Short: "Delete an existing ioFog resource",
+		Long:  `Delete an existing ioFog resource`,
 	}
 
 	// Add subcommands

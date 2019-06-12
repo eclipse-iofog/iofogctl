@@ -28,8 +28,26 @@ func newDeployCommand() *cobra.Command {
 		Use: "deploy",
 		Example: `deploy -f platform.yaml
 deploy [command]`,
-		Short: "Deploy ioFog stack on existing infrastructure",
-		Long:  `Deploy ioFog stack on existing infrastructure`,
+		Short: "Deploy ioFog platform or components on existing infrastructure",
+		Long: `Deploy ioFog platform or individual components on existing infrastructure.
+
+A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers, Agents, and Microservices.
+
+The YAML resource definition file should look like this:
+controllers:
+- name: sergek8s
+  kubeconfig: ~/.kube/conf
+agents:
+- name: agent1
+  user: serge
+  host: 35.239.157.151
+  keyfile: ~/.ssh/id_rsa
+- name: agent2
+  user: serge
+  host: 35.232.114.32
+  keyfile: ~/.ssh/id_rsa
+microservices: []
+`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			// Get namespace

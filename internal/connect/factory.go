@@ -35,8 +35,14 @@ func NewExecutor(opt *Options) (Executor, error) {
 	// Check namespace is empty
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {
+		// Namespace exists, must be empty
 		if len(ns.Agents) != 0 || len(ns.Controllers) != 0 || len(ns.Microservices) != 0 {
 			return nil, util.NewConflictError("You must use an empty namespace to connect to existing ioFog services")
+		}
+	} else {
+		// Create namespace
+		if err = config.AddNamespace(opt.Namespace, util.Now()); err != nil {
+			return nil, err
 		}
 	}
 

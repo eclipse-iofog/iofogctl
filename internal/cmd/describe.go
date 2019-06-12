@@ -23,7 +23,9 @@ func newDescribeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",
 		Short: "Get detailed information of existing resources",
-		Long:  `Get detailed information of existing resources`,
+		Long: `Get detailed information of existing resources.
+
+Resources such as Agents require a working Controller in the namespace in order to be described.`,
 		Example: `iofogctl describe controller NAME
 iofogctl describe agent NAME
 iofogctl describe microservice NAME`,

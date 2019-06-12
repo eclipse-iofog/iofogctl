@@ -26,8 +26,10 @@ func newDeployAgentCommand() *cobra.Command {
 	// Instantiate command
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
-		Short: "Deploy an Agent",
-		Long:  `Deploy an Agent`,
+		Short: "Bootstrap and provision an edge host",
+		Long: `Bootstrap an edge host with the ioFog Agent stack and provision it with a Controller.
+
+A Controller must first be deployed within the corresponding namespace in order to provision the Agent.`,
 		Example: `iofogctl deploy agent NAME --local
 iofogctl deploy agent NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa`,
 		Args: cobra.ExactArgs(1),

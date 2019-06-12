@@ -20,8 +20,10 @@ import (
 func newCreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create an ioFog resource",
-		Long:  `Create an ioFog resource`,
+		Short: "Create a resource",
+		Long: `Create a resource.
+
+Some resources (e.g. namespaces) are relevant to iofogctl alone. Other resources are created on the ioFog cluster itself.`,
 	}
 
 	// Add subcommands
