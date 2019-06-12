@@ -4,6 +4,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"strings"
 )
 
 type agentExecutor struct {
@@ -47,6 +48,10 @@ func (exe *agentExecutor) Execute() error {
 	token := loginResponse.AccessToken
 	getAgentResponse, err := ctrl.GetAgent(agent.UUID, token)
 	if err != nil {
+		// The agents might not be provisioned with Controller
+		if strings.Contains(err.Error(), "NotFoundError") {
+			return util.NewInputError("Cannot describe an Agent that is not provisioned with the Controller in namespace " + exe.namespace)
+		}
 		return err
 	}
 

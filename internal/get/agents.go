@@ -4,6 +4,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"strings"
 	"time"
 )
 
@@ -51,6 +52,10 @@ func (exe *agentExecutor) Execute() error {
 		for idx, agent := range ns.Agents {
 			agentInfo, err := ctrl.GetAgent(agent.UUID, token)
 			if err != nil {
+				// The agents might not be provisioned with Controller
+				if strings.Contains(err.Error(), "NotFoundError") {
+					continue
+				}
 				return err
 			}
 			agentInfos[idx] = agentInfo

@@ -5,6 +5,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"strings"
 )
 
 type remoteExecutor struct {
@@ -51,14 +52,14 @@ func (exe *remoteExecutor) Execute() error {
 	token := loginResponse.AccessToken
 
 	// Perform deletion of Agent through Controller
-	err = ctrl.DeleteAgent(agent.UUID, token)
-	if err != nil {
-		return err
+	if err = ctrl.DeleteAgent(agent.UUID, token); err != nil {
+		if !strings.Contains(err.Error(), "NotFoundError") {
+			return err
+		}
 	}
 
 	// Update configuration
-	err = config.DeleteAgent(exe.namespace, exe.name)
-	if err != nil {
+	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
 		return err
 	}
 
