@@ -64,17 +64,11 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		Email:    configUser.Email,
 		Password: configUser.Password,
 	}
-	// Create controller on cluster
-	endpoint, err := k8s.CreateController(user)
-	if err != nil {
-		return
-	}
 
-	// Update configuration
+	// Update configuration before we try to deploy in case of failure
 	configEntry := config.Controller{
 		Name:       exe.opt.Name,
 		KubeConfig: exe.opt.KubeConfig,
-		Endpoint:   endpoint,
 		IofogUser: config.IofogUser{
 			Name:     user.Name,
 			Surname:  user.Surname,
@@ -83,8 +77,22 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		},
 		Created: util.Now(),
 	}
-	err = config.UpdateController(exe.opt.Namespace, configEntry)
+	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
+		return
+	}
+	if err = config.Flush(); err != nil {
+		return err
+	}
+
+	// Create controller on cluster
+	endpoint, err := k8s.CreateController(user)
 	if err != nil {
+		return
+	}
+
+	// Update configuration
+	configEntry.Endpoint = endpoint
+	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
 		return
 	}
 

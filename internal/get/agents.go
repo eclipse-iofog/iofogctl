@@ -46,9 +46,9 @@ func (exe *agentExecutor) Execute() error {
 	headers := []string{"AGENT", "STATUS", "AGE", "UPTIME"}
 	table[0] = append(table[0], headers...)
 
-	// Connect to controller
+	// Connect to controller if it is ready
 	agentInfos := make([]iofog.AgentInfo, len(ns.Agents))
-	if len(ns.Controllers) > 0 {
+	if len(ns.Controllers) > 0 && ns.Controllers[0].Endpoint != "" {
 		ctrl := iofog.NewController(ns.Controllers[0].Endpoint)
 		loginRequest := iofog.LoginRequest{
 			Email:    ns.Controllers[0].IofogUser.Email,

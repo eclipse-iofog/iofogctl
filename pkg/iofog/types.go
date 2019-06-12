@@ -106,3 +106,10 @@ type AgentListFilter struct {
 	Value     string `json:"value"`
 	Condition string `json:"condition"`
 }
+
+type ProvisionConnectorRequest struct {
+	IP      string `json:"publicIp"`
+	Name    string `json:"name"`
+	Domain  string `json:"domain"`
+	DevMode bool   `json:"devMode"`
+}

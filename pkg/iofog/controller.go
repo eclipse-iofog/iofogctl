@@ -304,3 +304,36 @@ func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
 
 	return nil
 }
+
+func (ctrl *Controller) ProvisionConnector(request ProvisionConnectorRequest, accessToken string) error {
+	// Prepare request
+	contentType := "application/json"
+	url := ctrl.baseURL + "connector"
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	httpReq, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
+	if err != nil {
+		return err
+	}
+	httpReq.Header.Set("Authorization", accessToken)
+	httpReq.Header.Set("Content-Type", contentType)
+
+	// Send request
+	client := http.Client{}
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+		return err
+	}
+
+	// Check response code
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(httpResp.Body)
+		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+		return err
+	}
+
+	return nil
+}

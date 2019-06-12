@@ -31,7 +31,7 @@ func newConnectCommand() *cobra.Command {
 
 This command must be executed within an empty or non-existent namespace.
 All resources provisioned with the corresponding Controller will become visible under the namespace.`,
-		Example: `iofogctl connect CONTROLLERNAME --host 123.321.123.22:51121 --email EMAIL --pass PASSWORD
+		Example: `iofogctl connect CONTROLLERNAME --endpoint 123.321.123.22:51121 --email EMAIL --pass PASSWORD
 iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass PASSWORD`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

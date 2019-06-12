@@ -298,16 +298,6 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 		return
 	}
 
-	// Connect Controller to Connector
-	podList, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{LabelSelector: "name=controller"})
-	if err != nil {
-		return
-	}
-	podName := podList.Items[0].Name
-	// TODO: (Serge) Get rid of this exec! Use REST API when implemented for this
-	_, err = util.Exec("KUBECONFIG="+k8s.configFilename, "kubectl", "exec", podName, "-n", "iofog", "--", "node", "/controller/src/main", "connector", "add", "-n", "gke", "-d", "connector", "--dev-mode-on", "-i", ips["connector"])
-	if err != nil {
-	}
 	pbCtx.pb.Add(pbSlice)
 
 	// Connect to controller
@@ -333,6 +323,17 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	}
 	token = loginResponse.AccessToken
 	pbCtx.pb.Add(pbSlice)
+
+	// Connect Controller with Connector
+	connectorRequest := ProvisionConnectorRequest{
+		IP:      ips["connector"],
+		DevMode: true,
+		Domain:  "connector",
+		Name:    "gke",
+	}
+	if err = ctrl.ProvisionConnector(connectorRequest, token); err != nil {
+		return
+	}
 
 	err = nil
 	return
