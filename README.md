@@ -41,7 +41,7 @@ iofogctl --help
 
 Current options include:
 
-```bash
+```
 ioFog Unified Command Line Interface
 
 Usage:
@@ -84,7 +84,7 @@ iofogctl is installed in your `$GOPATH/bin`
 
 Run project unit tests:
 
-```bash
+```
 make test
 ```
 
