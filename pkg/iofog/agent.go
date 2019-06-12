@@ -43,7 +43,7 @@ func (agent *Agent) Bootstrap() error {
 	defer agent.ssh.Disconnect()
 
 	// Instantiate install arguments
-	installURL := "https://raw.githubusercontent.com/eclipse-iofog/platform/feature/dogfood-environment/infrastructure/ansible/scripts/agent.sh"
+	installURL := "https://raw.githubusercontent.com/eclipse-iofog/platform/develop/infrastructure/ansible/scripts/agent.sh"
 	installArgs := ""
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
 	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
