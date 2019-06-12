@@ -88,7 +88,7 @@ type AgentInfo struct {
 	IPAddress                 string  `json:"ipAddress" yml:"ipAddress"`
 	ProcessedMessaged         int64   `json:"processedMessages" yml:"ProcessedMessages"`
 	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yml:"microserviceMessageCount"`
-	MessageSpeed              int64   `json:"messageSpeed" yml:"messageSpeed"`
+	MessageSpeed              float64 `json:"messageSpeed" yml:"messageSpeed"`
 	LastCommandTimeMsUTC      int64   `json:"lastCommandTime" yml:"lastCommandTime"`
 	NetworkInterface          string  `json:"networkInterface" yml:"networkInterface"`
 	Version                   string  `json:"version" yml:"version"`
