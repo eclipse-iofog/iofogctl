@@ -27,6 +27,7 @@ type Controller struct {
 }
 
 func NewController(endpoint string) *Controller {
+	endpoint = strings.Replace(endpoint, "http://", "", 1)
 	return &Controller{
 		baseURL: fmt.Sprintf("http://%s/api/v3/", endpoint),
 	}
