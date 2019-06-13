@@ -328,6 +328,19 @@ func (ctrl *Controller) ProvisionConnector(request ProvisionConnectorRequest, ac
 		return err
 	}
 
+	// Read the body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(httpResp.Body)
+
+	// Retry with a PUT if already exists
+	if httpResp.StatusCode == 400 && strings.Contains(buf.String(), "Model already exists") {
+		httpReq.Method = "PUT"
+		httpResp, err = client.Do(httpReq)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Check response code
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
 		buf := new(bytes.Buffer)
