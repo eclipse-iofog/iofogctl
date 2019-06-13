@@ -83,6 +83,10 @@ func newDeployment(namespace string, ms microservice) *appsv1.Deployment {
 			Image:           msCont.image,
 			ImagePullPolicy: v1.PullPolicy(msCont.imagePullPolicy),
 			Args:            msCont.args,
+			ReadinessProbe:  msCont.readinessProbe,
+			Ports:           msCont.ports,
+			Env:             msCont.env,
+			Command:         msCont.command,
 		}
 		*containers = append(*containers, cont)
 	}

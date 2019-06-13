@@ -314,7 +314,7 @@ func (ctrl *Controller) ProvisionConnector(request ProvisionConnectorRequest, ac
 	if err != nil {
 		return err
 	}
-	httpReq, err := http.NewRequest("PUT", url, strings.NewReader(string(body)))
+	httpReq, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
 	if err != nil {
 		return err
 	}

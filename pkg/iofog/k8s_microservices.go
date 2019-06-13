@@ -13,6 +13,11 @@
 
 package iofog
 
+import (
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+)
+
 type microservice struct {
 	name       string
 	port       int
@@ -25,6 +30,10 @@ type container struct {
 	image           string
 	imagePullPolicy string
 	args            []string
+	readinessProbe  *v1.Probe
+	env             []v1.EnvVar
+	command         []string
+	ports           []v1.ContainerPort
 }
 
 var controllerMicroservice = microservice{
@@ -36,6 +45,17 @@ var controllerMicroservice = microservice{
 			name:            "controller",
 			image:           "edgeworx/controller-k8s:latest",
 			imagePullPolicy: "Always",
+			readinessProbe: &v1.Probe{
+				Handler: v1.Handler{
+					HTTPGet: &v1.HTTPGetAction{
+						Path: "/api/v3/status",
+						Port: intstr.FromInt(51121),
+					},
+				},
+				InitialDelaySeconds: 1,
+				PeriodSeconds:       4,
+				FailureThreshold:    3,
+			},
 		},
 	},
 }
@@ -74,6 +94,50 @@ var operatorMicroservice = microservice{
 			name:            "operator",
 			image:           "iofog/iofog-operator:develop",
 			imagePullPolicy: "Always",
+			readinessProbe: &v1.Probe{
+				Handler: v1.Handler{
+					Exec: &v1.ExecAction{
+						Command: []string{
+							"stat",
+							"/tmp/operator-sdk-ready",
+						},
+					},
+				},
+				InitialDelaySeconds: 4,
+				PeriodSeconds:       10,
+				FailureThreshold:    1,
+			},
+			env: []v1.EnvVar{
+				{
+					Name: "WATCH_NAMESPACE",
+					ValueFrom: &v1.EnvVarSource{
+						FieldRef: &v1.ObjectFieldSelector{
+							FieldPath: "metadata.namespace",
+						},
+					},
+				},
+				{
+					Name: "POD_NAME",
+					ValueFrom: &v1.EnvVarSource{
+						FieldRef: &v1.ObjectFieldSelector{
+							FieldPath: "metadata.name",
+						},
+					},
+				},
+				{
+					Name:  "OPERATOR_NAME",
+					Value: "operator",
+				},
+			},
+			ports: []v1.ContainerPort{
+				{
+					ContainerPort: int32(60000),
+					Name:          "metrics",
+				},
+			},
+			command: []string{
+				"iofog-operator",
+			},
 		},
 	},
 }

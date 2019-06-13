@@ -263,6 +263,16 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	}
 	// Create Controller and Connector Services and Pods
 	for _, ms := range coreMs {
+		dep := newDeployment(k8s.ns, ms)
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
+			if !isAlreadyExists(err) {
+				return
+			}
+			// Update it if it exists
+			if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Update(dep); err != nil {
+				return
+			}
+		}
 		svc := newService(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
 			if !isAlreadyExists(err) {
@@ -271,12 +281,6 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 		}
 		svcAcc := newServiceAccount(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
-			if !isAlreadyExists(err) {
-				return
-			}
-		}
-		dep := newDeployment(k8s.ns, ms)
-		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
 			if !isAlreadyExists(err) {
 				return
 			}
@@ -348,6 +352,10 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 		if !isAlreadyExists(err) {
 			return
 		}
+		// Update it if it exists
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Update(schedDep); err != nil {
+			return
+		}
 	}
 	schedAcc := newServiceAccount(k8s.ns, k8s.ms["scheduler"])
 	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc); err != nil {
@@ -386,6 +394,10 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 		if !isAlreadyExists(err) {
 			return
 		}
+		// Update it if it exists
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Update(vkDep); err != nil {
+			return
+		}
 	}
 
 	// Create Operator resources
@@ -415,52 +427,12 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	}
 	pbCtx.pb.Add(pbSlice)
 	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
-	opDep.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
-		{
-			ContainerPort: int32(k8s.ms["operator"].port),
-			Name:          "metrics",
-		},
-	}
-	opDep.Spec.Template.Spec.Containers[0].Command = []string{
-		"iofog-operator",
-	}
-	opDep.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
-		Handler: v1.Handler{
-			Exec: &v1.ExecAction{
-				Command: []string{
-					"stat",
-					"/tmp/operator-sdk-ready",
-				},
-			},
-		},
-		InitialDelaySeconds: 4,
-		PeriodSeconds:       10,
-		FailureThreshold:    1,
-	}
-	opDep.Spec.Template.Spec.Containers[0].Env = []v1.EnvVar{
-		{
-			Name: "WATCH_NAMESPACE",
-			ValueFrom: &v1.EnvVarSource{
-				FieldRef: &v1.ObjectFieldSelector{
-					FieldPath: "metadata.namespace",
-				},
-			},
-		},
-		{
-			Name: "POD_NAME",
-			ValueFrom: &v1.EnvVarSource{
-				FieldRef: &v1.ObjectFieldSelector{
-					FieldPath: "metadata.name",
-				},
-			},
-		},
-		{
-			Name:  "OPERATOR_NAME",
-			Value: k8s.ms["operator"].name,
-		},
-	}
 	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
 		if !isAlreadyExists(err) {
+			return
+		}
+		// Update it if it exists
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Update(opDep); err != nil {
 			return
 		}
 	}
@@ -508,11 +480,20 @@ func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) e
 		// Check pod is in running state
 		_, exists := readyPods[pod.Name]
 		if !exists && pod.Status.Phase == "Running" {
-			readyPods[pod.Name] = true
-			pbCtx.pb.Add(pbSlice)
-			// All pods are ready
-			if len(readyPods) == podCount {
-				watch.Stop()
+			ready := true
+			for _, cond := range pod.Status.Conditions {
+				if cond.Status != "True" {
+					ready = false
+					break
+				}
+			}
+			if ready {
+				readyPods[pod.Name] = true
+				pbCtx.pb.Add(pbSlice)
+				// All pods are ready
+				if len(readyPods) == podCount {
+					watch.Stop()
+				}
 			}
 		}
 	}
