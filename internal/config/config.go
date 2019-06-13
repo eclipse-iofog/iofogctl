@@ -252,6 +252,7 @@ func DeleteNamespace(name string) error {
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx].Name == name {
 			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
+			return nil
 		}
 	}
 

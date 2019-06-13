@@ -21,7 +21,7 @@ brew install iofogctl
 Otherwise, `iofogctl` can be installed in the usual Go fashion:
 
 ```bash
-go get -u github.com/eclipse-iofog/cli
+go get -u github.com/eclipse-iofog/iofogctl/cmd/ifogctl
 ```
 
 Install dependencies:
