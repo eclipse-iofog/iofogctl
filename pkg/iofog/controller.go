@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -27,8 +28,8 @@ type Controller struct {
 }
 
 func NewController(endpoint string) *Controller {
-	endpoint = strings.Replace(endpoint, "http://", "", 1)
-	endpoint = strings.Replace(endpoint, "https://", "", 1)
+	regex := regexp.MustCompile("https?://")
+	endpoint = regex.ReplaceAllString(endpoint, "")
 	return &Controller{
 		baseURL: fmt.Sprintf("http://%s/api/v3/", endpoint),
 	}
