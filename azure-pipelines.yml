@@ -132,7 +132,7 @@ jobs:
           fpm -f -s dir -t deb -n iofogctl -v $(version) $(GOBIN)/iofogctl=/usr/local/bin/
           package=$(ls | grep *.deb)
           echo $package
-          cp $package $(Build.ArtifactStagingDirectory)/iofogctl.deb 
+          cp $package $(Build.ArtifactStagingDirectory)
         displayName: 'Create Debian package'
 
       - script: |
@@ -156,7 +156,7 @@ jobs:
           fpm -f -s dir -t rpm -n iofogctl -v $(version) $(GOBIN)/iofogctl=/usr/local/bin/
           package=$(ls | grep *.rpm)
           echo $package
-          cp $package $(Build.ArtifactStagingDirectory)/iofogctl.rpm
+          cp $package $(Build.ArtifactStagingDirectory)
         displayName: 'Create RPM package'
 
       - script: |
