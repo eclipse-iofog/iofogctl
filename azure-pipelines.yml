@@ -90,9 +90,9 @@ jobs:
       
       - script: |
           GOOS=darwin make build
-          tar -zcf darwin.tar.gz bin/iofogctl
-          cp darwin.tar.gz $(Build.ArtifactStagingDirectory)
-          rsync darwin.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/iofogctl-dev.tar.gz
+          tar -zcf iofogctl.tar.gz bin/iofogctl
+          cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
+          rsync iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/iofogctl-dev.tar.gz
         workingDirectory: '$(modulePath)'
         displayName: 'Build and publish OSX binary'
 
