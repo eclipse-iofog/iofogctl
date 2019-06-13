@@ -25,6 +25,12 @@ jobs:
 
     steps:
 
+      - task: UseRubyVersion@0
+        inputs:
+          versionSpec: '= 2.6.2'
+          addToPath: true
+        displayName: 'Install Ruby'
+
       # For copying darwin binaries to remote download server
       - task: InstallSSHKey@0
         inputs:
@@ -111,12 +117,6 @@ jobs:
         inputs:
           secureFile: 'package_cloud'
         displayName: 'Download package cloud token file'
-
-      - task: UseRubyVersion@0
-        inputs:
-          versionSpec: '= 2.6.2'
-          addToPath: true
-        displayName: 'Install Ruby'
 
       - script: |
           gem install fpm
