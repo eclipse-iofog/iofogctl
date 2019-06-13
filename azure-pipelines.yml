@@ -98,6 +98,7 @@ jobs:
           GOOS=darwin make build
           tar -zcf iofogctl.tar.gz bin/iofogctl
           cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
+          echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
           rsync iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/iofogctl-dev.tar.gz
         workingDirectory: '$(modulePath)'
         displayName: 'Build and publish OSX binary'
@@ -138,8 +139,8 @@ jobs:
           package=$(ls | grep *.deb)
           echo "package..."
           echo $package
-          declare -a UBUNTU_VERS=("precise" "trusty" "utopic" "vivid" "wily" "xenial" "bionic") #Support ubuntu versions
-          declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster") #Also appplies to Raspbian, See related for loop
+          declare -a UBUNTU_VERS=("precise" "trusty" "utopic" "vivid" "wily" "xenial" "bionic")
+          declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster")
           for ubu in "${UBUNTU_VERS[@]}"
           do
               package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
@@ -162,8 +163,8 @@ jobs:
           package=$(ls | grep *.rpm)
           echo "package..."
           echo $package
-          declare -a FEDORA_VERS=("22" "23" "24") #Supported Fedora Versions
-          declare -a REDHAT_VERS=("6" "7") #Supported Redhat versions
+          declare -a FEDORA_VERS=("22" "23" "24")
+          declare -a REDHAT_VERS=("6" "7")
           for fed in ${FEDORA_VERS[@]}
           do
               package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
