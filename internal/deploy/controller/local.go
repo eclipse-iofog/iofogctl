@@ -14,68 +14,24 @@
 package deploycontroller
 
 import (
-	"context"
 	"fmt"
-	"io"
-	"os"
 	"os/user"
 
-	dockerTypes "github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	dockerClient "github.com/docker/docker/client"
-	"github.com/docker/go-connections/nat"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
 	opt    *Options
-	client *dockerClient.Client
+	client *iofog.LocalContainer
 }
 
-func newLocalExecutor(opt *Options, client *dockerClient.Client) *localExecutor {
+func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
 	return &localExecutor{
 		opt:    opt,
 		client: client,
 	}
-}
-
-func (exe *localExecutor) deployContainer(image, name string, tcpPorts map[string]nat.Port) error {
-	ctx := context.Background()
-
-	portSet := nat.PortSet{}
-	portMap := nat.PortMap{}
-
-	for hostPort, containerPort := range tcpPorts {
-		portSet[containerPort] = struct{}{}
-		portMap[containerPort] = []nat.PortBinding{
-			{
-				HostIP:   "0.0.0.0",
-				HostPort: hostPort,
-			},
-		}
-	}
-
-	containerConfig := &container.Config{
-		Image:        image,
-		ExposedPorts: portSet,
-	}
-	hostConfig := &container.HostConfig{
-		PortBindings: portMap,
-	}
-
-	out, err := exe.client.ImagePull(ctx, image, dockerTypes.ImagePullOptions{})
-	if err != nil {
-		return err
-	}
-	io.Copy(os.Stdout, out)
-
-	resp, err := exe.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, name)
-	if err != nil {
-		return err
-	}
-
-	return exe.client.ContainerStart(ctx, resp.ID, dockerTypes.ContainerStartOptions{})
 }
 
 func (exe *localExecutor) deployContainers() error {
@@ -84,13 +40,12 @@ func (exe *localExecutor) deployContainers() error {
 	if !exists {
 		return util.NewInputError("No controller image specified")
 	}
-	controllerPortMap := make(map[string]nat.Port)
-	controllerPort, err := nat.NewPort("tcp", "51121")
-	if err != nil {
-		return err
-	}
-	controllerPortMap["51121"] = controllerPort // 51121:51121/tcp
-	err = exe.deployContainer(controllerImg, "iofog-controller", controllerPortMap)
+	controllerPortMap := make(map[string]*iofog.LocalContainerPort)
+	controllerPortMap["51121"] = &iofog.LocalContainerPort{
+		Protocol: "tcp",
+		Port:     "51121",
+	} // 51121:51121/tcp
+	err := exe.client.DeployContainer(controllerImg, "iofog-controller", controllerPortMap)
 	if err != nil {
 		return err
 	}
@@ -100,16 +55,12 @@ func (exe *localExecutor) deployContainers() error {
 	if !exists {
 		return util.NewInputError("No connector image specified")
 	}
-	connectorPortMap := make(map[string]nat.Port)
-	connectorPort, err := nat.NewPort("tcp", "8080")
-	connectorPortMap["53321"] = connectorPort // 53321:8080/tcp
-	if err != nil {
-		return err
-	}
-	err = exe.deployContainer(connectorImg, "iofog-connector", connectorPortMap)
-	if err != nil {
-		return err
-	}
+	connectorPortMap := make(map[string]*iofog.LocalContainerPort)
+	connectorPortMap["53321"] = &iofog.LocalContainerPort{
+		Protocol: "tcp",
+		Port:     "8080",
+	} // 53321:8080/tcp
+	return exe.client.DeployContainer(connectorImg, "iofog-connector", connectorPortMap)
 }
 
 func (exe *localExecutor) Execute() error {
@@ -122,6 +73,8 @@ func (exe *localExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
+
+	// TODO - SET UP
 
 	// Update configuration
 	configEntry := config.Controller{

@@ -107,6 +107,7 @@ func Execute(opt *Options) error {
 			Port:      agent.Port,
 			KeyFile:   agent.KeyFile,
 			Local:     opt.Local,
+			Image:     agent.Image,
 		}
 		exe, err := deployagent.NewExecutor(agentOpt)
 		if err != nil {

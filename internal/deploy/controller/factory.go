@@ -14,8 +14,8 @@
 package deploycontroller
 
 import (
-	dockerClient "github.com/docker/docker/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -44,7 +44,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 
 	// Local executor
 	if opt.Local == true {
-		cli, err := dockerClient.NewEnvClient()
+		cli, err := iofog.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}
