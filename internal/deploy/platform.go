@@ -14,16 +14,18 @@
 package deploy
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"sync"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
 	Filename  string
 	Namespace string
+	Local     bool
 }
 
 type input struct {
@@ -67,9 +69,7 @@ func Execute(opt *Options) error {
 	var wg sync.WaitGroup
 
 	// Deploy controllers
-	local := false
 	for _, ctrl := range in.Controllers {
-		local = ctrl.Host == "localhost"
 		ctrlOpt := &deploycontroller.Options{
 			Namespace:        opt.Namespace,
 			Name:             ctrl.Name,
@@ -106,7 +106,7 @@ func Execute(opt *Options) error {
 			Host:      agent.Host,
 			Port:      agent.Port,
 			KeyFile:   agent.KeyFile,
-			Local:     local,
+			Local:     opt.Local,
 		}
 		exe, err := deployagent.NewExecutor(agentOpt)
 		if err != nil {

@@ -69,6 +69,7 @@ microservices: []
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Local deployment using docker containers. All hosts will be replaced by 0.0.0.0")
 
 	return cmd
 }
