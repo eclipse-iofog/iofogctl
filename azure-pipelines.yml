@@ -109,7 +109,7 @@ jobs:
           sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" iofogctl.rb
           sed -i "s/    version.*/    version \"$(version)\"/g" iofogctl.rb
           git add iofogctl.rb
-          git commit -m "Publish version $(version)"
+          git commit -m "Publish develop version $(version)"
           git push origin master
         workingDirectory: '$(modulePath)'
         displayName: 'Build and publish OSX binary'
