@@ -31,10 +31,9 @@ jobs:
           addToPath: true
         displayName: 'Install Ruby'
 
-      # For copying darwin binaries to remote download server
       - task: InstallSSHKey@0
         inputs:
-          knownHostsEntry: '104.130.140.232 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBD4PNFqImxEBOZoJI4yq4Jogv0PBZnFP+Q3Whbt9hbVurBjwpWggDcEz1ODqAmO0IabdK8F5Vd36lPE9uuZuTnA='
+          knownHostsEntry: 'github.com,192.30.255.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
           sshPublicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDe6oGmJeWmvXRj9dWJmI2XtWmhrClTmnqfKK3ohF5+OhB+c3O7hLIlTfiRQVlGVKu3dUGP+woybJ77eau0OpPKTirZhLct+tsbSNTc5NEyOmeUDVn9AfKj748NGEi9gAJ9PfjbpTo5hakLdDSGbG3HNmt75B7oOpx0SpxnGQZGJOkxYw66OYpWrCGcUB7nuqporM16AOEKVbvayYgXw5Pi7xql++VOHdmniaMStdJyjBZFyIpD+oxvUhwpJ+FthlknDk2p0BQImLsF+h3g7ZFYTlSY3y/v/2k4bY9NRUF3Xdgd3FsyF712cfONgPdxnKQLJkyRArUrqHM8lCeg70Lz serge@Serges-MacBook-Pro.local'
           sshKeySecureFile: id_rsa
 
@@ -99,9 +98,19 @@ jobs:
       - script: |
           GOOS=darwin make build
           tar -zcf iofogctl.tar.gz bin/iofogctl
+          checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
           cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
           echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
-          rsync iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/iofogctl-dev.tar.gz
+          rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/iofogctl-dev.tar.gz
+          git config --global user.email "serge@edgeworx.io"
+          git config --global user.name "Serge Radinovich"
+          git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
+          cd homebrew-iofogctl
+          sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" iofogctl.rb
+          sed -i "s/    version.*/    version \"$(version)\"/g" iofogctl.rb
+          git add iofogctl.rb
+          git commit -m "Publish version $(version)"
+          git push origin master
         workingDirectory: '$(modulePath)'
         displayName: 'Build and publish OSX binary'
 
