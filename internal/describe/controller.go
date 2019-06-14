@@ -34,6 +34,7 @@ func (exe *controllerExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
+	controller.IofogUser.Password = "*****"
 	if err = print(controller); err != nil {
 		return err
 	}
