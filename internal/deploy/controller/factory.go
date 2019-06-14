@@ -23,15 +23,16 @@ type Executor interface {
 }
 
 type Options struct {
-	Name       string
-	Namespace  string
-	User       string
-	Host       string
-	KeyFile    string
-	Local      bool
-	KubeConfig string
-	ImagesFile string
-	Images     map[string]string
+	Name             string
+	Namespace        string
+	User             string
+	Host             string
+	KeyFile          string
+	Local            bool
+	KubeConfig       string
+	KubeControllerIP string
+	ImagesFile       string
+	Images           map[string]string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {

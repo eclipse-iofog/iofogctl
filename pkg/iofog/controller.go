@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -42,10 +43,7 @@ func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
 		return
 	}
 
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, "GET", url, httpResp.Body); err != nil {
 		return
 	}
 
@@ -74,12 +72,7 @@ func (ctrl *Controller) CreateUser(request User) error {
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		return util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
-	}
-	return nil
+	return checkStatusCode(httpResp.StatusCode, "POST", url, httpResp.Body)
 }
 
 func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err error) {
@@ -98,10 +91,7 @@ func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, "POST", url, httpResp.Body); err != nil {
 		return
 	}
 
@@ -118,13 +108,14 @@ func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err
 
 func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken string) (response CreateAgentResponse, err error) {
 	// Prepare request
+	method := "POST"
 	contentType := "application/json"
 	url := ctrl.baseURL + "iofog"
 	body, err := json.Marshal(request)
 	if err != nil {
 		return
 	}
-	httpReq, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
+	httpReq, err := http.NewRequest(method, url, strings.NewReader(string(body)))
 	if err != nil {
 		return
 	}
@@ -139,10 +130,7 @@ func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken stri
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
 		return
 	}
 
@@ -167,10 +155,11 @@ func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken stri
 
 func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response GetAgentProvisionKeyResponse, err error) {
 	// Prepare request
+	method := "GET"
 	contentType := "application/json"
 	url := ctrl.baseURL + "iofog/" + UUID + "/provisioning-key"
 	body := strings.NewReader("")
-	req, err := http.NewRequest("GET", url, body)
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return
 	}
@@ -185,10 +174,7 @@ func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
 		return
 	}
 
@@ -204,13 +190,14 @@ func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response
 
 func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsResponse, errr error) {
 	// Prepare request
+	method := "GET"
 	url := ctrl.baseURL + "iofog-list"
 	filter := AgentListFilter{}
 	body, err := json.Marshal(filter)
 	if err != nil {
 		return
 	}
-	httpReq, err := http.NewRequest("GET", url, strings.NewReader(string(body)))
+	httpReq, err := http.NewRequest(method, url, strings.NewReader(string(body)))
 	if err != nil {
 		return
 	}
@@ -224,10 +211,7 @@ func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsRespo
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
 		return
 	}
 
@@ -244,9 +228,10 @@ func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsRespo
 
 func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, err error) {
 	// Prepare request
+	method := "GET"
 	url := ctrl.baseURL + "iofog/" + UUID
 	body := strings.NewReader("")
-	httpReq, err := http.NewRequest("GET", url, body)
+	httpReq, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return
 	}
@@ -260,10 +245,7 @@ func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, 
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
 		return
 	}
 
@@ -280,10 +262,11 @@ func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, 
 
 func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
 	// Prepare request
+	method := "DELETE"
 	contentType := "application/json"
 	url := ctrl.baseURL + "iofog/" + UUID
 	body := strings.NewReader("")
-	req, err := http.NewRequest("DELETE", url, body)
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return err
 	}
@@ -298,17 +281,67 @@ func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (ctrl *Controller) ProvisionConnector(request ProvisionConnectorRequest, accessToken string) error {
+func (ctrl *Controller) GetConnectors(accessToken string) (response ConnectorInfoList, err error) {
+	// Prepare request
+	method := "GET"
+	url := ctrl.baseURL + "connector"
+	httpReq, err := http.NewRequest(method, url, strings.NewReader(""))
+	if err != nil {
+		return
+	}
+
+	// Send request
+	client := http.Client{}
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+		return
+	}
+
+	// Check response code
+	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
+		return
+	}
+
+	// Read body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(httpResp.Body)
+	err = json.Unmarshal(buf.Bytes(), &response)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (ctrl *Controller) DeleteConnector(ip, accessToken string) (err error) {
+	// Prepare request
+	method := "DELETE"
+	url := ctrl.baseURL + "connector"
+	body := fmt.Sprintf(`{"publicIp":"%s"}`, ip)
+	httpReq, err := http.NewRequest(method, url, strings.NewReader(body))
+	if err != nil {
+		return
+	}
+
+	// Send request
+	client := http.Client{}
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+		return
+	}
+
+	// Check response code
+	return checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body)
+}
+
+func (ctrl *Controller) AddConnector(request ConnectorInfo, accessToken string) error {
 	// Prepare request
 	contentType := "application/json"
 	url := ctrl.baseURL + "connector"
@@ -336,6 +369,7 @@ func (ctrl *Controller) ProvisionConnector(request ProvisionConnectorRequest, ac
 
 	// Retry with a PUT if already exists
 	if httpResp.StatusCode == 400 && strings.Contains(buf.String(), "Model already exists") {
+		println("FIRST ERR")
 		httpReq.Method = "PUT"
 		httpResp, err = client.Do(httpReq)
 		if err != nil {
@@ -344,12 +378,18 @@ func (ctrl *Controller) ProvisionConnector(request ProvisionConnectorRequest, ac
 	}
 
 	// Check response code
-	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(httpResp.Body)
-		err = util.NewInternalError(fmt.Sprintf("Received %d from %s\n%s", httpResp.StatusCode, url, buf.String()))
+	if err = checkStatusCode(httpResp.StatusCode, "PUT", url, httpResp.Body); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func checkStatusCode(code int, method, url string, body io.Reader) error {
+	if code < 200 || code >= 300 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(body)
+		return util.NewInternalError(fmt.Sprintf("Received %d from %s %s\n%s", code, method, url, buf.String()))
+	}
 	return nil
 }

@@ -22,7 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newService(namespace string, ms microservice) *v1.Service {
+func newService(namespace string, ms *microservice) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
@@ -32,7 +32,8 @@ func newService(namespace string, ms microservice) *v1.Service {
 			},
 		},
 		Spec: v1.ServiceSpec{
-			Type: "LoadBalancer",
+			Type:           "LoadBalancer",
+			LoadBalancerIP: ms.IP,
 			Ports: []v1.ServicePort{
 				{
 					Name:       "controller",
@@ -48,7 +49,7 @@ func newService(namespace string, ms microservice) *v1.Service {
 	}
 }
 
-func newDeployment(namespace string, ms microservice) *appsv1.Deployment {
+func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
@@ -93,7 +94,7 @@ func newDeployment(namespace string, ms microservice) *appsv1.Deployment {
 	return dep
 }
 
-func newServiceAccount(namespace string, ms microservice) *v1.ServiceAccount {
+func newServiceAccount(namespace string, ms *microservice) *v1.ServiceAccount {
 	return &v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
@@ -102,7 +103,7 @@ func newServiceAccount(namespace string, ms microservice) *v1.ServiceAccount {
 	}
 }
 
-func newClusterRoleBinding(namespace string, ms microservice) *rbacv1.ClusterRoleBinding {
+func newClusterRoleBinding(namespace string, ms *microservice) *rbacv1.ClusterRoleBinding {
 	return &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: ms.name,
@@ -122,7 +123,7 @@ func newClusterRoleBinding(namespace string, ms microservice) *rbacv1.ClusterRol
 	}
 }
 
-func newRoleBinding(namespace string, ms microservice) *rbacv1.RoleBinding {
+func newRoleBinding(namespace string, ms *microservice) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
@@ -142,7 +143,7 @@ func newRoleBinding(namespace string, ms microservice) *rbacv1.RoleBinding {
 	}
 }
 
-func newRole(namespace string, ms microservice) *rbacv1.Role {
+func newRole(namespace string, ms *microservice) *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,

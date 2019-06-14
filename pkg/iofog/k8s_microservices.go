@@ -20,6 +20,7 @@ import (
 
 type microservice struct {
 	name       string
+	IP         string
 	port       int
 	replicas   int32
 	containers []container

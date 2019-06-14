@@ -37,8 +37,9 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return
 	}
 
-	// Configure images
+	// Configure deploy
 	k8s.SetImages(exe.opt.Images)
+	k8s.SetControllerIP(exe.opt.KubeControllerIP)
 
 	var configUser config.IofogUser
 	// Check existing controller

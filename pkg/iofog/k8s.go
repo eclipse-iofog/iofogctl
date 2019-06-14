@@ -34,7 +34,7 @@ type Kubernetes struct {
 	extsClientset  *extsclientset.Clientset
 	crdName        string
 	ns             string
-	ms             map[string]microservice
+	ms             map[string]*microservice
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -61,12 +61,12 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 		return nil, err
 	}
 
-	microservices := make(map[string]microservice, 0)
-	microservices["controller"] = controllerMicroservice
-	microservices["connector"] = connectorMicroservice
-	microservices["operator"] = operatorMicroservice
-	microservices["scheduler"] = schedulerMicroservice
-	microservices["kubelet"] = kubeletMicroservice
+	microservices := make(map[string]*microservice, 0)
+	microservices["controller"] = &controllerMicroservice
+	microservices["connector"] = &connectorMicroservice
+	microservices["operator"] = &operatorMicroservice
+	microservices["scheduler"] = &schedulerMicroservice
+	microservices["kubelet"] = &kubeletMicroservice
 
 	return &Kubernetes{
 		configFilename: configFilename,
@@ -85,6 +85,10 @@ func (k8s *Kubernetes) SetImages(images map[string]string) {
 			k8s.ms[key].containers[0].image = image
 		}
 	}
+}
+
+func (k8s *Kubernetes) SetControllerIP(ip string) {
+	k8s.ms["controller"].IP = ip
 }
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
@@ -257,7 +261,7 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 		}
 	}
 
-	coreMs := []microservice{
+	coreMs := []*microservice{
 		k8s.ms["controller"],
 		k8s.ms["connector"],
 	}
@@ -278,6 +282,14 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 			if !isAlreadyExists(err) {
 				return
 			}
+			//// Delete (some aspects of services are immutable and cannot be updated)
+			//if err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{}); err != nil {
+			//	return
+			//}
+			//// Create new
+			//if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
+			//	return
+			//}
 		}
 		svcAcc := newServiceAccount(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
@@ -329,13 +341,13 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	pbCtx.pb.Add(pbSlice)
 
 	// Connect Controller with Connector
-	connectorRequest := ProvisionConnectorRequest{
+	connectorRequest := ConnectorInfo{
 		IP:      ips["connector"],
 		DevMode: true,
 		Domain:  "connector",
 		Name:    "gke",
 	}
-	if err = ctrl.ProvisionConnector(connectorRequest, token); err != nil {
+	if err = ctrl.AddConnector(connectorRequest, token); err != nil {
 		return
 	}
 
