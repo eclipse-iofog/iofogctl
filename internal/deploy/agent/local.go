@@ -15,19 +15,23 @@ package deployagent
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"os/user"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
-	opt *Options
+	opt    *Options
+	client *iofog.LocalContainer
 }
 
-func newLocalExecutor(opt *Options) *localExecutor {
-	exe := &localExecutor{}
-	exe.opt = opt
-
-	return exe
+func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
+	return &localExecutor{
+		opt:    opt,
+		client: client,
+	}
 }
 
 func (exe *localExecutor) Execute() error {
@@ -37,11 +41,26 @@ func (exe *localExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
+
+	// Deploy agent image
+	if exe.opt.Image == "" {
+		return util.NewInputError("No agent image specified")
+	}
+	agentPortMap := make(map[string]*iofog.LocalContainerPort)
+	agentPortMap["54321"] = &iofog.LocalContainerPort{
+		Protocol: "tcp",
+		Port:     "54321",
+	} // 54321:54321/tcp
+	err = exe.client.DeployContainer(exe.opt.Image, fmt.Sprintf("iofog-agent-%s", exe.opt.Name), agentPortMap)
+	if err != nil {
+		return err
+	}
+
 	// Update configuration
 	configEntry := config.Agent{
 		Name: exe.opt.Name,
 		User: currUser.Username,
-		Host: "localhost",
+		Host: "0.0.0.0:54321",
 	}
 	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {

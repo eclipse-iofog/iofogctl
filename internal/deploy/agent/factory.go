@@ -15,6 +15,7 @@ package deployagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -30,6 +31,7 @@ type Options struct {
 	Port      int
 	KeyFile   string
 	Local     bool
+	Image     string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
@@ -52,7 +54,11 @@ func NewExecutor(opt *Options) (Executor, error) {
 
 	// Local executor
 	if opt.Local == true {
-		return newLocalExecutor(opt), nil
+		cli, err := iofog.NewLocalContainerClient()
+		if err != nil {
+			return nil, err
+		}
+		return newLocalExecutor(opt, cli), nil
 	}
 
 	// Default executor

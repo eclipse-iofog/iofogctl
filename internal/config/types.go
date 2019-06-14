@@ -44,6 +44,7 @@ type Agent struct {
 	KeyFile string `mapstructure:"keyfile"`
 	UUID    string `mapstructure:"uuid"`
 	Created string `mapstructure:"created"`
+	Image   string `mapstructure:"image"`
 }
 
 // Microservice contains information for configuring a microservice
