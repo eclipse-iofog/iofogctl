@@ -14,6 +14,7 @@
 package deploycontroller
 
 import (
+	dockerClient "github.com/docker/docker/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -43,7 +44,11 @@ func NewExecutor(opt *Options) (Executor, error) {
 
 	// Local executor
 	if opt.Local == true {
-		return newLocalExecutor(opt), nil
+		cli, err := dockerClient.NewEnvClient()
+		if err != nil {
+			return nil, err
+		}
+		return newLocalExecutor(opt, cli), nil
 	}
 
 	// Kubernetes executor

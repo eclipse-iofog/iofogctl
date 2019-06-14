@@ -52,3 +52,6 @@
 [[constraint]]
   name = "github.com/schollz/progressbar"
   version = "v2.13.0"
+[[constraint]]
+  name = "github.com/docker/docker"
+  version = "1.13.1"
