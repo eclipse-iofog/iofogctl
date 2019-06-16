@@ -16,7 +16,6 @@ echo
 
 # What platform are we on?
 OS=$(uname -s | tr A-Z a-z)
-HELM_VERSION=2.13.1
 K8S_VERSION=1.13.4
 
 # Check whether Brew is installed
@@ -55,8 +54,11 @@ fi
 # All our Kubernetes related stuff
 ##
 #
+
 ## Is kubernetes-cli installed?
-#if ! checkForInstallation "kubectl"; then
-#    echoInfo " Attempting to install kubernetes-cli"
-#    brew install kubernetes-cli
-#fi
+if ! checkForInstallation "kubectl"; then
+    echoInfo " Attempting to install kubernetes-cli"
+	curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v"$K8S_VERSION"/bin/"$OS"/amd64/kubectl
+	chmod +x kubectl
+	sudo mv kubectl /usr/local/bin/
+fi
