@@ -282,14 +282,24 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 			if !isAlreadyExists(err) {
 				return
 			}
-			//// Delete (some aspects of services are immutable and cannot be updated)
-			//if err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{}); err != nil {
-			//	return
-			//}
-			//// Create new
-			//if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
-			//	return
-			//}
+			// Get the existing svc
+			var existingSvc *v1.Service
+			existingSvc, err = k8s.clientset.CoreV1().Services(k8s.ns).Get(svc.Name, metav1.GetOptions{})
+			if err != nil {
+				return
+			}
+			// If trying to allocate a new static IP, we must recreate the service
+			if ms.IP != "" && ms.IP != existingSvc.Spec.LoadBalancerIP {
+				// Delete existing
+				if err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{}); err != nil {
+					return
+				}
+				// Create new
+				if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
+					return
+				}
+			}
+
 		}
 		svcAcc := newServiceAccount(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {

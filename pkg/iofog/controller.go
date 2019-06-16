@@ -369,7 +369,6 @@ func (ctrl *Controller) AddConnector(request ConnectorInfo, accessToken string) 
 
 	// Retry with a PUT if already exists
 	if httpResp.StatusCode == 400 && strings.Contains(buf.String(), "Model already exists") {
-		println("FIRST ERR")
 		httpReq.Method = "PUT"
 		httpResp, err = client.Do(httpReq)
 		if err != nil {
