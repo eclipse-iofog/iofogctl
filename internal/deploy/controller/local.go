@@ -20,7 +20,6 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
@@ -51,11 +50,11 @@ func (exe *localExecutor) cleanContainers() {
 func (exe *localExecutor) deployContainers() error {
 	controllerImg, exists := exe.opt.Images["controller"]
 	if !exists {
-		return util.NewInputError("No controller image specified")
+		controllerImg = exe.localControllerConfig.DefaultImages["controller"]
 	}
 	connectorImg, exists := exe.opt.Images["connector"]
 	if !exists {
-		return util.NewInputError("No connector image specified")
+		connectorImg = exe.localControllerConfig.DefaultImages["connector"]
 	}
 
 	controllerContainerName := exe.localControllerConfig.ContainerNames["controller"]
@@ -120,16 +119,19 @@ func (exe *localExecutor) install() error {
 }
 
 func (exe *localExecutor) Execute() error {
+	// Get current user
 	currUser, err := user.Current()
 	if err != nil {
 		return err
 	}
 
+	// Deploy Controller and Connector images
 	err = exe.deployContainers()
 	if err != nil {
 		return err
 	}
 
+	// Create user, login, provision connector
 	if err = exe.install(); err != nil {
 		exe.cleanContainers()
 		return err

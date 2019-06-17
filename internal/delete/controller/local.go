@@ -38,6 +38,7 @@ func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *loc
 }
 
 func (exe *localExecutor) Execute() error {
+	// Clean controller and connector containers
 	for _, name := range exe.localControllerConfig.ContainerNames {
 		if errClean := exe.client.CleanContainer(name); errClean != nil {
 			fmt.Printf("Could not clean Controller container: %v", errClean)

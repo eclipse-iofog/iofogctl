@@ -52,7 +52,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		configUser = ctrl.IofogUser
 	} else {
 		// Generate new user
-		configUser = config.NewUser()
+		configUser = config.NewRandomUser()
 	}
 	// Assign user
 	user := iofog.User{

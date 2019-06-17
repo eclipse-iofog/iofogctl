@@ -37,6 +37,7 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor
 }
 
 func (exe *localExecutor) provisionAgent() (string, error) {
+	// Get agent
 	agent := iofog.NewLocalAgent(exe.localAgentConfig, exe.client)
 	err := agent.Bootstrap()
 	if err != nil {
@@ -65,8 +66,7 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 }
 
 func (exe *localExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
-
+	// Get current user
 	currUser, err := user.Current()
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (exe *localExecutor) Execute() error {
 
 	// Deploy agent image
 	if exe.opt.Image == "" {
-		return util.NewInputError("No agent image specified")
+		exe.opt.Image = exe.localAgentConfig.DefaultImage
 	}
 
 	agentPortMap := make(map[string]*iofog.LocalContainerPort)
@@ -85,6 +85,7 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
+	// Provision agent
 	uuid, err := exe.provisionAgent()
 	if err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
