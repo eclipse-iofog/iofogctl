@@ -43,7 +43,13 @@ func (exe *agentExecutor) Execute() error {
 
 	// Generate table and headers
 	table := make([][]string, len(ns.Agents)+1)
-	headers := []string{"AGENT", "STATUS", "AGE", "UPTIME"}
+	headers := []string{
+		"AGENT",
+		"STATUS",
+		"AGE",
+		"UPTIME",
+		"IP",
+	}
 	table[0] = append(table[0], headers...)
 
 	// Connect to controller if it is ready
@@ -87,6 +93,7 @@ func (exe *agentExecutor) Execute() error {
 			agentInfos[idx].DaemonStatus,
 			age,
 			util.FormatDuration(uptime),
+			agentInfos[idx].IPAddress,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
