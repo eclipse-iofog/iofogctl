@@ -71,13 +71,14 @@ func Execute(opt *Options) error {
 	for _, ctrl := range in.Controllers {
 		local = ctrl.Host == "localhost"
 		ctrlOpt := &deploycontroller.Options{
-			Namespace:  opt.Namespace,
-			Name:       ctrl.Name,
-			User:       ctrl.User,
-			Host:       ctrl.Host,
-			Local:      local,
-			KubeConfig: ctrl.KubeConfig,
-			Images:     ctrl.Images,
+			Namespace:        opt.Namespace,
+			Name:             ctrl.Name,
+			User:             ctrl.User,
+			Host:             ctrl.Host,
+			Local:            local,
+			KubeConfig:       ctrl.KubeConfig,
+			KubeControllerIP: ctrl.KubeControllerIP,
+			Images:           ctrl.Images,
 		}
 		exe, err := deploycontroller.NewExecutor(ctrlOpt)
 		if err != nil {
