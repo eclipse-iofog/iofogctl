@@ -15,23 +15,34 @@ package deletecontroller
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 type localExecutor struct {
-	namespace string
-	name      string
+	namespace             string
+	name                  string
+	client                *iofog.LocalContainer
+	localControllerConfig *iofog.LocalControllerConfig
 }
 
-func newLocalExecutor(namespace, name string) *localExecutor {
-	exe := &localExecutor{}
-	exe.namespace = namespace
-	exe.name = name
+func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *localExecutor {
+	exe := &localExecutor{
+		namespace:             namespace,
+		name:                  name,
+		client:                client,
+		localControllerConfig: iofog.NewLocalControllerConfig(name),
+	}
 	return exe
 }
 
 func (exe *localExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
+	for _, name := range exe.localControllerConfig.ContainerNames {
+		if errClean := exe.client.CleanContainer(name); errClean != nil {
+			fmt.Printf("Could not clean Controller container: %v", errClean)
+		}
+	}
 
 	// Update configuration
 	err := config.DeleteController(exe.namespace, exe.name)

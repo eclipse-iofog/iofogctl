@@ -38,8 +38,15 @@ type Options struct {
 
 func NewExecutor(opt *Options) (Executor, error) {
 	// Check the namespace exists
-	if _, err := config.GetNamespace(opt.Namespace); err != nil {
+	ns, err := config.GetNamespace(opt.Namespace)
+	if err != nil {
 		return nil, err
+	}
+
+	// Check the namespace does not contain a Controller yet
+	nbControllers := len(ns.Controllers)
+	if nbControllers > 0 {
+		return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
 	}
 
 	// Local executor

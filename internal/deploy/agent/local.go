@@ -23,15 +23,45 @@ import (
 )
 
 type localExecutor struct {
-	opt    *Options
-	client *iofog.LocalContainer
+	opt              *Options
+	client           *iofog.LocalContainer
+	localAgentConfig *iofog.LocalAgentConfig
 }
 
 func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
 	return &localExecutor{
-		opt:    opt,
-		client: client,
+		opt:              opt,
+		client:           client,
+		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name),
 	}
+}
+
+func (exe *localExecutor) provisionAgent() (string, error) {
+	agent := iofog.NewLocalAgent(exe.localAgentConfig, exe.client)
+	err := agent.Bootstrap()
+	if err != nil {
+		return "", err
+	}
+
+	// Get Controller details
+	controllers, err := config.GetControllers(exe.opt.Namespace)
+	if err != nil {
+		println("You must deploy a Controller to a namespace before deploying any Agents")
+		return "", err
+	}
+	if len(controllers) != 1 {
+		return "", util.NewInternalError("Only support 1 controller per namespace")
+	}
+	endpoint := controllers[0].Endpoint
+	user := iofog.User{
+		Name:     controllers[0].IofogUser.Name,
+		Surname:  controllers[0].IofogUser.Surname,
+		Email:    controllers[0].IofogUser.Email,
+		Password: controllers[0].IofogUser.Password,
+	}
+
+	// Configure the agent with Controller details
+	return agent.Configure(endpoint, user)
 }
 
 func (exe *localExecutor) Execute() error {
@@ -46,24 +76,36 @@ func (exe *localExecutor) Execute() error {
 	if exe.opt.Image == "" {
 		return util.NewInputError("No agent image specified")
 	}
+
 	agentPortMap := make(map[string]*iofog.LocalContainerPort)
-	agentPortMap["54321"] = &iofog.LocalContainerPort{
-		Protocol: "tcp",
-		Port:     "54321",
-	} // 54321:54321/tcp
-	err = exe.client.DeployContainer(exe.opt.Image, fmt.Sprintf("iofog-agent-%s", exe.opt.Name), agentPortMap)
+	agentContainerName := exe.localAgentConfig.ContainerName
+	agentPortMap[exe.localAgentConfig.AgentPort.Host] = exe.localAgentConfig.AgentPort.Container // 54321:54321/tcp
+
+	if _, err = exe.client.DeployContainer(exe.opt.Image, agentContainerName, agentPortMap); err != nil {
+		return err
+	}
+
+	uuid, err := exe.provisionAgent()
 	if err != nil {
+		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
+			fmt.Printf("Could not clean container %s\n", agentContainerName)
+		}
 		return err
 	}
 
 	// Update configuration
+	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.AgentPort.Host)
 	configEntry := config.Agent{
 		Name: exe.opt.Name,
 		User: currUser.Username,
-		Host: "0.0.0.0:54321",
+		Host: agentIP,
+		UUID: uuid,
 	}
 	err = config.AddAgent(exe.opt.Namespace, configEntry)
 	if err != nil {
+		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
+			fmt.Printf("Could not clean container %s\n", agentContainerName)
+		}
 		return err
 	}
 
