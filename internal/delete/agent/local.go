@@ -36,6 +36,7 @@ func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *loc
 }
 
 func (exe *localExecutor) Execute() error {
+	// Clean all agent containers
 	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
 		fmt.Printf("Could not clean Agent container: %v", errClean)
 	}

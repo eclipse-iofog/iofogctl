@@ -3,8 +3,6 @@ package iofog
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 
 	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
@@ -29,6 +27,7 @@ type LocalControllerConfig struct {
 	ContainerNames map[string]string
 	ControllerPort port
 	ConnectorPort  port
+	DefaultImages  map[string]string
 }
 
 type LocalContainerPort struct {
@@ -45,6 +44,7 @@ type LocalAgentConfig struct {
 	AgentPort     port
 	ContainerName string
 	Name          string
+	DefaultImage  string
 }
 
 // NewAgentConfig generates a static agent config
@@ -54,6 +54,7 @@ func NewLocalAgentConfig(name string) *LocalAgentConfig {
 		AgentPort:     port{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
 		ContainerName: fmt.Sprintf("iofog-agent-%s", name),
 		Name:          name,
+		DefaultImage:  "docker.io/iofog/agent",
 	}
 }
 
@@ -62,11 +63,16 @@ func NewLocalControllerConfig(name string) *LocalControllerConfig {
 	nameMap := make(map[string]string)
 	nameMap["connector"] = "iofog-connector-" + name
 	nameMap["controller"] = "iofog-controller-" + name
+
+	imageMap := make(map[string]string)
+	imageMap["connector"] = "docker.io/iofog/connector"
+	imageMap["controller"] = "docker.io/iofog/controller"
 	return &LocalControllerConfig{
 		Host:           "0.0.0.0",
 		ContainerNames: nameMap,
 		ControllerPort: port{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}},
 		ConnectorPort:  port{Host: "53321", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}},
+		DefaultImages:  imageMap,
 	}
 }
 
@@ -79,7 +85,7 @@ func GetLocalUserConfig(namespace string, controllerName string) *LocalUserConfi
 	} else {
 		// Generate new user
 		return &LocalUserConfig{
-			config.NewUser(),
+			config.NewRandomUser(),
 		}
 	}
 }
@@ -97,11 +103,13 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 
 func (lc *LocalContainer) getContainerByName(name string) (types.Container, error) {
 	ctx := context.Background()
+	// List containers
 	containers, err := lc.client.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return types.Container{}, err
 	}
 
+	// Find by name
 	for _, container := range containers {
 		for _, containerName := range container.Names {
 			if containerName == "/"+name { // Docker prefixes names with /
@@ -120,9 +128,11 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 	if err != nil {
 		return err
 	}
+	// Stop container
 	if err := lc.client.ContainerStop(ctx, container.ID, nil); err != nil {
 		return err
 	}
+	// Force remove container
 	return lc.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
 }
 
@@ -133,6 +143,7 @@ func (lc *LocalContainer) DeployContainer(image, name string, ports map[string]*
 	portSet := nat.PortSet{}
 	portMap := nat.PortMap{}
 
+	// Create port mappings
 	for hostPort, containerPort := range ports {
 		natPort, err := nat.NewPort(containerPort.Protocol, containerPort.Port)
 		if err != nil {
@@ -155,17 +166,19 @@ func (lc *LocalContainer) DeployContainer(image, name string, ports map[string]*
 		PortBindings: portMap,
 	}
 
-	out, err := lc.client.ImagePull(ctx, image, types.ImagePullOptions{})
+	// Pull image
+	_, err := lc.client.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return "", err
 	}
-	io.Copy(os.Stdout, out)
 
+	// Create container
 	container, err := lc.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, name)
 	if err != nil {
 		return "", err
 	}
 
+	// Start container
 	return container.ID, lc.client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
 }
 
@@ -177,6 +190,7 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 		return err
 	}
 
+	// Create command to execute inside container
 	execConfig := types.ExecConfig{AttachStdout: true, AttachStderr: true,
 		Cmd: cmd}
 
@@ -185,11 +199,13 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 		return err
 	}
 
+	// Attach command to container
 	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execConfig)
 	if err != nil {
 		return err
 	}
 	defer res.Close()
 
+	// Run command
 	return lc.client.ContainerExecStart(ctx, execID.ID, types.ExecStartCheck{})
 }
