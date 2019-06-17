@@ -111,7 +111,7 @@ func (exe *localExecutor) install() error {
 	// Provision Connector
 	connectorIP := fmt.Sprintf("%s:%s", exe.localControllerConfig.Host, exe.localControllerConfig.ConnectorPort.Host)
 	connectorName := exe.localControllerConfig.ContainerNames["connector"]
-	return ctrl.ProvisionConnector(iofog.ProvisionConnectorRequest{
+	return ctrl.AddConnector(iofog.ConnectorInfo{
 		IP:      connectorIP,
 		Name:    connectorName,
 		Domain:  exe.localControllerConfig.Host,
