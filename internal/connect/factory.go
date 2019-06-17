@@ -41,7 +41,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 		}
 	} else {
 		// Create namespace
-		if err = config.AddNamespace(opt.Namespace, util.Now()); err != nil {
+		if err = config.AddNamespace(opt.Namespace, util.NowUTC()); err != nil {
 			return nil, err
 		}
 	}

@@ -76,7 +76,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 			Email:    user.Email,
 			Password: user.Password,
 		},
-		Created: util.Now(),
+		Created: util.NowUTC(),
 	}
 	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
 		return

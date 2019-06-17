@@ -41,7 +41,7 @@ func (exe *microserviceExecutor) Execute() error {
 
 	// Populate rows
 	for idx, ms := range microservices {
-		age, err := util.Elapsed(ms.Created, util.Now())
+		age, err := util.ElapsedUTC(ms.Created, util.NowUTC())
 		if err != nil {
 			return err
 		}

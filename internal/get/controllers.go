@@ -52,7 +52,7 @@ func (exe *controllerExecutor) Execute() error {
 		status := "Failing"
 		if err == nil {
 			uptimeSec := ctrlStatus.UptimeTimeMsUTC / int64(1000)
-			uptime, err = util.Elapsed(util.FromInt(uptimeSec), util.Now())
+			uptime, err = util.ElapsedUTC(util.FromIntUTC(uptimeSec), util.NowUTC())
 			if err != nil {
 				return err
 			}
@@ -62,7 +62,7 @@ func (exe *controllerExecutor) Execute() error {
 		// Get age
 		age := "-"
 		if ctrlConfig.Created != "" {
-			age, err = util.Elapsed(ctrlConfig.Created, util.Now())
+			age, err = util.ElapsedUTC(ctrlConfig.Created, util.NowUTC())
 			if err != nil {
 				return err
 			}

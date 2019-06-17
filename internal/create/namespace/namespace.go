@@ -21,7 +21,7 @@ import (
 
 func Execute(name string) error {
 	// Update configuration
-	err := config.AddNamespace(name, util.Now())
+	err := config.AddNamespace(name, util.NowUTC())
 	if err != nil {
 		return err
 	}

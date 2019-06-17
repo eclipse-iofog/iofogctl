@@ -18,18 +18,30 @@ import (
 	"time"
 )
 
-var timeFormat = time.UnixDate
-
-func Now() string {
-	return time.Now().Format(timeFormat)
+func NowUTC() string {
+	return time.Now().Format(time.UnixDate)
 }
 
-func FromInt(sec int64) string {
-	return time.Unix(sec, 0).Format(timeFormat)
+func NowRFC() string {
+	return time.Now().Format(time.RFC3339)
 }
 
-func Elapsed(from, to string) (diff string, err error) {
-	fromTime, err := time.Parse(timeFormat, from)
+func FromIntUTC(sec int64) string {
+	return time.Unix(sec, 0).Format(time.UnixDate)
+}
+
+func ElapsedUTC(from, to string) (diff string, err error) {
+	fromTime, err := time.Parse(time.UnixDate, from)
+	if err != nil {
+		return
+	}
+	diffTime := time.Now().Sub(fromTime)
+	diff = FormatDuration(diffTime)
+	return
+}
+
+func ElapsedRFC(from, to string) (diff string, err error) {
+	fromTime, err := time.Parse(time.RFC3339, from)
 	if err != nil {
 		return
 	}

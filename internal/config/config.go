@@ -53,7 +53,7 @@ func Init(filename string) {
   controllers: []
   agents: []
   microservices: []
-  created: ` + util.Now())
+  created: ` + util.NowUTC())
 		err := ioutil.WriteFile(configFilename, defaultData, 0644)
 		util.Check(err)
 	}

@@ -37,7 +37,7 @@ func (exe *namespaceExecutor) Execute() error {
 	// Populate rows
 	for idx, ns := range namespaces {
 
-		age, err := util.Elapsed(ns.Created, util.Now())
+		age, err := util.ElapsedUTC(ns.Created, util.NowUTC())
 		if err != nil {
 			return err
 		}

@@ -77,7 +77,7 @@ func (exe *agentExecutor) Execute() error {
 
 	// Populate rows
 	for idx, agent := range ns.Agents {
-		age, err := util.Elapsed(util.FromInt(agentInfos[idx].CreatedTimeMsUTC), util.Now())
+		age, err := util.ElapsedRFC(agentInfos[idx].CreatedTimeRFC3339, util.NowRFC())
 		if err != nil {
 			return err
 		}

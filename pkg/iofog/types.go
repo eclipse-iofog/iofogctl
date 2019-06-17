@@ -70,8 +70,8 @@ type AgentInfo struct {
 	WatchdogEnabled           bool    `json:"watchdogEnabled" yml:"watchdogEnabled"`
 	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled" yml:"abstractedHardwareEnabled"`
 	FogType                   int64   `json:"fogType" yml:"fogType"`
-	CreatedTimeMsUTC          int64   `json:"createAt" yml:"created"`
-	UpdatedTimeMsUTC          int64   `json:"updatedAt" yml:"updated"`
+	CreatedTimeRFC3339        string  `json:"created_at" yml:"created"`
+	UpdatedTimeRFC3339        string  `json:"updated_at" yml:"updated"`
 	LastActive                int64   `json:"lastActive" yml:"lastActive"`
 	DaemonStatus              string  `json:"daemonStatus" yml:"daemonStatus"`
 	DaemonUptimeDurationMsUTC int64   `json:"daemonOperatingDuration" yml:"DaemonUptime"`

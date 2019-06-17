@@ -384,11 +384,23 @@ func (ctrl *Controller) AddConnector(request ConnectorInfo, accessToken string) 
 	return nil
 }
 
+func getString(in io.Reader) (out string, err error) {
+	buf := new(bytes.Buffer)
+	if _, err = buf.ReadFrom(in); err != nil {
+		return
+	}
+
+	out = buf.String()
+	return
+}
+
 func checkStatusCode(code int, method, url string, body io.Reader) error {
 	if code < 200 || code >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(body)
-		return util.NewInternalError(fmt.Sprintf("Received %d from %s %s\n%s", code, method, url, buf.String()))
+		bodyString, err := getString(body)
+		if err != nil {
+			return err
+		}
+		return util.NewInternalError(fmt.Sprintf("Received %d from %s %s\n%s", code, method, url, bodyString))
 	}
 	return nil
 }
