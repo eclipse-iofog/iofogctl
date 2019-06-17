@@ -15,6 +15,7 @@ package deployagent
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -33,7 +34,7 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 
 func (exe *remoteExecutor) Execute() error {
 	// Install the agent stack on the server
-	agent := iofog.NewAgent(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile, exe.opt.Name)
+	agent := iofog.NewRemoteAgent(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile, exe.opt.Name)
 	err := agent.Bootstrap()
 	if err != nil {
 		return err

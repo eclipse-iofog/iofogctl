@@ -15,31 +15,38 @@ package deleteagent
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 type localExecutor struct {
-	namespace string
-	name      string
+	namespace        string
+	client           *iofog.LocalContainer
+	localAgentConfig *iofog.LocalAgentConfig
 }
 
-func newLocalExecutor(namespace, name string) *localExecutor {
-	exe := &localExecutor{}
-	exe.namespace = namespace
-	exe.name = name
+func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *localExecutor {
+	exe := &localExecutor{
+		namespace:        namespace,
+		client:           client,
+		localAgentConfig: iofog.NewLocalAgentConfig(name),
+	}
 	return exe
 }
 
 func (exe *localExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
+	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
+		fmt.Printf("Could not clean Agent container: %v", errClean)
+	}
 
 	// Update configuration
-	err := config.DeleteAgent(exe.namespace, exe.name)
+	err := config.DeleteAgent(exe.namespace, exe.localAgentConfig.Name)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.name)
+	fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.localAgentConfig.Name)
 
 	return config.Flush()
 }

@@ -15,6 +15,7 @@ package deploycontroller
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -44,21 +45,14 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	k8s.SetControllerIP(exe.opt.KubeControllerIP)
 
 	var configUser config.IofogUser
-	// Check existing controller
+	// Check existing user
 	ctrl, err := config.GetController(exe.opt.Namespace, exe.opt.Name)
 	if err == nil {
 		// Use existing user
 		configUser = ctrl.IofogUser
 	} else {
 		// Generate new user
-		password := util.RandomString(10, util.AlphaNum)
-		email := util.RandomString(5, util.AlphaLower) + "@domain.com"
-		configUser = config.IofogUser{
-			Name:     "N" + util.RandomString(10, util.AlphaLower),
-			Surname:  "S" + util.RandomString(10, util.AlphaLower),
-			Email:    email,
-			Password: password,
-		}
+		configUser = config.NewUser()
 	}
 	// Assign user
 	user := iofog.User{

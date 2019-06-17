@@ -25,7 +25,6 @@ import (
 type Options struct {
 	Filename  string
 	Namespace string
-	Local     bool
 }
 
 type input struct {
@@ -75,7 +74,7 @@ func Execute(opt *Options) error {
 			Name:             ctrl.Name,
 			User:             ctrl.User,
 			Host:             ctrl.Host,
-			Local:            local,
+			Local:            util.IsLocalHost(ctrl.Host),
 			KubeConfig:       ctrl.KubeConfig,
 			KubeControllerIP: ctrl.KubeControllerIP,
 			Images:           ctrl.Images,
@@ -106,7 +105,7 @@ func Execute(opt *Options) error {
 			Host:      agent.Host,
 			Port:      agent.Port,
 			KeyFile:   agent.KeyFile,
-			Local:     opt.Local,
+			Local:     util.IsLocalHost(agent.Host),
 			Image:     agent.Image,
 		}
 		exe, err := deployagent.NewExecutor(agentOpt)

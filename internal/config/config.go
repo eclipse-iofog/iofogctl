@@ -14,11 +14,12 @@
 package config
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
-	"io/ioutil"
-	"os"
 )
 
 // struct that file is unmarshalled into
@@ -333,4 +334,14 @@ func Flush() (err error) {
 		return
 	}
 	return
+}
+
+// NewUser creates a new config user
+func NewUser() IofogUser {
+	return IofogUser{
+		Name:     "N" + util.RandomString(10, util.AlphaLower),
+		Surname:  "S" + util.RandomString(10, util.AlphaLower),
+		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
+		Password: util.RandomString(10, util.AlphaNum),
+	}
 }

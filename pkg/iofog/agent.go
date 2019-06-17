@@ -15,26 +15,121 @@ package iofog
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	pb "github.com/schollz/progressbar"
-	"os"
 )
 
-type Agent struct {
-	ssh  *util.SecureShellClient
+type Agent interface {
+	Bootstrap() error
+	getProvisionKey(string, User, *pb.ProgressBar) (string, string, error)
+	Configure(string, User) (string, error)
+}
+
+// defaultAgent implements commong behavior
+type defaultAgent struct {
 	name string
 }
 
-func NewAgent(user, host string, port int, privKeyFilename, agentName string) *Agent {
-	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
-	ssh.SetPort(port)
-	return &Agent{
-		ssh:  ssh,
-		name: agentName,
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User, pb *pb.ProgressBar) (key string, uuid string, err error) {
+	// Connect to controller
+	ctrl := NewController(controllerEndpoint)
+
+	// Log in
+	loginRequest := LoginRequest{
+		Email:    user.Email,
+		Password: user.Password,
+	}
+	loginResponse, err := ctrl.Login(loginRequest)
+	if err != nil {
+		return
+	}
+	token := loginResponse.AccessToken
+	pb.Add(20)
+
+	// Create agent
+	createRequest := CreateAgentRequest{
+		Name:    agent.name,
+		FogType: 0,
+	}
+	createResponse, err := ctrl.CreateAgent(createRequest, token)
+	if err != nil {
+		return
+	}
+	uuid = createResponse.UUID
+	pb.Add(20)
+
+	// Get provisioning key
+	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
+	if err != nil {
+		return
+	}
+	pb.Add(20)
+	key = provisionResponse.Key
+	return
+}
+
+// Local agent uses Container exec commands
+type LocalAgent struct {
+	defaultAgent
+	client           *LocalContainer
+	localAgentConfig *LocalAgentConfig
+}
+
+func NewLocalAgent(agentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
+	return &LocalAgent{
+		defaultAgent:     defaultAgent{name: agentConfig.Name},
+		localAgentConfig: agentConfig,
+		client:           client,
 	}
 }
 
-func (agent *Agent) Bootstrap() error {
+func (agent *LocalAgent) Bootstrap() error {
+	return nil
+}
+
+func (agent *LocalAgent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
+	pb := pb.New(100)
+	defer pb.Clear()
+
+	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user, pb)
+
+	// Instantiate provisioning commands
+	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
+	cmds := []command{
+		{fmt.Sprintf("sh -c 'iofog-agent config -a %s'", controllerBaseURL), 10},
+		{fmt.Sprintf("sh -c 'iofog-agent provision %s'", key), 10},
+	}
+
+	// Execute commands
+	for _, cmd := range cmds {
+		containerCmd := []string{cmd.cmd}
+		err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, containerCmd)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Remote agent uses SSH
+type RemoteAgent struct {
+	defaultAgent
+	ssh *util.SecureShellClient
+}
+
+func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName string) *RemoteAgent {
+	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
+	ssh.SetPort(port)
+	return &RemoteAgent{
+		defaultAgent: defaultAgent{name: agentName},
+		ssh:          ssh,
+	}
+}
+
+func (agent *RemoteAgent) Bootstrap() error {
 	// Connect to agent over SSH
 	err := agent.ssh.Connect()
 	if err != nil {
@@ -81,44 +176,14 @@ func (agent *Agent) Bootstrap() error {
 	return nil
 }
 
-func (agent *Agent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
+func (agent *RemoteAgent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
 	pb := pb.New(100)
 	defer pb.Clear()
 
-	// Connect to controller
-	ctrl := NewController(controllerEndpoint)
-
-	// Log in
-	loginRequest := LoginRequest{
-		Email:    user.Email,
-		Password: user.Password,
-	}
-	loginResponse, err := ctrl.Login(loginRequest)
+	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user, pb)
 	if err != nil {
 		return
 	}
-	token := loginResponse.AccessToken
-	pb.Add(20)
-
-	// Create agent
-	createRequest := CreateAgentRequest{
-		Name:    agent.name,
-		FogType: 0,
-	}
-	createResponse, err := ctrl.CreateAgent(createRequest, token)
-	if err != nil {
-		return
-	}
-	uuid = createResponse.UUID
-	pb.Add(20)
-
-	// Get provisioning key
-	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
-	if err != nil {
-		return
-	}
-	pb.Add(20)
-	key := provisionResponse.Key
 
 	// Establish SSH to agent
 	err = agent.ssh.Connect()
