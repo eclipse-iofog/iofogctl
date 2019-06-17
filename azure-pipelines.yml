@@ -27,7 +27,7 @@ jobs:
 
       - task: UseRubyVersion@0
         inputs:
-          versionSpec: '= 2.6.2'
+          versionSpec: '>= 2.5.1'
           addToPath: true
         displayName: 'Install Ruby'
 
