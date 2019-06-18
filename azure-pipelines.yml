@@ -38,15 +38,16 @@ jobs:
           sshKeySecureFile: id_rsa
 
       - script: |
-          LATESTTAG=$(git tag | tail -1)
-          LATESTVERS=${LATESTTAG#?}
-          COMMIT=$(git rev-parse --short=5 HEAD)
           if [[ $(ref) == refs/heads/release* ]]; then
-            echo "##vso[task.setvariable variable=version]rc-$LATESTVERS"
+            RCVERS=$(echo $(ref) | sed "|refs/heads/release/||g")
+            echo "##vso[task.setvariable variable=version]rc-$RCVERS"
           elif [[ $(ref) == refs/tags* ]]; then
             TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
             echo "##vso[task.setvariable variable=version]$TAG"
           else
+            LATESTTAG=$(git tag | tail -1)
+            LATESTVERS=${LATESTTAG#?}
+            COMMIT=$(git rev-parse --short=5 HEAD)
             echo "##vso[task.setvariable variable=version]$LATESTVERS-$COMMIT"
           fi
           echo $(version)
