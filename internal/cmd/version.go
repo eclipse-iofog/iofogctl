@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
@@ -45,6 +46,7 @@ func newVersionCommand() *cobra.Command {
 				BuildDate: buildDate,
 				Platform:  platform,
 			}
+			fmt.Printf("\033[38;5;117mCopyright (C) 2019, Edgeworx, Inc.\033[0m\n")
 			util.Print(spec)
 		},
 	}
