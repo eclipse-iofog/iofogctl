@@ -10,6 +10,7 @@ trigger:
       - README.md
 
 variables:
+  build: $(Build.BuildId)
   GOROOT: '/usr/local/go1.12' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   GOBIN:  '$(GOPATH)/bin' # Go binaries path
@@ -40,15 +41,14 @@ jobs:
       - script: |
           if [[ $(ref) == refs/heads/release* ]]; then
             RCVERS=$(echo $(ref) | sed "|refs/heads/release/||g")
-            echo "##vso[task.setvariable variable=version]rc-$RCVERS"
+            echo "##vso[task.setvariable variable=version]$RCVERS-b$(build)"
           elif [[ $(ref) == refs/tags* ]]; then
             TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
             echo "##vso[task.setvariable variable=version]$TAG"
           else
             LATESTTAG=$(git tag | tail -1)
             LATESTVERS=${LATESTTAG#?}
-            COMMIT=$(git rev-parse --short=5 HEAD)
-            echo "##vso[task.setvariable variable=version]$LATESTVERS-$COMMIT"
+            echo "##vso[task.setvariable variable=version]$LATESTVERS-b$(build)"
           fi
           echo $(version)
         displayName: 'Set version variable'
@@ -97,7 +97,7 @@ jobs:
         displayName: 'Publish Test Results'
       
       - script: |
-          GOOS=darwin make build
+          GOOS=darwin VERSION=$(version) make build
           tar -zcf iofogctl.tar.gz bin/iofogctl
           checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
           cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
@@ -116,7 +116,7 @@ jobs:
         displayName: 'Build and publish OSX binary'
 
       - script: |
-          make build
+          VERSION=$(version) make build
           GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
         workingDirectory: '$(modulePath)'
         displayName: 'Build and Install Linux version'
