@@ -84,17 +84,27 @@ func (exe *agentExecutor) Execute() error {
 
 	// Populate rows
 	for idx, agent := range ns.Agents {
-		age := "-"
-		age, _ = util.ElapsedRFC(agentInfos[idx].CreatedTimeRFC3339, util.NowRFC())
-		uptime := time.Duration(agentInfos[idx].DaemonUptimeDurationMsUTC)
-		row := []string{
-			agent.Name,
-			agentInfos[idx].DaemonStatus,
-			age,
-			util.FormatDuration(uptime),
-			agentInfos[idx].IPAddress,
+		if agentInfos[idx].UUID == "" {
+			row := []string{
+				agent.Name,
+				"-",
+				"-",
+				"-",
+				"-",
+			}
+			table[idx+1] = append(table[idx+1], row...)
+		} else {
+			age, _ := util.ElapsedRFC(agentInfos[idx].CreatedTimeRFC3339, util.NowRFC())
+			uptime := time.Duration(agentInfos[idx].DaemonUptimeDurationMsUTC)
+			row := []string{
+				agent.Name,
+				agentInfos[idx].DaemonStatus,
+				age,
+				util.FormatDuration(uptime),
+				agentInfos[idx].IPAddress,
+			}
+			table[idx+1] = append(table[idx+1], row...)
 		}
-		table[idx+1] = append(table[idx+1], row...)
 	}
 
 	// Print table

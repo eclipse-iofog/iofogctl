@@ -35,7 +35,7 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor
 	return &localExecutor{
 		opt:                   opt,
 		client:                client,
-		localControllerConfig: iofog.NewLocalControllerConfig(opt.Name),
+		localControllerConfig: iofog.NewLocalControllerConfig(opt.Name, opt.Images),
 		localUserConfig:       iofog.GetLocalUserConfig(opt.Namespace, opt.Name),
 	}
 }
@@ -49,22 +49,13 @@ func (exe *localExecutor) cleanContainers() {
 }
 
 func (exe *localExecutor) deployContainers() error {
-	controllerImg, exists := exe.opt.Images["controller"]
-	if !exists {
-		controllerImg = exe.localControllerConfig.DefaultImages["controller"]
-	}
-	connectorImg, exists := exe.opt.Images["connector"]
-	if !exists {
-		connectorImg = exe.localControllerConfig.DefaultImages["connector"]
-	}
-
-	controllerContainerName := exe.localControllerConfig.ContainerNames["controller"]
-	connectorContainerName := exe.localControllerConfig.ContainerNames["connector"]
+	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
+	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
+	controllerContainerName := controllerContainerConfig.ContainerName
+	connectorContainerName := connectorContainerConfig.ContainerName
 
 	// Deploy controller image
-	controllerPortMap := make(map[string]*iofog.LocalContainerPort)
-	controllerPortMap[exe.localControllerConfig.ControllerPort.Host] = exe.localControllerConfig.ControllerPort.Container // 51121:51121/tcp
-	_, err := exe.client.DeployContainer(controllerImg, controllerContainerName, controllerPortMap)
+	_, err := exe.client.DeployContainer(&controllerContainerConfig)
 	if err != nil {
 		return err
 	}
@@ -77,15 +68,13 @@ func (exe *localExecutor) deployContainers() error {
 		"--request",
 		"GET",
 		"--url",
-		fmt.Sprintf("http://%s:%s/api/v3/status", exe.localControllerConfig.Host, exe.localControllerConfig.ControllerPort.Host),
+		fmt.Sprintf("http://%s:%s/api/v3/status", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
 	); err != nil {
 		return err
 	}
 
 	// Deploy connector image
-	connectorPortMap := make(map[string]*iofog.LocalContainerPort)
-	connectorPortMap[exe.localControllerConfig.ConnectorPort.Host] = exe.localControllerConfig.ConnectorPort.Container
-	if _, err := exe.client.DeployContainer(connectorImg, connectorContainerName, connectorPortMap); err != nil {
+	if _, err := exe.client.DeployContainer(&connectorContainerConfig); err != nil {
 		// Remove previously deployed Controller
 		if errClean := exe.client.CleanContainer(controllerContainerName); errClean != nil {
 			fmt.Printf("Could not clean container %v", errClean)
@@ -101,7 +90,7 @@ func (exe *localExecutor) deployContainers() error {
 		"--request",
 		"POST",
 		"--url",
-		fmt.Sprintf("http://%s:%s/api/v2/status", exe.localControllerConfig.Host, exe.localControllerConfig.ConnectorPort.Host),
+		fmt.Sprintf("http://%s:%s/api/v2/status", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host),
 		"--header",
 		"'Content-Type: application/x-www-form-urlencoded'",
 		"--data",
@@ -114,7 +103,10 @@ func (exe *localExecutor) deployContainers() error {
 }
 
 func (exe *localExecutor) install() error {
-	ctrlIP := fmt.Sprintf("%s:%s", exe.localControllerConfig.Host, exe.localControllerConfig.ControllerPort.Host)
+	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
+	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
+
+	ctrlIP := fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
 	ctrl := iofog.NewController(ctrlIP)
 	// Assign user
 	user := iofog.User{
@@ -135,17 +127,19 @@ func (exe *localExecutor) install() error {
 		return err
 	}
 	// Provision Connector
-	connectorIP := exe.localControllerConfig.Host
-	connectorName := exe.localControllerConfig.ContainerNames["connector"]
+	connectorIP := connectorContainerConfig.Host
+	connectorName := connectorContainerConfig.ContainerName
 	return ctrl.AddConnector(iofog.ConnectorInfo{
 		IP:      connectorIP,
 		Name:    connectorName,
-		Domain:  exe.localControllerConfig.Host,
+		Domain:  connectorContainerConfig.Host,
 		DevMode: true,
 	}, loginResponse.AccessToken)
 }
 
 func (exe *localExecutor) Execute() error {
+	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
+
 	// Get current user
 	currUser, err := user.Current()
 	if err != nil {
@@ -170,8 +164,8 @@ func (exe *localExecutor) Execute() error {
 	configEntry := config.Controller{
 		Name:      exe.opt.Name,
 		User:      currUser.Username,
-		Endpoint:  fmt.Sprintf("%s:%s", exe.localControllerConfig.Host, exe.localControllerConfig.ControllerPort.Host),
-		Host:      exe.localControllerConfig.Host,
+		Endpoint:  fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
+		Host:      controllerContainerConfig.Host,
 		Images:    exe.opt.Images,
 		IofogUser: exe.localUserConfig.IofogUser,
 	}

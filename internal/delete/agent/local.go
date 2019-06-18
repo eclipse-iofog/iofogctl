@@ -30,7 +30,7 @@ func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *loc
 	exe := &localExecutor{
 		namespace:        namespace,
 		client:           client,
-		localAgentConfig: iofog.NewLocalAgentConfig(name),
+		localAgentConfig: iofog.NewLocalAgentConfig(name, ""),
 	}
 	return exe
 }

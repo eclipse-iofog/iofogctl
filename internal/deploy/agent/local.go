@@ -33,7 +33,7 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor
 	return &localExecutor{
 		opt:              opt,
 		client:           client,
-		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name),
+		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name, opt.Image),
 	}
 }
 
@@ -50,7 +50,6 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	if len(controllers) != 1 {
 		return "", util.NewInternalError("Only support 1 controller per namespace")
 	}
-	endpoint := controllers[0].Endpoint
 	user := iofog.User{
 		Name:     controllers[0].IofogUser.Name,
 		Surname:  controllers[0].IofogUser.Surname,
@@ -59,7 +58,7 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(endpoint, user)
+	return agent.Configure(&controllers[0], user)
 }
 
 func (exe *localExecutor) Execute() error {
@@ -74,13 +73,11 @@ func (exe *localExecutor) Execute() error {
 		exe.opt.Image = exe.localAgentConfig.DefaultImage
 	}
 
-	agentPortMap := make(map[string]*iofog.LocalContainerPort)
-	agentContainerName := exe.localAgentConfig.ContainerName
-	agentPortMap[exe.localAgentConfig.AgentPort.Host] = exe.localAgentConfig.AgentPort.Container // 54321:54321/tcp
-
-	if _, err = exe.client.DeployContainer(exe.opt.Image, agentContainerName, agentPortMap); err != nil {
+	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
 		return err
 	}
+
+	agentContainerName := exe.localAgentConfig.ContainerName
 
 	// Wait for agent
 	if err = exe.client.WaitForCommand(
@@ -89,7 +86,7 @@ func (exe *localExecutor) Execute() error {
 		"--request",
 		"GET",
 		"--url",
-		fmt.Sprintf("http://%s:%s/v2/status", exe.localAgentConfig.Host, exe.localAgentConfig.AgentPort.Host),
+		fmt.Sprintf("http://%s:%s/v2/status", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host),
 	); err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			fmt.Printf("Could not clean container %s\n", agentContainerName)
@@ -107,7 +104,7 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Update configuration
-	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.AgentPort.Host)
+	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
 	configEntry := config.Agent{
 		Name: exe.opt.Name,
 		User: currUser.Username,

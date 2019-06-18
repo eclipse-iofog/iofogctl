@@ -14,6 +14,7 @@
 package iofog
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	pb "github.com/schollz/progressbar"
 )
 
@@ -25,12 +26,13 @@ type command struct {
 type Agent interface {
 	Bootstrap() error
 	getProvisionKey(string, User, *pb.ProgressBar) (string, string, error)
-	Configure(string, User) (string, error)
+	Configure(*config.Controller, User) (string, error)
 }
 
 // defaultAgent implements commong behavior
 type defaultAgent struct {
-	name string
+	name      string
+	namespace string
 }
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User, pb *pb.ProgressBar) (key string, uuid string, err error) {
