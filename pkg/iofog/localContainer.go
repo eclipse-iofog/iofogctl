@@ -2,7 +2,12 @@ package iofog
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"os/exec"
+	"regexp"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
@@ -71,7 +76,7 @@ func NewLocalControllerConfig(name string) *LocalControllerConfig {
 		Host:           "0.0.0.0",
 		ContainerNames: nameMap,
 		ControllerPort: port{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}},
-		ConnectorPort:  port{Host: "53321", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}},
+		ConnectorPort:  port{Host: "8080", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}},
 		DefaultImages:  imageMap,
 	}
 }
@@ -136,6 +141,36 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 	return lc.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
 }
 
+func (lc *LocalContainer) getPullOptions(image string) (ret types.ImagePullOptions) {
+	dockerUser := ""
+	dockerPwd := ""
+	// TODO: AlexD - Find a more elegant way to specify docker auth. (if needed)
+	gcrRegex := regexp.MustCompile("^((us|eu|asia)\\.){0,1}gcr\\.io\\/")
+	if gcrRegex.MatchString(image) {
+		dockerUser = "_json_key"
+		out, err := exec.Command("cat", "./edgeworx-iofog-95aff71cbc7a.json").Output()
+		if err != nil {
+			fmt.Printf("Failed to get gcloud auth token: %v\n", err)
+			return
+		}
+		dockerPwd = string(out)
+	}
+
+	if dockerUser != "" {
+		authConfig := types.AuthConfig{
+			Username: dockerUser,
+			Password: dockerPwd,
+		}
+		encodedJSON, err := json.Marshal(authConfig)
+		if err != nil {
+			panic(err)
+		}
+		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+		ret.RegistryAuth = authStr
+	}
+	return
+}
+
 // DeployContainer deploys a container based on an image and a port mappin
 func (lc *LocalContainer) DeployContainer(image, name string, ports map[string]*LocalContainerPort) (string, error) {
 	ctx := context.Background()
@@ -167,7 +202,7 @@ func (lc *LocalContainer) DeployContainer(image, name string, ports map[string]*
 	}
 
 	// Pull image
-	_, err := lc.client.ImagePull(ctx, image, types.ImagePullOptions{})
+	_, err := lc.client.ImagePull(ctx, image, lc.getPullOptions(image))
 	if err != nil {
 		return "", err
 	}
@@ -180,6 +215,17 @@ func (lc *LocalContainer) DeployContainer(image, name string, ports map[string]*
 
 	// Start container
 	return container.ID, lc.client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
+}
+
+func (lc *LocalContainer) WaitForCommand(condition *regexp.Regexp, command string, args ...string) error {
+	for iteration := 0; iteration < 30; iteration++ {
+		output, _ := exec.Command(command, args...).Output()
+		if condition.MatchString(string(output)) {
+			return nil
+		}
+		time.Sleep(2 * time.Second)
+	}
+	return util.NewInternalError("Timed out waiting for container")
 }
 
 func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {

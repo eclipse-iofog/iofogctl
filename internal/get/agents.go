@@ -14,11 +14,12 @@
 package get
 
 import (
+	"strings"
+	"time"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
-	"time"
 )
 
 type agentExecutor struct {

@@ -14,6 +14,7 @@
 package deploy
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -94,9 +95,19 @@ func Execute(opt *Options) error {
 	wg.Wait()
 
 	// Deploy agents
+	localAgentCount := 0
 	for _, agent := range in.Agents {
 		if agent.Port == 0 {
 			agent.Port = 22
+		}
+		local := false
+		if util.IsLocalHost(agent.Host) {
+			local = true
+			localAgentCount++
+			if localAgentCount > 1 {
+				fmt.Printf("Agent [%v] not deployed, you can only run one local agent.\n", agent.Name)
+				continue
+			}
 		}
 		agentOpt := &deployagent.Options{
 			Namespace: opt.Namespace,
@@ -105,7 +116,7 @@ func Execute(opt *Options) error {
 			Host:      agent.Host,
 			Port:      agent.Port,
 			KeyFile:   agent.KeyFile,
-			Local:     util.IsLocalHost(agent.Host),
+			Local:     local,
 			Image:     agent.Image,
 		}
 		exe, err := deployagent.NewExecutor(agentOpt)

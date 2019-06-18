@@ -16,6 +16,7 @@ package deployagent
 import (
 	"fmt"
 	"os/user"
+	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
@@ -39,10 +40,6 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor
 func (exe *localExecutor) provisionAgent() (string, error) {
 	// Get agent
 	agent := iofog.NewLocalAgent(exe.localAgentConfig, exe.client)
-	err := agent.Bootstrap()
-	if err != nil {
-		return "", err
-	}
 
 	// Get Controller details
 	controllers, err := config.GetControllers(exe.opt.Namespace)
@@ -85,6 +82,21 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
+	// Wait for agent
+	if err = exe.client.WaitForCommand(
+		regexp.MustCompile("401 Unauthorized"),
+		"curl",
+		"--request",
+		"GET",
+		"--url",
+		fmt.Sprintf("http://%s:%s/v2/status", exe.localAgentConfig.Host, exe.localAgentConfig.AgentPort.Host),
+	); err != nil {
+		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
+			fmt.Printf("Could not clean container %s\n", agentContainerName)
+		}
+		return err
+	}
+
 	// Provision agent
 	uuid, err := exe.provisionAgent()
 	if err != nil {
@@ -110,7 +122,13 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
+	if err = config.Flush(); err != nil {
+		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
+			fmt.Printf("Could not clean container %s\n", agentContainerName)
+		}
+		return err
+	}
 
-	return config.Flush()
+	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
+	return nil
 }
