@@ -16,6 +16,7 @@ package deploycontroller
 import (
 	"fmt"
 	"os/user"
+	"regexp"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -69,6 +70,17 @@ func (exe *localExecutor) deployContainers() error {
 	}
 
 	exe.containersNames = append(exe.containersNames, controllerContainerName)
+	// Wait for public API
+	if err = exe.client.WaitForCommand(
+		regexp.MustCompile("\"status\":\"online\""),
+		"curl",
+		"--request",
+		"GET",
+		"--url",
+		fmt.Sprintf("http://%s:%s/api/v3/status", exe.localControllerConfig.Host, exe.localControllerConfig.ControllerPort.Host),
+	); err != nil {
+		return err
+	}
 
 	// Deploy connector image
 	connectorPortMap := make(map[string]*iofog.LocalContainerPort)
@@ -82,6 +94,21 @@ func (exe *localExecutor) deployContainers() error {
 	}
 
 	exe.containersNames = append(exe.containersNames, connectorContainerName)
+	// Wait for public API
+	if err = exe.client.WaitForCommand(
+		regexp.MustCompile("\"status\":\"running\""),
+		"curl",
+		"--request",
+		"POST",
+		"--url",
+		fmt.Sprintf("http://%s:%s/api/v2/status", exe.localControllerConfig.Host, exe.localControllerConfig.ConnectorPort.Host),
+		"--header",
+		"'Content-Type: application/x-www-form-urlencoded'",
+		"--data",
+		"mappingid=all",
+	); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -108,7 +135,7 @@ func (exe *localExecutor) install() error {
 		return err
 	}
 	// Provision Connector
-	connectorIP := fmt.Sprintf("%s:%s", exe.localControllerConfig.Host, exe.localControllerConfig.ConnectorPort.Host)
+	connectorIP := exe.localControllerConfig.Host
 	connectorName := exe.localControllerConfig.ContainerNames["connector"]
 	return ctrl.AddConnector(iofog.ConnectorInfo{
 		IP:      connectorIP,
@@ -128,11 +155,13 @@ func (exe *localExecutor) Execute() error {
 	// Deploy Controller and Connector images
 	err = exe.deployContainers()
 	if err != nil {
+		exe.cleanContainers()
 		return err
 	}
 
 	// Create user, login, provision connector
 	if err = exe.install(); err != nil {
+		fmt.Printf("Cleaning containers... %v", err)
 		exe.cleanContainers()
 		return err
 	}
@@ -141,6 +170,7 @@ func (exe *localExecutor) Execute() error {
 	configEntry := config.Controller{
 		Name:      exe.opt.Name,
 		User:      currUser.Username,
+		Endpoint:  fmt.Sprintf("%s:%s", exe.localControllerConfig.Host, exe.localControllerConfig.ControllerPort.Host),
 		Host:      exe.localControllerConfig.Host,
 		Images:    exe.opt.Images,
 		IofogUser: exe.localUserConfig.IofogUser,
