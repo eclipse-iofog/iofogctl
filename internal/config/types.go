@@ -26,11 +26,11 @@ type Controller struct {
 	Name             string            `mapstructure:"name"`
 	User             string            `mapstructure:"user"`
 	Host             string            `mapstructure:"host"`
-	KeyFile          string            `mapstructure:"keyFile"`
-	KubeConfig       string            `mapstructure:"kubeConfig"`
-	KubeControllerIP string            `mapstructure:"kubeControllerIP"`
+	KeyFile          string            `mapstructure:"keyfile"`
+	KubeConfig       string            `mapstructure:"kubeconfig"`
+	KubeControllerIP string            `mapstructure:"kubecontrollerIP"`
 	Endpoint         string            `mapstructure:"endpoint"`
-	IofogUser        IofogUser         `mapstructure:"iofogUser"`
+	IofogUser        IofogUser         `mapstructure:"iofoguser"`
 	Created          string            `mapstructure:"created"`
 	Images           map[string]string `mapstructure:"images"`
 }
@@ -41,7 +41,7 @@ type Agent struct {
 	User    string `mapstructure:"user"`
 	Host    string `mapstructure:"host"`
 	Port    int    `mapstructure:"port"`
-	KeyFile string `mapstructure:"keyFile"`
+	KeyFile string `mapstructure:"keyfile"`
 	UUID    string `mapstructure:"uuid"`
 	Created string `mapstructure:"created"`
 }
