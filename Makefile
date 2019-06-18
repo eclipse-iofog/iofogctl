@@ -34,13 +34,12 @@ dep: ## Install dependencies
 	@dep ensure -v -vendor-only
 
 .PHONY: build
-build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)"
+build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
 endif
-	@cd $(PACKAGE_DIR); go build $(GOARGS) ./main.go
-	@mv $(PACKAGE_DIR)/main $(BUILD_DIR)/$(BINARY_NAME)
+	@go build $(GOARGS) $(PACKAGE_DIR)/main.go
 
 .PHONY: install
 install: ## Install the iofogctl binary to /usr/local/bin
@@ -52,10 +51,10 @@ fmt: ## Format the source
 
 .PHONY: test
 test: build ## Run unit tests
-	@mkdir -p $(REPORTS_DIR)
-	@rm -f $(REPORTS_DIR)/*
-	@set -o pipefail; go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
-	@cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
+	mkdir -p $(REPORTS_DIR)
+	rm -f $(REPORTS_DIR)/*
+	set -o pipefail; go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list
 list: ## List all make targets
