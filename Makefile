@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-OS = $(shell uname -s | awk '{print tolower($0)}')
+OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
 # Build variables
 BINARY_NAME = iofogctl
