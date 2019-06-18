@@ -16,6 +16,7 @@ package iofog
 import (
 	"fmt"
 
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	pb "github.com/schollz/progressbar"
 )
 
@@ -39,23 +40,29 @@ func (agent *LocalAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *LocalAgent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
+func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
 	pb := pb.New(100)
 	defer pb.Clear()
 
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user, pb)
+	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user, pb)
+
+	// get local controller config
+	ctrlConfig := NewLocalControllerConfig(ctrl.Name, make(map[string]string))
+
+	// Use the container name as host
+	ctrlContainerConfig := ctrlConfig.ContainerMap["controller"]
+	controllerEndpoint := fmt.Sprintf("%s:%s", ctrlContainerConfig.ContainerName, ctrlContainerConfig.Ports[0].Host)
 
 	// Instantiate provisioning commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
-	cmds := []command{
-		{fmt.Sprintf("sh -c 'iofog-agent config -a %s'", controllerBaseURL), 10},
-		{fmt.Sprintf("sh -c 'iofog-agent provision %s'", key), 10},
+	controllerBaseURL := fmt.Sprintf("http://%s/api/v3/", controllerEndpoint)
+	cmds := [][]string{
+		[]string{"iofog-agent", "config", "-a", controllerBaseURL},
+		[]string{"iofog-agent", "provision", key},
 	}
 
 	// Execute commands
 	for _, cmd := range cmds {
-		containerCmd := []string{cmd.cmd}
-		err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, containerCmd)
+		err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
 		if err != nil {
 			return
 		}

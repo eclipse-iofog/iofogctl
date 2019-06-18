@@ -32,15 +32,15 @@ func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *loc
 		namespace:             namespace,
 		name:                  name,
 		client:                client,
-		localControllerConfig: iofog.NewLocalControllerConfig(name),
+		localControllerConfig: iofog.NewLocalControllerConfig(name, make(map[string]string)),
 	}
 	return exe
 }
 
 func (exe *localExecutor) Execute() error {
 	// Clean controller and connector containers
-	for _, name := range exe.localControllerConfig.ContainerNames {
-		if errClean := exe.client.CleanContainer(name); errClean != nil {
+	for _, containerConfig := range exe.localControllerConfig.ContainerMap {
+		if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
 			fmt.Printf("Could not clean Controller container: %v", errClean)
 		}
 	}

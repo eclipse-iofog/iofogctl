@@ -49,7 +49,6 @@ func (exe *remoteExecutor) Execute() error {
 	if len(controllers) != 1 {
 		return util.NewInternalError("Only support 1 controller per namespace")
 	}
-	endpoint := controllers[0].Endpoint
 	user := iofog.User{
 		Name:     controllers[0].IofogUser.Name,
 		Surname:  controllers[0].IofogUser.Surname,
@@ -58,7 +57,7 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Configure the agent with Controller details
-	uuid, err := agent.Configure(endpoint, user)
+	uuid, err := agent.Configure(&controllers[0], user)
 	if err != nil {
 		return err
 	}

@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	pb "github.com/schollz/progressbar"
 )
@@ -83,9 +84,11 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(controllerEndpoint string, user User) (uuid string, err error) {
+func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
 	pb := pb.New(100)
 	defer pb.Clear()
+
+	controllerEndpoint := ctrl.Endpoint
 
 	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user, pb)
 	if err != nil {
