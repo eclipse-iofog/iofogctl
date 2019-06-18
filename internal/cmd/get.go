@@ -29,9 +29,8 @@ Resources like Agents will require a working Controller in the namespace to disp
 		Example: `iofogctl get all
 iofogctl get namespaces
 iofogctl get controllers
-iofogctl get agents
-iofogctl get microservices`,
-		ValidArgs: []string{"namespaces", "all", "controllers", "agents", "microservices"},
+iofogctl get agents`,
+		ValidArgs: []string{"namespaces", "all", "controllers", "agents"},
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg

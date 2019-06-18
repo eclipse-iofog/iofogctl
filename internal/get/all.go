@@ -30,9 +30,5 @@ func (exe *allExecutor) Execute() error {
 	if err := newAgentExecutor(exe.namespace).Execute(); err != nil {
 		return err
 	}
-	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {
-		return err
-	}
-
 	return nil
 }
