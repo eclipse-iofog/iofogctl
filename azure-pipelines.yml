@@ -116,7 +116,7 @@ jobs:
 
       - script: |
           make build
-          GOPATH=$(GOPATH) GOBIN=$(GOBIN) make install
+          GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
         workingDirectory: '$(modulePath)'
         displayName: 'Build and Install Linux version'
 
