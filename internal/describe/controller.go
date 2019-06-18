@@ -15,6 +15,7 @@ package describe
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type controllerExecutor struct {
@@ -35,7 +36,7 @@ func (exe *controllerExecutor) Execute() error {
 		return err
 	}
 	controller.IofogUser.Password = "*****"
-	if err = print(controller); err != nil {
+	if err = util.Print(controller); err != nil {
 		return err
 	}
 	return nil

@@ -122,7 +122,7 @@ jobs:
 
       - script: |
           which iofogctl
-          iofogctl --help
+          iofogctl version
         displayName: 'Verify Install'
 
       - task: DownloadSecureFile@1

@@ -15,6 +15,7 @@ package describe
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type microserviceExecutor struct {
@@ -34,7 +35,7 @@ func (ms *microserviceExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if err = print(microservice); err != nil {
+	if err = util.Print(microservice); err != nil {
 		return err
 	}
 	return nil

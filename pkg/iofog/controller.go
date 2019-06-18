@@ -377,7 +377,7 @@ func (ctrl *Controller) AddConnector(request ConnectorInfo, accessToken string) 
 	}
 
 	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, "PUT", url, httpResp.Body); err != nil {
+	if err = checkStatusCode(httpResp.StatusCode, httpReq.Method, url, httpResp.Body); err != nil {
 		return err
 	}
 

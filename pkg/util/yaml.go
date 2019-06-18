@@ -11,14 +11,28 @@
  *
  */
 
-package describe
+package util
 
 import (
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 )
 
-func print(obj interface{}) error {
+func UnmarshalYAML(filename string, object interface{}) error {
+	yamlFile, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal(yamlFile, object)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Print(obj interface{}) error {
 	marshal, err := yaml.Marshal(&obj)
 	if err != nil {
 		return err

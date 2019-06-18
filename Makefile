@@ -1,18 +1,15 @@
 SHELL = /bin/bash
 OS = $(shell uname -s | awk '{print tolower($0)}')
 
-# Project variables
-PACKAGE = github.com/eclipse-iofog/iofogctl
-BINARY_NAME = iofogctl
-IMAGE = iofog/cli
-
 # Build variables
+BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
-BUILD_PACKAGE = $(PACKAGE)/cmd/iofogctl
-VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
-COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
+PACKAGE_DIR = cmd/iofogctl
+VERSION = $(shell git tag | tail -1 | sed 's/v//g')
+COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-LDFLAGS += -X main.Version=$(VERSION) -X main.CommitHash=$(COMMIT_HASH) -X main.BuildDate=$(BUILD_DATE)
+PREFIX = github.com/eclipse-iofog/iofogctl/internal/cmd
+LDFLAGS += -X $(PREFIX).version=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).buildDate=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -34,19 +31,20 @@ clean: ## Clean the working area and the project
 
 .PHONY: dep
 dep: ## Install dependencies
-	dep ensure -v -vendor-only
+	@dep ensure -v -vendor-only
 
 .PHONY: build
-build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
+build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)"
 build: ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
 endif
-	go build $(GOARGS) $(BUILD_PACKAGE)
+	@cd $(PACKAGE_DIR); go build $(GOARGS) ./main.go
+	@mv $(PACKAGE_DIR)/main $(BUILD_DIR)/$(BINARY_NAME)
 
 .PHONY: install
 install: ## Install the iofogctl binary to /usr/local/bin
-	go install github.com/eclipse-iofog/iofogctl/cmd/iofogctl
+	@cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
 
 .PHONY: fmt
 fmt: ## Format the source
@@ -54,10 +52,10 @@ fmt: ## Format the source
 
 .PHONY: test
 test: build ## Run unit tests
-	mkdir -p $(REPORTS_DIR)
-	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
-	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
+	@mkdir -p $(REPORTS_DIR)
+	@rm -f $(REPORTS_DIR)/*
+	@set -o pipefail; go list ./... | xargs -n1 go test -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	@cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list
 list: ## List all make targets

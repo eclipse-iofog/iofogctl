@@ -69,7 +69,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Print result
-	if err = print(getAgentResponse); err != nil {
+	if err = util.Print(getAgentResponse); err != nil {
 		return err
 	}
 	return nil

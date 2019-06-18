@@ -15,6 +15,7 @@ package describe
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type namespaceExecutor struct {
@@ -32,7 +33,7 @@ func (exe *namespaceExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if err = print(namespace); err != nil {
+	if err = util.Print(namespace); err != nil {
 		return err
 	}
 	return nil
