@@ -140,7 +140,7 @@ jobs:
         displayName: 'Install package_cloud cli and fpm'
 
       - script: |
-          fpm -f -s dir -t deb -n iofogctl -v $(version) $(GOBIN)/iofogctl=/usr/local/bin/
+          fpm -f -s dir -t deb -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
           package=$(ls | grep *.deb)
           echo $package
           cp $package $(Build.ArtifactStagingDirectory)
@@ -164,7 +164,7 @@ jobs:
         displayName: 'Publish deb to package-cloud'
 
       - script: |
-          fpm -f -s dir -t rpm -n iofogctl -v $(version) $(GOBIN)/iofogctl=/usr/local/bin/
+          fpm -f -s dir -t rpm -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
           package=$(ls | grep *.rpm)
           echo $package
           cp $package $(Build.ArtifactStagingDirectory)
