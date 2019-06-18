@@ -41,7 +41,7 @@ jobs:
 
       - script: |
           if [[ $(ref) == refs/heads/release* ]]; then
-            RCVERS=$(echo $(ref) | sed "|refs/heads/release/||g")
+            RCVERS=$(echo $(ref) | sed "s|refs/heads/release/||g")
             echo "##vso[task.setvariable variable=version]$RCVERS-b$(build)"
           elif [[ $(ref) == refs/tags* ]]; then
             TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
