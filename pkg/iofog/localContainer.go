@@ -66,12 +66,15 @@ func NewLocalAgentConfig(name string, image string) *LocalAgentConfig {
 	}
 	return &LocalAgentConfig{
 		LocalContainerConfig: LocalContainerConfig{
-			Host:          "0.0.0.0",
-			Ports:         []port{port{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}}},
+			Host: "0.0.0.0",
+			Ports: []port{
+				port{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
+				port{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
+			},
 			ContainerName: fmt.Sprintf("iofog-agent-%s", name),
 			Image:         image,
 			Privileged:    true,
-			Binds:         []string{"/var/run/docker.sock"},
+			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
 			NetworkMode:   "bridge",
 		},
 		Name: name,
