@@ -14,16 +14,22 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/spf13/cobra"
 )
 
 func NewRootCommand() *cobra.Command {
+
 	// Root command
 	var cmd = &cobra.Command{
 		Use:   "iofogctl",
 		Short: "ioFog Unified Command Line Interface",
-		Long:  "ioFog Unified Command Line Interface",
+		Long:  "## ioFog Unified Command Line Interface",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("\033[38;5;117m## ioFogctl ###########################################################################################\033[0m\n")
+			fmt.Printf("\033[38;5;117m## Copyright (C) 2019, Edgeworx, Inc.\033[0m\n")
+		},
 	}
 
 	// Initialize config filename

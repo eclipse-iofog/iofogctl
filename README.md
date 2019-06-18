@@ -88,4 +88,4 @@ Run project unit tests:
 make test
 ```
 
-This will output an JUnit compatible 'test-report.xml' file that can be imported in most CI systems.
+This will output a JUnit compatible file into `reports/TEST-iofogctl.xml` that can be imported in most CI systems.
