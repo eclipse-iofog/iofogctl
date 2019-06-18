@@ -208,6 +208,7 @@ func (lc *LocalContainer) getPullOptions(image string) (ret types.ImagePullOptio
 
 // DeployContainer deploys a container based on an image and a port mappin
 func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig) (string, error) {
+	fmt.Printf("Deploying... %v\n", containerConfig)
 	ctx := context.Background()
 
 	portSet := nat.PortSet{}
@@ -246,10 +247,39 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		return "", err
 	}
 
-	// Create container
+	// Create network if it does not exists
+	networkName := "local-iofog-network"
+	networks, err := lc.client.NetworkList(ctx, types.NetworkListOptions{})
+	networkID := ""
+	for i := range networks {
+		if networks[i].Name == networkName {
+			networkID = networks[i].ID
+			break
+		}
+	}
+
+	if networkID == "" {
+		networkResponse, err := lc.client.NetworkCreate(ctx, networkName, types.NetworkCreate{
+			Driver:         "bridge",
+			CheckDuplicate: true,
+		})
+		if err != nil {
+			fmt.Printf("Failed to create network: %v\n", err)
+			return "", err
+		}
+		networkID = networkResponse.ID
+	}
+
 	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, containerConfig.ContainerName)
 	if err != nil {
 		fmt.Printf("Failed to create container: %v\n", err)
+		return "", err
+	}
+
+	// Connect to network
+	err = lc.client.NetworkConnect(ctx, networkID, container.ID, nil)
+	if err != nil {
+		fmt.Printf("Failed to connect container to network: %v\n", err)
 		return "", err
 	}
 
