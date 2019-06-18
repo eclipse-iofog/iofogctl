@@ -83,10 +83,8 @@ func (exe *agentExecutor) Execute() error {
 
 	// Populate rows
 	for idx, agent := range ns.Agents {
-		age, err := util.ElapsedRFC(agentInfos[idx].CreatedTimeRFC3339, util.NowRFC())
-		if err != nil {
-			return err
-		}
+		age := "-"
+		age, _ = util.ElapsedRFC(agentInfos[idx].CreatedTimeRFC3339, util.NowRFC())
 		uptime := time.Duration(agentInfos[idx].DaemonUptimeDurationMsUTC)
 		row := []string{
 			agent.Name,
