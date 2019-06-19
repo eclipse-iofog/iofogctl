@@ -56,9 +56,9 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid str
 	// Instantiate provisioning commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
 	cmds := [][]string{
-		[]string{"iofog-agent", "config", "-idc", "off"},
-		[]string{"iofog-agent", "config", "-a", controllerBaseURL},
-		[]string{"iofog-agent", "provision", key},
+		{"iofog-agent", "config", "-idc", "off"},
+		{"iofog-agent", "config", "-a", controllerBaseURL},
+		{"iofog-agent", "provision", key},
 	}
 
 	// Execute commands

@@ -72,8 +72,8 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 		LocalContainerConfig: LocalContainerConfig{
 			Host: "0.0.0.0",
 			Ports: []port{
-				port{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
-				port{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
+				{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
+				{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
 			},
 			ContainerName: sanitizeContainerName(fmt.Sprintf("iofog-agent-%s", name)),
 			Image:         image,
@@ -95,7 +95,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap := make(map[string]*LocalContainerConfig)
 	containerMap["controller"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
-		Ports:         []port{port{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}}},
+		Ports:         []port{{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}}},
 		ContainerName: sanitizeContainerName("iofog-controller-" + name),
 		Image:         controllerImg,
 		Privileged:    false,
@@ -110,7 +110,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 	containerMap["connector"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
-		Ports:         []port{port{Host: "8080", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}}},
+		Ports:         []port{{Host: "8080", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}}},
 		ContainerName: sanitizeContainerName("iofog-connector-" + name),
 		Image:         connectorImg,
 		Privileged:    false,
