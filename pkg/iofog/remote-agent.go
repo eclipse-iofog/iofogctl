@@ -32,7 +32,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
 	ssh.SetPort(port)
 	return &RemoteAgent{
-		defaultAgent: defaultAgent{name: agentName},
+		defaultAgent: defaultAgent{name: agentName, pb: pb.New(100)},
 		ssh:          ssh,
 	}
 }
@@ -85,12 +85,12 @@ func (agent *RemoteAgent) Bootstrap() error {
 }
 
 func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
-	pb := pb.New(100)
-	defer pb.Clear()
+	agent.pb = pb.New(100)
+	defer agent.pb.Clear()
 
 	controllerEndpoint := ctrl.Endpoint
 
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user, pb)
+	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
 		return
 	}
@@ -103,7 +103,7 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid st
 
 	// Prepare progress bar
 	defer agent.ssh.Disconnect()
-	pb.Add(20)
+	agent.pb.Add(20)
 
 	// Instantiate commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
@@ -115,7 +115,7 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid st
 	// Execute commands
 	for _, cmd := range cmds {
 		_, err = agent.ssh.Run(cmd.cmd)
-		pb.Add(cmd.pbSlice)
+		agent.pb.Add(cmd.pbSlice)
 		if err != nil {
 			return
 		}

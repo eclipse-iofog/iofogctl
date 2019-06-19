@@ -19,6 +19,8 @@ import (
 	"regexp"
 	"strings"
 
+	pb "github.com/schollz/progressbar"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
@@ -29,6 +31,7 @@ type localExecutor struct {
 	localControllerConfig *iofog.LocalControllerConfig
 	localUserConfig       *iofog.LocalUserConfig
 	containersNames       []string
+	pb                    *pb.ProgressBar
 }
 
 func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
@@ -37,6 +40,7 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor
 		client:                client,
 		localControllerConfig: iofog.NewLocalControllerConfig(opt.Name, opt.Images),
 		localUserConfig:       iofog.GetLocalUserConfig(opt.Namespace, opt.Name),
+		pb:                    pb.New(100),
 	}
 }
 
@@ -55,10 +59,11 @@ func (exe *localExecutor) deployContainers() error {
 	connectorContainerName := connectorContainerConfig.ContainerName
 
 	// Deploy controller image
-	_, err := exe.client.DeployContainer(&controllerContainerConfig)
+	_, err := exe.client.DeployContainer(controllerContainerConfig)
 	if err != nil {
 		return err
 	}
+	exe.pb.Add(10)
 
 	exe.containersNames = append(exe.containersNames, controllerContainerName)
 	// Wait for public API
@@ -72,15 +77,17 @@ func (exe *localExecutor) deployContainers() error {
 	); err != nil {
 		return err
 	}
+	exe.pb.Add(6)
 
 	// Deploy connector image
-	if _, err := exe.client.DeployContainer(&connectorContainerConfig); err != nil {
+	if _, err := exe.client.DeployContainer(connectorContainerConfig); err != nil {
 		// Remove previously deployed Controller
 		if errClean := exe.client.CleanContainer(controllerContainerName); errClean != nil {
 			fmt.Printf("Could not clean container %v", errClean)
 		}
 		return err
 	}
+	exe.pb.Add(10)
 
 	exe.containersNames = append(exe.containersNames, connectorContainerName)
 	// Wait for public API
@@ -98,6 +105,7 @@ func (exe *localExecutor) deployContainers() error {
 	); err != nil {
 		return err
 	}
+	exe.pb.Add(7)
 
 	return nil
 }
@@ -121,23 +129,29 @@ func (exe *localExecutor) install() error {
 			return err
 		}
 	}
+	exe.pb.Add(10)
 	// Login
 	loginResponse, err := ctrl.Login(iofog.LoginRequest{Email: user.Email, Password: user.Password})
 	if err != nil {
 		return err
 	}
+	exe.pb.Add(10)
 	// Provision Connector
 	connectorIP := connectorContainerConfig.Host
 	connectorName := connectorContainerConfig.ContainerName
-	return ctrl.AddConnector(iofog.ConnectorInfo{
+	err = ctrl.AddConnector(iofog.ConnectorInfo{
 		IP:      connectorIP,
 		Name:    connectorName,
 		Domain:  connectorContainerConfig.Host,
 		DevMode: true,
 	}, loginResponse.AccessToken)
+	exe.pb.Add(13)
+	return err
 }
 
 func (exe *localExecutor) Execute() error {
+	exe.pb.Add(1)
+	defer exe.pb.Clear()
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 
 	// Get current user
@@ -175,6 +189,7 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
+	exe.pb.Add(33)
 	if err = config.Flush(); err != nil {
 		exe.cleanContainers()
 		return err
