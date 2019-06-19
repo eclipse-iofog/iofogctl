@@ -84,6 +84,7 @@ func (exe *agentExecutor) Execute() error {
 
 	// Populate rows
 	for idx, agent := range ns.Agents {
+		// if UUID is empty, we assume the agent is not provided
 		if agentInfos[idx].UUID == "" {
 			row := []string{
 				agent.Name,
