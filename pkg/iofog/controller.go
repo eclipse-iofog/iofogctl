@@ -17,11 +17,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Controller struct {
@@ -377,7 +378,7 @@ func (ctrl *Controller) AddConnector(request ConnectorInfo, accessToken string) 
 	}
 
 	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, httpReq.Method, url, httpResp.Body); err != nil {
+	if err = checkStatusCode(httpResp.StatusCode, httpReq.Method, httpReq.URL.String(), httpResp.Body); err != nil {
 		return err
 	}
 

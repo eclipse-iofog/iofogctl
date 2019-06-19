@@ -15,10 +15,10 @@ package config
 
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
-	Name     string
-	Surname  string
-	Email    string
-	Password string
+	Name     string `mapstructure:"name"`
+	Surname  string `mapstructure:"surname"`
+	Email    string `mapstructure:"email"`
+	Password string `mapstructure:"password"`
 }
 
 // Controller contains information for configuring a controller
@@ -44,6 +44,7 @@ type Agent struct {
 	KeyFile string `mapstructure:"keyfile"`
 	UUID    string `mapstructure:"uuid"`
 	Created string `mapstructure:"created"`
+	Image   string `mapstructure:"image"`
 }
 
 // Microservice contains information for configuring a microservice

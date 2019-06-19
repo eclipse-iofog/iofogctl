@@ -14,11 +14,13 @@
 package deploy
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"fmt"
 	"sync"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
@@ -67,18 +69,17 @@ func Execute(opt *Options) error {
 	var wg sync.WaitGroup
 
 	// Deploy controllers
-	local := false
 	for _, ctrl := range in.Controllers {
-		local = ctrl.Host == "localhost"
 		ctrlOpt := &deploycontroller.Options{
 			Namespace:        opt.Namespace,
 			Name:             ctrl.Name,
 			User:             ctrl.User,
 			Host:             ctrl.Host,
-			Local:            local,
+			Local:            util.IsLocalHost(ctrl.Host),
 			KubeConfig:       ctrl.KubeConfig,
 			KubeControllerIP: ctrl.KubeControllerIP,
 			Images:           ctrl.Images,
+			IofogUser:        ctrl.IofogUser,
 		}
 		exe, err := deploycontroller.NewExecutor(ctrlOpt)
 		if err != nil {
@@ -95,9 +96,19 @@ func Execute(opt *Options) error {
 	wg.Wait()
 
 	// Deploy agents
+	localAgentCount := 0
 	for _, agent := range in.Agents {
 		if agent.Port == 0 {
 			agent.Port = 22
+		}
+		local := false
+		if util.IsLocalHost(agent.Host) {
+			local = true
+			localAgentCount++
+			if localAgentCount > 1 {
+				fmt.Printf("Agent [%v] not deployed, you can only run one local agent.\n", agent.Name)
+				continue
+			}
 		}
 		agentOpt := &deployagent.Options{
 			Namespace: opt.Namespace,
@@ -107,6 +118,7 @@ func Execute(opt *Options) error {
 			Port:      agent.Port,
 			KeyFile:   agent.KeyFile,
 			Local:     local,
+			Image:     agent.Image,
 		}
 		exe, err := deployagent.NewExecutor(agentOpt)
 		if err != nil {

@@ -15,6 +15,8 @@ package deleteagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Executor interface {
@@ -29,8 +31,12 @@ func NewExecutor(namespace, name string) (Executor, error) {
 	}
 
 	// Local executor
-	if agent.Host == "localhost" {
-		return newLocalExecutor(namespace, name), nil
+	if util.IsLocalHost(agent.Host) {
+		cli, err := iofog.NewLocalContainerClient()
+		if err != nil {
+			return nil, err
+		}
+		return newLocalExecutor(namespace, name, cli), nil
 	}
 
 	// Default executor
