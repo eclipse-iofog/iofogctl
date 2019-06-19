@@ -19,7 +19,8 @@ import (
 )
 
 func main() {
-	root := cmd.NewRootCommand()
-	err := root.Execute()
+
+	rootCmd := cmd.NewRootCommand()
+	err := rootCmd.Execute()
 	util.Check(err)
 }

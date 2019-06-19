@@ -15,16 +15,40 @@ package cmd
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
+const TitleHeader = "     _       ____                 __  __    \n" +
+	"    (_)___  / __/___  ____  _____/ /_/ / 	 \n" +
+	"   / / __ \\/ /_/ __ \\/ __ `/ ___/ __/ /   \n" +
+	"  / / /_/ / __/ /_/ / /_/ / /__/ /_/ /   	 \n" +
+	" /_/\\____/_/  \\____/\\__, /\\___/\\__/_/  \n" +
+	"                   /____/                   \n"
+
+const TitleMessage = "Welcome to the cool new iofogctl Cli!\n" +
+	"\n" +
+	"Use `iofogctl version` to display the current version.\n\n"
+
+func printHeader() {
+	util.PrintInfo(TitleHeader)
+	util.PrintInfo("\n")
+	util.PrintInfo(TitleMessage)
+}
+
 func NewRootCommand() *cobra.Command {
 
-	// Root command
 	var cmd = &cobra.Command{
-		Use:   "iofogctl",
-		Short: "ioFog Unified Command Line Interface",
-		Long:  "ioFog Unified Command Line Interface",
+		Use: "iofogctl",
+		//Short: "ioFog Unified Command Line Interface",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			printHeader()
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.SetArgs([]string{"-h"})
+			err := cmd.Execute()
+			util.Check(err)
+		},
 	}
 
 	// Initialize config filename
