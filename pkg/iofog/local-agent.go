@@ -45,6 +45,9 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid str
 	defer pb.Clear()
 
 	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user, pb)
+	if err != nil {
+		return "", err
+	}
 
 	// get local controller config
 	ctrlConfig := NewLocalControllerConfig(ctrl.Name, make(map[string]string))
