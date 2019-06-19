@@ -78,13 +78,14 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 	}, nil
 }
 
-func (k8s *Kubernetes) SetImages(images map[string]string) {
-	for key := range k8s.ms {
-		image, exists := images[key]
-		if exists {
-			k8s.ms[key].containers[0].image = image
+func (k8s *Kubernetes) SetImages(images map[string]string) error {
+	for key, img := range images {
+		if _, exists := k8s.ms[key]; !exists {
+			return util.NewInputError("Invalid ioFog service image name specified: " + key)
 		}
+		k8s.ms[key].containers[0].image = img
 	}
+	return nil
 }
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {

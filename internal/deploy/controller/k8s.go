@@ -38,7 +38,9 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure deploy
-	k8s.SetImages(exe.opt.Images)
+	if err = k8s.SetImages(exe.opt.Images); err != nil {
+		return err
+	}
 	k8s.SetControllerIP(exe.opt.KubeControllerIP)
 
 	var configUser config.IofogUser
