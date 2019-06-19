@@ -47,7 +47,10 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	var configUser config.IofogUser
 	// Check existing user
 	ctrl, err := config.GetController(exe.opt.Namespace, exe.opt.Name)
-	if err == nil {
+	if exe.opt.IofogUser.Email != "" {
+		// Use user provided in the yaml file
+		configUser = exe.opt.IofogUser
+	} else if err == nil {
 		// Use existing user
 		configUser = ctrl.IofogUser
 	} else {
