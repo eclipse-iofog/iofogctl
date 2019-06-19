@@ -79,6 +79,7 @@ func Execute(opt *Options) error {
 			KubeConfig:       ctrl.KubeConfig,
 			KubeControllerIP: ctrl.KubeControllerIP,
 			Images:           ctrl.Images,
+			IofogUser:        ctrl.IofogUser,
 		}
 		exe, err := deploycontroller.NewExecutor(ctrlOpt)
 		if err != nil {

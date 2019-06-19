@@ -58,6 +58,11 @@ type LocalAgentConfig struct {
 	Name string
 }
 
+func sanitizeContainerName(name string) string {
+	r := regexp.MustCompile("[^a-zA-Z0-9_.-]")
+	return r.ReplaceAllString(name, "-")
+}
+
 // NewAgentConfig generates a static agent config
 func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig) *LocalAgentConfig {
 	if image == "" {
@@ -70,7 +75,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 				port{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
 				port{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
 			},
-			ContainerName: fmt.Sprintf("iofog-agent-%s", name),
+			ContainerName: sanitizeContainerName(fmt.Sprintf("iofog-agent-%s", name)),
 			Image:         image,
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
@@ -91,7 +96,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap["controller"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
 		Ports:         []port{port{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}}},
-		ContainerName: "iofog-controller-" + name,
+		ContainerName: sanitizeContainerName("iofog-controller-" + name),
 		Image:         controllerImg,
 		Privileged:    false,
 		Binds:         []string{},
@@ -106,7 +111,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap["connector"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
 		Ports:         []port{port{Host: "8080", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}}},
-		ContainerName: "iofog-connector-" + name,
+		ContainerName: sanitizeContainerName("iofog-connector-" + name),
 		Image:         connectorImg,
 		Privileged:    false,
 		Binds:         []string{},
@@ -116,20 +121,6 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	return &LocalControllerConfig{
 		Name:         name,
 		ContainerMap: containerMap,
-	}
-}
-
-// GetLocalUserConfig return the user config
-func GetLocalUserConfig(namespace string, controllerName string) *LocalUserConfig {
-	ctrl, err := config.GetController(namespace, controllerName)
-	if err == nil {
-		// Use existing user
-		return &LocalUserConfig{ctrl.IofogUser}
-	} else {
-		// Generate new user
-		return &LocalUserConfig{
-			config.NewRandomUser(),
-		}
 	}
 }
 

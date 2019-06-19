@@ -35,11 +35,14 @@ type localExecutor struct {
 }
 
 func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
+	if opt.IofogUser.Email == "" {
+		opt.IofogUser = config.NewRandomUser()
+	}
 	return &localExecutor{
 		opt:                   opt,
 		client:                client,
 		localControllerConfig: iofog.NewLocalControllerConfig(opt.Name, opt.Images),
-		localUserConfig:       iofog.GetLocalUserConfig(opt.Namespace, opt.Name),
+		localUserConfig:       &iofog.LocalUserConfig{opt.IofogUser},
 		pb:                    pb.New(100),
 	}
 }

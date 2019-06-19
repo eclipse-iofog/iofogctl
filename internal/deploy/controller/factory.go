@@ -34,6 +34,7 @@ type Options struct {
 	KubeControllerIP string
 	ImagesFile       string
 	Images           map[string]string
+	IofogUser        config.IofogUser
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
