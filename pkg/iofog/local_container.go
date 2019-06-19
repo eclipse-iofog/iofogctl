@@ -185,17 +185,6 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 func (lc *LocalContainer) getPullOptions(image string) (ret types.ImagePullOptions) {
 	dockerUser := ""
 	dockerPwd := ""
-	// TODO: AlexD - Find a more elegant way to specify docker auth. (if needed)
-	gcrRegex := regexp.MustCompile("^((us|eu|asia)\\.){0,1}gcr\\.io\\/")
-	if gcrRegex.MatchString(image) {
-		dockerUser = "_json_key"
-		out, err := exec.Command("cat", "./edgeworx-iofog-95aff71cbc7a.json").Output()
-		if err != nil {
-			fmt.Printf("Failed to get gcloud auth token: %v\n", err)
-			return
-		}
-		dockerPwd = string(out)
-	}
 
 	if dockerUser != "" {
 		authConfig := types.AuthConfig{
@@ -249,8 +238,27 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	// Pull image
 	_, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig.Image))
 	if err != nil {
-		fmt.Printf("Failed to pull image: %v\n", err)
-		return "", err
+		imgs, listErr := lc.client.ImageList(ctx, types.ImageListOptions{All: true})
+		if listErr != nil {
+			fmt.Printf("Could not pull image: %v\n Could not list local images: %v\n", err, listErr)
+			return "", err
+		}
+		found := false
+		for idx := range imgs {
+			for _, tag := range imgs[idx].RepoTags {
+				if tag == containerConfig.Image {
+					found = true
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+		if !found {
+			fmt.Printf("Could not pull image: %v\n Could not find image [%v] locally, please run docker pull [%v]\n", err, containerConfig.Image, containerConfig.Image)
+			return "", err
+		}
 	}
 
 	// Create network if it does not exists
