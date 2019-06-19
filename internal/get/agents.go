@@ -88,7 +88,7 @@ func (exe *agentExecutor) Execute() error {
 		if agentInfos[idx].UUID == "" {
 			row := []string{
 				agent.Name,
-				"-",
+				"offline",
 				"-",
 				"-",
 				"-",
