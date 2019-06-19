@@ -62,7 +62,11 @@ func NewExecutor(opt *Options) (Executor, error) {
 		if err != nil {
 			return nil, err
 		}
-		return newLocalExecutor(opt, cli), nil
+		exe, err := newLocalExecutor(opt, cli)
+		if err != nil {
+			return nil, err
+		}
+		return exe, nil
 	}
 
 	// Default executor

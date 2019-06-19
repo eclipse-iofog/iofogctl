@@ -33,9 +33,10 @@ type Agent interface {
 type defaultAgent struct {
 	name      string
 	namespace string
+	pb        *pb.ProgressBar
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User, pb *pb.ProgressBar) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User) (key string, uuid string, err error) {
 	// Connect to controller
 	ctrl := NewController(controllerEndpoint)
 
@@ -49,7 +50,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User,
 		return
 	}
 	token := loginResponse.AccessToken
-	pb.Add(20)
+	agent.pb.Add(20)
 
 	// Create agent
 	createRequest := CreateAgentRequest{
@@ -61,14 +62,14 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User,
 		return
 	}
 	uuid = createResponse.UUID
-	pb.Add(20)
+	agent.pb.Add(20)
 
 	// Get provisioning key
 	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
 	if err != nil {
 		return
 	}
-	pb.Add(20)
+	agent.pb.Add(20)
 	key = provisionResponse.Key
 	return
 }

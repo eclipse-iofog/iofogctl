@@ -29,7 +29,7 @@ type LocalAgent struct {
 
 func NewLocalAgent(agentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
 	return &LocalAgent{
-		defaultAgent:     defaultAgent{name: agentConfig.Name},
+		defaultAgent:     defaultAgent{name: agentConfig.Name, pb: pb.New(100)},
 		localAgentConfig: agentConfig,
 		client:           client,
 	}
@@ -41,10 +41,7 @@ func (agent *LocalAgent) Bootstrap() error {
 }
 
 func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
-	pb := pb.New(100)
-	defer pb.Clear()
-
-	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user, pb)
+	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user)
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +56,6 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid str
 	// Instantiate provisioning commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
 	cmds := [][]string{
-		[]string{"apt-get", "install", "curl", "-y"},
 		[]string{"iofog-agent", "config", "-idc", "off"},
 		[]string{"iofog-agent", "config", "-a", controllerBaseURL},
 		[]string{"iofog-agent", "provision", key},

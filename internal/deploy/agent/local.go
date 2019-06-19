@@ -18,6 +18,8 @@ import (
 	"os/user"
 	"regexp"
 
+	pb "github.com/schollz/progressbar"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -27,14 +29,36 @@ type localExecutor struct {
 	opt              *Options
 	client           *iofog.LocalContainer
 	localAgentConfig *iofog.LocalAgentConfig
+	pb               *pb.ProgressBar
 }
 
-func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
+func getController(namespace string) (*config.Controller, error) {
+	controllers, err := config.GetControllers(namespace)
+	if err != nil {
+		println("You must deploy a Controller to a namespace before deploying any Agents")
+		return nil, err
+	}
+	if len(controllers) != 1 {
+		return nil, util.NewInternalError("Only support 1 controller per namespace")
+	}
+	return &controllers[0], nil
+}
+
+func newLocalExecutor(opt *Options, client *iofog.LocalContainer) (*localExecutor, error) {
+	// Get controllerConfig
+	controller, err := getController(opt.Namespace)
+	if err != nil {
+		return nil, err
+	}
+	// Get Controller LocalContainerConfig
+	localControllerConfig := iofog.NewLocalControllerConfig(controller.Name, make(map[string]string))
+	controllerContainerConfig, _ := localControllerConfig.ContainerMap["controller"]
 	return &localExecutor{
 		opt:              opt,
 		client:           client,
-		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name, opt.Image),
-	}
+		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name, opt.Image, controllerContainerConfig),
+		pb:               pb.New(100),
+	}, nil
 }
 
 func (exe *localExecutor) provisionAgent() (string, error) {
@@ -42,26 +66,24 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	agent := iofog.NewLocalAgent(exe.localAgentConfig, exe.client)
 
 	// Get Controller details
-	controllers, err := config.GetControllers(exe.opt.Namespace)
+	controller, err := getController(exe.opt.Namespace)
 	if err != nil {
-		println("You must deploy a Controller to a namespace before deploying any Agents")
 		return "", err
 	}
-	if len(controllers) != 1 {
-		return "", util.NewInternalError("Only support 1 controller per namespace")
-	}
 	user := iofog.User{
-		Name:     controllers[0].IofogUser.Name,
-		Surname:  controllers[0].IofogUser.Surname,
-		Email:    controllers[0].IofogUser.Email,
-		Password: controllers[0].IofogUser.Password,
+		Name:     controller.IofogUser.Name,
+		Surname:  controller.IofogUser.Surname,
+		Email:    controller.IofogUser.Email,
+		Password: controller.IofogUser.Password,
 	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(&controllers[0], user)
+	return agent.Configure(controller, user)
 }
 
 func (exe *localExecutor) Execute() error {
+	exe.pb.Add(1)
+	defer exe.pb.Clear()
 	// Get current user
 	currUser, err := user.Current()
 	if err != nil {
@@ -76,6 +98,7 @@ func (exe *localExecutor) Execute() error {
 	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
 		return err
 	}
+	exe.pb.Add(25)
 
 	agentContainerName := exe.localAgentConfig.ContainerName
 
@@ -93,6 +116,7 @@ func (exe *localExecutor) Execute() error {
 		}
 		return err
 	}
+	exe.pb.Add(25)
 
 	// Provision agent
 	uuid, err := exe.provisionAgent()
@@ -102,6 +126,7 @@ func (exe *localExecutor) Execute() error {
 		}
 		return err
 	}
+	exe.pb.Add(25)
 
 	// Update configuration
 	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
@@ -119,6 +144,7 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
+	exe.pb.Add(24)
 	if err = config.Flush(); err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			fmt.Printf("Could not clean container %s\n", agentContainerName)

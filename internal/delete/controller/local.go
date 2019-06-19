@@ -16,6 +16,8 @@ package deletecontroller
 import (
 	"fmt"
 
+	pb "github.com/schollz/progressbar"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
@@ -25,6 +27,7 @@ type localExecutor struct {
 	name                  string
 	client                *iofog.LocalContainer
 	localControllerConfig *iofog.LocalControllerConfig
+	pb                    *pb.ProgressBar
 }
 
 func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *localExecutor {
@@ -33,16 +36,21 @@ func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *loc
 		name:                  name,
 		client:                client,
 		localControllerConfig: iofog.NewLocalControllerConfig(name, make(map[string]string)),
+		pb:                    pb.New(100),
 	}
 	return exe
 }
 
 func (exe *localExecutor) Execute() error {
+	exe.pb.Add(1)
+	defer exe.pb.Clear()
 	// Clean controller and connector containers
+	exe.pb.Add(10)
 	for _, containerConfig := range exe.localControllerConfig.ContainerMap {
 		if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
 			fmt.Printf("Could not clean Controller container: %v", errClean)
 		}
+		exe.pb.Add(35)
 	}
 
 	// Update configuration
@@ -50,6 +58,7 @@ func (exe *localExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
+	exe.pb.Add(19)
 
 	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
 
