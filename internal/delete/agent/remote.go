@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"strings"
 )
 
@@ -44,30 +43,30 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if len(ctrlConfigs) != 1 {
-		return util.NewInputError("Cannot delete an Agent without a Controller in namespace " + exe.namespace)
-	}
 
-	// Get Controller endpoint and connect to Controller
-	endpoint := ctrlConfigs[0].Endpoint
-	ctrl := iofog.NewController(endpoint)
+	// If controller exists, deprovision the agent
+	if len(ctrlConfigs) > 0 {
+		// Get Controller endpoint and connect to Controller
+		endpoint := ctrlConfigs[0].Endpoint
+		ctrl := iofog.NewController(endpoint)
 
-	// Log into Controller
-	userConfig := ctrlConfigs[0].IofogUser
-	user := iofog.LoginRequest{
-		Email:    userConfig.Email,
-		Password: userConfig.Password,
-	}
-	loginResponse, err := ctrl.Login(user)
-	if err != nil {
-		return err
-	}
-	token := loginResponse.AccessToken
-
-	// Perform deletion of Agent through Controller
-	if err = ctrl.DeleteAgent(agent.UUID, token); err != nil {
-		if !strings.Contains(err.Error(), "NotFoundError") {
+		// Log into Controller
+		userConfig := ctrlConfigs[0].IofogUser
+		user := iofog.LoginRequest{
+			Email:    userConfig.Email,
+			Password: userConfig.Password,
+		}
+		loginResponse, err := ctrl.Login(user)
+		if err != nil {
 			return err
+		}
+		token := loginResponse.AccessToken
+
+		// Perform deletion of Agent through Controller
+		if err = ctrl.DeleteAgent(agent.UUID, token); err != nil {
+			if !strings.Contains(err.Error(), "NotFoundError") {
+				return err
+			}
 		}
 	}
 

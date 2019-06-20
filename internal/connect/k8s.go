@@ -30,7 +30,7 @@ func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
-	k8s, err := iofog.NewKubernetes(exe.opt.KubeFile)
+	k8s, err := iofog.NewKubernetes(exe.opt.KubeFile, exe.opt.Namespace)
 	if err != nil {
 		return err
 	}

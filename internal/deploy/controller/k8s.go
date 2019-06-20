@@ -33,7 +33,7 @@ func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Get Kubernetes cluster
-	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig)
+	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig, exe.opt.Namespace)
 	if err != nil {
 		return
 	}

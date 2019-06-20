@@ -44,14 +44,13 @@ func NewExecutor(opt *Options) (Executor, error) {
 		return nil, err
 	}
 
-	// Check the namespace does not contain a Controller yet
-	nbControllers := len(ns.Controllers)
-	if nbControllers > 0 {
-		return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
-	}
-
 	// Local executor
 	if opt.Local == true {
+		// Check the namespace does not contain a Controller yet
+		nbControllers := len(ns.Controllers)
+		if nbControllers > 0 {
+			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
+		}
 		cli, err := iofog.NewLocalContainerClient()
 		if err != nil {
 			return nil, err

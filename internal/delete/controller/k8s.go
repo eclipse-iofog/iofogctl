@@ -39,7 +39,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Instantiate Kubernetes object
-	k8s, err := iofog.NewKubernetes(ctrl.KubeConfig)
+	k8s, err := iofog.NewKubernetes(ctrl.KubeConfig, exe.namespace)
 
 	// Delete Controller on cluster
 	err = k8s.DeleteController()

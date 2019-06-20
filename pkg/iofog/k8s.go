@@ -24,7 +24,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 	"strings"
-	"time"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -38,7 +37,7 @@ type Kubernetes struct {
 }
 
 // NewKubernetes constructs an object to manage cluster
-func NewKubernetes(configFilename string) (*Kubernetes, error) {
+func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	// Replace ~ in filename
 	configFilename, err := util.ReplaceTilde(configFilename)
 	if err != nil {
@@ -73,7 +72,7 @@ func NewKubernetes(configFilename string) (*Kubernetes, error) {
 		clientset:      clientset,
 		extsClientset:  extsClientset,
 		crdName:        "iofogs.k8s.iofog.org",
-		ns:             "iofog",
+		ns:             namespace,
 		ms:             microservices,
 	}, nil
 }
@@ -99,12 +98,12 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	}
 	defer pbCtx.pb.Clear()
 
-	ips, err := k8s.waitForServices(k8s.ns, pbCtx)
+	ip, err := k8s.waitForService(k8s.ns, k8s.ms["controller"].name)
 	if err != nil {
 		return
 	}
 	println("")
-	endpoint = fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
+	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["controller"].port)
 
 	return
 }
@@ -237,9 +236,11 @@ func (k8s *Kubernetes) DeleteController() error {
 	pb.Add(10)
 
 	// Delete Namespace
-	if err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{}); err != nil {
-		if !isNotFound(err) {
-			return err
+	if k8s.ns != "default" {
+		if err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{}); err != nil {
+			if !isNotFound(err) {
+				return err
+			}
 		}
 	}
 	pb.Add(30)
@@ -312,20 +313,21 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 
 	pbCtx.pb.Add(pbSlice)
 
-	pbCtx.quota = pbSlice * 2
-	// Wait for Controller and Connector Pods
-	if err = k8s.waitForPods(k8s.ns, pbCtx); err != nil {
-		return
+	// Wait for pods
+	for _, ms := range coreMs {
+		if err = k8s.waitForPod(k8s.ns, ms.name); err != nil {
+			return
+		}
 	}
+	pbCtx.pb.Add(pbSlice * 3)
 
-	pbCtx.quota = pbSlice * 4
-	// Wait for Controller and Connector IPs and store them
-	ips, err = k8s.waitForServices(k8s.ns, pbCtx)
-	if err != nil {
-		return
+	// Wait for services
+	for _, ms := range coreMs {
+		if ip, err := k8s.waitForService(k8s.ns, ms.name); err != nil {
+			ips[ms.name] = ip
+		}
 	}
-
-	pbCtx.pb.Add(pbSlice)
+	pbCtx.pb.Add(pbSlice * 4)
 
 	// Connect to controller
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
@@ -465,35 +467,14 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	return
 }
 
-func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) error {
-	// Get Pods
-	podCount := 0
-	for podCount == 0 {
-		podList, err := k8s.clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
-		if err != nil {
-			return err
-		}
-		podCount = len(podList.Items)
-		if podCount == 0 {
-			time.Sleep(time.Second)
-		}
-	}
-
-	// Determine progress slice
-	pbSlice := pbCtx.quota / podCount
-	if pbSlice == 0 {
-		pbSlice = 1
-	}
-
+func (k8s *Kubernetes) waitForPod(namespace, name string) error {
 	// Get watch handler to observe changes to pods
 	watch, err := k8s.clientset.CoreV1().Pods(namespace).Watch(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
 
-	// Wait for cluster to be in ready state
-	readyPods := make(map[string]bool, 0)
-	// Keep reading events indefinitely
+	// Wait for pod events
 	for event := range watch.ResultChan() {
 		// Get the pod
 		pod, ok := event.Object.(*v1.Pod)
@@ -501,8 +482,11 @@ func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) e
 			return util.NewInternalError("Failed to wait for pods in namespace: " + namespace)
 		}
 		// Check pod is in running state
-		_, exists := readyPods[pod.Name]
-		if !exists && pod.Status.Phase == "Running" {
+		if pod.Name != name {
+			continue
+		}
+
+		if pod.Status.Phase == "Running" {
 			ready := true
 			for _, cond := range pod.Status.Conditions {
 				if cond.Status != "True" {
@@ -511,73 +495,38 @@ func (k8s *Kubernetes) waitForPods(namespace string, pbCtx progressBarContext) e
 				}
 			}
 			if ready {
-				readyPods[pod.Name] = true
-				pbCtx.pb.Add(pbSlice)
-				// All pods are ready
-				if len(readyPods) == podCount {
-					watch.Stop()
-				}
+				watch.Stop()
 			}
 		}
 	}
 	return nil
 }
 
-func (k8s *Kubernetes) waitForServices(namespace string, pbCtx progressBarContext) (map[string]string, error) {
-	// Get Services
-	serviceCount := 0
-	for serviceCount == 0 {
-		serviceList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
-		if err != nil {
-			return nil, err
-		}
-		// Return ips of services upon completion
-		serviceCount = len(serviceList.Items)
-		if serviceCount == 0 {
-			time.Sleep(time.Second)
-		}
-	}
-	ips := make(map[string]string, serviceCount)
-
-	// Determine progress slice
-	pbSlice := pbCtx.quota / serviceCount
-	if pbSlice == 0 {
-		pbSlice = 1
-	}
-
+func (k8s *Kubernetes) waitForService(namespace, name string) (ip string, err error) {
 	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(namespace).Watch(metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// Wait for Services to have IPs allocated
-	readyServices := make(map[string]bool, 0)
 	for event := range watch.ResultChan() {
 		svc, ok := event.Object.(*v1.Service)
 		if !ok {
-			return nil, util.NewInternalError("Failed to wait for services in namespace: " + namespace)
+			err = util.NewInternalError("Failed to wait for services in namespace: " + namespace)
+			return
 		}
-		// Check if the Service has a LB with an IP
-		_, exists := readyServices[svc.Name]
-		ipCount := len(svc.Status.LoadBalancer.Ingress)
-		if !exists && ipCount > 0 {
-			// We don't expect multiple IPs for service, lets error here because could be undefined behaviour
-			if ipCount != 1 {
-				return nil, util.NewInternalError("Found unexpected number of IPs for service: " + svc.Name)
-			}
-			// Record the IP
-			ips[svc.Name] = svc.Status.LoadBalancer.Ingress[0].IP
-			readyServices[svc.Name] = true
-			pbCtx.pb.Add(pbSlice)
-			// All services are ready
-			if len(readyServices) == serviceCount {
-				watch.Stop()
-			}
+
+		// Ignore irrelevant service events
+		if svc.Name != name {
+			continue
 		}
+
+		ip = svc.Status.LoadBalancer.Ingress[0].IP
+		watch.Stop()
 	}
 
-	return ips, nil
+	return
 }
 
 type progressBarContext struct {
