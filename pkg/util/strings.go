@@ -28,3 +28,12 @@ func ReplaceTilde(input string) (string, error) {
 	}
 	return input, nil
 }
+
+func Before(input string, substr string) string {
+	// Get substring before a string.
+	pos := strings.Index(input, substr)
+	if pos == -1 {
+		return ""
+	}
+	return input[0:pos]
+}

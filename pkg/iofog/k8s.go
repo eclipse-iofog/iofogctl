@@ -98,13 +98,12 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	}
 	defer pbCtx.pb.Clear()
 
-	ip, err := k8s.waitForService(k8s.ns, k8s.ms["controller"].name)
+	ip, err := k8s.waitForService(k8s.ms["controller"].name)
 	if err != nil {
 		return
 	}
 	println("")
 	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["controller"].port)
-
 	return
 }
 
@@ -315,17 +314,21 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 
 	// Wait for pods
 	for _, ms := range coreMs {
-		if err = k8s.waitForPod(k8s.ns, ms.name); err != nil {
+		if err = k8s.waitForPod(ms.name); err != nil {
 			return
 		}
 	}
 	pbCtx.pb.Add(pbSlice * 3)
 
-	// Wait for services
+	// Wait for services and get IPs
+	ips = make(map[string]string)
 	for _, ms := range coreMs {
-		if ip, err := k8s.waitForService(k8s.ns, ms.name); err != nil {
-			ips[ms.name] = ip
+		var ip string
+		ip, err = k8s.waitForService(ms.name)
+		if err != nil {
+			return
 		}
+		ips[ms.name] = ip
 	}
 	pbCtx.pb.Add(pbSlice * 4)
 
@@ -467,9 +470,9 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	return
 }
 
-func (k8s *Kubernetes) waitForPod(namespace, name string) error {
+func (k8s *Kubernetes) waitForPod(name string) error {
 	// Get watch handler to observe changes to pods
-	watch, err := k8s.clientset.CoreV1().Pods(namespace).Watch(metav1.ListOptions{})
+	watch, err := k8s.clientset.CoreV1().Pods(k8s.ns).Watch(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -479,10 +482,10 @@ func (k8s *Kubernetes) waitForPod(namespace, name string) error {
 		// Get the pod
 		pod, ok := event.Object.(*v1.Pod)
 		if !ok {
-			return util.NewInternalError("Failed to wait for pods in namespace: " + namespace)
+			return util.NewInternalError("Failed to wait for pods in namespace: " + k8s.ns)
 		}
 		// Check pod is in running state
-		if pod.Name != name {
+		if util.Before(pod.Name, "-") != name {
 			continue
 		}
 
@@ -502,9 +505,9 @@ func (k8s *Kubernetes) waitForPod(namespace, name string) error {
 	return nil
 }
 
-func (k8s *Kubernetes) waitForService(namespace, name string) (ip string, err error) {
+func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
 	// Get watch handler to observe changes to services
-	watch, err := k8s.clientset.CoreV1().Services(namespace).Watch(metav1.ListOptions{})
+	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(metav1.ListOptions{})
 	if err != nil {
 		return
 	}
@@ -513,7 +516,7 @@ func (k8s *Kubernetes) waitForService(namespace, name string) (ip string, err er
 	for event := range watch.ResultChan() {
 		svc, ok := event.Object.(*v1.Service)
 		if !ok {
-			err = util.NewInternalError("Failed to wait for services in namespace: " + namespace)
+			err = util.NewInternalError("Failed to wait for services in namespace: " + k8s.ns)
 			return
 		}
 
