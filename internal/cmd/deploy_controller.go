@@ -31,7 +31,7 @@ func newDeployControllerCommand() *cobra.Command {
 
 On a Kubernetes deployment, this will install all resources under the iofog namespace.`,
 		Example: `iofogctl deploy controller NAME --local 
- iofogctl deploy controller NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
+iofogctl deploy controller NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
 iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
