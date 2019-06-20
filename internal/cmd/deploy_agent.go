@@ -31,7 +31,7 @@ func newDeployAgentCommand() *cobra.Command {
 
 A Controller must first be deployed within the corresponding namespace in order to provision the Agent.`,
 		Example: `iofogctl deploy agent NAME --local
-iofogctl deploy agent NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa`,
+iofogctl deploy agent NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_rsa`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -55,7 +55,7 @@ iofogctl deploy agent NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_e
 	cmd.Flags().StringVarP(&opt.User, "user", "u", "", "Username of host the Agent is being deployed on")
 	cmd.Flags().StringVarP(&opt.Host, "host", "o", "", "IP or hostname of host the Agent is being deployed on")
 	cmd.Flags().IntVarP(&opt.Port, "port", "p", 22, "SSH port to use when deploying agent to host")
-	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir")
+	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.")
 	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment. Cannot be used with other flags")
 	cmd.Flags().Lookup("local").NoOptDefVal = "true"
 

@@ -31,7 +31,7 @@ func newDeployControllerCommand() *cobra.Command {
 
 On a Kubernetes deployment, this will install all resources under the iofog namespace.`,
 		Example: `iofogctl deploy controller NAME --local 
-iofogctl deploy controller NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_ecdsa
+iofogctl deploy controller NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_rsa
 iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -55,7 +55,7 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 	// Set up options
 	cmd.Flags().StringVarP(&opt.User, "user", "u", "", "Username of host the Controller is being deployed on")
 	cmd.Flags().StringVarP(&opt.Host, "host", "o", "", "IP or hostname of host the Controller is being deployed on")
-	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir")
+	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.")
 	cmd.Flags().StringVarP(&opt.KubeConfig, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
 	cmd.Flags().StringVar(&opt.KubeControllerIP, "kube-controller-ip", "", "Static IP to assign to Kubernetes LoadBalancer")
 	cmd.Flags().StringVar(&opt.ImagesFile, "images", "", "Filename of YAML containing list of ioFog service images to be deployed on K8s cluster")
