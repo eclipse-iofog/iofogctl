@@ -31,7 +31,7 @@ func newConnectCommand() *cobra.Command {
 
 This command must be executed within an empty or non-existent namespace.
 All resources provisioned with the corresponding Controller will become visible under the namespace.`,
-		Example: `iofogctl connect CONTROLLERNAME --endpoint 123.321.123.22:51121 --email EMAIL --pass PASSWORD
+		Example: `iofogctl connect CONTROLLERNAME --controller 123.321.123.22:51121 --email EMAIL --pass PASSWORD
 iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass PASSWORD`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -52,7 +52,7 @@ iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass 
 			util.Check(err)
 		},
 	}
-	cmd.Flags().StringVarP(&opt.Endpoint, "endpoint", "o", "", "Host and port (host:port) of the Controller you are connecting to")
+	cmd.Flags().StringVarP(&opt.Endpoint, "controller", "c", "", "Host and port (host:port) of the Controller you are connecting to")
 	cmd.Flags().StringVarP(&opt.KubeFile, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
 	cmd.Flags().StringVarP(&opt.Email, "email", "e", "", "Email address of user registered against Controller")
 	cmd.Flags().StringVarP(&opt.Password, "pass", "p", "", "Password of user registered against Controller")
