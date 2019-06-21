@@ -525,6 +525,11 @@ func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
 			continue
 		}
 
+		// Loadbalancer must be ready
+		if len(svc.Status.LoadBalancer.Ingress) == 0 {
+			continue
+		}
+
 		ip = svc.Status.LoadBalancer.Ingress[0].IP
 		watch.Stop()
 	}
