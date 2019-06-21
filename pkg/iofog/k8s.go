@@ -98,6 +98,29 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	}
 	defer pbCtx.pb.Clear()
 
+	// Check service exists
+	doesNotExistMsg := "Kubernetes Service controller in namespace " + k8s.ns
+	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	if svcs == nil || len(svcs.Items) == 0 {
+		err = util.NewNotFoundError(doesNotExistMsg)
+		return
+	}
+	found := false
+	for _, svc := range svcs.Items {
+		if svc.Name == "controller" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		err = util.NewNotFoundError(doesNotExistMsg)
+		return
+	}
+	
+	// Wait for IP
 	ip, err := k8s.waitForService(k8s.ms["controller"].name)
 	if err != nil {
 		return
