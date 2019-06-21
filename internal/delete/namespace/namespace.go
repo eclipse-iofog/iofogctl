@@ -20,6 +20,11 @@ import (
 )
 
 func Execute(name string) error {
+	// Disallow deletion of default
+	if name == "default" {
+		return util.NewInputError("Cannot delete default namespace")
+	}
+
 	// Get config
 	ns, err := config.GetNamespace(name)
 	if err != nil {
