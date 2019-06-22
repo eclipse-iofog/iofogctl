@@ -31,7 +31,7 @@ func newDeployAgentCommand() *cobra.Command {
 
 A Controller must first be deployed within the corresponding namespace in order to provision the Agent.`,
 		Example: `iofogctl deploy agent NAME --local
-iofogctl deploy agent NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_rsa`,
+iofogctl deploy agent NAME --user root --host 32.23.134.3 --key-file ~/.ssh/id_rsa`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
