@@ -21,7 +21,7 @@ import (
 // Check error and exit
 func Check(err error) {
 	if err != nil {
-		println(err.Error())
+		PrintError(err.Error())
 		os.Exit(1)
 	}
 }

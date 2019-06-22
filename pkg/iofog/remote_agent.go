@@ -56,16 +56,16 @@ func (agent *RemoteAgent) Bootstrap() error {
 
 	// Execute commands
 	cmds := []command{
-		{"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp", 1},
-		{"sudo apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq", 5},
-		{"curl " + installURL + " | sudo tee /opt/linux.sh", 2},
-		{"sudo chmod +x /opt/linux.sh", 1},
-		{"sudo /opt/linux.sh " + installArgs, 70},
-		{"sudo service iofog-agent start", 3},
+		{"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp", 1},
+		{"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq", 5},
+		{"curl " + installURL + " | sudo  -S tee /opt/linux.sh", 2},
+		{"sudo -S chmod +x /opt/linux.sh", 1},
+		{"sudo -S /opt/linux.sh " + installArgs, 70},
+		{"sudo -S service iofog-agent start", 3},
 		{"echo '" + waitForAgentScript + "' | tee ~/wait-for-agent.sh", 1},
-		{"sudo chmod +x ~/wait-for-agent.sh", 1},
+		{"sudo -S chmod +x ~/wait-for-agent.sh", 1},
 		{"~/wait-for-agent.sh", 15},
-		{"sudo iofog-agent config -cf 10 -sf 10", 1},
+		{"sudo -S iofog-agent config -cf 10 -sf 10", 1},
 	}
 
 	// Prepare progress bar
@@ -74,9 +74,11 @@ func (agent *RemoteAgent) Bootstrap() error {
 
 	// Execute commands
 	for _, cmd := range cmds {
+		util.PrintInfo(cmd.cmd)
 		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
 		if err != nil {
+			util.PrintError(err.Error())
 			return err
 		}
 	}

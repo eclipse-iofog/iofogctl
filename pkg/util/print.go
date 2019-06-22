@@ -28,26 +28,26 @@ const Green = "\033[38;5;28m"
 // Print a 'message' with CSkyblue color text
 //
 func PrintInfo(message string) {
-	fmt.Printf(CSkyblue + message + NoFormat)
+	fmt.Printf(CSkyblue + message + NoFormat + "\n")
 }
 
 //
 // Print 'message' with CDeepskyblue color text and background
 //
 func PrintNotify(message string) {
-	fmt.Printf(CDeepskyblue + message + NoFormat)
+	fmt.Printf(CDeepskyblue + message + NoFormat + "\n")
 }
 
 //
 // Print 'message' with green color text
 //
 func PrintSucess(message string) {
-	fmt.Printf(Green + message + NoFormat)
+	fmt.Printf(Green + message + NoFormat + "\n")
 }
 
 //
 // Print 'message' with red color text
 //
 func PrintError(message string) {
-	fmt.Printf(Red + message + NoFormat)
+	fmt.Printf(Red + message + NoFormat + "\n")
 }
