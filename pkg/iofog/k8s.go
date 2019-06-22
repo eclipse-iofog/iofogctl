@@ -119,7 +119,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 		err = util.NewNotFoundError(doesNotExistMsg)
 		return
 	}
-	
+
 	// Wait for IP
 	ip, err := k8s.waitForService(k8s.ms["controller"].name)
 	if err != nil {

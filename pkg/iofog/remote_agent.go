@@ -62,8 +62,8 @@ func (agent *RemoteAgent) Bootstrap() error {
 		{"sudo -S chmod +x /opt/linux.sh", 1},
 		{"sudo -S /opt/linux.sh " + installArgs, 70},
 		{"sudo -S service iofog-agent start", 3},
-		{"echo '" + waitForAgentScript + "' | tee ~/wait-for-agent.sh", 1},
-		{"sudo -S chmod +x ~/wait-for-agent.sh", 1},
+		{"echo '" + waitForAgentScript + "' > ~/wait-for-agent.sh", 1},
+		{"chmod +x ~/wait-for-agent.sh", 1},
 		{"~/wait-for-agent.sh", 15},
 		{"sudo -S iofog-agent config -cf 10 -sf 10", 1},
 	}
