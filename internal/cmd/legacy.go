@@ -31,7 +31,7 @@ func newLegacyCommand() *cobra.Command {
 		Short: "Execute commands using legacy CLI",
 		Long:  `Execute commands using legacy CLI`,
 		Example: `iofogctl get all
-iofogctl legacy controller NAME status
+iofogctl legacy controller NAME iofog
 iofogctl legacy connector NAME status
 iofogctl legacy agent NAME status`,
 		Args: cobra.MinimumNArgs(3),
@@ -64,7 +64,7 @@ iofogctl legacy agent NAME status`,
 					return
 				}
 				podName := podList.Items[0].Name
-				kubeArgs := []string{"exec", podName, "-n", "iofog", "--", "node", "/controller/src/main"}
+				kubeArgs := []string{"exec", podName, "-n", "iofog", "--", "iofog-controller"}
 				kubeArgs = append(kubeArgs, args[2:]...)
 				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
@@ -88,6 +88,8 @@ iofogctl legacy agent NAME status`,
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
+				ctrl.KubeConfig, err = util.ReplaceTilde(ctrl.KubeConfig)
+				util.Check(err)
 				// Connect to cluster
 				//Execute
 				config, err := clientcmd.BuildConfigFromFlags("", ctrl.KubeConfig)
@@ -100,7 +102,7 @@ iofogctl legacy agent NAME status`,
 					return
 				}
 				podName := podList.Items[0].Name
-				kubeArgs := []string{"exec", podName, "-n", "iofog", "--", "java", "-jar", "/usr/bin/iofog-connectord.jar"}
+				kubeArgs := []string{"exec", podName, "-n", "iofog", "--", "iofog-connector"}
 				kubeArgs = append(kubeArgs, args[2:]...)
 				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
