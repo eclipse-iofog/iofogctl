@@ -42,20 +42,13 @@ func (exe *agentExecutor) Execute() error {
 		return util.NewInternalError("Expected 0 or 1 controller in namespace " + exe.namespace)
 	}
 
-	// Generate table and headers
-	table := make([][]string, len(ns.Agents)+1)
-	headers := []string{
-		"AGENT",
-		"STATUS",
-		"AGE",
-		"UPTIME",
-		"IP",
-		"VERSION",
+	// Pre process the output with agent names
+	agentInfos := make([]iofog.AgentInfo, len(ns.Agents))
+	for idx, agent := range ns.Agents {
+		agentInfos[idx].Name = agent.Name
 	}
-	table[0] = append(table[0], headers...)
 
 	// Connect to controller if it is ready
-	agentInfos := make([]iofog.AgentInfo, len(ns.Agents))
 	if len(ns.Controllers) > 0 && ns.Controllers[0].Endpoint != "" {
 		ctrl := iofog.NewController(ns.Controllers[0].Endpoint)
 		loginRequest := iofog.LoginRequest{
@@ -65,7 +58,7 @@ func (exe *agentExecutor) Execute() error {
 		// Send requests to controller
 		loginResponse, err := ctrl.Login(loginRequest)
 		if err != nil {
-			return err
+			return tabulate(agentInfos)
 		}
 		token := loginResponse.AccessToken
 
@@ -77,14 +70,29 @@ func (exe *agentExecutor) Execute() error {
 				if strings.Contains(err.Error(), "NotFoundError") {
 					continue
 				}
-				return err
+				return tabulate(agentInfos)
 			}
 			agentInfos[idx] = agentInfo
 		}
 	}
 
+	return tabulate(agentInfos)
+}
+
+func tabulate(agentInfos []iofog.AgentInfo) error {
+	// Generate table and headers
+	table := make([][]string, len(agentInfos)+1)
+	headers := []string{
+		"AGENT",
+		"STATUS",
+		"AGE",
+		"UPTIME",
+		"IP",
+		"VERSION",
+	}
+	table[0] = append(table[0], headers...)
 	// Populate rows
-	for idx, agent := range ns.Agents {
+	for idx, agent := range agentInfos {
 		// if UUID is empty, we assume the agent is not provided
 		if agentInfos[idx].UUID == "" {
 			row := []string{
@@ -97,25 +105,20 @@ func (exe *agentExecutor) Execute() error {
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
-			age, _ := util.ElapsedRFC(agentInfos[idx].CreatedTimeRFC3339, util.NowRFC())
-			uptime := time.Duration(agentInfos[idx].DaemonUptimeDurationMsUTC)
+			age, _ := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC())
+			uptime := time.Duration(agent.DaemonUptimeDurationMsUTC)
 			row := []string{
 				agent.Name,
-				agentInfos[idx].DaemonStatus,
+				agent.DaemonStatus,
 				age,
 				util.FormatDuration(uptime),
-				agentInfos[idx].IPAddress,
-				agentInfos[idx].Version,
+				agent.IPAddress,
+				agent.Version,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}
 	}
 
 	// Print table
-	err = print(table)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return print(table)
 }
