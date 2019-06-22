@@ -50,6 +50,7 @@ func (exe *agentExecutor) Execute() error {
 		"AGE",
 		"UPTIME",
 		"IP",
+		"VERSION",
 	}
 	table[0] = append(table[0], headers...)
 
@@ -92,6 +93,7 @@ func (exe *agentExecutor) Execute() error {
 				"-",
 				"-",
 				"-",
+				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
@@ -103,6 +105,7 @@ func (exe *agentExecutor) Execute() error {
 				age,
 				util.FormatDuration(uptime),
 				agentInfos[idx].IPAddress,
+				agentInfos[idx].Version,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}
