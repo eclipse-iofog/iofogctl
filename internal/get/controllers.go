@@ -38,7 +38,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME"}
+	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "IP", "PORT"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -66,6 +66,8 @@ func (exe *controllerExecutor) Execute() error {
 			status,
 			age,
 			uptime,
+			util.Before(ctrlConfig.Endpoint, ":"),
+			util.After(ctrlConfig.Endpoint, ":"),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}

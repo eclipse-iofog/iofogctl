@@ -30,10 +30,17 @@ func ReplaceTilde(input string) (string, error) {
 }
 
 func Before(input string, substr string) string {
-	// Get substring before a string.
 	pos := strings.Index(input, substr)
 	if pos == -1 {
 		return ""
 	}
 	return input[0:pos]
+}
+
+func After(input string, substr string) string {
+	pos := strings.Index(input, substr)
+	if pos == -1 || pos >= len(input)-1 {
+		return ""
+	}
+	return input[pos+1:]
 }
