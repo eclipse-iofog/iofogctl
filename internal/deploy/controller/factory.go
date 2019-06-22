@@ -44,6 +44,14 @@ func NewExecutor(opt *Options) (Executor, error) {
 		return nil, err
 	}
 
+	// Check there is only a single unique controller in the namespace
+	if len(ns.Controllers) > 0 {
+		existingName := ns.Controllers[0].Name
+		if existingName != opt.Name {
+			return nil, util.NewInputError("Controller " + existingName + " already exists in namespace " + opt.Namespace + "\nDelete the existing Controller before making a new one")
+		}
+	}
+
 	// Local executor
 	if opt.Local == true {
 		// Check the namespace does not contain a Controller yet
