@@ -15,7 +15,7 @@ package get
 
 import (
 	"strings"
-	"time"
+	//	"time"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
@@ -86,7 +86,7 @@ func tabulate(agentInfos []iofog.AgentInfo) error {
 		"AGENT",
 		"STATUS",
 		"AGE",
-		"UPTIME",
+		//"UPTIME",
 		"IP",
 		"VERSION",
 	}
@@ -99,19 +99,19 @@ func tabulate(agentInfos []iofog.AgentInfo) error {
 				agent.Name,
 				"offline",
 				"-",
-				"-",
+				//"-",
 				"-",
 				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
 			age, _ := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC())
-			uptime := time.Duration(agent.DaemonUptimeDurationMsUTC)
+			//uptime := time.Duration(agent.DaemonUptimeDurationMsUTC)
 			row := []string{
 				agent.Name,
 				agent.DaemonStatus,
 				age,
-				util.FormatDuration(uptime),
+				//util.FormatDuration(uptime),
 				agent.IPAddress,
 				agent.Version,
 			}

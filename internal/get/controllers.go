@@ -38,7 +38,14 @@ func (exe *controllerExecutor) Execute() error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "IP", "PORT"}
+	headers := []string{
+		"CONTROLLER",
+		"STATUS",
+		"AGE",
+		//"UPTIME",
+		"IP",
+		"PORT",
+	}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -48,11 +55,11 @@ func (exe *controllerExecutor) Execute() error {
 
 		// Ping status
 		ctrlStatus, err := ctrl.GetStatus()
-		uptime := "-"
+		//uptime := "-"
 		status := "Failing"
 		if err == nil {
-			uptimeSec := ctrlStatus.UptimeTimeMsUTC / int64(1000)
-			uptime, _ = util.ElapsedUTC(util.FromIntUTC(uptimeSec), util.NowUTC())
+			//uptimeSec := ctrlStatus.UptimeTimeMsUTC / int64(1000)
+			//uptime, _ = util.ElapsedUTC(util.FromIntUTC(uptimeSec), util.NowUTC())
 			status = ctrlStatus.Status
 		}
 
@@ -65,7 +72,7 @@ func (exe *controllerExecutor) Execute() error {
 			ctrlConfig.Name,
 			status,
 			age,
-			uptime,
+			//uptime,
 			util.Before(ctrlConfig.Endpoint, ":"),
 			util.After(ctrlConfig.Endpoint, ":"),
 		}
