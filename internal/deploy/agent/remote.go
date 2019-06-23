@@ -67,8 +67,8 @@ func (exe *remoteExecutor) Execute() error {
 	agent := iofog.NewRemoteAgent(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile, exe.opt.Name)
 
 	// Try the install
-	agentError := agent.Bootstrap()
-	if agentError != nil {
+	err = agent.Bootstrap()
+	if err != nil {
 		return err
 	}
 

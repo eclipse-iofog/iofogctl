@@ -77,7 +77,6 @@ func (agent *RemoteAgent) Bootstrap() error {
 		_, err = agent.ssh.Run(cmd.cmd)
 		pb.Add(cmd.pbSlice)
 		if err != nil {
-			util.PrintError(err.Error())
 			return err
 		}
 	}
