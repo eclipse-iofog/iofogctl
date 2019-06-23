@@ -52,6 +52,20 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 	token := loginResponse.AccessToken
 	agent.pb.Add(20)
 
+	// Delete existing agents with same name
+	var agentList ListAgentsResponse
+	agentList, err = ctrl.ListAgents(token)
+	if err != nil {
+		return
+	}
+	for _, existingAgent := range agentList.Agents {
+		if existingAgent.Name == agent.name {
+			if err = ctrl.DeleteAgent(existingAgent.UUID, token); err != nil {
+				return
+			}
+		}
+	}
+
 	// Create agent
 	createRequest := CreateAgentRequest{
 		Name:    agent.name,
