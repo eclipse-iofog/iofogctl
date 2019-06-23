@@ -126,11 +126,13 @@ func Execute(opt *Options) error {
 		}
 
 		wg.Add(1)
-		go func() {
+		go func(name string) {
 			defer wg.Done()
 			err := exe.Execute()
-			util.Check(err)
-		}()
+			if err != nil {
+				util.Check(util.NewInternalError("Failed to deploy agent " + name))
+			}
+		}(agent.Name)
 	}
 	wg.Wait()
 
