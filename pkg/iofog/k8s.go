@@ -407,7 +407,7 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	connectorRequest := ConnectorInfo{
 		IP:      ips["connector"],
 		DevMode: true,
-		Domain:  "connector",
+		Domain:  ips["connector"],
 		Name:    "gke",
 	}
 	if err = ctrl.AddConnector(connectorRequest, token); err != nil {
