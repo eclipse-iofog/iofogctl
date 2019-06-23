@@ -16,7 +16,7 @@ package util
 import "fmt"
 
 //
-// These are the colors we'll use in printing output
+// These are the colors we'll use in pretty printing output
 //
 const NoFormat = "\033[0m"
 const CSkyblue = "\033[38;5;117m"
