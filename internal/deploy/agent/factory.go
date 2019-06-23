@@ -50,12 +50,6 @@ func NewExecutor(opt *Options) (Executor, error) {
 		return nil, util.NewInputError(errMessage)
 	}
 
-	// Check Agent already exists
-	_, err = config.GetAgent(opt.Namespace, opt.Name)
-	if err == nil {
-		return nil, util.NewConflictError(opt.Namespace + "/" + opt.Name)
-	}
-
 	// Local executor
 	if opt.Local == true {
 		cli, err := iofog.NewLocalContainerClient()

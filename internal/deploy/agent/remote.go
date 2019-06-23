@@ -71,7 +71,7 @@ func (exe *remoteExecutor) Execute() error {
 		UUID:    uuid,
 		Created: util.NowUTC(),
 	}
-	err = config.AddAgent(exe.opt.Namespace, configEntry)
+	err = config.UpdateAgent(exe.opt.Namespace, configEntry)
 	if err != nil {
 		return err
 	}

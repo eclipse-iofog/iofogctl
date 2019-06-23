@@ -194,6 +194,25 @@ func UpdateController(namespace string, controller Controller) error {
 	return nil
 }
 
+// Overwrites or creates new agent to the namespace
+func UpdateAgent(namespace string, agent Agent) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	// Update existing agent if exists
+	for idx := range ns.Agents {
+		if ns.Agents[idx].Name == agent.Name {
+			ns.Agents[idx] = agent
+			return nil
+		}
+	}
+	// Add new agent
+	AddAgent(namespace, agent)
+
+	return nil
+}
+
 // AddController adds a new controller to the namespace
 func AddController(namespace string, controller Controller) error {
 	_, err := GetController(namespace, controller.Name)
