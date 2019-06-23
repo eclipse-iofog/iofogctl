@@ -24,6 +24,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 	"strings"
+	"time"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -296,8 +297,18 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 			if !isAlreadyExists(err) {
 				return
 			}
-			// Update it if it exists
-			if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Update(dep); err != nil {
+			// Delete existing
+			if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(dep.Name, &metav1.DeleteOptions{}); err != nil {
+				return
+			}
+			if err = k8s.waitForPodTerminate(dep.Name); err != nil {
+				return
+			}
+			// Create new
+			if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
+				return
+			}
+			if err = k8s.waitForPod(dep.Name); err != nil {
 				return
 			}
 		}
@@ -322,8 +333,11 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 				if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
 					return
 				}
+				// Wait for completion
+				if _, err = k8s.waitForService(svc.Name); err != nil {
+					return
+				}
 			}
-
 		}
 		svcAcc := newServiceAccount(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
@@ -359,11 +373,21 @@ func (k8s *Kubernetes) createCore(user User, pbCtx progressBarContext) (token st
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
 	ctrl := NewController(endpoint)
 
-	// Create user
-	if err = ctrl.CreateUser(user); err != nil {
-		if !strings.Contains(err.Error(), "already an account associated") {
-			return
+	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
+	connected := false
+	for !connected {
+		if err = ctrl.CreateUser(user); err != nil {
+			if !strings.Contains(err.Error(), "already an account associated") {
+				if strings.Contains(err.Error(), "connection refused") {
+					continue
+				}
+				return
+			}
+		} else {
+			connected = true
+			continue
 		}
+		time.Sleep(time.Millisecond * 1000)
 	}
 	pbCtx.pb.Add(pbSlice)
 
@@ -403,8 +427,18 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 		if !isAlreadyExists(err) {
 			return
 		}
-		// Update it if it exists
-		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Update(schedDep); err != nil {
+		// Delete existing
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(schedDep.Name, &metav1.DeleteOptions{}); err != nil {
+			return
+		}
+		if err = k8s.waitForPodTerminate(schedDep.Name); err != nil {
+			return
+		}
+		// Create new
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
+			return
+		}
+		if err = k8s.waitForPod(schedDep.Name); err != nil {
 			return
 		}
 	}
@@ -493,6 +527,23 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string, pbCt
 	return
 }
 
+func (k8s *Kubernetes) waitForPodTerminate(name string) error {
+	terminating := false
+	for !terminating {
+		_, err := k8s.clientset.CoreV1().Pods(k8s.ns).Get(name, metav1.GetOptions{})
+		if err != nil {
+			terminating = strings.Contains(err.Error(), "not found")
+			if !terminating {
+				return err
+			}
+		}
+		if !terminating {
+			time.Sleep(time.Millisecond * 500)
+		}
+	}
+	return nil
+}
+
 func (k8s *Kubernetes) waitForPod(name string) error {
 	// Get watch handler to observe changes to pods
 	watch, err := k8s.clientset.CoreV1().Pods(k8s.ns).Watch(metav1.ListOptions{})
@@ -547,7 +598,6 @@ func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
 		if svc.Name != name {
 			continue
 		}
-
 		// Loadbalancer must be ready
 		if len(svc.Status.LoadBalancer.Ingress) == 0 {
 			continue
