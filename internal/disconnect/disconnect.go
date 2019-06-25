@@ -19,7 +19,6 @@ import (
 
 type Options struct {
 	Namespace string
-	Name      string
 }
 
 func Execute(opt *Options) error {

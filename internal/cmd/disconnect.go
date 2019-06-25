@@ -25,20 +25,16 @@ func newDisconnectCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "disconnect CONTROLLERNAME",
+		Use:   "disconnect",
 		Short: "Disconnect from an ioFog cluster",
 		Long: `Disconnect from an ioFog cluster.
 
-This will not teardown any components of the cluster.
+This will NOT teardown any components of the cluster. If you would like to tear down deployments, use the delete command.
 
 This will leave the corresponding namespace empty.`,
-		Example: `iofogctl disconnect CONTROLLERNAME
-iofogctl disconnect CONTROLLERNAME`,
-		Args: cobra.ExactValidArgs(1),
+		Example: `iofogctl disconnect -n NAMESPACE`,
+		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get Controller name
-			opt.Name = args[0]
-
 			// Get namespace option
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
