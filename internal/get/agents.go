@@ -46,6 +46,7 @@ func (exe *agentExecutor) Execute() error {
 	agentInfos := make([]iofog.AgentInfo, len(ns.Agents))
 	for idx, agent := range ns.Agents {
 		agentInfos[idx].Name = agent.Name
+		agentInfos[idx].IPAddress = agent.Host
 	}
 
 	// Connect to controller if it is ready
@@ -100,7 +101,7 @@ func tabulate(agentInfos []iofog.AgentInfo) error {
 				"offline",
 				"-",
 				"-",
-				"-",
+				agent.IPAddress,
 				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
