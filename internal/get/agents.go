@@ -73,6 +73,9 @@ func (exe *agentExecutor) Execute() error {
 				}
 				return tabulate(agentInfos)
 			}
+			if agentInfo.IPAddress == "0.0.0.0" {
+				agentInfo.IPAddress = agent.Host
+			}
 			agentInfos[idx] = agentInfo
 		}
 	}
