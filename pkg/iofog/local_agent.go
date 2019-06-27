@@ -61,6 +61,8 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid str
 		{"iofog-agent", "provision", key},
 	}
 
+	// TODO: Verify provisioning succeeded
+
 	// Execute commands
 	for _, cmd := range cmds {
 		err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)

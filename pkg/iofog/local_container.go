@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -201,6 +202,34 @@ func (lc *LocalContainer) getPullOptions(image string) (ret types.ImagePullOptio
 	return
 }
 
+func getImageTag(image string) string {
+	if strings.HasPrefix(image, "docker.io/") {
+		return image[len("docker.io/"):]
+	}
+	return image
+}
+
+func (lc *LocalContainer) waitForImage(image string, counter int8) error {
+	if counter >= 10 {
+		return util.NewInternalError("Could not find newly pulled image: " + image)
+	}
+	ctx := context.Background()
+	imgs, listErr := lc.client.ImageList(ctx, types.ImageListOptions{All: true})
+	if listErr != nil {
+		fmt.Printf("Could not list local images: %v\n", listErr)
+		return listErr
+	}
+	for idx := range imgs {
+		for _, tag := range imgs[idx].RepoTags {
+			if tag == image {
+				return nil
+			}
+		}
+	}
+	time.Sleep(10 * time.Second)
+	return lc.waitForImage(image, counter+1)
+}
+
 // DeployContainer deploys a container based on an image and a port mappin
 func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig) (string, error) {
 	ctx := context.Background()
@@ -237,16 +266,18 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 
 	// Pull image
 	_, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig.Image))
+	imageTag := getImageTag(containerConfig.Image)
 	if err != nil {
+		fmt.Printf("Could not pull image: %v, listing local images...\n", err)
 		imgs, listErr := lc.client.ImageList(ctx, types.ImageListOptions{All: true})
 		if listErr != nil {
-			fmt.Printf("Could not pull image: %v\n Could not list local images: %v\n", err, listErr)
+			fmt.Printf("Could not list local images: %v\n", listErr)
 			return "", err
 		}
 		found := false
 		for idx := range imgs {
 			for _, tag := range imgs[idx].RepoTags {
-				if tag == containerConfig.Image {
+				if tag == imageTag {
 					found = true
 					break
 				}
@@ -257,6 +288,12 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		}
 		if !found {
 			fmt.Printf("Could not pull image: %v\n Could not find image [%v] locally, please run docker pull [%v]\n", err, containerConfig.Image, containerConfig.Image)
+			return "", err
+		}
+	} else {
+		// Wait for image to be discoverable by docker daemon
+		err = lc.waitForImage(imageTag, 0)
+		if err != nil {
 			return "", err
 		}
 	}
