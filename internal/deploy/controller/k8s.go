@@ -14,8 +14,6 @@
 package deploycontroller
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -95,8 +93,6 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
 		return
 	}
-
-	fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 
 	return config.Flush()
 }

@@ -15,11 +15,10 @@ package deploycontroller
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"os/user"
 	"regexp"
 	"strings"
-
-	pb "github.com/schollz/progressbar"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
@@ -31,7 +30,6 @@ type localExecutor struct {
 	localControllerConfig *iofog.LocalControllerConfig
 	localUserConfig       *iofog.LocalUserConfig
 	containersNames       []string
-	pb                    *pb.ProgressBar
 }
 
 func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
@@ -43,7 +41,6 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor
 		client:                client,
 		localControllerConfig: iofog.NewLocalControllerConfig(opt.Name, opt.Images),
 		localUserConfig:       &iofog.LocalUserConfig{opt.IofogUser},
-		pb:                    pb.New(100),
 	}
 }
 
@@ -56,20 +53,23 @@ func (exe *localExecutor) cleanContainers() {
 }
 
 func (exe *localExecutor) deployContainers() error {
+	defer util.SpinStop()
+
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
 	controllerContainerName := controllerContainerConfig.ContainerName
 	connectorContainerName := connectorContainerConfig.ContainerName
 
 	// Deploy controller image
+	util.SpinStart("Deploying Controller container")
 	_, err := exe.client.DeployContainer(controllerContainerConfig)
 	if err != nil {
 		return err
 	}
-	exe.pb.Add(10)
 
 	exe.containersNames = append(exe.containersNames, controllerContainerName)
 	// Wait for public API
+	util.SpinStart("Waiting for Controller API")
 	if err = exe.client.WaitForCommand(
 		regexp.MustCompile("\"status\":\"online\""),
 		"curl",
@@ -80,9 +80,9 @@ func (exe *localExecutor) deployContainers() error {
 	); err != nil {
 		return err
 	}
-	exe.pb.Add(6)
 
 	// Deploy connector image
+	util.SpinStart("Deploying Connector")
 	if _, err := exe.client.DeployContainer(connectorContainerConfig); err != nil {
 		// Remove previously deployed Controller
 		if errClean := exe.client.CleanContainer(controllerContainerName); errClean != nil {
@@ -90,10 +90,10 @@ func (exe *localExecutor) deployContainers() error {
 		}
 		return err
 	}
-	exe.pb.Add(10)
 
 	exe.containersNames = append(exe.containersNames, connectorContainerName)
 	// Wait for public API
+	util.SpinStart("Waiting for Connector API")
 	if err = exe.client.WaitForCommand(
 		regexp.MustCompile("\"status\":\"running\""),
 		"curl",
@@ -108,12 +108,13 @@ func (exe *localExecutor) deployContainers() error {
 	); err != nil {
 		return err
 	}
-	exe.pb.Add(7)
 
 	return nil
 }
 
 func (exe *localExecutor) install() error {
+	defer util.SpinStop()
+
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
 
@@ -127,19 +128,19 @@ func (exe *localExecutor) install() error {
 		Password: exe.localUserConfig.Password,
 	}
 	// Create user
+	util.SpinStart("Creating new user")
 	if err := ctrl.CreateUser(user); err != nil {
 		if !strings.Contains(err.Error(), "already an account associated") {
 			return err
 		}
 	}
-	exe.pb.Add(10)
 	// Login
 	loginResponse, err := ctrl.Login(iofog.LoginRequest{Email: user.Email, Password: user.Password})
 	if err != nil {
 		return err
 	}
-	exe.pb.Add(10)
 	// Provision Connector
+	util.SpinStart("Provisioning Connector to Controller")
 	connectorIP := connectorContainerConfig.Host
 	connectorName := connectorContainerConfig.ContainerName
 	err = ctrl.AddConnector(iofog.ConnectorInfo{
@@ -148,13 +149,11 @@ func (exe *localExecutor) install() error {
 		Domain:  connectorContainerConfig.Host,
 		DevMode: true,
 	}, loginResponse.AccessToken)
-	exe.pb.Add(13)
 	return err
 }
 
 func (exe *localExecutor) Execute() error {
-	exe.pb.Add(1)
-	defer exe.pb.Clear()
+	defer util.SpinStop()
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 
 	// Get current user
@@ -192,12 +191,10 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	exe.pb.Add(33)
 	if err = config.Flush(); err != nil {
 		exe.cleanContainers()
 		return err
 	}
 
-	fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 	return nil
 }

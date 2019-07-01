@@ -18,8 +18,6 @@ import (
 	"os/user"
 	"regexp"
 
-	pb "github.com/schollz/progressbar"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -29,7 +27,6 @@ type localExecutor struct {
 	opt              *Options
 	client           *iofog.LocalContainer
 	localAgentConfig *iofog.LocalAgentConfig
-	pb               *pb.ProgressBar
 }
 
 func getController(namespace string) (*config.Controller, error) {
@@ -57,7 +54,6 @@ func newLocalExecutor(opt *Options, client *iofog.LocalContainer) (*localExecuto
 		opt:              opt,
 		client:           client,
 		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name, opt.Image, controllerContainerConfig),
-		pb:               pb.New(100),
 	}, nil
 }
 
@@ -82,8 +78,7 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 }
 
 func (exe *localExecutor) Execute() error {
-	exe.pb.Add(1)
-	defer exe.pb.Clear()
+	defer util.SpinStop()
 	// Get current user
 	currUser, err := user.Current()
 	if err != nil {
@@ -91,6 +86,7 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Deploy agent image
+	util.SpinStart("Deploying Agent container")
 	if exe.opt.Image == "" {
 		exe.opt.Image = exe.localAgentConfig.DefaultImage
 	}
@@ -98,11 +94,11 @@ func (exe *localExecutor) Execute() error {
 	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
 		return err
 	}
-	exe.pb.Add(25)
 
 	agentContainerName := exe.localAgentConfig.ContainerName
 
 	// Wait for agent
+	util.SpinStart("Waiting for Agent")
 	if err = exe.client.WaitForCommand(
 		regexp.MustCompile("401 Unauthorized"),
 		"curl",
@@ -116,9 +112,9 @@ func (exe *localExecutor) Execute() error {
 		}
 		return err
 	}
-	exe.pb.Add(25)
 
 	// Provision agent
+	util.SpinStart("Provisioning Agent")
 	uuid, err := exe.provisionAgent()
 	if err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
@@ -126,7 +122,6 @@ func (exe *localExecutor) Execute() error {
 		}
 		return err
 	}
-	exe.pb.Add(25)
 
 	// Update configuration
 	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
@@ -144,7 +139,6 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	exe.pb.Add(24)
 	if err = config.Flush(); err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			fmt.Printf("Could not clean container %s\n", agentContainerName)
@@ -152,6 +146,5 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 	return nil
 }

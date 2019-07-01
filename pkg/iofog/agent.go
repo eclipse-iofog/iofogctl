@@ -15,17 +15,11 @@ package iofog
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	pb "github.com/schollz/progressbar"
 )
-
-type command struct {
-	cmd     string
-	pbSlice int
-}
 
 type Agent interface {
 	Bootstrap() error
-	getProvisionKey(string, User, *pb.ProgressBar) (string, string, error)
+	getProvisionKey(string, User) (string, string, error)
 	Configure(*config.Controller, User) (string, error)
 }
 
@@ -33,7 +27,6 @@ type Agent interface {
 type defaultAgent struct {
 	name      string
 	namespace string
-	pb        *pb.ProgressBar
 }
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User) (key string, uuid string, err error) {
@@ -50,7 +43,6 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 		return
 	}
 	token := loginResponse.AccessToken
-	agent.pb.Add(20)
 
 	// Delete existing agents with same name
 	var agentList ListAgentsResponse
@@ -76,14 +68,12 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 		return
 	}
 	uuid = createResponse.UUID
-	agent.pb.Add(20)
 
 	// Get provisioning key
 	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
 	if err != nil {
 		return
 	}
-	agent.pb.Add(20)
 	key = provisionResponse.Key
 	return
 }

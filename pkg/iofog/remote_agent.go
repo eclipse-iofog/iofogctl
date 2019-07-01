@@ -19,7 +19,6 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	pb "github.com/schollz/progressbar"
 )
 
 // Remote agent uses SSH
@@ -32,12 +31,14 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
 	ssh.SetPort(port)
 	return &RemoteAgent{
-		defaultAgent: defaultAgent{name: agentName, pb: pb.New(100)},
+		defaultAgent: defaultAgent{name: agentName},
 		ssh:          ssh,
 	}
 }
 
 func (agent *RemoteAgent) Bootstrap() error {
+	defer util.SpinStop()
+	util.SpinStart("Bootstrapping Agent " + agent.name)
 	// Connect to agent over SSH
 	err := agent.ssh.Connect()
 	if err != nil {
@@ -55,27 +56,22 @@ func (agent *RemoteAgent) Bootstrap() error {
 	}
 
 	// Execute commands
-	cmds := []command{
-		{"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp", 1},
-		{"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq", 5},
-		{"curl " + installURL + " | sudo  -S tee /opt/linux.sh", 2},
-		{"sudo -S chmod +x /opt/linux.sh", 1},
-		{"sudo -S /opt/linux.sh " + installArgs, 70},
-		{"sudo -S service iofog-agent start", 3},
-		{"echo '" + waitForAgentScript + "' > ~/wait-for-agent.sh", 1},
-		{"chmod +x ~/wait-for-agent.sh", 1},
-		{"~/wait-for-agent.sh", 15},
-		{"sudo -S iofog-agent config -cf 10 -sf 10", 1},
+	cmds := []string{
+		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
+		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
+		"curl " + installURL + " | sudo  -S tee /opt/linux.sh",
+		"sudo -S chmod +x /opt/linux.sh",
+		"sudo -S /opt/linux.sh " + installArgs,
+		"sudo -S service iofog-agent start",
+		"echo '" + waitForAgentScript + "' > ~/wait-for-agent.sh",
+		"chmod +x ~/wait-for-agent.sh",
+		"~/wait-for-agent.sh",
+		"sudo -S iofog-agent config -cf 10 -sf 10",
 	}
-
-	// Prepare progress bar
-	pb := pb.New(100)
-	defer pb.Clear()
 
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.ssh.Run(cmd.cmd)
-		pb.Add(cmd.pbSlice)
+		_, err = agent.ssh.Run(cmd)
 		if err != nil {
 			return err
 		}
@@ -85,8 +81,8 @@ func (agent *RemoteAgent) Bootstrap() error {
 }
 
 func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
-	agent.pb = pb.New(100)
-	defer agent.pb.Clear()
+	defer util.SpinStop()
+	util.SpinStart("Configuring Agent " + agent.name)
 
 	controllerEndpoint := ctrl.Endpoint
 
@@ -103,19 +99,17 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid st
 
 	// Prepare progress bar
 	defer agent.ssh.Disconnect()
-	agent.pb.Add(20)
 
 	// Instantiate commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
-	cmds := []command{
-		{"sudo iofog-agent config -a " + controllerBaseURL, 10},
-		{"sudo iofog-agent provision " + key, 10},
+	cmds := []string{
+		"sudo iofog-agent config -a " + controllerBaseURL,
+		"sudo iofog-agent provision " + key,
 	}
 
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.ssh.Run(cmd.cmd)
-		agent.pb.Add(cmd.pbSlice)
+		_, err = agent.ssh.Run(cmd)
 		if err != nil {
 			return
 		}

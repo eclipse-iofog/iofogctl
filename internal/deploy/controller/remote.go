@@ -14,7 +14,6 @@
 package deploycontroller
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
@@ -42,8 +41,6 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("\nController %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 
 	return config.Flush()
 }

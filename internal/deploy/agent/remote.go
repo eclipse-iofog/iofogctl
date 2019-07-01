@@ -14,9 +14,6 @@
 package deployagent
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -60,10 +57,7 @@ func (exe *remoteExecutor) Execute() error {
 		Password: controllers[0].IofogUser.Password,
 	}
 
-	// Try and get our ssh connection
-	util.PrintInfo("Attempting to connect to Agent [" + exe.opt.Name + "] as '" +
-		exe.opt.User + "@" + exe.opt.Host + ":" + strconv.Itoa(exe.opt.Port))
-
+	// Connect to agent via SSH
 	agent := iofog.NewRemoteAgent(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile, exe.opt.Name)
 
 	// Try the install
@@ -72,15 +66,11 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	util.PrintInfo("Agent install successful. Provisioning to Controller.")
-
 	// Configure the agent with Controller details
 	uuid, err := agent.Configure(&controllers[0], user)
 	if err != nil {
 		return err
 	}
-
-	util.PrintInfo("Agent install successful. Connecting with Controller.")
 
 	// Update configuration
 	configEntry := config.Agent{
@@ -95,8 +85,6 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
 
 	return config.Flush()
 }

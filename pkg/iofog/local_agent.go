@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	pb "github.com/schollz/progressbar"
 )
 
 // Local agent uses Container exec commands
@@ -29,7 +28,7 @@ type LocalAgent struct {
 
 func NewLocalAgent(agentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
 	return &LocalAgent{
-		defaultAgent:     defaultAgent{name: agentConfig.Name, pb: pb.New(100)},
+		defaultAgent:     defaultAgent{name: agentConfig.Name},
 		localAgentConfig: agentConfig,
 		client:           client,
 	}
