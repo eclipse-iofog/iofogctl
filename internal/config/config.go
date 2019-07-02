@@ -66,7 +66,6 @@ func Init(filename string) {
 		err := ioutil.WriteFile(configFilename, defaultData, 0644)
 		util.Check(err)
 	}
-	println(configFilename)
 
 	// Unmarshall the file
 	err = util.UnmarshalYAML(configFilename, &conf)
