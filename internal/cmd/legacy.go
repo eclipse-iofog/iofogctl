@@ -59,12 +59,12 @@ iofogctl legacy agent NAME status`,
 				// Instantiate Kubernetes client
 				clientset, err := kubernetes.NewForConfig(config)
 				util.Check(err)
-				podList, err := clientset.CoreV1().Pods("iofog").List(metav1.ListOptions{LabelSelector: "name=controller"})
+				podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=controller"})
 				if err != nil {
 					return
 				}
 				podName := podList.Items[0].Name
-				kubeArgs := []string{"exec", podName, "-n", "iofog", "--", "iofog-controller"}
+				kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-controller"}
 				kubeArgs = append(kubeArgs, args[2:]...)
 				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
@@ -97,12 +97,12 @@ iofogctl legacy agent NAME status`,
 				// Instantiate Kubernetes client
 				clientset, err := kubernetes.NewForConfig(config)
 				util.Check(err)
-				podList, err := clientset.CoreV1().Pods("iofog").List(metav1.ListOptions{LabelSelector: "name=connector"})
+				podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=connector"})
 				if err != nil {
 					return
 				}
 				podName := podList.Items[0].Name
-				kubeArgs := []string{"exec", podName, "-n", "iofog", "--", "iofog-connector"}
+				kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-connector"}
 				kubeArgs = append(kubeArgs, args[2:]...)
 				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
