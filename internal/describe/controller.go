@@ -35,6 +35,7 @@ func (exe *controllerExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
+	println("namespace: " + exe.namespace)
 	controller.IofogUser.Password = "*****"
 	if err = util.Print(controller); err != nil {
 		return err
