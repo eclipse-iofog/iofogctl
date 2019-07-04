@@ -51,7 +51,7 @@ func generateAgentOutput(namespace string) error {
 	agentInfos := make([]iofog.AgentInfo, len(ns.Agents))
 	for idx, agent := range ns.Agents {
 		agentInfos[idx].Name = agent.Name
-		agentInfos[idx].IPAddress = agent.Host
+		agentInfos[idx].IPAddressExternal = agent.Host
 	}
 
 	// Connect to controller if it is ready
@@ -78,8 +78,8 @@ func generateAgentOutput(namespace string) error {
 				}
 				return tabulate(agentInfos)
 			}
-			if agentInfo.IPAddress == "0.0.0.0" {
-				agentInfo.IPAddress = agent.Host
+			if agentInfo.IPAddressExternal == "0.0.0.0" {
+				agentInfo.IPAddressExternal = agent.Host
 			}
 			agentInfos[idx] = agentInfo
 		}
@@ -109,7 +109,7 @@ func tabulate(agentInfos []iofog.AgentInfo) error {
 				"offline",
 				"-",
 				"-",
-				agent.IPAddress,
+				agent.IPAddressExternal,
 				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
@@ -121,7 +121,7 @@ func tabulate(agentInfos []iofog.AgentInfo) error {
 				agent.DaemonStatus,
 				age,
 				util.FormatDuration(uptime),
-				agent.IPAddress,
+				agent.IPAddressExternal,
 				agent.Version,
 			}
 			table[idx+1] = append(table[idx+1], row...)

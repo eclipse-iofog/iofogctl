@@ -86,6 +86,7 @@ type AgentInfo struct {
 	RepositoryStatus          string  `json:"repositoryStatus" yml:"repositoryStatus"`
 	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yml:"LastStatusTime"`
 	IPAddress                 string  `json:"ipAddress" yml:"ipAddress"`
+	IPAddressExternal         string  `json:"ipAddressExternal" yml:"ipAddressExternal"`
 	ProcessedMessaged         int64   `json:"processedMessages" yml:"ProcessedMessages"`
 	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yml:"microserviceMessageCount"`
 	MessageSpeed              float64 `json:"messageSpeed" yml:"messageSpeed"`
