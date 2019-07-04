@@ -33,13 +33,18 @@ func newAgentExecutor(namespace string) *agentExecutor {
 }
 
 func (exe *agentExecutor) Execute() error {
+	printNamespace(exe.namespace)
+	return generateAgentOutput(exe.namespace)
+}
+
+func generateAgentOutput(namespace string) error {
 	// Get Config
-	ns, err := config.GetNamespace(exe.namespace)
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return err
 	}
 	if len(ns.Controllers) > 1 {
-		return util.NewInternalError("Expected 0 or 1 controller in namespace " + exe.namespace)
+		return util.NewInternalError("Expected 0 or 1 controller in namespace " + namespace)
 	}
 
 	// Pre process the output with agent names

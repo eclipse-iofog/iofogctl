@@ -30,8 +30,13 @@ func newControllerExecutor(namespace string) *controllerExecutor {
 }
 
 func (exe *controllerExecutor) Execute() error {
+	printNamespace(exe.namespace)
+	return generateControllerOutput(exe.namespace)
+}
+
+func generateControllerOutput(namespace string) error {
 	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
+	controllers, err := config.GetControllers(namespace)
 	if err != nil {
 		return err
 	}

@@ -24,10 +24,12 @@ func newAllExecutor(namespace string) *allExecutor {
 }
 
 func (exe *allExecutor) Execute() error {
-	if err := newControllerExecutor(exe.namespace).Execute(); err != nil {
+	printNamespace(exe.namespace)
+
+	if err := generateControllerOutput(exe.namespace); err != nil {
 		return err
 	}
-	if err := newAgentExecutor(exe.namespace).Execute(); err != nil {
+	if err := generateAgentOutput(exe.namespace); err != nil {
 		return err
 	}
 	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {

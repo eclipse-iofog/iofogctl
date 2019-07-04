@@ -45,3 +45,9 @@ func print(table [][]string) error {
 
 	return nil
 }
+
+func printNamespace(namespace string) {
+	println("NAMESPACE")
+	println(namespace)
+	println()
+}
