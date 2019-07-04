@@ -51,7 +51,5 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.localAgentConfig.Name)
-
 	return config.Flush()
 }

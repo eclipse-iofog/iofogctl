@@ -41,6 +41,8 @@ On a Kubernetes deployment, all resources under iofog namespace will be deleted.
 			// Run the command
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

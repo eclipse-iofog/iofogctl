@@ -39,6 +39,8 @@ iofogctl deploy microservice NAME AGENTNAME`,
 			microservice := deploy.New()
 			err = microservice.Execute(namespace, name)
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deployed " + namespace + "/" + name)
 		},
 	}
 

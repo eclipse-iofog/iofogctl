@@ -33,6 +33,8 @@ Tears down all Agents and Controllers. If you don't want to tear down the deploy
 			// Execute command
 			err = delete.Execute(namespace)
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
 		},
 	}
 

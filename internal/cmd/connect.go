@@ -50,6 +50,8 @@ iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass 
 			// Execute the get command
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully connected to " + opt.Namespace + "/" + opt.Name)
 		},
 	}
 	cmd.Flags().StringVarP(&opt.Endpoint, "controller", "c", "", "Host and (optionally) port of the Controller you are connecting to")

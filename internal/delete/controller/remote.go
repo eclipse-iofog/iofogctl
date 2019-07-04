@@ -14,7 +14,6 @@
 package deletecontroller
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
@@ -38,8 +37,6 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
 
 	return config.Flush()
 }

@@ -57,6 +57,8 @@ microservices: []
 			// Execute command
 			err = deploy.Execute(opt)
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deployed resources to namespace " + opt.Namespace)
 		},
 	}
 

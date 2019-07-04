@@ -14,7 +14,6 @@
 package deleteagent
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"strings"
@@ -74,8 +73,6 @@ func (exe *remoteExecutor) Execute() error {
 	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
 		return err
 	}
-
-	fmt.Printf("\nAgent %s/%s successfully deleted.\n", exe.namespace, exe.name)
 
 	return config.Flush()
 }

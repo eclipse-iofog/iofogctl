@@ -33,6 +33,8 @@ func newCreateNamespaceCommand() *cobra.Command {
 			// Run the command
 			err := create.Execute(name)
 			util.Check(err)
+
+			util.PrintSuccess("Successfully created namespace " + name)
 		},
 	}
 

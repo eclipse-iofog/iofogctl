@@ -49,6 +49,8 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 			// Execute the command
 			err = ctrl.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deployed " + opt.Namespace + "/" + opt.Name)
 		},
 	}
 

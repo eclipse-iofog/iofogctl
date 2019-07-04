@@ -48,6 +48,8 @@ iofogctl deploy agent NAME --user root --host 32.23.134.3 --key-file ~/.ssh/id_r
 			// Execute the command
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deployed " + opt.Namespace + "/" + opt.Name)
 		},
 	}
 

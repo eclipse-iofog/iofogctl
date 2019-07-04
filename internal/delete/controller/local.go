@@ -54,7 +54,5 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	fmt.Printf("\nController %s/%s successfully deleted.\n", exe.namespace, exe.name)
-
 	return config.Flush()
 }
