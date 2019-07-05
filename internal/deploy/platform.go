@@ -130,7 +130,8 @@ func Execute(opt *Options) error {
 			defer wg.Done()
 			err := exe.Execute()
 			if err != nil {
-				util.Check(util.NewInternalError("Failed to deploy agent " + name + "\n" + err.Error()))
+				util.PrintNotify("Failed to deploy agent " + name)
+				util.Check(err)
 			}
 		}(agent.Name)
 	}

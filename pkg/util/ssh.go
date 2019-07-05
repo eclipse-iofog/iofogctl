@@ -16,9 +16,7 @@ package util
 import (
 	"bytes"
 	"golang.org/x/crypto/ssh"
-	"io"
 	"io/ioutil"
-	"os"
 	"strconv"
 )
 
@@ -106,7 +104,14 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Run the command
 	err = session.Run(cmd)
 	if err != nil {
-		io.Copy(os.Stderr, stderr)
+		logFile := "/tmp/iofog.log"
+		errorSuffix := "stdout has been appended to " + logFile
+		if err = ioutil.WriteFile(logFile, stdout.Bytes(), 0644); err != nil {
+			errorSuffix = "Failed to append stdout to log file"
+		}
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(stderr)
+		err = NewInternalError("Error during SSH session\nstderr: " + buf.String() + errorSuffix)
 		return
 	}
 	return
