@@ -26,6 +26,20 @@ func Check(err error) {
 	}
 }
 
+type Error struct {
+	msg string
+}
+
+func NewError(msg string) (err *Error) {
+	err = new(Error)
+	err.msg = msg
+	return err
+}
+
+func (err *Error) Error() string {
+	return err.msg
+}
+
 // NotFoundError export
 type NotFoundError struct {
 	msg string

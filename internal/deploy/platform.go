@@ -97,7 +97,8 @@ func Execute(opt *Options) error {
 
 	// Deploy agents
 	localAgentCount := 0
-	for _, agent := range in.Agents {
+	agentErrors := make(chan error, len(in.Agents))
+	for idx, agent := range in.Agents {
 		if agent.Port == 0 {
 			agent.Port = 22
 		}
@@ -126,18 +127,24 @@ func Execute(opt *Options) error {
 		}
 
 		wg.Add(1)
-		go func(name string) {
+		go func(idx int, name string) {
 			defer wg.Done()
-			err := exe.Execute()
-			if err != nil {
-				util.PrintNotify("Failed to deploy agent " + name)
-				util.Check(err)
-			}
-		}(agent.Name)
+			agentErrors <- exe.Execute()
+		}(idx, agent.Name)
 	}
 	wg.Wait()
+	close(agentErrors)
 
-	// TODO: Deploy microservices
+	// Output any errors
+	for agentErr := range agentErrors {
+		if agentErr != nil {
+			util.PrintNotify(agentErr.Error())
+			err = agentErr
+		}
+	}
+	if err != nil {
+		return util.NewError("Failed to deploy one or more resources")
+	}
 
-	return config.Flush()
+	return nil
 }
