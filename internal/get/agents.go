@@ -115,7 +115,7 @@ func tabulate(agentInfos []iofog.AgentInfo) error {
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
 			age, _ := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC())
-			uptime := time.Duration(agent.DaemonUptimeDurationMsUTC)
+			uptime := time.Duration(agent.UptimeMsUTC * 1000)
 			row := []string{
 				agent.Name,
 				agent.DaemonStatus,
