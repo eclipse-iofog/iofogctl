@@ -28,36 +28,36 @@ func Check(err error) {
 
 // NotFoundError export
 type NotFoundError struct {
-	resource string
+	msg string
 }
 
 // NewNotFoundError export
-func NewNotFoundError(resource string) (err *NotFoundError) {
+func NewNotFoundError(msg string) (err *NotFoundError) {
 	err = new(NotFoundError)
-	err.resource = resource
+	err.msg = msg
 	return err
 }
 
 // Error export
 func (err *NotFoundError) Error() string {
-	return fmt.Sprintf("Unknown resource error\n%s not found.", err.resource)
+	return fmt.Sprintf("Unknown resource error\n%s", err.msg)
 }
 
 //ConflictError export
 type ConflictError struct {
-	resource string
+	msg string
 }
 
 // NewConflictError export
-func NewConflictError(resource string) (err *ConflictError) {
+func NewConflictError(msg string) (err *ConflictError) {
 	err = new(ConflictError)
-	err.resource = resource
+	err.msg = msg
 	return err
 }
 
 // Error export
 func (err *ConflictError) Error() string {
-	return fmt.Sprintf("Resource conflict error\n%s already exists.", err.resource)
+	return fmt.Sprintf("Resource conflict error\n%s", err.msg)
 }
 
 // InputError export

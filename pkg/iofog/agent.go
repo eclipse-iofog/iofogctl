@@ -15,6 +15,7 @@ package iofog
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Agent interface {
@@ -44,7 +45,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 	}
 	token := loginResponse.AccessToken
 
-	// Delete existing agents with same name
+	// Check the agent name is unique
 	var agentList ListAgentsResponse
 	agentList, err = ctrl.ListAgents(token)
 	if err != nil {
@@ -52,9 +53,8 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 	}
 	for _, existingAgent := range agentList.Agents {
 		if existingAgent.Name == agent.name {
-			if err = ctrl.DeleteAgent(existingAgent.UUID, token); err != nil {
-				return
-			}
+			err = util.NewConflictError("Agent name " + agent.name + " is already registered with the Controller")
+			return
 		}
 	}
 

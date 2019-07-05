@@ -29,7 +29,7 @@ func PrintInfo(message string) {
 
 // Print 'message' with CDeepskyblue color text and background
 func PrintNotify(message string) {
-	fmt.Printf(CSkyblue + "❗" + message + NoFormat + "\n")
+	fmt.Printf(CSkyblue + "! " + message + NoFormat + "\n")
 }
 
 // Print 'message' with green color text
