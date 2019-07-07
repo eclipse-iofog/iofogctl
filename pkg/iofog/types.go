@@ -74,7 +74,7 @@ type AgentInfo struct {
 	UpdatedTimeRFC3339        string  `json:"updated_at" yml:"updated"`
 	LastActive                int64   `json:"lastActive" yml:"lastActive"`
 	DaemonStatus              string  `json:"daemonStatus" yml:"daemonStatus"`
-	UptimeMsUTC               int64   `json:"daemonOperatingDuration" yml:"uptime"`
+	UptimeMs                  int64   `json:"daemonOperatingDuration" yml:"uptime"`
 	MemoryUsage               float64 `json:"memoryUsage" yml:"memoryUsage"`
 	DiskUsage                 float64 `json:"diskUsage" yml:"diskUsage"`
 	CPUUsage                  float64 `json:"cpuUsage" yml:"cpuUsage"`
