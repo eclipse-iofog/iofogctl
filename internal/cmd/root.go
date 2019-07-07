@@ -49,6 +49,7 @@ func NewRootCommand() *cobra.Command {
 			err := cmd.Execute()
 			util.Check(err)
 		},
+		SilenceErrors: true,
 	}
 
 	// Initialize config filename
