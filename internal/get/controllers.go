@@ -17,6 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"time"
 )
 
 type controllerExecutor struct {
@@ -56,8 +57,7 @@ func generateControllerOutput(namespace string) error {
 		uptime := "-"
 		status := "Failing"
 		if err == nil {
-			uptimeSec := ctrlStatus.UptimeTimeMsUTC / int64(1000)
-			uptime, _ = util.ElapsedUTC(util.FromIntUTC(uptimeSec), util.NowUTC())
+			uptime = util.FormatDuration(time.Duration(int64(ctrlStatus.UptimeSeconds)) * time.Second)
 			status = ctrlStatus.Status
 		}
 

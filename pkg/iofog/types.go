@@ -21,8 +21,8 @@ type User struct {
 }
 
 type ControllerStatus struct {
-	Status          string `json:"status"`
-	UptimeTimeMsUTC int64  `json:"uptime"`
+	Status        string  `json:"status"`
+	UptimeSeconds float64 `json:"uptimeSec"`
 }
 
 type LoginRequest struct {
