@@ -13,7 +13,10 @@
 
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 // These are the colors we'll use in pretty printing output
 const NoFormat = "\033[0m"
@@ -39,5 +42,5 @@ func PrintSuccess(message string) {
 
 // Print 'message' with red color text
 func PrintError(message string) {
-	fmt.Printf(Red + "✘ " + message + NoFormat + "\n")
+	fmt.Fprintf(os.Stderr, Red+"✘ "+message+NoFormat+"\n")
 }
