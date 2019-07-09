@@ -120,7 +120,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 		return
 	}
 	println("")
-	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["controller"].port)
+	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["controller"].ports[0])
 	return
 }
 
@@ -131,7 +131,7 @@ func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) 
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
+	endpoint = fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
 
 	// Install ioFog K8s Extensions
 	if err = k8s.createExtension(token, ips); err != nil {
@@ -369,7 +369,7 @@ func (k8s *Kubernetes) createCore(user User) (token string, ips map[string]strin
 	}
 
 	// Connect to controller
-	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].port)
+	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
 	ctrl := NewController(endpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
@@ -470,7 +470,7 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) (err
 		"--iofog-token",
 		token,
 		"--iofog-url",
-		fmt.Sprintf("http://%s:%d", ips["controller"], k8s.ms["controller"].port),
+		fmt.Sprintf("http://%s:%d", ips["controller"], k8s.ms["controller"].ports[0]),
 	}
 	vkDep := newDeployment(k8s.ns, k8s.ms["kubelet"])
 	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(vkDep); err != nil {

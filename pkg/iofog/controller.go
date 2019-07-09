@@ -37,7 +37,7 @@ func NewController(endpoint string) *Controller {
 
 	// Add default port if none specified
 	if !strings.Contains(endpoint, ":") {
-		endpoint = endpoint + ":" + strconv.Itoa(controllerMicroservice.port)
+		endpoint = endpoint + ":" + strconv.Itoa(controllerMicroservice.ports[0])
 	}
 	return &Controller{
 		baseURL: fmt.Sprintf("http://%s/api/v3/", endpoint),

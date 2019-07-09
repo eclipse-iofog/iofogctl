@@ -20,10 +20,11 @@ import (
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"strconv"
 )
 
 func newService(namespace string, ms *microservice) *v1.Service {
-	return &v1.Service{
+	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
 			Namespace: namespace,
@@ -34,19 +35,22 @@ func newService(namespace string, ms *microservice) *v1.Service {
 		Spec: v1.ServiceSpec{
 			Type:           "LoadBalancer",
 			LoadBalancerIP: ms.IP,
-			Ports: []v1.ServicePort{
-				{
-					Name:       "controller",
-					Port:       int32(ms.port),
-					TargetPort: intstr.FromInt(ms.port),
-					Protocol:   v1.Protocol("TCP"),
-				},
-			},
 			Selector: map[string]string{
 				"name": ms.name,
 			},
 		},
 	}
+	// Add ports
+	for idx, port := range ms.ports {
+		svcPort := v1.ServicePort{
+			Name:       ms.name + strconv.Itoa(idx),
+			Port:       int32(port),
+			TargetPort: intstr.FromInt(port),
+			Protocol:   v1.Protocol("TCP"),
+		}
+		svc.Spec.Ports = append(svc.Spec.Ports, svcPort)
+	}
+	return svc
 }
 
 func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
