@@ -13,6 +13,10 @@
 
 package get
 
+import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+)
+
 type allExecutor struct {
 	namespace string
 }
@@ -24,14 +28,23 @@ func newAllExecutor(namespace string) *allExecutor {
 }
 
 func (exe *allExecutor) Execute() error {
+	// Check namespace exists
+	if _, err := config.GetNamespace(exe.namespace); err != nil {
+		return err
+	}
 	printNamespace(exe.namespace)
 
+	// Print controllers
 	if err := generateControllerOutput(exe.namespace); err != nil {
 		return err
 	}
+
+	// Print agents
 	if err := generateAgentOutput(exe.namespace); err != nil {
 		return err
 	}
+
+	// Print microservices
 	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {
 		return err
 	}
