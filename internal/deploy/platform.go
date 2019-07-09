@@ -39,7 +39,7 @@ type agentJobResult struct {
 	err         error
 }
 
-func deployControllers(namespace string, controllers []config.Controller) error {
+func deployControllers(namespace string, controllers []config.Controller) (err error) {
 
 	// Only support single controller
 	if len(controllers) > 1 {
@@ -62,9 +62,15 @@ func deployControllers(namespace string, controllers []config.Controller) error 
 			Images:           ctrl.Images,
 			IofogUser:        ctrl.IofogUser,
 		}
-		exe, err := deploycontroller.NewExecutor(ctrlOpt)
+		// Format file paths
+		if ctrlOpt.KubeConfig, err = util.FormatPath(ctrlOpt.KubeConfig); err != nil {
+			return 
+		}
+
+		var exe deploycontroller.Executor
+		exe, err = deploycontroller.NewExecutor(ctrlOpt)
 		if err != nil {
-			return err
+			return
 		}
 
 		wg.Add(1)
@@ -75,7 +81,7 @@ func deployControllers(namespace string, controllers []config.Controller) error 
 		}()
 	}
 	wg.Wait()
-	return nil
+	return
 }
 
 func deployAgents(namespace string, agents []config.Agent) error {

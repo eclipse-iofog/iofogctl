@@ -119,12 +119,6 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 }
 
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {
-	// Replace ~ in filename
-	cl.privKeyFilename, err = FormatPath(cl.privKeyFilename)
-	if err != nil {
-		return nil, err
-	}
-
 	// Read priv key file, MUST BE RSA
 	key, err := ioutil.ReadFile(cl.privKeyFilename)
 	if err != nil {

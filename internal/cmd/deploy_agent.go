@@ -41,6 +41,10 @@ iofogctl deploy agent NAME --user root --host 32.23.134.3 --key-file ~/.ssh/id_r
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
+			// Format any file paths
+			opt.KeyFile, err = util.FormatPath(opt.KeyFile)
+			util.Check(err)
+
 			// Get executor for the command
 			exe, err := deploy.NewExecutor(opt)
 			util.Check(err)

@@ -43,6 +43,10 @@ iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass 
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
+			// Format any file paths
+			opt.KubeFile, err = util.FormatPath(opt.KubeFile)
+			util.Check(err)
+
 			// Get executor for get command
 			exe, err := connect.NewExecutor(opt)
 			util.Check(err)

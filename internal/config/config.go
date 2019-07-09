@@ -36,7 +36,7 @@ const DefaultConfigPath = "~/" + defaultDirname + defaultFilename
 
 // Init initializes config and unmarshalls the file
 func Init(filename string) {
-	// Remove tilde from filename
+	// Format file path
 	filename, err := util.FormatPath(filename)
 	util.Check(err)
 

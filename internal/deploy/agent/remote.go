@@ -64,14 +64,6 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 		return
 	}
 
-	// Create our user object
-	user := iofog.User{
-		Name:     controllers[0].IofogUser.Name,
-		Surname:  controllers[0].IofogUser.Surname,
-		Email:    controllers[0].IofogUser.Email,
-		Password: controllers[0].IofogUser.Password,
-	}
-
 	// Connect to agent via SSH
 	agent := iofog.NewRemoteAgent(opt.User, opt.Host, opt.Port, opt.KeyFile, opt.Name)
 
@@ -79,6 +71,14 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 	err = agent.Bootstrap()
 	if err != nil {
 		return
+	}
+
+	// Create our user object
+	user := iofog.User{
+		Name:     controllers[0].IofogUser.Name,
+		Surname:  controllers[0].IofogUser.Surname,
+		Email:    controllers[0].IofogUser.Email,
+		Password: controllers[0].IofogUser.Password,
 	}
 
 	// Configure the agent with Controller details
