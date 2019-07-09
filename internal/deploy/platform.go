@@ -64,7 +64,7 @@ func deployControllers(namespace string, controllers []config.Controller) (err e
 		}
 		// Format file paths
 		if ctrlOpt.KubeConfig, err = util.FormatPath(ctrlOpt.KubeConfig); err != nil {
-			return 
+			return
 		}
 
 		var exe deploycontroller.Executor
