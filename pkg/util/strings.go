@@ -15,10 +15,12 @@ package util
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-func ReplaceTilde(input string) (string, error) {
+func FormatPath(input string) (string, error) {
+	// Replace tilde
 	if strings.Contains(input, "~") {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -26,6 +28,12 @@ func ReplaceTilde(input string) (string, error) {
 		}
 		return strings.Replace(input, "~", homeDir, 1), nil
 	}
+
+	// Convert relative to absolute
+	if strings.Contains(input, ".") {
+		return filepath.Abs(input)
+	}
+
 	return input, nil
 }
 

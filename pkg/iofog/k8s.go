@@ -39,7 +39,7 @@ type Kubernetes struct {
 // NewKubernetes constructs an object to manage cluster
 func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	// Replace ~ in filename
-	configFilename, err := util.ReplaceTilde(configFilename)
+	configFilename, err := util.FormatPath(configFilename)
 	if err != nil {
 		return nil, err
 	}

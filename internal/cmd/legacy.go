@@ -50,7 +50,7 @@ iofogctl legacy agent NAME status`,
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
-				ctrl.KubeConfig, err = util.ReplaceTilde(ctrl.KubeConfig)
+				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
 				util.Check(err)
 				// Connect to cluster
 				//Execute
@@ -88,7 +88,7 @@ iofogctl legacy agent NAME status`,
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
-				ctrl.KubeConfig, err = util.ReplaceTilde(ctrl.KubeConfig)
+				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
 				util.Check(err)
 				// Connect to cluster
 				//Execute
