@@ -193,5 +193,5 @@ jobs:
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: '$(version).tar.gz'
+          ArtifactName: 'iofogctl'
         displayName: 'Publish artefacts'
