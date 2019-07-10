@@ -47,7 +47,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	defer agent.ssh.Disconnect()
 
 	// Instantiate install arguments
-	installURL := "https://raw.githubusercontent.com/eclipse-iofog/platform/develop/infrastructure/ansible/scripts/agent.sh"
+	installURL := "https://raw.githubusercontent.com/eclipse-iofog/iofogctl/develop/script/install_agent.sh"
 	installArgs := ""
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
 	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
@@ -59,9 +59,9 @@ func (agent *RemoteAgent) Bootstrap() error {
 	cmds := []string{
 		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
 		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
-		"curl " + installURL + " | sudo  -S tee /opt/linux.sh",
-		"sudo -S chmod +x /opt/linux.sh",
-		"sudo -S /opt/linux.sh " + installArgs,
+		"curl " + installURL + " | sudo  -S tee /opt/install_agent.sh",
+		"sudo -S chmod +x /opt/install_agent.sh",
+		"sudo -S /opt/install_agent.sh " + installArgs,
 		"sudo -S service iofog-agent start",
 		"echo '" + waitForAgentScript + "' > ~/wait-for-agent.sh",
 		"chmod +x ~/wait-for-agent.sh",
