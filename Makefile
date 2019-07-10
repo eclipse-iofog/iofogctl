@@ -6,10 +6,11 @@ BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
 VERSION ?= dev
+BRANCH = $(shell git branch | grep \* | cut -d ' ' -f2)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-PREFIX = github.com/eclipse-iofog/iofogctl/internal/cmd
-LDFLAGS += -X $(PREFIX).version=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).buildDate=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
+LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).branch=$(BRANCH) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
