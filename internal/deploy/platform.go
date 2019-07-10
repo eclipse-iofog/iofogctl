@@ -90,9 +90,17 @@ func deployAgents(namespace string, agents []config.Agent) error {
 	localAgentCount := 0
 	agentChan := make(chan agentJobResult, len(agents))
 	for idx, agent := range agents {
+		// Fix SSH port
 		if agent.Port == 0 {
 			agent.Port = 22
 		}
+		// Format file paths
+		var err error
+		if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
+			return err
+		}
+
+		// Check local deploys
 		local := false
 		if util.IsLocalHost(agent.Host) {
 			local = true
