@@ -102,7 +102,7 @@ jobs:
           BRANCH=$(branch) GOOS=darwin VERSION=$(version) make build
           tar -zcf iofogctl.tar.gz bin/iofogctl
           checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
-          cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
+          cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
           echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
           rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz
           git config --global user.email "serge@edgeworx.io"
@@ -193,5 +193,5 @@ jobs:
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'iofogctl'
+          ArtifactName: '$(version).tar.gz'
         displayName: 'Publish artefacts'
