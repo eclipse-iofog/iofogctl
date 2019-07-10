@@ -99,7 +99,7 @@ jobs:
         displayName: 'Publish Test Results'
       
       - script: |
-          GOOS=darwin VERSION=$(version) make build
+          BRANCH=$(branch) GOOS=darwin VERSION=$(version) make build
           tar -zcf iofogctl.tar.gz bin/iofogctl
           checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
           cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
@@ -118,7 +118,7 @@ jobs:
         displayName: 'Build and publish OSX binary'
 
       - script: |
-          VERSION=$(version) make build
+          BRANCH=$(branch) VERSION=$(version) make build
           GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
         workingDirectory: '$(modulePath)'
         displayName: 'Build and Install Linux version'
