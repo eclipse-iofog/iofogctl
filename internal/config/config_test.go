@@ -56,7 +56,7 @@ func TestDelete(t *testing.T) {
 	DeleteAgent("first", "agent2")
 }
 
-func TestNamespaces(t *testing.T) {
+func TestReadingNamespaces(t *testing.T) {
 	// Test all namespace queries
 	namespaces := GetNamespaces()
 	if len(namespaces) != 2 {
@@ -85,7 +85,7 @@ func TestNamespaces(t *testing.T) {
 	}
 }
 
-func TestControllers(t *testing.T) {
+func TestReadingControllers(t *testing.T) {
 	for nsIdx, ns := range GetNamespaces() {
 		// Test bulk Controller queries
 		ctrls, err := GetControllers(ns.Name)
@@ -118,7 +118,7 @@ func TestControllers(t *testing.T) {
 	}
 }
 
-func TestAgents(t *testing.T) {
+func TesReadingtAgents(t *testing.T) {
 	for nsIdx, ns := range GetNamespaces() {
 		// Test bulk Agent queries
 		agents, err := GetAgents(ns.Name)
@@ -148,5 +148,153 @@ func TestAgents(t *testing.T) {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, singleAgent.User)
 			}
 		}
+	}
+}
+
+var writeNamespace = "write_namespace"
+
+func TestWritingNamespace(t *testing.T) {
+	if err := AddNamespace(writeNamespace, ""); err != nil {
+		t.Errorf("Error adding write namespace: %s", err.Error())
+	}
+	if _, err := GetNamespace(writeNamespace); err != nil {
+		t.Errorf("Error getting write namespace: %s", err.Error())
+	}
+}
+
+func compareControllers(lhs, rhs Controller) bool {
+	equal := (lhs.Created == rhs.Created)
+	equal = equal && (lhs.Endpoint == rhs.Endpoint)
+	equal = equal && (lhs.Host == lhs.Host)
+	equal = equal && (lhs.KeyFile == rhs.KeyFile)
+	equal = equal && (lhs.KubeConfig == rhs.KubeConfig)
+	equal = equal && (lhs.KubeControllerIP == rhs.KubeControllerIP)
+	equal = equal && (lhs.Name == rhs.Name)
+	equal = equal && (lhs.User == lhs.User)
+	for key := range lhs.Images {
+		equal = equal && (lhs.Images[key] == rhs.Images[key])
+	}
+	equal = equal && (lhs.IofogUser.Email == lhs.IofogUser.Email)
+	equal = equal && (lhs.IofogUser.Name == lhs.IofogUser.Name)
+	equal = equal && (lhs.IofogUser.Password == lhs.IofogUser.Password)
+	equal = equal && (lhs.IofogUser.Surname == lhs.IofogUser.Surname)
+
+	return equal
+}
+func TestWritingController(t *testing.T) {
+	ctrl := Controller{
+		Created:          "Now",
+		Endpoint:         "localhost:51121",
+		Host:             "localhost",
+		KeyFile:          "~/.key/file",
+		KubeConfig:       "~/.kube/config",
+		KubeControllerIP: "123.12.123.13",
+		Name:             "Hubert",
+		User:             "Kubert",
+		Images: map[string]string{
+			"controller": "iofog/controller",
+			"agent":      "iofog/agent",
+			"connector":  "iofog/connector",
+			"operator":   "iofog/operator",
+		},
+		IofogUser: IofogUser{
+			Email:    "user@domain.com",
+			Name:     "Tubert",
+			Password: "NotACockroach",
+			Surname:  "Blubert",
+		},
+	}
+	if err := AddController(writeNamespace, ctrl); err != nil {
+		t.Errorf("Error Creating controller in write namespace: %s", err.Error())
+	}
+	ctrlTwo := ctrl
+	ctrlTwo.Name = "ctrlTwo"
+	if err := AddController(writeNamespace, ctrlTwo); err != nil {
+		t.Errorf("Error Creating controller in write namespace: %s", err.Error())
+	}
+
+	readCtrl, err := GetController(writeNamespace, ctrl.Name)
+	if err != nil {
+		t.Errorf("Error reading Controller from write namespace: %s", err.Error())
+	}
+	if !compareControllers(ctrl, readCtrl) {
+		t.Error("Written Controller is not identical to read Controller")
+	}
+	if compareControllers(ctrlTwo, readCtrl) {
+		t.Error("Expected different Controllers to not be identical")
+	}
+
+	ctrlTwo.Host = "changed"
+	if err = UpdateController(writeNamespace, ctrlTwo); err != nil {
+		t.Errorf("Error updating Controller in write namespace: %s", err.Error())
+	}
+
+	readCtrl, err = GetController(writeNamespace, ctrlTwo.Name)
+	if err != nil {
+		t.Errorf("Error reading Controller from write namespace: %s", err.Error())
+	}
+	if !compareControllers(ctrlTwo, readCtrl) {
+		t.Error("Written Controller is not identical to read Controller")
+	}
+	if compareControllers(ctrl, readCtrl) {
+		t.Error("Expected different Controllers to not be identical")
+	}
+}
+
+func compareAgents(lhs, rhs Agent) bool {
+	equal := (lhs.Created == rhs.Created)
+	equal = equal && (lhs.Host == rhs.Host)
+	equal = equal && (lhs.Image == rhs.Image)
+	equal = equal && (lhs.KeyFile == rhs.KeyFile)
+	equal = equal && (lhs.Name == rhs.Name)
+	equal = equal && (lhs.Port == rhs.Port)
+	equal = equal && (lhs.UUID == rhs.UUID)
+	equal = equal && (lhs.User == rhs.User)
+
+	return equal
+}
+
+func TestWritingAgent(t *testing.T) {
+	agent := Agent{
+		Created: "Now",
+		Host:    "localhost",
+		KeyFile: "~/.key/file",
+		Name:    "Hubert",
+		User:    "Kubert",
+	}
+	if err := AddAgent(writeNamespace, agent); err != nil {
+		t.Errorf("Error Creating Agent in write namespace: %s", err.Error())
+	}
+	agentTwo := agent
+	agentTwo.Name = "agentTwo"
+	if err := AddAgent(writeNamespace, agentTwo); err != nil {
+		t.Errorf("Error Creating Agent in write namespace: %s", err.Error())
+	}
+
+	readAgent, err := GetAgent(writeNamespace, agent.Name)
+	if err != nil {
+		t.Errorf("Error reading Agent from write namespace: %s", err.Error())
+	}
+	if !compareAgents(agent, readAgent) {
+		t.Error("Written Agent is not identical to read Agent")
+	}
+	if compareAgents(agentTwo, readAgent) {
+		t.Error("Expected different Agents to not be identical")
+	}
+
+	agentTwo.Host = "changed"
+	if err = UpdateAgent(writeNamespace, agentTwo); err != nil {
+		t.Errorf("Error updating Agent in write namespace: %s", err.Error())
+	}
+
+	readAgent, err = GetAgent(writeNamespace, agentTwo.Name)
+	if err != nil {
+		t.Errorf("Error reading Agent from write namespace: %s", err.Error())
+	}
+	if !compareAgents(agentTwo, readAgent) {
+		t.Error("Written Agent is not identical to read Agent")
+	}
+	if compareAgents(agent, readAgent) {
+		t.Error("Expected different Agent to not be identical")
 	}
 }
