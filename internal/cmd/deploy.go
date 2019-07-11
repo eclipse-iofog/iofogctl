@@ -31,7 +31,7 @@ deploy [command]`,
 		Short: "Deploy ioFog platform or components on existing infrastructure",
 		Long: `Deploy ioFog platform or individual components on existing infrastructure.
 
-A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers, Agents, and Microservices.
+A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers and Agents.
 
 The YAML resource definition file should look like this:
 controllers:
@@ -46,7 +46,6 @@ agents:
   user: serge
   host: 35.232.114.32
   keyfile: ~/.ssh/id_rsa
-microservices: []
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -66,11 +65,10 @@ microservices: []
 	cmd.AddCommand(
 		newDeployControllerCommand(),
 		newDeployAgentCommand(),
-		newDeployMicroserviceCommand(),
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers and Agents")
 
 	return cmd
 }

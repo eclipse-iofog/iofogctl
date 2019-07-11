@@ -44,10 +44,5 @@ func (exe *allExecutor) Execute() error {
 		return err
 	}
 
-	// Print microservices
-	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -25,8 +25,7 @@ func newLogsCommand() *cobra.Command {
 		Short: "Get log contents of deployed resource",
 		Long:  `Get log contents of deployed resource`,
 		Example: `iofogctl logs controller NAME
-iofogctl logs agent NAME
-iofogctl logs microservice NAME`,
+iofogctl logs agent NAME`,
 		Args: cobra.ExactValidArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get Resource type and name
@@ -57,7 +56,6 @@ iofogctl logs microservice NAME`,
 
 // Values accepted in resource type argument
 var resources = map[string]bool{
-	"controller":   true,
-	"agent":        true,
-	"microservice": true,
+	"controller": true,
+	"agent":      true,
 }
