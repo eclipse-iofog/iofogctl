@@ -113,7 +113,6 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	if err != nil {
 		return
 	}
-	println("")
 	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["controller"].ports[0])
 	return
 }

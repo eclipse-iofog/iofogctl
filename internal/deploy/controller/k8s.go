@@ -43,9 +43,9 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	k8s.SetControllerIP(exe.opt.KubeControllerIP)
 
 	var configUser config.IofogUser
-	// Check existing user
+	// Check for existing user
 	ctrl, err := config.GetController(exe.opt.Namespace, exe.opt.Name)
-	if exe.opt.IofogUser.Email != "" {
+	if exe.opt.IofogUser.Email != "" && exe.opt.IofogUser.Password != "" {
 		// Use user provided in the yaml file
 		configUser = exe.opt.IofogUser
 	} else if err == nil {
