@@ -27,7 +27,8 @@ import (
 )
 
 type Controller struct {
-	baseURL string
+	endpoint string
+	baseURL  string
 }
 
 func NewController(endpoint string) *Controller {
@@ -40,8 +41,13 @@ func NewController(endpoint string) *Controller {
 		endpoint = endpoint + ":" + strconv.Itoa(controllerMicroservice.ports[0])
 	}
 	return &Controller{
-		baseURL: fmt.Sprintf("http://%s/api/v3/", endpoint),
+		endpoint: endpoint,
+		baseURL:  fmt.Sprintf("http://%s/api/v3/", endpoint),
 	}
+}
+
+func (ctrl *Controller) GetEndpoint() string {
+	return ctrl.endpoint
 }
 
 func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {

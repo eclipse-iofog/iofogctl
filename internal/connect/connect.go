@@ -22,6 +22,9 @@ func connect(opt *Options, endpoint string) error {
 	// Connect to Controller
 	ctrl := iofog.NewController(endpoint)
 
+	// Get sanitized endpoint
+	endpoint = ctrl.GetEndpoint()
+
 	// Login user
 	loginRequest := iofog.LoginRequest{
 		Email:    opt.Email,
