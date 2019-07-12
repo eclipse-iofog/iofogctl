@@ -28,26 +28,34 @@ var conf configuration
 // Name of file
 var configFilename string
 
-// DefaultFilename is used if user does not specify a filename
-const DefaultFilename = ".iofog.yaml"
+const defaultDirname = ".iofog/"
+const defaultFilename = "config.yaml"
+
+// DefaultConfigPath is used if user does not specify a config file path
+const DefaultConfigPath = "~/" + defaultDirname + defaultFilename
 
 // Init initializes config and unmarshalls the file
 func Init(filename string) {
-	// Remove tilde from filename
-	filename, err := util.ReplaceTilde(filename)
+	// Format file path
+	filename, err := util.FormatPath(filename)
 	util.Check(err)
 
 	// Set default filename if necessary
+	var homeDirname string
 	if filename == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.Check(err)
-		filename = home + "/" + DefaultFilename
+		homeDirname = home + "/" + defaultDirname
+		filename = homeDirname + defaultFilename
 	}
 	configFilename = filename
 
 	// Check file exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
+		err = os.MkdirAll(homeDirname, 0744)
+		util.Check(err)
+
 		// Create default file
 		defaultData := []byte(`namespaces:
 - name: default

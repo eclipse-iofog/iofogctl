@@ -17,6 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"time"
 )
 
 type controllerExecutor struct {
@@ -30,8 +31,13 @@ func newControllerExecutor(namespace string) *controllerExecutor {
 }
 
 func (exe *controllerExecutor) Execute() error {
+	printNamespace(exe.namespace)
+	return generateControllerOutput(exe.namespace)
+}
+
+func generateControllerOutput(namespace string) error {
 	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
+	controllers, err := config.GetControllers(namespace)
 	if err != nil {
 		return err
 	}
@@ -42,7 +48,7 @@ func (exe *controllerExecutor) Execute() error {
 		"CONTROLLER",
 		"STATUS",
 		"AGE",
-		//"UPTIME",
+		"UPTIME",
 		"IP",
 		"PORT",
 	}
@@ -55,11 +61,10 @@ func (exe *controllerExecutor) Execute() error {
 
 		// Ping status
 		ctrlStatus, err := ctrl.GetStatus()
-		//uptime := "-"
+		uptime := "-"
 		status := "Failing"
 		if err == nil {
-			//uptimeSec := ctrlStatus.UptimeTimeMsUTC / int64(1000)
-			//uptime, _ = util.ElapsedUTC(util.FromIntUTC(uptimeSec), util.NowUTC())
+			uptime = util.FormatDuration(time.Duration(int64(ctrlStatus.UptimeSeconds)) * time.Second)
 			status = ctrlStatus.Status
 		}
 
@@ -72,7 +77,7 @@ func (exe *controllerExecutor) Execute() error {
 			ctrlConfig.Name,
 			status,
 			age,
-			//uptime,
+			uptime,
 			util.Before(ctrlConfig.Endpoint, ":"),
 			util.After(ctrlConfig.Endpoint, ":"),
 		}

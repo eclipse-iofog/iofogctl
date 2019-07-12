@@ -14,7 +14,6 @@
 package deploymicroservice
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"time"
 )
@@ -39,8 +38,6 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("\nMicroservice %s/%s successfully deployed.\n", namespace, name)
 
 	return config.Flush()
 }

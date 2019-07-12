@@ -99,18 +99,19 @@ jobs:
         displayName: 'Publish Test Results'
       
       - script: |
-          GOOS=darwin VERSION=$(version) make build
+          BRANCH=$(branch) GOOS=darwin VERSION=$(version) make build
           tar -zcf iofogctl.tar.gz bin/iofogctl
           checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
-          cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)
+          cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
           echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
-          rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/iofogctl-dev.tar.gz
+          rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz
           git config --global user.email "serge@edgeworx.io"
           git config --global user.name "Serge Radinovich"
           git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
           cd homebrew-iofogctl
           sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" iofogctl.rb
           sed -i "s/    version.*/    version \"$(version)\"/g" iofogctl.rb
+          sed -i "s|http://edgeworx.io/downloads/iofogctl/dev/.*\.tar\.gz\"|http://edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz\"|g" iofogctl.rb
           git add iofogctl.rb
           git commit -m "Publish develop version $(version)"
           git push origin master
@@ -118,7 +119,7 @@ jobs:
         displayName: 'Build and publish OSX binary'
 
       - script: |
-          VERSION=$(version) make build
+          BRANCH=$(branch) VERSION=$(version) make build
           GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
         workingDirectory: '$(modulePath)'
         displayName: 'Build and Install Linux version'

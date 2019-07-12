@@ -15,11 +15,10 @@ package util
 
 import (
 	"bytes"
-	"golang.org/x/crypto/ssh"
-	"io"
 	"io/ioutil"
-	"os"
 	"strconv"
+
+	"golang.org/x/crypto/ssh"
 )
 
 type SecureShellClient struct {
@@ -106,19 +105,20 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Run the command
 	err = session.Run(cmd)
 	if err != nil {
-		io.Copy(os.Stderr, stderr)
+		logFile := "/tmp/iofog.log"
+		errorSuffix := "stdout has been appended to " + logFile
+		if err = ioutil.WriteFile(logFile, stdout.Bytes(), 0644); err != nil {
+			errorSuffix = "Failed to append stdout to log file"
+		}
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(stderr)
+		err = NewInternalError("Error during SSH session\nstderr: " + buf.String() + errorSuffix)
 		return
 	}
 	return
 }
 
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {
-	// Replace ~ in filename
-	cl.privKeyFilename, err = ReplaceTilde(cl.privKeyFilename)
-	if err != nil {
-		return nil, err
-	}
-
 	// Read priv key file, MUST BE RSA
 	key, err := ioutil.ReadFile(cl.privKeyFilename)
 	if err != nil {

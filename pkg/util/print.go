@@ -13,41 +13,34 @@
 
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
-//
 // These are the colors we'll use in pretty printing output
-//
 const NoFormat = "\033[0m"
 const CSkyblue = "\033[38;5;117m"
 const CDeepskyblue = "\033[48;5;25m"
 const Red = "\033[38;5;1m"
 const Green = "\033[38;5;28m"
 
-//
 // Print a 'message' with CSkyblue color text
-//
 func PrintInfo(message string) {
 	fmt.Printf(CSkyblue + message + NoFormat + "\n")
 }
 
-//
 // Print 'message' with CDeepskyblue color text and background
-//
 func PrintNotify(message string) {
-	fmt.Printf(CDeepskyblue + message + NoFormat + "\n")
+	fmt.Fprintf(os.Stderr, CSkyblue+"! "+message+NoFormat+"\n")
 }
 
-//
 // Print 'message' with green color text
-//
-func PrintSucess(message string) {
-	fmt.Printf(Green + message + NoFormat + "\n")
+func PrintSuccess(message string) {
+	fmt.Printf(Green + "✔ " + message + NoFormat + "\n")
 }
 
-//
 // Print 'message' with red color text
-//
 func PrintError(message string) {
-	fmt.Printf(Red + message + NoFormat + "\n")
+	fmt.Fprintf(os.Stderr, Red+"✘ "+message+NoFormat+"\n")
 }

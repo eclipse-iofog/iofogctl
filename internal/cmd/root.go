@@ -49,13 +49,15 @@ func NewRootCommand() *cobra.Command {
 			err := cmd.Execute()
 			util.Check(err)
 		},
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	// Initialize config filename
 	cobra.OnInitialize(initConfig)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is ~/"+config.DefaultFilename+")")
+	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
 
 	// Register all commands

@@ -38,6 +38,8 @@ iofogctl delete microservice NAME`,
 			microservice := delete.New()
 			err = microservice.Execute(namespace, name)
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

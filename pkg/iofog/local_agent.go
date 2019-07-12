@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	pb "github.com/schollz/progressbar"
 )
 
 // Local agent uses Container exec commands
@@ -29,7 +28,7 @@ type LocalAgent struct {
 
 func NewLocalAgent(agentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
 	return &LocalAgent{
-		defaultAgent:     defaultAgent{name: agentConfig.Name, pb: pb.New(100)},
+		defaultAgent:     defaultAgent{name: agentConfig.Name},
 		localAgentConfig: agentConfig,
 		client:           client,
 	}
@@ -60,6 +59,8 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user User) (uuid str
 		{"iofog-agent", "config", "-a", controllerBaseURL},
 		{"iofog-agent", "provision", key},
 	}
+
+	// TODO: Verify provisioning succeeded
 
 	// Execute commands
 	for _, cmd := range cmds {

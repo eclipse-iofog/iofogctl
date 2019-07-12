@@ -14,33 +14,27 @@
 package cmd
 
 import (
-	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
+	delete "github.com/eclipse-iofog/iofogctl/internal/delete/all"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newDeployMicroserviceCommand() *cobra.Command {
+func newDeleteAllCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "microservice NAME [AGENTNAME]",
-		Short: "Deploy a Microservice",
-		Long:  `Deploy a Microservice`,
-		Example: `iofogctl deploy microservice NAME
-iofogctl deploy microservice NAME AGENTNAME`,
-		Args: cobra.MinimumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			// Get microservice name
-			name := args[0]
+		Use:   "all",
+		Short: "Delete all resources within a namespace",
+		Long: `Delete all resources within a namespace.
 
-			// Get namespace option
+Tears down all Agents and Controllers. If you don't want to tear down the deployments but would like to free up the namespace, used the disconnect command instead.`,
+		Example: `iofogctl delete all -n NAMESPACE`,
+		Run: func(cmd *cobra.Command, args []string) {
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-
 			// Execute command
-			microservice := deploy.New()
-			err = microservice.Execute(namespace, name)
+			err = delete.Execute(namespace)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deployed " + namespace + "/" + name)
+			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
 		},
 	}
 

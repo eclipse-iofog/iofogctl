@@ -26,38 +26,52 @@ func Check(err error) {
 	}
 }
 
+type Error struct {
+	msg string
+}
+
+func NewError(msg string) (err *Error) {
+	err = new(Error)
+	err.msg = msg
+	return err
+}
+
+func (err *Error) Error() string {
+	return err.msg
+}
+
 // NotFoundError export
 type NotFoundError struct {
-	resource string
+	msg string
 }
 
 // NewNotFoundError export
-func NewNotFoundError(resource string) (err *NotFoundError) {
+func NewNotFoundError(msg string) (err *NotFoundError) {
 	err = new(NotFoundError)
-	err.resource = resource
+	err.msg = msg
 	return err
 }
 
 // Error export
 func (err *NotFoundError) Error() string {
-	return fmt.Sprintf("[ERROR] Unknown resource requested\n%s not found.", err.resource)
+	return fmt.Sprintf("Unknown resource error\n%s", err.msg)
 }
 
 //ConflictError export
 type ConflictError struct {
-	resource string
+	msg string
 }
 
 // NewConflictError export
-func NewConflictError(resource string) (err *ConflictError) {
+func NewConflictError(msg string) (err *ConflictError) {
 	err = new(ConflictError)
-	err.resource = resource
+	err.msg = msg
 	return err
 }
 
 // Error export
 func (err *ConflictError) Error() string {
-	return fmt.Sprintf("[ERROR] Resource conflict\n%s already exists.", err.resource)
+	return fmt.Sprintf("Resource conflict error\n%s", err.msg)
 }
 
 // InputError export
@@ -74,7 +88,7 @@ func NewInputError(message string) (err *InputError) {
 
 // Error export
 func (err *InputError) Error() string {
-	return "[ERROR] User Input\n" + err.message
+	return "User input error\n" + err.message
 }
 
 // InternalError export
@@ -91,5 +105,5 @@ func NewInternalError(message string) (err *InternalError) {
 
 // Error export
 func (err *InternalError) Error() string {
-	return "[ERROR] Unexpected internal behaviour\n" + err.message
+	return "Unexpected internal behaviour\n" + err.message
 }

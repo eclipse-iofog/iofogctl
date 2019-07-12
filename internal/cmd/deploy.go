@@ -56,6 +56,8 @@ agents:
 			// Execute command
 			err = deploy.Execute(opt)
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deployed resources to namespace " + opt.Namespace)
 		},
 	}
 
@@ -66,7 +68,7 @@ agents:
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers and Agents to deploy")
+	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers and Agents")
 
 	return cmd
 }

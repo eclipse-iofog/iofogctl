@@ -4,12 +4,9 @@
 It can be used to remotely manage multiple different clusters from a single host. It is built for an
 ioFog user and a DevOps engineering wanting to manage ioFog clusters.  
 
-## Prerequisites
-
-The following must be installed and configured before performing bootstrap:
-* Go 1.12.1+
-
 ## Install
+
+#### Mac
 
 Mac users can use Homebrew:
 
@@ -18,17 +15,20 @@ brew tap eclipse-iofog/iofogctl
 brew install iofogctl
 ```
 
-Otherwise, `iofogctl` can be installed in the usual Go fashion:
+#### Linux
 
+The Debian package can be installed like so:
 ```bash
-go get -u github.com/eclipse-iofog/iofogctl/cmd/ifogctl
+https://packagecloud.io/install/repositories/iofog/iofogctl/script.deb.sh | sudo bash
+sudo apt install iofogctl
 ```
 
-Install dependencies:
+And similarly, the RPM package can be installed like so:
+```
+https://packagecloud.io/install/repositories/iofog/iofogctl/script.rpm.sh | sudo bash
+sudo apit install iofogctl
+```
 
-```
-script/bootstrap.sh
-```
 ## Usage
 
 #### Quick Start
@@ -65,25 +65,29 @@ Flags:
 Use "iofogctl [command] --help" for more information about a command.
 ```
 
-## Building 
+## Build from Source
 
-If you want to build from the src, you can see all `make` commands by running:
+Go 1.12.1+ is a prerequisite. Install all other dependancies with:
+```
+script/bootstrap.sh
+```
+
+See all `make` commands by running:
 ```
 make help
 ```
 
-Easy path is to build and install:
+To build and install, go ahead and run:
 ```
 make all
 iofogctl --help
 ```
 
-iofogctl is installed in your `$GOPATH/bin`
+iofogctl is installed in `/usr/local/bin`
 
 ## Running Tests
 
 Run project unit tests:
-
 ```
 make test
 ```

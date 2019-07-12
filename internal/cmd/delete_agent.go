@@ -45,6 +45,8 @@ The Agent stack will not be uninstalled from the host.`,
 			// Run the command
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

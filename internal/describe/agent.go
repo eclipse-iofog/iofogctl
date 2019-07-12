@@ -69,6 +69,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Print result
+	println("namespace: " + exe.namespace)
 	if err = util.Print(getAgentResponse); err != nil {
 		return err
 	}

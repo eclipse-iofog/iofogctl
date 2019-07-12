@@ -42,6 +42,12 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
+			// Format any file paths
+			opt.KubeConfig, err = util.FormatPath(opt.KubeConfig)
+			util.Check(err)
+			opt.KeyFile, err = util.FormatPath(opt.KeyFile)
+			util.Check(err)
+
 			// Get executor for command
 			ctrl, err := deploy.NewExecutor(opt)
 			util.Check(err)
@@ -49,6 +55,8 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 			// Execute the command
 			err = ctrl.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deployed " + opt.Namespace + "/" + opt.Name)
 		},
 	}
 

@@ -20,21 +20,34 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Controller struct {
-	baseURL string
+	endpoint string
+	baseURL  string
 }
 
 func NewController(endpoint string) *Controller {
+	// Remove prefix
 	regex := regexp.MustCompile("https?://")
 	endpoint = regex.ReplaceAllString(endpoint, "")
-	return &Controller{
-		baseURL: fmt.Sprintf("http://%s/api/v3/", endpoint),
+
+	// Add default port if none specified
+	if !strings.Contains(endpoint, ":") {
+		endpoint = endpoint + ":" + strconv.Itoa(controllerMicroservice.ports[0])
 	}
+	return &Controller{
+		endpoint: endpoint,
+		baseURL:  fmt.Sprintf("http://%s/api/v3/", endpoint),
+	}
+}
+
+func (ctrl *Controller) GetEndpoint() string {
+	return ctrl.endpoint
 }
 
 func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {

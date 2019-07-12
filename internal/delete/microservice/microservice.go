@@ -14,7 +14,6 @@
 package deletemicroservice
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
@@ -34,8 +33,6 @@ func (ctrl *microservice) Execute(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("\nMicroservice %s/%s successfully deleted.\n", namespace, name)
 
 	return config.Flush()
 }

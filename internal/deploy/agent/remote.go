@@ -14,16 +14,14 @@
 package deployagent
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
-	opt *Options
+	opt  *Options
+	uuid string
 }
 
 func newRemoteExecutor(opt *Options) *remoteExecutor {
@@ -38,18 +36,41 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 //
 func (exe *remoteExecutor) Execute() error {
 
+	configEntry, err := DeployAgent(exe.opt)
+	if err != nil {
+		return err
+	}
+
+	if err = config.UpdateAgent(exe.opt.Namespace, configEntry); err != nil {
+		return err
+	}
+
+	return config.Flush()
+}
+
+func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 	// Get Controllers from namespace
-	controllers, err := config.GetControllers(exe.opt.Namespace)
+	controllers, err := config.GetControllers(opt.Namespace)
 
 	// Do we actually have any controllers?
 	if err != nil {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return err
+		return
 	}
 
 	// Did we have more than one controller?
 	if len(controllers) != 1 {
-		return util.NewInternalError("Only support 1 controller per namespace")
+		err = util.NewInternalError("Only support 1 controller per namespace")
+		return
+	}
+
+	// Connect to agent via SSH
+	agent := iofog.NewRemoteAgent(opt.User, opt.Host, opt.Port, opt.KeyFile, opt.Name)
+
+	// Try the install
+	err = agent.Bootstrap()
+	if err != nil {
+		return
 	}
 
 	// Create our user object
@@ -60,43 +81,19 @@ func (exe *remoteExecutor) Execute() error {
 		Password: controllers[0].IofogUser.Password,
 	}
 
-	// Try and get our ssh connection
-	util.PrintInfo("Attempting to connect to Agent [" + exe.opt.Name + "] as '" +
-		exe.opt.User + "@" + exe.opt.Host + ":" + strconv.Itoa(exe.opt.Port))
-
-	agent := iofog.NewRemoteAgent(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile, exe.opt.Name)
-
-	// Try the install
-	err = agent.Bootstrap()
-	if err != nil {
-		return err
-	}
-
-	util.PrintInfo("Agent install successful. Provisioning to Controller.")
-
 	// Configure the agent with Controller details
 	uuid, err := agent.Configure(&controllers[0], user)
 	if err != nil {
-		return err
+		return
 	}
 
-	util.PrintInfo("Agent install successful. Connecting with Controller.")
-
-	// Update configuration
-	configEntry := config.Agent{
-		Name:    exe.opt.Name,
-		User:    exe.opt.User,
-		Host:    exe.opt.Host,
-		KeyFile: exe.opt.KeyFile,
+	configEntry = config.Agent{
+		Name:    opt.Name,
+		User:    opt.User,
+		Host:    opt.Host,
+		KeyFile: opt.KeyFile,
 		UUID:    uuid,
 		Created: util.NowUTC(),
 	}
-	err = config.UpdateAgent(exe.opt.Namespace, configEntry)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("\nAgent %s/%s successfully deployed.\n", exe.opt.Namespace, exe.opt.Name)
-
-	return config.Flush()
+	return
 }

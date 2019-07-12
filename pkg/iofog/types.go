@@ -21,8 +21,8 @@ type User struct {
 }
 
 type ControllerStatus struct {
-	Status          string `json:"status"`
-	UptimeTimeMsUTC int64  `json:"timestamp"`
+	Status        string  `json:"status"`
+	UptimeSeconds float64 `json:"uptimeSec"`
 }
 
 type LoginRequest struct {
@@ -74,7 +74,7 @@ type AgentInfo struct {
 	UpdatedTimeRFC3339        string  `json:"updated_at" yml:"updated"`
 	LastActive                int64   `json:"lastActive" yml:"lastActive"`
 	DaemonStatus              string  `json:"daemonStatus" yml:"daemonStatus"`
-	DaemonUptimeDurationMsUTC int64   `json:"daemonOperatingDuration" yml:"DaemonUptime"`
+	UptimeMs                  int64   `json:"daemonOperatingDuration" yml:"uptime"`
 	MemoryUsage               float64 `json:"memoryUsage" yml:"memoryUsage"`
 	DiskUsage                 float64 `json:"diskUsage" yml:"diskUsage"`
 	CPUUsage                  float64 `json:"cpuUsage" yml:"cpuUsage"`
@@ -86,6 +86,7 @@ type AgentInfo struct {
 	RepositoryStatus          string  `json:"repositoryStatus" yml:"repositoryStatus"`
 	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yml:"LastStatusTime"`
 	IPAddress                 string  `json:"ipAddress" yml:"ipAddress"`
+	IPAddressExternal         string  `json:"ipAddressExternal" yml:"ipAddressExternal"`
 	ProcessedMessaged         int64   `json:"processedMessages" yml:"ProcessedMessages"`
 	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yml:"microserviceMessageCount"`
 	MessageSpeed              float64 `json:"messageSpeed" yml:"messageSpeed"`

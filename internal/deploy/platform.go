@@ -34,6 +34,128 @@ type input struct {
 	Microservices []config.Microservice `mapstructure:"microservices"`
 }
 
+type agentJobResult struct {
+	agentConfig config.Agent
+	err         error
+}
+
+func deployControllers(namespace string, controllers []config.Controller) (err error) {
+
+	// Only support single controller
+	if len(controllers) > 1 {
+		return util.NewInputError("Only single controller deployments are supported")
+	}
+
+	// Instantiate wait group for parallel tasks
+	var wg sync.WaitGroup
+
+	// Deploy controllers
+	for _, ctrl := range controllers {
+		ctrlOpt := &deploycontroller.Options{
+			Namespace:        namespace,
+			Name:             ctrl.Name,
+			User:             ctrl.User,
+			Host:             ctrl.Host,
+			Local:            util.IsLocalHost(ctrl.Host),
+			KubeConfig:       ctrl.KubeConfig,
+			KubeControllerIP: ctrl.KubeControllerIP,
+			Images:           ctrl.Images,
+			IofogUser:        ctrl.IofogUser,
+		}
+		// Format file paths
+		if ctrlOpt.KubeConfig, err = util.FormatPath(ctrlOpt.KubeConfig); err != nil {
+			return
+		}
+
+		var exe deploycontroller.Executor
+		exe, err = deploycontroller.NewExecutor(ctrlOpt)
+		if err != nil {
+			return
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := exe.Execute()
+			util.Check(err)
+		}()
+	}
+	wg.Wait()
+	return
+}
+
+func deployAgents(namespace string, agents []config.Agent) error {
+	// Instantiate wait group for parallel tasks
+	var wg sync.WaitGroup
+	localAgentCount := 0
+	agentChan := make(chan agentJobResult, len(agents))
+	for idx, agent := range agents {
+		// Fix SSH port
+		if agent.Port == 0 {
+			agent.Port = 22
+		}
+		// Format file paths
+		var err error
+		if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
+			return err
+		}
+
+		// Check local deploys
+		local := false
+		if util.IsLocalHost(agent.Host) {
+			local = true
+			localAgentCount++
+			if localAgentCount > 1 {
+				fmt.Printf("Agent [%v] not deployed, you can only run one local agent.\n", agent.Name)
+				continue
+			}
+		}
+		agentOpt := &deployagent.Options{
+			Namespace: namespace,
+			Name:      agent.Name,
+			User:      agent.User,
+			Host:      agent.Host,
+			Port:      agent.Port,
+			KeyFile:   agent.KeyFile,
+			Local:     local,
+			Image:     agent.Image,
+		}
+		wg.Add(1)
+		go func(idx int, name string) {
+			defer wg.Done()
+			agentConfig, err := deployagent.DeployAgent(agentOpt)
+			agentChan <- agentJobResult{
+				agentConfig: agentConfig,
+				err:         err,
+			}
+		}(idx, agent.Name)
+	}
+	wg.Wait()
+	close(agentChan)
+
+	// Output any errors
+	failed := false
+	for agentJobResult := range agentChan {
+		if agentJobResult.err != nil {
+			failed = true
+			util.PrintNotify(agentJobResult.err.Error())
+		} else {
+			if err := config.UpdateAgent(namespace, agentJobResult.agentConfig); err != nil {
+				util.PrintNotify("Failed to update config file but Agent " + agentJobResult.agentConfig.Name + " deployed successfully")
+			}
+		}
+	}
+	if err := config.Flush(); err != nil {
+		util.PrintNotify("Failed to write to config file but resources were deployed")
+	}
+
+	if failed {
+		return util.NewError("Failed to deploy one or more resources")
+	}
+
+	return nil
+}
+
 func Execute(opt *Options) error {
 	// Check filename option
 	if opt.Filename == "" {
@@ -60,83 +182,15 @@ func Execute(opt *Options) error {
 		}
 	}
 
-	// Only support single controller
-	if len(in.Controllers) > 1 {
-		return util.NewInputError("Only single controller deployments are supported")
+	// Deploy Controllers
+	if err = deployControllers(opt.Namespace, in.Controllers); err != nil {
+		return err
 	}
 
-	// Instantiate wait group for parallel tasks
-	var wg sync.WaitGroup
-
-	// Deploy controllers
-	for _, ctrl := range in.Controllers {
-		ctrlOpt := &deploycontroller.Options{
-			Namespace:        opt.Namespace,
-			Name:             ctrl.Name,
-			User:             ctrl.User,
-			Host:             ctrl.Host,
-			Local:            util.IsLocalHost(ctrl.Host),
-			KubeConfig:       ctrl.KubeConfig,
-			KubeControllerIP: ctrl.KubeControllerIP,
-			Images:           ctrl.Images,
-			IofogUser:        ctrl.IofogUser,
-		}
-		exe, err := deploycontroller.NewExecutor(ctrlOpt)
-		if err != nil {
-			return err
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			err := exe.Execute()
-			util.Check(err)
-		}()
+	// Deploy Agents
+	if err = deployAgents(opt.Namespace, in.Agents); err != nil {
+		return err
 	}
-	wg.Wait()
 
-	// Deploy agents
-	localAgentCount := 0
-	for _, agent := range in.Agents {
-		if agent.Port == 0 {
-			agent.Port = 22
-		}
-		local := false
-		if util.IsLocalHost(agent.Host) {
-			local = true
-			localAgentCount++
-			if localAgentCount > 1 {
-				fmt.Printf("Agent [%v] not deployed, you can only run one local agent.\n", agent.Name)
-				continue
-			}
-		}
-		agentOpt := &deployagent.Options{
-			Namespace: opt.Namespace,
-			Name:      agent.Name,
-			User:      agent.User,
-			Host:      agent.Host,
-			Port:      agent.Port,
-			KeyFile:   agent.KeyFile,
-			Local:     local,
-			Image:     agent.Image,
-		}
-		exe, err := deployagent.NewExecutor(agentOpt)
-		if err != nil {
-			return err
-		}
-
-		wg.Add(1)
-		go func(name string) {
-			defer wg.Done()
-			err := exe.Execute()
-			if err != nil {
-				util.Check(util.NewInternalError("Failed to deploy agent " + name + "\n" + err.Error()))
-			}
-		}(agent.Name)
-	}
-	wg.Wait()
-
-	// TODO: Deploy microservices
-
-	return config.Flush()
+	return nil
 }
