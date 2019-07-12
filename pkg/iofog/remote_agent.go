@@ -16,7 +16,6 @@ package iofog
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -50,12 +49,6 @@ func (agent *RemoteAgent) Bootstrap() error {
 	// Instantiate install arguments
 	branch := util.GetVersion().Branch
 	installURL := fmt.Sprintf("https://raw.githubusercontent.com/eclipse-iofog/iofogctl/%s/script/install_agent.sh", branch)
-	version := util.GetVersion().VersionNumber
-	// Not local build and not a release candidate
-	if version != util.LocalBuildVersion && !strings.Contains(version, util.DevVersionSuffix) {
-		// Releases point to tags
-		installURL = strings.Replace(installURL, branch, version, 1)
-	}
 	installArgs := ""
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
 	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
