@@ -73,6 +73,10 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 
 func (k8s *Kubernetes) SetImages(images map[string]string) error {
 	for key, img := range images {
+		if img == "" {
+			util.PrintNotify("Empty image name specified for " + key + ". Ignoring and using default")
+			continue
+		}
 		if _, exists := k8s.ms[key]; !exists {
 			return util.NewInputError("Invalid ioFog service image name specified: " + key)
 		}
