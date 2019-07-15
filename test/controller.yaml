@@ -1,0 +1,12 @@
+controllers:
+- name: <NAME>
+   kubeconfig: <KUBE_CONFIG>
+   images:
+    controller: <CONTROLLER_IMAGE>
+    connector: <CONNECTOR_IMAGE>
+    scheduler: <SCHEDULER_IMAGE>
+    operator: <OPERATOR_IMAGE>
+    kubelet: <KUBELET_IMAGE>
+  iofoguser:
+    email: bztfg@domain.com
+    password: S5gYVgLEZV
