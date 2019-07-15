@@ -24,7 +24,7 @@ func FormatPath(input string) (string, error) {
 	if strings.Contains(input, "~") {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			return "", err
+			return input, err
 		}
 		return strings.Replace(input, "~", homeDir, 1), nil
 	}
@@ -40,7 +40,7 @@ func FormatPath(input string) (string, error) {
 func Before(input string, substr string) string {
 	pos := strings.Index(input, substr)
 	if pos == -1 {
-		return ""
+		return input
 	}
 	return input[0:pos]
 }
@@ -48,7 +48,7 @@ func Before(input string, substr string) string {
 func After(input string, substr string) string {
 	pos := strings.Index(input, substr)
 	if pos == -1 || pos >= len(input)-1 {
-		return ""
+		return input
 	}
 	return input[pos+1:]
 }

@@ -58,7 +58,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	microservices["controller"] = &controllerMicroservice
 	microservices["connector"] = &connectorMicroservice
 	microservices["operator"] = &operatorMicroservice
-	microservices["scheduler"] = &schedulerMicroservice
+	//microservices["scheduler"] = &schedulerMicroservice
 	microservices["kubelet"] = &kubeletMicroservice
 
 	return &Kubernetes{
@@ -418,33 +418,33 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) (err
 	defer util.SpinStop()
 
 	// Create Scheduler resources
-	util.SpinStart("Deploying Scheduler")
-	schedDep := newDeployment(k8s.ns, k8s.ms["scheduler"])
-	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
-		if !isAlreadyExists(err) {
-			return
-		}
-		// Delete existing
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(schedDep.Name, &metav1.DeleteOptions{}); err != nil {
-			return
-		}
-		if err = k8s.waitForPodTerminate(schedDep.Name); err != nil {
-			return
-		}
-		// Create new
-		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
-			return
-		}
-		if err = k8s.waitForPod(schedDep.Name); err != nil {
-			return
-		}
-	}
-	schedAcc := newServiceAccount(k8s.ns, k8s.ms["scheduler"])
-	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc); err != nil {
-		if !isAlreadyExists(err) {
-			return
-		}
-	}
+	//util.SpinStart("Deploying Scheduler")
+	//schedDep := newDeployment(k8s.ns, k8s.ms["scheduler"])
+	//if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
+	//	if !isAlreadyExists(err) {
+	//		return
+	//	}
+	//	// Delete existing
+	//	if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(schedDep.Name, &metav1.DeleteOptions{}); err != nil {
+	//		return
+	//	}
+	//	if err = k8s.waitForPodTerminate(schedDep.Name); err != nil {
+	//		return
+	//	}
+	//	// Create new
+	//	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
+	//		return
+	//	}
+	//	if err = k8s.waitForPod(schedDep.Name); err != nil {
+	//		return
+	//	}
+	//}
+	//schedAcc := newServiceAccount(k8s.ns, k8s.ms["scheduler"])
+	//if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(schedAcc); err != nil {
+	//	if !isAlreadyExists(err) {
+	//		return
+	//	}
+	//}
 
 	// Create Kubelet resources
 	util.SpinStart("Deploying Kubelet")

@@ -14,6 +14,7 @@
 package iofog
 
 import (
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -37,6 +38,8 @@ type container struct {
 	ports           []v1.ContainerPort
 }
 
+var tag = util.Before(util.GetVersion().VersionNumber, "-")
+
 var controllerMicroservice = microservice{
 	name:     "controller",
 	ports:    []int{51121},
@@ -44,7 +47,7 @@ var controllerMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "controller",
-			image:           "edgeworx/controller-k8s:latest",
+			image:           "iofog/controller:" + tag,
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{
@@ -76,7 +79,7 @@ var connectorMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "connector",
-			image:           "iofog/connector:dev",
+			image:           "iofog/connector:" + tag,
 			imagePullPolicy: "Always",
 		},
 	},
@@ -88,7 +91,7 @@ var schedulerMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "scheduler",
-			image:           "iofog/iofog-scheduler:develop",
+			image:           "iofog/iofog-scheduler:" + tag,
 			imagePullPolicy: "Always",
 		},
 	},
@@ -101,7 +104,7 @@ var operatorMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "operator",
-			image:           "iofog/iofog-operator:develop",
+			image:           "iofog/iofog-operator:" + tag,
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{
@@ -158,7 +161,7 @@ var kubeletMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "kubelet",
-			image:           "iofog/iofog-kubelet:develop",
+			image:           "iofog/iofog-kubelet:" + tag,
 			imagePullPolicy: "Always",
 			args: []string{
 				"--namespace",
