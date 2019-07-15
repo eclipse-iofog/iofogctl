@@ -124,16 +124,15 @@ func deployAgents(namespace string, agents []config.Agent) error {
 		var exe deployagent.Executor
 		exe, err = deployagent.NewExecutor(agentOpt)
 		if err != nil {
-			return
+			return err
 		}
 
 		wg.Add(1)
 		go func(idx int, name string) {
 			defer wg.Done()
-			agentConfig, err := exe.Execute()
+			err := exe.Execute()
 			agentChan <- agentJobResult{
-				agentConfig: agentConfig,
-				err:         err,
+				err: err,
 			}
 		}(idx, agent.Name)
 	}
@@ -146,14 +145,7 @@ func deployAgents(namespace string, agents []config.Agent) error {
 		if agentJobResult.err != nil {
 			failed = true
 			util.PrintNotify(agentJobResult.err.Error())
-		} else {
-			if err := config.UpdateAgent(namespace, agentJobResult.agentConfig); err != nil {
-				util.PrintNotify("Failed to update config file but Agent " + agentJobResult.agentConfig.Name + " deployed successfully")
-			}
 		}
-	}
-	if err := config.Flush(); err != nil {
-		util.PrintNotify("Failed to write to config file but resources were deployed")
 	}
 
 	if failed {
