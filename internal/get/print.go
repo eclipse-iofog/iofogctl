@@ -47,7 +47,5 @@ func print(table [][]string) error {
 }
 
 func printNamespace(namespace string) {
-	println("NAMESPACE")
-	println(namespace)
-	println()
+	fmt.Printf("NAMESPACE\n%s\n\n", namespace)
 }

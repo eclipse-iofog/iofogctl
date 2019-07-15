@@ -32,7 +32,7 @@ type localExecutor struct {
 func getController(namespace string) (*config.Controller, error) {
 	controllers, err := config.GetControllers(namespace)
 	if err != nil {
-		println("You must deploy a Controller to a namespace before deploying any Agents")
+		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
 		return nil, err
 	}
 	if len(controllers) != 1 {

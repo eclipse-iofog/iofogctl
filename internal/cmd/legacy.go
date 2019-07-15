@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -68,7 +69,7 @@ iofogctl legacy agent NAME status`,
 				kubeArgs = append(kubeArgs, args[2:]...)
 				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
-				println(out.String())
+				fmt.Print(out.String())
 			case "agent":
 				// Get config
 				agent, err := config.GetAgent(namespace, name)
@@ -83,7 +84,7 @@ iofogctl legacy agent NAME status`,
 				out, err := ssh.Run(command)
 				util.Check(err)
 
-				println(out.String())
+				fmt.Print(out.String())
 			case "connector":
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
@@ -106,7 +107,7 @@ iofogctl legacy agent NAME status`,
 				kubeArgs = append(kubeArgs, args[2:]...)
 				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
-				println(out.String())
+				fmt.Print(out.String())
 			default:
 				util.Check(util.NewInputError("Unknown legacy CLI " + resource))
 			}

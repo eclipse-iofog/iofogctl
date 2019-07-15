@@ -14,6 +14,7 @@
 package logs
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -48,7 +49,7 @@ func (exe *controllerExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		println(out.String())
+		fmt.Print(out.String())
 		return nil
 	}
 
@@ -64,7 +65,7 @@ func (exe *controllerExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	println(out.String())
+	fmt.Print(out.String())
 
 	return nil
 }

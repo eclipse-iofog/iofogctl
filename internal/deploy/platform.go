@@ -40,7 +40,6 @@ type agentJobResult struct {
 }
 
 func deployControllers(namespace string, controllers []config.Controller) (err error) {
-
 	// Only support single controller
 	if len(controllers) > 1 {
 		return util.NewInputError("Only single controller deployments are supported")
@@ -172,6 +171,11 @@ func Execute(opt *Options) error {
 	err = util.UnmarshalYAML(opt.Filename, &in)
 	if err != nil {
 		return err
+	}
+
+	// If there are no resources return error
+	if len(in.Controllers) == 0 && len(in.Agents) == 0 {
+		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
 
 	// If no controller is provided, one must already exist

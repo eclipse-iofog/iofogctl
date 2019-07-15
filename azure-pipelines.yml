@@ -79,24 +79,70 @@ jobs:
 
       - script: |
           script/bootstrap.sh
+          make dep
         workingDirectory: '$(modulePath)'
         displayName: 'Bootstrap'
+      
+      #- task: DownloadSecureFile@1
+      #  displayName: 'Download secure file'
+      #  inputs:
+      #    secureFile: 'azure-gcp.json'
+      #  
+      #- bash: |
+      #    CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+      #    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+      #    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      #    sudo apt-get update && sudo apt-get install google-cloud-sdk
+      #    gcloud --quiet auth activate-service-account --key-file=$(Agent.TempDirectory)/azure-gcp.json
+      #    gcloud --quiet config set project focal-freedom-236620
+      #  displayName: 'set up gcloud'
+
+      #- script: |
+      #    make test
+      #    pwd
+      #    ls -l
+      #  workingDirectory: '$(modulePath)'
+      #  displayName: 'Run Unit Tests'
+
+      #- task: PublishTestResults@2
+      #  inputs:
+      #    testResultsFormat: 'JUnit'
+      #    testResultsFiles: '**/TEST-*.xml'
+      #    searchFolder: '$(System.DefaultWorkingDirectory)'
+      #  displayName: 'Publish Test Results'
+      
+      - script: |
+          BRANCH=$(branch) VERSION=$(version) make build
+          GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
+        workingDirectory: '$(modulePath)'
+        displayName: 'Build and Install Linux version'
 
       - script: |
-          make dep
-          make test
-          pwd
-          ls -l
-        workingDirectory: '$(modulePath)'
-        displayName: 'Run Tests'
+          which iofogctl
+          iofogctl version
+        displayName: 'Verify Install'
 
-      # Publish Test Results
-      - task: PublishTestResults@2
+      - task: DownloadSecureFile@1
+        displayName: 'Download SSH keys to'
         inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**/TEST-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)'
-        displayName: 'Publish Test Results'
+          secureFile: 'id_rsa'
+
+      - task: DownloadSecureFile@1
+        displayName: 'Download Kube config file'
+        inputs:
+          secureFile: 'iofogctl.kubeconfig'
+
+      - script: |
+          sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
+          sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/config\"|g" test/env.sh
+          sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
+          cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
+          echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDe6oGmJeWmvXRj9dWJmI2XtWmhrClTmnqfKK3ohF5+OhB+c3O7hLIlTfiRQVlGVKu3dUGP+woybJ77eau0OpPKTirZhLct+tsbSNTc5NEyOmeUDVn9AfKj748NGEi9gAJ9PfjbpTo5hakLdDSGbG3HNmt75B7oOpx0SpxnGQZGJOkxYw66OYpWrCGcUB7nuqporM16AOEKVbvayYgXw5Pi7xql++VOHdmniaMStdJyjBZFyIpD+oxvUhwpJ+FthlknDk2p0BQImLsF+h3g7ZFYTlSY3y/v/2k4bY9NRUF3Xdgd3FsyF712cfONgPdxnKQLJkyRArUrqHM8lCeg70Lz serge@Serges-MacBook-Pro.local' > ~/id_rsa.pub
+          cat $(Agent.TempDirectory)/iofogctl.kubeconfig > ~/config
+          export CLOUDSDK_CONTAINER_USE_APPLICATION_DEFAULT_CREDENTIALS=true
+          test/run.bash
+        workingDirectory: '$(modulePath)'
+        displayName: 'Run Functional Tests'
       
       - script: |
           BRANCH=$(branch) GOOS=darwin VERSION=$(version) make build
@@ -104,7 +150,7 @@ jobs:
           checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
           cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
           echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
-          rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz root@104.130.140.232:/var/www/vhosts/edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz
+          rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz $(ssh.downloads):/var/www/vhosts/edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz
           git config --global user.email "serge@edgeworx.io"
           git config --global user.name "Serge Radinovich"
           git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
@@ -117,17 +163,6 @@ jobs:
           git push origin master
         workingDirectory: '$(modulePath)'
         displayName: 'Build and publish OSX binary'
-
-      - script: |
-          BRANCH=$(branch) VERSION=$(version) make build
-          GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
-        workingDirectory: '$(modulePath)'
-        displayName: 'Build and Install Linux version'
-
-      - script: |
-          which iofogctl
-          iofogctl version
-        displayName: 'Verify Install'
 
       - task: DownloadSecureFile@1
         inputs:
