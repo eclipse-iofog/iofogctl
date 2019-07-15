@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
-// Local agent uses Container exec commands
+// LocalAgent uses Container exec commands
 type LocalAgent struct {
 	defaultAgent
 	client           *LocalContainer

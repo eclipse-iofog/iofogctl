@@ -120,10 +120,17 @@ func deployAgents(namespace string, agents []config.Agent) error {
 			Local:     local,
 			Image:     agent.Image,
 		}
+
+		var exe deployagent.Executor
+		exe, err = deployagent.NewExecutor(agentOpt)
+		if err != nil {
+			return
+		}
+
 		wg.Add(1)
 		go func(idx int, name string) {
 			defer wg.Done()
-			agentConfig, err := deployagent.DeployAgent(agentOpt)
+			agentConfig, err := exe.Execute()
 			agentChan <- agentJobResult{
 				agentConfig: agentConfig,
 				err:         err,
