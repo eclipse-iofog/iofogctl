@@ -48,11 +48,7 @@ if ! checkForInstallation "go-junit-report"; then
     go get -u github.com/jstemmer/go-junit-report
 fi
 
-# Is bats installed?
-if ! checkForInstallation "bats"; then
-    echoInfo " Attempting to install 'bats'"
-    git clone https://github.com/sstephenson/bats.git && cd bats && ./install.sh /usr/local
-fi
+
 
 #
 # All our Kubernetes related stuff
