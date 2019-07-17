@@ -64,7 +64,7 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 	cmd.Flags().StringVarP(&opt.User, "user", "u", "", "Username of host the Controller is being deployed on")
 	cmd.Flags().StringVarP(&opt.Host, "host", "o", "", "IP or hostname of host the Controller is being deployed on")
 	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.")
-	cmd.Flags().StringVarP(&opt.KubeConfig, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
+	cmd.Flags().StringVarP(&opt.KubeConfig, "kube-config", "u", "", "Filename of Kubernetes cluster config file")
 	cmd.Flags().StringVar(&opt.KubeControllerIP, "kube-controller-ip", "", "Static IP to assign to Kubernetes LoadBalancer")
 	cmd.Flags().StringVar(&opt.ImagesFile, "images", "", "Filename of YAML containing list of ioFog service images to be deployed on K8s cluster")
 	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment")

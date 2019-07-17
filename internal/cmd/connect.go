@@ -59,7 +59,7 @@ iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass 
 		},
 	}
 	cmd.Flags().StringVarP(&opt.Endpoint, "controller", "c", "", "Host and (optionally) port of the Controller you are connecting to")
-	cmd.Flags().StringVarP(&opt.KubeFile, "kube-config", "q", "", "Filename of Kubernetes cluster config file")
+	cmd.Flags().StringVarP(&opt.KubeFile, "kube-config", "u", "", "Filename of Kubernetes cluster config file")
 	cmd.Flags().StringVarP(&opt.Email, "email", "e", "", "Email address of user registered against Controller")
 	cmd.Flags().StringVarP(&opt.Password, "pass", "p", "", "Password of user registered against Controller")
 
