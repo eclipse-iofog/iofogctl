@@ -58,10 +58,10 @@ iofogctl deploy agent NAME --user root --host 32.23.134.3 --key-file ~/.ssh/id_r
 	}
 
 	// Set up options
-	cmd.Flags().StringVarP(&opt.User, "user", "u", "", "Username of host the Agent is being deployed on")
-	cmd.Flags().StringVarP(&opt.Host, "host", "o", "", "IP or hostname of host the Agent is being deployed on")
-	cmd.Flags().IntVarP(&opt.Port, "port", "p", 22, "SSH port to use when deploying agent to host")
-	cmd.Flags().StringVarP(&opt.KeyFile, "key-file", "k", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.")
+	cmd.Flags().StringVar(&opt.User, "user", "", "Username of host the Agent is being deployed on")
+	cmd.Flags().StringVar(&opt.Host, "host", "", "IP or hostname of host the Agent is being deployed on")
+	cmd.Flags().IntVar(&opt.Port, "port", 22, "SSH port to use when deploying agent to host")
+	cmd.Flags().StringVar(&opt.KeyFile, "key-file", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.")
 	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment. Cannot be used with other flags")
 	cmd.Flags().Lookup("local").NoOptDefVal = "true"
 
