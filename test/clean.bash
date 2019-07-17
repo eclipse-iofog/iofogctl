@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Export variables
-. test/env.sh
+if [[ -z "$1" ]]; then
+    echo "Please specify a namespace to clean as an argument to this script"
+    exit 1
+fi
 
+NAMESPACE="$1"
 echo "Cleaning namespace $NAMESPACE"
 
 iofogctl delete all -n "$NAMESPACE"
