@@ -35,8 +35,8 @@ jobs:
 
       - task: InstallSSHKey@0
         inputs:
-          knownHostsEntry: 'github.com,192.30.255.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
-          sshPublicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDe6oGmJeWmvXRj9dWJmI2XtWmhrClTmnqfKK3ohF5+OhB+c3O7hLIlTfiRQVlGVKu3dUGP+woybJ77eau0OpPKTirZhLct+tsbSNTc5NEyOmeUDVn9AfKj748NGEi9gAJ9PfjbpTo5hakLdDSGbG3HNmt75B7oOpx0SpxnGQZGJOkxYw66OYpWrCGcUB7nuqporM16AOEKVbvayYgXw5Pi7xql++VOHdmniaMStdJyjBZFyIpD+oxvUhwpJ+FthlknDk2p0BQImLsF+h3g7ZFYTlSY3y/v/2k4bY9NRUF3Xdgd3FsyF712cfONgPdxnKQLJkyRArUrqHM8lCeg70Lz serge@Serges-MacBook-Pro.local'
+          knownHostsEntry: $(ssh.github.knownhost)
+          sshPublicKey: $(ssh.user.pub)
           sshKeySecureFile: id_rsa
 
       - script: |
@@ -128,17 +128,12 @@ jobs:
         inputs:
           secureFile: 'id_rsa'
 
-      #- task: DownloadSecureFile@1
-      #  displayName: 'Download Kube config file'
-      #  inputs:
-      #    secureFile: 'iofogctl.kubeconfig'
-
       - script: |
           sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
           sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
           sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
           cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
-          echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDe6oGmJeWmvXRj9dWJmI2XtWmhrClTmnqfKK3ohF5+OhB+c3O7hLIlTfiRQVlGVKu3dUGP+woybJ77eau0OpPKTirZhLct+tsbSNTc5NEyOmeUDVn9AfKj748NGEi9gAJ9PfjbpTo5hakLdDSGbG3HNmt75B7oOpx0SpxnGQZGJOkxYw66OYpWrCGcUB7nuqporM16AOEKVbvayYgXw5Pi7xql++VOHdmniaMStdJyjBZFyIpD+oxvUhwpJ+FthlknDk2p0BQImLsF+h3g7ZFYTlSY3y/v/2k4bY9NRUF3Xdgd3FsyF712cfONgPdxnKQLJkyRArUrqHM8lCeg70Lz serge@Serges-MacBook-Pro.local' > ~/id_rsa.pub
+          echo $(ssh.user.pub) > ~/id_rsa.pub
           test/run.bash
         workingDirectory: '$(modulePath)'
         displayName: 'Run Functional Tests'
