@@ -41,20 +41,17 @@ function initAgents(){
 
 function checkController() {
   [[ "$NAME" == $(iofogctl -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ "$NAME" == $(iofogctl -n "$NS" get all | grep "$NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
 }
 
 function checkControllerNegative() {
   [[ "$NAME" != $(iofogctl -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ "$NAME" != $(iofogctl -n "$NS" get all | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkAgents() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_$(((IDX++)))"
     [[ "$AGENT_NAME" == $(iofogctl -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-    [[ "$AGENT_NAME" == $(iofogctl -n "$NS" get all | grep "$AGENT_NAME" | awk '{print $1}') ]]
     [[ ! -z $(iofogctl -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
   done
 }
@@ -63,7 +60,6 @@ function checkAgentsNegative() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_$(((IDX++)))"
     [[ "$AGENT_NAME" != $(iofogctl -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-    [[ "$AGENT_NAME" != $(iofogctl -n "$NS" get all | grep "$AGENT_NAME" | awk '{print $1}') ]]
   done
 }
 
