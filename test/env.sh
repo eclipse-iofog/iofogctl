@@ -3,7 +3,7 @@
 ######## These variables MUST be updated by the user / automation task
 
 # Space-separated list of user@host
-export AGENT_LIST="serge@35.193.16.117 serge@35.222.192.229"
+export AGENT_LIST="user@host user2@host2"
 
 ######################################################################
 

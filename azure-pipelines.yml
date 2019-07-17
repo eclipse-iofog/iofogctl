@@ -129,9 +129,11 @@ jobs:
           secureFile: 'id_rsa'
 
       - script: |
+          sed -i "s|NAMESPACE=.*|NAMESPACE=\"$(branch)\"|g" test/env.sh
           sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
           sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
           sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
+          cp test/env.sh test/conf
           cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
           echo $(ssh.user.pub) > ~/id_rsa.pub
           test/run.bash

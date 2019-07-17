@@ -80,12 +80,12 @@ function checkAgentsNegative() {
   export CONTROLLER_EMAIL=$(iofogctl -n "$NS" describe controller "$NAME" | grep email | sed "s|.*email: ||")
   export CONTROLLER_PASS=$(iofogctl -n "$NS" describe controller "$NAME" | grep password | sed "s|.*password: ||")
   export CONTROLLER_ENDPOINT=$(iofogctl -n "$NS" describe controller "$NAME" | grep endpoint | sed "s|.*endpoint: ||")
-  echo "$CONTROLLER_EMAIL" > /tmp/email.txt
-  echo "$CONTROLLER_PASS" > /tmp/pass.txt
-  echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
   [[ ! -z "$CONTROLLER_EMAIL" ]]
   [[ ! -z "$CONTROLLER_PASS" ]]
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
+  echo "$CONTROLLER_EMAIL" > /tmp/email.txt
+  echo "$CONTROLLER_PASS" > /tmp/pass.txt
+  echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
 @test "Deploy agents" {

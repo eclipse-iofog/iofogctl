@@ -3,7 +3,7 @@
 set -e
 
 # Export variables
-. test/env.sh
+. test/conf/env.sh
 
 # Run smoke tests
 bats test/smoke.bats
