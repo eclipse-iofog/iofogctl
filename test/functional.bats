@@ -42,7 +42,7 @@ function initAgents(){
 function checkController() {
   [[ "$NAME" == $(iofogctl -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
   [[ "$NAME" == $(iofogctl -n "$NS" get all | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -n "$NS" describe controller "$NAME" -n testing | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
 }
 
 function checkControllerNegative() {
