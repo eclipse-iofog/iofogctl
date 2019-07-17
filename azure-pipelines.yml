@@ -171,7 +171,7 @@ jobs:
           gem install package_cloud
           package_cloud -h
           echo "config file..."
-          echo $DOWNLOADSECUREFILE_SECUREFILEPATH
+          echo $(Agent.TempDirectory)/package_cloud
         displayName: 'Install package_cloud cli and fpm'
 
       - script: |
@@ -189,12 +189,12 @@ jobs:
           declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster")
           for ubu in "${UBUNTU_VERS[@]}"
           do
-              package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+              package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud
           done
           for deb in "${DEBIAN_VERS[@]}"
           do
-              package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
-              package_cloud push iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+              package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
+              package_cloud push iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
           done
         displayName: 'Publish deb to package-cloud'
 
@@ -213,11 +213,11 @@ jobs:
           declare -a REDHAT_VERS=("6" "7")
           for fed in ${FEDORA_VERS[@]}
           do
-              package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+              package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
           done
           for red in ${REDHAT_VERS[@]}
           do
-              package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$DOWNLOADSECUREFILE_SECUREFILEPATH
+              package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
           done
         displayName: 'Publish RPM to package-cloud'
 
