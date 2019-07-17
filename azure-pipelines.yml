@@ -98,19 +98,19 @@ jobs:
           gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
         displayName: 'set up gcloud'
 
-      #- script: |
-      #    make test
-      #    pwd
-      #    ls -l
-      #  workingDirectory: '$(modulePath)'
-      #  displayName: 'Run Unit Tests'
+      - script: |
+          make test
+          pwd
+          ls -l
+        workingDirectory: '$(modulePath)'
+        displayName: 'Run Unit Tests'
 
-      #- task: PublishTestResults@2
-      #  inputs:
-      #    testResultsFormat: 'JUnit'
-      #    testResultsFiles: '**/TEST-*.xml'
-      #    searchFolder: '$(System.DefaultWorkingDirectory)'
-      #  displayName: 'Publish Test Results'
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**/TEST-*.xml'
+          searchFolder: '$(System.DefaultWorkingDirectory)'
+        displayName: 'Publish Test Results'
       
       - script: |
           BRANCH=$(branch) VERSION=$(version) make build

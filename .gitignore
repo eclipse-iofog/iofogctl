@@ -4,6 +4,5 @@ reports/*
 
 .idea/
 
-test/*.yaml
 test.txt
 test-report.xml

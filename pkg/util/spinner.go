@@ -1,12 +1,15 @@
 package util
 
 import (
+	"fmt"
 	"github.com/briandowns/spinner"
 	"time"
 )
 
-// There is only one spinner, output overlaps with multiple concurrent spinners
-var spin *spinner.Spinner
+var (
+	Quiet bool
+	spin  *spinner.Spinner // There is only one spinner, output overlaps with multiple concurrent spinners
+)
 
 func init() {
 	// Note: don't set the colour here, it will display the spinner when you don't want it to
@@ -14,6 +17,10 @@ func init() {
 }
 
 func SpinStart(msg string) {
+	if Quiet {
+		fmt.Println(msg)
+		return
+	}
 	spin.Color("red")
 	spin.Stop()
 	spin.Suffix = " " + msg
@@ -21,5 +28,8 @@ func SpinStart(msg string) {
 }
 
 func SpinStop() {
+	if Quiet {
+		return
+	}
 	spin.Stop()
 }
