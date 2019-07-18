@@ -63,6 +63,7 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 	// Set up options
 	cmd.Flags().StringVar(&opt.User, "user", "", "Username of host the Controller is being deployed on")
 	cmd.Flags().StringVar(&opt.Host, "host", "", "IP or hostname of host the Controller is being deployed on")
+	cmd.Flags().IntVar(&opt.Port, "port", 22, "Port to use for SSH connection")
 	cmd.Flags().StringVar(&opt.KeyFile, "key-file", "", "Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.")
 	cmd.Flags().StringVar(&opt.KubeConfig, "kube-config", "", "Filename of Kubernetes cluster config file")
 	cmd.Flags().StringVar(&opt.KubeControllerIP, "kube-controller-ip", "", "Static IP to assign to Kubernetes LoadBalancer")

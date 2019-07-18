@@ -16,7 +16,9 @@ package util
 import (
 	"bytes"
 	"io/ioutil"
+	"regexp"
 	"strconv"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -135,4 +137,43 @@ func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error)
 	authMeth = ssh.PublicKeys(signer)
 
 	return
+}
+
+func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err error) {
+	// Establish the session
+	session, err := cl.conn.NewSession()
+	if err != nil {
+		return
+	}
+	defer session.Close()
+
+	// Connect pipes
+	stderr, err := session.StderrPipe()
+	if err != nil {
+		return
+	}
+	for iter := 0; iter < 30; iter++ {
+		// Refresh stdout for every iter
+		stdoutBuffer := bytes.Buffer{}
+		session.Stdout = &stdoutBuffer
+
+		// Run the command
+		err = session.Run(cmd)
+		if err != nil {
+			logFile := "/tmp/iofog.log"
+			errorSuffix := "stdout has been appended to " + logFile
+			if err = ioutil.WriteFile(logFile, stdoutBuffer.Bytes(), 0644); err != nil {
+				errorSuffix = "Failed to append stdout to log file"
+			}
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(stderr)
+			err = NewInternalError("Error during SSH session\nstderr: " + buf.String() + errorSuffix)
+			return
+		}
+		if condition.MatchString(stdoutBuffer.String()) {
+			return nil
+		}
+		time.Sleep(2 * time.Second)
+	}
+	return NewInternalError("Timed out waiting for condition '" + condition.String() + "' with SSH command: " + cmd)
 }

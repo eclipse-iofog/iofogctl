@@ -16,7 +16,6 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -42,48 +41,19 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 	k8s.SetControllerIP(exe.opt.KubeControllerIP)
 
-	var configUser config.IofogUser
-	// Check for existing user
-	ctrl, err := config.GetController(exe.opt.Namespace, exe.opt.Name)
-	if exe.opt.IofogUser.Email != "" && exe.opt.IofogUser.Password != "" {
-		// Use user provided in the yaml file
-		configUser = exe.opt.IofogUser
-	} else if err == nil {
-		// Use existing user
-		configUser = ctrl.IofogUser
-	} else {
-		// Generate new user
-		configUser = config.NewRandomUser()
-	}
-	// Assign user
-	user := iofog.User{
-		Name:     configUser.Name,
-		Surname:  configUser.Surname,
-		Email:    configUser.Email,
-		Password: configUser.Password,
-	}
-
 	// Update configuration before we try to deploy in case of failure
-	configEntry := config.Controller{
-		Name:       exe.opt.Name,
-		KubeConfig: exe.opt.KubeConfig,
-		IofogUser: config.IofogUser{
-			Name:     user.Name,
-			Surname:  user.Surname,
-			Email:    user.Email,
-			Password: user.Password,
-		},
-		Created: util.NowUTC(),
-	}
-	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
+	configEntry, err := prepareUserAndSaveConfig(exe.opt)
+	if err != nil {
 		return
-	}
-	if err = config.Flush(); err != nil {
-		return err
 	}
 
 	// Create controller on cluster
-	endpoint, err := k8s.CreateController(user)
+	endpoint, err := k8s.CreateController(iofog.User{
+		Name:     configEntry.IofogUser.Name,
+		Surname:  configEntry.IofogUser.Surname,
+		Email:    configEntry.IofogUser.Email,
+		Password: configEntry.IofogUser.Password,
+	})
 	if err != nil {
 		return
 	}

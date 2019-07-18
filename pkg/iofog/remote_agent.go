@@ -40,8 +40,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	defer util.SpinStop()
 	util.SpinStart("Bootstrapping Agent " + agent.name)
 	// Connect to agent over SSH
-	err := agent.ssh.Connect()
-	if err != nil {
+	if err := agent.ssh.Connect(); err != nil {
 		return err
 	}
 	defer agent.ssh.Disconnect()
@@ -56,7 +55,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 		installArgs = "dev " + agentVersion + " " + pkgCloudToken
 	}
 
-	// Execute commands
+	// Define commands
 	cmds := []string{
 		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
 		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
@@ -72,7 +71,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.ssh.Run(cmd)
+		_, err := agent.ssh.Run(cmd)
 		if err != nil {
 			return err
 		}

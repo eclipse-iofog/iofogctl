@@ -28,6 +28,7 @@ type Options struct {
 	Namespace        string
 	User             string
 	Host             string
+	Port             int
 	KeyFile          string
 	Local            bool
 	KubeConfig       string

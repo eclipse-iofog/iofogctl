@@ -364,53 +364,14 @@ func (k8s *Kubernetes) createCore(user User) (token string, ips map[string]strin
 		}
 		ips[ms.name] = ip
 	}
-
-	// Connect to controller
+	// Connect to Controller and set up user and Connector connection
+	util.SpinStart("Waiting for Controller and configuring User and Connector")
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
-	ctrl := NewController(endpoint)
-
-	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
-	util.SpinStart("Waiting for Controller API and creating new user in Controller")
-	connected := false
-	for !connected {
-		if err = ctrl.CreateUser(user); err != nil {
-			if !strings.Contains(err.Error(), "already an account associated") {
-				if strings.Contains(err.Error(), "connection refused") {
-					continue
-				}
-				return
-			}
-		} else {
-			connected = true
-			continue
-		}
-		time.Sleep(time.Millisecond * 1000)
-	}
-
-	// Get token
-	loginRequest := LoginRequest{
-		Email:    user.Email,
-		Password: user.Password,
-	}
-	loginResponse, err := ctrl.Login(loginRequest)
+	token, err = configureController(endpoint, ips["connector"], user)
 	if err != nil {
 		return
 	}
-	token = loginResponse.AccessToken
 
-	// Connect Controller with Connector
-	util.SpinStart("Provisioning Connector to Controller")
-	connectorRequest := ConnectorInfo{
-		IP:      ips["connector"],
-		DevMode: true,
-		Domain:  ips["connector"],
-		Name:    "gke",
-	}
-	if err = ctrl.AddConnector(connectorRequest, token); err != nil {
-		return
-	}
-
-	err = nil
 	return
 }
 
