@@ -130,7 +130,8 @@ jobs:
           secureFile: 'id_rsa'
 
       - script: |
-          sed -i "s|NAMESPACE=.*|NAMESPACE=\"$(branch)\"|g" test/env.sh
+          NS=branch-$(echo $(branch) | tr -d '.')
+          sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
           sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
           sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
           sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
