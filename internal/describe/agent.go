@@ -14,6 +14,7 @@
 package describe
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -69,7 +70,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Print result
-	println("namespace: " + exe.namespace)
+	fmt.Printf("namespace: %s\n", exe.namespace)
 	if err = util.Print(getAgentResponse); err != nil {
 		return err
 	}

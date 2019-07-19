@@ -17,6 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"strings"
 )
 
 type microservice struct {
@@ -38,7 +39,9 @@ type container struct {
 	ports           []v1.ContainerPort
 }
 
-var tag = util.Before(util.GetVersion().VersionNumber, "-")
+// Transform iofogctl version into tag for images. Ignore patch version
+var majorMinorPatch = strings.Split(util.Before(util.GetVersion().VersionNumber, "-"), ".")
+var tag = majorMinorPatch[0] + "." + majorMinorPatch[1] + ".0"
 
 var controllerMicroservice = microservice{
 	name:     "controller",
@@ -47,7 +50,7 @@ var controllerMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "controller",
-			image:           "iofog/controller:1.2.1",
+			image:           "iofog/controller:" + "1.2.1", // TODO: (Serge) Replace 1.2.1 with tag var after 1.2.x
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{
@@ -79,7 +82,7 @@ var connectorMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "connector",
-			image:           "iofog/connector:1.2.0",
+			image:           "iofog/connector:" + tag,
 			imagePullPolicy: "Always",
 		},
 	},
@@ -91,7 +94,7 @@ var schedulerMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "scheduler",
-			image:           "iofog/iofog-scheduler:1.2.0",
+			image:           "iofog/iofog-scheduler:" + tag,
 			imagePullPolicy: "Always",
 		},
 	},
@@ -104,7 +107,7 @@ var operatorMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "operator",
-			image:           "iofog/iofog-operator:1.2.0",
+			image:           "iofog/iofog-operator:" + tag,
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{
@@ -161,7 +164,7 @@ var kubeletMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "kubelet",
-			image:           "iofog/iofog-kubelet:1.2.0",
+			image:           "iofog/iofog-kubelet:" + tag,
 			imagePullPolicy: "Always",
 			args: []string{
 				"--namespace",

@@ -14,6 +14,7 @@
 package describe
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -35,8 +36,7 @@ func (exe *controllerExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	println("namespace: " + exe.namespace)
-	controller.IofogUser.Password = "*****"
+	fmt.Printf("namespace: %s\n", exe.namespace)
 	if err = util.Print(controller); err != nil {
 		return err
 	}

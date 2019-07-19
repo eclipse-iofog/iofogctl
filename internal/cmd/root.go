@@ -59,6 +59,7 @@ func NewRootCommand() *cobra.Command {
 	// Global flags
 	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
+	cmd.PersistentFlags().BoolVarP(&util.Quiet, "quiet", "q", false, "Toggle for displaying verbose output")
 
 	// Register all commands
 	cmd.AddCommand(
