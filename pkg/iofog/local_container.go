@@ -210,7 +210,7 @@ func getImageTag(image string) string {
 }
 
 func (lc *LocalContainer) waitForImage(image string, counter int8) error {
-	if counter >= 10 {
+	if counter >= 18 { // 180 seconds
 		return util.NewInternalError("Could not find newly pulled image: " + image)
 	}
 	ctx := context.Background()
