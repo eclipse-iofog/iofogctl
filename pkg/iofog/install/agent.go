@@ -11,17 +11,18 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Agent interface {
 	Bootstrap() error
-	getProvisionKey(string, User) (string, string, error)
-	Configure(*config.Controller, User) (string, error)
+	getProvisionKey(string, client.User) (string, string, error)
+	Configure(*config.Controller, client.User) (string, error)
 }
 
 // defaultAgent implements commong behavior
@@ -30,12 +31,12 @@ type defaultAgent struct {
 	namespace string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user client.User) (key string, uuid string, err error) {
 	// Connect to controller
-	ctrl := NewController(controllerEndpoint)
+	ctrl := client.NewController(controllerEndpoint)
 
 	// Log in
-	loginRequest := LoginRequest{
+	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
 	}
@@ -46,7 +47,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 	token := loginResponse.AccessToken
 
 	// Check the agent name is unique
-	var agentList ListAgentsResponse
+	var agentList client.ListAgentsResponse
 	agentList, err = ctrl.ListAgents(token)
 	if err != nil {
 		return
@@ -59,7 +60,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User)
 	}
 
 	// Create agent
-	createRequest := CreateAgentRequest{
+	createRequest := client.CreateAgentRequest{
 		Name:    agent.name,
 		FogType: 0,
 	}

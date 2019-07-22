@@ -11,13 +11,14 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"fmt"
 	"os"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -80,7 +81,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
+func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (uuid string, err error) {
 	defer util.SpinStop()
 	util.SpinStart("Configuring Agent " + agent.name)
 

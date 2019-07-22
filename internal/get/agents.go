@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -47,9 +47,9 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Make an index of agents the client knows about and pre-process any info
-	agentsToPrint := make(map[string]iofog.AgentInfo)
+	agentsToPrint := make(map[string]client.AgentInfo)
 	for _, agent := range ns.Agents {
-		agentsToPrint[agent.Name] = iofog.AgentInfo{
+		agentsToPrint[agent.Name] = client.AgentInfo{
 			Name:              agent.Name,
 			IPAddressExternal: agent.Host,
 		}
@@ -58,8 +58,8 @@ func generateAgentOutput(namespace string) error {
 	// Connect to Controller if it is ready
 	if len(ns.Controllers) > 0 && ns.Controllers[0].Endpoint != "" {
 		// Instantiate client
-		ctrl := iofog.NewController(ns.Controllers[0].Endpoint)
-		loginRequest := iofog.LoginRequest{
+		ctrl := client.NewController(ns.Controllers[0].Endpoint)
+		loginRequest := client.LoginRequest{
 			Email:    ns.Controllers[0].IofogUser.Email,
 			Password: ns.Controllers[0].IofogUser.Password,
 		}
@@ -101,7 +101,7 @@ func generateAgentOutput(namespace string) error {
 	return tabulate(agentsToPrint)
 }
 
-func tabulate(agentInfos map[string]iofog.AgentInfo) error {
+func tabulate(agentInfos map[string]client.AgentInfo) error {
 	// Generate table and headers
 	table := make([][]string, len(agentInfos)+1)
 	headers := []string{

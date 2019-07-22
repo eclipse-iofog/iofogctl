@@ -15,7 +15,7 @@ package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type kubernetesExecutor struct {
@@ -38,7 +38,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Instantiate Kubernetes object
-	k8s, err := iofog.NewKubernetes(ctrl.KubeConfig, exe.namespace)
+	k8s, err := install.NewKubernetes(ctrl.KubeConfig, exe.namespace)
 
 	// Delete Controller on cluster
 	err = k8s.DeleteController()

@@ -15,6 +15,7 @@ package connect
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ var baseOpt = Options{
 	Namespace: "default",
 	Email:     "user@domain.com",
 	Password:  "ui89POKJ324!!",
-	Endpoint:  "localhost:51121",
+	Endpoint:  "localhost:" + iofog.ControllerPortString,
 }
 
 func TestEmptyNamespace(t *testing.T) {

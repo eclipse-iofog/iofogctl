@@ -16,7 +16,7 @@ package describe
 import (
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"strings"
 )
@@ -48,8 +48,8 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Connect to controller
-	ctrl := iofog.NewController(ctrls[0].Endpoint)
-	loginRequest := iofog.LoginRequest{
+	ctrl := client.NewController(ctrls[0].Endpoint)
+	loginRequest := client.LoginRequest{
 		Email:    ctrls[0].IofogUser.Email,
 		Password: ctrls[0].IofogUser.Password,
 	}

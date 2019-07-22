@@ -11,7 +11,7 @@
  *
  */
 
-package iofog
+package client
 
 import (
 	"bytes"
@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -38,7 +39,7 @@ func NewController(endpoint string) *Controller {
 
 	// Add default port if none specified
 	if !strings.Contains(endpoint, ":") {
-		endpoint = endpoint + ":" + strconv.Itoa(controllerMicroservice.ports[0])
+		endpoint = endpoint + ":" + strconv.Itoa(iofog.ControllerPort)
 	}
 	return &Controller{
 		endpoint: endpoint,

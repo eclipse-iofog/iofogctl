@@ -11,9 +11,10 @@
  *
  */
 
-package iofog
+package install
 
 import (
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -45,7 +46,7 @@ var tag = majorMinorPatch[0] + "." + majorMinorPatch[1] + ".0"
 
 var controllerMicroservice = microservice{
 	name:     "controller",
-	ports:    []int{51121},
+	ports:    []int{iofog.ControllerPort},
 	replicas: 1,
 	containers: []container{
 		{
@@ -56,7 +57,7 @@ var controllerMicroservice = microservice{
 				Handler: v1.Handler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path: "/api/v3/status",
-						Port: intstr.FromInt(51121),
+						Port: intstr.FromInt(iofog.ControllerPort),
 					},
 				},
 				InitialDelaySeconds: 1,
@@ -70,7 +71,7 @@ var controllerMicroservice = microservice{
 var connectorMicroservice = microservice{
 	name: "connector",
 	ports: []int{
-		8080,
+		iofog.ConnectorPort,
 		6000, 6001, 6002, 6003, 6004, 6005, 6006, 6007, 6008, 6009,
 		6010, 6011, 6012, 6013, 6014, 6015, 6016, 6017, 6018, 6019,
 		6020, 6021, 6022, 6023, 6024, 6025, 6026, 6027, 6028, 6029,

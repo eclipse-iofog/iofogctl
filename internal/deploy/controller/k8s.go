@@ -15,7 +15,8 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type kubernetesExecutor struct {
@@ -30,7 +31,7 @@ func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Get Kubernetes cluster
-	k8s, err := iofog.NewKubernetes(exe.opt.KubeConfig, exe.opt.Namespace)
+	k8s, err := install.NewKubernetes(exe.opt.KubeConfig, exe.opt.Namespace)
 	if err != nil {
 		return
 	}
@@ -48,7 +49,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Create controller on cluster
-	endpoint, err := k8s.CreateController(iofog.User{
+	endpoint, err := k8s.CreateController(client.User{
 		Name:     configEntry.IofogUser.Name,
 		Surname:  configEntry.IofogUser.Surname,
 		Email:    configEntry.IofogUser.Email,

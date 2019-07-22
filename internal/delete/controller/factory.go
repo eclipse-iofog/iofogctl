@@ -15,7 +15,7 @@ package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -32,7 +32,7 @@ func NewExecutor(namespace, name string) (Executor, error) {
 
 	// Local executor
 	if util.IsLocalHost(ctrl.Host) {
-		cli, err := iofog.NewLocalContainerClient()
+		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}

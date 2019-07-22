@@ -15,7 +15,8 @@ package deployagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -65,7 +66,7 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 	}
 
 	// Connect to agent via SSH
-	agent := iofog.NewRemoteAgent(opt.User, opt.Host, opt.Port, opt.KeyFile, opt.Name)
+	agent := install.NewRemoteAgent(opt.User, opt.Host, opt.Port, opt.KeyFile, opt.Name)
 
 	// Try the install
 	err = agent.Bootstrap()
@@ -74,7 +75,7 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 	}
 
 	// Create our user object
-	user := iofog.User{
+	user := client.User{
 		Name:     controllers[0].IofogUser.Name,
 		Surname:  controllers[0].IofogUser.Surname,
 		Email:    controllers[0].IofogUser.Email,

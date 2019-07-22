@@ -18,21 +18,21 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type localExecutor struct {
 	namespace        string
-	client           *iofog.LocalContainer
-	localAgentConfig *iofog.LocalAgentConfig
+	client           *install.LocalContainer
+	localAgentConfig *install.LocalAgentConfig
 }
 
-func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *localExecutor {
-	ctrlConfig, _ := iofog.NewLocalControllerConfig("", make(map[string]string)).ContainerMap["controller"]
+func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
+	ctrlConfig, _ := install.NewLocalControllerConfig("", make(map[string]string)).ContainerMap["controller"]
 	exe := &localExecutor{
 		namespace:        namespace,
 		client:           client,
-		localAgentConfig: iofog.NewLocalAgentConfig(name, "", ctrlConfig),
+		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig),
 	}
 	return exe
 }

@@ -11,7 +11,7 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"context"
@@ -28,6 +28,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -109,7 +110,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap := make(map[string]*LocalContainerConfig)
 	containerMap["controller"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
-		Ports:         []port{{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}}},
+		Ports:         []port{{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}}},
 		ContainerName: sanitizeContainerName("iofog-controller-" + name),
 		Image:         controllerImg,
 		Privileged:    false,
@@ -124,7 +125,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 	containerMap["connector"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
-		Ports:         []port{{Host: "8080", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}}},
+		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
 		ContainerName: sanitizeContainerName("iofog-connector-" + name),
 		Image:         connectorImg,
 		Privileged:    false,

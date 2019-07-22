@@ -11,10 +11,11 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -122,7 +123,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user User) (endpoint string, err error) {
+func (k8s *Kubernetes) CreateController(user client.User) (endpoint string, err error) {
 	// Install ioFog Core
 	token, ips, err := k8s.createCore(user)
 	if err != nil {
@@ -267,7 +268,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) createCore(user User) (token string, ips map[string]string, err error) {
+func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[string]string, err error) {
 	defer util.SpinStop()
 	// Create namespace
 	util.SpinStart("Creating namespace ")

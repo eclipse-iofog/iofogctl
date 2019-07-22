@@ -11,31 +11,33 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"regexp"
 	"strings"
 	"time"
 )
 
-type ControllerInstaller struct {
+type Controller struct {
 	ssh  *util.SecureShellClient
 	host string
 }
 
-func NewControllerInstaller(user, host string, port int, privKeyFilename string) *ControllerInstaller {
+func NewController(user, host string, port int, privKeyFilename string) *Controller {
 	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
 	ssh.SetPort(port)
-	return &ControllerInstaller{
+	return &Controller{
 		ssh:  ssh,
 		host: host,
 	}
 }
 
-func (instlr *ControllerInstaller) Install() (err error) {
+func (instlr *Controller) Install() (err error) {
 	defer util.SpinStop()
 
 	util.SpinStart("Connecting to remote server " + instlr.host)
@@ -78,7 +80,7 @@ func (instlr *ControllerInstaller) Install() (err error) {
 	util.SpinStart("Waiting for Connector")
 	if err = instlr.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"running\""),
-		"curl --request POST --url http://localhost:8080/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all",
+		"curl --request POST --url http://localhost:"+iofog.ControllerPortString+"/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all",
 	); err != nil {
 		return
 	}
@@ -86,15 +88,15 @@ func (instlr *ControllerInstaller) Install() (err error) {
 	return
 }
 
-func (instlr *ControllerInstaller) Configure(user User) (err error) {
+func (instlr *Controller) Configure(user client.User) (err error) {
 	_, err = configureController(instlr.host+":54421", instlr.host, user) // TODO: change hardcode
 	return
 }
 
-func configureController(ctrlEndpoint string, connectorIP string, user User) (token string, err error) {
+func configureController(ctrlEndpoint string, connectorIP string, user client.User) (token string, err error) {
 	defer util.SpinStop()
 
-	ctrl := NewController(ctrlEndpoint)
+	ctrl := client.NewController(ctrlEndpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
 	util.SpinStart("Creating ioFog user on Controller")
@@ -129,7 +131,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user User) (to
 
 	// Get token
 	util.SpinStart("Logging in to retrieve access token")
-	loginRequest := LoginRequest{
+	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
 	}
@@ -141,7 +143,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user User) (to
 
 	// Connect Controller with Connector
 	util.SpinStart("Provisioning Connector")
-	connectorRequest := ConnectorInfo{
+	connectorRequest := client.ConnectorInfo{
 		IP:      connectorIP,
 		DevMode: true,
 		Domain:  connectorIP,

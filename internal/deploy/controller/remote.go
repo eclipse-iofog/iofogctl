@@ -15,7 +15,8 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type remoteExecutor struct {
@@ -30,7 +31,7 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 
 func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
-	installer := iofog.NewControllerInstaller(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile)
+	installer := install.NewController(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile)
 
 	// Update configuration before we try to deploy in case of failure
 	configEntry, err := prepareUserAndSaveConfig(exe.opt)
@@ -44,7 +45,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Configure Controller and Connector
-	if err = installer.Configure(iofog.User{
+	if err = installer.Configure(client.User{
 		Name:     configEntry.IofogUser.Name,
 		Surname:  configEntry.IofogUser.Surname,
 		Email:    configEntry.IofogUser.Email,
