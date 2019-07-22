@@ -17,7 +17,8 @@ deploy_controller() {
 		nvm alias default lts/*
 		npm install -g iofogcontroller --unsafe-perm
 	fi
-	iofog-controller start
+	# TODO: This env var is used to change default port. Replace dev env and specify default port outright
+	NODE_ENV=development iofog-controller start
 }
 
 deploy_connector() {

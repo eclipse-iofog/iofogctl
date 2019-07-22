@@ -15,6 +15,7 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
@@ -55,7 +56,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Update configuration
-	configEntry.Endpoint = exe.opt.Host + ":54421" // TODO: change hardcode
+	configEntry.Endpoint = exe.opt.Host + ":" + iofog.ControllerPortString
 	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
 		return
 	}

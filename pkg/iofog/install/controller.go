@@ -37,15 +37,15 @@ func NewController(user, host string, port int, privKeyFilename string) *Control
 	}
 }
 
-func (instlr *Controller) Install() (err error) {
+func (ctrl *Controller) Install() (err error) {
 	defer util.SpinStop()
 
-	util.SpinStart("Connecting to remote server " + instlr.host)
+	util.SpinStart("Connecting to remote server " + ctrl.host)
 	// Connect to server
-	if err = instlr.ssh.Connect(); err != nil {
+	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
-	defer instlr.ssh.Disconnect()
+	defer ctrl.ssh.Disconnect()
 
 	// Specify install script
 	branch := util.GetVersion().Branch
@@ -61,7 +61,7 @@ func (instlr *Controller) Install() (err error) {
 	// Execute commands
 	util.SpinStart("Installing Controller and Connector on remote server")
 	for _, cmd := range cmds {
-		_, err = instlr.ssh.Run(cmd)
+		_, err = ctrl.ssh.Run(cmd)
 		if err != nil {
 			return
 		}
@@ -69,18 +69,18 @@ func (instlr *Controller) Install() (err error) {
 
 	// Wait for Controller
 	util.SpinStart("Waiting for Controller")
-	if err = instlr.ssh.RunUntil(
+	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
-		"curl --request GET --url http://localhost:54421/api/v3/status", // TODO: replace hardcode
+		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),
 	); err != nil {
 		return
 	}
 
 	// Wait for Connector
 	util.SpinStart("Waiting for Connector")
-	if err = instlr.ssh.RunUntil(
+	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"running\""),
-		"curl --request POST --url http://localhost:"+iofog.ControllerPortString+"/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all",
+		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ControllerPortString),
 	); err != nil {
 		return
 	}
@@ -88,8 +88,10 @@ func (instlr *Controller) Install() (err error) {
 	return
 }
 
-func (instlr *Controller) Configure(user client.User) (err error) {
-	_, err = configureController(instlr.host+":54421", instlr.host, user) // TODO: change hardcode
+func (ctrl *Controller) Configure(user client.User) (err error) {
+	ctrlEndpoint := fmt.Sprintf("%s:%s", ctrl.host, iofog.ControllerPortString)
+	connectorIP := "localhost"
+	_, err = configureController(ctrlEndpoint, connectorIP, user)
 	return
 }
 
