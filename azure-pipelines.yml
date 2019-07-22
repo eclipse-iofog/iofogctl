@@ -23,7 +23,7 @@ variables:
 jobs:
   - job: CLI
     pool:
-      name: 'GCP Ubuntu 1604'
+      vmImage: 'Ubuntu-16.04'
 
     steps:
 
