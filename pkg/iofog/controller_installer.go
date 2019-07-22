@@ -97,7 +97,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user User) (to
 	ctrl := NewController(ctrlEndpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
-    util.SpinStart("Creating ioFog user on Controller")
+	util.SpinStart("Creating ioFog user on Controller")
 	connected := false
 	iter := 0
 	for !connected {
@@ -111,7 +111,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user User) (to
 			// Retry if connection is refused, this is usually only necessary on K8s Controller
 			if strings.Contains(err.Error(), "connection refused") {
 				time.Sleep(time.Millisecond * 1000)
-				iter = iter +1
+				iter = iter + 1
 				continue
 			}
 			// Account already exists, proceed to login
@@ -128,7 +128,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user User) (to
 	}
 
 	// Get token
-    util.SpinStart("Logging in to retrieve access token")
+	util.SpinStart("Logging in to retrieve access token")
 	loginRequest := LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
@@ -140,7 +140,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user User) (to
 	token = loginResponse.AccessToken
 
 	// Connect Controller with Connector
-    util.SpinStart("Provisioning Connector")
+	util.SpinStart("Provisioning Connector")
 	connectorRequest := ConnectorInfo{
 		IP:      connectorIP,
 		DevMode: true,
