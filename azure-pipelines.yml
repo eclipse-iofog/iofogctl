@@ -22,6 +22,8 @@ variables:
 
 jobs:
   - job: CLI
+    strategy:
+      maxParallel: 1
     pool:
       vmImage: 'Ubuntu-16.04'
 
