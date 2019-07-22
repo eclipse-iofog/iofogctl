@@ -16,31 +16,23 @@ package util
 // Set by linker
 var (
 	versionNumber = "undefined"
-	branch        = "undefined"
+	platform      = "undefined"
 	commit        = "undefined"
 	date          = "undefined"
-	platform      = "undefined"
-)
-
-const (
-	LocalBuildVersion = "dev"
-	DevVersionSuffix  = "-b"
 )
 
 type Version struct {
 	VersionNumber string `yaml:"version"`
-	Branch        string
+	Platform      string
 	Commit        string
 	Date          string
-	Platform      string
 }
 
 func GetVersion() Version {
 	return Version{
 		VersionNumber: versionNumber,
-		Branch:        branch,
+		Platform:      platform,
 		Commit:        commit,
 		Date:          date,
-		Platform:      platform,
 	}
 }

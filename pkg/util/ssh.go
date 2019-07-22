@@ -15,9 +15,12 @@ package util
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -176,4 +179,54 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err
 		time.Sleep(2 * time.Second)
 	}
 	return NewInternalError("Timed out waiting for condition '" + condition.String() + "' with SSH command: " + cmd)
+}
+
+func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int) error {
+	// Check permissions string
+	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
+		return NewError("Invalid file permission specified: " + permissions)
+	}
+
+	// Establish the session
+	session, err := cl.conn.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	// Start routine to write file
+	errChan := make(chan error)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// Instantiate reference to stdin
+		remoteStdin, err := session.StdinPipe()
+		if err != nil {
+			errChan <- err
+		}
+		defer remoteStdin.Close()
+
+		// Write to stdin
+		fmt.Fprintf(remoteStdin, "C%s %d %s\n", permissions, size, destFilename)
+		io.Copy(remoteStdin, reader)
+		fmt.Fprint(remoteStdin, "\x00")
+	}()
+
+	// Start the scp command
+	session.Run("/usr/bin/scp -t " + destPath)
+
+	// Wait for completion
+	wg.Wait()
+
+	// Check for errors
+	close(errChan)
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

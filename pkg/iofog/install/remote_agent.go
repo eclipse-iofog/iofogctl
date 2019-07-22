@@ -16,6 +16,7 @@ package install
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
@@ -46,9 +47,17 @@ func (agent *RemoteAgent) Bootstrap() error {
 	}
 	defer agent.ssh.Disconnect()
 
+	// Copy installation scripts to remote hosts
+	reader := strings.NewReader(installAgentScript)
+	if err := agent.ssh.CopyTo(reader, "/tmp/", "install_agent.sh", "0774", len(installAgentScript)); err != nil {
+		return err
+	}
+	reader = strings.NewReader(waitAgentScript)
+	if err := agent.ssh.CopyTo(reader, "/tmp/", "wait_agent.sh", "0774", len(waitAgentScript)); err != nil {
+		return err
+	}
+
 	// Instantiate install arguments
-	branch := util.GetVersion().Branch
-	installURL := fmt.Sprintf("https://raw.githubusercontent.com/eclipse-iofog/iofogctl/%s/script/install_agent.sh", branch)
 	installArgs := ""
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
 	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
@@ -60,13 +69,9 @@ func (agent *RemoteAgent) Bootstrap() error {
 	cmds := []string{
 		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
 		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
-		"curl " + installURL + " | sudo  -S tee /opt/install_agent.sh",
-		"sudo -S chmod +x /opt/install_agent.sh",
-		"sudo -S /opt/install_agent.sh " + installArgs,
+		"/tmp/install_agent.sh " + installArgs,
 		"sudo -S service iofog-agent start",
-		"echo '" + waitForAgentScript + "' > ~/wait-for-agent.sh",
-		"chmod +x ~/wait-for-agent.sh",
-		"~/wait-for-agent.sh",
+		"/tmp/wait_agent.sh",
 		"sudo -S iofog-agent config -cf 10 -sf 10",
 	}
 
@@ -118,16 +123,3 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (
 
 	return
 }
-
-var waitForAgentScript = `STATUS=""
-ITER=0
-while [ "$STATUS" != "RUNNING" ] ; do
-    ITER=$((ITER+1))
-    if [ "$ITER" -gt 30 ]; then
-        echo 'Timed out waiting for Agent to be RUNNING'
-        exit 1
-    fi
-    sleep 1
-    STATUS=$(sudo iofog-agent status | cut -f2 -d: | head -n 1 | tr -d '[:space:]')
-done
-exit 0`

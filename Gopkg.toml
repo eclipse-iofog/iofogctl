@@ -50,8 +50,9 @@
   version = "kubernetes-1.14.2"
 
 [[constraint]]
-  name = "github.com/schollz/progressbar"
-  version = "v2.13.0"
-[[constraint]]
   name = "github.com/docker/docker"
   version = "1.13.1"
+
+[[constraint]]
+  name = "github.com/GeertJohan/go.rice"
+  version = "v1.0.0"

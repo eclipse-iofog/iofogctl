@@ -47,14 +47,14 @@ func (ctrl *Controller) Install() (err error) {
 	}
 	defer ctrl.ssh.Disconnect()
 
-	// Specify install script
-	branch := util.GetVersion().Branch
-	installURL := fmt.Sprintf("https://raw.githubusercontent.com/eclipse-iofog/iofogctl/%s/script/install_controller.sh", branch)
+	// Copy installation scripts to remote host
+	reader := strings.NewReader(installControllerScript)
+	if err := ctrl.ssh.CopyTo(reader, "/tmp/", "install_controller.sh", "0774", len(installControllerScript)); err != nil {
+		return err
+	}
 
 	// Define commands
 	cmds := []string{
-		"curl " + installURL + " | tee /tmp/install_controller.sh",
-		"chmod +x /tmp/install_controller.sh",
 		"/tmp/install_controller.sh",
 	}
 
