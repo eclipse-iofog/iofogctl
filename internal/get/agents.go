@@ -58,7 +58,7 @@ func generateAgentOutput(namespace string) error {
 	// Connect to Controller if it is ready
 	if len(ns.Controllers) > 0 && ns.Controllers[0].Endpoint != "" {
 		// Instantiate client
-		ctrl := client.NewController(ns.Controllers[0].Endpoint)
+		ctrl := client.New(ns.Controllers[0].Endpoint)
 		loginRequest := client.LoginRequest{
 			Email:    ns.Controllers[0].IofogUser.Email,
 			Password: ns.Controllers[0].IofogUser.Password,

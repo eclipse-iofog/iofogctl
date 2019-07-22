@@ -47,7 +47,7 @@ func (exe *remoteExecutor) Execute() error {
 	if len(ctrlConfigs) > 0 {
 		// Get Controller endpoint and connect to Controller
 		endpoint := ctrlConfigs[0].Endpoint
-		ctrl := client.NewController(endpoint)
+		ctrl := client.New(endpoint)
 
 		// Log into Controller
 		userConfig := ctrlConfigs[0].IofogUser

@@ -48,7 +48,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Connect to controller
-	ctrl := client.NewController(ctrls[0].Endpoint)
+	ctrl := client.New(ctrls[0].Endpoint)
 	loginRequest := client.LoginRequest{
 		Email:    ctrls[0].IofogUser.Email,
 		Password: ctrls[0].IofogUser.Password,

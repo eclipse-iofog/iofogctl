@@ -27,12 +27,12 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Controller struct {
+type Client struct {
 	endpoint string
 	baseURL  string
 }
 
-func NewController(endpoint string) *Controller {
+func New(endpoint string) *Client {
 	// Remove prefix
 	regex := regexp.MustCompile("https?://")
 	endpoint = regex.ReplaceAllString(endpoint, "")
@@ -41,17 +41,17 @@ func NewController(endpoint string) *Controller {
 	if !strings.Contains(endpoint, ":") {
 		endpoint = endpoint + ":" + strconv.Itoa(iofog.ControllerPort)
 	}
-	return &Controller{
+	return &Client{
 		endpoint: endpoint,
 		baseURL:  fmt.Sprintf("http://%s/api/v3/", endpoint),
 	}
 }
 
-func (ctrl *Controller) GetEndpoint() string {
+func (ctrl *Client) GetEndpoint() string {
 	return ctrl.endpoint
 }
 
-func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
+func (ctrl *Client) GetStatus() (status ControllerStatus, err error) {
 	url := ctrl.baseURL + "status"
 	httpResp, err := http.Get(url)
 	if err != nil {
@@ -71,7 +71,7 @@ func (ctrl *Controller) GetStatus() (status ControllerStatus, err error) {
 	return
 }
 
-func (ctrl *Controller) CreateUser(request User) error {
+func (ctrl *Client) CreateUser(request User) error {
 	// Prepare request
 	contentType := "application/json"
 	url := ctrl.baseURL + "user/signup"
@@ -90,7 +90,7 @@ func (ctrl *Controller) CreateUser(request User) error {
 	return checkStatusCode(httpResp.StatusCode, "POST", url, httpResp.Body)
 }
 
-func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err error) {
+func (ctrl *Client) Login(request LoginRequest) (response LoginResponse, err error) {
 	// Prepare request
 	contentType := "application/json"
 	url := ctrl.baseURL + "user/login"
@@ -121,7 +121,7 @@ func (ctrl *Controller) Login(request LoginRequest) (response LoginResponse, err
 	return
 }
 
-func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken string) (response CreateAgentResponse, err error) {
+func (ctrl *Client) CreateAgent(request CreateAgentRequest, accessToken string) (response CreateAgentResponse, err error) {
 	// Prepare request
 	method := "POST"
 	contentType := "application/json"
@@ -168,7 +168,7 @@ func (ctrl *Controller) CreateAgent(request CreateAgentRequest, accessToken stri
 	return
 }
 
-func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response GetAgentProvisionKeyResponse, err error) {
+func (ctrl *Client) GetAgentProvisionKey(UUID, accessToken string) (response GetAgentProvisionKeyResponse, err error) {
 	// Prepare request
 	method := "GET"
 	contentType := "application/json"
@@ -203,7 +203,7 @@ func (ctrl *Controller) GetAgentProvisionKey(UUID, accessToken string) (response
 	return
 }
 
-func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsResponse, errr error) {
+func (ctrl *Client) ListAgents(accessToken string) (response ListAgentsResponse, errr error) {
 	// Prepare request
 	method := "GET"
 	url := ctrl.baseURL + "iofog-list"
@@ -241,7 +241,7 @@ func (ctrl *Controller) ListAgents(accessToken string) (response ListAgentsRespo
 	return
 }
 
-func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, err error) {
+func (ctrl *Client) GetAgent(UUID, accessToken string) (response AgentInfo, err error) {
 	// Prepare request
 	method := "GET"
 	url := ctrl.baseURL + "iofog/" + UUID
@@ -275,7 +275,7 @@ func (ctrl *Controller) GetAgent(UUID, accessToken string) (response AgentInfo, 
 	return
 }
 
-func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
+func (ctrl *Client) DeleteAgent(UUID, accessToken string) error {
 	// Prepare request
 	method := "DELETE"
 	contentType := "application/json"
@@ -303,7 +303,7 @@ func (ctrl *Controller) DeleteAgent(UUID, accessToken string) error {
 	return nil
 }
 
-func (ctrl *Controller) GetConnectors(accessToken string) (response ConnectorInfoList, err error) {
+func (ctrl *Client) GetConnectors(accessToken string) (response ConnectorInfoList, err error) {
 	// Prepare request
 	method := "GET"
 	url := ctrl.baseURL + "connector"
@@ -335,7 +335,7 @@ func (ctrl *Controller) GetConnectors(accessToken string) (response ConnectorInf
 	return
 }
 
-func (ctrl *Controller) DeleteConnector(ip, accessToken string) (err error) {
+func (ctrl *Client) DeleteConnector(ip, accessToken string) (err error) {
 	// Prepare request
 	method := "DELETE"
 	url := ctrl.baseURL + "connector"
@@ -356,7 +356,7 @@ func (ctrl *Controller) DeleteConnector(ip, accessToken string) (err error) {
 	return checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body)
 }
 
-func (ctrl *Controller) AddConnector(request ConnectorInfo, accessToken string) error {
+func (ctrl *Client) AddConnector(request ConnectorInfo, accessToken string) error {
 	// Prepare request
 	contentType := "application/json"
 	url := ctrl.baseURL + "connector"

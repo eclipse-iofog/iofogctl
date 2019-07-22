@@ -33,7 +33,7 @@ type defaultAgent struct {
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user client.User) (key string, uuid string, err error) {
 	// Connect to controller
-	ctrl := client.NewController(controllerEndpoint)
+	ctrl := client.New(controllerEndpoint)
 
 	// Log in
 	loginRequest := client.LoginRequest{

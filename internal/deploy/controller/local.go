@@ -120,7 +120,7 @@ func (exe *localExecutor) install() error {
 	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
 
 	ctrlIP := fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
-	ctrl := client.NewController(ctrlIP)
+	ctrl := client.New(ctrlIP)
 	// Assign user
 	user := client.User{
 		Name:     exe.localUserConfig.Name,

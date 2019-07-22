@@ -50,7 +50,7 @@ func generateControllerOutput(namespace string) error {
 	// Populate rows
 	for idx, ctrlConfig := range controllers {
 		// Instantiate connection to controller
-		ctrl := client.NewController(ctrlConfig.Endpoint)
+		ctrl := client.New(ctrlConfig.Endpoint)
 
 		// Ping status
 		ctrlStatus, err := ctrl.GetStatus()

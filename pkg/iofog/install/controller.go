@@ -96,7 +96,7 @@ func (instlr *Controller) Configure(user client.User) (err error) {
 func configureController(ctrlEndpoint string, connectorIP string, user client.User) (token string, err error) {
 	defer util.SpinStop()
 
-	ctrl := client.NewController(ctrlEndpoint)
+	ctrl := client.New(ctrlEndpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
 	util.SpinStart("Creating ioFog user on Controller")

@@ -20,7 +20,7 @@ import (
 
 func connect(opt *Options, endpoint string) error {
 	// Connect to Controller
-	ctrl := client.NewController(endpoint)
+	ctrl := client.New(endpoint)
 
 	// Get sanitized endpoint
 	endpoint = ctrl.GetEndpoint()
