@@ -120,6 +120,17 @@ function checkAgentsNegative() {
   checkAgents
 }
 
+@test "Get Controller logs on K8s" {
+  test iofogctl -q -n "$NS" logs controller "$NAME"
+}
+
+@test "Get Agent logs" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}_${IDX}"
+    test iofogctl -q -n "$NS" logs agent "$AGENT_NAME"
+  done
+}
+
 @test "Disconnect from cluster again" {
   initAgents
   test iofogctl -q -n "$NS" disconnect
@@ -135,6 +146,11 @@ function checkAgentsNegative() {
   checkController
   checkAgents
 }
+
+# TODO: Enable these after connecting to non-k8s Controller
+#@test "Get Controller logs" {
+#  test iofogctl -q -n "$NS" logs controller "$NAME"
+#}
 
 @test "Delete Agents" {
   initAgents
