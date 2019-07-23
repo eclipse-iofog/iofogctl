@@ -201,6 +201,16 @@ function checkAgentsNegative() {
   checkAgents
 }
 
+@test "Test Agent deploy for idempotence" {
+  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  checkAgents
+}
+
+@test "Test Controller deploy for idempotence" {
+  test iofogctl -q -n "$NS" deploy -f test/conf/controller.yaml
+  checkController
+}
+
 @test "Delete all" {
   test iofogctl -q -n "$NS" delete all
   checkControllerNegative
