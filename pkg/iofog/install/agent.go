@@ -16,7 +16,6 @@ package install
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Agent interface {
@@ -46,29 +45,31 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user clien
 	}
 	token := loginResponse.AccessToken
 
-	// Check the agent name is unique
-	var agentList client.ListAgentsResponse
-	agentList, err = ctrl.ListAgents(token)
+	// If the agent already exists, re-use the UUID
+	agentList, err := ctrl.ListAgents(token)
 	if err != nil {
 		return
 	}
 	for _, existingAgent := range agentList.Agents {
 		if existingAgent.Name == agent.name {
-			err = util.NewConflictError("Agent name " + agent.name + " is already registered with the Controller")
-			return
+			uuid = existingAgent.UUID
+			break
 		}
 	}
 
-	// Create agent
-	createRequest := client.CreateAgentRequest{
-		Name:    agent.name,
-		FogType: 0,
+	// Create agent if necessary
+	if uuid == "" {
+		createRequest := client.CreateAgentRequest{
+			Name:    agent.name,
+			FogType: 0,
+		}
+		var createResponse client.CreateAgentResponse
+		createResponse, err = ctrl.CreateAgent(createRequest, token)
+		if err != nil {
+			return
+		}
+		uuid = createResponse.UUID
 	}
-	createResponse, err := ctrl.CreateAgent(createRequest, token)
-	if err != nil {
-		return
-	}
-	uuid = createResponse.UUID
 
 	// Get provisioning key
 	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
