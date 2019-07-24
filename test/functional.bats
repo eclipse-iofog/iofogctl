@@ -93,15 +93,15 @@ function checkAgentsNegative() {
   checkAgents
 }
 
-@test "Controller legacy commands" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
-}
-
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_${IDX}"
     test iofogctl -q -n "$NS" legacy agent "$AGENT_NAME" status
   done
+}
+
+@test "Controller legacy commands" {
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
 }
 
 @test "Disconnect from cluster" {
