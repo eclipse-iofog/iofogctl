@@ -58,6 +58,7 @@ func (ctrl *Controller) Install() (err error) {
 	defer ctrl.ssh.Disconnect()
 
 	// Copy installation scripts to remote host
+	installControllerScript := util.GetStaticFile("install_controller.sh")
 	reader := strings.NewReader(installControllerScript)
 	if err := ctrl.ssh.CopyTo(reader, "/tmp/", "install_controller.sh", "0774", len(installControllerScript)); err != nil {
 		return err

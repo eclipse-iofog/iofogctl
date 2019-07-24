@@ -48,10 +48,13 @@ func (agent *RemoteAgent) Bootstrap() error {
 	defer agent.ssh.Disconnect()
 
 	// Copy installation scripts to remote hosts
+	installAgentScript := util.GetStaticFile("install_agent.sh")
 	reader := strings.NewReader(installAgentScript)
 	if err := agent.ssh.CopyTo(reader, "/tmp/", "install_agent.sh", "0774", len(installAgentScript)); err != nil {
 		return err
 	}
+
+	waitAgentScript := util.GetStaticFile("wait_agent.sh")
 	reader = strings.NewReader(waitAgentScript)
 	if err := agent.ssh.CopyTo(reader, "/tmp/", "wait_agent.sh", "0774", len(waitAgentScript)); err != nil {
 		return err
