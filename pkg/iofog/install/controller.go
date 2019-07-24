@@ -64,9 +64,9 @@ func (ctrl *Controller) Install() (err error) {
 	}
 
 	// Define commands
-
 	cmds := []string{
-		fmt.Sprintf("/tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken),
+		// Requires sudo to be able to start controller on port 80
+		fmt.Sprintf("sudo /tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken),
 	}
 
 	// Execute commands
