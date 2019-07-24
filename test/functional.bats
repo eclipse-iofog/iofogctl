@@ -100,10 +100,6 @@ function checkAgentsNegative() {
   done
 }
 
-@test "Controller legacy commands" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
-}
-
 @test "Disconnect from cluster" {
   initAgents
   test iofogctl -q -n "$NS" disconnect
@@ -118,6 +114,10 @@ function checkAgentsNegative() {
   test iofogctl -q -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
   checkController
   checkAgents
+}
+
+@test "Controller legacy commands" {
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
 }
 
 @test "Get Controller logs on K8s" {
