@@ -166,13 +166,14 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 
 		// Run the command
 		err = session.Run(cmd)
-		// Ignore errors
+		// Ignore specified errors
 		if err != nil {
-			errorMessage := err.Error()
+			errMsg := err.Error()
 			for _, toIgnore := range ignoredErrors {
-				if strings.Contains(errorMessage, toIgnore) {
+				if strings.Contains(errMsg, toIgnore) {
 					// ignore error
 					err = nil
+					break
 				}
 			}
 		}
