@@ -50,7 +50,7 @@ load_existing_nvm() {
 deploy_controller() {
 	# Install if does not exist
 	if [ ! -z $(command -v iofog-controller) ]; then
-		iofog-controller stop
+		iofog-controller stop || true
 	fi
 	# nvm
 	load_existing_nvm
@@ -77,32 +77,35 @@ deploy_connector() {
 	# Install if does not exist 
 	if [ ! -z $(command -v iofog-connector) ]; then
 		# Stop existing deployments
-		sudo service iofog-connector stop
-	else
-		if [ ! -z $(command -v apt-get) ]; then
-			# Debian/Ubuntu
-			sudo apt-get -y update
-			sudo apt-get -y install openjdk-8-jre
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.deb.sh | sudo bash
-			sudo apt-get -y install iofog-connector
-		elif [ ! -z $(command -v yum) ]; then
-			# Redhat/Fedora/CentOS
-			su -c "yum update -y"
-			su -c "yum install java-1.8.0-openjdk -y"
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.rpm.sh | sudo bash
-			sudo yum install iofog-connector -y
-		else
-			echo "Could not detect system package manager"
-			exit 1
-		fi
-
-		echo '{
-  "ports": [
-    "6000-6001",
-  ],
-  "address": "0.0.0.0"
-}' | sudo tee /etc/iofog-connector/iofog-connector.conf
+		sudo service iofog-connector stop || true
 	fi
+	if [ ! -z $(command -v apt-get) ]; then
+		# Debian/Ubuntu
+		sudo apt-get -y update
+		sudo apt-get -y install openjdk-8-jre
+		curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.deb.sh | sudo bash
+		sudo apt-get -y install iofog-connector
+	elif [ ! -z $(command -v yum) ]; then
+		# Redhat/Fedora/CentOS
+		su -c "yum update -y"
+		su -c "yum install java-1.8.0-openjdk -y"
+		curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.rpm.sh | sudo bash
+		sudo yum install iofog-connector -y
+	else
+		echo "Could not detect system package manager"
+		exit 1
+	fi
+
+	echo '{
+  "ports": [
+    "6000-6001"
+  ],
+  "exclude": [
+  ],
+  "broker":12345,
+  "address":"0.0.0.0",
+  "dev": true
+}' | sudo tee /etc/iofog-connector/iofog-connector.conf
 	sudo service iofog-connector start
 }
 
