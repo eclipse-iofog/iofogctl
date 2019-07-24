@@ -22,6 +22,7 @@ import (
 func newDeployCommand() *cobra.Command {
 	// Instantiate options
 	opt := &deploy.Options{}
+	filename := ""
 
 	// Instantiate command
 	cmd := &cobra.Command{
@@ -50,11 +51,38 @@ microservices: []
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			// Unmarshall the input file
+			err = util.UnmarshalYAML(filename, &opt)
+			util.Check(err)
+
+			// Pre-process inputs
+			for idx := range opt.Controllers {
+				ctrl := &opt.Controllers[idx]
+				// Fix SSH port
+				if ctrl.Port == 0 {
+					ctrl.Port = 22
+				}
+				// Format file paths
+				ctrl.KeyFile, err = util.FormatPath(ctrl.KeyFile)
+				util.Check(err)
+				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
+				util.Check(err)
+			}
+			for idx := range opt.Agents {
+				agent := &opt.Agents[idx]
+				// Fix SSH port
+				if agent.Port == 0 {
+					agent.Port = 22
+				}
+				// Format file paths
+				agent.KeyFile, err = util.FormatPath(agent.KeyFile)
+				util.Check(err)
+			}
+
 			// Get namespace
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			util.Check(err)
 			// Execute command
 			err = deploy.Execute(opt)
 			util.Check(err)
@@ -71,7 +99,7 @@ microservices: []
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&filename, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
 
 	return cmd
 }
