@@ -24,18 +24,20 @@ type Executor interface {
 }
 
 type Options struct {
-	Name             string
-	Namespace        string
-	User             string
-	Host             string
-	Port             int
-	KeyFile          string
-	Local            bool
-	KubeConfig       string
-	KubeControllerIP string
-	ImagesFile       string
-	Images           map[string]string
-	IofogUser        config.IofogUser
+	Name              string
+	Namespace         string
+	User              string
+	Host              string
+	Port              int
+	KeyFile           string
+	Local             bool
+	KubeConfig        string
+	KubeControllerIP  string
+	ImagesFile        string
+	Images            map[string]string
+	IofogUser         config.IofogUser
+	Version           string
+	PackageCloudToken string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {

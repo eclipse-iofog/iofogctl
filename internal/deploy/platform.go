@@ -47,17 +47,19 @@ func deployControllers(namespace string, controllers []config.Controller) (err e
 	// Deploy controllers
 	for _, ctrl := range controllers {
 		ctrlOpt := &deploycontroller.Options{
-			Namespace:        namespace,
-			Name:             ctrl.Name,
-			User:             ctrl.User,
-			Host:             ctrl.Host,
-			Local:            util.IsLocalHost(ctrl.Host),
-			KubeConfig:       ctrl.KubeConfig,
-			KubeControllerIP: ctrl.KubeControllerIP,
-			Images:           ctrl.Images,
-			IofogUser:        ctrl.IofogUser,
-			KeyFile:          ctrl.KeyFile,
-			Port:             ctrl.Port,
+			Namespace:         namespace,
+			Name:              ctrl.Name,
+			User:              ctrl.User,
+			Host:              ctrl.Host,
+			Port:              ctrl.Port,
+			Local:             util.IsLocalHost(ctrl.Host),
+			KubeConfig:        ctrl.KubeConfig,
+			KubeControllerIP:  ctrl.KubeControllerIP,
+			Images:            ctrl.Images,
+			IofogUser:         ctrl.IofogUser,
+			KeyFile:           ctrl.KeyFile,
+			Version:           ctrl.Version,
+			PackageCloudToken: ctrl.PackageCloudToken,
 		}
 
 		var exe deploycontroller.Executor

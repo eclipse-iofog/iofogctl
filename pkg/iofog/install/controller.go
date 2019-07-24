@@ -15,32 +15,47 @@ package install
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Controller struct {
-	ssh  *util.SecureShellClient
-	host string
+type ControllerOptions struct {
+	User              string
+	Host              string
+	Port              int
+	PrivKeyFilename   string
+	Version           string
+	PackageCloudToken string
 }
 
-func NewController(user, host string, port int, privKeyFilename string) *Controller {
-	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
+type Controller struct {
+	*ControllerOptions
+	ssh *util.SecureShellClient
+}
+
+func NewController(options *ControllerOptions) *Controller {
+	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
+	port := options.Port
+	// set default ssh port
+	if port == 0 {
+		port = 22
+	}
 	ssh.SetPort(port)
 	return &Controller{
-		ssh:  ssh,
-		host: host,
+		ControllerOptions: options,
+		ssh:               ssh,
 	}
 }
 
 func (ctrl *Controller) Install() (err error) {
 	defer util.SpinStop()
 
-	util.SpinStart("Connecting to remote server " + ctrl.host)
+	util.SpinStart("Connecting to remote server " + ctrl.Host)
 	// Connect to server
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
@@ -54,8 +69,9 @@ func (ctrl *Controller) Install() (err error) {
 	}
 
 	// Define commands
+
 	cmds := []string{
-		"/tmp/install_controller.sh",
+		fmt.Sprintf("/tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken),
 	}
 
 	// Execute commands
@@ -89,7 +105,7 @@ func (ctrl *Controller) Install() (err error) {
 }
 
 func (ctrl *Controller) Configure(user client.User) (err error) {
-	ctrlEndpoint := fmt.Sprintf("%s:%s", ctrl.host, iofog.ControllerPortString)
+	ctrlEndpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
 	connectorIP := "localhost"
 	_, err = configureController(ctrlEndpoint, connectorIP, user)
 	return

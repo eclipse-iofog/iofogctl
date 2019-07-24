@@ -32,7 +32,15 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 
 func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
-	installer := install.NewController(exe.opt.User, exe.opt.Host, exe.opt.Port, exe.opt.KeyFile)
+	controllerOptions := &install.ControllerOptions{
+		User:              exe.opt.User,
+		Host:              exe.opt.Host,
+		Port:              exe.opt.Port,
+		PrivKeyFilename:   exe.opt.KeyFile,
+		Version:           exe.opt.Version,
+		PackageCloudToken: exe.opt.PackageCloudToken,
+	}
+	installer := install.NewController(controllerOptions)
 
 	// Update configuration before we try to deploy in case of failure
 	configEntry, err := prepareUserAndSaveConfig(exe.opt)
