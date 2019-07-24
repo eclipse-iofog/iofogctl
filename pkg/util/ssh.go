@@ -143,19 +143,22 @@ func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error)
 }
 
 func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err error) {
-	// Establish the session
-	session, err := cl.conn.NewSession()
-	if err != nil {
-		return
-	}
-	defer session.Close()
-
-	// Connect pipes
-	stderr, err := session.StderrPipe()
-	if err != nil {
-		return
-	}
+	// Retry until string condition matches
 	for iter := 0; iter < 30; iter++ {
+		// Establish the session
+		var session *ssh.Session
+		session, err = cl.conn.NewSession()
+		if err != nil {
+			return
+		}
+		defer session.Close()
+
+		// Connect pipes
+		var stderr io.Reader
+		stderr, err = session.StderrPipe()
+		if err != nil {
+			return
+		}
 		// Refresh stdout for every iter
 		stdoutBuffer := bytes.Buffer{}
 		session.Stdout = &stdoutBuffer
@@ -163,6 +166,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err
 		// Run the command
 		err = session.Run(cmd)
 		if err != nil {
+			errMsg := err.Error()
 			logFile := "/tmp/iofog.log"
 			errorSuffix := "stdout has been appended to " + logFile
 			if err = ioutil.WriteFile(logFile, stdoutBuffer.Bytes(), 0644); err != nil {
@@ -170,7 +174,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err
 			}
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(stderr)
-			err = NewInternalError("Error during SSH session\nstderr: " + buf.String() + errorSuffix)
+			err = NewInternalError(fmt.Sprintf("Error during SSH session: %s\nstderr: %s%s", errMsg, buf.String(), errorSuffix))
 			return
 		}
 		if condition.MatchString(stdoutBuffer.String()) {
