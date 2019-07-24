@@ -33,7 +33,7 @@ func GetStaticFile(filename string) string {
 	if !ok {
 		assets, err := rice.FindBox("../../assets")
 		Check(err)
-		fileContent, err := assets.String(filename)
+		fileContent, err = assets.String(filename)
 		Check(err)
 		staticFiles[filename] = fileContent
 	}
