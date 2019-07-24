@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -165,7 +166,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err
 
 		// Run the command
 		err = session.Run(cmd)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "Connection refused") {
 			errMsg := err.Error()
 			logFile := "/tmp/iofog.log"
 			errorSuffix := "stdout has been appended to " + logFile
