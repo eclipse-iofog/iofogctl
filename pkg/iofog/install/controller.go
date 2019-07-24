@@ -80,7 +80,7 @@ func (ctrl *Controller) Install() (err error) {
 	util.SpinStart("Waiting for Connector")
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"running\""),
-		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ControllerPortString),
+		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ConnectorPortString),
 	); err != nil {
 		return
 	}
