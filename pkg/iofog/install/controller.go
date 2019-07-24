@@ -94,7 +94,7 @@ func (ctrl *Controller) Install() (err error) {
 		regexp.MustCompile("\"status\":\"running\""),
 		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ConnectorPortString),
 		[]string{
-			"Failed to connect to localhost port 8080: Connection refused",
+			"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 		},
 	); err != nil {
 		return
