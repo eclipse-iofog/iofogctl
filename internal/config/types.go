@@ -29,7 +29,7 @@ type Controller struct {
 	Port              int               `mapstructure:"port"`
 	KeyFile           string            `mapstructure:"keyfile"`
 	KubeConfig        string            `mapstructure:"kubeconfig"`
-	KubeControllerIP  string            `mapstructure:"kubecontrollerIP"`
+	KubeControllerIP  string            `mapstructure:"kubecontrollerip"`
 	Endpoint          string            `mapstructure:"endpoint"`
 	IofogUser         IofogUser         `mapstructure:"iofoguser"`
 	Created           string            `mapstructure:"created"`

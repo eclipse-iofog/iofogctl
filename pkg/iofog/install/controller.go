@@ -78,12 +78,16 @@ func (ctrl *Controller) Install() (err error) {
 		}
 	}
 
+	// Specify errors to ignore while waiting
+	ignoredErrors := []string{
+		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
+	}
 	// Wait for Controller
 	util.SpinStart("Waiting for Controller")
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),
-		[]string{},
+		ignoredErrors,
 	); err != nil {
 		return
 	}
@@ -93,9 +97,7 @@ func (ctrl *Controller) Install() (err error) {
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"running\""),
 		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ConnectorPortString),
-		[]string{
-			"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
-		},
+		ignoredErrors,
 	); err != nil {
 		return
 	}
