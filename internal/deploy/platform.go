@@ -62,6 +62,10 @@ func deployControllers(namespace string, controllers []config.Controller) (err e
 			PackageCloudToken: ctrl.PackageCloudToken,
 		}
 
+		if ctrlOpt.Port == 0 {
+			ctrlOpt.Port = 22
+		}
+
 		var exe deploycontroller.Executor
 		exe, err = deploycontroller.NewExecutor(ctrlOpt)
 		if err != nil {

@@ -40,12 +40,7 @@ type Controller struct {
 
 func NewController(options *ControllerOptions) *Controller {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
-	port := options.Port
-	// set default ssh port
-	if port == 0 {
-		port = 22
-	}
-	ssh.SetPort(port)
+	ssh.SetPort(options.Port)
 	return &Controller{
 		ControllerOptions: options,
 		ssh:               ssh,
