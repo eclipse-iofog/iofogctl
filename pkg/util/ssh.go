@@ -143,7 +143,7 @@ func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error)
 	return
 }
 
-func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err error) {
+func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, ignoredErrors []string) (err error) {
 	// Retry until string condition matches
 	for iter := 0; iter < 30; iter++ {
 		// Establish the session
@@ -166,7 +166,17 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string) (err
 
 		// Run the command
 		err = session.Run(cmd)
-		if err != nil && !strings.Contains(err.Error(), "Connection refused") {
+		// Ignore errors
+		if err != nil {
+			errorMessage := err.Error()
+			for _, toIgnore := range ignoredErrors {
+				if strings.Contains(errorMessage, toIgnore) {
+					// ignore error
+					err = nil
+				}
+			}
+		}
+		if err != nil {
 			errMsg := err.Error()
 			logFile := "/tmp/iofog.log"
 			errorSuffix := "stdout has been appended to " + logFile

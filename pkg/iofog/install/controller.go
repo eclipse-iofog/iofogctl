@@ -83,6 +83,7 @@ func (ctrl *Controller) Install() (err error) {
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),
+		[]string{},
 	); err != nil {
 		return
 	}
@@ -92,6 +93,9 @@ func (ctrl *Controller) Install() (err error) {
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"running\""),
 		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ConnectorPortString),
+		[]string{
+			"Failed to connect to localhost port 8080: Connection refused",
+		},
 	); err != nil {
 		return
 	}
