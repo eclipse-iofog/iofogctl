@@ -54,6 +54,7 @@ microservices: []
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
+			util.Check(err)
 			// Execute command
 			err = deploy.Execute(opt)
 			util.Check(err)

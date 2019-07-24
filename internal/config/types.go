@@ -26,6 +26,7 @@ type Controller struct {
 	Name             string            `mapstructure:"name"`
 	User             string            `mapstructure:"user"`
 	Host             string            `mapstructure:"host"`
+	Port             int               `mapstructure:"port"`
 	KeyFile          string            `mapstructure:"keyfile"`
 	KubeConfig       string            `mapstructure:"kubeconfig"`
 	KubeControllerIP string            `mapstructure:"kubecontrollerIP"`

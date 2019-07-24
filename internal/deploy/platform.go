@@ -60,10 +60,19 @@ func deployControllers(namespace string, controllers []config.Controller) (err e
 			KubeControllerIP: ctrl.KubeControllerIP,
 			Images:           ctrl.Images,
 			IofogUser:        ctrl.IofogUser,
+			KeyFile:          ctrl.KeyFile,
+			Port:             ctrl.Port,
 		}
 		// Format file paths
 		if ctrlOpt.KubeConfig, err = util.FormatPath(ctrlOpt.KubeConfig); err != nil {
 			return
+		}
+		if ctrlOpt.KeyFile, err = util.FormatPath(ctrlOpt.KeyFile); err != nil {
+			return
+		}
+		// Fix SSH port
+		if ctrlOpt.Port == 0 {
+			ctrlOpt.Port = 22
 		}
 
 		var exe deploycontroller.Executor
