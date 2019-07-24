@@ -37,13 +37,15 @@ install_iofog_controller_snapshot() {
 }
 
 load_existing_nvm() {
+	set +e
 	if [ -z "$(command -v nvm)" ]; then
 		export NVM_DIR="${HOME}/.nvm"
 		mkdir -p $NVM_DIR
 		if [ -f "$NVM_DIR/nvm.sh" ]; then
-			[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --no-use # This loads nvm"
+			[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 		fi
 	fi
+	set -e
 }
 
 # TODO: Handle specifying a version for Connector
