@@ -29,11 +29,10 @@ func GetStaticFile(filename string) string {
 		staticFiles = make(map[string]string)
 	})
 
-	assets, err := rice.FindBox("../../assets")
-	Check(err)
-
 	fileContent, ok := staticFiles[filename]
 	if !ok {
+		assets, err := rice.FindBox("../../assets")
+		Check(err)
 		fileContent, err := assets.String(filename)
 		Check(err)
 		staticFiles[filename] = fileContent
