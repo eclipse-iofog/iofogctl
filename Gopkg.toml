@@ -49,9 +49,10 @@
   name = "k8s.io/apiextensions-apiserver"
   version = "kubernetes-1.14.2"
 
-[[constraint]]
+[[override]]
   name = "github.com/docker/docker"
-  version = "1.13.1"
+  source = "https://github.com/docker/engine"
+  version = "19.03.0"
 
 [[constraint]]
   name = "github.com/GeertJohan/go.rice"

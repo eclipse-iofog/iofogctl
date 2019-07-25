@@ -141,7 +141,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 // NewLocalContainerClient returns a LocalContainer struct
 func NewLocalContainerClient() (*LocalContainer, error) {
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.WithVersion("1.39"))
 	if err != nil {
 		return nil, err
 	}
@@ -367,6 +367,7 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 	// Create command to execute inside container
 	execConfig := types.ExecConfig{AttachStdout: true, AttachStderr: true,
 		Cmd: cmd}
+	execStartCheck := types.ExecStartCheck{}
 
 	execID, err := lc.client.ContainerExecCreate(ctx, container.ID, execConfig)
 	if err != nil {
@@ -374,12 +375,12 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 	}
 
 	// Attach command to container
-	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execConfig)
+	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execStartCheck)
 	if err != nil {
 		return err
 	}
 	defer res.Close()
 
 	// Run command
-	return lc.client.ContainerExecStart(ctx, execID.ID, types.ExecStartCheck{})
+	return lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck)
 }
