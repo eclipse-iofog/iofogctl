@@ -63,7 +63,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	// Instantiate install arguments
 	installArgs := ""
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
-	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
+	agentVersion, verExists := os.LookupEnv("IOFOG_AGENT_VERSION")
 	if pkgExists && verExists {
 		installArgs = "dev " + agentVersion + " " + pkgCloudToken
 	}
