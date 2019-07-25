@@ -52,7 +52,7 @@ load_existing_nvm() {
 deploy_controller() {
 	# Install if does not exist
 	if [ ! -z $(command -v iofog-controller) ]; then
-		iofog-controller stop || true
+		sudo iofog-controller stop || true
 	fi
 	# nvm
 	load_existing_nvm
@@ -61,6 +61,7 @@ deploy_controller() {
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 		nvm install lts/*
+		sudo ln -s $(which node) /usr/local/bin/node
 	else
 		nvm use lts/* || true
 	fi
@@ -72,7 +73,14 @@ deploy_controller() {
 	else
 		npm install -g -f "iofogcontroller@$version" --unsafe-perm
 	fi
-	iofog-controller start
+
+	# Symbolic links
+	if [ -z $(command -v /usr/local/bin/iofog-controller) ]; then
+		sudo ln -s $(which iofog-controller) /usr/local/bin/iofog-controller
+	fi
+
+	# Run controller
+	sudo iofog-controller start
 }
 
 config_connector() {

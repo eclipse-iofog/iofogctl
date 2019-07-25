@@ -22,6 +22,10 @@ func prepareUserAndSaveConfig(opt *Options) (configEntry config.Controller, err 
 
 	// Record the user
 	configEntry = config.Controller{
+		User:       opt.User,
+		Host:       opt.Host,
+		Port:       opt.Port,
+		KeyFile:    opt.KeyFile,
 		Name:       opt.Name,
 		KubeConfig: opt.KubeConfig,
 		IofogUser:  configUser,
