@@ -46,7 +46,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Get logs
-	out, err := ssh.Run("sudo cat /var/log/iofog-agent/*")
+	out, err := ssh.Run("sudo cat /var/log/iofog-agent/iofog-agent.0.log")
 	if err != nil {
 		return err
 	}
