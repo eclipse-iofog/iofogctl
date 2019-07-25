@@ -107,7 +107,7 @@ func (ctrl *Controller) Install() (err error) {
 
 func (ctrl *Controller) Configure(user client.User) (err error) {
 	ctrlEndpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
-	connectorIP := "localhost"
+	connectorIP := ctrl.Host
 	_, err = configureController(ctrlEndpoint, connectorIP, user)
 	return
 }
