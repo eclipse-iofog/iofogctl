@@ -166,7 +166,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user client.Us
 		IP:      connectorIP,
 		DevMode: true,
 		Domain:  connectorIP,
-		Name:    "gke",
+		Name:    "connector",
 	}
 	if err = ctrl.AddConnector(connectorRequest, token); err != nil {
 		return

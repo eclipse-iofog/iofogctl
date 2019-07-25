@@ -86,7 +86,7 @@ deploy_controller() {
 config_connector() {
 	echo '{
 		"ports": [
-			"6000-6001"
+			"6000-6050"
 		],
 		"exclude": [
 		],
