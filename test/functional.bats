@@ -86,14 +86,6 @@ function checkAgentsNegative() {
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
-@test "Controller legacy commands after deploy" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
-}
-
-@test "Get Controller logs on K8s after deploy" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
-}
-
 @test "Deploy agents" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
@@ -108,6 +100,14 @@ function checkAgentsNegative() {
     local AGENT_NAME="${NAME}_${IDX}"
     test iofogctl -q -n "$NS" legacy agent "$AGENT_NAME" status
   done
+}
+
+@test "Controller legacy commands after deploy" {
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+}
+
+@test "Get Controller logs on K8s after deploy" {
+  test iofogctl -q -n "$NS" logs controller "$NAME"
 }
 
 @test "Disconnect from cluster" {
