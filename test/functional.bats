@@ -111,6 +111,7 @@ function checkAgentsNegative() {
 }
 
 @test "Controller legacy commands after deploy" {
+  sleep 10 # Sleep while K8s API server struggles with new Agent IPs
   test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
 }
 
