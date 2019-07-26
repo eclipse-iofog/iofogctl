@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"fmt"
 	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -71,5 +72,43 @@ iofogctl deploy controller NAME --kube-config ~/.kube/conf`,
 	cmd.Flags().BoolVarP(&opt.Local, "local", "l", false, "Configure for local deployment")
 	cmd.Flags().Lookup("local").NoOptDefVal = "true"
 
+	cmd.SetHelpFunc(func(*cobra.Command, []string) {
+		fmt.Print(helpMsg)
+	})
 	return cmd
 }
+
+const helpMsg = `Deploy a Controller either locally, remotely, or on a Kubernetes cluster.
+
+On a Kubernetes deployment, this will install all resources under the namespace specified by the namespace flag of this command.
+
+Usage:
+  iofogctl deploy controller NAME [flags]
+
+Examples:
+iofogctl deploy controller NAME --local 
+iofogctl deploy controller NAME --user root --host 32.23.134.3 --key_file ~/.ssh/id_rsa
+iofogctl deploy controller NAME --kube-config ~/.kube/conf
+
+Remote Deploy Flags:
+      --host string                 IP or hostname of host the Controller is being deployed on
+      --user string                 Username of host the Controller is being deployed on
+      --key-file string             Filename of SSH private key used to access host. Corresponding *.pub must be in same dir. Must be RSA key.
+      --port int                    Port to use for SSH connection (default 22)
+
+Kubernetes Deploy Flags:
+      --kube-config string          Filename of Kubernetes cluster config file
+      --images string               Filename of YAML containing list of ioFog service images to be deployed on K8s cluster
+      --kube-controller-ip string   Static IP to assign to Kubernetes LoadBalancer
+
+Local Deploy Flags:
+  -l, --local                       Configure for local deployment
+
+Common Flags:
+  -h, --help                        help for controller
+
+Global Flags:
+      --config string      CLI configuration file (default is ~/.iofog/config.yaml)
+  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -q, --quiet              Toggle for displaying verbose output
+`

@@ -34,10 +34,14 @@ deploy [command]`,
 
 A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers, Agents, and Microservices.
 
-The YAML resource definition file should look like this:
+The YAML resource definition file should look like this (two Controllers specified for example only):
 controllers:
-- name: sergek8s
+- name: k8s
   kubeconfig: ~/.kube/conf
+- name: vanilla 
+  user: serge
+  host: 35.239.157.151
+  keyfile: ~/.ssh/id_rsa
 agents:
 - name: agent1
   user: serge
