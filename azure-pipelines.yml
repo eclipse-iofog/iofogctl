@@ -133,6 +133,7 @@ jobs:
           NS=branch-$(echo $(branch) | tr -d '.')
           sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
           sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
+          sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(ssh.ctrl)\"|g" test/env.sh
           sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
           sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
           sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh

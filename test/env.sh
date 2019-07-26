@@ -5,6 +5,9 @@
 # Space-separated list of user@host
 export AGENT_LIST="user@host user2@host2"
 
+# Single user@host
+export VANILLA_CONTROLLER="user@host"
+
 # Token to access develop versions of Controller
 export PACKAGE_CLOUD_TOKEN=""
 

@@ -4,6 +4,7 @@
 # NAMESPACE
 # KUBE_CONFIG
 # AGENT_LIST
+# VANILLA_CONTROLLER
 # KEY_FILE
 # PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
@@ -39,6 +40,13 @@ function initAgents(){
   USERS=($USERS)
   HOSTS=($HOSTS)
   PORTS=($PORTS)
+}
+
+function initVanillaController(){
+  VANILLA_USER=$(echo "$VANILLA_CONTROLLER" | sed "s|@.*||g")
+  VANILLA_HOST=$(echo "$VANILLA_CONTROLLER" | sed "s|.*@||g")
+  VANILLA_PORT=$(echo "$VANILLA_CONTROLLER" | cut -d':' -s -f2)
+  VANILLA_PORT="${PORT:-22}"
 }
 
 function checkController() {
@@ -232,17 +240,18 @@ function checkAgentsNegative() {
 
 # TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
 #@test "Deploy vanilla Controller" {
-#  initAgents
-#  test iofogctl -q -n "$NS" deploy controller "$NAME" --user "${USERS[0]}" --host "${HOSTS[0]}" --key-file "$KEY_FILE"
+#  initVanillaController
+#  test iofogctl -q -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
 #  checkController
 #}
 
 @test "Deploy vanilla Controller" {
-  initAgents
+  initVanillaController
   echo "controllers:
 - name: $NAME
-  user: ${USERS[0]}
-  host: ${HOSTS[0]}
+  user: $VANILLA_USER
+  host: $VANILLA_HOST
+  port: $VANILLA_PORT
   keyfile: $KEY_FILE
   version: $VANILLA_VERSION
   packagecloudtoken: $PACKAGE_CLOUD_TOKEN
