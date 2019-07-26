@@ -2,6 +2,9 @@
 set -x
 set -e
 
+INSTALL_DIR="/opt/iofog"
+TMP_DIR="/tmp/iofog"
+
 install_iofog_controller_snapshot() {
 	echo "# Installing ioFog Controller snapshot (dev) repo"
 	echo
@@ -65,18 +68,28 @@ deploy_controller() {
 	else
 		nvm use lts/* || true
 	fi
+	
+	# Set up repo
 	if [ ! -z $token ]; then
 		install_iofog_controller_snapshot
 	fi
+
+	# Install in temporary location
+	mkdir -p "$TMP_DIR/controller"
 	if [ -z $version ]; then
-		npm install -g -f iofogcontroller --unsafe-perm
+		npm install -g -f iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
-		npm install -g -f "iofogcontroller@$version" --unsafe-perm
+		npm install -g -f "iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
 	fi
 
+	# Move files into $INSTALL_DIR/controller
+	sudo mkdir -p "$INSTALL_DIR/"
+	sudo rm -rf "$INSTALL_DIR/controller" # Clean possible previous install
+	sudo mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
+
 	# Symbolic links
-	if [ -z $(command -v /usr/local/bin/iofog-controller) ]; then
-		sudo ln -s $(which iofog-controller) /usr/local/bin/iofog-controller
+	if [ ! -f "/usr/local/bin/iofog-controller" ]; then
+		sudo ln -fFs "$INSTALL_DIR/controller/bin/iofog-controller" /usr/local/bin/iofog-controller
 	fi
 
 	# Run controller
@@ -84,6 +97,23 @@ deploy_controller() {
 }
 
 config_connector() {
+	# Move binaries into $INSTALL_DIR/connector
+	CONNECTOR_DIR="$INSTALL_DIR/connector"
+	sudo mkdir -p "$CONNECTOR_DIR"
+	if [ -f "/usr/bin/iofog-connector" ]; then # Package installed properly
+		sudo rm -rf "$CONNECTOR_DIR/*" # Clean possible previous install
+		sudo mv /usr/bin/iofog-connector* "$CONNECTOR_DIR/"
+		sudo chmod 0775 "$CONNECTOR_DIR/iofog-connector"
+	fi
+
+	# Symbolic links
+	if [ ! -f "/usr/local/bin/iofog-connector" ]; then
+		sudo ln -fFs "$CONNECTOR_DIR/iofog-connector" /usr/local/bin/iofog-connector
+		# Connector is hard coded to look into /usr/bin for .jar and .jard
+		sudo ln -fFs "$CONNECTOR_DIR/iofog-connectord.jar" /usr/bin/iofog-connectord.jar
+		sudo ln -fFs "$CONNECTOR_DIR/iofog-connector.jar" /usr/bin/iofog-connector.jar
+	fi
+
 	echo '{
 		"ports": [
 			"6000-6050"
@@ -94,6 +124,8 @@ config_connector() {
 		"address":"0.0.0.0",
 		"dev": true
 	}' | sudo tee /etc/iofog-connector/iofog-connector.conf
+
+	sudo chmod 0775 /etc/iofog-connector
 }
 
 deploy_connector() {
