@@ -17,7 +17,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -52,25 +51,19 @@ func (this *Client) GetEndpoint() string {
 	return this.endpoint
 }
 
-func (this *Client) isLoggedIn() bool {
-	return this.accessToken != ""
-}
-
 func (this *Client) GetStatus() (status ControllerStatus, err error) {
+	// Prepare request
+	method := "GET"
 	url := this.baseURL + "status"
-	httpResp, err := http.Get(url)
+
+	// Send request
+	body, err := httpDo(method, url, nil, nil)
 	if err != nil {
 		return
 	}
 
-	if err = checkStatusCode(httpResp.StatusCode, "GET", url, httpResp.Body); err != nil {
-		return
-	}
-
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
-	err = json.Unmarshal(buf.Bytes(), &status)
-	if err != nil {
+	// Return body
+	if err = json.Unmarshal(body, &status); err != nil {
 		return
 	}
 	return
@@ -78,49 +71,33 @@ func (this *Client) GetStatus() (status ControllerStatus, err error) {
 
 func (this *Client) CreateUser(request User) error {
 	// Prepare request
-	contentType := "application/json"
+	method := "POST"
 	url := this.baseURL + "user/signup"
-	body, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
+	headers := map[string]string{"Content-Type": "application/json"}
 
 	// Send request
-	httpResp, err := http.Post(url, contentType, strings.NewReader(string(body)))
-	if err != nil {
+	if _, err := httpDo(method, url, headers, request); err != nil {
 		return err
 	}
 
-	// Check response code
-	return checkStatusCode(httpResp.StatusCode, "POST", url, httpResp.Body)
+	return nil
 }
 
 func (this *Client) Login(request LoginRequest) (err error) {
 	// Prepare request
-	contentType := "application/json"
+	method := "POST"
 	url := this.baseURL + "user/login"
-	body, err := json.Marshal(request)
-	if err != nil {
-		return
-	}
+	headers := map[string]string{"Content-Type": "application/json"}
 
 	// Send request
-	httpResp, err := http.Post(url, contentType, strings.NewReader(string(body)))
+	body, err := httpDo(method, url, headers, request)
 	if err != nil {
 		return
 	}
 
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, "POST", url, httpResp.Body); err != nil {
-		return
-	}
-
-	// Read response body
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
+	// Read access token from response
 	var response LoginResponse
-	err = json.Unmarshal(buf.Bytes(), &response)
-	if err != nil {
+	if err = json.Unmarshal(body, &response); err != nil {
 		return
 	}
 	this.accessToken = response.AccessToken
@@ -136,38 +113,22 @@ func (this *Client) CreateAgent(request CreateAgentRequest) (response CreateAgen
 
 	// Prepare request
 	method := "POST"
-	contentType := "application/json"
 	url := this.baseURL + "iofog"
-	body, err := json.Marshal(request)
-	if err != nil {
-		return
+	headers := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": this.accessToken,
 	}
-	httpReq, err := http.NewRequest(method, url, strings.NewReader(string(body)))
-	if err != nil {
-		return
-	}
-	httpReq.Header.Set("Authorization", this.accessToken)
-	httpReq.Header.Set("Content-Type", contentType)
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(httpReq)
+	body, err := httpDo(method, url, headers, request)
 	if err != nil {
-		return
-	}
-
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
 		return
 	}
 
 	// TODO: Determine full type returned from this endpoint
 	// Read uuid from response
 	var respMap map[string]interface{}
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
-	err = json.Unmarshal(buf.Bytes(), &respMap)
-	if err != nil {
+	if err = json.Unmarshal(body, &respMap); err != nil {
 		return
 	}
 	uuid, exists := respMap["uuid"].(string)
@@ -188,33 +149,19 @@ func (this *Client) GetAgentProvisionKey(UUID string) (response GetAgentProvisio
 
 	// Prepare request
 	method := "GET"
-	contentType := "application/json"
 	url := this.baseURL + "iofog/" + UUID + "/provisioning-key"
-	body := strings.NewReader("")
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return
+	headers := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": this.accessToken,
 	}
-	req.Header.Set("Authorization", this.accessToken)
-	req.Header.Set("Content-Type", contentType)
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(req)
+	body, err := httpDo(method, url, headers, nil)
 	if err != nil {
 		return
 	}
 
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
-		return
-	}
-
-	// Read body
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
-	err = json.Unmarshal(buf.Bytes(), &response)
-	if err != nil {
+	if err = json.Unmarshal(body, &response); err != nil {
 		return
 	}
 	return
@@ -229,34 +176,18 @@ func (this *Client) ListAgents() (response ListAgentsResponse, err error) {
 	// Prepare request
 	method := "GET"
 	url := this.baseURL + "iofog-list"
-	filter := AgentListFilter{}
-	body, err := json.Marshal(filter)
-	if err != nil {
-		return
+	headers := map[string]string{
+		"Authorization": this.accessToken,
 	}
-	httpReq, err := http.NewRequest(method, url, strings.NewReader(string(body)))
-	if err != nil {
-		return
-	}
-	httpReq.Header.Set("Authorization", this.accessToken)
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(httpReq)
+	body, err := httpDo(method, url, headers, AgentListFilter{})
 	if err != nil {
 		return
 	}
 
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
-		return
-	}
-
-	// Read body
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
-	err = json.Unmarshal(buf.Bytes(), &response)
-	if err != nil {
+	// Return body
+	if err = json.Unmarshal(body, &response); err != nil {
 		return
 	}
 
@@ -272,30 +203,18 @@ func (this *Client) GetAgent(UUID string) (response AgentInfo, err error) {
 	// Prepare request
 	method := "GET"
 	url := this.baseURL + "iofog/" + UUID
-	body := strings.NewReader("")
-	httpReq, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return
+	headers := map[string]string{
+		"Authorization": this.accessToken,
 	}
-	httpReq.Header.Set("Authorization", this.accessToken)
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(httpReq)
+	body, err := httpDo(method, url, headers, nil)
 	if err != nil {
 		return
 	}
 
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
-		return
-	}
-
-	// Read body
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
-	err = json.Unmarshal(buf.Bytes(), &response)
-	if err != nil {
+	// Return body
+	if err = json.Unmarshal(body, &response); err != nil {
 		return
 	}
 
@@ -309,25 +228,14 @@ func (this *Client) DeleteAgent(UUID string) error {
 
 	// Prepare request
 	method := "DELETE"
-	contentType := "application/json"
 	url := this.baseURL + "iofog/" + UUID
-	body := strings.NewReader("")
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return err
+	headers := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": this.accessToken,
 	}
-	req.Header.Set("Authorization", this.accessToken)
-	req.Header.Set("Content-Type", contentType)
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
+	if _, err := httpDo(method, url, headers, nil); err != nil {
 		return err
 	}
 
@@ -343,28 +251,15 @@ func (this *Client) GetConnectors() (response ConnectorInfoList, err error) {
 	// Prepare request
 	method := "GET"
 	url := this.baseURL + "connector"
-	httpReq, err := http.NewRequest(method, url, strings.NewReader(""))
-	if err != nil {
-		return
-	}
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(httpReq)
+	body, err := httpDo(method, url, nil, nil)
 	if err != nil {
 		return
 	}
 
-	// Check response code
-	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
-		return
-	}
-
-	// Read body
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
-	err = json.Unmarshal(buf.Bytes(), &response)
-	if err != nil {
+	// Return body
+	if err = json.Unmarshal(body, &response); err != nil {
 		return
 	}
 
@@ -379,21 +274,18 @@ func (this *Client) DeleteConnector(ip string) (err error) {
 	// Prepare request
 	method := "DELETE"
 	url := this.baseURL + "connector"
-	body := fmt.Sprintf(`{"publicIp":"%s"}`, ip)
-	httpReq, err := http.NewRequest(method, url, strings.NewReader(body))
-	if err != nil {
-		return
+	headers := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": this.accessToken,
 	}
+	connectorInfo := ConnectorInfo{IP: ip}
 
 	// Send request
-	client := http.Client{}
-	httpResp, err := client.Do(httpReq)
-	if err != nil {
+	if _, err = httpDo(method, url, headers, connectorInfo); err != nil {
 		return
 	}
 
-	// Check response code
-	return checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body)
+	return
 }
 
 func (this *Client) AddConnector(request ConnectorInfo) error {
@@ -443,23 +335,6 @@ func (this *Client) AddConnector(request ConnectorInfo) error {
 	return nil
 }
 
-func getString(in io.Reader) (out string, err error) {
-	buf := new(bytes.Buffer)
-	if _, err = buf.ReadFrom(in); err != nil {
-		return
-	}
-
-	out = buf.String()
-	return
-}
-
-func checkStatusCode(code int, method, url string, body io.Reader) error {
-	if code < 200 || code >= 300 {
-		bodyString, err := getString(body)
-		if err != nil {
-			return err
-		}
-		return util.NewInternalError(fmt.Sprintf("Received %d from %s %s\n%s", code, method, url, bodyString))
-	}
-	return nil
+func (this *Client) isLoggedIn() bool {
+	return this.accessToken != ""
 }
