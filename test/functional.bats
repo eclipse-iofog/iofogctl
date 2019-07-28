@@ -94,6 +94,16 @@ function checkAgentsNegative() {
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
+
+@test "Controller legacy commands after deploy" {
+  sleep 15 # Sleep to avoid SSH tunnel bug from K8s
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+}
+
+@test "Get Controller logs on K8s after deploy" {
+  test iofogctl -q -n "$NS" logs controller "$NAME"
+}
+
 @test "Deploy agents" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
@@ -108,15 +118,6 @@ function checkAgentsNegative() {
     local AGENT_NAME="${NAME}_${IDX}"
     test iofogctl -q -n "$NS" legacy agent "$AGENT_NAME" status
   done
-}
-
-@test "Controller legacy commands after deploy" {
-  sleep 10 # Sleep while K8s API server struggles with new Agent IPs
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
-}
-
-@test "Get Controller logs on K8s after deploy" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
 }
 
 @test "Disconnect from cluster" {
