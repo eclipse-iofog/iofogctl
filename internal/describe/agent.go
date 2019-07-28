@@ -55,12 +55,10 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Send requests to controller
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err := ctrl.Login(loginRequest); err != nil {
 		return err
 	}
-	token := loginResponse.AccessToken
-	getAgentResponse, err := ctrl.GetAgent(agent.UUID, token)
+	getAgentResponse, err := ctrl.GetAgent(agent.UUID)
 	if err != nil {
 		// The agents might not be provisioned with Controller
 		if strings.Contains(err.Error(), "NotFoundError") {

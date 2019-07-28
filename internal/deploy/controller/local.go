@@ -136,21 +136,23 @@ func (exe *localExecutor) install() error {
 		}
 	}
 	// Login
-	loginResponse, err := ctrl.Login(client.LoginRequest{Email: user.Email, Password: user.Password})
-	if err != nil {
+	if err := ctrl.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
 		return err
 	}
 	// Provision Connector
 	util.SpinStart("Provisioning Connector to Controller")
 	connectorIP := connectorContainerConfig.Host
 	connectorName := connectorContainerConfig.ContainerName
-	err = ctrl.AddConnector(client.ConnectorInfo{
+	if err := ctrl.AddConnector(client.ConnectorInfo{
 		IP:      connectorIP,
 		Name:    connectorName,
 		Domain:  connectorContainerConfig.Host,
 		DevMode: true,
-	}, loginResponse.AccessToken)
-	return err
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (exe *localExecutor) Execute() error {

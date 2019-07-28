@@ -28,8 +28,9 @@ import (
 )
 
 type Client struct {
-	endpoint string
-	baseURL  string
+	endpoint    string
+	baseURL     string
+	accessToken string
 }
 
 func New(endpoint string) *Client {
@@ -47,12 +48,16 @@ func New(endpoint string) *Client {
 	}
 }
 
-func (ctrl *Client) GetEndpoint() string {
-	return ctrl.endpoint
+func (this *Client) GetEndpoint() string {
+	return this.endpoint
 }
 
-func (ctrl *Client) GetStatus() (status ControllerStatus, err error) {
-	url := ctrl.baseURL + "status"
+func (this *Client) isLoggedIn() bool {
+	return this.accessToken != ""
+}
+
+func (this *Client) GetStatus() (status ControllerStatus, err error) {
+	url := this.baseURL + "status"
 	httpResp, err := http.Get(url)
 	if err != nil {
 		return
@@ -71,10 +76,10 @@ func (ctrl *Client) GetStatus() (status ControllerStatus, err error) {
 	return
 }
 
-func (ctrl *Client) CreateUser(request User) error {
+func (this *Client) CreateUser(request User) error {
 	// Prepare request
 	contentType := "application/json"
-	url := ctrl.baseURL + "user/signup"
+	url := this.baseURL + "user/signup"
 	body, err := json.Marshal(request)
 	if err != nil {
 		return err
@@ -90,10 +95,10 @@ func (ctrl *Client) CreateUser(request User) error {
 	return checkStatusCode(httpResp.StatusCode, "POST", url, httpResp.Body)
 }
 
-func (ctrl *Client) Login(request LoginRequest) (response LoginResponse, err error) {
+func (this *Client) Login(request LoginRequest) (err error) {
 	// Prepare request
 	contentType := "application/json"
-	url := ctrl.baseURL + "user/login"
+	url := this.baseURL + "user/login"
 	body, err := json.Marshal(request)
 	if err != nil {
 		return
@@ -113,19 +118,26 @@ func (ctrl *Client) Login(request LoginRequest) (response LoginResponse, err err
 	// Read response body
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(httpResp.Body)
+	var response LoginResponse
 	err = json.Unmarshal(buf.Bytes(), &response)
 	if err != nil {
 		return
 	}
+	this.accessToken = response.AccessToken
 
 	return
 }
 
-func (ctrl *Client) CreateAgent(request CreateAgentRequest, accessToken string) (response CreateAgentResponse, err error) {
+func (this *Client) CreateAgent(request CreateAgentRequest) (response CreateAgentResponse, err error) {
+	if !this.isLoggedIn() {
+		err = util.NewError("Controller client must be logged into perform Create Agent request")
+		return
+	}
+
 	// Prepare request
 	method := "POST"
 	contentType := "application/json"
-	url := ctrl.baseURL + "iofog"
+	url := this.baseURL + "iofog"
 	body, err := json.Marshal(request)
 	if err != nil {
 		return
@@ -134,7 +146,7 @@ func (ctrl *Client) CreateAgent(request CreateAgentRequest, accessToken string) 
 	if err != nil {
 		return
 	}
-	httpReq.Header.Set("Authorization", accessToken)
+	httpReq.Header.Set("Authorization", this.accessToken)
 	httpReq.Header.Set("Content-Type", contentType)
 
 	// Send request
@@ -168,17 +180,22 @@ func (ctrl *Client) CreateAgent(request CreateAgentRequest, accessToken string) 
 	return
 }
 
-func (ctrl *Client) GetAgentProvisionKey(UUID, accessToken string) (response GetAgentProvisionKeyResponse, err error) {
+func (this *Client) GetAgentProvisionKey(UUID string) (response GetAgentProvisionKeyResponse, err error) {
+	if !this.isLoggedIn() {
+		err = util.NewError("Controller client must be logged into perform Get Agent Provisioning Key request")
+		return
+	}
+
 	// Prepare request
 	method := "GET"
 	contentType := "application/json"
-	url := ctrl.baseURL + "iofog/" + UUID + "/provisioning-key"
+	url := this.baseURL + "iofog/" + UUID + "/provisioning-key"
 	body := strings.NewReader("")
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return
 	}
-	req.Header.Set("Authorization", accessToken)
+	req.Header.Set("Authorization", this.accessToken)
 	req.Header.Set("Content-Type", contentType)
 
 	// Send request
@@ -203,10 +220,15 @@ func (ctrl *Client) GetAgentProvisionKey(UUID, accessToken string) (response Get
 	return
 }
 
-func (ctrl *Client) ListAgents(accessToken string) (response ListAgentsResponse, errr error) {
+func (this *Client) ListAgents() (response ListAgentsResponse, err error) {
+	if !this.isLoggedIn() {
+		err = util.NewError("Controller client must be logged into perform List Agents request")
+		return
+	}
+
 	// Prepare request
 	method := "GET"
-	url := ctrl.baseURL + "iofog-list"
+	url := this.baseURL + "iofog-list"
 	filter := AgentListFilter{}
 	body, err := json.Marshal(filter)
 	if err != nil {
@@ -216,7 +238,7 @@ func (ctrl *Client) ListAgents(accessToken string) (response ListAgentsResponse,
 	if err != nil {
 		return
 	}
-	httpReq.Header.Set("Authorization", accessToken)
+	httpReq.Header.Set("Authorization", this.accessToken)
 
 	// Send request
 	client := http.Client{}
@@ -241,16 +263,21 @@ func (ctrl *Client) ListAgents(accessToken string) (response ListAgentsResponse,
 	return
 }
 
-func (ctrl *Client) GetAgent(UUID, accessToken string) (response AgentInfo, err error) {
+func (this *Client) GetAgent(UUID string) (response AgentInfo, err error) {
+	if !this.isLoggedIn() {
+		err = util.NewError("Controller client must be logged into perform Get Agent request")
+		return
+	}
+
 	// Prepare request
 	method := "GET"
-	url := ctrl.baseURL + "iofog/" + UUID
+	url := this.baseURL + "iofog/" + UUID
 	body := strings.NewReader("")
 	httpReq, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return
 	}
-	httpReq.Header.Set("Authorization", accessToken)
+	httpReq.Header.Set("Authorization", this.accessToken)
 
 	// Send request
 	client := http.Client{}
@@ -275,17 +302,21 @@ func (ctrl *Client) GetAgent(UUID, accessToken string) (response AgentInfo, err 
 	return
 }
 
-func (ctrl *Client) DeleteAgent(UUID, accessToken string) error {
+func (this *Client) DeleteAgent(UUID string) error {
+	if !this.isLoggedIn() {
+		return util.NewError("Controller client must be logged into perform Delete Agent request")
+	}
+
 	// Prepare request
 	method := "DELETE"
 	contentType := "application/json"
-	url := ctrl.baseURL + "iofog/" + UUID
+	url := this.baseURL + "iofog/" + UUID
 	body := strings.NewReader("")
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", accessToken)
+	req.Header.Set("Authorization", this.accessToken)
 	req.Header.Set("Content-Type", contentType)
 
 	// Send request
@@ -303,10 +334,15 @@ func (ctrl *Client) DeleteAgent(UUID, accessToken string) error {
 	return nil
 }
 
-func (ctrl *Client) GetConnectors(accessToken string) (response ConnectorInfoList, err error) {
+func (this *Client) GetConnectors() (response ConnectorInfoList, err error) {
+	if !this.isLoggedIn() {
+		err = util.NewError("Controller client must be logged into perform Get Connectors request")
+		return
+	}
+
 	// Prepare request
 	method := "GET"
-	url := ctrl.baseURL + "connector"
+	url := this.baseURL + "connector"
 	httpReq, err := http.NewRequest(method, url, strings.NewReader(""))
 	if err != nil {
 		return
@@ -335,10 +371,14 @@ func (ctrl *Client) GetConnectors(accessToken string) (response ConnectorInfoLis
 	return
 }
 
-func (ctrl *Client) DeleteConnector(ip, accessToken string) (err error) {
+func (this *Client) DeleteConnector(ip string) (err error) {
+	if !this.isLoggedIn() {
+		return util.NewError("Controller client must be logged into perform Delete Connector request")
+	}
+
 	// Prepare request
 	method := "DELETE"
-	url := ctrl.baseURL + "connector"
+	url := this.baseURL + "connector"
 	body := fmt.Sprintf(`{"publicIp":"%s"}`, ip)
 	httpReq, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {
@@ -356,10 +396,14 @@ func (ctrl *Client) DeleteConnector(ip, accessToken string) (err error) {
 	return checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body)
 }
 
-func (ctrl *Client) AddConnector(request ConnectorInfo, accessToken string) error {
+func (this *Client) AddConnector(request ConnectorInfo) error {
+	if !this.isLoggedIn() {
+		return util.NewError("Controller client must be logged into perform Add Connector request")
+	}
+
 	// Prepare request
 	contentType := "application/json"
-	url := ctrl.baseURL + "connector"
+	url := this.baseURL + "connector"
 	body, err := json.Marshal(request)
 	if err != nil {
 		return err
@@ -368,7 +412,7 @@ func (ctrl *Client) AddConnector(request ConnectorInfo, accessToken string) erro
 	if err != nil {
 		return err
 	}
-	httpReq.Header.Set("Authorization", accessToken)
+	httpReq.Header.Set("Authorization", this.accessToken)
 	httpReq.Header.Set("Content-Type", contentType)
 
 	// Send request

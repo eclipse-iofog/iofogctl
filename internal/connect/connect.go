@@ -30,14 +30,12 @@ func connect(opt *Options, endpoint string) error {
 		Email:    opt.Email,
 		Password: opt.Password,
 	}
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err := ctrl.Login(loginRequest); err != nil {
 		return err
 	}
-	token := loginResponse.AccessToken
 
 	// Get Agents
-	listAgentsResponse, err := ctrl.ListAgents(token)
+	listAgentsResponse, err := ctrl.ListAgents()
 	if err != nil {
 		return err
 	}

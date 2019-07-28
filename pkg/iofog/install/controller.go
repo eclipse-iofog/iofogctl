@@ -154,11 +154,9 @@ func configureController(ctrlEndpoint string, connectorIP string, user client.Us
 		Email:    user.Email,
 		Password: user.Password,
 	}
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err = ctrl.Login(loginRequest); err != nil {
 		return
 	}
-	token = loginResponse.AccessToken
 
 	// Connect Controller with Connector
 	util.SpinStart("Provisioning Connector")
@@ -168,7 +166,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user client.Us
 		Domain:  connectorIP,
 		Name:    "connector",
 	}
-	if err = ctrl.AddConnector(connectorRequest, token); err != nil {
+	if err = ctrl.AddConnector(connectorRequest); err != nil {
 		return
 	}
 

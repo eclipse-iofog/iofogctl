@@ -39,14 +39,12 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user clien
 		Email:    user.Email,
 		Password: user.Password,
 	}
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err = ctrl.Login(loginRequest); err != nil {
 		return
 	}
-	token := loginResponse.AccessToken
 
 	// If the agent already exists, re-use the UUID
-	agentList, err := ctrl.ListAgents(token)
+	agentList, err := ctrl.ListAgents()
 	if err != nil {
 		return
 	}
@@ -64,7 +62,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user clien
 			FogType: 0,
 		}
 		var createResponse client.CreateAgentResponse
-		createResponse, err = ctrl.CreateAgent(createRequest, token)
+		createResponse, err = ctrl.CreateAgent(createRequest)
 		if err != nil {
 			return
 		}
@@ -72,7 +70,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user clien
 	}
 
 	// Get provisioning key
-	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
+	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid)
 	if err != nil {
 		return
 	}

@@ -55,14 +55,12 @@ func (exe *remoteExecutor) Execute() error {
 			Email:    userConfig.Email,
 			Password: userConfig.Password,
 		}
-		loginResponse, err := ctrl.Login(user)
-		if err != nil {
+		if err := ctrl.Login(user); err != nil {
 			return err
 		}
-		token := loginResponse.AccessToken
 
 		// Perform deletion of Agent through Controller
-		if err = ctrl.DeleteAgent(agent.UUID, token); err != nil {
+		if err = ctrl.DeleteAgent(agent.UUID); err != nil {
 			if !strings.Contains(err.Error(), "NotFoundError") {
 				return err
 			}

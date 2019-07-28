@@ -64,14 +64,12 @@ func generateAgentOutput(namespace string) error {
 			Password: ns.Controllers[0].IofogUser.Password,
 		}
 		// Log into Controller
-		loginResponse, err := ctrl.Login(loginRequest)
-		if err != nil {
+		if err := ctrl.Login(loginRequest); err != nil {
 			return tabulate(agentsToPrint)
 		}
-		token := loginResponse.AccessToken
 
 		// Get Agents from Controller
-		listAgentsResponse, err := ctrl.ListAgents(token)
+		listAgentsResponse, err := ctrl.ListAgents()
 		if err != nil {
 			return err
 		}
