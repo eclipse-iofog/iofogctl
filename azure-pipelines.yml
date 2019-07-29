@@ -115,7 +115,7 @@ jobs:
       
       - script: |
           BRANCH=$(branch) VERSION=$(version) make build
-          GOPATH=$(GOPATH) GOBIN=$(GOBIN) sudo make install
+          GOPATH=$(GOPATH) GOBIN=$(GOBIN) make install
         workingDirectory: '$(modulePath)'
         displayName: 'Build and Install Linux version'
 
@@ -129,17 +129,20 @@ jobs:
         inputs:
           secureFile: 'id_rsa'
 
-      #- script: |
-      #    sed -i "s|NAMESPACE=.*|NAMESPACE=\"$(branch)\"|g" test/env.sh
-      #    sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
-      #    sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
-      #    sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
-      #    cp test/env.sh test/conf
-      #    cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
-      #    echo $(ssh.user.pub) > ~/id_rsa.pub
-      #    test/run.bash
-      #  workingDirectory: '$(modulePath)'
-      #  displayName: 'Run Functional Tests'
+      - script: |
+          NS=branch-$(echo $(branch) | tr -d '.')
+          sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
+          sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
+          sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(ssh.ctrl)\"|g" test/env.sh
+          sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
+          sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
+          sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
+          cp test/env.sh test/conf
+          cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
+          echo $(ssh.user.pub) > ~/id_rsa.pub
+          test/run.bash
+        workingDirectory: '$(modulePath)'
+        displayName: 'Run Functional Tests'
       
       - script: |
           BRANCH=$(branch) GOOS=darwin VERSION=$(version) make build

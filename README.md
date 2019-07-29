@@ -26,7 +26,7 @@ sudo apt install iofogctl
 And similarly, the RPM package can be installed like so:
 ```
 https://packagecloud.io/install/repositories/iofog/iofogctl/script.rpm.sh | sudo bash
-sudo apit install iofogctl
+sudo apt install iofogctl
 ```
 
 ## Usage

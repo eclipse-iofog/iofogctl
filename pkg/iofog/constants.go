@@ -11,28 +11,12 @@
  *
  */
 
-package util
+package iofog
 
-// Set by linker
-var (
-	versionNumber = "undefined"
-	platform      = "undefined"
-	commit        = "undefined"
-	date          = "undefined"
+const (
+	ControllerPort       = 51121
+	ControllerPortString = "51121"
+
+	ConnectorPort       = 8080
+	ConnectorPortString = "8080"
 )
-
-type Version struct {
-	VersionNumber string `yaml:"version"`
-	Platform      string
-	Commit        string
-	Date          string
-}
-
-func GetVersion() Version {
-	return Version{
-		VersionNumber: versionNumber,
-		Platform:      platform,
-		Commit:        commit,
-		Date:          date,
-	}
-}

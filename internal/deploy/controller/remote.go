@@ -15,6 +15,9 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type remoteExecutor struct {
@@ -27,19 +30,43 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 	return d
 }
 
-func (exe *remoteExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
+func (exe *remoteExecutor) Execute() (err error) {
+	// Instantiate installer
+	controllerOptions := &install.ControllerOptions{
+		User:              exe.opt.User,
+		Host:              exe.opt.Host,
+		Port:              exe.opt.Port,
+		PrivKeyFilename:   exe.opt.KeyFile,
+		Version:           exe.opt.Version,
+		PackageCloudToken: exe.opt.PackageCloudToken,
+	}
+	installer := install.NewController(controllerOptions)
+
+	// Update configuration before we try to deploy in case of failure
+	configEntry, err := prepareUserAndSaveConfig(exe.opt)
+	if err != nil {
+		return
+	}
+
+	// Install Controller and Connector
+	if err = installer.Install(); err != nil {
+		return
+	}
+
+	// Configure Controller and Connector
+	if err = installer.Configure(client.User{
+		Name:     configEntry.IofogUser.Name,
+		Surname:  configEntry.IofogUser.Surname,
+		Email:    configEntry.IofogUser.Email,
+		Password: configEntry.IofogUser.Password,
+	}); err != nil {
+		return
+	}
 
 	// Update configuration
-	configEntry := config.Controller{
-		Name:    exe.opt.Name,
-		User:    exe.opt.User,
-		Host:    exe.opt.Host,
-		KeyFile: exe.opt.KeyFile,
-	}
-	err := config.AddController(exe.opt.Namespace, configEntry)
-	if err != nil {
-		return err
+	configEntry.Endpoint = exe.opt.Host + ":" + iofog.ControllerPortString
+	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
+		return
 	}
 
 	return config.Flush()

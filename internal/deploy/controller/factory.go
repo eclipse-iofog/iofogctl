@@ -15,7 +15,7 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -24,17 +24,20 @@ type Executor interface {
 }
 
 type Options struct {
-	Name             string
-	Namespace        string
-	User             string
-	Host             string
-	KeyFile          string
-	Local            bool
-	KubeConfig       string
-	KubeControllerIP string
-	ImagesFile       string
-	Images           map[string]string
-	IofogUser        config.IofogUser
+	Name              string
+	Namespace         string
+	User              string
+	Host              string
+	Port              int
+	KeyFile           string
+	Local             bool
+	KubeConfig        string
+	KubeControllerIP  string
+	ImagesFile        string
+	Images            map[string]string
+	IofogUser         config.IofogUser
+	Version           string
+	PackageCloudToken string
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
@@ -59,7 +62,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 		if nbControllers > 0 {
 			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
 		}
-		cli, err := iofog.NewLocalContainerClient()
+		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}

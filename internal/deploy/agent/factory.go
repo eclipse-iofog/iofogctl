@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -52,7 +52,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 
 	// Local executor
 	if opt.Local == true {
-		cli, err := iofog.NewLocalContainerClient()
+		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}

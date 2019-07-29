@@ -11,7 +11,7 @@
  *
  */
 
-package iofog
+package client
 
 type User struct {
 	Name     string `json:"firstName"`

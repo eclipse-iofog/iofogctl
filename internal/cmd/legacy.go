@@ -50,26 +50,47 @@ iofogctl legacy agent NAME status`,
 			case "controller":
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
-				util.Check(err)
-				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
-				util.Check(err)
-				// Connect to cluster
-				//Execute
-				config, err := clientcmd.BuildConfigFromFlags("", ctrl.KubeConfig)
-				util.Check(err)
-				// Instantiate Kubernetes client
-				clientset, err := kubernetes.NewForConfig(config)
-				util.Check(err)
-				podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=controller"})
-				if err != nil {
-					return
+				if ctrl.KubeConfig != "" {
+					util.Check(err)
+					ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
+					util.Check(err)
+					// Connect to cluster
+					//Execute
+					config, err := clientcmd.BuildConfigFromFlags("", ctrl.KubeConfig)
+					util.Check(err)
+					// Instantiate Kubernetes client
+					clientset, err := kubernetes.NewForConfig(config)
+					util.Check(err)
+					podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=controller"})
+					if err != nil {
+						return
+					}
+					podName := podList.Items[0].Name
+					kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-controller"}
+					kubeArgs = append(kubeArgs, args[2:]...)
+					out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
+					util.Check(err)
+					fmt.Print(out.String())
+				} else {
+					if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
+						util.PrintNotify(`This client does not have any means of performing legacy commands with the specified Controller.
+  This usually means you did not deploy the Controller but instead connected to it after its deployment.
+  If it is a Kubernetes-deployed Controller, you can try connecting with the correct Kube Config file.
+  If it is a non-Kubernetes-deploy Controller, you must manually add host, user, port, and keyfile fields to ~/.iofog/config.yaml.`)
+						util.Check(util.NewError("Could not SSH into Controller to execute legacy command"))
+					}
+					sshClient := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
+					util.Check(sshClient.Connect())
+					defer sshClient.Disconnect()
+
+					sshCmd := "iofog-controller"
+					for _, arg := range args[2:] {
+						sshCmd = sshCmd + " " + arg
+					}
+					logs, err := sshClient.Run(sshCmd)
+					util.Check(err)
+					fmt.Print(logs.String())
 				}
-				podName := podList.Items[0].Name
-				kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-controller"}
-				kubeArgs = append(kubeArgs, args[2:]...)
-				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
-				util.Check(err)
-				fmt.Print(out.String())
 			case "agent":
 				// Get config
 				agent, err := config.GetAgent(namespace, name)

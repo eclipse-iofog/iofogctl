@@ -22,6 +22,7 @@ import (
 func newDeployCommand() *cobra.Command {
 	// Instantiate options
 	opt := &deploy.Options{}
+	filename := ""
 
 	// Instantiate command
 	cmd := &cobra.Command{
@@ -33,10 +34,14 @@ deploy [command]`,
 
 A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers and Agents.
 
-The YAML resource definition file should look like this:
+The YAML resource definition file should look like this (two Controllers specified for example only):
 controllers:
-- name: sergek8s
+- name: k8s
   kubeconfig: ~/.kube/conf
+- name: vanilla 
+  user: serge
+  host: 35.239.157.151
+  keyfile: ~/.ssh/id_rsa
 agents:
 - name: agent1
   user: serge
@@ -49,6 +54,34 @@ agents:
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			// Unmarshall the input file
+			err = util.UnmarshalYAML(filename, &opt)
+			util.Check(err)
+
+			// Pre-process inputs
+			for idx := range opt.Controllers {
+				ctrl := &opt.Controllers[idx]
+				// Fix SSH port
+				if ctrl.Port == 0 {
+					ctrl.Port = 22
+				}
+				// Format file paths
+				ctrl.KeyFile, err = util.FormatPath(ctrl.KeyFile)
+				util.Check(err)
+				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
+				util.Check(err)
+			}
+			for idx := range opt.Agents {
+				agent := &opt.Agents[idx]
+				// Fix SSH port
+				if agent.Port == 0 {
+					agent.Port = 22
+				}
+				// Format file paths
+				agent.KeyFile, err = util.FormatPath(agent.KeyFile)
+				util.Check(err)
+			}
+
 			// Get namespace
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
@@ -68,7 +101,7 @@ agents:
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.Filename, "file", "f", "", "YAML file containing resource definitions for Controllers and Agents")
+	cmd.Flags().StringVarP(&filename, "file", "f", "", "YAML file containing resource definitions for Controllers and Agents")
 
 	return cmd
 }

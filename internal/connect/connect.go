@@ -15,29 +15,27 @@ package connect
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	client "github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
 
 func connect(opt *Options, endpoint string) error {
 	// Connect to Controller
-	ctrl := iofog.NewController(endpoint)
+	ctrl := client.New(endpoint)
 
 	// Get sanitized endpoint
 	endpoint = ctrl.GetEndpoint()
 
 	// Login user
-	loginRequest := iofog.LoginRequest{
+	loginRequest := client.LoginRequest{
 		Email:    opt.Email,
 		Password: opt.Password,
 	}
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err := ctrl.Login(loginRequest); err != nil {
 		return err
 	}
-	token := loginResponse.AccessToken
 
 	// Get Agents
-	listAgentsResponse, err := ctrl.ListAgents(token)
+	listAgentsResponse, err := ctrl.ListAgents()
 	if err != nil {
 		return err
 	}

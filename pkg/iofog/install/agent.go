@@ -11,17 +11,17 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
 
 type Agent interface {
 	Bootstrap() error
-	getProvisionKey(string, User) (string, string, error)
-	Configure(*config.Controller, User) (string, error)
+	getProvisionKey(string, client.User) (string, string, error)
+	Configure(*config.Controller, client.User) (string, error)
 }
 
 // defaultAgent implements commong behavior
@@ -30,47 +30,47 @@ type defaultAgent struct {
 	namespace string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user User) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user client.User) (key string, uuid string, err error) {
 	// Connect to controller
-	ctrl := NewController(controllerEndpoint)
+	ctrl := client.New(controllerEndpoint)
 
 	// Log in
-	loginRequest := LoginRequest{
+	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
 	}
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err = ctrl.Login(loginRequest); err != nil {
 		return
 	}
-	token := loginResponse.AccessToken
 
-	// Check the agent name is unique
-	var agentList ListAgentsResponse
-	agentList, err = ctrl.ListAgents(token)
+	// If the agent already exists, re-use the UUID
+	agentList, err := ctrl.ListAgents()
 	if err != nil {
 		return
 	}
 	for _, existingAgent := range agentList.Agents {
 		if existingAgent.Name == agent.name {
-			err = util.NewConflictError("Agent name " + agent.name + " is already registered with the Controller")
-			return
+			uuid = existingAgent.UUID
+			break
 		}
 	}
 
-	// Create agent
-	createRequest := CreateAgentRequest{
-		Name:    agent.name,
-		FogType: 0,
+	// Create agent if necessary
+	if uuid == "" {
+		createRequest := client.CreateAgentRequest{
+			Name:    agent.name,
+			FogType: 0,
+		}
+		var createResponse client.CreateAgentResponse
+		createResponse, err = ctrl.CreateAgent(createRequest)
+		if err != nil {
+			return
+		}
+		uuid = createResponse.UUID
 	}
-	createResponse, err := ctrl.CreateAgent(createRequest, token)
-	if err != nil {
-		return
-	}
-	uuid = createResponse.UUID
 
 	// Get provisioning key
-	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid, token)
+	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid)
 	if err != nil {
 		return
 	}

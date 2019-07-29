@@ -11,7 +11,7 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"context"
@@ -28,6 +28,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -109,7 +110,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap := make(map[string]*LocalContainerConfig)
 	containerMap["controller"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
-		Ports:         []port{{Host: "51121", Container: &LocalContainerPort{Port: "51121", Protocol: "tcp"}}},
+		Ports:         []port{{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}}},
 		ContainerName: sanitizeContainerName("iofog-controller-" + name),
 		Image:         controllerImg,
 		Privileged:    false,
@@ -124,7 +125,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 	containerMap["connector"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
-		Ports:         []port{{Host: "8080", Container: &LocalContainerPort{Port: "8080", Protocol: "tcp"}}},
+		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
 		ContainerName: sanitizeContainerName("iofog-connector-" + name),
 		Image:         connectorImg,
 		Privileged:    false,
@@ -140,7 +141,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 // NewLocalContainerClient returns a LocalContainer struct
 func NewLocalContainerClient() (*LocalContainer, error) {
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.WithVersion("1.39"))
 	if err != nil {
 		return nil, err
 	}
@@ -366,6 +367,7 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 	// Create command to execute inside container
 	execConfig := types.ExecConfig{AttachStdout: true, AttachStderr: true,
 		Cmd: cmd}
+	execStartCheck := types.ExecStartCheck{}
 
 	execID, err := lc.client.ContainerExecCreate(ctx, container.ID, execConfig)
 	if err != nil {
@@ -373,12 +375,12 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 	}
 
 	// Attach command to container
-	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execConfig)
+	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execStartCheck)
 	if err != nil {
 		return err
 	}
 	defer res.Close()
 
 	// Run command
-	return lc.client.ContainerExecStart(ctx, execID.ID, types.ExecStartCheck{})
+	return lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck)
 }

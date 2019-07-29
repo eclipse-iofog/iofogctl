@@ -13,26 +13,29 @@
 
 package util
 
-// Set by linker
-var (
-	versionNumber = "undefined"
-	platform      = "undefined"
-	commit        = "undefined"
-	date          = "undefined"
+import (
+	"sync"
+
+	rice "github.com/GeertJohan/go.rice"
 )
 
-type Version struct {
-	VersionNumber string `yaml:"version"`
-	Platform      string
-	Commit        string
-	Date          string
-}
+var once sync.Once
 
-func GetVersion() Version {
-	return Version{
-		VersionNumber: versionNumber,
-		Platform:      platform,
-		Commit:        commit,
-		Date:          date,
+var staticFiles map[string]string
+
+func GetStaticFile(filename string) string {
+
+	once.Do(func() {
+		staticFiles = make(map[string]string)
+	})
+
+	fileContent, ok := staticFiles[filename]
+	if !ok {
+		assets, err := rice.FindBox("../../assets")
+		Check(err)
+		fileContent, err = assets.String(filename)
+		Check(err)
+		staticFiles[filename] = fileContent
 	}
+	return fileContent
 }

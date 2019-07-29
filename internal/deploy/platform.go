@@ -24,11 +24,7 @@ import (
 )
 
 type Options struct {
-	Filename  string
-	Namespace string
-}
-
-type input struct {
+	Namespace     string
 	Controllers   []config.Controller   `mapstructure:"controllers"`
 	Agents        []config.Agent        `mapstructure:"agents"`
 	Microservices []config.Microservice `mapstructure:"microservices"`
@@ -51,19 +47,23 @@ func deployControllers(namespace string, controllers []config.Controller) (err e
 	// Deploy controllers
 	for _, ctrl := range controllers {
 		ctrlOpt := &deploycontroller.Options{
-			Namespace:        namespace,
-			Name:             ctrl.Name,
-			User:             ctrl.User,
-			Host:             ctrl.Host,
-			Local:            util.IsLocalHost(ctrl.Host),
-			KubeConfig:       ctrl.KubeConfig,
-			KubeControllerIP: ctrl.KubeControllerIP,
-			Images:           ctrl.Images,
-			IofogUser:        ctrl.IofogUser,
+			Namespace:         namespace,
+			Name:              ctrl.Name,
+			User:              ctrl.User,
+			Host:              ctrl.Host,
+			Port:              ctrl.Port,
+			Local:             util.IsLocalHost(ctrl.Host),
+			KubeConfig:        ctrl.KubeConfig,
+			KubeControllerIP:  ctrl.KubeControllerIP,
+			Images:            ctrl.Images,
+			IofogUser:         ctrl.IofogUser,
+			KeyFile:           ctrl.KeyFile,
+			Version:           ctrl.Version,
+			PackageCloudToken: ctrl.PackageCloudToken,
 		}
-		// Format file paths
-		if ctrlOpt.KubeConfig, err = util.FormatPath(ctrlOpt.KubeConfig); err != nil {
-			return
+
+		if ctrlOpt.Port == 0 {
+			ctrlOpt.Port = 22
 		}
 
 		var exe deploycontroller.Executor
@@ -89,15 +89,6 @@ func deployAgents(namespace string, agents []config.Agent) error {
 	localAgentCount := 0
 	agentChan := make(chan agentJobResult, len(agents))
 	for idx, agent := range agents {
-		// Fix SSH port
-		if agent.Port == 0 {
-			agent.Port = 22
-		}
-		// Format file paths
-		var err error
-		if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
-			return err
-		}
 
 		// Check local deploys
 		local := false
@@ -121,7 +112,7 @@ func deployAgents(namespace string, agents []config.Agent) error {
 		}
 
 		var exe deployagent.Executor
-		exe, err = deployagent.NewExecutor(agentOpt)
+		exe, err := deployagent.NewExecutor(agentOpt)
 		if err != nil {
 			return err
 		}
@@ -155,43 +146,31 @@ func deployAgents(namespace string, agents []config.Agent) error {
 }
 
 func Execute(opt *Options) error {
-	// Check filename option
-	if opt.Filename == "" {
-		return util.NewInputError("Must specify resource definition filename")
-	}
-
 	// Check namespace option
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return err
 	}
 
-	// Unmarshall the input file
-	var in input
-	err = util.UnmarshalYAML(opt.Filename, &in)
-	if err != nil {
-		return err
-	}
-
 	// If there are no resources return error
-	if len(in.Controllers) == 0 && len(in.Agents) == 0 {
+	if len(opt.Controllers) == 0 && len(opt.Agents) == 0 {
 		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
 
 	// If no controller is provided, one must already exist
-	if len(in.Controllers) == 0 {
+	if len(opt.Controllers) == 0 {
 		if len(ns.Controllers) == 0 {
 			return util.NewInputError("If you are not deploying a new controller, one must exist in the specified namespace")
 		}
 	}
 
 	// Deploy Controllers
-	if err = deployControllers(opt.Namespace, in.Controllers); err != nil {
+	if err = deployControllers(opt.Namespace, opt.Controllers); err != nil {
 		return err
 	}
 
 	// Deploy Agents
-	if err = deployAgents(opt.Namespace, in.Agents); err != nil {
+	if err = deployAgents(opt.Namespace, opt.Agents); err != nil {
 		return err
 	}
 

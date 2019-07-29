@@ -15,18 +15,19 @@ package deployagent
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"os/user"
 	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	install "github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
 	opt              *Options
-	client           *iofog.LocalContainer
-	localAgentConfig *iofog.LocalAgentConfig
+	client           *install.LocalContainer
+	localAgentConfig *install.LocalAgentConfig
 }
 
 func getController(namespace string) (*config.Controller, error) {
@@ -41,32 +42,32 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(opt *Options, client *iofog.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(opt *Options, client *install.LocalContainer) (*localExecutor, error) {
 	// Get controllerConfig
 	controller, err := getController(opt.Namespace)
 	if err != nil {
 		return nil, err
 	}
 	// Get Controller LocalContainerConfig
-	localControllerConfig := iofog.NewLocalControllerConfig(controller.Name, make(map[string]string))
+	localControllerConfig := install.NewLocalControllerConfig(controller.Name, make(map[string]string))
 	controllerContainerConfig, _ := localControllerConfig.ContainerMap["controller"]
 	return &localExecutor{
 		opt:              opt,
 		client:           client,
-		localAgentConfig: iofog.NewLocalAgentConfig(opt.Name, opt.Image, controllerContainerConfig),
+		localAgentConfig: install.NewLocalAgentConfig(opt.Name, opt.Image, controllerContainerConfig),
 	}, nil
 }
 
 func (exe *localExecutor) provisionAgent() (string, error) {
 	// Get agent
-	agent := iofog.NewLocalAgent(exe.localAgentConfig, exe.client)
+	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
 	// Get Controller details
 	controller, err := getController(exe.opt.Namespace)
 	if err != nil {
 		return "", err
 	}
-	user := iofog.User{
+	user := client.User{
 		Name:     controller.IofogUser.Name,
 		Surname:  controller.IofogUser.Surname,
 		Email:    controller.IofogUser.Email,

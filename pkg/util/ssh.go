@@ -15,8 +15,14 @@ package util
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"regexp"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -135,4 +141,108 @@ func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error)
 	authMeth = ssh.PublicKeys(signer)
 
 	return
+}
+
+func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, ignoredErrors []string) (err error) {
+	// Retry until string condition matches
+	for iter := 0; iter < 30; iter++ {
+		// Establish the session
+		var session *ssh.Session
+		session, err = cl.conn.NewSession()
+		if err != nil {
+			return
+		}
+		defer session.Close()
+
+		// Connect pipes
+		var stderr io.Reader
+		stderr, err = session.StderrPipe()
+		if err != nil {
+			return
+		}
+		// Refresh stdout for every iter
+		stdoutBuffer := bytes.Buffer{}
+		session.Stdout = &stdoutBuffer
+
+		// Run the command
+		err = session.Run(cmd)
+		// Ignore specified errors
+		if err != nil {
+			errMsg := err.Error()
+			for _, toIgnore := range ignoredErrors {
+				if strings.Contains(errMsg, toIgnore) {
+					// ignore error
+					err = nil
+					break
+				}
+			}
+		}
+		if err != nil {
+			errMsg := err.Error()
+			logFile := "/tmp/iofog.log"
+			errorSuffix := "stdout has been appended to " + logFile
+			if err = ioutil.WriteFile(logFile, stdoutBuffer.Bytes(), 0644); err != nil {
+				errorSuffix = "Failed to append stdout to log file"
+			}
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(stderr)
+			err = NewInternalError(fmt.Sprintf("Error during SSH session: %s\nstderr: %s%s", errMsg, buf.String(), errorSuffix))
+			return
+		}
+		if condition.MatchString(stdoutBuffer.String()) {
+			return nil
+		}
+		time.Sleep(2 * time.Second)
+	}
+	return NewInternalError("Timed out waiting for condition '" + condition.String() + "' with SSH command: " + cmd)
+}
+
+func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int) error {
+	// Check permissions string
+	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
+		return NewError("Invalid file permission specified: " + permissions)
+	}
+
+	// Establish the session
+	session, err := cl.conn.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	// Start routine to write file
+	errChan := make(chan error)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// Instantiate reference to stdin
+		remoteStdin, err := session.StdinPipe()
+		if err != nil {
+			errChan <- err
+		}
+		defer remoteStdin.Close()
+
+		// Write to stdin
+		fmt.Fprintf(remoteStdin, "C%s %d %s\n", permissions, size, destFilename)
+		io.Copy(remoteStdin, reader)
+		fmt.Fprint(remoteStdin, "\x00")
+	}()
+
+	// Start the scp command
+	session.Run("/usr/bin/scp -t " + destPath)
+
+	// Wait for completion
+	wg.Wait()
+
+	// Check for errors
+	close(errChan)
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

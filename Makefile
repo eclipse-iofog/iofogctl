@@ -6,11 +6,10 @@ BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
 VERSION ?= $(shell git tag | tail -1 | sed "s|v||g")-dev
-BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
-LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).branch=$(BRANCH) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -32,6 +31,7 @@ clean: ## Clean the working area and the project
 
 .PHONY: dep
 dep: ## Install dependencies
+	@go get github.com/GeertJohan/go.rice/rice
 	@dep ensure -v -vendor-only
 
 .PHONY: build
@@ -40,11 +40,12 @@ build: ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
 endif
-	@go build $(GOARGS) $(PACKAGE_DIR)/main.go
+	@cd pkg/util && rice embed-go
+	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
 
 .PHONY: install
 install: ## Install the iofogctl binary to /usr/local/bin
-	@cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
+	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
 
 .PHONY: fmt
 fmt: ## Format the source

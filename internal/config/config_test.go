@@ -14,6 +14,7 @@
 package config
 
 import (
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"io/ioutil"
 	"strconv"
 	"testing"
@@ -184,7 +185,7 @@ func compareControllers(lhs, rhs Controller) bool {
 func TestWritingController(t *testing.T) {
 	ctrl := Controller{
 		Created:          "Now",
-		Endpoint:         "localhost:51121",
+		Endpoint:         "localhost:" + iofog.ControllerPortString,
 		Host:             "localhost",
 		KeyFile:          "~/.key/file",
 		KubeConfig:       "~/.kube/config",

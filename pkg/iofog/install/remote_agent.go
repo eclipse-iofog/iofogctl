@@ -11,13 +11,15 @@
  *
  */
 
-package iofog
+package install
 
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -40,39 +42,45 @@ func (agent *RemoteAgent) Bootstrap() error {
 	defer util.SpinStop()
 	util.SpinStart("Bootstrapping Agent " + agent.name)
 	// Connect to agent over SSH
-	err := agent.ssh.Connect()
-	if err != nil {
+	if err := agent.ssh.Connect(); err != nil {
 		return err
 	}
 	defer agent.ssh.Disconnect()
 
+	// Copy installation scripts to remote hosts
+	installAgentScript := util.GetStaticFile("install_agent.sh")
+	reader := strings.NewReader(installAgentScript)
+	if err := agent.ssh.CopyTo(reader, "/tmp/", "install_agent.sh", "0774", len(installAgentScript)); err != nil {
+		return err
+	}
+
+	waitAgentScript := util.GetStaticFile("wait_agent.sh")
+	reader = strings.NewReader(waitAgentScript)
+	if err := agent.ssh.CopyTo(reader, "/tmp/", "wait_agent.sh", "0774", len(waitAgentScript)); err != nil {
+		return err
+	}
+
 	// Instantiate install arguments
-	branch := util.GetVersion().Branch
-	installURL := fmt.Sprintf("https://raw.githubusercontent.com/eclipse-iofog/iofogctl/%s/script/install_agent.sh", branch)
 	installArgs := ""
 	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
-	agentVersion, verExists := os.LookupEnv("AGENT_VERSION")
+	agentVersion, verExists := os.LookupEnv("IOFOG_AGENT_VERSION")
 	if pkgExists && verExists {
 		installArgs = "dev " + agentVersion + " " + pkgCloudToken
 	}
 
-	// Execute commands
+	// Define commands
 	cmds := []string{
 		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
 		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
-		"curl " + installURL + " | sudo  -S tee /opt/install_agent.sh",
-		"sudo -S chmod +x /opt/install_agent.sh",
-		"sudo -S /opt/install_agent.sh " + installArgs,
+		"/tmp/install_agent.sh " + installArgs,
 		"sudo -S service iofog-agent start",
-		"echo '" + waitForAgentScript + "' > ~/wait-for-agent.sh",
-		"chmod +x ~/wait-for-agent.sh",
-		"~/wait-for-agent.sh",
+		"/tmp/wait_agent.sh",
 		"sudo -S iofog-agent config -cf 10 -sf 10",
 	}
 
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.ssh.Run(cmd)
+		_, err := agent.ssh.Run(cmd)
 		if err != nil {
 			return err
 		}
@@ -81,7 +89,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid string, err error) {
+func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (uuid string, err error) {
 	defer util.SpinStop()
 	util.SpinStart("Configuring Agent " + agent.name)
 
@@ -118,16 +126,3 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user User) (uuid st
 
 	return
 }
-
-var waitForAgentScript = `STATUS=""
-ITER=0
-while [ "$STATUS" != "RUNNING" ] ; do
-    ITER=$((ITER+1))
-    if [ "$ITER" -gt 30 ]; then
-        echo 'Timed out waiting for Agent to be RUNNING'
-        exit 1
-    fi
-    sleep 1
-    STATUS=$(sudo iofog-agent status | cut -f2 -d: | head -n 1 | tr -d '[:space:]')
-done
-exit 0`

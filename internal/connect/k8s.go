@@ -15,7 +15,7 @@ package connect
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type kubernetesExecutor struct {
@@ -30,7 +30,7 @@ func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
-	k8s, err := iofog.NewKubernetes(exe.opt.KubeFile, exe.opt.Namespace)
+	k8s, err := install.NewKubernetes(exe.opt.KubeFile, exe.opt.Namespace)
 	if err != nil {
 		return err
 	}

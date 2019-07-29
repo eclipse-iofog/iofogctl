@@ -15,7 +15,7 @@ package get
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"time"
 )
@@ -57,7 +57,7 @@ func generateControllerOutput(namespace string) error {
 	// Populate rows
 	for idx, ctrlConfig := range controllers {
 		// Instantiate connection to controller
-		ctrl := iofog.NewController(ctrlConfig.Endpoint)
+		ctrl := client.New(ctrlConfig.Endpoint)
 
 		// Ping status
 		ctrlStatus, err := ctrl.GetStatus()

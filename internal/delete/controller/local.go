@@ -18,22 +18,22 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type localExecutor struct {
 	namespace             string
 	name                  string
-	client                *iofog.LocalContainer
-	localControllerConfig *iofog.LocalControllerConfig
+	client                *install.LocalContainer
+	localControllerConfig *install.LocalControllerConfig
 }
 
-func newLocalExecutor(namespace, name string, client *iofog.LocalContainer) *localExecutor {
+func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
 	exe := &localExecutor{
 		namespace:             namespace,
 		name:                  name,
 		client:                client,
-		localControllerConfig: iofog.NewLocalControllerConfig(name, make(map[string]string)),
+		localControllerConfig: install.NewLocalControllerConfig(name, make(map[string]string)),
 	}
 	return exe
 }

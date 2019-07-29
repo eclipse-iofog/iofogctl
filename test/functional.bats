@@ -4,12 +4,15 @@
 # NAMESPACE
 # KUBE_CONFIG
 # AGENT_LIST
+# VANILLA_CONTROLLER
 # KEY_FILE
+# PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
 # CONNECTOR_IMAGE
 # SCHEDULER_IMAGE
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
+# VANILLA_VERSION
 
 . test/functions.bash
 
@@ -37,6 +40,13 @@ function initAgents(){
   USERS=($USERS)
   HOSTS=($HOSTS)
   PORTS=($PORTS)
+}
+
+function initVanillaController(){
+  VANILLA_USER=$(echo "$VANILLA_CONTROLLER" | sed "s|@.*||g")
+  VANILLA_HOST=$(echo "$VANILLA_CONTROLLER" | sed "s|.*@||g")
+  VANILLA_PORT=$(echo "$VANILLA_CONTROLLER" | cut -d':' -s -f2)
+  VANILLA_PORT="${PORT:-22}"
 }
 
 function checkController() {
@@ -68,7 +78,7 @@ function checkAgentsNegative() {
 }
 
 @test "Deploy controller" {
-  test iofogctl -q -n "$NS" deploy controller $NAME --kube-config $KUBE_CONFIG
+  test iofogctl -q -n "$NS" deploy controller "$NAME" --kube-config "$KUBE_CONFIG"
   checkController
 }
 
@@ -84,6 +94,16 @@ function checkAgentsNegative() {
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
+
+@test "Controller legacy commands after deploy" {
+  sleep 15 # Sleep to avoid SSH tunnel bug from K8s
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+}
+
+@test "Get Controller logs on K8s after deploy" {
+  test iofogctl -q -n "$NS" logs controller "$NAME"
+}
+
 @test "Deploy agents" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
@@ -91,6 +111,13 @@ function checkAgentsNegative() {
     test iofogctl -q -n "$NS" deploy agent "$AGENT_NAME" --user "${USERS[IDX]}" --host "${HOSTS[IDX]}" --key-file "$KEY_FILE" --port "${PORTS[IDX]}"
   done
   checkAgents
+}
+
+@test "Agent legacy commands" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}_${IDX}"
+    test iofogctl -q -n "$NS" legacy agent "$AGENT_NAME" status
+  done
 }
 
 @test "Disconnect from cluster" {
@@ -109,6 +136,21 @@ function checkAgentsNegative() {
   checkAgents
 }
 
+@test "Controller legacy commands after connect with Kube Config" {
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+}
+
+@test "Get Controller logs on K8s after connect with Kube Config" {
+  test iofogctl -q -n "$NS" logs controller "$NAME"
+}
+
+@test "Get Agent logs" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}_${IDX}"
+    test iofogctl -q -n "$NS" logs agent "$AGENT_NAME"
+  done
+}
+
 @test "Disconnect from cluster again" {
   initAgents
   test iofogctl -q -n "$NS" disconnect
@@ -124,6 +166,14 @@ function checkAgentsNegative() {
   checkController
   checkAgents
 }
+
+# TODO: Enable these if ever possible to do with IP connect
+#@test "Get Controller logs after connect with IP" {
+#  test iofogctl -q -n "$NS" logs controller "$NAME"
+#}
+#@test "Get Controller logs on K8s after connect with IP" {
+#  test iofogctl -q -n "$NS" logs controller "$NAME"
+#}
 
 @test "Delete Agents" {
   initAgents
@@ -153,9 +203,9 @@ function checkAgentsNegative() {
     name: Testing
     surname: Functional
     email: user@domain.com
-    password: S5gYVgLEZV" > test/conf/controller.yaml
+    password: S5gYVgLEZV" > test/conf/k8s.yaml
 
-  test iofogctl -q -n "$NS" deploy -f test/conf/controller.yaml
+  test iofogctl -q -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 
@@ -174,10 +224,69 @@ function checkAgentsNegative() {
   checkAgents
 }
 
+@test "Test Agent deploy for idempotence" {
+  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  checkAgents
+}
+
+@test "Test Controller deploy for idempotence" {
+  test iofogctl -q -n "$NS" deploy -f test/conf/k8s.yaml
+  checkController
+}
+
 @test "Delete all" {
   test iofogctl -q -n "$NS" delete all
   checkControllerNegative
   checkAgentsNegative
+}
+
+# TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
+#@test "Deploy vanilla Controller" {
+#  initVanillaController
+#  test iofogctl -q -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
+#  checkController
+#}
+
+@test "Deploy vanilla Controller" {
+  initVanillaController
+  echo "controllers:
+- name: $NAME
+  user: $VANILLA_USER
+  host: $VANILLA_HOST
+  port: $VANILLA_PORT
+  keyfile: $KEY_FILE
+  version: $VANILLA_VERSION
+  packagecloudtoken: $PACKAGE_CLOUD_TOKEN
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: user@domain.com
+    password: S5gYVgLEZV" > test/conf/vanilla.yaml
+
+  test iofogctl -q -n "$NS" deploy -f test/conf/vanilla.yaml
+  checkController
+}
+
+@test "Controller legacy commands after vanilla deploy" {
+  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+}
+
+@test "Get Controller logs after vanilla deploy" {
+  test iofogctl -q -n "$NS" logs controller "$NAME"
+}
+
+@test "Deploy Agents against vanilla Controller" {
+  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  checkAgents
+}
+
+@test "Delete all" {
+  test iofogctl -q -n "$NS" delete all
+  checkControllerNegative
+  checkAgentsNegative
+}
+
+@test "Delete namespace" {
   test iofogctl delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
 }

@@ -15,32 +15,33 @@ package deploycontroller
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"os/user"
 	"regexp"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type localExecutor struct {
 	opt                   *Options
-	client                *iofog.LocalContainer
-	localControllerConfig *iofog.LocalControllerConfig
-	localUserConfig       *iofog.LocalUserConfig
+	client                *install.LocalContainer
+	localControllerConfig *install.LocalControllerConfig
+	localUserConfig       *install.LocalUserConfig
 	containersNames       []string
 }
 
-func newLocalExecutor(opt *Options, client *iofog.LocalContainer) *localExecutor {
+func newLocalExecutor(opt *Options, client *install.LocalContainer) *localExecutor {
 	if opt.IofogUser.Email == "" {
 		opt.IofogUser = config.NewRandomUser()
 	}
 	return &localExecutor{
 		opt:                   opt,
 		client:                client,
-		localControllerConfig: iofog.NewLocalControllerConfig(opt.Name, opt.Images),
-		localUserConfig:       &iofog.LocalUserConfig{opt.IofogUser},
+		localControllerConfig: install.NewLocalControllerConfig(opt.Name, opt.Images),
+		localUserConfig:       &install.LocalUserConfig{opt.IofogUser},
 	}
 }
 
@@ -119,9 +120,9 @@ func (exe *localExecutor) install() error {
 	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
 
 	ctrlIP := fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
-	ctrl := iofog.NewController(ctrlIP)
+	ctrl := client.New(ctrlIP)
 	// Assign user
-	user := iofog.User{
+	user := client.User{
 		Name:     exe.localUserConfig.Name,
 		Surname:  exe.localUserConfig.Surname,
 		Email:    exe.localUserConfig.Email,
@@ -135,21 +136,23 @@ func (exe *localExecutor) install() error {
 		}
 	}
 	// Login
-	loginResponse, err := ctrl.Login(iofog.LoginRequest{Email: user.Email, Password: user.Password})
-	if err != nil {
+	if err := ctrl.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
 		return err
 	}
 	// Provision Connector
 	util.SpinStart("Provisioning Connector to Controller")
 	connectorIP := connectorContainerConfig.Host
 	connectorName := connectorContainerConfig.ContainerName
-	err = ctrl.AddConnector(iofog.ConnectorInfo{
+	if err := ctrl.AddConnector(client.ConnectorInfo{
 		IP:      connectorIP,
 		Name:    connectorName,
 		Domain:  connectorContainerConfig.Host,
 		DevMode: true,
-	}, loginResponse.AccessToken)
-	return err
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (exe *localExecutor) Execute() error {

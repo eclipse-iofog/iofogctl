@@ -16,7 +16,7 @@ package describe
 import (
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"strings"
 )
@@ -48,19 +48,17 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Connect to controller
-	ctrl := iofog.NewController(ctrls[0].Endpoint)
-	loginRequest := iofog.LoginRequest{
+	ctrl := client.New(ctrls[0].Endpoint)
+	loginRequest := client.LoginRequest{
 		Email:    ctrls[0].IofogUser.Email,
 		Password: ctrls[0].IofogUser.Password,
 	}
 
 	// Send requests to controller
-	loginResponse, err := ctrl.Login(loginRequest)
-	if err != nil {
+	if err := ctrl.Login(loginRequest); err != nil {
 		return err
 	}
-	token := loginResponse.AccessToken
-	getAgentResponse, err := ctrl.GetAgent(agent.UUID, token)
+	getAgentResponse, err := ctrl.GetAgent(agent.UUID)
 	if err != nil {
 		// The agents might not be provisioned with Controller
 		if strings.Contains(err.Error(), "NotFoundError") {
