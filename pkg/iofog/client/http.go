@@ -32,7 +32,6 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 		}
 		jsonBody = string(jsonBodyBytes)
 	}
-	println(jsonBody)
 
 	// Instantiate request
 	request, err := http.NewRequest(method, url, strings.NewReader(jsonBody))
