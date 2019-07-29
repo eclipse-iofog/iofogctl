@@ -16,8 +16,9 @@ package client
 import (
 	"bytes"
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"io"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func getString(in io.Reader) (out string, err error) {
@@ -36,7 +37,7 @@ func checkStatusCode(code int, method, url string, body io.Reader) error {
 		if err != nil {
 			return err
 		}
-		return util.NewInternalError(fmt.Sprintf("Received %d from %s %s\n%s", code, method, url, bodyString))
+		return util.NewHTTPError(fmt.Sprintf("Received %d from %s %s\n%s", code, method, url, bodyString), code)
 	}
 	return nil
 }

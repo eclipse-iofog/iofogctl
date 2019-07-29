@@ -107,3 +107,22 @@ func NewInternalError(message string) (err *InternalError) {
 func (err *InternalError) Error() string {
 	return "Unexpected internal behaviour\n" + err.message
 }
+
+// HTTPError export
+type HTTPError struct {
+	message string
+	Code    int
+}
+
+// NewHTTPError export
+func NewHTTPError(message string, code int) (err *HTTPError) {
+	err = new(HTTPError)
+	err.message = message
+	err.Code = code
+	return err
+}
+
+// Error export
+func (err HTTPError) Error() string {
+	return "Unexpected HTTP response\n" + err.message
+}
