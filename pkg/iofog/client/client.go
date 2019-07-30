@@ -56,7 +56,7 @@ func (clt *Client) makeRequestUrl(url string) string {
 	return clt.baseURL + url
 }
 
-func (clt *Client) makeRequest(method, url string, request interface{}) ([]byte, error) {
+func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, error) {
 	// Prepare request
 	requestURL := clt.makeRequestUrl(url)
 	headers := map[string]string{

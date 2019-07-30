@@ -123,6 +123,6 @@ func NewHTTPError(message string, code int) (err *HTTPError) {
 }
 
 // Error export
-func (err HTTPError) Error() string {
+func (err *HTTPError) Error() string {
 	return "Unexpected HTTP response\n" + err.message
 }
