@@ -15,6 +15,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -61,8 +62,12 @@ func (clt *Client) AddConnector(request ConnectorInfo) error {
 	// Send request
 	_, err := clt.makeRequest("POST", "/connector", request)
 	if err != nil {
+		fmt.Printf("POST /connector failed [%v]\n", err.Error())
 		// Retry with a PUT if already exists
-		if httpErr, ok := err.(util.HTTPError); ok == true && httpErr.Code == 400 && strings.Contains(httpErr.Error(), "Model already exists") {
+		httpErr, ok := err.(util.HTTPError)
+		fmt.Printf("Converted error to HTTPError: %v\n%v\n", ok, httpErr)
+		fmt.Printf("Http error contains 'Model already exists': %v\n", strings.Contains(httpErr.Error(), "Model already exists"))
+		if ok == true && httpErr.Code == 400 && strings.Contains(httpErr.Error(), "Model already exists") {
 			_, err = clt.makeRequest("PUT", "/connector", request)
 		}
 	}
