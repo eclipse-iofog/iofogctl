@@ -49,5 +49,5 @@ func (exe *allExecutor) Execute() error {
 		return err
 	}
 
-	return nil
+	return config.Flush()
 }

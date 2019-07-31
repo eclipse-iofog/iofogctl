@@ -33,7 +33,10 @@ func newAgentExecutor(namespace string) *agentExecutor {
 
 func (exe *agentExecutor) Execute() error {
 	printNamespace(exe.namespace)
-	return generateAgentOutput(exe.namespace)
+	if err := generateAgentOutput(exe.namespace); err != nil {
+		return err
+	}
+	return config.Flush()
 }
 
 func generateAgentOutput(namespace string) error {
