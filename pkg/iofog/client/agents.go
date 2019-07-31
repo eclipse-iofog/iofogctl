@@ -20,6 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+// CreateAgent creates an ioFog Agent using Controller REST API
 func (clt *Client) CreateAgent(request CreateAgentRequest) (response CreateAgentResponse, err error) {
 	if !clt.isLoggedIn() {
 		err = util.NewError("Controller client must be logged into perform Create Agent request")
@@ -48,6 +49,7 @@ func (clt *Client) CreateAgent(request CreateAgentRequest) (response CreateAgent
 	return
 }
 
+// GetAgentProvisionKey get a provisioning key for an ioFog Agent using Controller REST API
 func (clt *Client) GetAgentProvisionKey(UUID string) (response GetAgentProvisionKeyResponse, err error) {
 	if !clt.isLoggedIn() {
 		err = util.NewError("Controller client must be logged into perform Get Agent Provisioning Key request")
@@ -66,6 +68,7 @@ func (clt *Client) GetAgentProvisionKey(UUID string) (response GetAgentProvision
 	return
 }
 
+// ListAgents returns all ioFog Agents information using Controller REST API
 func (clt *Client) ListAgents() (response ListAgentsResponse, err error) {
 	if !clt.isLoggedIn() {
 		err = util.NewError("Controller client must be logged into perform List Agents request")
@@ -86,7 +89,8 @@ func (clt *Client) ListAgents() (response ListAgentsResponse, err error) {
 	return
 }
 
-func (clt *Client) GetAgent(UUID string) (response AgentInfo, err error) {
+// GetAgentByID returns an ioFog Agent information using Controller REST API
+func (clt *Client) GetAgentByID(UUID string) (response *AgentInfo, err error) {
 	if !clt.isLoggedIn() {
 		err = util.NewError("Controller client must be logged into perform Get Agent request")
 		return
@@ -99,13 +103,30 @@ func (clt *Client) GetAgent(UUID string) (response AgentInfo, err error) {
 	}
 
 	// Return body
-	if err = json.Unmarshal(body, &response); err != nil {
+	response = new(AgentInfo)
+	if err = json.Unmarshal(body, response); err != nil {
 		return
 	}
 
 	return
 }
 
+// UpdateAgent patches an ioFog Agent using Controller REST API
+func (clt *Client) UpdateAgent(request *AgentUpdateRequest) (*AgentInfo, error) {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/iofog/%s", request.UUID), request)
+	if err != nil {
+		return nil, err
+	}
+	return clt.GetAgentByID(request.UUID)
+}
+
+// RebootAgent reboots an ioFog Agent using Controller REST API
+func (clt *Client) RebootAgent(UUID string) (err error) {
+	_, err = clt.doRequest("POST", fmt.Sprintf("/iofog/%s/reboot", UUID), nil)
+	return
+}
+
+// DeleteAgent removes an ioFog Agent from the Controller using Controller REST API
 func (clt *Client) DeleteAgent(UUID string) error {
 	if !clt.isLoggedIn() {
 		return util.NewError("Controller client must be logged into perform Delete Agent request")
