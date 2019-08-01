@@ -33,6 +33,7 @@ Deleting Agents or Controllers will result in the respective deployments being t
 		newDeleteAgentCommand(),
 		newDeleteMicroserviceCommand(),
 		newDeleteAllCommand(),
+		newDeleteApplicationCommand(),
 	)
 	return cmd
 }

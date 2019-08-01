@@ -76,20 +76,20 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int  `mapstructure:"internal" json:"internal"`
-	External   int  `mapstructure:"external" json:"external"`
-	PublicMode bool `mapstructure:"publicMode" json:"publicMode"`
+	Internal   int  `json:"internal"`
+	External   int  `json:"external"`
+	PublicMode bool `json:"publicMode"`
 }
 
 type MicroserviceVolumeMapping struct {
-	HostDestination      string `mapstructure:"hostDestination" yaml:"hostDestination" json:"hostDestination"`
-	ContainerDestination string `mapstructure:"containerDestination" yaml:"containerDestination" json:"containerDestination"`
-	AccessMode           string `mapstructure:"accessMode" yaml:"accessMode" json:"accessMode"`
+	HostDestination      string `json:"hostDestination"`
+	ContainerDestination string `json:"containerDestination"`
+	AccessMode           string `json:"accessMode"`
 }
 
 type MicroserviceEnvironment struct {
-	Key   string `mapstructure:"key" json:"key"`
-	Value string `mapstructure:"value" json:"value"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type MicroserviceInfo struct {
@@ -240,20 +240,20 @@ type AgentInfo struct {
 }
 
 type AgentConfiguration struct {
-	DockerURL                 *string  `mapstructure:"dockerUrl,omitempty"`
-	DiskLimit                 *int64   `mapstructure:"diskLimit,omitempty"`
-	DiskDirectory             *string  `mapstructure:"diskDirectory,omitempty"`
-	MemoryLimit               *int64   `mapstructure:"memoryLimit,omitempty"`
-	CPULimit                  *int64   `mapstructure:"cpuLimit,omitempty"`
-	LogLimit                  *int64   `mapstructure:"logLimit,omitempty"`
-	LogDirectory              *string  `mapstructure:"logDirectory,omitempty"`
-	LogFileCount              *int64   `mapstructure:"logFileCount,omitempty"`
-	StatusFrequency           *float64 `mapstructure:"statusFrequency,omitempty"`
-	ChangeFrequency           *float64 `mapstructure:"changeFrequency,omitempty"`
-	DeviceScanFrequency       *float64 `mapstructure:"deviceScanFrequency,omitempty"`
-	BluetoothEnabled          *bool    `mapstructure:"bluetoothEnabled,omitempty"`
-	WatchdogEnabled           *bool    `mapstructure:"watchdogEnabled,omitempty"`
-	AbstractedHardwareEnabled *bool    `mapstructure:"abstractedHardwareEnabled,omitempty"`
+	DockerURL                 *string  `json:"dockerUrl,omitempty"`
+	DiskLimit                 *int64   `json:"diskLimit,omitempty"`
+	DiskDirectory             *string  `json:"diskDirectory,omitempty"`
+	MemoryLimit               *int64   `json:"memoryLimit,omitempty"`
+	CPULimit                  *int64   `json:"cpuLimit,omitempty"`
+	LogLimit                  *int64   `json:"logLimit,omitempty"`
+	LogDirectory              *string  `json:"logDirectory,omitempty"`
+	LogFileCount              *int64   `json:"logFileCount,omitempty"`
+	StatusFrequency           *float64 `json:"statusFrequency,omitempty"`
+	ChangeFrequency           *float64 `json:"changeFrequency,omitempty"`
+	DeviceScanFrequency       *float64 `json:"deviceScanFrequency,omitempty"`
+	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty"`
+	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty"`
+	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty"`
 }
 
 type AgentUpdateRequest struct {

@@ -29,6 +29,7 @@ type remoteExecutor struct {
 	client             *client.Client
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
+	catalogByName      map[string]*client.CatalogItemInfo
 }
 
 func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.Microservice) {
@@ -104,8 +105,10 @@ func (exe *remoteExecutor) init(controller *config.Controller) (err error) {
 		return
 	}
 	exe.catalogByID = make(map[int]*client.CatalogItemInfo)
+	exe.catalogByName = make(map[string]*client.CatalogItemInfo)
 	for _, catalogItem := range listCatalog.CatalogItems {
 		exe.catalogByID[catalogItem.ID] = &catalogItem
+		exe.catalogByName[catalogItem.Name] = &catalogItem
 	}
 	return
 }
@@ -175,20 +178,43 @@ func (exe *remoteExecutor) deploy() (err error) {
 		}
 		// CatalogItem
 		var catalogItem *client.CatalogItemInfo
+		catalogImages := []client.CatalogImage{
+			client.CatalogImage{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
+			client.CatalogImage{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
+		}
 		if msvc.Images.CatalogID == 0 {
-			// Create new catalog item
-			catalogImages := []client.CatalogImage{
-				client.CatalogImage{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
-				client.CatalogImage{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
-			}
-			catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
-				Name:        fmt.Sprintf("%s_catalog", msvc.Name),
-				Description: fmt.Sprintf("Catalog item for %s", msvc.Name),
-				Images:      catalogImages,
-				RegistryID:  msvc.Images.Registry,
-			})
-			if err != nil {
-				return err
+			catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.opt.Name, msvc.Name)
+			var found bool
+			catalogItem, found = exe.catalogByName[catalogItemName]
+			if found == true {
+				// Check if catalog item needs to be updated
+				if catalogItemNeedsUpdate(catalogItem, catalogImages, msvc.Images.Registry) {
+					// Delete catalog item
+					if err = exe.client.DeleteCatalogItem(catalogItem.ID); err != nil {
+						return
+					}
+					// Create new catalog item
+					catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
+						Name:        catalogItemName,
+						Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
+						Images:      catalogImages,
+						RegistryID:  msvc.Images.Registry,
+					})
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				// Create new catalog item
+				catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
+					Name:        catalogItemName,
+					Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
+					Images:      catalogImages,
+					RegistryID:  msvc.Images.Registry,
+				})
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			catalogItem = exe.catalogByID[msvc.Images.CatalogID]
@@ -203,7 +229,6 @@ func (exe *remoteExecutor) deploy() (err error) {
 			config = string(byteconfig)
 		}
 
-		fmt.Printf("===================> MSVC Volume\n%v\n\n", msvc.Volumes)
 		msvcInfo, err := exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 			Config:         config,
 			CatalogItemID:  catalogItem.ID,
@@ -241,4 +266,23 @@ func (exe *remoteExecutor) deploy() (err error) {
 		return
 	}
 	return nil
+}
+
+func catalogItemNeedsUpdate(catalogItem *client.CatalogItemInfo, catalogImages []client.CatalogImage, registry int) bool {
+	if catalogItem.RegistryID != registry || len(catalogImages) != len(catalogItem.Images) {
+		return true
+	}
+
+	currentImagesPerAgentType := make(map[int]string)
+	for _, currentImage := range catalogItem.Images {
+		currentImagesPerAgentType[currentImage.AgentTypeID] = currentImage.ContainerImage
+	}
+
+	for _, image := range catalogImages {
+		if currentImage, found := currentImagesPerAgentType[image.AgentTypeID]; !found || currentImage != image.ContainerImage {
+			return true
+		}
+	}
+
+	return false
 }

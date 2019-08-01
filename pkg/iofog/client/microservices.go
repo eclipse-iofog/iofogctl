@@ -37,8 +37,6 @@ func (clt *Client) CreateMicroservice(request MicroserviceCreateRequest) (*Micro
 	// Init empty arrays
 	if request.Volumes == nil {
 		request.Volumes = []MicroserviceVolumeMapping{}
-	} else {
-		fmt.Printf("===================> Volume\n%v\n\n", request.Volumes)
 	}
 	if request.Env == nil {
 		request.Env = []MicroserviceEnvironment{}

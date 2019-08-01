@@ -54,45 +54,45 @@ type Agent struct {
 
 // MicroserviceImages contains information about the images for a microservice
 type MicroserviceImages struct {
-	CatalogID int    `mapstructure:"catalog-item"`
-	X86       string `mapstructure:"x86"`
-	ARM       string `mapstructure:"arm"`
-	Registry  int    `mapstructure:"registry"`
+	CatalogID int
+	X86       string
+	ARM       string
+	Registry  int
 }
 
 // MicroserviceAgent contains information about required agent configuration for a microservice
 type MicroserviceAgent struct {
-	Name   string                    `mapstructure:"name"`
-	Config client.AgentConfiguration `mapstructure:"config"`
+	Name   string
+	Config client.AgentConfiguration
 }
 
 // Microservice contains information for configuring a microservice
 type Microservice struct {
-	UUID           string                             `mapstructure:"uuid"`
-	Name           string                             `mapstructure:"name"`
-	Agent          MicroserviceAgent                  `mapstructure:"agent"`
-	Images         MicroserviceImages                 `mapstructure:"images"`
-	Config         map[string]interface{}             `mapstructure:"config"`
-	RootHostAccess bool                               `mapstructure:"rootHostAccess"`
-	Ports          []client.MicroservicePortMapping   `mapstructure:"ports"`
-	Volumes        []client.MicroserviceVolumeMapping `mapstructure:"volumes"`
-	Env            []client.MicroserviceEnvironment   `mapstructure:"env"`
-	Routes         []string                           `mapstructure:"routes"`
-	Flow           string                             `mapstructure:"flow"`
-	Created        string                             `mapstructure:"created"`
+	UUID           string
+	Name           string
+	Agent          MicroserviceAgent
+	Images         MicroserviceImages
+	Config         map[string]interface{}
+	RootHostAccess bool
+	Ports          []client.MicroservicePortMapping
+	Volumes        []client.MicroserviceVolumeMapping
+	Env            []client.MicroserviceEnvironment
+	Routes         []string
+	Flow           string
+	Created        string
 }
 
 // Route contains information about a route from one microservice to another
 type Route struct {
-	From string `mapstructure:"from"`
-	To   string `mapstructure:"to"`
+	From string
+	To   string
 }
 
 // Application contains information for configuring an application
 type Application struct {
-	Name          string         `mapstructure:"name"`
-	Microservices []Microservice `mapstructure:"microservices"`
-	Routes        []Route        `mapstructure:"routes"`
+	Name          string
+	Microservices []Microservice
+	Routes        []Route
 }
 
 // Namespace contains information for configuring a namespace
