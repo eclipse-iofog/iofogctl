@@ -14,8 +14,6 @@
 package deployapplication
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -81,7 +79,7 @@ func (exe *Executor) init(controller *config.Controller) (err error) {
 	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
 		return
 	}
-	flow, err := exe.client.GetFlowByName(fmt.Sprintf("%s_flow", exe.name))
+	flow, err := exe.client.GetFlowByName(exe.name)
 	if err != nil {
 		return
 	}

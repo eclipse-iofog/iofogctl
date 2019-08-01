@@ -34,8 +34,8 @@ type remoteExecutor struct {
 
 func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.Microservice) {
 	result = make(map[string]*config.Microservice)
-	for _, msvc := range a {
-		result[msvc.Name] = &msvc
+	for i := 0; i < len(a); i++ {
+		result[a[i].Name] = &a[i]
 	}
 	return
 }
@@ -96,8 +96,8 @@ func (exe *remoteExecutor) init(controller *config.Controller) (err error) {
 		return
 	}
 	exe.agentsByName = make(map[string]*client.AgentInfo)
-	for _, agent := range listAgents.Agents {
-		exe.agentsByName[agent.Name] = &agent
+	for i := 0; i < len(listAgents.Agents); i++ {
+		exe.agentsByName[listAgents.Agents[i].Name] = &listAgents.Agents[i]
 	}
 
 	listCatalog, err := exe.client.GetCatalog()
@@ -106,9 +106,9 @@ func (exe *remoteExecutor) init(controller *config.Controller) (err error) {
 	}
 	exe.catalogByID = make(map[int]*client.CatalogItemInfo)
 	exe.catalogByName = make(map[string]*client.CatalogItemInfo)
-	for _, catalogItem := range listCatalog.CatalogItems {
-		exe.catalogByID[catalogItem.ID] = &catalogItem
-		exe.catalogByName[catalogItem.Name] = &catalogItem
+	for i := 0; i < len(listCatalog.CatalogItems); i++ {
+		exe.catalogByID[listCatalog.CatalogItems[i].ID] = &listCatalog.CatalogItems[i]
+		exe.catalogByName[listCatalog.CatalogItems[i].Name] = &listCatalog.CatalogItems[i]
 	}
 	return
 }
@@ -143,7 +143,7 @@ func (exe *remoteExecutor) deploy() (err error) {
 
 	// Create flow
 	util.SpinStart("Creating flow")
-	flow, err := exe.client.CreateFlow(fmt.Sprintf("%s_flow", exe.opt.Name), fmt.Sprintf("Flow for application: %s", exe.opt.Name))
+	flow, err := exe.client.CreateFlow(exe.opt.Name, fmt.Sprintf("Flow for application: %s", exe.opt.Name))
 	if err != nil {
 		return
 	}
