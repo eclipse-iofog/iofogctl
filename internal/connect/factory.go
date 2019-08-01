@@ -19,12 +19,13 @@ import (
 )
 
 type Options struct {
-	Namespace string
-	Name      string
-	Endpoint  string
-	KubeFile  string
-	Email     string
-	Password  string
+	OverwriteNamespace bool
+	Namespace          string
+	Name               string
+	Endpoint           string
+	KubeFile           string
+	Email              string
+	Password           string
 }
 
 type Executor interface {
@@ -32,12 +33,21 @@ type Executor interface {
 }
 
 func NewExecutor(opt *Options) (Executor, error) {
-	// Check namespace is empty
+	// Check for existing namespace
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {
-		// Namespace exists, must be empty
-		if len(ns.Agents) != 0 || len(ns.Controllers) != 0 || len(ns.Microservices) != 0 {
-			return nil, util.NewInputError("You must use an empty or non-existent namespace")
+		// Overwrite namespace if requested
+		if opt.OverwriteNamespace {
+			delErr := config.DeleteNamespace(opt.Namespace)
+			addErr := config.AddNamespace(opt.Namespace, util.NowUTC())
+			if delErr != nil || addErr != nil {
+				return nil, util.NewInternalError("Failed to overwrite namespace " + opt.Namespace)
+			}
+		} else {
+			// Check the namespace is empty
+			if len(ns.Agents) != 0 || len(ns.Controllers) != 0 || len(ns.Microservices) != 0 {
+				return nil, util.NewInputError("You must use an empty or non-existent namespace")
+			}
 		}
 	} else {
 		// Create namespace
