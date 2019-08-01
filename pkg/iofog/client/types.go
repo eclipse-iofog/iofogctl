@@ -24,7 +24,7 @@ type FlowInfo struct {
 }
 
 type FlowCreateRequest struct {
-	Name        string `json:"name,omitempty"`
+	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 }
 
@@ -33,10 +33,10 @@ type FlowCreateResponse struct {
 }
 
 type FlowUpdateRequest struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	IsActivated bool   `json:"isActivated,omitempty"`
-	ID          int    `json:"-"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	IsActivated *bool   `json:"isActivated,omitempty"`
+	ID          int     `json:"-"`
 }
 
 type FlowListResponse struct {
@@ -47,7 +47,7 @@ type FlowListResponse struct {
 
 type CatalogImage struct {
 	ContainerImage string `json:"containerImage"`
-	AgentTypeID    string `json:"fogTypeId"`
+	AgentTypeID    int    `json:"fogTypeId"`
 }
 
 type CatalogItemInfo struct {
@@ -55,12 +55,14 @@ type CatalogItemInfo struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Images      []CatalogImage `json:"images"`
+	RegistryID  int            `json:"registryId"`
 }
 
 type CatalogItemCreateRequest struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Images      []CatalogImage `json:"images"`
+	RegistryID  int            `json:"registryId"`
 }
 
 type CatalogItemCreateResponse struct {
@@ -74,20 +76,20 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int  `json:"internal"`
-	External   int  `json:"external"`
-	PublicMode bool `json:"publicMode"`
+	Internal   int  `mapstructure:"internal" json:"internal"`
+	External   int  `mapstructure:"external" json:"external"`
+	PublicMode bool `mapstructure:"publicMode" json:"publicMode"`
 }
 
 type MicroserviceVolumeMapping struct {
-	HostDestination      string `json:"hostDestination"`
-	ContainerDestination string `json:"containerDestination"`
-	AccessMode           string `json:"accessMode"`
+	HostDestination      string `mapstructure:"hostDestination" yaml:"hostDestination" json:"hostDestination"`
+	ContainerDestination string `mapstructure:"containerDestination" yaml:"containerDestination" json:"containerDestination"`
+	AccessMode           string `mapstructure:"accessMode" yaml:"accessMode" json:"accessMode"`
 }
 
 type MicroserviceEnvironment struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   string `mapstructure:"key" json:"key"`
+	Value string `mapstructure:"value" json:"value"`
 }
 
 type MicroserviceInfo struct {
@@ -109,37 +111,34 @@ type MicroserviceInfo struct {
 }
 
 type MicroserviceCreateRequest struct {
-	Config            string                      `json:"config"`
-	Name              string                      `json:"name"`
-	RootHostAccess    bool                        `json:"rootHostAccess"`
-	LogSize           int                         `json:"logSize"`
-	Delete            bool                        `json:"delete"`
-	DeleteWithCleanup bool                        `json:"deleteWithCleanup"`
-	FlowID            int                         `json:"flowId"`
-	CatalogItemID     int                         `json:"catalogItemId"`
-	AgentUUID         string                      `json:"iofogUuid"`
-	UserID            int                         `json:"userId"`
-	Ports             []MicroservicePortMapping   `json:"ports"`
-	Volumes           []MicroserviceVolumeMapping `json:"volumeMappings"`
-	Routes            []string                    `json:"routes"`
-	Env               []MicroserviceEnvironment   `json:"env"`
+	Config         string                      `json:"config"`
+	Name           string                      `json:"name"`
+	RootHostAccess bool                        `json:"rootHostAccess"`
+	LogSize        int                         `json:"logSize"`
+	FlowID         int                         `json:"flowId"`
+	CatalogItemID  int                         `json:"catalogItemId"`
+	AgentUUID      string                      `json:"iofogUuid"`
+	Ports          []MicroservicePortMapping   `json:"ports"`
+	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
+	Routes         []string                    `json:"routes"`
+	Env            []MicroserviceEnvironment   `json:"env"`
 }
 
 type MicroserviceUpdateRequest struct {
-	UUID              string                      `json:"-"`
-	Config            string                      `json:"config,omitempty"`
-	Name              string                      `json:"name,omitempty"`
-	RootHostAccess    bool                        `json:"rootHostAccess,omitempty"`
-	LogSize           int                         `json:"logSize,omitempty"`
-	Delete            bool                        `json:"delete,omitempty"`
-	DeleteWithCleanup bool                        `json:"deleteWithCleanup,omitempty"`
-	FlowID            int                         `json:"flowId,omitempty"`
-	AgentUUID         string                      `json:"iofogUuid,omitempty"`
-	UserID            int                         `json:"userId,omitempty"`
-	Ports             []MicroservicePortMapping   `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
-	Volumes           []MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
-	Routes            []string                    `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
-	Env               []MicroserviceEnvironment   `json:"env,omitempty"`
+	UUID              string                       `json:"-"`
+	Config            *string                      `json:"config,omitempty"`
+	Name              *string                      `json:"name,omitempty"`
+	RootHostAccess    *bool                        `json:"rootHostAccess,omitempty"`
+	LogSize           *int                         `json:"logSize,omitempty"`
+	Delete            *bool                        `json:"delete,omitempty"`
+	DeleteWithCleanup *bool                        `json:"deleteWithCleanup,omitempty"`
+	FlowID            *int                         `json:"flowId,omitempty"`
+	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
+	UserID            *int                         `json:"userId,omitempty"`
+	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
+	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
+	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
+	Env               []MicroserviceEnvironment    `json:"env,omitempty"`
 }
 
 type MicroserviceCreateResponse struct {
@@ -240,28 +239,32 @@ type AgentInfo struct {
 	Tunnel                    string  `json:"tunnel" yml:"tunnel"`
 }
 
+type AgentConfiguration struct {
+	DockerURL                 *string  `mapstructure:"dockerUrl,omitempty"`
+	DiskLimit                 *int64   `mapstructure:"diskLimit,omitempty"`
+	DiskDirectory             *string  `mapstructure:"diskDirectory,omitempty"`
+	MemoryLimit               *int64   `mapstructure:"memoryLimit,omitempty"`
+	CPULimit                  *int64   `mapstructure:"cpuLimit,omitempty"`
+	LogLimit                  *int64   `mapstructure:"logLimit,omitempty"`
+	LogDirectory              *string  `mapstructure:"logDirectory,omitempty"`
+	LogFileCount              *int64   `mapstructure:"logFileCount,omitempty"`
+	StatusFrequency           *float64 `mapstructure:"statusFrequency,omitempty"`
+	ChangeFrequency           *float64 `mapstructure:"changeFrequency,omitempty"`
+	DeviceScanFrequency       *float64 `mapstructure:"deviceScanFrequency,omitempty"`
+	BluetoothEnabled          *bool    `mapstructure:"bluetoothEnabled,omitempty"`
+	WatchdogEnabled           *bool    `mapstructure:"watchdogEnabled,omitempty"`
+	AbstractedHardwareEnabled *bool    `mapstructure:"abstractedHardwareEnabled,omitempty"`
+}
+
 type AgentUpdateRequest struct {
-	UUID                      string  `json:"-"`
-	Name                      string  `json:"name,omitempty"`
-	Location                  string  `json:"location,omitempty"`
-	Latitude                  float64 `json:"latitude,omitempty"`
-	Longitude                 float64 `json:"longitude,omitempty"`
-	Description               string  `json:"description,omitempty"`
-	DockerURL                 string  `json:"dockerUrl,omitempty"`
-	DiskLimit                 int64   `json:"diskLimit,omitempty"`
-	DiskDirectory             string  `json:"diskDirectory,omitempty"`
-	MemoryLimit               int64   `json:"memoryLimit,omitempty"`
-	CPULimit                  int64   `json:"cpuLimit,omitempty"`
-	LogLimit                  int64   `json:"logLimit,omitempty"`
-	LogDirectory              string  `json:"logDirectory,omitempty"`
-	LogFileCount              int64   `json:"logFileCount,omitempty"`
-	StatusFrequency           float64 `json:"statusFrequency,omitempty"`
-	ChangeFrequency           float64 `json:"changeFrequency,omitempty"`
-	DeviceScanFrequency       float64 `json:"deviceScanFrequency,omitempty"`
-	BluetoothEnabled          bool    `json:"bluetoothEnabled,omitempty"`
-	WatchdogEnabled           bool    `json:"watchdogEnabled,omitempty"`
-	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled,omitempty"`
-	FogType                   int64   `json:"fogType,omitempty"`
+	UUID        string  `json:"-"`
+	Name        string  `json:"name,omitempty"`
+	Location    string  `json:"location,omitempty"`
+	Latitude    float64 `json:"latitude,omitempty"`
+	Longitude   float64 `json:"longitude,omitempty"`
+	Description string  `json:"description,omitempty"`
+	FogType     int64   `json:"fogType,omitempty"`
+	AgentConfiguration
 }
 
 type ListAgentsResponse struct {

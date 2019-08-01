@@ -44,7 +44,15 @@ func (clt *Client) GetCatalogItem(ID int) (response *CatalogItemInfo, err error)
 
 // CreateCatalogItem creates one catalog item using Controller REST API
 func (clt *Client) CreateCatalogItem(request *CatalogItemCreateRequest) (*CatalogItemInfo, error) {
+	// Set registry to public docker by default
+	if request.RegistryID == 0 {
+		request.RegistryID = 1
+	}
+
 	body, err := clt.doRequest("POST", fmt.Sprintf("/catalog/microservices"), request)
+	if err != nil {
+		return nil, err
+	}
 	response := &CatalogItemCreateResponse{}
 	if err = json.Unmarshal(body, response); err != nil {
 		return nil, err

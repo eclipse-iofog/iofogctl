@@ -13,6 +13,8 @@
 
 package config
 
+import "github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
 	Name     string `mapstructure:"name"`
@@ -50,11 +52,47 @@ type Agent struct {
 	Image   string `mapstructure:"image"`
 }
 
+// MicroserviceImages contains information about the images for a microservice
+type MicroserviceImages struct {
+	CatalogID int    `mapstructure:"catalog-item"`
+	X86       string `mapstructure:"x86"`
+	ARM       string `mapstructure:"arm"`
+	Registry  int    `mapstructure:"registry"`
+}
+
+// MicroserviceAgent contains information about required agent configuration for a microservice
+type MicroserviceAgent struct {
+	Name   string                    `mapstructure:"name"`
+	Config client.AgentConfiguration `mapstructure:"config"`
+}
+
 // Microservice contains information for configuring a microservice
 type Microservice struct {
-	Name    string `mapstructure:"name"`
-	Flow    string `mapstructure:"flow"`
-	Created string `mapstructure:"created"`
+	UUID           string                             `mapstructure:"uuid"`
+	Name           string                             `mapstructure:"name"`
+	Agent          MicroserviceAgent                  `mapstructure:"agent"`
+	Images         MicroserviceImages                 `mapstructure:"images"`
+	Config         map[string]interface{}             `mapstructure:"config"`
+	RootHostAccess bool                               `mapstructure:"rootHostAccess"`
+	Ports          []client.MicroservicePortMapping   `mapstructure:"ports"`
+	Volumes        []client.MicroserviceVolumeMapping `mapstructure:"volumes"`
+	Env            []client.MicroserviceEnvironment   `mapstructure:"env"`
+	Routes         []string                           `mapstructure:"routes"`
+	Flow           string                             `mapstructure:"flow"`
+	Created        string                             `mapstructure:"created"`
+}
+
+// Route contains information about a route from one microservice to another
+type Route struct {
+	From string `mapstructure:"from"`
+	To   string `mapstructure:"to"`
+}
+
+// Application contains information for configuring an application
+type Application struct {
+	Name          string         `mapstructure:"name"`
+	Microservices []Microservice `mapstructure:"microservices"`
+	Routes        []Route        `mapstructure:"routes"`
 }
 
 // Namespace contains information for configuring a namespace

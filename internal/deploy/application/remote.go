@@ -1,0 +1,244 @@
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
+package deployapplication
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
+)
+
+type remoteExecutor struct {
+	namespace          string
+	opt                *config.Application
+	microserviceByName map[string]*config.Microservice
+	client             *client.Client
+	agentsByName       map[string]*client.AgentInfo
+	catalogByID        map[int]*client.CatalogItemInfo
+}
+
+func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.Microservice) {
+	result = make(map[string]*config.Microservice)
+	for _, msvc := range a {
+		result[msvc.Name] = &msvc
+	}
+	return
+}
+
+func newRemoteExecutor(namespace string, opt *config.Application) *remoteExecutor {
+	exe := &remoteExecutor{
+		namespace:          namespace,
+		opt:                opt,
+		microserviceByName: microserviceArrayToMap(opt.Microservices),
+	}
+
+	return exe
+}
+
+//
+// Deploy application using remote controller
+//
+func (exe *remoteExecutor) Execute() (err error) {
+	// Get Controllers from namespace
+	controllers, err := config.GetControllers(exe.namespace)
+
+	// Do we actually have any controllers?
+	if err != nil {
+		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
+		return
+	}
+
+	// Did we have more than one controller?
+	if len(controllers) != 1 {
+		err = util.NewInternalError("Only support 1 controller per namespace")
+		return
+	}
+
+	// Init remote resources
+	if err = exe.init(&controllers[0]); err != nil {
+		return
+	}
+
+	// Validate application definition (routes, agents, etc.)
+	if err = exe.validate(); err != nil {
+		return
+	}
+
+	// Deploy application
+	if err = exe.deploy(); err != nil {
+		return
+	}
+	return nil
+}
+
+func (exe *remoteExecutor) init(controller *config.Controller) (err error) {
+	exe.client = client.New(controller.Endpoint)
+	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+		return
+	}
+	listAgents, err := exe.client.ListAgents()
+	if err != nil {
+		return
+	}
+	exe.agentsByName = make(map[string]*client.AgentInfo)
+	for _, agent := range listAgents.Agents {
+		exe.agentsByName[agent.Name] = &agent
+	}
+
+	listCatalog, err := exe.client.GetCatalog()
+	if err != nil {
+		return
+	}
+	exe.catalogByID = make(map[int]*client.CatalogItemInfo)
+	for _, catalogItem := range listCatalog.CatalogItems {
+		exe.catalogByID[catalogItem.ID] = &catalogItem
+	}
+	return
+}
+
+func (exe *remoteExecutor) validate() (err error) {
+	// Validate routes
+	for _, route := range exe.opt.Routes {
+		if _, foundFrom := exe.microserviceByName[route.From]; !foundFrom {
+			return util.NewNotFoundError(fmt.Sprintf("Could not find origin microservice for the route %v", route))
+		}
+		if _, foundTo := exe.microserviceByName[route.To]; !foundTo {
+			return util.NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
+		}
+	}
+
+	// Validate microservice
+	for _, msvc := range exe.opt.Microservices {
+		if _, foundAgent := exe.agentsByName[msvc.Agent.Name]; !foundAgent {
+			return util.NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
+		}
+		if _, foundCatalogItem := exe.catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
+			return util.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
+		}
+	}
+
+	// TODO: Check if application alredy exists
+	return nil
+}
+
+func (exe *remoteExecutor) deploy() (err error) {
+	defer util.SpinStop()
+
+	// Create flow
+	util.SpinStart("Creating flow")
+	flow, err := exe.client.CreateFlow(fmt.Sprintf("%s_flow", exe.opt.Name), fmt.Sprintf("Flow for application: %s", exe.opt.Name))
+	if err != nil {
+		return
+	}
+
+	// Create microservices
+	for _, msvc := range exe.opt.Microservices {
+		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
+
+		// TODO: Configure agent
+		agent, _ := exe.agentsByName[msvc.Agent.Name]
+		_, err = exe.client.UpdateAgent(&client.AgentUpdateRequest{
+			UUID: agent.UUID,
+			AgentConfiguration: client.AgentConfiguration{
+				DockerURL:                 msvc.Agent.Config.DockerURL,
+				DiskLimit:                 msvc.Agent.Config.DiskLimit,
+				DiskDirectory:             msvc.Agent.Config.DiskDirectory,
+				MemoryLimit:               msvc.Agent.Config.MemoryLimit,
+				CPULimit:                  msvc.Agent.Config.CPULimit,
+				LogLimit:                  msvc.Agent.Config.LogLimit,
+				LogDirectory:              msvc.Agent.Config.LogDirectory,
+				LogFileCount:              msvc.Agent.Config.LogFileCount,
+				StatusFrequency:           msvc.Agent.Config.StatusFrequency,
+				ChangeFrequency:           msvc.Agent.Config.ChangeFrequency,
+				DeviceScanFrequency:       msvc.Agent.Config.DeviceScanFrequency,
+				BluetoothEnabled:          msvc.Agent.Config.BluetoothEnabled,
+				WatchdogEnabled:           msvc.Agent.Config.WatchdogEnabled,
+				AbstractedHardwareEnabled: msvc.Agent.Config.AbstractedHardwareEnabled,
+			},
+		})
+		if err != nil {
+			return
+		}
+		// CatalogItem
+		var catalogItem *client.CatalogItemInfo
+		if msvc.Images.CatalogID == 0 {
+			// Create new catalog item
+			catalogImages := []client.CatalogImage{
+				client.CatalogImage{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
+				client.CatalogImage{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
+			}
+			catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
+				Name:        fmt.Sprintf("%s_catalog", msvc.Name),
+				Description: fmt.Sprintf("Catalog item for %s", msvc.Name),
+				Images:      catalogImages,
+				RegistryID:  msvc.Images.Registry,
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			catalogItem = exe.catalogByID[msvc.Images.CatalogID]
+		}
+
+		config := ""
+		if msvc.Config != nil {
+			byteconfig, err := json.Marshal(msvc.Config)
+			if err != nil {
+				return err
+			}
+			config = string(byteconfig)
+		}
+
+		fmt.Printf("===================> MSVC Volume\n%v\n\n", msvc.Volumes)
+		msvcInfo, err := exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
+			Config:         config,
+			CatalogItemID:  catalogItem.ID,
+			FlowID:         flow.ID,
+			Name:           msvc.Name,
+			RootHostAccess: msvc.RootHostAccess,
+			Ports:          msvc.Ports,
+			Volumes:        msvc.Volumes,
+			Env:            msvc.Env,
+			AgentUUID:      agent.UUID,
+		})
+		if err != nil {
+			return err
+		}
+		// Update msvc map with UUID
+		exe.microserviceByName[msvc.Name].UUID = msvcInfo.UUID
+	}
+
+	// Create Routes
+	for _, route := range exe.opt.Routes {
+		fromMsvc, _ := exe.microserviceByName[route.From]
+		toMsvc, _ := exe.microserviceByName[route.To]
+		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
+			return
+		}
+	}
+
+	// Start flow
+	util.SpinStart("Starting flow")
+	active := true
+	if flow, err = exe.client.UpdateFlow(&client.FlowUpdateRequest{
+		IsActivated: &active,
+		ID:          flow.ID,
+	}); err != nil {
+		return
+	}
+	return nil
+}

@@ -34,7 +34,31 @@ func (clt *Client) GetMicroserviceByID(UUID string) (response *MicroserviceInfo,
 
 // CreateMicroservice creates a microservice using Controller REST API
 func (clt *Client) CreateMicroservice(request MicroserviceCreateRequest) (*MicroserviceInfo, error) {
-	response := MicroserviceCreateResponse{}
+	// Init empty arrays
+	if request.Volumes == nil {
+		request.Volumes = []MicroserviceVolumeMapping{}
+	} else {
+		fmt.Printf("===================> Volume\n%v\n\n", request.Volumes)
+	}
+	if request.Env == nil {
+		request.Env = []MicroserviceEnvironment{}
+	}
+	if request.Ports == nil {
+		request.Ports = []MicroservicePortMapping{}
+	}
+	if request.Routes == nil {
+		request.Routes = []string{}
+	}
+
+	// Make request
+	body, err := clt.doRequest("POST", "/microservices", request)
+	if err != nil {
+		return nil, err
+	}
+	response := &MicroserviceCreateResponse{}
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
 	return clt.GetMicroserviceByID(response.UUID)
 }
 

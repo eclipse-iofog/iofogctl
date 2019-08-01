@@ -15,10 +15,11 @@ package describe
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
 )
 
 type agentExecutor struct {
@@ -58,7 +59,7 @@ func (exe *agentExecutor) Execute() error {
 	if err := ctrl.Login(loginRequest); err != nil {
 		return err
 	}
-	getAgentResponse, err := ctrl.GetAgent(agent.UUID)
+	getAgentResponse, err := ctrl.GetAgentByID(agent.UUID)
 	if err != nil {
 		// The agents might not be provisioned with Controller
 		if strings.Contains(err.Error(), "NotFoundError") {

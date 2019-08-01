@@ -57,12 +57,14 @@ func (clt *Client) UpdateFlow(request *FlowUpdateRequest) (*FlowInfo, error) {
 
 // StartFlow set the flow as active using the Controller REST API
 func (clt *Client) StartFlow(ID int) (*FlowInfo, error) {
-	return clt.UpdateFlow(&FlowUpdateRequest{ID: ID, IsActivated: true})
+	active := true
+	return clt.UpdateFlow(&FlowUpdateRequest{ID: ID, IsActivated: &active})
 }
 
 // StopFlow set the flow as inactive using the Controller REST API
 func (clt *Client) StopFlow(ID int) (*FlowInfo, error) {
-	return clt.UpdateFlow(&FlowUpdateRequest{ID: ID, IsActivated: false})
+	active := false
+	return clt.UpdateFlow(&FlowUpdateRequest{ID: ID, IsActivated: &active})
 }
 
 // GetAllFlows retrieve all flows information from the Controller REST API

@@ -100,6 +100,7 @@ microservices: []
 		newDeployControllerCommand(),
 		newDeployAgentCommand(),
 		newDeployMicroserviceCommand(),
+		newDeployApplicationCommand(),
 	)
 
 	// Register flags
