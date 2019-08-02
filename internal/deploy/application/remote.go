@@ -179,8 +179,8 @@ func (exe *remoteExecutor) deploy() (err error) {
 		// CatalogItem
 		var catalogItem *client.CatalogItemInfo
 		catalogImages := []client.CatalogImage{
-			client.CatalogImage{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
-			client.CatalogImage{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
+			{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
+			{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
 		}
 		if msvc.Images.CatalogID == 0 {
 			catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.opt.Name, msvc.Name)
