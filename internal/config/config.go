@@ -53,7 +53,7 @@ func Init(filename string) {
 
 	// Check file exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(homeDirname, 0744)
+		err = os.MkdirAll(homeDirname, 0755)
 		util.Check(err)
 
 		// Create default file
