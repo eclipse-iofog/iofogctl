@@ -73,6 +73,7 @@ func NewRootCommand() *cobra.Command {
 		newLogsCommand(),
 		newLegacyCommand(),
 		newVersionCommand(),
+		newBashCompleteCommand(cmd),
 	)
 
 	return cmd
