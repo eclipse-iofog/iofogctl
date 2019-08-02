@@ -14,9 +14,10 @@
 package util
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 func UnmarshalYAML(filename string, object interface{}) error {
@@ -32,14 +33,20 @@ func UnmarshalYAML(filename string, object interface{}) error {
 	return nil
 }
 
-func Print(obj interface{}) error {
+func Print(obj interface{}, filename string) error {
 	marshal, err := yaml.Marshal(&obj)
 	if err != nil {
 		return err
 	}
-	_, err = os.Stdout.Write(marshal)
-	if err != nil {
-		return err
+	if filename != "" {
+		if err = ioutil.WriteFile(filename, marshal, 0644); err != nil {
+			return err
+		}
+	} else {
+		_, err = os.Stdout.Write(marshal)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

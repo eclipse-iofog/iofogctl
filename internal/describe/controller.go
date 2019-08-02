@@ -15,6 +15,7 @@ package describe
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -22,12 +23,14 @@ import (
 type controllerExecutor struct {
 	namespace string
 	name      string
+	filename  string
 }
 
-func newControllerExecutor(namespace, name string) *controllerExecutor {
+func newControllerExecutor(namespace, name, filename string) *controllerExecutor {
 	c := &controllerExecutor{}
 	c.namespace = namespace
 	c.name = name
+	c.filename = filename
 	return c
 }
 
@@ -37,7 +40,7 @@ func (exe *controllerExecutor) Execute() error {
 		return err
 	}
 	fmt.Printf("namespace: %s\n", exe.namespace)
-	if err = util.Print(controller); err != nil {
+	if err = util.Print(controller, exe.filename); err != nil {
 		return err
 	}
 	return nil

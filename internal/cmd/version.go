@@ -25,7 +25,7 @@ func newVersionCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			util.PrintInfo("iofogctl Unified Cli\n")
 			util.PrintInfo("Copyright (C) 2019, Edgeworx, Inc.\n")
-			util.Print(util.GetVersion())
+			util.Print(util.GetVersion(), "")
 		},
 	}
 	return cmd

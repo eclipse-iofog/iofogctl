@@ -40,19 +40,12 @@ func (exe *microserviceExecutor) init(controller *config.Controller) (err error)
 	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
 		return
 	}
-	flows, err := exe.client.GetAllFlows()
+	listMsvcs, err := exe.client.GetAllMicroservices()
 	if err != nil {
-		return
+		return err
 	}
-	exe.flows = flows.Flows
-	for _, flow := range exe.flows {
-		listMsvcs, err := exe.client.GetMicroservicesPerFlow(flow.ID)
-		if err != nil {
-			return err
-		}
-		for i := 0; i < len(listMsvcs.Microservices); i++ {
-			exe.msvcPerID[listMsvcs.Microservices[i].UUID] = &listMsvcs.Microservices[i]
-		}
+	for i := 0; i < len(listMsvcs.Microservices); i++ {
+		exe.msvcPerID[listMsvcs.Microservices[i].UUID] = &listMsvcs.Microservices[i]
 	}
 	return
 }

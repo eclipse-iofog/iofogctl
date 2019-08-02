@@ -68,18 +68,18 @@ type MicroserviceAgent struct {
 
 // Microservice contains information for configuring a microservice
 type Microservice struct {
-	UUID           string
+	UUID           string `yaml:"-"`
 	Name           string
 	Agent          MicroserviceAgent
 	Images         MicroserviceImages
 	Config         map[string]interface{}
 	RootHostAccess bool
-	Ports          []client.MicroservicePortMapping
-	Volumes        []client.MicroserviceVolumeMapping
-	Env            []client.MicroserviceEnvironment
-	Routes         []string
-	Flow           string
-	Created        string
+	Ports          []client.MicroservicePortMapping   `yaml:"ports,omitempty"`
+	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes,omitempty"`
+	Env            []client.MicroserviceEnvironment   `yaml:"env,omitempty"`
+	Routes         []string                           `yaml:"routes,omitempty"`
+	Flow           *int                               `yaml:"flow,omitempty"`
+	Created        string                             `yaml:"created,omitempty"`
 }
 
 // Route contains information about a route from one microservice to another

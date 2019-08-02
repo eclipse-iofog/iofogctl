@@ -25,12 +25,14 @@ import (
 type agentExecutor struct {
 	namespace string
 	name      string
+	filename  string
 }
 
-func newAgentExecutor(namespace, name string) *agentExecutor {
+func newAgentExecutor(namespace, name, filename string) *agentExecutor {
 	a := &agentExecutor{}
 	a.namespace = namespace
 	a.name = name
+	a.filename = filename
 	return a
 }
 
@@ -70,7 +72,7 @@ func (exe *agentExecutor) Execute() error {
 
 	// Print result
 	fmt.Printf("namespace: %s\n", exe.namespace)
-	if err = util.Print(getAgentResponse); err != nil {
+	if err = util.Print(getAgentResponse, exe.filename); err != nil {
 		return err
 	}
 	return nil

@@ -21,16 +21,18 @@ type Executor interface {
 	Execute() error
 }
 
-func NewExecutor(resourceType, namespace, name string) (Executor, error) {
+func NewExecutor(resourceType, namespace, name, filename string) (Executor, error) {
 	switch resourceType {
 	case "namespace":
-		return newNamespaceExecutor(namespace), nil
+		return newNamespaceExecutor(namespace, filename), nil
 	case "controller":
-		return newControllerExecutor(namespace, name), nil
+		return newControllerExecutor(namespace, name, filename), nil
 	case "agent":
-		return newAgentExecutor(namespace, name), nil
+		return newAgentExecutor(namespace, name, filename), nil
 	case "microservice":
-		return newMicroserviceExecutor(namespace, name), nil
+		return newMicroserviceExecutor(namespace, name, filename), nil
+	case "application":
+		return newApplicationExecutor(namespace, name, filename), nil
 	default:
 		msg := "Unknown resourceType: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

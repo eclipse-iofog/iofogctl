@@ -19,12 +19,14 @@ import (
 )
 
 type namespaceExecutor struct {
-	name string
+	name     string
+	filename string
 }
 
-func newNamespaceExecutor(name string) *namespaceExecutor {
+func newNamespaceExecutor(name, filename string) *namespaceExecutor {
 	n := &namespaceExecutor{}
 	n.name = name
+	n.filename = filename
 	return n
 }
 
@@ -33,7 +35,7 @@ func (exe *namespaceExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if err = util.Print(namespace); err != nil {
+	if err = util.Print(namespace, exe.filename); err != nil {
 		return err
 	}
 	return nil

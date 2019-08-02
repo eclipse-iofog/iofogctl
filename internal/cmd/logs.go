@@ -60,4 +60,5 @@ var resources = map[string]bool{
 	"controller":   true,
 	"agent":        true,
 	"microservice": true,
+	"application":  true,
 }
