@@ -24,15 +24,6 @@ type Executor struct {
 	name      string
 	client    *client.Client
 	flow      *client.FlowInfo
-	msvcs     []client.MicroserviceInfo
-}
-
-func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.Microservice) {
-	result = make(map[string]*config.Microservice)
-	for _, msvc := range a {
-		result[msvc.Name] = &msvc
-	}
-	return
 }
 
 func NewExecutor(namespace, name string) *Executor {
@@ -84,10 +75,5 @@ func (exe *Executor) init(controller *config.Controller) (err error) {
 		return
 	}
 	exe.flow = flow
-	// listMsvcs, err := exe.client.GetMicroservicesPerFlow(flow.ID)
-	// if err != nil {
-	// 	return
-	// }
-	// exe.msvcs = listMsvcs.Microservices
 	return
 }

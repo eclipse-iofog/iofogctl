@@ -29,7 +29,11 @@ func newBashCompleteCommand(rootCmd *cobra.Command) *cobra.Command {
 	home, err := homedir.Dir()
 	util.Check(err)
 	configDir := home + "/.iofog/"
+<<<<<<< HEAD
 	os.MkdirAll(configDir, 0755)
+=======
+	os.MkdirAll(configDir, 0744)
+>>>>>>> Add autocomplete
 	cmd := &cobra.Command{
 		Use:    "autocomplete SHELL",
 		Hidden: true,
