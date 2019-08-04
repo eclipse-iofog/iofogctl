@@ -54,7 +54,7 @@ iofogctl describe microservice NAME`,
 			util.Check(err)
 		},
 	}
-	cmd.Flags().StringVarP(&filename, "file", "f", "", "YAML output file")
+	cmd.Flags().StringVarP(&filename, "output-file", "o", "", "YAML output file")
 
 	return cmd
 }

@@ -66,5 +66,14 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 
-	return util.Print(yamlMsvc, exe.filename)
+	if exe.filename == "" {
+		if err = util.Print(yamlMsvc); err != nil {
+			return err
+		}
+	} else {
+		if err = util.FPrint(yamlMsvc, exe.filename); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -72,8 +72,14 @@ func (exe *agentExecutor) Execute() error {
 
 	// Print result
 	fmt.Printf("namespace: %s\n", exe.namespace)
-	if err = util.Print(getAgentResponse, exe.filename); err != nil {
-		return err
+	if exe.filename == "" {
+		if err = util.Print(getAgentResponse); err != nil {
+			return err
+		}
+	} else {
+		if err = util.FPrint(getAgentResponse, exe.filename); err != nil {
+			return err
+		}
 	}
 	return nil
 }

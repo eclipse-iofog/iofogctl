@@ -101,5 +101,14 @@ func (exe *applicationExecutor) Execute() error {
 		Routes:        yamlRoutes,
 	}
 
-	return util.Print(application, exe.filename)
+	if exe.filename == "" {
+		if err = util.Print(application); err != nil {
+			return err
+		}
+	} else {
+		if err = util.FPrint(application, exe.filename); err != nil {
+			return err
+		}
+	}
+	return nil
 }

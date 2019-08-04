@@ -14,6 +14,7 @@
 package util
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -33,20 +34,35 @@ func UnmarshalYAML(filename string, object interface{}) error {
 	return nil
 }
 
-func Print(obj interface{}, filename string) error {
+func printYAML(writer io.Writer, obj interface{}) error {
 	marshal, err := yaml.Marshal(&obj)
 	if err != nil {
 		return err
 	}
-	if filename != "" {
-		if err = ioutil.WriteFile(filename, marshal, 0644); err != nil {
-			return err
-		}
-	} else {
-		_, err = os.Stdout.Write(marshal)
-		if err != nil {
-			return err
-		}
+	_, err = writer.Write(marshal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func FPrint(obj interface{}, filename string) error {
+	f, err := os.Create(filename)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+	err = printYAML(f, obj)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Print(obj interface{}) error {
+	err := printYAML(os.Stdout, obj)
+	if err != nil {
+		return err
 	}
 	return nil
 }

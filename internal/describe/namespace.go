@@ -35,8 +35,14 @@ func (exe *namespaceExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if err = util.Print(namespace, exe.filename); err != nil {
-		return err
+	if exe.filename == "" {
+		if err = util.Print(namespace); err != nil {
+			return err
+		}
+	} else {
+		if err = util.FPrint(namespace, exe.filename); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -138,6 +138,86 @@ func (exe *remoteExecutor) validate() (err error) {
 	return nil
 }
 
+func (exe *remoteExecutor) configureAgent(msvc *config.Microservice) (agent *client.AgentInfo, err error) {
+	agent, _ = exe.agentsByName[msvc.Agent.Name]
+	_, err = exe.client.UpdateAgent(&client.AgentUpdateRequest{
+		UUID: agent.UUID,
+		AgentConfiguration: client.AgentConfiguration{
+			DockerURL:                 msvc.Agent.Config.DockerURL,
+			DiskLimit:                 msvc.Agent.Config.DiskLimit,
+			DiskDirectory:             msvc.Agent.Config.DiskDirectory,
+			MemoryLimit:               msvc.Agent.Config.MemoryLimit,
+			CPULimit:                  msvc.Agent.Config.CPULimit,
+			LogLimit:                  msvc.Agent.Config.LogLimit,
+			LogDirectory:              msvc.Agent.Config.LogDirectory,
+			LogFileCount:              msvc.Agent.Config.LogFileCount,
+			StatusFrequency:           msvc.Agent.Config.StatusFrequency,
+			ChangeFrequency:           msvc.Agent.Config.ChangeFrequency,
+			DeviceScanFrequency:       msvc.Agent.Config.DeviceScanFrequency,
+			BluetoothEnabled:          msvc.Agent.Config.BluetoothEnabled,
+			WatchdogEnabled:           msvc.Agent.Config.WatchdogEnabled,
+			AbstractedHardwareEnabled: msvc.Agent.Config.AbstractedHardwareEnabled,
+		},
+	})
+	return
+}
+
+func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogItem *client.CatalogItemInfo, err error) {
+	catalogImages := []client.CatalogImage{
+		{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
+		{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
+	}
+	if msvc.Images.CatalogID == 0 {
+		catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.opt.Name, msvc.Name)
+		var found bool
+		catalogItem, found = exe.catalogByName[catalogItemName]
+		if found == true {
+			// Check if catalog item needs to be updated
+			if catalogItemNeedsUpdate(catalogItem, catalogImages, msvc.Images.Registry) {
+				// Delete catalog item
+				if err = exe.client.DeleteCatalogItem(catalogItem.ID); err != nil {
+					return nil, err
+				}
+				// Create new catalog item
+				catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
+					Name:        catalogItemName,
+					Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
+					Images:      catalogImages,
+					RegistryID:  msvc.Images.Registry,
+				})
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			// Create new catalog item
+			catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
+				Name:        catalogItemName,
+				Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
+				Images:      catalogImages,
+				RegistryID:  msvc.Images.Registry,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		catalogItem = exe.catalogByID[msvc.Images.CatalogID]
+	}
+	return
+}
+
+func (exe *remoteExecutor) createRoutes() (err error) {
+	for _, route := range exe.opt.Routes {
+		fromMsvc, _ := exe.microserviceByName[route.From]
+		toMsvc, _ := exe.microserviceByName[route.To]
+		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
+			return
+		}
+	}
+	return nil
+}
+
 func (exe *remoteExecutor) deploy() (err error) {
 	defer util.SpinStop()
 
@@ -152,74 +232,19 @@ func (exe *remoteExecutor) deploy() (err error) {
 	for _, msvc := range exe.opt.Microservices {
 		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
 
-		// TODO: Configure agent
-		agent, _ := exe.agentsByName[msvc.Agent.Name]
-		_, err = exe.client.UpdateAgent(&client.AgentUpdateRequest{
-			UUID: agent.UUID,
-			AgentConfiguration: client.AgentConfiguration{
-				DockerURL:                 msvc.Agent.Config.DockerURL,
-				DiskLimit:                 msvc.Agent.Config.DiskLimit,
-				DiskDirectory:             msvc.Agent.Config.DiskDirectory,
-				MemoryLimit:               msvc.Agent.Config.MemoryLimit,
-				CPULimit:                  msvc.Agent.Config.CPULimit,
-				LogLimit:                  msvc.Agent.Config.LogLimit,
-				LogDirectory:              msvc.Agent.Config.LogDirectory,
-				LogFileCount:              msvc.Agent.Config.LogFileCount,
-				StatusFrequency:           msvc.Agent.Config.StatusFrequency,
-				ChangeFrequency:           msvc.Agent.Config.ChangeFrequency,
-				DeviceScanFrequency:       msvc.Agent.Config.DeviceScanFrequency,
-				BluetoothEnabled:          msvc.Agent.Config.BluetoothEnabled,
-				WatchdogEnabled:           msvc.Agent.Config.WatchdogEnabled,
-				AbstractedHardwareEnabled: msvc.Agent.Config.AbstractedHardwareEnabled,
-			},
-		})
+		// Configure agent
+		agent, err := exe.configureAgent(&msvc)
 		if err != nil {
-			return
-		}
-		// CatalogItem
-		var catalogItem *client.CatalogItemInfo
-		catalogImages := []client.CatalogImage{
-			{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
-			{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
-		}
-		if msvc.Images.CatalogID == 0 {
-			catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.opt.Name, msvc.Name)
-			var found bool
-			catalogItem, found = exe.catalogByName[catalogItemName]
-			if found == true {
-				// Check if catalog item needs to be updated
-				if catalogItemNeedsUpdate(catalogItem, catalogImages, msvc.Images.Registry) {
-					// Delete catalog item
-					if err = exe.client.DeleteCatalogItem(catalogItem.ID); err != nil {
-						return
-					}
-					// Create new catalog item
-					catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
-						Name:        catalogItemName,
-						Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
-						Images:      catalogImages,
-						RegistryID:  msvc.Images.Registry,
-					})
-					if err != nil {
-						return err
-					}
-				}
-			} else {
-				// Create new catalog item
-				catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
-					Name:        catalogItemName,
-					Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
-					Images:      catalogImages,
-					RegistryID:  msvc.Images.Registry,
-				})
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			catalogItem = exe.catalogByID[msvc.Images.CatalogID]
+			return err
 		}
 
+		// Get catalog item
+		catalogItem, err := exe.setUpCatalogItem(&msvc)
+		if err != nil {
+			return err
+		}
+
+		// Transform msvc config to JSON string
 		config := ""
 		if msvc.Config != nil {
 			byteconfig, err := json.Marshal(msvc.Config)
@@ -229,6 +254,7 @@ func (exe *remoteExecutor) deploy() (err error) {
 			config = string(byteconfig)
 		}
 
+		// Create microservice
 		msvcInfo, err := exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 			Config:         config,
 			CatalogItemID:  catalogItem.ID,
@@ -248,12 +274,8 @@ func (exe *remoteExecutor) deploy() (err error) {
 	}
 
 	// Create Routes
-	for _, route := range exe.opt.Routes {
-		fromMsvc, _ := exe.microserviceByName[route.From]
-		toMsvc, _ := exe.microserviceByName[route.To]
-		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
-			return
-		}
+	if err = exe.createRoutes(); err != nil {
+		return
 	}
 
 	// Start flow

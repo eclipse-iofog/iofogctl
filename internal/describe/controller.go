@@ -40,8 +40,14 @@ func (exe *controllerExecutor) Execute() error {
 		return err
 	}
 	fmt.Printf("namespace: %s\n", exe.namespace)
-	if err = util.Print(controller, exe.filename); err != nil {
-		return err
+	if exe.filename == "" {
+		if err = util.Print(controller); err != nil {
+			return err
+		}
+	} else {
+		if err = util.FPrint(controller, exe.filename); err != nil {
+			return err
+		}
 	}
 	return nil
 }
