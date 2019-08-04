@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
@@ -60,6 +61,7 @@ func NewRootCommand() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
 	cmd.PersistentFlags().BoolVarP(&util.Quiet, "quiet", "q", false, "Toggle for displaying verbose output")
+	cmd.PersistentFlags().BoolVarP(&client.Verbose, "verbose", "v", false, "Toggle for displaying verbose output of API client")
 
 	// Register all commands
 	cmd.AddCommand(

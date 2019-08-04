@@ -130,7 +130,7 @@ jobs:
           secureFile: 'id_rsa'
 
       - script: |
-          NS=branch-$(echo $(branch) | tr -d '.')
+          NS=$(build)
           sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
           sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(ssh.agent1) $(ssh.agent2)\"|g" test/env.sh
           sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(ssh.ctrl)\"|g" test/env.sh

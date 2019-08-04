@@ -31,7 +31,7 @@ iofogctl get namespaces
 iofogctl get controllers
 iofogctl get agents
 iofogctl get microservices`,
-		ValidArgs: []string{"namespaces", "all", "controllers", "agents", "microservices"},
+		ValidArgs: []string{"namespaces", "all", "controllers", "agents", "microservices", "applications"},
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg

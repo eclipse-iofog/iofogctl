@@ -34,6 +34,8 @@ func NewExecutor(resourceType, namespace string) (Executor, error) {
 		return newAgentExecutor(namespace), nil
 	case "microservices":
 		return newMicroserviceExecutor(namespace), nil
+	case "applications":
+		return newApplicationExecutor(namespace), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

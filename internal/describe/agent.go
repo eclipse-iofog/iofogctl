@@ -15,21 +15,24 @@ package describe
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
 )
 
 type agentExecutor struct {
 	namespace string
 	name      string
+	filename  string
 }
 
-func newAgentExecutor(namespace, name string) *agentExecutor {
+func newAgentExecutor(namespace, name, filename string) *agentExecutor {
 	a := &agentExecutor{}
 	a.namespace = namespace
 	a.name = name
+	a.filename = filename
 	return a
 }
 
@@ -58,7 +61,7 @@ func (exe *agentExecutor) Execute() error {
 	if err := ctrl.Login(loginRequest); err != nil {
 		return err
 	}
-	getAgentResponse, err := ctrl.GetAgent(agent.UUID)
+	getAgentResponse, err := ctrl.GetAgentByID(agent.UUID)
 	if err != nil {
 		// The agents might not be provisioned with Controller
 		if strings.Contains(err.Error(), "NotFoundError") {
@@ -69,8 +72,14 @@ func (exe *agentExecutor) Execute() error {
 
 	// Print result
 	fmt.Printf("namespace: %s\n", exe.namespace)
-	if err = util.Print(getAgentResponse); err != nil {
-		return err
+	if exe.filename == "" {
+		if err = util.Print(getAgentResponse); err != nil {
+			return err
+		}
+	} else {
+		if err = util.FPrint(getAgentResponse, exe.filename); err != nil {
+			return err
+		}
 	}
 	return nil
 }

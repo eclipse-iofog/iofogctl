@@ -42,7 +42,8 @@ func newBashCompleteCommand(rootCmd *cobra.Command) *cobra.Command {
 			switch t := strings.ToLower(args[0]); t {
 			case "bash":
 				completionFilePath := configDir + "completion.bash.sh"
-				rootCmd.GenBashCompletionFile(completionFilePath)
+				err = rootCmd.GenBashCompletionFile(completionFilePath)
+				util.Check(err)
 				util.PrintSuccess(fmt.Sprintf("%s generated", completionFilePath))
 				util.PrintInfo(fmt.Sprintf("Run `source %s` to update your current session", completionFilePath))
 				if runtime.GOOS == "darwin" {
@@ -51,7 +52,8 @@ func newBashCompleteCommand(rootCmd *cobra.Command) *cobra.Command {
 				util.PrintInfo(fmt.Sprintf("Add `source %s` to your bash profile to have it saved", completionFilePath))
 			case "zsh":
 				completionFilePath := configDir + "completion.bash.sh"
-				rootCmd.GenZshCompletionFile(completionFilePath)
+				err = rootCmd.GenZshCompletionFile(completionFilePath)
+				util.Check(err)
 				util.PrintSuccess(fmt.Sprintf("%s generated", completionFilePath))
 			default:
 				util.Check(util.NewNotFoundError(fmt.Sprintf("%s shell not supported for autocompletion\n Supported shells are BASH and ZSH", t)))

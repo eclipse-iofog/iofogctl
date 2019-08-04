@@ -11,38 +11,32 @@
  *
  */
 
-package describe
+package deployapplication
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type namespaceExecutor struct {
-	name     string
-	filename string
+type Executor interface {
+	Execute() error
 }
 
-func newNamespaceExecutor(name, filename string) *namespaceExecutor {
-	n := &namespaceExecutor{}
-	n.name = name
-	n.filename = filename
-	return n
-}
-
-func (exe *namespaceExecutor) Execute() error {
-	namespace, err := config.GetNamespace(exe.name)
+func NewExecutor(namespace string, opt *config.Application) (Executor, error) {
+	// Check the namespace exists
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if exe.filename == "" {
-		if err = util.Print(namespace); err != nil {
-			return err
-		}
-	} else {
-		if err = util.FPrint(namespace, exe.filename); err != nil {
-			return err
-		}
+
+	// Check Controller exists
+	nbControllers := len(ns.Controllers)
+	if nbControllers != 1 {
+		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", nbControllers)
+		return nil, util.NewInputError(errMessage)
 	}
-	return nil
+
+	return newRemoteExecutor(namespace, opt), nil
 }

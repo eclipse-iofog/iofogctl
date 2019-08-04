@@ -14,9 +14,11 @@
 package util
 
 import (
-	"gopkg.in/yaml.v2"
+	"io"
 	"io/ioutil"
 	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 func UnmarshalYAML(filename string, object interface{}) error {
@@ -32,12 +34,33 @@ func UnmarshalYAML(filename string, object interface{}) error {
 	return nil
 }
 
-func Print(obj interface{}) error {
+func printYAML(writer io.Writer, obj interface{}) error {
 	marshal, err := yaml.Marshal(&obj)
 	if err != nil {
 		return err
 	}
-	_, err = os.Stdout.Write(marshal)
+	_, err = writer.Write(marshal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func FPrint(obj interface{}, filename string) error {
+	f, err := os.Create(filename)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+	err = printYAML(f, obj)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Print(obj interface{}) error {
+	err := printYAML(os.Stdout, obj)
 	if err != nil {
 		return err
 	}

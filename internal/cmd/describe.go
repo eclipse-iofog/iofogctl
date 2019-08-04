@@ -20,6 +20,7 @@ import (
 )
 
 func newDescribeCommand() *cobra.Command {
+	filename := ""
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",
 		Short: "Get detailed information of existing resources",
@@ -45,7 +46,7 @@ iofogctl describe microservice NAME`,
 			}
 
 			// Get executor for describe command
-			exe, err := describe.NewExecutor(resource, namespace, name)
+			exe, err := describe.NewExecutor(resource, namespace, name, filename)
 			util.Check(err)
 
 			// Execute the command
@@ -53,6 +54,7 @@ iofogctl describe microservice NAME`,
 			util.Check(err)
 		},
 	}
+	cmd.Flags().StringVarP(&filename, "output-file", "o", "", "YAML output file")
 
 	return cmd
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -28,6 +29,7 @@ type Options struct {
 	Controllers   []config.Controller   `mapstructure:"controllers"`
 	Agents        []config.Agent        `mapstructure:"agents"`
 	Microservices []config.Microservice `mapstructure:"microservices"`
+	Applications  []config.Application  `mapstructure:"applications"`
 }
 
 type agentJobResult struct {
@@ -145,6 +147,28 @@ func deployAgents(namespace string, agents []config.Agent) error {
 	return nil
 }
 
+func deployApplications(namespace string, applications []config.Application) (err error) {
+	// Instantiate wait group for parallel tasks
+	var wg sync.WaitGroup
+
+	// Deploy controllers
+	for _, application := range applications {
+		exe, err := deployapplication.NewExecutor(namespace, &application)
+		if err != nil {
+			return err
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := exe.Execute()
+			util.Check(err)
+		}()
+	}
+	wg.Wait()
+	return
+}
+
 func Execute(opt *Options) error {
 	// Check namespace option
 	ns, err := config.GetNamespace(opt.Namespace)
@@ -153,7 +177,7 @@ func Execute(opt *Options) error {
 	}
 
 	// If there are no resources return error
-	if len(opt.Controllers) == 0 && len(opt.Agents) == 0 {
+	if len(opt.Controllers) == 0 && len(opt.Agents) == 0 && len(opt.Applications) == 0 {
 		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
 
@@ -171,6 +195,10 @@ func Execute(opt *Options) error {
 
 	// Deploy Agents
 	if err = deployAgents(opt.Namespace, opt.Agents); err != nil {
+		return err
+	}
+
+	if err = deployApplications(opt.Namespace, opt.Applications); err != nil {
 		return err
 	}
 
