@@ -53,7 +53,7 @@ load_existing_nvm() {
 
 # TODO: Handle specifying a version for Connector
 deploy_controller() {
-	# Install if does not exist
+	# Try to stop the instance if is installed
 	if [ ! -z $(command -v iofog-controller) ]; then
 		sudo iofog-controller stop || true
 	fi
