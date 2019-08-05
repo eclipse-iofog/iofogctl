@@ -64,7 +64,7 @@ deploy_controller() {
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 		nvm install lts/*
-		sudo ln -s $(which node) /usr/local/bin/node
+		sudo ln -Ffs $(which node) /usr/local/bin/node
 	else
 		nvm use lts/* || true
 	fi
@@ -75,7 +75,8 @@ deploy_controller() {
 	fi
 
 	# Install in temporary location
-	mkdir -p "$TMP_DIR/controller"
+	sudo mkdir -p "$TMP_DIR/controller"
+	sudo chmod 0777 "$TMP_DIR/controller"
 	if [ -z $version ]; then
 		npm install -g -f iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
