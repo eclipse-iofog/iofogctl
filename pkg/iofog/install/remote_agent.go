@@ -41,7 +41,97 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 func (agent *RemoteAgent) Bootstrap() error {
 	defer util.SpinStop()
 	util.SpinStart("Bootstrapping Agent " + agent.name)
-	// Connect to agent over SSH
+
+	// Prepare Agent for bootstrap
+	if err := agent.copyScriptsToAgent(); err != nil {
+		return err
+	}
+
+	// Instantiate install arguments
+	installArgs := ""
+	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
+	agentVersion, verExists := os.LookupEnv("IOFOG_AGENT_VERSION")
+	if pkgExists && verExists {
+		installArgs = "dev " + agentVersion + " " + pkgCloudToken
+	}
+
+	// Define bootstrap commands
+	cmds := []string{
+		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
+		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
+		"/tmp/install_agent.sh " + installArgs,
+		"sudo -S service iofog-agent start",
+		"/tmp/wait_agent.sh",
+		"sudo -S iofog-agent config -cf 10 -sf 10",
+	}
+
+	// Execute commands on remote server
+	if err := agent.run(cmds); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (uuid string, err error) {
+	defer util.SpinStop()
+	util.SpinStart("Configuring Agent " + agent.name)
+
+	controllerEndpoint := ctrl.Endpoint
+
+	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
+	if err != nil {
+		return
+	}
+
+	// Instantiate commands
+	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
+	cmds := []string{
+		"sudo iofog-agent config -a " + controllerBaseURL,
+		"sudo iofog-agent provision " + key,
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
+	}
+
+	return
+}
+
+func (agent *RemoteAgent) Stop() (err error) {
+	// Prepare commands
+	cmds := []string{
+		"sudo -S service iofog-agent stop",
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
+	}
+
+	return
+}
+
+func (agent *RemoteAgent) run(cmds []string) (err error) {
+	// Establish SSH to agent
+	if err = agent.ssh.Connect(); err != nil {
+		return
+	}
+	defer agent.ssh.Disconnect()
+
+	// Execute commands
+	for _, cmd := range cmds {
+		if _, err = agent.ssh.Run(cmd); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (agent RemoteAgent) copyScriptsToAgent() error {
+	// Establish SSH to agent
 	if err := agent.ssh.Connect(); err != nil {
 		return err
 	}
@@ -60,69 +150,5 @@ func (agent *RemoteAgent) Bootstrap() error {
 		return err
 	}
 
-	// Instantiate install arguments
-	installArgs := ""
-	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
-	agentVersion, verExists := os.LookupEnv("IOFOG_AGENT_VERSION")
-	if pkgExists && verExists {
-		installArgs = "dev " + agentVersion + " " + pkgCloudToken
-	}
-
-	// Define commands
-	cmds := []string{
-		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
-		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
-		"/tmp/install_agent.sh " + installArgs,
-		"sudo -S service iofog-agent start",
-		"/tmp/wait_agent.sh",
-		"sudo -S iofog-agent config -cf 10 -sf 10",
-	}
-
-	// Execute commands
-	for _, cmd := range cmds {
-		_, err := agent.ssh.Run(cmd)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
-}
-
-func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (uuid string, err error) {
-	defer util.SpinStop()
-	util.SpinStart("Configuring Agent " + agent.name)
-
-	controllerEndpoint := ctrl.Endpoint
-
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
-	if err != nil {
-		return
-	}
-
-	// Establish SSH to agent
-	err = agent.ssh.Connect()
-	if err != nil {
-		return
-	}
-
-	// Prepare progress bar
-	defer agent.ssh.Disconnect()
-
-	// Instantiate commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
-	cmds := []string{
-		"sudo iofog-agent config -a " + controllerBaseURL,
-		"sudo iofog-agent provision " + key,
-	}
-
-	// Execute commands
-	for _, cmd := range cmds {
-		_, err = agent.ssh.Run(cmd)
-		if err != nil {
-			return
-		}
-	}
-
-	return
 }

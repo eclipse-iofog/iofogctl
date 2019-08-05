@@ -14,8 +14,11 @@
 package deleteagent
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"strings"
 )
 
@@ -64,6 +67,16 @@ func (exe *remoteExecutor) Execute() error {
 			if !strings.Contains(err.Error(), "NotFoundError") {
 				return err
 			}
+		}
+	}
+
+	// Stop the Agent process on remote server
+	if agent.Host == "" || agent.User == "" || agent.KeyFile == "" || agent.Port == 0 {
+		util.PrintNotify("Cannot stop Agent process on remote server because SSH details for server are not available")
+	} else {
+		sshAgent := install.NewRemoteAgent(agent.User, agent.Host, agent.Port, agent.KeyFile, agent.Name)
+		if err = sshAgent.Stop(); err != nil {
+			util.PrintNotify(fmt.Sprintf("Failed to stop Agent process on remote server: %s", err.Error()))
 		}
 	}
 
