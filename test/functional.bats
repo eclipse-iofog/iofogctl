@@ -120,22 +120,6 @@ function checkAgentsNegative() {
   done
 }
 
-@test "Disconnect from cluster" {
-  initAgents
-  test iofogctl -q -n "$NS" disconnect
-  checkControllerNegative
-  checkAgentsNegative
-}
-
-@test "Connect to cluster using Kube Config" {
-  CONTROLLER_EMAIL=$(cat /tmp/email.txt)
-  CONTROLLER_PASS=$(cat /tmp/pass.txt)
-  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -q -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
-  checkController
-  checkAgents
-}
-
 @test "Controller legacy commands after connect with Kube Config" {
   test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
 }
@@ -151,7 +135,7 @@ function checkAgentsNegative() {
   done
 }
 
-@test "Disconnect from cluster again" {
+@test "Disconnect from cluster" {
   initAgents
   test iofogctl -q -n "$NS" disconnect
   checkControllerNegative
@@ -163,6 +147,22 @@ function checkAgentsNegative() {
   CONTROLLER_PASS=$(cat /tmp/pass.txt)
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   test iofogctl -q -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
+  checkController
+  checkAgents
+}
+
+@test "Disconnect from cluster again" {
+  initAgents
+  test iofogctl -q -n "$NS" disconnect
+  checkControllerNegative
+  checkAgentsNegative
+}
+
+@test "Connect to cluster using Kube Config" {
+  CONTROLLER_EMAIL=$(cat /tmp/email.txt)
+  CONTROLLER_PASS=$(cat /tmp/pass.txt)
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  test iofogctl -q -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
   checkController
   checkAgents
 }
