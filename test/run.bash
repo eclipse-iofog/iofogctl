@@ -3,10 +3,12 @@
 set -e
 
 # Export variables
-. test/conf/env.sh
+CONF=test/conf/env.sh
+if [ -f "$CONF" ]; then
+    . "$CONF"
+fi
 
-# Run smoke tests
-bats test/smoke.bats
-
-# Run functional tests
-bats test/functional.bats
+# Run tests
+for TEST in "$@"; do
+    bats test/"$TEST".bats
+done
