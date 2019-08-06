@@ -58,6 +58,10 @@ $>echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 
 ## Usage
 
+### Documentation
+
+The entire CLI documentation can be found [here](https://github.com/eclipse-iofog/iofogctl/blob/develop/docs/md/iofogctl.md)
+
 #### Quick Start
 
 See all iofogctl options
