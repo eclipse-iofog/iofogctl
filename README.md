@@ -29,33 +29,6 @@ https://packagecloud.io/install/repositories/iofog/iofogctl/script.rpm.sh | sudo
 sudo apt install iofogctl
 ```
 
-## Autocomplete
-
-If you are running BASH or ZSH, iofogctl comes with shell autocompletion scripts.
-In order to generate those scripts, run:
-
-```bash
-iofogctl autocomplete bash
-```
-OR
-
-```bash
-iofogctl autocomplete zsh
-```
-
-Then follow the instructions output by the command.
-
-Example:
-```bash
-$> iofogctl autocomplete bash
-✔ $HOME/.iofog/completion.bash.sh generated
-Run `source $HOME/.iofog/completion.bash.sh` to update your current session
-Add `source $HOME/.iofog/completion.bash.sh` to your bash profile to have it saved
-
-$>source $HOME/.iofog/completion.bash.sh
-$>echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
-```
-
 ## Usage
 
 ### Documentation
@@ -94,6 +67,33 @@ Flags:
   -n, --namespace string   Namespace to execute respective command within (default "default")
 
 Use "iofogctl [command] --help" for more information about a command.
+```
+
+### Autocomplete
+
+If you are running BASH or ZSH, iofogctl comes with shell autocompletion scripts.
+In order to generate those scripts, run:
+
+```bash
+iofogctl autocomplete bash
+```
+OR
+
+```bash
+iofogctl autocomplete zsh
+```
+
+Then follow the instructions output by the command.
+
+Example:
+```bash
+$> iofogctl autocomplete bash
+✔ $HOME/.iofog/completion.bash.sh generated
+Run `source $HOME/.iofog/completion.bash.sh` to update your current session
+Add `source $HOME/.iofog/completion.bash.sh` to your bash profile to have it saved
+
+$>source $HOME/.iofog/completion.bash.sh
+$>echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 ```
 
 ## Build from Source
