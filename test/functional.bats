@@ -142,6 +142,7 @@ function checkApplication() {
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
+  iofogctl -q -n "$NS" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $APPLICATION_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC1_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC2_NAME") ]]
