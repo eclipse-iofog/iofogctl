@@ -36,22 +36,23 @@ A YAML resource definition file can be use in lieu of the subcommands to deploy 
 
 The YAML resource definition file should look like this (two Controllers specified for example only):
 controllers:
-- name: k8s
-  kubeconfig: ~/.kube/conf
+- name: k8s # Controller name
+  kubeconfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
 - name: vanilla 
-  user: serge
-  host: 35.239.157.151
-  keyfile: ~/.ssh/id_rsa
+  user: serge # SSH user
+  host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
+  keyfile: ~/.ssh/id_rsa # SSH private key
 agents:
-- name: agent1
-  user: serge
-  host: 35.239.157.151
-  keyfile: ~/.ssh/id_rsa
+- name: agent1 # Agent name
+  user: serge # SSH User
+  host: 35.239.157.151 # SSH host
+  keyfile: ~/.ssh/id_rsa # SSH private key
 - name: agent2
   user: serge
   host: 35.232.114.32
   keyfile: ~/.ssh/id_rsa
-microservices: []
+applications: [] # See iofogctl deploy application for an application yaml schema
+microservices: [] # See iofogctl deploy microservices
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
