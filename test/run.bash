@@ -10,5 +10,5 @@ fi
 
 # Run tests
 for TEST in "$@"; do
-    bats test/"$TEST".bats
+    bats "test/$TEST.bats"
 done

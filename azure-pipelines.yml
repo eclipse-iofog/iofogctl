@@ -13,6 +13,7 @@ trigger:
 
 variables:
   build: $(Build.BuildId)
+  jobuuid: $(Build.BuildId)$(Agent.Id)
   GOROOT: '/usr/local/go1.12' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   GOBIN:  '$(GOPATH)/bin' # Go binaries path
@@ -20,248 +21,192 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   version:
-  zone: us-central1-a
+  zone: us-west2-b
+  vm_count: 3
   vm_1:
   vm_2:
   vm_3:
 
-jobs:
-  - job: CLI
+stages:
+- stage: Build
+  jobs:
+  - job: Iofogctl
     pool:
       vmImage: 'Ubuntu-16.04'
-
     steps:
+    - template: templates/version-steps.yaml
+    - template: templates/prebuild-steps.yaml
+    - script: |
+        VERSION=$(version) make build
+      workingDirectory: '$(modulePath)'
+      displayName: 'Build Linux version'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(modulePath)/bin'
+        artifactName: iofogctl-linux
+    - script: |
+        GOOS=darwin VERSION=$(version) make build
+      workingDirectory: '$(modulePath)'
+      displayName: 'Build OSX Binary'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(modulePath)/bin'
+        artifactName: iofogctl-osx
+    
+- stage: Test
+  jobs:
+  - job: Vanilla
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - template: templates/workdir-steps.yaml
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: iofogctl-linux
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - script: |
+        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+        sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/postinstall-steps.yaml
+    - template: templates/ssh-steps.yaml
+    - template: templates/functional-steps.yaml
+    - script: |
+        for IDX in $(seq 1 $(vm_count)); do
+          gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(zone) -- ls /
+        done
+      displayName: 'Wait for VM SSH access'
+    - script: |
+        test/run.bash functional-vanilla
+      workingDirectory: '$(modulePath)'
+      displayName: 'Run Functional Tests'
+    - template: templates/functional-clean.yaml
+  - job: K8s
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - template: templates/workdir-steps.yaml
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: iofogctl-linux
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - script: |
+        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+        sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/postinstall-steps.yaml
+    - template: templates/ssh-steps.yaml
+    - script: echo "##vso[task.setvariable variable=vm_count]2"
+    - template: templates/functional-steps.yaml
+    - script: |
+        test/run.bash functional-k8s
+      workingDirectory: '$(modulePath)'
+      displayName: 'Run Functional Tests'
+    - template: templates/functional-clean.yaml
 
-      - task: UseRubyVersion@0
-        inputs:
-          versionSpec: '>= 2.5.1'
-          addToPath: true
-        displayName: 'Install Ruby'
-
-      - task: InstallSSHKey@0
-        inputs:
-          knownHostsEntry: $(ssh.github.knownhost)
-          sshPublicKey: $(ssh.user.pub)
-          sshKeySecureFile: id_rsa
-
-      - script: |
-          if [[ $(ref) == refs/heads/release* ]]; then
-            RCVERS=$(echo $(ref) | sed "s|refs/heads/release/||g")
-            echo "##vso[task.setvariable variable=version]$RCVERS-b$(build)"
-          elif [[ $(ref) == refs/tags* ]]; then
-            TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
-            echo "##vso[task.setvariable variable=version]$TAG"
-          else
-            LATESTTAG=$(git tag | tail -1)
-            LATESTVERS=${LATESTTAG#?}
-            if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
-            echo "##vso[task.setvariable variable=version]$LATESTVERS-b$(build)"
-          fi
-          echo $(version)
-        displayName: 'Set version variable'
-
-      - script: |
-          mkdir -p '$(GOBIN)'
-          mkdir -p '$(GOPATH)/pkg'
-          mkdir -p '$(modulePath)'
-          shopt -s extglob
-          mv !(gopath) '$(modulePath)'
-          echo '##vso[task.prependpath]$(GOBIN)'
-          echo '##vso[task.prependpath]$(GOROOT)/bin'
-        displayName: 'Set up the Go workspace'
-
-      - task: GoTool@0
-        inputs:
-          version: '1.12.1'
-          goPath: $(GOPATH)
-          goBin: $(GOBIN)
-        displayName: 'Install Golang'
-      
-      - script: |
-          ./script/check_fmt.sh
-        workingDirectory: '$(modulePath)'
-        displayName: 'Check Source Format'
-
-      - script: |
-          script/bootstrap.sh
-          make dep
-        workingDirectory: '$(modulePath)'
-        displayName: 'Bootstrap'
-      
-      - task: DownloadSecureFile@1
-        displayName: 'Download secure file'
-        inputs:
-          secureFile: 'azure-gcp.json'
-        
-      - bash: |
-          CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-          echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-          sudo apt-get update && sudo apt-get install google-cloud-sdk
-          gcloud --quiet auth activate-service-account --key-file=$(Agent.TempDirectory)/azure-gcp.json
-          gcloud --quiet config set project $(gcp.project.name)
-          gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
-        displayName: 'set up gcloud'
-
-      - script: |
-          make test
-          [[ $? -eq 0 ]]
-          pwd
-          ls -l
-        workingDirectory: '$(modulePath)'
-        displayName: 'Run Unit Tests'
-
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**/TEST-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)'
-        displayName: 'Publish Test Results'
-      
-      - script: |
-          BRANCH=$(branch) VERSION=$(version) make build
-          GOPATH=$(GOPATH) GOBIN=$(GOBIN) make install
-        workingDirectory: '$(modulePath)'
-        displayName: 'Build and Install Linux version'
-
-      - script: |
-          which iofogctl
-          iofogctl version
-        displayName: 'Verify Install'
-
-      - task: DownloadSecureFile@1
-        displayName: 'Download SSH keys to'
-        inputs:
-          secureFile: 'id_rsa'
-
-      - script: |
-          test/run.bash smoke
-        workingDirectory: '$(modulePath)'
-        displayName: 'Run Smoke Tests'
-
-      - script: |
-          for IDX in 1 2 3; do
-            gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(build)-$IDX --zone=$(zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=debian-9-stretch-v20190729 --image-project=debian-cloud --boot-disk-size=10GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(build)-$IDX
-            VM_HOST=$(gcloud compute instances list | grep iofogctl-ci-$(build)-$IDX | awk '{print $5}')
-            echo "##vso[task.setvariable variable=vm_$IDX]$(gcp.vm.user)@$VM_HOST"
-          done
-        displayName: 'Deploy Test VMs'
-
-      - script: |
-          NS=$(build)
-          sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-          sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(vm_1) $(vm_2)\"|g" test/env.sh
-          sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(vm_3)\"|g" test/env.sh
-          sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
-          sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
-          sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
-          cp test/env.sh test/conf
-          cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
-          echo $(ssh.user.pub) > ~/id_rsa.pub
-        workingDirectory: '$(modulePath)'
-        displayName: 'Configure Tests'
-
-      - script: |
-          test/run.bash functional
-        workingDirectory: '$(modulePath)'
-        displayName: 'Run Functional Tests'
-      
-      - script: |
-          BRANCH=$(branch) GOOS=darwin VERSION=$(version) make build
-          tar -zcf iofogctl.tar.gz bin/iofogctl
-          checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
-          cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
-          echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
-          rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz $(ssh.downloads):/var/www/vhosts/edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz
-          git config --global user.email "serge@edgeworx.io"
-          git config --global user.name "Serge Radinovich"
-          git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
-          cd homebrew-iofogctl
-          sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" iofogctl.rb
-          sed -i "s/    version.*/    version \"$(version)\"/g" iofogctl.rb
-          sed -i "s|http://edgeworx.io/downloads/iofogctl/dev/.*\.tar\.gz\"|http://edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz\"|g" iofogctl.rb
-          git add iofogctl.rb
-          git commit -m "Publish develop version $(version)"
-          git push origin master
-        workingDirectory: '$(modulePath)'
-        displayName: 'Build and publish OSX binary'
-
-      - task: DownloadSecureFile@1
-        inputs:
-          secureFile: 'package_cloud'
-        displayName: 'Download package cloud token file'
-
-      - script: |
-          gem install fpm
-          fpm -h
-          gem install package_cloud
-          package_cloud -h
-          echo "config file..."
-          echo $(Agent.TempDirectory)/package_cloud
-        displayName: 'Install package_cloud cli and fpm'
-
-      - script: |
-          fpm -f -s dir -t deb -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
-          package=$(ls | grep *.deb)
-          echo $package
-          cp $package $(Build.ArtifactStagingDirectory)
-        displayName: 'Create Debian package'
-
-      - script: |
-          package=$(ls | grep *.deb)
-          echo "package..."
-          echo $package
-          declare -a UBUNTU_VERS=("precise" "trusty" "utopic" "vivid" "wily" "xenial" "bionic")
-          declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster")
-          for ubu in "${UBUNTU_VERS[@]}"
-          do
-              package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud
-          done
-          for deb in "${DEBIAN_VERS[@]}"
-          do
-              package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
-              package_cloud push iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
-          done
-        displayName: 'Publish deb to package-cloud'
-
-      - script: |
-          fpm -f -s dir -t rpm -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
-          package=$(ls | grep *.rpm)
-          echo $package
-          cp $package $(Build.ArtifactStagingDirectory)
-        displayName: 'Create RPM package'
-
-      - script: |
-          package=$(ls | grep *.rpm)
-          echo "package..."
-          echo $package
-          declare -a FEDORA_VERS=("22" "23" "24")
-          declare -a REDHAT_VERS=("6" "7")
-          for fed in ${FEDORA_VERS[@]}
-          do
-              package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
-          done
-          for red in ${REDHAT_VERS[@]}
-          do
-              package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
-          done
-        displayName: 'Publish RPM to package-cloud'
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'iofogctl'
-        displayName: 'Publish artefacts'
-
-      - script: |
-          test/clean.bash $(build)
-        workingDirectory: '$(modulePath)'
-        displayName: 'Clean K8s Cluster'
-        condition: failed()
-
-      - script: |
-          for IDX in 1 2 3; do
-            gcloud compute --project=$(gcp.project.name) instances delete iofogctl-ci-$(build)-$IDX --zone=$(zone) --delete-disks=all -q
-          done
-        displayName: 'Teardown VMs'
-        condition: always()
+- stage: Publish
+  jobs:
+  - job: OSX
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - template: templates/workdir-steps.yaml
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: iofogctl-osx
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - script: |
+        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-osx/iofogctl /usr/local/bin/
+        sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/version-steps.yaml
+    - template: templates/ssh-steps.yaml
+    - script: |
+        tar -zcf iofogctl.tar.gz bin/iofogctl
+        checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
+        cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
+        echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
+        rsync -e "ssh -o StrictHostKeyChecking=no" iofogctl.tar.gz $(ssh.downloads):/var/www/vhosts/edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz
+        git config --global user.email "serge@edgeworx.io"
+        git config --global user.name "Serge Radinovich"
+        git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
+        cd homebrew-iofogctl
+        sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" iofogctl.rb
+        sed -i "s/    version.*/    version \"$(version)\"/g" iofogctl.rb
+        sed -i "s|http://edgeworx.io/downloads/iofogctl/dev/.*\.tar\.gz\"|http://edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz\"|g" iofogctl.rb
+        git add iofogctl.rb
+        git commit -m "Publish develop version $(version)"
+        git push origin master
+      workingDirectory: '$(modulePath)'
+      displayName: 'Build and publish OSX binary'
+  - job: Debian
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: iofogctl-linux
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - script: |
+        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+        sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/version-steps.yaml
+    - template: templates/publish-deps.yaml
+    - script: |
+        fpm -f -s dir -t deb -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
+        package=$(ls | grep *.deb)
+        echo $package
+        cp $package $(Build.ArtifactStagingDirectory)
+      displayName: 'Create Debian package'
+    - script: |
+        package=$(ls | grep *.deb)
+        echo "package..."
+        echo $package
+        declare -a UBUNTU_VERS=("precise" "trusty" "utopic" "vivid" "wily" "xenial" "bionic")
+        declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster")
+        for ubu in "${UBUNTU_VERS[@]}"
+        do
+            package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud
+        done
+        for deb in "${DEBIAN_VERS[@]}"
+        do
+            package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
+            package_cloud push iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
+        done
+      displayName: 'Publish deb to package-cloud'
+    - template: templates/publish-steps.yaml
+  - job: RPM
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: iofogctl-linux
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - script: sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+    - template: templates/version-steps.yaml
+    - template: templates/publish-deps.yaml
+    - script: |
+        fpm -f -s dir -t rpm -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
+        package=$(ls | grep *.rpm)
+        echo $package
+        cp $package $(Build.ArtifactStagingDirectory)
+      displayName: 'Create RPM package'
+    - script: |
+        package=$(ls | grep *.rpm)
+        echo "package..."
+        echo $package
+        declare -a FEDORA_VERS=("22" "23" "24")
+        declare -a REDHAT_VERS=("6" "7")
+        for fed in ${FEDORA_VERS[@]}
+        do
+            package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
+        done
+        for red in ${REDHAT_VERS[@]}
+        do
+            package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
+        done
+      displayName: 'Publish RPM to package-cloud'
+    - template: templates/publish-steps.yaml

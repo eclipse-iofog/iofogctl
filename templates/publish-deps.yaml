@@ -1,0 +1,18 @@
+steps:
+- task: UseRubyVersion@0
+  inputs:
+    versionSpec: '>= 2.5.1'
+    addToPath: true
+  displayName: 'Install Ruby'
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: 'package_cloud'
+  displayName: 'Download package cloud token file'
+- script: |
+    gem install fpm
+    fpm -h
+    gem install package_cloud
+    package_cloud -h
+    echo "config file..."
+    echo $(Agent.TempDirectory)/package_cloud
+  displayName: 'Install package_cloud cli and fpm'
