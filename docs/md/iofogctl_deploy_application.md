@@ -9,7 +9,8 @@ Deploy ioFog application on existing infrastructure.
  A YAML resource definition file must be used to describe the application.
  
  The YAML application definition file should look like this :
- name: "HealthcareWearableExample" # Application name
+```
+name: "HealthcareWearableExample" # Application name
  microservices: # Array of mircroservices
 		# First microservice
 	 - name: "heart-rate-monitor" # Microservice name
@@ -52,6 +53,8 @@ Deploy ioFog application on existing infrastructure.
 	- from: "heart-rate-monitor"
 		to: "heart-rate-viewer"
  
+```
+
 
 ```
 iofogctl deploy application [flags]
@@ -60,8 +63,7 @@ iofogctl deploy application [flags]
 ### Examples
 
 ```
-application -f application.yaml
- deploy [command]
+iofogctl deploy application -f application.yaml
 ```
 
 ### Options

@@ -29,16 +29,15 @@ func newDeployApplicationCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use: "application",
-		Example: `application -f application.yaml
- deploy [command]`,
-		Short: "Deploy ioFog application on existing infrastructure",
+		Use:     "application",
+		Example: `iofogctl deploy application -f application.yaml`,
+		Short:   "Deploy ioFog application on existing infrastructure",
 		Long: `Deploy ioFog application on existing infrastructure.
  
  A YAML resource definition file must be used to describe the application.
  
- The YAML application definition file should look like this :
- name: "HealthcareWearableExample" # Application name
+ The YAML application definition file should look like this :` + "\n```\n" +
+			`name: "HealthcareWearableExample" # Application name
  microservices: # Array of mircroservices
 		# First microservice
 	 - name: "heart-rate-monitor" # Microservice name
@@ -80,7 +79,7 @@ func newDeployApplicationCommand() *cobra.Command {
 	# Use microservice name
 	- from: "heart-rate-monitor"
 		to: "heart-rate-viewer"
- `,
+ ` + "\n```\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			// Unmarshall the input file

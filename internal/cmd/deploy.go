@@ -32,10 +32,10 @@ deploy [command]`,
 		Short: "Deploy ioFog platform or components on existing infrastructure",
 		Long: `Deploy ioFog platform or individual components on existing infrastructure.
 
-A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers, Agents, and Microservices.
+A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers, Agents, Applications and Microservices.
 
-The YAML resource definition file should look like this (two Controllers specified for example only):
-controllers:
+The YAML resource definition file should look like this (two Controllers specified for example only):` + "\n```\n" +
+			`controllers:
 - name: k8s # Controller name
   kubeconfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
 - name: vanilla 
@@ -53,7 +53,7 @@ agents:
   keyfile: ~/.ssh/id_rsa
 applications: [] # See iofogctl deploy application for an application yaml schema
 microservices: [] # See iofogctl deploy microservices
-`,
+` + "\n```\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			// Unmarshall the input file
