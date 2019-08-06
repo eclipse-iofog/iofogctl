@@ -253,6 +253,12 @@ jobs:
         displayName: 'Publish artefacts'
 
       - script: |
+          test/clean.bash $(build)
+        workingDirectory: '$(modulePath)'
+        displayName: 'Clean K8s Cluster'
+        condition: failed()
+
+      - script: |
           for IDX in 1 2 3; do
             gcloud compute --project=$(gcp.project.name) instances delete iofogctl-ci-$(build)-$IDX --zone=$(zone) --delete-disks=all -q
           done

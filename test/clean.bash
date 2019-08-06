@@ -14,3 +14,5 @@ kubectl delete clusterrolebindings kubelet
 kubectl delete crd iofogs.k8s.iofog.org
 kubectl delete ns "$NAMESPACE"
 iofogctl delete namespace "$NAMESPACE"
+
+exit 0
