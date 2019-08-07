@@ -127,7 +127,7 @@ stages:
     - template: templates/version-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: |
-        tar -zcf iofogctl.tar.gz bin/iofogctl
+        tar -zcf iofogctl.tar.gz /usr/local/bin/iofogctl
         checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
         cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
         echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
