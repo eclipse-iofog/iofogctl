@@ -33,7 +33,7 @@ steps:
   workingDirectory: '$(modulePath)'
   displayName: 'Configure Tests'
 - script: |
-    git clone https://github.com/sstephenson/bats.git && cd bats && sudo ./install.sh /usr/local
+    git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
     # Use of sudo is recommended here: https://docs.microsoft.com/en-us/azure/devops/pipelines/languages/javascript?view=azure-devops#install-tools-on-your-build-agent
     sudo npm i -g tap-junit
   displayName: 'Bootstrap for Tests'

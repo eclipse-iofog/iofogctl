@@ -1,9 +1,4 @@
 steps:
-- script: |
-    ls -l 
-    ls -l test/conf/
-  workingDirectory: '$(modulePath)'
-  displayName: 'Check if test reports are there'
 # Publish Test Results
 # Publish test results to Azure Pipelines
 - task: PublishTestResults@2
