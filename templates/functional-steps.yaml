@@ -3,13 +3,6 @@ steps:
   displayName: 'Download secure file'
   inputs:
     secureFile: 'azure-gcp.json'
-- script: |
-    git clone https://github.com/sstephenson/bats.git && cd bats && sudo ./install.sh /usr/local
-  displayName: 'Bootstrap for Tests'
-- script: |
-    test/run.bash smoke
-  workingDirectory: '$(modulePath)'
-  displayName: 'Run Smoke Tests'
 - bash: |
     CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
     echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
@@ -39,3 +32,12 @@ steps:
     echo $(ssh.user.pub) > ~/id_rsa.pub
   workingDirectory: '$(modulePath)'
   displayName: 'Configure Tests'
+- script: |
+    git clone https://github.com/sstephenson/bats.git && cd bats && sudo ./install.sh /usr/local
+    # Use of sudo is recommended here: https://docs.microsoft.com/en-us/azure/devops/pipelines/languages/javascript?view=azure-devops#install-tools-on-your-build-agent
+    sudo npm i -g tap-junit
+  displayName: 'Bootstrap for Tests'
+- script: |
+    test/run.bash smoke
+  workingDirectory: '$(modulePath)'
+  displayName: 'Run Smoke Tests'
