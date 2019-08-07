@@ -102,6 +102,11 @@ stages:
         test/run.bash functional-k8s
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
+    - script: |
+          test/clean.bash $(jobuuid)
+      workingDirectory: '$(modulePath)'
+      displayName: 'Clean K8s Cluster'
+      condition: failed()
     - template: templates/functional-clean.yaml
 
 - stage: Publish
