@@ -146,6 +146,7 @@ stages:
         git push origin master
       workingDirectory: '$(modulePath)'
       displayName: 'Build and publish OSX binary'
+    - template: templates/publish-steps.yaml
   - job: Debian
     pool:
       vmImage: 'Ubuntu-16.04'
