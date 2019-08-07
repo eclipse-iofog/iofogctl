@@ -122,12 +122,13 @@ stages:
         artifactName: iofogctl-osx
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-osx/iofogctl /usr/local/bin/
-        sudo chmod 0755 /usr/local/bin/iofogctl
+        cp $(System.DefaultWorkingDirectory)/iofogctl-osx/iofogctl bin/
+      displayName: 'Download OSX Binary'
+      workingDirectory: '$(modulePath)'
     - template: templates/version-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: |
-        tar -zcf iofogctl.tar.gz /usr/local/bin/iofogctl
+        tar -zcf iofogctl.tar.gz bin/iofogctl
         checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
         cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
         echo $(version) > $(Build.ArtifactStagingDirectory)/version.txt
