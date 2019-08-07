@@ -30,6 +30,10 @@ This project uses Bugzilla to track ongoing development and issues.
 Be sure to search for existing bugs before you create another one. Remember that
 contributions are always welcome!
 
+### Git hooks
+
+Please run `make init` in order to initialise git hooks
+
 ## Eclipse Contributor Agreement
 
 Before your contribution can be accepted by the project team contributors must
