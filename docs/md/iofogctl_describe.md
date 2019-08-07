@@ -18,6 +18,9 @@ iofogctl describe resource NAME [flags]
 iofogctl describe controller NAME
 iofogctl describe agent NAME
 iofogctl describe microservice NAME
+
+Valid resources are: controller, agent, microservice, application
+
 ```
 
 ### Options
