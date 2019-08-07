@@ -60,7 +60,7 @@ func (ctrl *Controller) Install() (err error) {
 	// Copy installation scripts to remote host
 	installControllerScript := util.GetStaticFile("install_controller.sh")
 	reader := strings.NewReader(installControllerScript)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/", "install_controller.sh", "0774", len(installControllerScript)); err != nil {
+	if err := ctrl.ssh.CopyTo(reader, "/tmp/", "install_controller.sh", "0775", len(installControllerScript)); err != nil {
 		return err
 	}
 
@@ -100,6 +100,35 @@ func (ctrl *Controller) Install() (err error) {
 		ignoredErrors,
 	); err != nil {
 		return
+	}
+
+	return
+}
+
+func (ctrl *Controller) Stop() (err error) {
+	defer util.SpinStop()
+
+	util.SpinStart("Connecting to remote server " + ctrl.Host)
+	// Connect to server
+	if err = ctrl.ssh.Connect(); err != nil {
+		return
+	}
+	defer ctrl.ssh.Disconnect()
+
+	// TODO: Clear the database
+	// Define commands
+	cmds := []string{
+		"sudo iofog-controller stop",
+		"sudo systemctl stop iofog-connector",
+	}
+
+	// Execute commands
+	util.SpinStart("Stopping Controller and Connector on remote server")
+	for _, cmd := range cmds {
+		_, err = ctrl.ssh.Run(cmd)
+		if err != nil {
+			return
+		}
 	}
 
 	return

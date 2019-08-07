@@ -14,12 +14,16 @@
 package cmd
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/eclipse-iofog/iofogctl/internal/get"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newGetCommand() *cobra.Command {
+	validResources := []string{"all", "namespaces", "controllers", "agents", "applications", "microservices"}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",
@@ -28,9 +32,8 @@ func newGetCommand() *cobra.Command {
 Resources like Agents will require a working Controller in the namespace to display all information.`,
 		Example: `iofogctl get all
 iofogctl get namespaces
-iofogctl get controllers
-iofogctl get agents`,
-		ValidArgs: []string{"namespaces", "all", "controllers", "agents"},
+iofogctl get controllers` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+		ValidArgs: validResources,
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg

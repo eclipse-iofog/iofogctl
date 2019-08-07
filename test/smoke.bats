@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Required environment variables
-# NAMESPACE
-
 . test/functions.bash
 
 @test "Help" {
@@ -74,9 +71,9 @@
 #}
 
 @test "create namespace" {
-  test iofogctl create -n $NAMESPACE
+  test iofogctl create -n smoketestsnamespace1234
 }
 
 @test "delete namespace" {
-  test iofogctl delete -n $NAMESPACE
+  test iofogctl delete -n smoketestsnamespace1234
 }

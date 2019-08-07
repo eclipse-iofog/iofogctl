@@ -41,22 +41,9 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 func (agent *RemoteAgent) Bootstrap() error {
 	defer util.SpinStop()
 	util.SpinStart("Bootstrapping Agent " + agent.name)
-	// Connect to agent over SSH
-	if err := agent.ssh.Connect(); err != nil {
-		return err
-	}
-	defer agent.ssh.Disconnect()
 
-	// Copy installation scripts to remote hosts
-	installAgentScript := util.GetStaticFile("install_agent.sh")
-	reader := strings.NewReader(installAgentScript)
-	if err := agent.ssh.CopyTo(reader, "/tmp/", "install_agent.sh", "0774", len(installAgentScript)); err != nil {
-		return err
-	}
-
-	waitAgentScript := util.GetStaticFile("wait_agent.sh")
-	reader = strings.NewReader(waitAgentScript)
-	if err := agent.ssh.CopyTo(reader, "/tmp/", "wait_agent.sh", "0774", len(waitAgentScript)); err != nil {
+	// Prepare Agent for bootstrap
+	if err := agent.copyScriptsToAgent(); err != nil {
 		return err
 	}
 
@@ -68,7 +55,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 		installArgs = "dev " + agentVersion + " " + pkgCloudToken
 	}
 
-	// Define commands
+	// Define bootstrap commands
 	cmds := []string{
 		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
 		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
@@ -78,12 +65,9 @@ func (agent *RemoteAgent) Bootstrap() error {
 		"sudo -S iofog-agent config -cf 10 -sf 10",
 	}
 
-	// Execute commands
-	for _, cmd := range cmds {
-		_, err := agent.ssh.Run(cmd)
-		if err != nil {
-			return err
-		}
+	// Execute commands on remote server
+	if err := agent.run(cmds); err != nil {
+		return err
 	}
 
 	return nil
@@ -100,15 +84,6 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (
 		return
 	}
 
-	// Establish SSH to agent
-	err = agent.ssh.Connect()
-	if err != nil {
-		return
-	}
-
-	// Prepare progress bar
-	defer agent.ssh.Disconnect()
-
 	// Instantiate commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
 	cmds := []string{
@@ -116,13 +91,64 @@ func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (
 		"sudo iofog-agent provision " + key,
 	}
 
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
+	}
+
+	return
+}
+
+func (agent *RemoteAgent) Stop() (err error) {
+	// Prepare commands
+	cmds := []string{
+		"sudo -S service iofog-agent stop",
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
+	}
+
+	return
+}
+
+func (agent *RemoteAgent) run(cmds []string) (err error) {
+	// Establish SSH to agent
+	if err = agent.ssh.Connect(); err != nil {
+		return
+	}
+	defer agent.ssh.Disconnect()
+
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.ssh.Run(cmd)
-		if err != nil {
+		if _, err = agent.ssh.Run(cmd); err != nil {
 			return
 		}
 	}
 
 	return
+}
+
+func (agent RemoteAgent) copyScriptsToAgent() error {
+	// Establish SSH to agent
+	if err := agent.ssh.Connect(); err != nil {
+		return err
+	}
+	defer agent.ssh.Disconnect()
+
+	// Copy installation scripts to remote hosts
+	installAgentScript := util.GetStaticFile("install_agent.sh")
+	reader := strings.NewReader(installAgentScript)
+	if err := agent.ssh.CopyTo(reader, "/tmp/", "install_agent.sh", "0775", len(installAgentScript)); err != nil {
+		return err
+	}
+
+	waitAgentScript := util.GetStaticFile("wait_agent.sh")
+	reader = strings.NewReader(waitAgentScript)
+	if err := agent.ssh.CopyTo(reader, "/tmp/", "wait_agent.sh", "0775", len(waitAgentScript)); err != nil {
+		return err
+	}
+
+	return nil
 }

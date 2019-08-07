@@ -92,6 +92,7 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 		Name:    opt.Name,
 		User:    opt.User,
 		Host:    opt.Host,
+		Port:    opt.Port,
 		KeyFile: opt.KeyFile,
 		UUID:    uuid,
 		Created: util.NowUTC(),

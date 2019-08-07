@@ -73,11 +73,7 @@ iofogctl legacy agent NAME status`,
 					fmt.Print(out.String())
 				} else {
 					if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
-						util.PrintNotify(`This client does not have any means of performing legacy commands with the specified Controller.
-  This usually means you did not deploy the Controller but instead connected to it after its deployment.
-  If it is a Kubernetes-deployed Controller, you can try connecting with the correct Kube Config file.
-  If it is a non-Kubernetes-deploy Controller, you must manually add host, user, port, and keyfile fields to ~/.iofog/config.yaml.`)
-						util.Check(util.NewError("Could not SSH into Controller to execute legacy command"))
+						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Controller are not available"))
 					}
 					sshClient := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
 					util.Check(sshClient.Connect())
@@ -96,6 +92,9 @@ iofogctl legacy agent NAME status`,
 				agent, err := config.GetAgent(namespace, name)
 				util.Check(err)
 				// SSH connect
+				if agent.Host == "" || agent.User == "" || agent.KeyFile == "" || agent.Port == 0 {
+					util.Check(util.NewError("Cannot execute legacy command because SSH details for this Agent are not available"))
+				}
 				ssh := util.NewSecureShellClient(agent.User, agent.Host, agent.KeyFile)
 				util.Check(ssh.Connect())
 				// Execute
@@ -110,6 +109,9 @@ iofogctl legacy agent NAME status`,
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
+				if ctrl.KubeConfig == "" {
+					util.Check(util.NewError("Cannot execute legacy command because Kube config file is not available"))
+				}
 				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
 				util.Check(err)
 				// Connect to cluster

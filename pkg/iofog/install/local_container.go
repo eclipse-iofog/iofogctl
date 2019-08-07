@@ -141,7 +141,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 // NewLocalContainerClient returns a LocalContainer struct
 func NewLocalContainerClient() (*LocalContainer, error) {
-	cli, err := client.NewClientWithOpts(client.WithVersion("1.39"))
+	cli, err := client.NewClientWithOpts(client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}

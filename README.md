@@ -31,6 +31,10 @@ sudo apt install iofogctl
 
 ## Usage
 
+### Documentation
+
+The entire CLI documentation can be found [here](https://github.com/eclipse-iofog/iofogctl/blob/develop/docs/md/iofogctl.md)
+
 #### Quick Start
 
 See all iofogctl options
@@ -58,11 +62,38 @@ Available Commands:
   logs        Get log contents of deployed resource
 
 Flags:
-      --config string      CLI configuration file (default is ~/.iofog.yaml)
+      --config string      CLI configuration file (default is ~/.iofog/config.yaml)
   -h, --help               help for iofogctl
   -n, --namespace string   Namespace to execute respective command within (default "default")
 
 Use "iofogctl [command] --help" for more information about a command.
+```
+
+### Autocomplete
+
+If you are running BASH or ZSH, iofogctl comes with shell autocompletion scripts.
+In order to generate those scripts, run:
+
+```bash
+iofogctl autocomplete bash
+```
+OR
+
+```bash
+iofogctl autocomplete zsh
+```
+
+Then follow the instructions output by the command.
+
+Example:
+```bash
+$> iofogctl autocomplete bash
+✔ $HOME/.iofog/completion.bash.sh generated
+Run `source $HOME/.iofog/completion.bash.sh` to update your current session
+Add `source $HOME/.iofog/completion.bash.sh` to your bash profile to have it saved
+
+$>source $HOME/.iofog/completion.bash.sh
+$>echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 ```
 
 ## Build from Source

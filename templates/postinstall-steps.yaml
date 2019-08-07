@@ -1,0 +1,5 @@
+steps:
+- script: |
+    which iofogctl
+    iofogctl version
+  displayName: 'Verify Install'

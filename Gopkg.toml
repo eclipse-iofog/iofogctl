@@ -57,3 +57,7 @@
 [[constraint]]
   name = "github.com/GeertJohan/go.rice"
   version = "v1.0.0"
+
+[[override]]
+  name = "github.com/russross/blackfriday"
+  version = "1.5.2"

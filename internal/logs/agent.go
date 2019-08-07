@@ -39,6 +39,9 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Establish SSH connection
+	if agent.Host == "" || agent.User == "" || agent.KeyFile == "" || agent.Port == 0 {
+		util.Check(util.NewError("Cannot get logs because SSH details for this Agent are not available"))
+	}
 	ssh := util.NewSecureShellClient(agent.User, agent.Host, agent.KeyFile)
 	err = ssh.Connect()
 	if err != nil {

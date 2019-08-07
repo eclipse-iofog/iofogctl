@@ -15,6 +15,7 @@ package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type remoteExecutor struct {
@@ -30,10 +31,28 @@ func newRemoteExecutor(namespace, name string) *remoteExecutor {
 }
 
 func (exe *remoteExecutor) Execute() error {
-	// TODO (Serge) Execute back-end logic
+	// Get controller from config
+	ctrl, err := config.GetController(exe.namespace, exe.name)
+	if err != nil {
+		return err
+	}
+
+	// Instantiate installer
+	controllerOptions := &install.ControllerOptions{
+		User:            ctrl.User,
+		Host:            ctrl.Host,
+		Port:            ctrl.Port,
+		PrivKeyFilename: ctrl.KeyFile,
+	}
+	installer := install.NewController(controllerOptions)
+
+	// Stop Controller and Connector
+	if err = installer.Stop(); err != nil {
+		return err
+	}
 
 	// Update configuration
-	err := config.DeleteController(exe.namespace, exe.name)
+	err = config.DeleteController(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}

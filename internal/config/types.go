@@ -13,6 +13,8 @@
 
 package config
 
+import "github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
 	Name     string `mapstructure:"name"`
@@ -50,11 +52,47 @@ type Agent struct {
 	Image   string `mapstructure:"image"`
 }
 
+// MicroserviceImages contains information about the images for a microservice
+type MicroserviceImages struct {
+	CatalogID int
+	X86       string
+	ARM       string
+	Registry  int
+}
+
+// MicroserviceAgent contains information about required agent configuration for a microservice
+type MicroserviceAgent struct {
+	Name   string
+	Config client.AgentConfiguration
+}
+
 // Microservice contains information for configuring a microservice
 type Microservice struct {
-	Name    string `mapstructure:"name"`
-	Flow    string `mapstructure:"flow"`
-	Created string `mapstructure:"created"`
+	UUID           string `yaml:"-"`
+	Name           string
+	Agent          MicroserviceAgent
+	Images         MicroserviceImages
+	Config         map[string]interface{}
+	RootHostAccess bool
+	Ports          []client.MicroservicePortMapping   `yaml:"ports,omitempty"`
+	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes,omitempty"`
+	Env            []client.MicroserviceEnvironment   `yaml:"env,omitempty"`
+	Routes         []string                           `yaml:"routes,omitempty"`
+	Flow           *int                               `yaml:"flow,omitempty"`
+	Created        string                             `yaml:"created,omitempty"`
+}
+
+// Route contains information about a route from one microservice to another
+type Route struct {
+	From string
+	To   string
+}
+
+// Application contains information for configuring an application
+type Application struct {
+	Name          string
+	Microservices []Microservice
+	Routes        []Route
 }
 
 // Namespace contains information for configuring a namespace

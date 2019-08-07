@@ -55,11 +55,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	// Remote
 	if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
-		util.PrintNotify(`This client does not have any means of performing retrieving logs from the specified Controller.
-  This usually means you did not deploy the Controller but instead connected to it after its deployment.
-  If it is a Kubernetes-deployed Controller, you can try connecting with the correct Kube Config file.
-  If it is a non-Kubernetes-deploy Controller, you must manually add host, user, port, and keyfile fields to ~/.iofog/config.yaml.`)
-		util.Check(util.NewError("Could not SSH into Controller to execute legacy command"))
+		util.Check(util.NewError("Cannot get logs because SSH details for this Controller are not available"))
 	}
 	ssh := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
 	ssh.SetPort(ctrl.Port)

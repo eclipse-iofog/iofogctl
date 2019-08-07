@@ -1,0 +1,16 @@
+steps:
+- script: |
+    if [[ $(ref) == refs/heads/release* ]]; then
+      RCVERS=$(echo $(ref) | sed "s|refs/heads/release/||g")
+      echo "##vso[task.setvariable variable=version]$RCVERS-b$(build)"
+    elif [[ $(ref) == refs/tags* ]]; then
+      TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
+      echo "##vso[task.setvariable variable=version]$TAG"
+    else
+      LATESTTAG=$(git tag | tail -1)
+      LATESTVERS=${LATESTTAG#?}
+      if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
+      echo "##vso[task.setvariable variable=version]$LATESTVERS-b$(build)"
+    fi
+    echo $(version)
+  displayName: 'Set version variable'

@@ -38,7 +38,7 @@ func TestKubeFile(t *testing.T) {
 	opt.Endpoint = ""
 	opt.KubeFile = "~/.kube/config"
 	if _, err := NewExecutor(&opt); err != nil {
-		t.Errorf("Error when using existing namespace default: %s", err.Error())
+		t.Errorf("Error when using existing namespace %s: %s", opt.Namespace, err.Error())
 	}
 }
 
@@ -46,10 +46,31 @@ func TestNonExistentNamespace(t *testing.T) {
 	opt := baseOpt
 	opt.Namespace = "connect_factory_test"
 	if _, err := NewExecutor(&opt); err != nil {
-		t.Errorf("Error when using existing namespace default: %s", err.Error())
+		t.Errorf("Error when using existing namespace %s: %s", opt.Namespace, err.Error())
 	}
 	if _, err := config.GetNamespace(opt.Namespace); err != nil {
 		t.Errorf("Error retrieving namespace: %s", err.Error())
+	}
+}
+
+func TestNonEmptyNamespace(t *testing.T) {
+	opt := baseOpt
+	if err := config.AddController(opt.Namespace, config.Controller{}); err != nil {
+		t.Errorf("Error adding Controller to config")
+	}
+	if _, err := NewExecutor(&opt); err == nil {
+		t.Errorf("Expected error when using non-empty namespace")
+	}
+}
+
+func TestOverwiteNamespace(t *testing.T) {
+	opt := baseOpt
+	if err := config.AddAgent(opt.Namespace, config.Agent{}); err != nil {
+		t.Errorf("Error adding Agent to config")
+	}
+	opt.OverwriteNamespace = true
+	if _, err := NewExecutor(&opt); err != nil {
+		t.Errorf("Error overwriting existing namespace %s: %s", opt.Namespace, err.Error())
 	}
 }
 

@@ -45,7 +45,7 @@ func connect(opt *Options, endpoint string) error {
 		agentConfig := config.Agent{
 			Name: agent.Name,
 			UUID: agent.UUID,
-			Host: agent.IPAddress,
+			Host: agent.IPAddressExternal,
 		}
 		err = config.AddAgent(opt.Namespace, agentConfig)
 		if err != nil {

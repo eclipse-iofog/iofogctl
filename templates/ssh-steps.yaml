@@ -1,0 +1,10 @@
+steps:
+- task: InstallSSHKey@0
+  inputs:
+    knownHostsEntry: $(ssh.github.knownhost)
+    sshPublicKey: $(ssh.user.pub)
+    sshKeySecureFile: id_rsa
+- task: DownloadSecureFile@1
+  displayName: 'Download SSH keys to'
+  inputs:
+    secureFile: 'id_rsa'

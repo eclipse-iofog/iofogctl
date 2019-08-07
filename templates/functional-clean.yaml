@@ -1,0 +1,22 @@
+steps:
+# Publish Test Results
+# Publish test results to Azure Pipelines
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
+    testResultsFiles: 'results-*.xml' 
+    searchFolder: '$(modulePath)/test/conf' # Optional
+    #mergeTestResults: false # Optional
+    #failTaskOnFailedTests: false # Optional
+    #testRunTitle: # Optional
+    #buildPlatform: # Optional
+    #buildConfiguration: # Optional
+    #publishRunAttachments: true # Optional
+  displayName: 'Publish test results'
+- script: |
+    for IDX in $(seq 1 $(vm_count)); do
+      gcloud compute --project=$(gcp.project.name) instances delete iofogctl-ci-$(jobuuid)-$IDX --zone=$(zone) --delete-disks=all -q
+    done
+  displayName: 'Teardown VMs'
+  condition: always()
