@@ -122,6 +122,7 @@ stages:
         artifactName: iofogctl-osx
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
+        mkdir bin
         cp $(System.DefaultWorkingDirectory)/iofogctl-osx/iofogctl bin/
       displayName: 'Download OSX Binary'
       workingDirectory: '$(modulePath)'
