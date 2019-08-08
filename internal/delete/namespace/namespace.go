@@ -32,7 +32,7 @@ func Execute(name string) error {
 
 	// Check resources exist
 	hasAgents := len(ns.Agents) > 0
-	hasControllers := len(ns.Controllers) > 0
+	hasControllers := len(ns.ControlPlane.Controllers) > 0
 	hasMicroservices := len(ns.Microservices) > 0
 	if hasAgents || hasControllers || hasMicroservices {
 		return util.NewInputError("Namespace " + name + " not empty")

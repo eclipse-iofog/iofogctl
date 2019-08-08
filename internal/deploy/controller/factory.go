@@ -48,8 +48,8 @@ func NewExecutor(opt *Options) (Executor, error) {
 	}
 
 	// Check there is only a single unique controller in the namespace
-	if len(ns.Controllers) > 0 {
-		existingName := ns.Controllers[0].Name
+	if len(ns.ControlPlane.Controllers) > 0 {
+		existingName := ns.ControlPlane.Controllers[0].Name
 		if existingName != opt.Name {
 			return nil, util.NewInputError("Controller " + existingName + " already exists in namespace " + opt.Namespace + "\nDelete the existing Controller before making a new one")
 		}
@@ -58,7 +58,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 	// Local executor
 	if opt.Local == true {
 		// Check the namespace does not contain a Controller yet
-		nbControllers := len(ns.Controllers)
+		nbControllers := len(ns.ControlPlane.Controllers)
 		if nbControllers > 0 {
 			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
 		}

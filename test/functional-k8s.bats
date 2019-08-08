@@ -121,20 +121,21 @@ NS=$(echo "$NAMESPACE""-k8s")
 #}
 
 @test "Deploy Controller from file for idempotence" {
-  echo "controllers:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
-  iofoguser:
-    name: Testing
-    surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV" > test/conf/k8s.yaml
+  echo "controlplane:
+  controllers:
+  - name: $NAME
+    kubeconfig: $KUBE_CONFIG
+    images:
+      controller: $CONTROLLER_IMAGE
+      connector: $CONNECTOR_IMAGE
+      scheduler: $SCHEDULER_IMAGE
+      operator: $OPERATOR_IMAGE
+      kubelet: $KUBELET_IMAGE
+    iofoguser:
+      name: Testing
+      surname: Functional
+      email: user@domain.com
+      password: S5gYVgLEZV" > test/conf/k8s.yaml
 
   test iofogctl -q -n "$NS" deploy -f test/conf/k8s.yaml
   checkController

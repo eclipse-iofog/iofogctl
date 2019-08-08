@@ -44,7 +44,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 	}
 
 	// Check Controller exists
-	nbControllers := len(ns.Controllers)
+	nbControllers := len(ns.ControlPlane.Controllers)
 	if nbControllers != 1 {
 		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", nbControllers)
 		return nil, util.NewInputError(errMessage)
