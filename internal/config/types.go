@@ -40,7 +40,7 @@ type ControlPlane struct {
 	Database     Database
 	LoadBalancer Loadbalancer
 	Controllers  []Controller
-	Connectors    []Connector
+	Connectors   []Connector
 }
 
 type Connector struct {
