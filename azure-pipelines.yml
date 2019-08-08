@@ -77,6 +77,7 @@ stages:
         done
       displayName: 'Wait for VM SSH access'
     - script: |
+        set -o pipefail
         test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
@@ -104,6 +105,7 @@ stages:
     - script: echo "##vso[task.setvariable variable=vm_count]2"
     - template: templates/functional-steps.yaml
     - script: |
+        set -o pipefail
         test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
