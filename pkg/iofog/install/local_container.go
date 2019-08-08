@@ -18,6 +18,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -266,7 +267,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	}
 
 	// Pull image
-	_, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig.Image))
+	reader, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig.Image))
 	imageTag := getImageTag(containerConfig.Image)
 	if err != nil {
 		fmt.Printf("Could not pull image: %v, listing local images...\n", err)
@@ -292,6 +293,11 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 			return "", err
 		}
 	} else {
+		defer reader.Close()
+		_, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return "", err
+		}
 		// Wait for image to be discoverable by docker daemon
 		err = lc.waitForImage(imageTag, 0)
 		if err != nil {
