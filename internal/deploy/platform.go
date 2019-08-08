@@ -183,7 +183,7 @@ func Execute(opt *Options) error {
 
 	// If no controller is provided, one must already exist
 	if len(opt.Controllers) == 0 {
-		if len(ns.Controllers) == 0 {
+		if len(ns.ControlPlane.Controllers) == 0 {
 			return util.NewInputError("If you are not deploying a new controller, one must exist in the specified namespace")
 		}
 	}

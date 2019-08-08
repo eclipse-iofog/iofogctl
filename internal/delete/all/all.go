@@ -39,7 +39,7 @@ func Execute(namespace string) error {
 	}
 
 	// Delete controllers
-	for _, ctrl := range ns.Controllers {
+	for _, ctrl := range ns.ControlPlane.Controllers {
 		exe, err := deletecontroller.NewExecutor(namespace, ctrl.Name)
 		if err != nil {
 			return err

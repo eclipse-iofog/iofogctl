@@ -45,7 +45,7 @@ func NewExecutor(opt *Options) (Executor, error) {
 			}
 		} else {
 			// Check the namespace is empty
-			if len(ns.Agents) != 0 || len(ns.Controllers) != 0 || len(ns.Microservices) != 0 {
+			if len(ns.Agents) != 0 || len(ns.ControlPlane.Controllers) != 0 || len(ns.Microservices) != 0 {
 				return nil, util.NewInputError("You must use an empty or non-existent namespace")
 			}
 		}

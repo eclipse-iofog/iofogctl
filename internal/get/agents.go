@@ -45,7 +45,7 @@ func generateAgentOutput(namespace string) error {
 	if err != nil {
 		return err
 	}
-	if len(ns.Controllers) > 1 {
+	if len(ns.ControlPlane.Controllers) > 1 {
 		return util.NewInternalError("Expected 0 or 1 controller in namespace " + namespace)
 	}
 
@@ -59,12 +59,12 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Connect to Controller if it is ready
-	if len(ns.Controllers) > 0 && ns.Controllers[0].Endpoint != "" {
+	if len(ns.ControlPlane.Controllers) > 0 && ns.ControlPlane.Controllers[0].Endpoint != "" {
 		// Instantiate client
-		ctrl := client.New(ns.Controllers[0].Endpoint)
+		ctrl := client.New(ns.ControlPlane.Controllers[0].Endpoint)
 		loginRequest := client.LoginRequest{
-			Email:    ns.Controllers[0].IofogUser.Email,
-			Password: ns.Controllers[0].IofogUser.Password,
+			Email:    ns.ControlPlane.Controllers[0].IofogUser.Email,
+			Password: ns.ControlPlane.Controllers[0].IofogUser.Password,
 		}
 		// Log into Controller
 		if err := ctrl.Login(loginRequest); err != nil {

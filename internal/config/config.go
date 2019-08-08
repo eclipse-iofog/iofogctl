@@ -91,7 +91,7 @@ func GetAgents(namespace string) ([]Agent, error) {
 func GetControllers(namespace string) ([]Controller, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			return ns.Controllers, nil
+			return ns.ControlPlane.Controllers, nil
 		}
 	}
 	return nil, util.NewNotFoundError(namespace)
@@ -123,7 +123,7 @@ func GetNamespace(name string) (namespace Namespace, err error) {
 func GetController(namespace, name string) (controller Controller, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			for _, ctrl := range ns.Controllers {
+			for _, ctrl := range ns.ControlPlane.Controllers {
 				if ctrl.Name == name {
 					controller = ctrl
 					return
@@ -190,9 +190,9 @@ func UpdateController(namespace string, controller Controller) error {
 		return err
 	}
 	// Update existing controller if exists
-	for idx := range ns.Controllers {
-		if ns.Controllers[idx].Name == controller.Name {
-			ns.Controllers[idx] = controller
+	for idx := range ns.ControlPlane.Controllers {
+		if ns.ControlPlane.Controllers[idx].Name == controller.Name {
+			ns.ControlPlane.Controllers[idx] = controller
 			return nil
 		}
 	}
@@ -234,7 +234,7 @@ func AddController(namespace string, controller Controller) error {
 	}
 
 	// Append the controller
-	ns.Controllers = append(ns.Controllers, controller)
+	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
 
 	return nil
 }
@@ -294,9 +294,9 @@ func DeleteController(namespace, name string) error {
 		return err
 	}
 
-	for idx := range ns.Controllers {
-		if ns.Controllers[idx].Name == name {
-			ns.Controllers = append(ns.Controllers[:idx], ns.Controllers[idx+1:]...)
+	for idx := range ns.ControlPlane.Controllers {
+		if ns.ControlPlane.Controllers[idx].Name == name {
+			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
 			return nil
 		}
 	}

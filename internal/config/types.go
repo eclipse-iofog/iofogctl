@@ -23,6 +23,29 @@ type IofogUser struct {
 	Password string `mapstructure:"password"`
 }
 
+type Database struct {
+	Type     string
+	Host     string
+	Port     int
+	User     string
+	Password string
+}
+
+type Loadbalancer struct {
+	Host string
+	Port int
+}
+
+type ControlPlane struct {
+	Database     Database
+	LoadBalancer Loadbalancer
+	Controllers  []Controller
+}
+
+type Connector struct {
+	// TODO
+}
+
 // Controller contains information for configuring a controller
 type Controller struct {
 	Name              string            `mapstructure:"name"`
@@ -97,8 +120,9 @@ type Application struct {
 
 // Namespace contains information for configuring a namespace
 type Namespace struct {
-	Name          string         `mapstructure:"name"`
-	Controllers   []Controller   `mapstructure:"controllers"`
+	Name          string `mapstructure:"name"`
+	ControlPlane  ControlPlane
+	Connectors    []Connector
 	Agents        []Agent        `mapstructure:"agents"`
 	Microservices []Microservice `mapstructure:"microservices"`
 	Created       string         `mapstructure:"created"`
