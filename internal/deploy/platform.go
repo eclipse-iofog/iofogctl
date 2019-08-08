@@ -26,10 +26,10 @@ import (
 
 type Options struct {
 	Namespace     string
-	Controllers   []config.Controller   `mapstructure:"controllers"`
-	Agents        []config.Agent        `mapstructure:"agents"`
-	Microservices []config.Microservice `mapstructure:"microservices"`
-	Applications  []config.Application  `mapstructure:"applications"`
+	ControlPlane  config.ControlPlane
+	Agents        []config.Agent
+	Microservices []config.Microservice
+	Applications  []config.Application
 }
 
 type agentJobResult struct {
@@ -177,19 +177,19 @@ func Execute(opt *Options) error {
 	}
 
 	// If there are no resources return error
-	if len(opt.Controllers) == 0 && len(opt.Agents) == 0 && len(opt.Applications) == 0 {
+	if len(opt.ControlPlane.Controllers) == 0 && len(opt.Agents) == 0 && len(opt.Applications) == 0 {
 		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
 
 	// If no controller is provided, one must already exist
-	if len(opt.Controllers) == 0 {
+	if len(opt.ControlPlane.Controllers) == 0 {
 		if len(ns.ControlPlane.Controllers) == 0 {
 			return util.NewInputError("If you are not deploying a new controller, one must exist in the specified namespace")
 		}
 	}
 
 	// Deploy Controllers
-	if err = deployControllers(opt.Namespace, opt.Controllers); err != nil {
+	if err = deployControllers(opt.Namespace, opt.ControlPlane.Controllers); err != nil {
 		return err
 	}
 

@@ -61,8 +61,8 @@ microservices: [] # See iofogctl deploy microservices
 			util.Check(err)
 
 			// Pre-process inputs
-			for idx := range opt.Controllers {
-				ctrl := &opt.Controllers[idx]
+			for idx := range opt.ControlPlane.Controllers {
+				ctrl := &opt.ControlPlane.Controllers[idx]
 				// Fix SSH port
 				if ctrl.Port == 0 {
 					ctrl.Port = 22
