@@ -77,9 +77,14 @@ stages:
         done
       displayName: 'Wait for VM SSH access'
     - script: |
-        test/run.bash functional-vanilla | tap-junit -s Vanilla -o test/conf -n results-functional-vanilla.xml
+        test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
+    - script: |
+        tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml
+      workingDirectory: '$(modulePath)'
+      displayName: 'Convert test output from TAP to JUnit'
+      condition: succeededOrFailed()
     - template: templates/functional-clean.yaml
   - job: K8s
     pool:
@@ -99,9 +104,14 @@ stages:
     - script: echo "##vso[task.setvariable variable=vm_count]2"
     - template: templates/functional-steps.yaml
     - script: |
-        test/run.bash functional-k8s  | tap-junit -s K8s -o test/conf -n results-functional-k8s.xml
+        test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
+    - script: |
+        tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml
+      workingDirectory: '$(modulePath)'
+      displayName: 'Convert test output from TAP to JUnit'
+      condition: succeededOrFailed()
     - script: |
           test/clean.bash $(jobuuid)
       workingDirectory: '$(modulePath)'
