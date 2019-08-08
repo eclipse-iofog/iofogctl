@@ -17,10 +17,10 @@ import "github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
-	Name     string `mapstructure:"name"`
-	Surname  string `mapstructure:"surname"`
-	Email    string `mapstructure:"email"`
-	Password string `mapstructure:"password"`
+	Name     string
+	Surname  string
+	Email    string
+	Password string
 }
 
 type Database struct {
@@ -40,6 +40,7 @@ type ControlPlane struct {
 	Database     Database
 	LoadBalancer Loadbalancer
 	Controllers  []Controller
+	Connectors    []Connector
 }
 
 type Connector struct {
@@ -48,31 +49,31 @@ type Connector struct {
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name              string            `mapstructure:"name"`
-	User              string            `mapstructure:"user"`
-	Host              string            `mapstructure:"host"`
-	Port              int               `mapstructure:"port"`
-	KeyFile           string            `mapstructure:"keyfile"`
-	KubeConfig        string            `mapstructure:"kubeconfig"`
-	KubeControllerIP  string            `mapstructure:"kubecontrollerip"`
-	Endpoint          string            `mapstructure:"endpoint"`
-	IofogUser         IofogUser         `mapstructure:"iofoguser"`
-	Created           string            `mapstructure:"created"`
-	Images            map[string]string `mapstructure:"images"`
-	Version           string            `mapstructure:"version"`
-	PackageCloudToken string            `mapstructure:"packagecloudtoken"`
+	Name              string
+	User              string
+	Host              string
+	Port              int
+	KeyFile           string
+	KubeConfig        string
+	KubeControllerIP  string
+	Endpoint          string
+	IofogUser         IofogUser
+	Created           string
+	Images            map[string]string
+	Version           string
+	PackageCloudToken string
 }
 
 // Agent contains information for configuring an agent
 type Agent struct {
-	Name    string `mapstructure:"name"`
-	User    string `mapstructure:"user"`
-	Host    string `mapstructure:"host"`
-	Port    int    `mapstructure:"port"`
-	KeyFile string `mapstructure:"keyfile"`
-	UUID    string `mapstructure:"uuid"`
-	Created string `mapstructure:"created"`
-	Image   string `mapstructure:"image"`
+	Name    string
+	User    string
+	Host    string
+	Port    int
+	KeyFile string
+	UUID    string
+	Created string
+	Image   string
 }
 
 // MicroserviceImages contains information about the images for a microservice
@@ -120,15 +121,14 @@ type Application struct {
 
 // Namespace contains information for configuring a namespace
 type Namespace struct {
-	Name          string `mapstructure:"name"`
+	Name          string
 	ControlPlane  ControlPlane
-	Connectors    []Connector
-	Agents        []Agent        `mapstructure:"agents"`
-	Microservices []Microservice `mapstructure:"microservices"`
-	Created       string         `mapstructure:"created"`
+	Agents        []Agent
+	Microservices []Microservice
+	Created       string
 }
 
 // configuration contains the unmarshalled configuration file
 type configuration struct {
-	Namespaces []Namespace `mapstructure:"namespaces"`
+	Namespaces []Namespace
 }
