@@ -14,9 +14,3 @@ steps:
     #buildConfiguration: # Optional
     #publishRunAttachments: true # Optional
   displayName: 'Publish test results'
-- script: |
-    for IDX in $(seq 1 $(vm_count)); do
-      gcloud compute --project=$(gcp.project.name) instances delete iofogctl-ci-$(jobuuid)-$IDX --zone=$(zone) --delete-disks=all -q
-    done
-  displayName: 'Teardown VMs'
-  condition: always()

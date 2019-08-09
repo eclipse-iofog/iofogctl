@@ -82,7 +82,7 @@ func sanitizeContainerName(name string) string {
 // NewAgentConfig generates a static agent config
 func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig) *LocalAgentConfig {
 	if image == "" {
-		image = "docker.io/iofog/agent"
+		image = "docker.io/iofog/agent:latest"
 	}
 	return &LocalAgentConfig{
 		LocalContainerConfig: LocalContainerConfig{
@@ -106,7 +106,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 func NewLocalControllerConfig(name string, images map[string]string) *LocalControllerConfig {
 	controllerImg, exists := images["controller"]
 	if !exists {
-		controllerImg = "docker.io/iofog/controller"
+		controllerImg = "docker.io/iofog/controller:latest"
 	}
 	containerMap := make(map[string]*LocalContainerConfig)
 	containerMap["controller"] = &LocalContainerConfig{
@@ -121,7 +121,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 
 	connectorImg, exists := images["connector"]
 	if !exists {
-		connectorImg = "docker.io/iofog/connector"
+		connectorImg = "docker.io/iofog/connector:latest"
 	}
 
 	containerMap["connector"] = &LocalContainerConfig{

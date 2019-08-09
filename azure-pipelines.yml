@@ -70,7 +70,8 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - template: templates/functional-steps.yaml
+    - template: templates/functional-init-vm-steps.yaml
+    - template: templates/functional-configure.yaml
     - script: |
         for IDX in $(seq 1 $(vm_count)); do
           gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(zone) -- ls /
@@ -86,7 +87,39 @@ stages:
       workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
-    - template: templates/functional-clean.yaml
+    - template: templates/functional-post-test.yaml
+    - template: templates/functional-clean-vm.yaml
+  - job: Local
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - template: templates/workdir-steps.yaml
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: iofogctl-linux
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - script: |
+        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+        sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/postinstall-steps.yaml
+    - template: templates/functional-configure.yaml
+    - script: |
+        set -o pipefail
+        test/run.bash functional-local | tee test/conf/results-functional-local.tap
+      workingDirectory: '$(modulePath)'
+      displayName: 'Run Functional Tests'
+    - script: |
+        tap-junit -i test/conf/results-functional-local.tap -o test/conf -s Local -n results-functional-local.xml
+      workingDirectory: '$(modulePath)'
+      displayName: 'Convert test output from TAP to JUnit'
+      condition: succeededOrFailed()
+    - template: templates/functional-post-test.yaml
+    - script: |
+        docker system prune -af
+      workingDirectory: '$(modulePath)'
+      condition: always()
+      displayName: 'Clean local docker'
   - job: K8s
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -103,7 +136,8 @@ stages:
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: echo "##vso[task.setvariable variable=vm_count]2"
-    - template: templates/functional-steps.yaml
+    - template: templates/functional-init-vm-steps.yaml
+    - template: templates/functional-configure.yaml
     - script: |
         set -o pipefail
         test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
@@ -119,8 +153,8 @@ stages:
       workingDirectory: '$(modulePath)'
       displayName: 'Clean K8s Cluster'
       condition: failed()
-    - template: templates/functional-clean.yaml
-
+    - template: templates/functional-post-test.yaml
+    - template: templates/functional-clean-vm.yaml
 - stage: Publish
   jobs:
   - job: OSX

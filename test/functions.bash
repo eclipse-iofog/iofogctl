@@ -68,6 +68,12 @@ function initApplicationFiles() {
   echo "$ROUTES" | awk '{print "   ", $0}' >> test/conf/root_application.yaml
 }
 
+function initLocalAgentFile() {
+  echo "agents:
+    - name: ${NAME}_0
+      host: 127.0.0.1" >> test/conf/local-agent.yaml
+}
+
 function initAgentsFile() {
   initAgents
   echo "agents:" > test/conf/agents.yaml
@@ -166,17 +172,27 @@ function checkApplicationNegative() {
   [[ "$MSVC2_NAME" != $(iofogctl -q -n "$NS" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
 }
 
+function checkAgent() {
+  AGENT_NAME=$1
+  [[ "$AGENT_NAME" == $(iofogctl -q -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -q -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
+}
+
+function checkAgentNegative() {
+  AGENT_NAME=$1
+  [[ "$AGENT_NAME" != $(iofogctl -q -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+}
+
 function checkAgents() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_$(((IDX++)))"
-    [[ "$AGENT_NAME" == $(iofogctl -q -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-    [[ ! -z $(iofogctl -q -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
+    checkAgent "$AGENT_NAME"
   done
 }
 
 function checkAgentsNegative() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_$(((IDX++)))"
-    [[ "$AGENT_NAME" != $(iofogctl -q -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+    checkAgentNegative "$AGENT_NAME"
   done
 }

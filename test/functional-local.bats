@@ -3,52 +3,33 @@
 . test/functions.bash
 . test/functional.vars.bash
 
-NS=$(echo "$NAMESPACE""-vanilla")
-
-# TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
-#@test "Deploy vanilla Controller" {
-#  initVanillaController
-#  test iofogctl -q -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
-#  checkController
-#}
+NS=$(echo "$NAMESPACE""-local")
 
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
 }
 
-@test "Deploy vanilla Controller" {
-  initVanillaController
+@test "Deploy local Controller" {
   echo "controlplane:
   controllers:
   - name: $NAME
-    user: $VANILLA_USER
-    host: $VANILLA_HOST
-    port: $VANILLA_PORT
-    keyfile: $KEY_FILE
+    host: 127.0.0.1
     version: $VANILLA_VERSION
     packagecloudtoken: $PACKAGE_CLOUD_TOKEN
     iofoguser:
       name: Testing
       surname: Functional
       email: user@domain.com
-      password: S5gYVgLEZV" > test/conf/vanilla.yaml
+      password: S5gYVgLEZV" > test/conf/local.yaml
 
-  test iofogctl -q -n "$NS" deploy -f test/conf/vanilla.yaml
+  test iofogctl -q -n "$NS" deploy -f test/conf/local.yaml
   checkController
 }
 
-@test "Controller legacy commands after vanilla deploy" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
-}
-
-@test "Get Controller logs after vanilla deploy" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
-}
-
-@test "Deploy Agents against vanilla Controller" {
-  initAgentsFile
-  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
-  checkAgents
+@test "Deploy Agents against local Controller" {
+  initLocalAgentFile
+  test iofogctl -q -n "$NS" deploy -f test/conf/local-agent.yaml
+  checkAgent "${NAME}_0"
 }
 
 @test "Deploy application" {
@@ -76,7 +57,7 @@ NS=$(echo "$NAMESPACE""-vanilla")
 @test "Delete all" {
   test iofogctl -q -n "$NS" delete all
   checkControllerNegative
-  checkAgentsNegative
+  checkAgentNegative "${NAME}_0"
 }
 
 @test "Delete namespace" {
