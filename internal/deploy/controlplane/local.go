@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontroller
+package deploycontrolplane
 
 import (
 	"fmt"
@@ -26,22 +26,24 @@ import (
 )
 
 type localExecutor struct {
-	opt                   *Options
+	namespace             string
+	ctrl                  config.Controller
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalControllerConfig
 	localUserConfig       *install.LocalUserConfig
 	containersNames       []string
 }
 
-func newLocalExecutor(opt *Options, client *install.LocalContainer) *localExecutor {
-	if opt.IofogUser.Email == "" {
-		opt.IofogUser = config.NewRandomUser()
+func newLocalExecutor(namespace string, ctrl config.Controller, client *install.LocalContainer) *localExecutor {
+	if ctrl.IofogUser.Email == "" {
+		ctrl.IofogUser = config.NewRandomUser()
 	}
 	return &localExecutor{
-		opt:                   opt,
+		namespace:             namespace,
+		ctrl:                  ctrl,
 		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(opt.Name, opt.Images),
-		localUserConfig:       &install.LocalUserConfig{opt.IofogUser},
+		localControllerConfig: install.NewLocalControllerConfig(ctrl.Name, ctrl.Images),
+		localUserConfig:       &install.LocalUserConfig{ctrl.IofogUser},
 	}
 }
 
@@ -155,7 +157,7 @@ func (exe *localExecutor) install() error {
 	return nil
 }
 
-func (exe *localExecutor) Execute() error {
+func (exe *localExecutor) execute() error {
 	defer util.SpinStop()
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 
@@ -181,14 +183,14 @@ func (exe *localExecutor) Execute() error {
 
 	// Update configuration
 	configEntry := config.Controller{
-		Name:      exe.opt.Name,
+		Name:      exe.ctrl.Name,
 		User:      currUser.Username,
 		Endpoint:  fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
 		Host:      controllerContainerConfig.Host,
-		Images:    exe.opt.Images,
+		Images:    exe.ctrl.Images,
 		IofogUser: exe.localUserConfig.IofogUser,
 	}
-	err = config.AddController(exe.opt.Namespace, configEntry)
+	err = config.AddController(exe.namespace, configEntry)
 	if err != nil {
 		exe.cleanContainers()
 		return err

@@ -11,20 +11,14 @@
  *
  */
 
-package deployagent
+package deploycontrolplane
 
 import (
-	"fmt"
-	"sync"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"sync"
 )
-
-type executor interface {
-	execute() error
-}
 
 type Options struct {
 	Namespace string
@@ -38,34 +32,24 @@ type jobResult struct {
 
 func Deploy(opt Options) error {
 	// Check the namespace exists
-	_, err := config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return err
 	}
 
 	// Read the input file
-	agents, err := UnmarshallYAML(opt.InputFile)
+	spec, err := UnmarshallYAML(opt.InputFile)
 	if err != nil {
 		return err
 	}
 
 	// Instantiate wait group for parallel tasks
 	var wg sync.WaitGroup
-	localAgentCount := 0
-	errChan := make(chan jobResult, len(agents))
-	for _, agent := range agents {
-
-		// Check local deploys
-		if util.IsLocalHost(agent.Host) {
-			localAgentCount++
-			if localAgentCount > 1 {
-				fmt.Printf("Agent [%v] not deployed, you can only run one local agent.\n", agent.Name)
-				continue
-			}
-		}
-
+	// Deploy controllers
+	errChan := make(chan jobResult, len(spec.Controllers))
+	for idx := range spec.Controllers {
 		var exe executor
-		exe, err := newExecutor(opt.Namespace, agent)
+		exe, err = newExecutor(ns.Name, spec.Controllers[idx])
 		if err != nil {
 			return err
 		}
@@ -78,7 +62,7 @@ func Deploy(opt Options) error {
 				err:  err,
 				name: name,
 			}
-		}(agent.Name)
+		}(spec.Controllers[idx].Name)
 	}
 	wg.Wait()
 	close(errChan)
@@ -90,45 +74,57 @@ func Deploy(opt Options) error {
 			failed = true
 			util.PrintNotify("Failed to deploy " + result.name + ". " + result.err.Error())
 		}
+	}
 
-		if failed {
-			return util.NewError("Failed to deploy one or more resources")
-		}
+	if failed {
+		return util.NewError("Failed to deploy one or more resources")
 	}
 
 	return nil
 }
 
-func newExecutor(namespace string, agent config.Agent) (executor, error) {
-	// Check the namespace exists
+type executor interface {
+	execute() error
+}
+
+func newExecutor(namespace string, ctrl config.Controller) (executor, error) {
+	// Get the namespace
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check Controller exists
-	nbControllers := len(ns.ControlPlane.Controllers)
-	if nbControllers != 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", nbControllers)
-		return nil, util.NewInputError(errMessage)
-	}
-
 	// Local executor
-	if util.IsLocalHost(agent.Host) {
+	if util.IsLocalHost(ctrl.Host) {
+		// Check the namespace does not contain a Controller yet
+		nbControllers := len(ns.ControlPlane.Controllers)
+		if nbControllers > 0 {
+			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
+		}
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}
-		exe, err := newLocalExecutor(namespace, agent, cli)
-		if err != nil {
-			return nil, err
-		}
-		return exe, nil
+		return newLocalExecutor(namespace, ctrl, cli), nil
+	}
+
+	// Kubernetes executor
+	if ctrl.KubeConfig != "" {
+		// TODO: re-enable specifying images
+		// If image file specified, read it
+		//if ctrl.ImagesFile != "" {
+		//	ctrl.Images = make(map[string]string)
+		//	err := util.UnmarshalYAML(opt.ImagesFile, opt.Images)
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//}
+		return newKubernetesExecutor(namespace, ctrl), nil
 	}
 
 	// Default executor
-	if agent.Host == "" || agent.KeyFile == "" || agent.User == "" {
+	if ctrl.Host == "" || ctrl.KeyFile == "" || ctrl.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	return newRemoteExecutor(namespace, agent), nil
+	return newRemoteExecutor(namespace, ctrl), nil
 }

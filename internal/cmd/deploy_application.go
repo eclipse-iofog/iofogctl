@@ -14,18 +14,14 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
+	"github.com/eclipse-iofog/iofogctl/internal/deploy/application"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newDeployApplicationCommand() *cobra.Command {
 	// Instantiate options
-	opt := &config.Application{}
-	filename := ""
+	var opt deployapplication.Options
 
 	// Instantiate command
 	cmd := &cobra.Command{
@@ -80,28 +76,20 @@ routes:
  ` + "\n```\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			// Unmarshall the input file
-			err = util.UnmarshalYAML(filename, &opt)
-			util.Check(err)
-
 			// Get namespace
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
-
-			// Get executor for command
-			executor, err := deployapplication.NewExecutor(namespace, opt)
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
 			// Execute the command
-			err = executor.Execute()
+			err = deployapplication.Deploy(opt)
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Successfully deployed application %s to namespace %s", opt.Name, namespace))
+			util.PrintSuccess("Successfully deployed Applications to namespace " + opt.Namespace)
 		},
 	}
 
 	// Register flags
-	cmd.Flags().StringVarP(&filename, "file", "f", "", "YAML file containing application definition")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing application definition")
 
 	return cmd
 }

@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontroller
+package deploycontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -20,30 +20,32 @@ import (
 )
 
 type kubernetesExecutor struct {
-	opt *Options
+	namespace string
+	ctrl      config.Controller
 }
 
-func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, ctrl config.Controller) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
-	k.opt = opt
+	k.namespace = namespace
+	k.ctrl = ctrl
 	return k
 }
 
-func (exe *kubernetesExecutor) Execute() (err error) {
+func (exe *kubernetesExecutor) execute() (err error) {
 	// Get Kubernetes cluster
-	k8s, err := install.NewKubernetes(exe.opt.KubeConfig, exe.opt.Namespace)
+	k8s, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	if err = k8s.SetImages(exe.opt.Images); err != nil {
+	if err = k8s.SetImages(exe.ctrl.Images); err != nil {
 		return err
 	}
-	k8s.SetControllerIP(exe.opt.KubeControllerIP)
+	k8s.SetControllerIP(exe.ctrl.KubeControllerIP)
 
 	// Update configuration before we try to deploy in case of failure
-	configEntry, err := prepareUserAndSaveConfig(exe.opt)
+	configEntry, err := prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
 	if err != nil {
 		return
 	}
@@ -61,7 +63,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 
 	// Update configuration
 	configEntry.Endpoint = endpoint
-	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
+	if err = config.UpdateController(exe.namespace, configEntry); err != nil {
 		return
 	}
 

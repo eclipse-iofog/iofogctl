@@ -24,7 +24,7 @@ import (
 
 type remoteExecutor struct {
 	namespace          string
-	opt                *config.Application
+	app                *config.Application
 	microserviceByName map[string]*config.Microservice
 	client             *client.Client
 	agentsByName       map[string]*client.AgentInfo
@@ -40,11 +40,11 @@ func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.
 	return
 }
 
-func newRemoteExecutor(namespace string, opt *config.Application) *remoteExecutor {
+func newRemoteExecutor(namespace string, app *config.Application) *remoteExecutor {
 	exe := &remoteExecutor{
 		namespace:          namespace,
-		opt:                opt,
-		microserviceByName: microserviceArrayToMap(opt.Microservices),
+		app:                app,
+		microserviceByName: microserviceArrayToMap(app.Microservices),
 	}
 
 	return exe
@@ -53,7 +53,7 @@ func newRemoteExecutor(namespace string, opt *config.Application) *remoteExecuto
 //
 // Deploy application using remote controller
 //
-func (exe *remoteExecutor) Execute() (err error) {
+func (exe *remoteExecutor) execute() (err error) {
 	// Get Controllers from namespace
 	controllers, err := config.GetControllers(exe.namespace)
 
@@ -115,7 +115,7 @@ func (exe *remoteExecutor) init(controller *config.Controller) (err error) {
 
 func (exe *remoteExecutor) validate() (err error) {
 	// Validate routes
-	for _, route := range exe.opt.Routes {
+	for _, route := range exe.app.Routes {
 		if _, foundFrom := exe.microserviceByName[route.From]; !foundFrom {
 			return util.NewNotFoundError(fmt.Sprintf("Could not find origin microservice for the route %v", route))
 		}
@@ -125,7 +125,7 @@ func (exe *remoteExecutor) validate() (err error) {
 	}
 
 	// Validate microservice
-	for _, msvc := range exe.opt.Microservices {
+	for _, msvc := range exe.app.Microservices {
 		if _, foundAgent := exe.agentsByName[msvc.Agent.Name]; !foundAgent {
 			return util.NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
 		}
@@ -168,7 +168,7 @@ func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogI
 		{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
 	}
 	if msvc.Images.CatalogID == 0 {
-		catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.opt.Name, msvc.Name)
+		catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.app.Name, msvc.Name)
 		var found bool
 		catalogItem, found = exe.catalogByName[catalogItemName]
 		if found == true {
@@ -181,7 +181,7 @@ func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogI
 				// Create new catalog item
 				catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
 					Name:        catalogItemName,
-					Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
+					Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.app.Name),
 					Images:      catalogImages,
 					RegistryID:  msvc.Images.Registry,
 				})
@@ -193,7 +193,7 @@ func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogI
 			// Create new catalog item
 			catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
 				Name:        catalogItemName,
-				Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.opt.Name),
+				Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.app.Name),
 				Images:      catalogImages,
 				RegistryID:  msvc.Images.Registry,
 			})
@@ -208,7 +208,7 @@ func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogI
 }
 
 func (exe *remoteExecutor) createRoutes() (err error) {
-	for _, route := range exe.opt.Routes {
+	for _, route := range exe.app.Routes {
 		fromMsvc, _ := exe.microserviceByName[route.From]
 		toMsvc, _ := exe.microserviceByName[route.To]
 		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
@@ -223,13 +223,13 @@ func (exe *remoteExecutor) deploy() (err error) {
 
 	// Create flow
 	util.SpinStart("Creating flow")
-	flow, err := exe.client.CreateFlow(exe.opt.Name, fmt.Sprintf("Flow for application: %s", exe.opt.Name))
+	flow, err := exe.client.CreateFlow(exe.app.Name, fmt.Sprintf("Flow for application: %s", exe.app.Name))
 	if err != nil {
 		return
 	}
 
 	// Create microservices
-	for _, msvc := range exe.opt.Microservices {
+	for _, msvc := range exe.app.Microservices {
 		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
 
 		// Configure agent

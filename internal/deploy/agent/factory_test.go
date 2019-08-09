@@ -9,9 +9,6 @@
  *  * SPDX-License-Identifier: EPL-2.0
  *  *******************************************************************************
  *
- */
-
-package deployagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -106,3 +103,7 @@ func TestMultipleControllersInNamespace(t *testing.T) {
 		t.Error("Expected error in namespace with multiple Controllers")
 	}
 }
+
+*/
+
+package deployagent

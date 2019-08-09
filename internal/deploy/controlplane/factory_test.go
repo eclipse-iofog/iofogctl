@@ -9,9 +9,6 @@
  *  * SPDX-License-Identifier: EPL-2.0
  *  *******************************************************************************
  *
- */
-
-package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -81,3 +78,6 @@ func TestNoKeyFile(t *testing.T) {
 		t.Error("Expected error when no key file is specified")
 	}
 }
+*/
+
+package deploycontrolplane

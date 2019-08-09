@@ -22,68 +22,37 @@ import (
 func newDeployCommand() *cobra.Command {
 	// Instantiate options
 	opt := &deploy.Options{}
-	filename := ""
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use: "deploy",
-		Example: `deploy -f platform.yaml
-deploy [command]`,
-		Short: "Deploy ioFog platform or components on existing infrastructure",
+		Use:     "deploy",
+		Example: `deploy -f platform.yaml`,
+		Short:   "Deploy ioFog platform or components on existing infrastructure",
 		Long: `Deploy ioFog platform or individual components on existing infrastructure.
 
-A YAML resource definition file can be use in lieu of the subcommands to deploy Controllers, Agents, Applications and Microservices.
-
-The YAML resource definition file should look like this (two Controllers specified for example only):` + "\n```\n" +
-			`controllers:
-- name: k8s # Controller name
-  kubeconfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
-- name: vanilla 
-  user: serge # SSH user
-  host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
-  keyfile: ~/.ssh/id_rsa # SSH private key
-agents:
-- name: agent1 # Agent name
-  user: serge # SSH User
-  host: 35.239.157.151 # SSH host
-  keyfile: ~/.ssh/id_rsa # SSH private key
-- name: agent2
-  user: serge
-  host: 35.232.114.32
-  keyfile: ~/.ssh/id_rsa
-applications: [] # See iofogctl deploy application for an application yaml schema
-microservices: [] # See iofogctl deploy microservices
+The YAML resource specification file should look like this (two Controllers specified for example only):` + "\n```\n" +
+			`controlplane:
+	controllers:
+	- name: k8s # Controller name
+	  kubeconfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
+	- name: vanilla 
+	  user: serge # SSH user
+	  host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
+	  keyfile: ~/.ssh/id_rsa # SSH private key
+	agents:
+	- name: agent1 # Agent name
+	  user: serge # SSH User
+	  host: 35.239.157.151 # SSH host
+	  keyfile: ~/.ssh/id_rsa # SSH private key
+	- name: agent2
+	  user: serge
+	  host: 35.232.114.32
+	  keyfile: ~/.ssh/id_rsa
+	applications: [] # See iofogctl deploy application for an application yaml schema
+	microservices: [] # See iofogctl deploy microservices
 ` + "\n```\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			// Unmarshall the input file
-			err = util.UnmarshalYAML(filename, &opt)
-			util.Check(err)
-
-			// Pre-process inputs
-			for idx := range opt.ControlPlane.Controllers {
-				ctrl := &opt.ControlPlane.Controllers[idx]
-				// Fix SSH port
-				if ctrl.Port == 0 {
-					ctrl.Port = 22
-				}
-				// Format file paths
-				ctrl.KeyFile, err = util.FormatPath(ctrl.KeyFile)
-				util.Check(err)
-				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
-				util.Check(err)
-			}
-			for idx := range opt.Agents {
-				agent := &opt.Agents[idx]
-				// Fix SSH port
-				if agent.Port == 0 {
-					agent.Port = 22
-				}
-				// Format file paths
-				agent.KeyFile, err = util.FormatPath(agent.KeyFile)
-				util.Check(err)
-			}
-
 			// Get namespace
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
@@ -98,14 +67,13 @@ microservices: [] # See iofogctl deploy microservices
 
 	// Add subcommands
 	cmd.AddCommand(
-		newDeployControllerCommand(),
+		newDeployControlPlaneCommand(),
 		newDeployAgentCommand(),
-		newDeployMicroserviceCommand(),
 		newDeployApplicationCommand(),
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&filename, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
 
 	return cmd
 }

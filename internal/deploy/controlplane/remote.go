@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontroller
+package deploycontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -21,29 +21,31 @@ import (
 )
 
 type remoteExecutor struct {
-	opt *Options
+	namespace string
+	ctrl      config.Controller
 }
 
-func newRemoteExecutor(opt *Options) *remoteExecutor {
+func newRemoteExecutor(namespace string, ctrl config.Controller) *remoteExecutor {
 	d := &remoteExecutor{}
-	d.opt = opt
+	d.namespace = namespace
+	d.ctrl = ctrl
 	return d
 }
 
-func (exe *remoteExecutor) Execute() (err error) {
+func (exe *remoteExecutor) execute() (err error) {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
-		User:              exe.opt.User,
-		Host:              exe.opt.Host,
-		Port:              exe.opt.Port,
-		PrivKeyFilename:   exe.opt.KeyFile,
-		Version:           exe.opt.Version,
-		PackageCloudToken: exe.opt.PackageCloudToken,
+		User:              exe.ctrl.User,
+		Host:              exe.ctrl.Host,
+		Port:              exe.ctrl.Port,
+		PrivKeyFilename:   exe.ctrl.KeyFile,
+		Version:           exe.ctrl.Version,
+		PackageCloudToken: exe.ctrl.PackageCloudToken,
 	}
 	installer := install.NewController(controllerOptions)
 
 	// Update configuration before we try to deploy in case of failure
-	configEntry, err := prepareUserAndSaveConfig(exe.opt)
+	configEntry, err := prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
 	if err != nil {
 		return
 	}
@@ -64,8 +66,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Update configuration
-	configEntry.Endpoint = exe.opt.Host + ":" + iofog.ControllerPortString
-	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
+	configEntry.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
+	if err = config.UpdateController(exe.namespace, configEntry); err != nil {
 		return
 	}
 

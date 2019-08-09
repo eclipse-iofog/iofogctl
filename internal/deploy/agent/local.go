@@ -25,7 +25,8 @@ import (
 )
 
 type localExecutor struct {
-	opt              *Options
+	namespace        string
+	agent            config.Agent
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
@@ -42,9 +43,9 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(opt *Options, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent config.Agent, client *install.LocalContainer) (*localExecutor, error) {
 	// Get controllerConfig
-	controller, err := getController(opt.Namespace)
+	controller, err := getController(namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +53,10 @@ func newLocalExecutor(opt *Options, client *install.LocalContainer) (*localExecu
 	localControllerConfig := install.NewLocalControllerConfig(controller.Name, make(map[string]string))
 	controllerContainerConfig, _ := localControllerConfig.ContainerMap["controller"]
 	return &localExecutor{
-		opt:              opt,
+		namespace:        namespace,
+		agent:            agent,
 		client:           client,
-		localAgentConfig: install.NewLocalAgentConfig(opt.Name, opt.Image, controllerContainerConfig),
+		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Image, controllerContainerConfig),
 	}, nil
 }
 
@@ -63,7 +65,7 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
 	// Get Controller details
-	controller, err := getController(exe.opt.Namespace)
+	controller, err := getController(exe.namespace)
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +80,7 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	return agent.Configure(controller, user)
 }
 
-func (exe *localExecutor) Execute() error {
+func (exe *localExecutor) execute() error {
 	defer util.SpinStop()
 	// Get current user
 	currUser, err := user.Current()
@@ -88,8 +90,8 @@ func (exe *localExecutor) Execute() error {
 
 	// Deploy agent image
 	util.SpinStart("Deploying Agent container")
-	if exe.opt.Image == "" {
-		exe.opt.Image = exe.localAgentConfig.DefaultImage
+	if exe.agent.Image == "" {
+		exe.agent.Image = exe.localAgentConfig.DefaultImage
 	}
 
 	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
@@ -127,12 +129,12 @@ func (exe *localExecutor) Execute() error {
 	// Update configuration
 	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
 	configEntry := config.Agent{
-		Name: exe.opt.Name,
+		Name: exe.agent.Name,
 		User: currUser.Username,
 		Host: agentIP,
 		UUID: uuid,
 	}
-	err = config.AddAgent(exe.opt.Namespace, configEntry)
+	err = config.AddAgent(exe.namespace, configEntry)
 	if err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			fmt.Printf("Could not clean container %s\n", agentContainerName)

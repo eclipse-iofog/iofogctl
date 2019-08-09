@@ -21,13 +21,15 @@ import (
 )
 
 type remoteExecutor struct {
-	opt  *Options
-	uuid string
+	namespace string
+	agent     config.Agent
+	uuid      string
 }
 
-func newRemoteExecutor(opt *Options) *remoteExecutor {
+func newRemoteExecutor(namespace string, agent config.Agent) *remoteExecutor {
 	exe := &remoteExecutor{}
-	exe.opt = opt
+	exe.namespace = namespace
+	exe.agent = agent
 
 	return exe
 }
@@ -35,23 +37,23 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 //
 // Install iofog-agent stack on an agent host
 //
-func (exe *remoteExecutor) Execute() error {
+func (exe *remoteExecutor) execute() error {
 
-	configEntry, err := DeployAgent(exe.opt)
+	configEntry, err := exe.deployAgent()
 	if err != nil {
 		return err
 	}
 
-	if err = config.UpdateAgent(exe.opt.Namespace, configEntry); err != nil {
+	if err = config.UpdateAgent(exe.namespace, configEntry); err != nil {
 		return err
 	}
 
 	return config.Flush()
 }
 
-func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
+func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
 	// Get Controllers from namespace
-	controllers, err := config.GetControllers(opt.Namespace)
+	controllers, err := config.GetControllers(exe.namespace)
 
 	// Do we actually have any controllers?
 	if err != nil {
@@ -66,7 +68,7 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 	}
 
 	// Connect to agent via SSH
-	agent := install.NewRemoteAgent(opt.User, opt.Host, opt.Port, opt.KeyFile, opt.Name)
+	agent := install.NewRemoteAgent(exe.agent.User, exe.agent.Host, exe.agent.Port, exe.agent.KeyFile, exe.agent.Name)
 
 	// Try the install
 	err = agent.Bootstrap()
@@ -89,11 +91,11 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 	}
 
 	configEntry = config.Agent{
-		Name:    opt.Name,
-		User:    opt.User,
-		Host:    opt.Host,
-		Port:    opt.Port,
-		KeyFile: opt.KeyFile,
+		Name:    exe.agent.Name,
+		User:    exe.agent.User,
+		Host:    exe.agent.Host,
+		Port:    exe.agent.Port,
+		KeyFile: exe.agent.KeyFile,
 		UUID:    uuid,
 		Created: util.NowUTC(),
 	}

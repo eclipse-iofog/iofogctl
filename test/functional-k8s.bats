@@ -23,8 +23,24 @@ NS=$(echo "$NAMESPACE""-k8s")
   test iofogctl create namespace "$NS"
 }
 
-@test "Deploy controller" {
-  test iofogctl -q -n "$NS" deploy controller "$NAME" --kube-config "$KUBE_CONFIG"
+@test "Deploy Controller" {
+  echo "controlplane:
+  controllers:
+  - name: $NAME
+    kubeconfig: $KUBE_CONFIG
+    images:
+      controller: $CONTROLLER_IMAGE
+      connector: $CONNECTOR_IMAGE
+      scheduler: $SCHEDULER_IMAGE
+      operator: $OPERATOR_IMAGE
+      kubelet: $KUBELET_IMAGE
+    iofoguser:
+      name: Testing
+      surname: Functional
+      email: user@domain.com
+      password: S5gYVgLEZV" > test/conf/k8s.yaml
+
+  test iofogctl -q -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 
@@ -49,12 +65,9 @@ NS=$(echo "$NAMESPACE""-k8s")
   test iofogctl -q -n "$NS" logs controller "$NAME"
 }
 
-@test "Deploy agents" {
-  initAgents
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_${IDX}"
-    test iofogctl -q -n "$NS" deploy agent "$AGENT_NAME" --user "${USERS[IDX]}" --host "${HOSTS[IDX]}" --key-file "$KEY_FILE" --port "${PORTS[IDX]}"
-  done
+@test "Deploy Agents" {
+  initAgentsFile
+  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -112,39 +125,30 @@ NS=$(echo "$NAMESPACE""-k8s")
   checkAgents
 }
 
-# TODO: Enable these if ever possible to do with IP connect
-#@test "Get Controller logs after connect with IP" {
-#  test iofogctl -q -n "$NS" logs controller "$NAME"
-#}
-#@test "Get Controller logs on K8s after connect with IP" {
-#  test iofogctl -q -n "$NS" logs controller "$NAME"
-#}
-
-@test "Deploy Controller from file for idempotence" {
-  echo "controlplane:
-  controllers:
-  - name: $NAME
-    kubeconfig: $KUBE_CONFIG
-    images:
-      controller: $CONTROLLER_IMAGE
-      connector: $CONNECTOR_IMAGE
-      scheduler: $SCHEDULER_IMAGE
-      operator: $OPERATOR_IMAGE
-      kubelet: $KUBELET_IMAGE
-    iofoguser:
-      name: Testing
-      surname: Functional
-      email: user@domain.com
-      password: S5gYVgLEZV" > test/conf/k8s.yaml
-
-  test iofogctl -q -n "$NS" deploy -f test/conf/k8s.yaml
-  checkController
-}
-
-@test "Deploy Agents from file" {
+@test "Deploy Agents for idempotence" {
   initAgentsFile
   test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
+}
+
+@test "Deploy Controller for idempotence" {
+  echo "controllers:
+- name: $NAME
+  kubeconfig: $KUBE_CONFIG
+  images:
+    controller: $CONTROLLER_IMAGE
+    connector: $CONNECTOR_IMAGE
+    scheduler: $SCHEDULER_IMAGE
+    operator: $OPERATOR_IMAGE
+    kubelet: $KUBELET_IMAGE
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: user@domain.com
+    password: S5gYVgLEZV" > test/conf/k8s.yaml
+
+  test iofogctl -q -n "$NS" deploy controlplane -f test/conf/k8s.yaml
+  checkController
 }
 
 @test "Delete all" {
