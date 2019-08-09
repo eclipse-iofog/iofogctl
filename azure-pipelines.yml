@@ -156,6 +156,7 @@ stages:
     - template: templates/functional-post-test.yaml
     - template: templates/functional-clean-vm.yaml
 - stage: Publish
+  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')))
   jobs:
   - job: OSX
     pool:
