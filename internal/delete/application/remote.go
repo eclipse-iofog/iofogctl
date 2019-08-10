@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+// TODO: replace this struct, should use internal/execute interface
 type Executor struct {
 	namespace string
 	name      string

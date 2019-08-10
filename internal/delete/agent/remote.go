@@ -34,6 +34,10 @@ func newRemoteExecutor(namespace, name string) *remoteExecutor {
 	return exe
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *remoteExecutor) Execute() error {
 	// Check the agent exists
 	agent, err := config.GetAgent(exe.namespace, exe.name)

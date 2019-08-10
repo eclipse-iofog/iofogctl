@@ -31,6 +31,10 @@ func newAgentExecutor(namespace string) *agentExecutor {
 	return a
 }
 
+func (exe *agentExecutor) GetName() string {
+	return ""
+}
+
 func (exe *agentExecutor) Execute() error {
 	printNamespace(exe.namespace)
 	if err := generateAgentOutput(exe.namespace); err != nil {

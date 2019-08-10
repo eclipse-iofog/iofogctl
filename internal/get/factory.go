@@ -14,14 +14,11 @@
 package get
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(resourceType, namespace string) (Executor, error) {
+func NewExecutor(resourceType, namespace string) (execute.Executor, error) {
 
 	switch resourceType {
 	case "namespaces":

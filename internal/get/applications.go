@@ -35,6 +35,10 @@ func newApplicationExecutor(namespace string) *applicationExecutor {
 	return c
 }
 
+func (exe *applicationExecutor) GetName() string {
+	return ""
+}
+
 func (exe *applicationExecutor) Execute() error {
 	// Get controller config details
 	controllers, err := config.GetControllers(exe.namespace)

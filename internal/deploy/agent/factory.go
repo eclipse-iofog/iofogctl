@@ -15,16 +15,12 @@ package deployagent
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
-
-type executor interface {
-	execute() error
-}
 
 type Options struct {
 	Namespace string
@@ -38,7 +34,7 @@ type jobResult struct {
 
 func Deploy(opt Options) error {
 	// Check the namespace exists
-	_, err := config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return err
 	}
@@ -49,57 +45,24 @@ func Deploy(opt Options) error {
 		return err
 	}
 
-	// Instantiate wait group for parallel tasks
-	var wg sync.WaitGroup
-	localAgentCount := 0
-	errChan := make(chan jobResult, len(agents))
-	for _, agent := range agents {
-
-		// Check local deploys
-		if util.IsLocalHost(agent.Host) {
-			localAgentCount++
-			if localAgentCount > 1 {
-				fmt.Printf("Agent [%v] not deployed, you can only run one local agent.\n", agent.Name)
-				continue
-			}
-		}
-
-		var exe executor
-		exe, err := newExecutor(opt.Namespace, agent)
+	// Instantiate executors
+	var executors []execute.Executor
+	for idx := range agents {
+		exe, err := newExecutor(ns.Name, agents[idx])
 		if err != nil {
 			return err
 		}
-
-		wg.Add(1)
-		go func(name string) {
-			defer wg.Done()
-			err := exe.execute()
-			errChan <- jobResult{
-				err:  err,
-				name: name,
-			}
-		}(agent.Name)
+		executors = append(executors, exe)
 	}
-	wg.Wait()
-	close(errChan)
-
-	// Output any errors
-	failed := false
-	for result := range errChan {
-		if result.err != nil {
-			failed = true
-			util.PrintNotify("Failed to deploy " + result.name + ". " + result.err.Error())
-		}
-
-		if failed {
-			return util.NewError("Failed to deploy one or more resources")
-		}
+	// Execute
+	if err = execute.ForParallel(executors); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func newExecutor(namespace string, agent config.Agent) (executor, error) {
+func newExecutor(namespace string, agent config.Agent) (execute.Executor, error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {

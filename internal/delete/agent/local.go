@@ -23,6 +23,7 @@ import (
 
 type localExecutor struct {
 	namespace        string
+	name             string
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
@@ -31,10 +32,15 @@ func newLocalExecutor(namespace, name string, client *install.LocalContainer) *l
 	ctrlConfig, _ := install.NewLocalControllerConfig("", make(map[string]string)).ContainerMap["controller"]
 	exe := &localExecutor{
 		namespace:        namespace,
+		name:             name,
 		client:           client,
 		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig),
 	}
 	return exe
+}
+
+func (exe *localExecutor) GetName() string {
+	return exe.name
 }
 
 func (exe *localExecutor) Execute() error {

@@ -157,7 +157,11 @@ func (exe *localExecutor) install() error {
 	return nil
 }
 
-func (exe *localExecutor) execute() error {
+func (exe *localExecutor) GetName() string {
+	return exe.ctrl.Name
+}
+
+func (exe *localExecutor) Execute() error {
 	defer util.SpinStop()
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 

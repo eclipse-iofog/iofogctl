@@ -27,6 +27,10 @@ func newRemoteExecutor(opt *Options) *remoteExecutor {
 	return r
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.opt.Name
+}
+
 func (exe *remoteExecutor) Execute() (err error) {
 	// Establish connection
 	err = connect(exe.opt, exe.opt.Endpoint)

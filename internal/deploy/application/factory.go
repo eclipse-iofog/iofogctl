@@ -15,15 +15,11 @@ package deployapplication
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
-
-type executor interface {
-	execute() error
-}
 
 type Options struct {
 	Namespace string
@@ -54,46 +50,23 @@ func Deploy(opt Options) error {
 		return err
 	}
 
-	// Instantiate wait group for parallel tasks
-	var wg sync.WaitGroup
-	errChan := make(chan jobResult, len(applications))
-
-	// Deploy applications
-	for _, application := range applications {
-		exe, err := newExecutor(opt.Namespace, &application)
+	// Instantiate executors
+	var executors []execute.Executor
+	for idx := range applications {
+		exe, err := newExecutor(ns.Name, applications[idx])
 		if err != nil {
 			return err
 		}
-
-		wg.Add(1)
-		go func(name string) {
-			defer wg.Done()
-			err := exe.execute()
-			errChan <- jobResult{
-				err:  err,
-				name: name,
-			}
-		}(application.Name)
+		executors = append(executors, exe)
 	}
-	wg.Wait()
-	close(errChan)
-
-	// Output any errors
-	failed := false
-	for result := range errChan {
-		if result.err != nil {
-			failed = true
-			util.PrintNotify("Failed to deploy " + result.name + ". " + result.err.Error())
-		}
-	}
-
-	if failed {
-		return util.NewError("Failed to deploy one or more resources")
+	// Execute
+	if err = execute.ForParallel(executors); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func newExecutor(namespace string, opt *config.Application) (executor, error) {
+func newExecutor(namespace string, opt config.Application) (execute.Executor, error) {
 	return newRemoteExecutor(namespace, opt), nil
 }

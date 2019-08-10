@@ -32,7 +32,11 @@ func newRemoteExecutor(namespace string, ctrl config.Controller) *remoteExecutor
 	return d
 }
 
-func (exe *remoteExecutor) execute() (err error) {
+func (exe *remoteExecutor) GetName() string {
+	return exe.ctrl.Name
+}
+
+func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
 		User:              exe.ctrl.User,

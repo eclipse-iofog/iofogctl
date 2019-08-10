@@ -36,6 +36,10 @@ func newAgentExecutor(namespace, name, filename string) *agentExecutor {
 	return a
 }
 
+func (exe *agentExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *agentExecutor) Execute() error {
 	// Get config
 	agent, err := config.GetAgent(exe.namespace, exe.name)

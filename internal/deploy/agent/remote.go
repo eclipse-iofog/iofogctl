@@ -34,10 +34,14 @@ func newRemoteExecutor(namespace string, agent config.Agent) *remoteExecutor {
 	return exe
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.agent.Name
+}
+
 //
 // Install iofog-agent stack on an agent host
 //
-func (exe *remoteExecutor) execute() error {
+func (exe *remoteExecutor) Execute() error {
 
 	configEntry, err := exe.deployAgent()
 	if err != nil {

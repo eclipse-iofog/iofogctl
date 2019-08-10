@@ -15,19 +15,14 @@ package deploycontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"sync"
 )
 
 type Options struct {
 	Namespace string
 	InputFile string
-}
-
-type jobResult struct {
-	name string
-	err  error
 }
 
 func Deploy(opt Options) error {
@@ -43,51 +38,24 @@ func Deploy(opt Options) error {
 		return err
 	}
 
-	// Instantiate wait group for parallel tasks
-	var wg sync.WaitGroup
-	// Deploy controllers
-	errChan := make(chan jobResult, len(spec.Controllers))
+	// Instantiate executors
+	var executors []execute.Executor
 	for idx := range spec.Controllers {
-		var exe executor
-		exe, err = newExecutor(ns.Name, spec.Controllers[idx])
+		exe, err := newExecutor(ns.Name, spec.Controllers[idx])
 		if err != nil {
 			return err
 		}
-
-		wg.Add(1)
-		go func(name string) {
-			defer wg.Done()
-			err := exe.execute()
-			errChan <- jobResult{
-				err:  err,
-				name: name,
-			}
-		}(spec.Controllers[idx].Name)
+		executors = append(executors, exe)
 	}
-	wg.Wait()
-	close(errChan)
-
-	// Output any errors
-	failed := false
-	for result := range errChan {
-		if result.err != nil {
-			failed = true
-			util.PrintNotify("Failed to deploy " + result.name + ". " + result.err.Error())
-		}
-	}
-
-	if failed {
-		return util.NewError("Failed to deploy one or more resources")
+	// Execute
+	if err = execute.ForParallel(executors); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-type executor interface {
-	execute() error
-}
-
-func newExecutor(namespace string, ctrl config.Controller) (executor, error) {
+func newExecutor(namespace string, ctrl config.Controller) (execute.Executor, error) {
 	// Get the namespace
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {

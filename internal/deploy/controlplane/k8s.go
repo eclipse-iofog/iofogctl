@@ -31,7 +31,11 @@ func newKubernetesExecutor(namespace string, ctrl config.Controller) *kubernetes
 	return k
 }
 
-func (exe *kubernetesExecutor) execute() (err error) {
+func (exe *kubernetesExecutor) GetName() string {
+	return exe.ctrl.Name
+}
+
+func (exe *kubernetesExecutor) Execute() (err error) {
 	// Get Kubernetes cluster
 	k8s, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
 	if err != nil {

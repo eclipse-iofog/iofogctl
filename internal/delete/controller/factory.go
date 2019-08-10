@@ -15,15 +15,12 @@ package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(namespace, name string) (Executor, error) {
+func NewExecutor(namespace, name string) (execute.Executor, error) {
 	// Get controller from config
 	ctrl, err := config.GetController(namespace, name)
 	if err != nil {

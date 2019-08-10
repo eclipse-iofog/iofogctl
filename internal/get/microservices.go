@@ -50,6 +50,10 @@ func (exe *microserviceExecutor) init(controller *config.Controller) (err error)
 	return
 }
 
+func (exe *microserviceExecutor) GetName() string {
+	return ""
+}
+
 func (exe *microserviceExecutor) Execute() error {
 	// Get controller config details
 	controllers, err := config.GetControllers(exe.namespace)

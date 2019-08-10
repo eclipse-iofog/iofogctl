@@ -60,6 +60,10 @@ func (exe *applicationExecutor) init(controller *config.Controller) (err error) 
 	return
 }
 
+func (exe *applicationExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *applicationExecutor) Execute() error {
 	// Get controller config details
 	controllers, err := config.GetControllers(exe.namespace)

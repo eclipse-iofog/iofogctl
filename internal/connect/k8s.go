@@ -28,6 +28,10 @@ func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
 	return k
 }
 
+func (exe *kubernetesExecutor) GetName() string {
+	return exe.opt.Name
+}
+
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
 	k8s, err := install.NewKubernetes(exe.opt.KubeFile, exe.opt.Namespace)

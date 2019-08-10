@@ -34,6 +34,10 @@ func newControllerExecutor(namespace, name, filename string) *controllerExecutor
 	return c
 }
 
+func (exe *controllerExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *controllerExecutor) Execute() error {
 	controller, err := config.GetController(exe.namespace, exe.name)
 	if err != nil {

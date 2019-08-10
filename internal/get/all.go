@@ -27,6 +27,10 @@ func newAllExecutor(namespace string) *allExecutor {
 	return exe
 }
 
+func (exe *allExecutor) GetName() string {
+	return ""
+}
+
 func (exe *allExecutor) Execute() error {
 	// Check namespace exists
 	if _, err := config.GetNamespace(exe.namespace); err != nil {

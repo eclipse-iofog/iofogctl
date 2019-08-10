@@ -15,6 +15,7 @@ package connect
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -28,11 +29,7 @@ type Options struct {
 	Password           string
 }
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(opt *Options) (Executor, error) {
+func NewExecutor(opt *Options) (execute.Executor, error) {
 	// Check for existing namespace
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {

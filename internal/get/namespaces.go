@@ -26,6 +26,10 @@ func newNamespaceExecutor() *namespaceExecutor {
 	return n
 }
 
+func (exe *namespaceExecutor) GetName() string {
+	return ""
+}
+
 func (exe *namespaceExecutor) Execute() error {
 	namespaces := config.GetNamespaces()
 

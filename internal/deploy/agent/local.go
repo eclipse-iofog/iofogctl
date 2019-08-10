@@ -80,7 +80,11 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	return agent.Configure(controller, user)
 }
 
-func (exe *localExecutor) execute() error {
+func (exe *localExecutor) GetName() string {
+	return exe.agent.Name
+}
+
+func (exe *localExecutor) Execute() error {
 	defer util.SpinStop()
 	// Get current user
 	currUser, err := user.Current()

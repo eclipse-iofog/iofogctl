@@ -30,6 +30,10 @@ func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
 	return exe
 }
 
+func (exe *kubernetesExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *kubernetesExecutor) Execute() error {
 	// Find the requested controller
 	ctrl, err := config.GetController(exe.namespace, exe.name)

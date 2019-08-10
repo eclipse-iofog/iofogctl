@@ -14,14 +14,11 @@
 package logs
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(resourceType, namespace, name string) (Executor, error) {
+func NewExecutor(resourceType, namespace, name string) (execute.Executor, error) {
 	switch resourceType {
 	case "controller":
 		return newControllerExecutor(namespace, name), nil

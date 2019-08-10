@@ -30,6 +30,10 @@ func newNamespaceExecutor(name, filename string) *namespaceExecutor {
 	return n
 }
 
+func (exe *namespaceExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *namespaceExecutor) Execute() error {
 	namespace, err := config.GetNamespace(exe.name)
 	if err != nil {

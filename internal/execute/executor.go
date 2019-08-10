@@ -11,24 +11,9 @@
  *
  */
 
-package logs
+package execute
 
-type microserviceExecutor struct {
-	namespace string
-	name      string
-}
-
-func newMicroserviceExecutor(namespace, name string) *microserviceExecutor {
-	m := &microserviceExecutor{}
-	m.namespace = namespace
-	m.name = name
-	return m
-}
-
-func (ms *microserviceExecutor) GetName() string {
-	return ms.name
-}
-
-func (ms *microserviceExecutor) Execute() error {
-	return nil
+type Executor interface {
+	Execute() error
+	GetName() string
 }

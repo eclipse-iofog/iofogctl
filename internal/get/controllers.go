@@ -30,6 +30,10 @@ func newControllerExecutor(namespace string) *controllerExecutor {
 	return c
 }
 
+func (exe *controllerExecutor) GetName() string {
+	return ""
+}
+
 func (exe *controllerExecutor) Execute() error {
 	printNamespace(exe.namespace)
 	return generateControllerOutput(exe.namespace)

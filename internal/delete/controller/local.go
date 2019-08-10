@@ -38,6 +38,10 @@ func newLocalExecutor(namespace, name string, client *install.LocalContainer) *l
 	return exe
 }
 
+func (exe *localExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *localExecutor) Execute() error {
 	defer util.SpinStop()
 	// Clean controller and connector containers

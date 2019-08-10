@@ -24,7 +24,7 @@ import (
 
 type remoteExecutor struct {
 	namespace          string
-	app                *config.Application
+	app                config.Application
 	microserviceByName map[string]*config.Microservice
 	client             *client.Client
 	agentsByName       map[string]*client.AgentInfo
@@ -40,7 +40,7 @@ func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.
 	return
 }
 
-func newRemoteExecutor(namespace string, app *config.Application) *remoteExecutor {
+func newRemoteExecutor(namespace string, app config.Application) *remoteExecutor {
 	exe := &remoteExecutor{
 		namespace:          namespace,
 		app:                app,
@@ -50,10 +50,14 @@ func newRemoteExecutor(namespace string, app *config.Application) *remoteExecuto
 	return exe
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.app.Name
+}
+
 //
 // Deploy application using remote controller
 //
-func (exe *remoteExecutor) execute() (err error) {
+func (exe *remoteExecutor) Execute() (err error) {
 	// Get Controllers from namespace
 	controllers, err := config.GetControllers(exe.namespace)
 

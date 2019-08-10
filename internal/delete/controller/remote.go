@@ -30,6 +30,10 @@ func newRemoteExecutor(namespace, name string) *remoteExecutor {
 	return exe
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *remoteExecutor) Execute() error {
 	// Get controller from config
 	ctrl, err := config.GetController(exe.namespace, exe.name)
