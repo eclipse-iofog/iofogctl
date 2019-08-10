@@ -14,8 +14,6 @@
 package describe
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -70,9 +68,9 @@ func (exe *applicationExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if len(controllers) != 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", len(controllers))
-		return util.NewInputError(errMessage)
+	// Check Controller exists
+	if len(controllers) == 0 {
+		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller describing Applications.")
 	}
 	// Fetch data
 	if err = exe.init(&controllers[0]); err != nil {

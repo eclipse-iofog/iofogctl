@@ -64,9 +64,9 @@ func (exe *microserviceExecutor) Execute() error {
 		// Generate empty output
 		return exe.generateMicroserviceOutput()
 	}
-	if len(controllers) > 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", len(controllers))
-		return util.NewInputError(errMessage)
+	// Check Controller exists
+	if len(controllers) == 0 {
+		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller getting Microservices.")
 	}
 	// Fetch data
 	if err = exe.init(&controllers[0]); err != nil {

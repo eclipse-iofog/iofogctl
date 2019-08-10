@@ -18,7 +18,6 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type applicationExecutor struct {
@@ -48,10 +47,6 @@ func (exe *applicationExecutor) Execute() error {
 	if len(controllers) == 0 {
 		// Generate empty output
 		return exe.generateApplicationOutput()
-	}
-	if len(controllers) > 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", len(controllers))
-		return util.NewInputError(errMessage)
 	}
 	// Fetch data
 	if err = exe.init(&controllers[0]); err != nil {

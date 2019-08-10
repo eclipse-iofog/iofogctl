@@ -47,12 +47,6 @@ func (exe *Executor) Execute() (err error) {
 		return
 	}
 
-	// Did we have more than one controller?
-	if len(controllers) != 1 {
-		err = util.NewInternalError("Only support 1 controller per namespace")
-		return
-	}
-
 	// Init remote resources
 	if err = exe.init(&controllers[0]); err != nil {
 		return

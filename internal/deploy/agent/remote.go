@@ -65,12 +65,6 @@ func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
 		return
 	}
 
-	// Did we have more than one controller?
-	if len(controllers) != 1 {
-		err = util.NewInternalError("Only support 1 controller per namespace")
-		return
-	}
-
 	// Connect to agent via SSH
 	agent := install.NewRemoteAgent(exe.agent.User, exe.agent.Host, exe.agent.Port, exe.agent.KeyFile, exe.agent.Name)
 

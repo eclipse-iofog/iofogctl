@@ -14,8 +14,6 @@
 package deployagent
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
@@ -70,10 +68,8 @@ func newExecutor(namespace string, agent config.Agent) (execute.Executor, error)
 	}
 
 	// Check Controller exists
-	nbControllers := len(ns.ControlPlane.Controllers)
-	if nbControllers != 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", nbControllers)
-		return nil, util.NewInputError(errMessage)
+	if len(ns.ControlPlane.Controllers) == 0 {
+		return nil, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
 	}
 
 	// Local executor
