@@ -29,14 +29,14 @@ func ForParallel(exes []Executor) (errs []error, failedExes []Executor) {
 	errChan := make(chan jobResult, len(exes))
 	for idx := range exes {
 		wg.Add(1)
-		go func() {
+		go func(exe Executor) {
 			defer wg.Done()
-			err := exes[idx].Execute()
+			err := exe.Execute()
 			errChan <- jobResult{
 				err: err,
-				exe: exes[idx],
+				exe: exe,
 			}
-		}()
+		}(exes[idx])
 	}
 	wg.Wait()
 	close(errChan)
