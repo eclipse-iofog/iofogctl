@@ -14,7 +14,6 @@
 package execute
 
 import (
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"sync"
 )
 
@@ -23,7 +22,7 @@ type jobResult struct {
 	exe Executor
 }
 
-func ForParallel(exes []Executor) error {
+func ForParallel(exes []Executor) (errs []error, failedExes []Executor) {
 	// Instantiate wait group for parallel tasks
 	var wg sync.WaitGroup
 	// Deploy controllers
@@ -43,17 +42,12 @@ func ForParallel(exes []Executor) error {
 	close(errChan)
 
 	// Output any errors
-	failed := false
 	for result := range errChan {
 		if result.err != nil {
-			failed = true
-			util.PrintNotify("Failed to deploy " + result.exe.GetName() + ". " + result.err.Error())
+			errs = append(errs, result.err)
+			failedExes = append(failedExes, result.exe)
 		}
 	}
 
-	if failed {
-		return util.NewError("Failed to deploy one or more resources")
-	}
-
-	return nil
+	return
 }

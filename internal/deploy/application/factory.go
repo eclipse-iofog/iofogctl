@@ -55,9 +55,20 @@ func Deploy(opt Options) error {
 		}
 		executors = append(executors, exe)
 	}
+
 	// Execute
-	if err = execute.ForParallel(executors); err != nil {
-		return err
+	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
+		errMsg := "Failed to deploy"
+		for idx := range errs {
+			if idx != 0 {
+				errMsg += ","
+			}
+			if len(errs) > 1 && idx == len(errs)-1 {
+				errMsg += " and"
+			}
+			errMsg += " " + failedExes[idx].GetName()
+		}
+		return util.NewError(errMsg)
 	}
 
 	return nil
