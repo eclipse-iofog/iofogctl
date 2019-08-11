@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontrolplane
+package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -20,46 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Options struct {
-	Namespace string
-	InputFile string
-}
-
-func Deploy(opt Options) error {
-	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
-
-	// Read the input file
-	spec, err := UnmarshallYAML(opt.InputFile)
-	if err != nil {
-		return err
-	}
-
-	// Instantiate executors
-	var executors []execute.Executor
-	for idx := range spec.Controllers {
-		exe, err := newExecutor(ns.Name, spec.Controllers[idx])
-		if err != nil {
-			return err
-		}
-		executors = append(executors, exe)
-	}
-
-	// Execute
-	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
-		}
-		return util.NewError("Failed to deploy")
-	}
-
-	return nil
-}
-
-func newExecutor(namespace string, ctrl config.Controller) (execute.Executor, error) {
+func NewExecutor(namespace string, ctrl config.Controller) (execute.Executor, error) {
 	// Get the namespace
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {

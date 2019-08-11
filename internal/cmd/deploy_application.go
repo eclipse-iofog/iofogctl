@@ -81,7 +81,7 @@ routes:
 			util.Check(err)
 
 			// Execute the command
-			err = deployapplication.Deploy(opt)
+			err = deployapplication.Execute(opt)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deployed Applications to namespace " + opt.Namespace)

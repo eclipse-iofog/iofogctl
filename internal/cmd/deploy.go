@@ -68,6 +68,7 @@ The YAML resource specification file should look like this (two Controllers spec
 	// Add subcommands
 	cmd.AddCommand(
 		newDeployControlPlaneCommand(),
+		newDeployControllerCommand(),
 		newDeployAgentCommand(),
 		newDeployApplicationCommand(),
 	)

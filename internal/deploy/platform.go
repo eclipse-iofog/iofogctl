@@ -57,18 +57,18 @@ func Execute(opt *Options) error {
 		}
 	}
 
-	// Deploy Controllers
-	if err = deploycontrolplane.Deploy(deploycontrolplane.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+	// Deploy ControlPlane
+	if err = deploycontrolplane.Execute(deploycontrolplane.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
 		return err
 	}
 
 	// Deploy Agents
-	if err = deployagent.Deploy(deployagent.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+	if err = deployagent.Execute(deployagent.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
 		return err
 	}
 
 	// Deploy Applications
-	if err = deployapplication.Deploy(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+	if err = deployapplication.Execute(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
 		return err
 	}
 

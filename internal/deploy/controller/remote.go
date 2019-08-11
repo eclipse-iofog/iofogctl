@@ -11,42 +11,42 @@
  *
  */
 
-package deploycontrolplane
+package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
-type kubernetesExecutor struct {
+type remoteExecutor struct {
 	namespace string
 	ctrl      config.Controller
 }
 
-func newKubernetesExecutor(namespace string, ctrl config.Controller) *kubernetesExecutor {
-	k := &kubernetesExecutor{}
-	k.namespace = namespace
-	k.ctrl = ctrl
-	return k
+func newRemoteExecutor(namespace string, ctrl config.Controller) *remoteExecutor {
+	d := &remoteExecutor{}
+	d.namespace = namespace
+	d.ctrl = ctrl
+	return d
 }
 
-func (exe *kubernetesExecutor) GetName() string {
+func (exe *remoteExecutor) GetName() string {
 	return exe.ctrl.Name
 }
 
-func (exe *kubernetesExecutor) Execute() (err error) {
-	// Get Kubernetes cluster
-	k8s, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
-	if err != nil {
-		return
+func (exe *remoteExecutor) Execute() (err error) {
+	// Instantiate installer
+	controllerOptions := &install.ControllerOptions{
+		User:              exe.ctrl.User,
+		Host:              exe.ctrl.Host,
+		Port:              exe.ctrl.Port,
+		PrivKeyFilename:   exe.ctrl.KeyFile,
+		Version:           exe.ctrl.Version,
+		PackageCloudToken: exe.ctrl.PackageCloudToken,
 	}
-
-	// Configure deploy
-	if err = k8s.SetImages(exe.ctrl.Images); err != nil {
-		return err
-	}
-	k8s.SetControllerIP(exe.ctrl.KubeControllerIP)
+	installer := install.NewController(controllerOptions)
 
 	// Update configuration before we try to deploy in case of failure
 	configEntry, err := prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
@@ -54,19 +54,23 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return
 	}
 
-	// Create controller on cluster
-	endpoint, err := k8s.CreateController(client.User{
+	// Install Controller and Connector
+	if err = installer.Install(); err != nil {
+		return
+	}
+
+	// Configure Controller and Connector
+	if err = installer.Configure(client.User{
 		Name:     configEntry.IofogUser.Name,
 		Surname:  configEntry.IofogUser.Surname,
 		Email:    configEntry.IofogUser.Email,
 		Password: configEntry.IofogUser.Password,
-	})
-	if err != nil {
+	}); err != nil {
 		return
 	}
 
 	// Update configuration
-	configEntry.Endpoint = endpoint
+	configEntry.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
 	if err = config.UpdateController(exe.namespace, configEntry); err != nil {
 		return
 	}

@@ -14,41 +14,39 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newDeployAgentCommand() *cobra.Command {
+func newDeployControllerCommand() *cobra.Command {
 	// Instantiate options
-	var opt deployagent.Options
+	var opt deploycontroller.Options
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "agent",
-		Short: "Bootstrap and provision edge hosts",
-		Long: `Bootstrap edge hosts with the ioFog Agent stack and provision them with a Controller in the namespace.
-
-A Controller must first be deployed within the corresponding namespace in order to provision the Agent.`,
-		Example: `iofogctl deploy agent -f agent.yaml`,
+		Use:     "controller",
+		Short:   "Deploy a Controller",
+		Long:    `Deploy a Controller.`,
+		Example: `iofogctl deploy controller -f controller.yaml`,
 		Args:    cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
-			// Get agent name and namespace
+			// Get namespace
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
 			// Execute the command
-			err = deployagent.Execute(opt)
+			err = deploycontroller.Execute(opt)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deployed Agents to namespace " + opt.Namespace)
+			util.PrintSuccess("Successfully deployed Controllers to namespace " + opt.Namespace)
 		},
 	}
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Agents")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controller")
 
 	return cmd
 }

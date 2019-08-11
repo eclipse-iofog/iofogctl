@@ -20,50 +20,6 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Options struct {
-	Namespace string
-	InputFile string
-}
-
-type jobResult struct {
-	name string
-	err  error
-}
-
-func Deploy(opt Options) error {
-	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
-
-	// Read the input file
-	agents, err := UnmarshallYAML(opt.InputFile)
-	if err != nil {
-		return err
-	}
-
-	// Instantiate executors
-	var executors []execute.Executor
-	for idx := range agents {
-		exe, err := newExecutor(ns.Name, agents[idx])
-		if err != nil {
-			return err
-		}
-		executors = append(executors, exe)
-	}
-
-	// Execute
-	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
-		}
-		return util.NewError("Failed to deploy")
-	}
-
-	return nil
-}
-
 func newExecutor(namespace string, agent config.Agent) (execute.Executor, error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(namespace)

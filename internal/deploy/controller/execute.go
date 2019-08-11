@@ -11,13 +11,40 @@
  *
  */
 
-package deployapplication
+package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
 )
 
-func newExecutor(namespace string, opt config.Application) (execute.Executor, error) {
-	return newRemoteExecutor(namespace, opt), nil
+type Options struct {
+	Namespace string
+	InputFile string
+}
+
+func Execute(opt Options) error {
+	// Check the namespace exists
+	ns, err := config.GetNamespace(opt.Namespace)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshall file
+	ctrl, err := UnmarshallYAML(opt.InputFile)
+	if err != nil {
+		return err
+	}
+
+	// Instantiate executor
+	exe, err := NewExecutor(ns.Name, ctrl)
+	if err != nil {
+		return err
+	}
+
+	// Execute command
+	if err := exe.Execute(); err != nil {
+		return err
+	}
+
+	return nil
 }

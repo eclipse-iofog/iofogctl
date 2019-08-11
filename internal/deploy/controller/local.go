@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontrolplane
+package deploycontroller
 
 import (
 	"fmt"

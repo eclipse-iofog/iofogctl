@@ -38,7 +38,7 @@ func newDeployControlPlaneCommand() *cobra.Command {
 			util.Check(err)
 
 			// Execute the command
-			err = deploycontrolplane.Deploy(opt)
+			err = deploycontrolplane.Execute(opt)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deployed Controllers to namespace " + opt.Namespace)
