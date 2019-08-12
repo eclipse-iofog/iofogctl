@@ -57,13 +57,9 @@ func Init(filename string) {
 		util.Check(err)
 
 		// Create default file
-		defaultData := []byte(`namespaces:
-- name: default
-  controllers: []
-  agents: []
-  microservices: []
-  created: ` + util.NowUTC())
-		err := ioutil.WriteFile(configFilename, defaultData, 0644)
+		err = AddNamespace("default", util.NowUTC())
+		util.Check(err)
+		err = Flush()
 		util.Check(err)
 	}
 
@@ -92,6 +88,16 @@ func GetControllers(namespace string) ([]Controller, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
 			return ns.ControlPlane.Controllers, nil
+		}
+	}
+	return nil, util.NewNotFoundError(namespace)
+}
+
+// GetConnectors returns all controllers within a namespace
+func GetConnectors(namespace string) ([]Connector, error) {
+	for _, ns := range conf.Namespaces {
+		if ns.Name == namespace {
+			return ns.ControlPlane.Connectors, nil
 		}
 	}
 	return nil, util.NewNotFoundError(namespace)
@@ -126,6 +132,22 @@ func GetController(namespace, name string) (controller Controller, err error) {
 			for _, ctrl := range ns.ControlPlane.Controllers {
 				if ctrl.Name == name {
 					controller = ctrl
+					return
+				}
+			}
+		}
+	}
+	err = util.NewNotFoundError(namespace + "/" + name)
+	return
+}
+
+// GetConnector returns a single connector within a namespace
+func GetConnector(namespace, name string) (connector Connector, err error) {
+	for _, ns := range conf.Namespaces {
+		if ns.Name == namespace {
+			for _, cnct := range ns.ControlPlane.Connectors {
+				if cnct.Name == name {
+					connector = cnct
 					return
 				}
 			}
@@ -202,6 +224,25 @@ func UpdateController(namespace string, controller Controller) error {
 	return nil
 }
 
+// Overwrites or creates new connector to the namespace
+func UpdateConnector(namespace string, connector Connector) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	// Update existing connector if exists
+	for idx := range ns.ControlPlane.Connectors {
+		if ns.ControlPlane.Connectors[idx].Name == connector.Name {
+			ns.ControlPlane.Connectors[idx] = connector
+			return nil
+		}
+	}
+	// Add new connector
+	AddConnector(namespace, connector)
+
+	return nil
+}
+
 // Overwrites or creates new agent to the namespace
 func UpdateAgent(namespace string, agent Agent) error {
 	ns, err := getNamespace(namespace)
@@ -235,6 +276,24 @@ func AddController(namespace string, controller Controller) error {
 
 	// Append the controller
 	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
+
+	return nil
+}
+
+// AddConnector adds a new connector to the namespace
+func AddConnector(namespace string, connector Connector) error {
+	_, err := GetConnector(namespace, connector.Name)
+	if err == nil {
+		return util.NewConflictError(namespace + "/" + connector.Name)
+	}
+
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+
+	// Append the connector
+	ns.ControlPlane.Connectors = append(ns.ControlPlane.Connectors, connector)
 
 	return nil
 }
@@ -297,6 +356,23 @@ func DeleteController(namespace, name string) error {
 	for idx := range ns.ControlPlane.Controllers {
 		if ns.ControlPlane.Controllers[idx].Name == name {
 			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
+			return nil
+		}
+	}
+
+	return util.NewNotFoundError(namespace + "/" + name)
+}
+
+// DeleteConnector deletes a connector from a namespace
+func DeleteConnector(namespace, name string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+
+	for idx := range ns.ControlPlane.Connectors {
+		if ns.ControlPlane.Connectors[idx].Name == name {
+			ns.ControlPlane.Connectors = append(ns.ControlPlane.Connectors[:idx], ns.ControlPlane.Connectors[idx+1:]...)
 			return nil
 		}
 	}

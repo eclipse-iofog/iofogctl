@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
 
 // LocalAgent uses Container exec commands
@@ -40,7 +39,7 @@ func (agent *LocalAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *LocalAgent) Configure(ctrl *config.Controller, user client.User) (uuid string, err error) {
+func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uuid string, err error) {
 	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user)
 	if err != nil {
 		return "", err

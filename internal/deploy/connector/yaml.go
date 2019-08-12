@@ -11,33 +11,30 @@
  *
  */
 
-package deploycontroller
+package deployconnector
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func UnmarshallYAML(filename string) (ctrl config.Controller, err error) {
+func UnmarshallYAML(filename string) (cnct config.Connector, err error) {
 	// Unmarshall the input file
-	if err = util.UnmarshalYAML(filename, &ctrl); err != nil {
+	if err = util.UnmarshalYAML(filename, &cnct); err != nil {
 		return
 	}
 	// None specified
-	if ctrl.Name == "" || (ctrl.KubeConfig == "" && (ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "")) {
+	if cnct.Name == "" || cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "" {
 		err = util.NewInputError("Could not unmarshal YAML file")
 		return
 	}
 
 	// Fix SSH port
-	if ctrl.Port == 0 {
-		ctrl.Port = 22
+	if cnct.Port == 0 {
+		cnct.Port = 22
 	}
 	// Format file paths
-	if ctrl.KeyFile, err = util.FormatPath(ctrl.KeyFile); err != nil {
-		return
-	}
-	if ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig); err != nil {
+	if cnct.KeyFile, err = util.FormatPath(cnct.KeyFile); err != nil {
 		return
 	}
 

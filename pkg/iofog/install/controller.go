@@ -31,6 +31,7 @@ type ControllerOptions struct {
 	PrivKeyFilename   string
 	Version           string
 	PackageCloudToken string
+	IofogUser         IofogUser
 }
 
 type Controller struct {
@@ -48,9 +49,6 @@ func NewController(options *ControllerOptions) *Controller {
 }
 
 func (ctrl *Controller) Install() (err error) {
-	defer util.SpinStop()
-
-	util.SpinStart("Connecting to remote server " + ctrl.Host)
 	// Connect to server
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
@@ -70,7 +68,6 @@ func (ctrl *Controller) Install() (err error) {
 	}
 
 	// Execute commands
-	util.SpinStart("Installing Controller and Connector on remote server")
 	for _, cmd := range cmds {
 		_, err = ctrl.ssh.Run(cmd)
 		if err != nil {
@@ -83,7 +80,6 @@ func (ctrl *Controller) Install() (err error) {
 		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 	}
 	// Wait for Controller
-	util.SpinStart("Waiting for Controller")
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),
@@ -92,13 +88,8 @@ func (ctrl *Controller) Install() (err error) {
 		return
 	}
 
-	// Wait for Connector
-	util.SpinStart("Waiting for Connector")
-	if err = ctrl.ssh.RunUntil(
-		regexp.MustCompile("\"status\":\"running\""),
-		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ConnectorPortString),
-		ignoredErrors,
-	); err != nil {
+	// Create Iofog user
+	if err = ctrl.createUser(); err != nil {
 		return
 	}
 
@@ -106,9 +97,6 @@ func (ctrl *Controller) Install() (err error) {
 }
 
 func (ctrl *Controller) Stop() (err error) {
-	defer util.SpinStop()
-
-	util.SpinStart("Connecting to remote server " + ctrl.Host)
 	// Connect to server
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
@@ -123,7 +111,6 @@ func (ctrl *Controller) Stop() (err error) {
 	}
 
 	// Execute commands
-	util.SpinStart("Stopping Controller and Connector on remote server")
 	for _, cmd := range cmds {
 		_, err = ctrl.ssh.Run(cmd)
 		if err != nil {
@@ -134,20 +121,11 @@ func (ctrl *Controller) Stop() (err error) {
 	return
 }
 
-func (ctrl *Controller) Configure(user client.User) (err error) {
-	ctrlEndpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
-	connectorIP := ctrl.Host
-	_, err = configureController(ctrlEndpoint, connectorIP, user)
-	return
-}
-
-func configureController(ctrlEndpoint string, connectorIP string, user client.User) (token string, err error) {
-	defer util.SpinStop()
-
-	ctrl := client.New(ctrlEndpoint)
+func (ctrl *Controller) createUser() (err error) {
+	endpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
+	ctrlClient := client.New(endpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
-	util.SpinStart("Creating ioFog user on Controller")
 	connected := false
 	iter := 0
 	for !connected {
@@ -157,7 +135,7 @@ func configureController(ctrlEndpoint string, connectorIP string, user client.Us
 			return
 		}
 		// Try to create the user
-		if err = ctrl.CreateUser(user); err != nil {
+		if err = ctrlClient.CreateUser(client.User(ctrl.IofogUser)); err != nil {
 			// Retry if connection is refused, this is usually only necessary on K8s Controller
 			if strings.Contains(err.Error(), "connection refused") {
 				time.Sleep(time.Millisecond * 1000)
@@ -175,28 +153,6 @@ func configureController(ctrlEndpoint string, connectorIP string, user client.Us
 		// No error, connected
 		connected = true
 		continue
-	}
-
-	// Get token
-	util.SpinStart("Logging in to retrieve access token")
-	loginRequest := client.LoginRequest{
-		Email:    user.Email,
-		Password: user.Password,
-	}
-	if err = ctrl.Login(loginRequest); err != nil {
-		return
-	}
-
-	// Connect Controller with Connector
-	util.SpinStart("Provisioning Connector")
-	connectorRequest := client.ConnectorInfo{
-		IP:      connectorIP,
-		DevMode: true,
-		Domain:  connectorIP,
-		Name:    "connector",
-	}
-	if err = ctrl.AddConnector(connectorRequest); err != nil {
-		return
 	}
 
 	return

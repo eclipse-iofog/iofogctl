@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -39,9 +38,6 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 }
 
 func (agent *RemoteAgent) Bootstrap() error {
-	defer util.SpinStop()
-	util.SpinStart("Bootstrapping Agent " + agent.name)
-
 	// Prepare Agent for bootstrap
 	if err := agent.copyScriptsToAgent(); err != nil {
 		return err
@@ -73,10 +69,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(ctrl *config.Controller, user client.User) (uuid string, err error) {
-	defer util.SpinStop()
-	util.SpinStart("Configuring Agent " + agent.name)
-
+func (agent *RemoteAgent) Configure(ctrl *config.Controller, user IofogUser) (uuid string, err error) {
 	controllerEndpoint := ctrl.Endpoint
 
 	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)

@@ -1,0 +1,80 @@
+/*
+ *  *******************************************************************************
+ *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  *
+ *  * This program and the accompanying materials are made available under the
+ *  * terms of the Eclipse Public License v. 2.0 which is available at
+ *  * http://www.eclipse.org/legal/epl-2.0
+ *  *
+ *  * SPDX-License-Identifier: EPL-2.0
+ *  *******************************************************************************
+ *
+ */
+
+package deployconnector
+
+import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
+)
+
+type remoteExecutor struct {
+	namespace          string
+	cnct               config.Connector
+	controllerEndpoint string
+	iofogUser          config.IofogUser
+}
+
+func newRemoteExecutor(namespace string, cnct config.Connector, controllerEndpoint string, iofogUser config.IofogUser) *remoteExecutor {
+	d := &remoteExecutor{}
+	d.namespace = namespace
+	d.cnct = cnct
+	d.controllerEndpoint = controllerEndpoint
+	d.iofogUser = iofogUser
+	return d
+}
+
+func (exe *remoteExecutor) GetName() string {
+	return exe.cnct.Name
+}
+
+func (exe *remoteExecutor) Execute() (err error) {
+	defer util.SpinStop()
+	util.SpinStart("Deploying Connector " + exe.cnct.Name)
+
+	// Update configuration before we try to deploy in case of failure
+	if err = config.UpdateConnector(exe.namespace, exe.cnct); err != nil {
+		return
+	}
+	if err = config.Flush(); err != nil {
+		return
+	}
+
+	// Instantiate installer
+	connectorOptions := &install.ConnectorOptions{
+		User:               exe.cnct.User,
+		Host:               exe.cnct.Host,
+		Port:               exe.cnct.Port,
+		PrivKeyFilename:    exe.cnct.KeyFile,
+		Version:            exe.cnct.Version,
+		PackageCloudToken:  exe.cnct.PackageCloudToken,
+		ControllerEndpoint: exe.controllerEndpoint,
+		IofogUser:          install.IofogUser(exe.iofogUser),
+	}
+	installer := install.NewConnector(connectorOptions)
+
+	// Install Connector
+	if err = installer.Install(); err != nil {
+		return
+	}
+
+	// Update configuration
+	exe.cnct.Endpoint = exe.cnct.Host + ":" + iofog.ConnectorPortString
+	if err = config.UpdateConnector(exe.namespace, exe.cnct); err != nil {
+		return
+	}
+
+	return config.Flush()
+}

@@ -52,6 +52,10 @@ func (clt *Client) GetEndpoint() string {
 	return clt.endpoint
 }
 
+func (clt *Client) GetAccessToken() string {
+	return clt.accessToken
+}
+
 func (clt *Client) makeRequestUrl(url string) string {
 	if !strings.HasPrefix(url, "/") {
 		url = "/" + url

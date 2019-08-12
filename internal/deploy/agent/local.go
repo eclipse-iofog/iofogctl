@@ -15,7 +15,6 @@ package deployagent
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"os/user"
 	"regexp"
 
@@ -69,15 +68,9 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	user := client.User{
-		Name:     controller.IofogUser.Name,
-		Surname:  controller.IofogUser.Surname,
-		Email:    controller.IofogUser.Email,
-		Password: controller.IofogUser.Password,
-	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(controller, user)
+	return agent.Configure(controller, install.IofogUser(controller.IofogUser))
 }
 
 func (exe *localExecutor) GetName() string {

@@ -58,6 +58,9 @@ func (exe *remoteExecutor) GetName() string {
 // Deploy application using remote controller
 //
 func (exe *remoteExecutor) Execute() (err error) {
+	defer util.SpinStop()
+	util.SpinStart("Deploying Application")
+
 	// Get Controllers from namespace
 	controllers, err := config.GetControllers(exe.namespace)
 

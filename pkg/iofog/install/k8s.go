@@ -141,9 +141,7 @@ func (k8s *Kubernetes) CreateController(user client.User) (endpoint string, err 
 
 // DeleteController from cluster
 func (k8s *Kubernetes) DeleteController() error {
-	defer util.SpinStop()
 	// Delete Deployments
-	util.SpinStart("Deleting deployments")
 	deps, err := k8s.clientset.AppsV1().Deployments(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
 		if !isNotFound(err) {
@@ -159,7 +157,6 @@ func (k8s *Kubernetes) DeleteController() error {
 	}
 
 	// Delete Services
-	util.SpinStart("Deleting services")
 	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
 		if !isNotFound(err) {
@@ -175,7 +172,6 @@ func (k8s *Kubernetes) DeleteController() error {
 	}
 
 	// Delete Service Accounts
-	util.SpinStart("Deleting service accounts")
 	svcAccs, err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
 		if !isNotFound(err) {
@@ -191,7 +187,6 @@ func (k8s *Kubernetes) DeleteController() error {
 	}
 
 	// Delete Kubelet Cluster Role Binding
-	util.SpinStart("Deleting roles and role bindings")
 	if err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(k8s.ms["kubelet"].name, &metav1.DeleteOptions{}); err != nil {
 		if !isNotFound(err) {
 			return err
@@ -229,7 +224,6 @@ func (k8s *Kubernetes) DeleteController() error {
 	}
 
 	// Delete CRD
-	util.SpinStart("Deleting CRDs")
 	if err = k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(k8s.crdName, &metav1.DeleteOptions{}); err != nil {
 		if !isNotFound(err) {
 			return err
@@ -237,7 +231,6 @@ func (k8s *Kubernetes) DeleteController() error {
 	}
 
 	// Delete Namespace
-	util.SpinStart("Deleting namespace")
 	if k8s.ns != "default" {
 		if err = k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{}); err != nil {
 			if !isNotFound(err) {
@@ -269,9 +262,7 @@ func (k8s *Kubernetes) DeleteController() error {
 }
 
 func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[string]string, err error) {
-	defer util.SpinStop()
 	// Create namespace
-	util.SpinStart("Creating namespace ")
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: k8s.ns,
@@ -289,7 +280,6 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 		k8s.ms["connector"],
 	}
 	for _, ms := range coreMs {
-		util.SpinStart("Deploying " + strings.Title(ms.name) + " pods")
 		dep := newDeployment(k8s.ns, ms)
 		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
 			if !isAlreadyExists(err) {
@@ -310,7 +300,6 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 				return
 			}
 		}
-		util.SpinStart("Deploying " + strings.Title(ms.name) + " service")
 		svc := newService(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
 			if !isAlreadyExists(err) {
@@ -338,7 +327,6 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 				}
 			}
 		}
-		util.SpinStart("Deploying " + strings.Title(ms.name) + " service account")
 		svcAcc := newServiceAccount(k8s.ns, ms)
 		if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
 			if !isAlreadyExists(err) {
@@ -357,7 +345,6 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 	// Wait for services and get IPs
 	ips = make(map[string]string)
 	for _, ms := range coreMs {
-		util.SpinStart("Waiting for " + strings.Title(ms.name) + " IP")
 		var ip string
 		ip, err = k8s.waitForService(ms.name)
 		if err != nil {
@@ -365,11 +352,29 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 		}
 		ips[ms.name] = ip
 	}
-	// Connect to Controller and set up user and Connector connection
-	util.SpinStart("Waiting for Controller and configuring User and Connector")
+	// Connect to Controller and create user
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
-	token, err = configureController(endpoint, ips["connector"], user)
-	if err != nil {
+	ctrlClient := client.New(endpoint)
+	if err = ctrlClient.CreateUser(user); err != nil {
+		return
+	}
+	// Log in using new user
+	loginRequest := client.LoginRequest{
+		Email:    user.Email,
+		Password: user.Password,
+	}
+	if err = ctrlClient.Login(loginRequest); err != nil {
+		return
+	}
+	// Return the token for Kubelet
+	token = ctrlClient.GetAccessToken()
+
+	// Provision Connector
+	if err = ctrlClient.AddConnector(client.ConnectorInfo{
+		IP:     ips["connector"],
+		Domain: ips["connector"],
+		Name:   "k8s-connector",
+	}); err != nil {
 		return
 	}
 
@@ -377,10 +382,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 }
 
 func (k8s *Kubernetes) createExtension(token string, ips map[string]string) (err error) {
-	defer util.SpinStop()
-
 	// Create Scheduler resources
-	//util.SpinStart("Deploying Scheduler")
 	//schedDep := newDeployment(k8s.ns, k8s.ms["scheduler"])
 	//if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {
 	//	if !isAlreadyExists(err) {
@@ -409,7 +411,6 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) (err
 	//}
 
 	// Create Kubelet resources
-	util.SpinStart("Deploying Kubelet")
 	vkSvcAcc := newServiceAccount(k8s.ns, k8s.ms["kubelet"])
 	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(vkSvcAcc); err != nil {
 		if !isAlreadyExists(err) {
@@ -443,7 +444,6 @@ func (k8s *Kubernetes) createExtension(token string, ips map[string]string) (err
 	}
 
 	// Create Operator resources
-	util.SpinStart("Deploying Operator")
 	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
 	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
 		if !isAlreadyExists(err) {

@@ -44,7 +44,15 @@ type ControlPlane struct {
 }
 
 type Connector struct {
-	// TODO
+	Name              string
+	User              string
+	Host              string
+	Port              int
+	KeyFile           string
+	Created           string
+	Version           string
+	Endpoint          string
+	PackageCloudToken string
 }
 
 // Controller contains information for configuring a controller

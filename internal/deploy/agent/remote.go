@@ -15,7 +15,6 @@ package deployagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -42,6 +41,8 @@ func (exe *remoteExecutor) GetName() string {
 // Install iofog-agent stack on an agent host
 //
 func (exe *remoteExecutor) Execute() error {
+	defer util.SpinStop()
+	util.SpinStart("Deploying agent " + exe.agent.Name)
 
 	configEntry, err := exe.deployAgent()
 	if err != nil {
@@ -74,16 +75,8 @@ func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
 		return
 	}
 
-	// Create our user object
-	user := client.User{
-		Name:     controllers[0].IofogUser.Name,
-		Surname:  controllers[0].IofogUser.Surname,
-		Email:    controllers[0].IofogUser.Email,
-		Password: controllers[0].IofogUser.Password,
-	}
-
 	// Configure the agent with Controller details
-	uuid, err := agent.Configure(&controllers[0], user)
+	uuid, err := agent.Configure(&controllers[0], install.IofogUser(controllers[0].IofogUser))
 	if err != nil {
 		return
 	}

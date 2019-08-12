@@ -16,8 +16,8 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -37,6 +37,15 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
+	defer util.SpinStop()
+	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
+
+	// Update configuration before we try to deploy in case of failure
+	exe.ctrl, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
+	if err != nil {
+		return
+	}
+
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
 		User:              exe.ctrl.User,
@@ -45,33 +54,18 @@ func (exe *remoteExecutor) Execute() (err error) {
 		PrivKeyFilename:   exe.ctrl.KeyFile,
 		Version:           exe.ctrl.Version,
 		PackageCloudToken: exe.ctrl.PackageCloudToken,
+		IofogUser:         install.IofogUser(exe.ctrl.IofogUser),
 	}
 	installer := install.NewController(controllerOptions)
 
-	// Update configuration before we try to deploy in case of failure
-	configEntry, err := prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
-	if err != nil {
-		return
-	}
-
-	// Install Controller and Connector
+	// Install Controller
 	if err = installer.Install(); err != nil {
 		return
 	}
 
-	// Configure Controller and Connector
-	if err = installer.Configure(client.User{
-		Name:     configEntry.IofogUser.Name,
-		Surname:  configEntry.IofogUser.Surname,
-		Email:    configEntry.IofogUser.Email,
-		Password: configEntry.IofogUser.Password,
-	}); err != nil {
-		return
-	}
-
 	// Update configuration
-	configEntry.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
-	if err = config.UpdateController(exe.namespace, configEntry); err != nil {
+	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
+	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
 		return
 	}
 

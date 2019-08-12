@@ -36,38 +36,38 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Get Kubernetes cluster
-	k8s, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
+	// Update configuration before we try to deploy in case of failure
+	exe.ctrl, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
+	if err != nil {
+		return
+	}
+
+	// Get Kubernetes installer
+	installer, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	if err = k8s.SetImages(exe.ctrl.Images); err != nil {
+	if err = installer.SetImages(exe.ctrl.Images); err != nil {
 		return err
 	}
-	k8s.SetControllerIP(exe.ctrl.KubeControllerIP)
-
-	// Update configuration before we try to deploy in case of failure
-	configEntry, err := prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
-	if err != nil {
-		return
-	}
+	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 
 	// Create controller on cluster
-	endpoint, err := k8s.CreateController(client.User{
-		Name:     configEntry.IofogUser.Name,
-		Surname:  configEntry.IofogUser.Surname,
-		Email:    configEntry.IofogUser.Email,
-		Password: configEntry.IofogUser.Password,
+	endpoint, err := installer.CreateController(client.User{
+		Name:     exe.ctrl.IofogUser.Name,
+		Surname:  exe.ctrl.IofogUser.Surname,
+		Email:    exe.ctrl.IofogUser.Email,
+		Password: exe.ctrl.IofogUser.Password,
 	})
 	if err != nil {
 		return
 	}
 
 	// Update configuration
-	configEntry.Endpoint = endpoint
-	if err = config.UpdateController(exe.namespace, configEntry); err != nil {
+	exe.ctrl.Endpoint = endpoint
+	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
 		return
 	}
 

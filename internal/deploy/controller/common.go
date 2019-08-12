@@ -34,22 +34,17 @@ func prepareUserAndSaveConfig(namespace string, spec config.Controller) (configE
 	}
 
 	// Record the user
-	configEntry = config.Controller{
-		User:       spec.User,
-		Host:       spec.Host,
-		Port:       spec.Port,
-		KeyFile:    spec.KeyFile,
-		Name:       spec.Name,
-		KubeConfig: spec.KubeConfig,
-		IofogUser:  configUser,
-		Created:    util.NowUTC(),
-	}
-	if err = config.UpdateController(namespace, configEntry); err != nil {
+	spec.IofogUser = configUser
+	spec.Created = util.NowUTC()
+	if err = config.UpdateController(namespace, spec); err != nil {
 		return
 	}
 	if err = config.Flush(); err != nil {
 		return
 	}
+
+	// Return the updated spec
+	configEntry = spec
 
 	return
 }
