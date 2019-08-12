@@ -16,6 +16,7 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -35,6 +36,9 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
+	defer util.SpinStop()
+	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
+
 	// Update configuration before we try to deploy in case of failure
 	exe.ctrl, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
 	if err != nil {

@@ -79,6 +79,7 @@ NS=$(echo "$NAMESPACE""-k8s")
 }
 
 @test "Controller legacy commands after connect with Kube Config" {
+  sleep 15 # Avoid Kubernetes SSH tunnel bug
   test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
 }
 
