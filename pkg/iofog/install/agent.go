@@ -35,6 +35,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	ctrl := client.New(controllerEndpoint)
 
 	// Log in
+	verbose("Logging into Controller")
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
@@ -44,6 +45,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	}
 
 	// If the agent already exists, re-use the UUID
+	verbose("Listing Agents")
 	agentList, err := ctrl.ListAgents()
 	if err != nil {
 		return
@@ -57,6 +59,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 
 	// Create agent if necessary
 	if uuid == "" {
+		verbose("Creating Agent")
 		createRequest := client.CreateAgentRequest{
 			Name:    agent.name,
 			FogType: 0,
@@ -70,6 +73,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	}
 
 	// Get provisioning key
+	verbose("Getting provisioning key")
 	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid)
 	if err != nil {
 		return

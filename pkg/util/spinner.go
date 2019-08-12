@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	Quiet bool
+	quiet bool
 	spin  *spinner.Spinner // There is only one spinner, output overlaps with multiple concurrent spinners
 )
 
@@ -16,8 +16,12 @@ func init() {
 	spin = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 }
 
+func SpinEnable(isEnabled bool) {
+	quiet = !isEnabled
+}
+
 func SpinStart(msg string) {
-	if Quiet {
+	if quiet {
 		fmt.Println(msg)
 		return
 	}
@@ -28,7 +32,7 @@ func SpinStart(msg string) {
 }
 
 func SpinStop() {
-	if Quiet {
+	if quiet {
 		return
 	}
 	spin.Stop()

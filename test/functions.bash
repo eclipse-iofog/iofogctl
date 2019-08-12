@@ -113,35 +113,35 @@ function initAgents(){
 }
 
 function checkController() {
-  [[ "$NAME" == $(iofogctl -q -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -q -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
+  [[ "$NAME" == $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
 }
 
 function checkControllerNegative() {
-  [[ "$NAME" != $(iofogctl -q -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  [[ "$NAME" != $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkApplication() {
-  [[ "$APPLICATION_NAME" == $(iofogctl -q -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -q -n "$NS" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
-  [[ "$MSVC1_NAME," == $(iofogctl -q -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
-  [[ "$MSVC2_NAME" == $(iofogctl -q -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
-  [[ "$MSVC1_NAME" == $(iofogctl -q -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
+  [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
+  [[ "$MSVC1_NAME," == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
+  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous Person\",\"test_mode\":true}" == $(iofogctl -q -n "$NS" get microservices | grep "$MSVC1_NAME" | awk -F '\t' '{print $4}') ]]
-  [[ "bluetoothenabled: true" == $(iofogctl -q -n "$NS" describe agent "${NAME}_0" | grep bluetooth ) ]]
+  [[ "{\"data_label\":\"Anonymous Person\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk -F '\t' '{print $4}') ]]
+  [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep bluetooth ) ]]
   # Check route
-  [[ "$MSVC2_NAME" == $(iofogctl -q -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -q -n "$NS" get microservices | grep "5000:80")
+  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -q -n "$NS" get microservices | grep "/tmp/msvc:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/msvc:/tmp")
   [[ "$MSVC1_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -q -n "$NS" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
+  iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $APPLICATION_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC1_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC2_NAME") ]]
@@ -167,20 +167,20 @@ function checkApplication() {
 }
 
 function checkApplicationNegative() {
-  [[ "$NAME" != $(iofogctl -q -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
-  [[ "$MSVC1_NAME" != $(iofogctl -q -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
-  [[ "$MSVC2_NAME" != $(iofogctl -q -n "$NS" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
+  [[ "$NAME" != $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
+  [[ "$MSVC1_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
+  [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgent() {
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" == $(iofogctl -q -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -q -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
+  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
 }
 
 function checkAgentNegative() {
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" != $(iofogctl -q -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ "$AGENT_NAME" != $(iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgents() {

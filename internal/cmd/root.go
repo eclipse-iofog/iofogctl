@@ -16,6 +16,7 @@ package cmd
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
@@ -55,13 +56,12 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	// Initialize config filename
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initialize)
 
 	// Global flags
 	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
+	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of API client")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
-	cmd.PersistentFlags().BoolVarP(&util.Quiet, "quiet", "q", false, "Toggle for displaying verbose output")
-	cmd.PersistentFlags().BoolVarP(&client.Verbose, "verbose", "v", false, "Toggle for displaying verbose output of API client")
 
 	// Register all commands
 	cmd.AddCommand(
@@ -85,7 +85,13 @@ func NewRootCommand() *cobra.Command {
 // Config file set by --config persistent flag
 var configFilename string
 
+// Toggle set by --verbose persistent flag
+var verbose bool
+
 // Callback for cobra on initialization
-func initConfig() {
+func initialize() {
 	config.Init(configFilename)
+	client.SetVerbosity(verbose)
+	install.SetVerbosity(verbose)
+	util.SpinEnable(!verbose)
 }

@@ -263,6 +263,7 @@ func (k8s *Kubernetes) DeleteController() error {
 
 func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[string]string, err error) {
 	// Create namespace
+	verbose("Creating namespace")
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: k8s.ns,
@@ -275,6 +276,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 	}
 
 	// Create Controller and Connector Services and Pods
+	verbose("Creating Controller and Connector Services and Pods")
 	coreMs := []*microservice{
 		k8s.ms["controller"],
 		k8s.ms["connector"],
@@ -336,6 +338,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 	}
 
 	// Wait for pods
+	verbose("Waiting for Connector and Controller Pods")
 	for _, ms := range coreMs {
 		if err = k8s.waitForPod(ms.name); err != nil {
 			return
@@ -343,6 +346,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 	}
 
 	// Wait for services and get IPs
+	verbose("Waiting for Service IPs")
 	ips = make(map[string]string)
 	for _, ms := range coreMs {
 		var ip string
@@ -359,6 +363,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 		return
 	}
 	// Log in using new user
+	verbose("Logging into Controller")
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
@@ -370,6 +375,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 	token = ctrlClient.GetAccessToken()
 
 	// Provision Connector
+	verbose("Provisioning Connector")
 	if err = ctrlClient.AddConnector(client.ConnectorInfo{
 		IP:     ips["connector"],
 		Domain: ips["connector"],
@@ -382,6 +388,7 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 }
 
 func (k8s *Kubernetes) createExtension(token string, ips map[string]string) (err error) {
+	verbose("Deploying Operator and Kubelet")
 	// Create Scheduler resources
 	//schedDep := newDeployment(k8s.ns, k8s.ms["scheduler"])
 	//if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(schedDep); err != nil {

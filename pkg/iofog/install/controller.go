@@ -50,12 +50,14 @@ func NewController(options *ControllerOptions) *Controller {
 
 func (ctrl *Controller) Install() (err error) {
 	// Connect to server
+	verbose("Connecting to server")
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
 	defer ctrl.ssh.Disconnect()
 
 	// Copy installation scripts to remote host
+	verbose("Copying install files to server")
 	installControllerScript := util.GetStaticFile("install_controller.sh")
 	reader := strings.NewReader(installControllerScript)
 	if err := ctrl.ssh.CopyTo(reader, "/tmp/", "install_controller.sh", "0775", len(installControllerScript)); err != nil {
@@ -69,6 +71,7 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
+		verbose("Running command: " + cmd)
 		_, err = ctrl.ssh.Run(cmd)
 		if err != nil {
 			return
@@ -80,6 +83,7 @@ func (ctrl *Controller) Install() (err error) {
 		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 	}
 	// Wait for Controller
+	verbose("Waiting for Controller")
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),

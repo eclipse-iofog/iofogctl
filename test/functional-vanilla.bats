@@ -8,7 +8,7 @@ NS=$(echo "$NAMESPACE""-vanilla")
 # TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
 #@test "Deploy vanilla Controller" {
 #  initVanillaController
-#  test iofogctl -q -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
+#  test iofogctl -v -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
 #  checkController
 #}
 
@@ -33,48 +33,48 @@ NS=$(echo "$NAMESPACE""-vanilla")
       email: user@domain.com
       password: S5gYVgLEZV" > test/conf/vanilla.yaml
 
-  test iofogctl -q -n "$NS" deploy -f test/conf/vanilla.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController
 }
 
 @test "Controller legacy commands after vanilla deploy" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
 }
 
 @test "Get Controller logs after vanilla deploy" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
+  test iofogctl -v -n "$NS" logs controller "$NAME"
 }
 
 @test "Deploy Agents against vanilla Controller" {
   initAgentsFile
-  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -q -n "$NS" deploy application -f test/conf/application.yaml
+  test iofogctl -v -n "$NS" deploy application -f test/conf/application.yaml
   checkApplication
 }
 
 @test "Delete application" {
-  test iofogctl -q -n "$NS" delete application "$APPLICATION_NAME"
+  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
   checkApplicationNegative
 }
 
 @test "Deploy application from root file" {
-  test iofogctl -q -n "$NS" deploy -f test/conf/root_application.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
   checkApplication
 }
 
 # Delete all does not delete application
 @test "Delete application (bis)" {
-  test iofogctl -q -n "$NS" delete application "$APPLICATION_NAME"
+  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
   checkApplicationNegative
 }
 
 @test "Delete all" {
-  test iofogctl -q -n "$NS" delete all
+  test iofogctl -v -n "$NS" delete all
   checkControllerNegative
   checkAgentsNegative
 }

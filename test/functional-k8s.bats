@@ -40,14 +40,14 @@ NS=$(echo "$NAMESPACE""-k8s")
       email: user@domain.com
       password: S5gYVgLEZV" > test/conf/k8s.yaml
 
-  test iofogctl -q -n "$NS" deploy -f test/conf/k8s.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 
 @test "Get credentials" {
-  export CONTROLLER_EMAIL=$(iofogctl -q -n "$NS" describe controller "$NAME" | grep email | sed "s|.*email: ||")
-  export CONTROLLER_PASS=$(iofogctl -q -n "$NS" describe controller "$NAME" | grep password | sed "s|.*password: ||")
-  export CONTROLLER_ENDPOINT=$(iofogctl -q -n "$NS" describe controller "$NAME" | grep endpoint | sed "s|.*endpoint: ||")
+  export CONTROLLER_EMAIL=$(iofogctl -v -n "$NS" describe controller "$NAME" | grep email | sed "s|.*email: ||")
+  export CONTROLLER_PASS=$(iofogctl -v -n "$NS" describe controller "$NAME" | grep password | sed "s|.*password: ||")
+  export CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controller "$NAME" | grep endpoint | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_EMAIL" ]]
   [[ ! -z "$CONTROLLER_PASS" ]]
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
@@ -58,44 +58,44 @@ NS=$(echo "$NAMESPACE""-k8s")
 
 @test "Controller legacy commands after deploy" {
   sleep 15 # Sleep to avoid SSH tunnel bug from K8s
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
 }
 
 @test "Get Controller logs on K8s after deploy" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
+  test iofogctl -v -n "$NS" logs controller "$NAME"
 }
 
 @test "Deploy Agents" {
   initAgentsFile
-  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_${IDX}"
-    test iofogctl -q -n "$NS" legacy agent "$AGENT_NAME" status
+    test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
   done
 }
 
 @test "Controller legacy commands after connect with Kube Config" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
 }
 
 @test "Get Controller logs on K8s after connect with Kube Config" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
+  test iofogctl -v -n "$NS" logs controller "$NAME"
 }
 
 @test "Get Agent logs" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_${IDX}"
-    test iofogctl -q -n "$NS" logs agent "$AGENT_NAME"
+    test iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
   done
 }
 
 @test "Disconnect from cluster" {
   initAgents
-  test iofogctl -q -n "$NS" disconnect
+  test iofogctl -v -n "$NS" disconnect
   checkControllerNegative
   checkAgentsNegative
 }
@@ -104,14 +104,14 @@ NS=$(echo "$NAMESPACE""-k8s")
   CONTROLLER_EMAIL=$(cat /tmp/email.txt)
   CONTROLLER_PASS=$(cat /tmp/pass.txt)
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -q -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
+  test iofogctl -v -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
   checkController
   checkAgents
 }
 
 @test "Disconnect from cluster again" {
   initAgents
-  test iofogctl -q -n "$NS" disconnect
+  test iofogctl -v -n "$NS" disconnect
   checkControllerNegative
   checkAgentsNegative
 }
@@ -120,14 +120,14 @@ NS=$(echo "$NAMESPACE""-k8s")
   CONTROLLER_EMAIL=$(cat /tmp/email.txt)
   CONTROLLER_PASS=$(cat /tmp/pass.txt)
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -q -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
+  test iofogctl -v -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
   checkController
   checkAgents
 }
 
 @test "Deploy Agents for idempotence" {
   initAgentsFile
-  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -147,12 +147,12 @@ NS=$(echo "$NAMESPACE""-k8s")
     email: user@domain.com
     password: S5gYVgLEZV" > test/conf/k8s.yaml
 
-  test iofogctl -q -n "$NS" deploy controlplane -f test/conf/k8s.yaml
+  test iofogctl -v -n "$NS" deploy controlplane -f test/conf/k8s.yaml
   checkController
 }
 
 @test "Delete all" {
-  test iofogctl -q -n "$NS" delete all
+  test iofogctl -v -n "$NS" delete all
   checkControllerNegative
   checkAgentsNegative
 }

@@ -28,9 +28,6 @@ type Client struct {
 	accessToken string
 }
 
-// Toggle HTTP output
-var Verbose bool
-
 var apiPrefix = "/api/v3"
 
 func New(endpoint string) *Client {
