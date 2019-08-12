@@ -152,7 +152,7 @@ stages:
           test/clean.bash $(jobuuid)
       workingDirectory: '$(modulePath)'
       displayName: 'Clean K8s Cluster'
-      condition: succeededOrFailed()
+      condition: always()
     - template: templates/functional-post-test.yaml
     - template: templates/functional-clean-vm.yaml
 
