@@ -111,7 +111,6 @@ func (ctrl *Controller) Stop() (err error) {
 	// Define commands
 	cmds := []string{
 		"sudo iofog-controller stop",
-		"sudo systemctl stop iofog-connector",
 	}
 
 	// Execute commands

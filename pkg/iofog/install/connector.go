@@ -110,7 +110,6 @@ func (cnct *Connector) Stop() (err error) {
 	// TODO: Clear the database
 	// Define commands
 	cmds := []string{
-		"sudo iofog-connector stop",
 		"sudo systemctl stop iofog-connector",
 	}
 
