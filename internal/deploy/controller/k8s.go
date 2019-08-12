@@ -15,7 +15,6 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
@@ -55,12 +54,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 
 	// Create controller on cluster
-	endpoint, err := installer.CreateController(client.User{
-		Name:     exe.ctrl.IofogUser.Name,
-		Surname:  exe.ctrl.IofogUser.Surname,
-		Email:    exe.ctrl.IofogUser.Email,
-		Password: exe.ctrl.IofogUser.Password,
-	})
+	endpoint, err := installer.CreateController(install.IofogUser(exe.ctrl.IofogUser))
 	if err != nil {
 		return
 	}

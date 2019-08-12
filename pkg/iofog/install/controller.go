@@ -93,7 +93,8 @@ func (ctrl *Controller) Install() (err error) {
 	}
 
 	// Create Iofog user
-	if err = ctrl.createUser(); err != nil {
+	endpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
+	if err = createUser(endpoint, ctrl.IofogUser); err != nil {
 		return
 	}
 
@@ -124,8 +125,7 @@ func (ctrl *Controller) Stop() (err error) {
 	return
 }
 
-func (ctrl *Controller) createUser() (err error) {
-	endpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
+func createUser(endpoint string, user IofogUser) (err error) {
 	ctrlClient := client.New(endpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
@@ -138,7 +138,7 @@ func (ctrl *Controller) createUser() (err error) {
 			return
 		}
 		// Try to create the user
-		if err = ctrlClient.CreateUser(client.User(ctrl.IofogUser)); err != nil {
+		if err = ctrlClient.CreateUser(client.User(user)); err != nil {
 			// Retry if connection is refused, this is usually only necessary on K8s Controller
 			if strings.Contains(err.Error(), "connection refused") {
 				time.Sleep(time.Millisecond * 1000)

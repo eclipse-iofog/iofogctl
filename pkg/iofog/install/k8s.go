@@ -123,7 +123,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user client.User) (endpoint string, err error) {
+func (k8s *Kubernetes) CreateController(user IofogUser) (endpoint string, err error) {
 	// Install ioFog Core
 	token, ips, err := k8s.createCore(user)
 	if err != nil {
@@ -261,7 +261,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[string]string, err error) {
+func (k8s *Kubernetes) createCore(user IofogUser) (token string, ips map[string]string, err error) {
 	// Create namespace
 	verbose("Creating namespace")
 	ns := &v1.Namespace{
@@ -356,14 +356,15 @@ func (k8s *Kubernetes) createCore(user client.User) (token string, ips map[strin
 		}
 		ips[ms.name] = ip
 	}
-	// Connect to Controller and create user
+	// Create initial user in Controller
+	verbose("Creating user")
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
-	ctrlClient := client.New(endpoint)
-	if err = ctrlClient.CreateUser(user); err != nil {
+	if err = createUser(endpoint, user); err != nil {
 		return
 	}
 	// Log in using new user
 	verbose("Logging into Controller")
+	ctrlClient := client.New(endpoint)
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
