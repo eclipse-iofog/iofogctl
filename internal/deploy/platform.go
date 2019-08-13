@@ -81,5 +81,5 @@ func Execute(opt *Options) error {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }

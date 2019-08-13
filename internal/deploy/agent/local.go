@@ -129,15 +129,10 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	// Update configuration
-	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
 	// Return new Agent config because variable is a pointer
-	exe.agent = &config.Agent{
-		Name: exe.agent.Name,
-		User: currUser.Username,
-		Host: agentIP,
-		UUID: uuid,
-	}
+	exe.agent.User = currUser.Username
+	exe.agent.Host = fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
+	exe.agent.UUID = uuid
 
 	return nil
 }

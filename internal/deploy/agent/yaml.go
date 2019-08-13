@@ -32,7 +32,7 @@ func UnmarshallYAML(filename string) (agents []config.Agent, err error) {
 			return
 		}
 		// None specified
-		if agent.Host == "" && agent.User == "" && agent.KeyFile == "" && agent.Name == "" {
+		if agent.Host == "" {
 			return
 		}
 		// Append the single agent

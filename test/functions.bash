@@ -71,7 +71,7 @@ function initApplicationFiles() {
 function initLocalAgentFile() {
   echo "agents:
     - name: ${NAME}_0
-      host: 127.0.0.1" >> test/conf/local-agent.yaml
+      host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
 function initAgentsFile() {
@@ -82,7 +82,7 @@ function initAgentsFile() {
     echo "- name: $AGENT_NAME
   user: ${USERS[$IDX]}
   host: ${HOSTS[$IDX]}
-  keyfile: $KEY_FILE" >> test/conf/agents.yaml
+  keyfile: $KEY_FILE" > test/conf/agents.yaml
   done
 }
 
