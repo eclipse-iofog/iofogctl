@@ -17,19 +17,22 @@
 . test/functions.bash
 . test/functional.vars.bash
 
-NS=$(echo "$NAMESPACE""-k8s")
+NS="$NAMESPACE"
+USER_PW="S5gYVgLEZV"
+USER_EMAIL="user@domain.com"
 
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
 }
 
 @test "Deploy Controller" {
-  echo "controlplane:
+  echo "---
+controlplane:
   iofoguser:
     name: Testing
     surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
+    email: $USER_EMAIL
+    password: $USER_PW
   controllers:
   - name: $NAME
     kubeconfig: $KUBE_CONFIG
@@ -44,15 +47,9 @@ NS=$(echo "$NAMESPACE""-k8s")
   checkController
 }
 
-@test "Get credentials" {
-  export CONTROLLER_EMAIL=$(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep email | sed "s|.*email: ||")
-  export CONTROLLER_PASS=$(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep password | sed "s|.*password: ||")
-  export CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep endpoint | sed "s|.*endpoint: ||")
-  [[ ! -z "$CONTROLLER_EMAIL" ]]
-  [[ ! -z "$CONTROLLER_PASS" ]]
+@test "Get endpoint" {
+  CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
-  echo "$CONTROLLER_EMAIL" > /tmp/email.txt
-  echo "$CONTROLLER_PASS" > /tmp/pass.txt
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
@@ -102,10 +99,8 @@ NS=$(echo "$NAMESPACE""-k8s")
 }
 
 @test "Connect to cluster using Controller IP" {
-  CONTROLLER_EMAIL=$(cat /tmp/email.txt)
-  CONTROLLER_PASS=$(cat /tmp/pass.txt)
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -v -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
+  test iofogctl -v -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
   checkAgents
 }
@@ -118,10 +113,8 @@ NS=$(echo "$NAMESPACE""-k8s")
 }
 
 @test "Connect to cluster using Kube Config" {
-  CONTROLLER_EMAIL=$(cat /tmp/email.txt)
-  CONTROLLER_PASS=$(cat /tmp/pass.txt)
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -v -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$CONTROLLER_EMAIL" --pass "$CONTROLLER_PASS"
+  test iofogctl -v -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
   checkAgents
 }
@@ -133,7 +126,13 @@ NS=$(echo "$NAMESPACE""-k8s")
 }
 
 @test "Deploy Controller for idempotence" {
-  echo "controllers:
+  echo "---
+iofoguser:
+  name: Testing
+  surname: Functional
+  email: $USER_EMAIL
+  password: $USER_PW
+controllers:
 - name: $NAME
   kubeconfig: $KUBE_CONFIG
   images:

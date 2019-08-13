@@ -3,7 +3,7 @@
 . test/functions.bash
 . test/functional.vars.bash
 
-NS=$(echo "$NAMESPACE""-local")
+NS="$NAMESPACE"
 
 @test "Create namespace" {
   test iofogctl create namespace "$NS"

@@ -69,9 +69,10 @@ function initApplicationFiles() {
 }
 
 function initLocalAgentFile() {
-  echo "agents:
-    - name: ${NAME}_0
-      host: 127.0.0.1" > test/conf/local-agent.yaml
+  echo "---
+agents:
+  - name: ${NAME}_0
+    host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
 function initAgentsFile() {
@@ -82,7 +83,7 @@ function initAgentsFile() {
     echo "- name: $AGENT_NAME
   user: ${USERS[$IDX]}
   host: ${HOSTS[$IDX]}
-  keyfile: $KEY_FILE" > test/conf/agents.yaml
+  keyfile: $KEY_FILE" >> test/conf/agents.yaml
   done
 }
 
@@ -114,7 +115,7 @@ function initAgents(){
 
 function checkController() {
   [[ "$NAME" == $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep "name: $NAME") ]]
 }
 
 function checkControllerNegative() {

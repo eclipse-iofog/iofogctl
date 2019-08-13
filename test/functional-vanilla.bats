@@ -3,7 +3,7 @@
 . test/functions.bash
 . test/functional.vars.bash
 
-NS=$(echo "$NAMESPACE""-vanilla")
+NS="$NAMESPACE"
 
 # TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
 #@test "Deploy vanilla Controller" {
@@ -20,7 +20,7 @@ NS=$(echo "$NAMESPACE""-vanilla")
   initVanillaController
   echo "controlplane:
   connectors:
-  - name: ${NAME}-connector
+  - name: $NAME
     user: $VANILLA_USER
     host: $VANILLA_HOST
     port: $VANILLA_PORT
@@ -28,7 +28,7 @@ NS=$(echo "$NAMESPACE""-vanilla")
     version: $VANILLA_VERSION
     packagecloudtoken: $PACKAGE_CLOUD_TOKEN
   controllers:
-  - name: ${NAME}-controller
+  - name: $NAME
     user: $VANILLA_USER
     host: $VANILLA_HOST
     port: $VANILLA_PORT
