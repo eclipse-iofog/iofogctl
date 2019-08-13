@@ -22,12 +22,12 @@ import (
 
 type remoteExecutor struct {
 	namespace          string
-	cnct               config.Connector
+	cnct               *config.Connector
 	controllerEndpoint string
 	iofogUser          config.IofogUser
 }
 
-func newRemoteExecutor(namespace string, cnct config.Connector, controllerEndpoint string, iofogUser config.IofogUser) *remoteExecutor {
+func newRemoteExecutor(namespace string, cnct *config.Connector, controllerEndpoint string, iofogUser config.IofogUser) *remoteExecutor {
 	d := &remoteExecutor{}
 	d.namespace = namespace
 	d.cnct = cnct
@@ -43,14 +43,6 @@ func (exe *remoteExecutor) GetName() string {
 func (exe *remoteExecutor) Execute() (err error) {
 	defer util.SpinStop()
 	util.SpinStart("Deploying Connector " + exe.cnct.Name)
-
-	// Update configuration before we try to deploy in case of failure
-	if err = config.UpdateConnector(exe.namespace, exe.cnct); err != nil {
-		return
-	}
-	if err = config.Flush(); err != nil {
-		return
-	}
 
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
@@ -70,11 +62,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 
-	// Update configuration
+	// Update connector (its a pointer, this is returned to caller)
 	exe.cnct.Endpoint = exe.cnct.Host + ":" + iofog.ConnectorPortString
-	if err = config.UpdateConnector(exe.namespace, exe.cnct); err != nil {
-		return
-	}
 
-	return config.Flush()
+	return nil
 }

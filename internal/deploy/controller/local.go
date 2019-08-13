@@ -25,14 +25,14 @@ import (
 
 type localExecutor struct {
 	namespace             string
-	ctrl                  config.Controller
+	ctrl                  *config.Controller
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalControllerConfig
 	localUserConfig       *install.LocalUserConfig
 	containersNames       []string
 }
 
-func newLocalExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
 		namespace:             namespace,
 		ctrl:                  ctrl,
@@ -131,29 +131,13 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	// Update configuration
-	controller := config.Controller{
+	// Update controller (its a pointer, this is returned to caller)
+	exe.ctrl = &config.Controller{
 		Name:     exe.ctrl.Name,
 		User:     currUser.Username,
 		Endpoint: fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
 		Host:     controllerContainerConfig.Host,
 		Images:   exe.ctrl.Images,
-	}
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-	controlPlane.IofogUser = exe.localUserConfig.IofogUser
-	controlPlane.Controllers = append(controlPlane.Controllers, controller)
-	err = config.UpdateControlPlane(exe.namespace, controlPlane)
-	if err != nil {
-		exe.cleanContainers()
-		return err
-	}
-
-	if err = config.Flush(); err != nil {
-		exe.cleanContainers()
-		return err
 	}
 
 	return nil

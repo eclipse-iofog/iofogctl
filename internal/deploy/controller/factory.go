@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
+func NewExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
 	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
 		return nil, util.NewError("Cannot deploy Controller because ioFog user is not specified")
 	}

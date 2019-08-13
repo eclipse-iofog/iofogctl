@@ -44,7 +44,7 @@ func Execute(opt Options) error {
 
 	// Execute Controllers
 	for idx := range controlPlane.Controllers {
-		exe, err := deploycontroller.NewExecutor(opt.Namespace, controlPlane.Controllers[idx], controlPlane)
+		exe, err := deploycontroller.NewExecutor(opt.Namespace, &controlPlane.Controllers[idx], controlPlane)
 		if err != nil {
 			return err
 		}

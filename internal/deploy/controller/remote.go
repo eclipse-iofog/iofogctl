@@ -22,11 +22,11 @@ import (
 
 type remoteExecutor struct {
 	namespace    string
-	ctrl         config.Controller
+	ctrl         *config.Controller
 	controlPlane config.ControlPlane
 }
 
-func newRemoteExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
+func newRemoteExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
 	d := &remoteExecutor{}
 	d.namespace = namespace
 	d.ctrl = ctrl
@@ -57,13 +57,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err = installer.Install(); err != nil {
 		return
 	}
-
-	// TODO: This creates a race condition, but I can't relocate it
-	// Update configuration
+	// Update controller (its a pointer, this is returned to caller)
 	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
-	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
-		return
-	}
 
 	return
 }

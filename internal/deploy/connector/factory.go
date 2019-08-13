@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace string, cnct config.Connector, controlPlane config.ControlPlane) (execute.Executor, error) {
+func NewExecutor(namespace string, cnct *config.Connector, controlPlane config.ControlPlane) (execute.Executor, error) {
 	// Must contain Controller
 	if len(controlPlane.Controllers) == 0 {
 		return nil, util.NewError("There are no Controllers in this namespace. You must first deploy one or more Controllers.")

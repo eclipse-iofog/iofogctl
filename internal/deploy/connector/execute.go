@@ -46,7 +46,7 @@ func Execute(opt Options) error {
 	// Execute Connectors
 	var executors []execute.Executor
 	for idx := range connectors {
-		exe, err := NewExecutor(opt.Namespace, connectors[idx], controlPlane)
+		exe, err := NewExecutor(opt.Namespace, &connectors[idx], controlPlane)
 		if err != nil {
 			return err
 		}
@@ -54,6 +54,13 @@ func Execute(opt Options) error {
 	}
 	if err := runExecutors(executors); err != nil {
 		return err
+	}
+
+	// Update configuration
+	for idx := range connectors {
+		if err = config.UpdateConnector(opt.Namespace, connectors[idx]); err != nil {
+			return err
+		}
 	}
 
 	return nil

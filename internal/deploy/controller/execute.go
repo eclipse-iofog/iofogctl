@@ -41,13 +41,18 @@ func Execute(opt Options) error {
 	}
 
 	// Instantiate executor
-	exe, err := NewExecutor(opt.Namespace, ctrl, controlPlane)
+	exe, err := NewExecutor(opt.Namespace, &ctrl, controlPlane)
 	if err != nil {
 		return err
 	}
 
 	// Execute command
 	if err := exe.Execute(); err != nil {
+		return err
+	}
+
+	// Update configuration
+	if err = config.UpdateController(opt.Namespace, ctrl); err != nil {
 		return err
 	}
 

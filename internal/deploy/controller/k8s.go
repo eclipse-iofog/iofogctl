@@ -21,11 +21,11 @@ import (
 
 type kubernetesExecutor struct {
 	namespace    string
-	ctrl         config.Controller
+	ctrl         *config.Controller
 	controlPlane config.ControlPlane
 }
 
-func newKubernetesExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
 	k.namespace = namespace
 	k.ctrl = ctrl
@@ -59,12 +59,8 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return
 	}
 
-	// TODO: This creates a race condition, but I can't relocate it
-	// Update configuration
+	// Update controller (its a pointer, this is returned to caller)
 	exe.ctrl.Endpoint = endpoint
-	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
-		return
-	}
 
 	return
 }
