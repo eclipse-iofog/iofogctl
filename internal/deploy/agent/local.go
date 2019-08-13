@@ -25,7 +25,7 @@ import (
 
 type localExecutor struct {
 	namespace        string
-	agent            config.Agent
+	agent            *config.Agent
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
@@ -42,7 +42,7 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(namespace string, agent config.Agent, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer) (*localExecutor, error) {
 	// Get controllerConfig
 	controller, err := getController(namespace)
 	if err != nil {
@@ -131,25 +131,12 @@ func (exe *localExecutor) Execute() error {
 
 	// Update configuration
 	agentIP := fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
-	configEntry := config.Agent{
+	// Return new Agent config because variable is a pointer
+	exe.agent = &config.Agent{
 		Name: exe.agent.Name,
 		User: currUser.Username,
 		Host: agentIP,
 		UUID: uuid,
-	}
-	err = config.AddAgent(exe.namespace, configEntry)
-	if err != nil {
-		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
-			fmt.Printf("Could not clean container %s\n", agentContainerName)
-		}
-		return err
-	}
-
-	if err = config.Flush(); err != nil {
-		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
-			fmt.Printf("Could not clean container %s\n", agentContainerName)
-		}
-		return err
 	}
 
 	return nil

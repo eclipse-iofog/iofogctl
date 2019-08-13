@@ -21,11 +21,11 @@ import (
 
 type remoteExecutor struct {
 	namespace string
-	agent     config.Agent
+	agent     *config.Agent
 	uuid      string
 }
 
-func newRemoteExecutor(namespace string, agent config.Agent) *remoteExecutor {
+func newRemoteExecutor(namespace string, agent *config.Agent) *remoteExecutor {
 	exe := &remoteExecutor{}
 	exe.namespace = namespace
 	exe.agent = agent
@@ -40,23 +40,10 @@ func (exe *remoteExecutor) GetName() string {
 //
 // Install iofog-agent stack on an agent host
 //
-func (exe *remoteExecutor) Execute() error {
+func (exe *remoteExecutor) Execute() (err error) {
 	defer util.SpinStop()
 	util.SpinStart("Deploying agent " + exe.agent.Name)
 
-	configEntry, err := exe.deployAgent()
-	if err != nil {
-		return err
-	}
-
-	if err = config.UpdateAgent(exe.namespace, configEntry); err != nil {
-		return err
-	}
-
-	return config.Flush()
-}
-
-func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
 	// Get Control Plane
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil || len(controlPlane.Controllers) == 0 {
@@ -79,14 +66,9 @@ func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
 		return
 	}
 
-	configEntry = config.Agent{
-		Name:    exe.agent.Name,
-		User:    exe.agent.User,
-		Host:    exe.agent.Host,
-		Port:    exe.agent.Port,
-		KeyFile: exe.agent.KeyFile,
-		UUID:    uuid,
-		Created: util.NowUTC(),
-	}
+	// Return the Agent through pointer
+	exe.agent.UUID = uuid
+	exe.agent.Created = util.NowUTC()
+
 	return
 }

@@ -21,7 +21,7 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   version:
-  zone: us-west2-b
+  zone: us-east4-a
   vm_count: 3
   vm_1:
   vm_2:

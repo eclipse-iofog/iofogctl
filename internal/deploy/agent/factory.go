@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func newExecutor(namespace string, agent config.Agent) (execute.Executor, error) {
+func newExecutor(namespace string, agent *config.Agent) (execute.Executor, error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {

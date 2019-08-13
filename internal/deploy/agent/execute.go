@@ -40,7 +40,7 @@ func Execute(opt Options) error {
 	// Instantiate executors
 	var executors []execute.Executor
 	for idx := range agents {
-		exe, err := newExecutor(ns.Name, agents[idx])
+		exe, err := newExecutor(ns.Name, &agents[idx])
 		if err != nil {
 			return err
 		}
@@ -55,5 +55,12 @@ func Execute(opt Options) error {
 		return util.NewError("Failed to deploy")
 	}
 
-	return nil
+	// Update configuration
+	for idx := range agents {
+		if err = config.UpdateAgent(opt.Namespace, agents[idx]); err != nil {
+			return err
+		}
+	}
+
+	return config.Flush()
 }
