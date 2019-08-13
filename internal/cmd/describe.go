@@ -22,10 +22,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: Move to subcommands
 func newDescribeCommand() *cobra.Command {
-	validResources := make([]string, len(resources))
+	validResources := make([]string, len(describeResources))
 	i := 0
-	for resource := range resources {
+	for resource := range describeResources {
 		validResources[i] = resource
 		i++
 	}
@@ -36,23 +37,25 @@ func newDescribeCommand() *cobra.Command {
 		Long: `Get detailed information of existing resources.
 
 Resources such as Agents require a working Controller in the namespace in order to be described.`,
-		Example: `iofogctl describe controller NAME
+		Example: `iofogctl describe namespace
+iofogctl describe controlplane
+iofogctl describe controller NAME
 iofogctl describe agent NAME
 iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
-		Args: cobra.ExactValidArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				util.Check(util.NewInputError("Must specify a resource to describe"))
+			}
 			// Get resource type and name
 			resource := args[0]
-			name := args[1]
+			name := ""
+			if len(args) > 1 {
+				name = args[1]
+			}
 
 			// Get namespace option
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-
-			// Validate first argument
-			if _, exists := resources[resource]; !exists {
-				util.Check(util.NewNotFoundError(resource))
-			}
 
 			// Get executor for describe command
 			exe, err := describe.NewExecutor(resource, namespace, name, filename)
@@ -66,4 +69,14 @@ iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\
 	cmd.Flags().StringVarP(&filename, "output-file", "o", "", "YAML output file")
 
 	return cmd
+}
+
+// Values accepted in resource type argument
+var describeResources = map[string]bool{
+	"namespace":    true,
+	"controlplane": true,
+	"controller":   true,
+	"agent":        true,
+	"microservice": true,
+	"application":  true,
 }

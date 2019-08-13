@@ -33,11 +33,6 @@ iofogctl logs microservice NAME`,
 			resource := args[0]
 			name := args[1]
 
-			// Validate first argument
-			if _, exists := resources[resource]; !exists {
-				util.Check(util.NewNotFoundError(resource))
-			}
-
 			// Get namespace option
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
@@ -53,12 +48,4 @@ iofogctl logs microservice NAME`,
 	}
 
 	return cmd
-}
-
-// Values accepted in resource type argument
-var resources = map[string]bool{
-	"controller":   true,
-	"agent":        true,
-	"microservice": true,
-	"application":  true,
 }

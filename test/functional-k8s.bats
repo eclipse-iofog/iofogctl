@@ -45,9 +45,9 @@ NS=$(echo "$NAMESPACE""-k8s")
 }
 
 @test "Get credentials" {
-  export CONTROLLER_EMAIL=$(iofogctl -v -n "$NS" describe controller "$NAME" | grep email | sed "s|.*email: ||")
-  export CONTROLLER_PASS=$(iofogctl -v -n "$NS" describe controller "$NAME" | grep password | sed "s|.*password: ||")
-  export CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controller "$NAME" | grep endpoint | sed "s|.*endpoint: ||")
+  export CONTROLLER_EMAIL=$(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep email | sed "s|.*email: ||")
+  export CONTROLLER_PASS=$(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep password | sed "s|.*password: ||")
+  export CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep endpoint | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_EMAIL" ]]
   [[ ! -z "$CONTROLLER_PASS" ]]
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]

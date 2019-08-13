@@ -22,6 +22,8 @@ func NewExecutor(resourceType, namespace, name, filename string) (execute.Execut
 	switch resourceType {
 	case "namespace":
 		return newNamespaceExecutor(namespace, filename), nil
+	case "controlplane":
+		return newControlPlaneExecutor(namespace, filename), nil
 	case "controller":
 		return newControllerExecutor(namespace, name, filename), nil
 	case "agent":
