@@ -32,8 +32,12 @@ func NewExecutor(namespace string, cnct config.Connector, controlPlane config.Co
 
 	// Local executor
 	if util.IsLocalHost(cnct.Host) {
+		existingConnectors, err := config.GetConnectors(namespace)
+		if err != nil {
+			return nil, err
+		}
 		// Check the namespace does not contain a Connector yet
-		nbConnectors := len(controlPlane.Connectors)
+		nbConnectors := len(existingConnectors)
 		if nbConnectors > 0 {
 			return nil, util.NewInputError("This namespace already contains a local Connector. Please remove it before deploying a new one.")
 		}

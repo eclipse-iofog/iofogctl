@@ -15,7 +15,6 @@ package deploycontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
@@ -46,19 +45,6 @@ func Execute(opt Options) error {
 	// Execute Controllers
 	for idx := range controlPlane.Controllers {
 		exe, err := deploycontroller.NewExecutor(opt.Namespace, controlPlane.Controllers[idx], controlPlane)
-		if err != nil {
-			return err
-		}
-		executors = append(executors, exe)
-	}
-	if err := runExecutors(executors); err != nil {
-		return err
-	}
-
-	// Execute Connectors
-	executors = executors[:0]
-	for idx := range controlPlane.Connectors {
-		exe, err := deployconnector.NewExecutor(opt.Namespace, controlPlane.Connectors[idx], controlPlane)
 		if err != nil {
 			return err
 		}

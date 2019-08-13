@@ -17,6 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	"github.com/eclipse-iofog/iofogctl/internal/deploy/application"
+	"github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	"github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -37,6 +38,10 @@ func Execute(opt *Options) error {
 	if err != nil {
 		return err
 	}
+	connectors, err := deployconnector.UnmarshallYAML(opt.InputFile)
+	if err != nil {
+		return err
+	}
 	agents, err := deployagent.UnmarshallYAML(opt.InputFile)
 	if err != nil {
 		return err
@@ -46,7 +51,7 @@ func Execute(opt *Options) error {
 		return err
 	}
 	// If there are no resources return error
-	if len(controlPlane.Controllers) == 0 && len(agents) == 0 && len(applications) == 0 {
+	if len(controlPlane.Controllers) == 0 && len(connectors) == 0 && len(agents) == 0 && len(applications) == 0 {
 		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
 
@@ -59,6 +64,11 @@ func Execute(opt *Options) error {
 		if err = deploycontrolplane.Execute(deploycontrolplane.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
 			return err
 		}
+	}
+
+	// Deploy Connectors
+	if err = deployconnector.Execute(deployconnector.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+		return err
 	}
 
 	// Deploy Agents

@@ -15,6 +15,7 @@ package deployconnector
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -31,7 +32,7 @@ func Execute(opt Options) error {
 	}
 
 	// Unmarshall file
-	cnct, err := UnmarshallYAML(opt.InputFile)
+	connectors, err := UnmarshallYAML(opt.InputFile)
 	if err != nil {
 		return err
 	}
@@ -42,19 +43,28 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	// Instantiate executor
-	exe, err := NewExecutor(opt.Namespace, cnct, controlPlane)
-	if err != nil {
+	// Execute Connectors
+	var executors []execute.Executor
+	for idx := range connectors {
+		exe, err := NewExecutor(opt.Namespace, connectors[idx], controlPlane)
+		if err != nil {
+			return err
+		}
+		executors = append(executors, exe)
+	}
+	if err := runExecutors(executors); err != nil {
 		return err
 	}
 
-	defer util.SpinStop()
-	util.SpinStart("Deploying Connector " + cnct.Name)
+	return nil
+}
 
-	// Execute command
-	if err := exe.Execute(); err != nil {
-		return err
+func runExecutors(executors []execute.Executor) error {
+	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
+		for idx := range errs {
+			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
+		}
+		return util.NewError("Failed to deploy")
 	}
-
 	return nil
 }

@@ -97,7 +97,7 @@ func GetControllers(namespace string) ([]Controller, error) {
 func GetConnectors(namespace string) ([]Connector, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			return ns.ControlPlane.Connectors, nil
+			return ns.Connectors, nil
 		}
 	}
 	return nil, util.NewNotFoundError(namespace)
@@ -157,7 +157,7 @@ func GetController(namespace, name string) (controller Controller, err error) {
 func GetConnector(namespace, name string) (connector Connector, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			for _, cnct := range ns.ControlPlane.Connectors {
+			for _, cnct := range ns.Connectors {
 				if cnct.Name == name {
 					connector = cnct
 					return
@@ -253,9 +253,9 @@ func UpdateConnector(namespace string, connector Connector) error {
 		return err
 	}
 	// Update existing connector if exists
-	for idx := range ns.ControlPlane.Connectors {
-		if ns.ControlPlane.Connectors[idx].Name == connector.Name {
-			ns.ControlPlane.Connectors[idx] = connector
+	for idx := range ns.Connectors {
+		if ns.Connectors[idx].Name == connector.Name {
+			ns.Connectors[idx] = connector
 			return nil
 		}
 	}
@@ -315,7 +315,7 @@ func AddConnector(namespace string, connector Connector) error {
 	}
 
 	// Append the connector
-	ns.ControlPlane.Connectors = append(ns.ControlPlane.Connectors, connector)
+	ns.Connectors = append(ns.Connectors, connector)
 
 	return nil
 }
@@ -392,9 +392,9 @@ func DeleteConnector(namespace, name string) error {
 		return err
 	}
 
-	for idx := range ns.ControlPlane.Connectors {
-		if ns.ControlPlane.Connectors[idx].Name == name {
-			ns.ControlPlane.Connectors = append(ns.ControlPlane.Connectors[:idx], ns.ControlPlane.Connectors[idx+1:]...)
+	for idx := range ns.Connectors {
+		if ns.Connectors[idx].Name == name {
+			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
 			return nil
 		}
 	}

@@ -55,17 +55,6 @@ func UnmarshallYAML(filename string) (controlPlane config.ControlPlane, err erro
 			return
 		}
 	}
-	for idx := range controlPlane.Connectors {
-		cnct := &controlPlane.Connectors[idx]
-		// Fix SSH port
-		if cnct.Port == 0 {
-			cnct.Port = 22
-		}
-		// Format file paths
-		if cnct.KeyFile, err = util.FormatPath(cnct.KeyFile); err != nil {
-			return
-		}
-	}
 
 	return
 }

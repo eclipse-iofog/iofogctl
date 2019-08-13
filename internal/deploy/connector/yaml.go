@@ -18,24 +18,41 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func UnmarshallYAML(filename string) (cnct config.Connector, err error) {
+type specification struct {
+	Connectors []config.Connector
+}
+
+func UnmarshallYAML(filename string) (connectors []config.Connector, err error) {
 	// Unmarshall the input file
-	if err = util.UnmarshalYAML(filename, &cnct); err != nil {
-		return
-	}
-	// None specified
-	if cnct.Name == "" || cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "" {
-		err = util.NewInputError("Could not unmarshal YAML file")
-		return
+	var spec specification
+	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Connectors) == 0 {
+		var cnct config.Connector
+		if err = util.UnmarshalYAML(filename, &cnct); err != nil {
+			err = util.NewInputError("Could not unmarshall " + filename)
+			return
+		}
+		// None specified
+		if cnct.Name == "" || cnct.Host == "" {
+			return
+		}
+		// Append the single cnct
+		connectors = append(connectors, cnct)
+	} else {
+		// Record multiple cnct
+		connectors = spec.Connectors
 	}
 
-	// Fix SSH port
-	if cnct.Port == 0 {
-		cnct.Port = 22
-	}
-	// Format file paths
-	if cnct.KeyFile, err = util.FormatPath(cnct.KeyFile); err != nil {
-		return
+	// Pre-process the fields
+	for idx := range connectors {
+		cnct := &connectors[idx]
+		// Fix SSH port
+		if cnct.Port == 0 {
+			cnct.Port = 22
+		}
+		// Format file paths
+		if cnct.KeyFile, err = util.FormatPath(cnct.KeyFile); err != nil {
+			return
+		}
 	}
 
 	return

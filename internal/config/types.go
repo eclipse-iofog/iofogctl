@@ -41,7 +41,6 @@ type ControlPlane struct {
 	LoadBalancer Loadbalancer
 	IofogUser    IofogUser
 	Controllers  []Controller
-	Connectors   []Connector
 }
 
 type Connector struct {
@@ -131,6 +130,7 @@ type Application struct {
 type Namespace struct {
 	Name          string
 	ControlPlane  ControlPlane
+	Connectors    []Connector
 	Agents        []Agent
 	Microservices []Microservice
 	Created       string
