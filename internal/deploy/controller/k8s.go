@@ -20,14 +20,16 @@ import (
 )
 
 type kubernetesExecutor struct {
-	namespace string
-	ctrl      config.Controller
+	namespace    string
+	ctrl         config.Controller
+	controlPlane config.ControlPlane
 }
 
-func newKubernetesExecutor(namespace string, ctrl config.Controller) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
 	k.namespace = namespace
 	k.ctrl = ctrl
+	k.controlPlane = controlPlane
 	return k
 }
 
@@ -38,13 +40,6 @@ func (exe *kubernetesExecutor) GetName() string {
 func (exe *kubernetesExecutor) Execute() (err error) {
 	defer util.SpinStop()
 	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
-
-	// Update configuration before we try to deploy in case of failure
-	var user config.IofogUser
-	exe.ctrl, user, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
-	if err != nil {
-		return
-	}
 
 	// Get Kubernetes installer
 	installer, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
@@ -59,16 +54,17 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 
 	// Create controller on cluster
-	endpoint, err := installer.CreateController(install.IofogUser(user))
+	endpoint, err := installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser))
 	if err != nil {
 		return
 	}
 
+	// TODO: This creates a race condition, but I can't relocate it
 	// Update configuration
 	exe.ctrl.Endpoint = endpoint
 	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
 		return
 	}
 
-	return config.Flush()
+	return
 }

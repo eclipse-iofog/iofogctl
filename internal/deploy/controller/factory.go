@@ -20,17 +20,11 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace string, ctrl config.Controller) (execute.Executor, error) {
-	// Get the namespace
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return nil, err
-	}
-
+func NewExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
 	// Local executor
 	if util.IsLocalHost(ctrl.Host) {
 		// Check the namespace does not contain a Controller yet
-		nbControllers := len(ns.ControlPlane.Controllers)
+		nbControllers := len(controlPlane.Controllers)
 		if nbControllers > 0 {
 			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
 		}
@@ -52,12 +46,12 @@ func NewExecutor(namespace string, ctrl config.Controller) (execute.Executor, er
 		//		return nil, err
 		//	}
 		//}
-		return newKubernetesExecutor(namespace, ctrl), nil
+		return newKubernetesExecutor(namespace, ctrl, controlPlane), nil
 	}
 
 	// Default executor
 	if ctrl.Host == "" || ctrl.KeyFile == "" || ctrl.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	return newRemoteExecutor(namespace, ctrl), nil
+	return newRemoteExecutor(namespace, ctrl, controlPlane), nil
 }

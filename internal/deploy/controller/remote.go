@@ -16,20 +16,21 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
-	namespace string
-	ctrl      config.Controller
+	namespace    string
+	ctrl         config.Controller
+	controlPlane config.ControlPlane
 }
 
-func newRemoteExecutor(namespace string, ctrl config.Controller) *remoteExecutor {
+func newRemoteExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
 	d := &remoteExecutor{}
 	d.namespace = namespace
 	d.ctrl = ctrl
+	d.controlPlane = controlPlane
 	return d
 }
 
@@ -40,13 +41,6 @@ func (exe *remoteExecutor) GetName() string {
 func (exe *remoteExecutor) Execute() (err error) {
 	defer util.SpinStop()
 	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
-
-	// Update configuration before we try to deploy in case of failure
-	var user config.IofogUser
-	exe.ctrl, user, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
-	if err != nil {
-		return
-	}
 
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
@@ -64,17 +58,12 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 
+	// TODO: This creates a race condition, but I can't relocate it
 	// Update configuration
 	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
 	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
 		return
 	}
 
-	// Create new user
-	ctrlClient := client.New(exe.ctrl.Endpoint)
-	if err = ctrlClient.CreateUser(client.User(user)); err != nil {
-		return
-	}
-
-	return config.Flush()
+	return
 }

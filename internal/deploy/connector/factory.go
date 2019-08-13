@@ -19,27 +19,21 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace string, cnct config.Connector) (execute.Executor, error) {
-	// Get the namespace
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return nil, err
-	}
-
+func NewExecutor(namespace string, cnct config.Connector, controlPlane config.ControlPlane) (execute.Executor, error) {
 	// Must contain Controller
-	if len(ns.ControlPlane.Controllers) == 0 {
+	if len(controlPlane.Controllers) == 0 {
 		return nil, util.NewError("There are no Controllers in this namespace. You must first deploy one or more Controllers.")
 	}
 
 	// Must contain an ioFog User
-	if ns.ControlPlane.IofogUser.Email == "" || ns.ControlPlane.IofogUser.Password == "" {
+	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
 		return nil, util.NewError("The Control Plane in this namespace does not have a valid ioFog user")
 	}
 
 	// Local executor
 	if util.IsLocalHost(cnct.Host) {
 		// Check the namespace does not contain a Connector yet
-		nbConnectors := len(ns.ControlPlane.Connectors)
+		nbConnectors := len(controlPlane.Connectors)
 		if nbConnectors > 0 {
 			return nil, util.NewInputError("This namespace already contains a local Connector. Please remove it before deploying a new one.")
 		}
@@ -51,5 +45,5 @@ func NewExecutor(namespace string, cnct config.Connector) (execute.Executor, err
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
 	// TODO: Replace Controllers[0].Endpoint with different variable e.g. loadbalancer
-	return newRemoteExecutor(namespace, cnct, ns.ControlPlane.Controllers[0].Endpoint, ns.ControlPlane.IofogUser), nil
+	return newRemoteExecutor(namespace, cnct, controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser), nil
 }

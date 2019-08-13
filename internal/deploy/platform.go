@@ -28,7 +28,7 @@ type Options struct {
 
 func Execute(opt *Options) error {
 	// Check namespace option
-	ns, err := config.GetNamespace(opt.Namespace)
+	existingControlPlane, err := config.GetControlPlane(opt.Namespace)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func Execute(opt *Options) error {
 	}
 	// If no controller is provided, one must already exist
 	if len(controlPlane.Controllers) == 0 {
-		if len(ns.ControlPlane.Controllers) == 0 {
+		if len(existingControlPlane.Controllers) == 0 {
 			return util.NewInputError("If you are not deploying a new controller, one must exist in the specified namespace")
 		}
 	}
@@ -72,5 +72,5 @@ func Execute(opt *Options) error {
 		return err
 	}
 
-	return nil
+	return config.Flush()
 }

@@ -25,7 +25,7 @@ type Options struct {
 
 func Execute(opt Options) error {
 	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
+	_, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return err
 	}
@@ -36,8 +36,14 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Get the Control Plane
+	controlPlane, err := config.GetControlPlane(opt.Namespace)
+	if err != nil {
+		return err
+	}
+
 	// Instantiate executor
-	exe, err := NewExecutor(ns.Name, cnct)
+	exe, err := NewExecutor(opt.Namespace, cnct, controlPlane)
 	if err != nil {
 		return err
 	}
