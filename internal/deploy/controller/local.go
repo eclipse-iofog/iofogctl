@@ -34,17 +34,22 @@ type localExecutor struct {
 	containersNames       []string
 }
 
-func newLocalExecutor(namespace string, ctrl config.Controller, client *install.LocalContainer) *localExecutor {
-	if ctrl.IofogUser.Email == "" {
-		ctrl.IofogUser = config.NewRandomUser()
+func newLocalExecutor(namespace string, ctrl config.Controller, client *install.LocalContainer) (*localExecutor, error) {
+	// Check for existing user, create one if necessary
+	controlPlane, err := config.GetControlPlane(namespace)
+	if err != nil {
+		return nil, err
+	}
+	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
+		controlPlane.IofogUser = config.NewRandomUser()
 	}
 	return &localExecutor{
 		namespace:             namespace,
 		ctrl:                  ctrl,
 		client:                client,
 		localControllerConfig: install.NewLocalControllerConfig(ctrl.Name, ctrl.Images),
-		localUserConfig:       &install.LocalUserConfig{ctrl.IofogUser},
-	}
+		localUserConfig:       &install.LocalUserConfig{controlPlane.IofogUser},
+	}, nil
 }
 
 func (exe *localExecutor) cleanContainers() {
@@ -186,15 +191,20 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Update configuration
-	configEntry := config.Controller{
-		Name:      exe.ctrl.Name,
-		User:      currUser.Username,
-		Endpoint:  fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
-		Host:      controllerContainerConfig.Host,
-		Images:    exe.ctrl.Images,
-		IofogUser: exe.localUserConfig.IofogUser,
+	controller := config.Controller{
+		Name:     exe.ctrl.Name,
+		User:     currUser.Username,
+		Endpoint: fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
+		Host:     controllerContainerConfig.Host,
+		Images:   exe.ctrl.Images,
 	}
-	err = config.AddController(exe.namespace, configEntry)
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane.IofogUser = exe.localUserConfig.IofogUser
+	controlPlane.Controllers = append(controlPlane.Controllers, controller)
+	err = config.UpdateControlPlane(exe.namespace, controlPlane)
 	if err != nil {
 		exe.cleanContainers()
 		return err

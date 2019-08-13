@@ -31,7 +31,6 @@ type ControllerOptions struct {
 	PrivKeyFilename   string
 	Version           string
 	PackageCloudToken string
-	IofogUser         IofogUser
 }
 
 type Controller struct {
@@ -92,9 +91,9 @@ func (ctrl *Controller) Install() (err error) {
 		return
 	}
 
-	// Create Iofog user
+	// Wait for API
 	endpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
-	if err = createUser(endpoint, ctrl.IofogUser); err != nil {
+	if err = waitForControllerAPI(endpoint); err != nil {
 		return
 	}
 
@@ -125,7 +124,7 @@ func (ctrl *Controller) Stop() (err error) {
 	return
 }
 
-func createUser(endpoint string, user IofogUser) (err error) {
+func waitForControllerAPI(endpoint string) (err error) {
 	ctrlClient := client.New(endpoint)
 
 	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
@@ -138,7 +137,7 @@ func createUser(endpoint string, user IofogUser) (err error) {
 			return
 		}
 		// Try to create the user
-		if err = ctrlClient.CreateUser(client.User(user)); err != nil {
+		if _, err = ctrlClient.GetStatus(); err != nil {
 			// Retry if connection is refused, this is usually only necessary on K8s Controller
 			if strings.Contains(err.Error(), "connection refused") {
 				time.Sleep(time.Millisecond * 1000)

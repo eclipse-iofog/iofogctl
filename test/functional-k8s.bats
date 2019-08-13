@@ -25,6 +25,11 @@ NS=$(echo "$NAMESPACE""-k8s")
 
 @test "Deploy Controller" {
   echo "controlplane:
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: user@domain.com
+    password: S5gYVgLEZV
   controllers:
   - name: $NAME
     kubeconfig: $KUBE_CONFIG
@@ -33,12 +38,7 @@ NS=$(echo "$NAMESPACE""-k8s")
       connector: $CONNECTOR_IMAGE
       scheduler: $SCHEDULER_IMAGE
       operator: $OPERATOR_IMAGE
-      kubelet: $KUBELET_IMAGE
-    iofoguser:
-      name: Testing
-      surname: Functional
-      email: user@domain.com
-      password: S5gYVgLEZV" > test/conf/k8s.yaml
+      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -141,12 +141,7 @@ NS=$(echo "$NAMESPACE""-k8s")
     connector: $CONNECTOR_IMAGE
     scheduler: $SCHEDULER_IMAGE
     operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
-  iofoguser:
-    name: Testing
-    surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV" > test/conf/k8s.yaml
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy controlplane -f test/conf/k8s.yaml
   checkController

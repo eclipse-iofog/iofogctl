@@ -125,6 +125,18 @@ func GetNamespace(name string) (namespace Namespace, err error) {
 	return
 }
 
+// GetControlPlane returns a control plane within a namespace
+func GetControlPlane(namespace string) (controlplane ControlPlane, err error) {
+	for _, ns := range conf.Namespaces {
+		if ns.Name == namespace {
+			controlplane = ns.ControlPlane
+			return
+		}
+	}
+	err = util.NewNotFoundError(namespace + " Control Plane")
+	return
+}
+
 // GetController returns a single controller within a namespace
 func GetController(namespace, name string) (controller Controller, err error) {
 	for _, ns := range conf.Namespaces {
@@ -202,6 +214,16 @@ func AddNamespace(name, created string) error {
 		Created: created,
 	}
 	conf.Namespaces = append(conf.Namespaces, newNamespace)
+	return nil
+}
+
+// UpdateConnector overwrites Control Plane in the namespace
+func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	ns.ControlPlane = controlPlane
 	return nil
 }
 

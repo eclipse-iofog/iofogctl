@@ -49,9 +49,6 @@ func generateAgentOutput(namespace string) error {
 	if err != nil {
 		return err
 	}
-	if len(ns.ControlPlane.Controllers) > 1 {
-		return util.NewInternalError("Expected 0 or 1 controller in namespace " + namespace)
-	}
 
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
@@ -67,8 +64,8 @@ func generateAgentOutput(namespace string) error {
 		// Instantiate client
 		ctrl := client.New(ns.ControlPlane.Controllers[0].Endpoint)
 		loginRequest := client.LoginRequest{
-			Email:    ns.ControlPlane.Controllers[0].IofogUser.Email,
-			Password: ns.ControlPlane.Controllers[0].IofogUser.Password,
+			Email:    ns.ControlPlane.IofogUser.Email,
+			Password: ns.ControlPlane.IofogUser.Password,
 		}
 		// Log into Controller
 		if err := ctrl.Login(loginRequest); err != nil {

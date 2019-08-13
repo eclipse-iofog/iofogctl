@@ -356,15 +356,26 @@ func (k8s *Kubernetes) createCore(user IofogUser) (token string, ips map[string]
 		}
 		ips[ms.name] = ip
 	}
-	// Create initial user in Controller
-	verbose("Creating user")
+	// Wait for Controller API
+	verbose("Waiting for Controller API")
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
-	if err = createUser(endpoint, user); err != nil {
+	if err = waitForControllerAPI(endpoint); err != nil {
 		return
 	}
+	// Create new user
+	verbose("Creating new user")
+	ctrlClient := client.New(endpoint)
+	if err = ctrlClient.CreateUser(client.User{
+		Name:     "N" + util.RandomString(10, util.AlphaLower),
+		Surname:  "S" + util.RandomString(10, util.AlphaLower),
+		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
+		Password: util.RandomString(10, util.AlphaNum),
+	}); err != nil {
+		return
+	}
+
 	// Log in using new user
 	verbose("Logging into Controller")
-	ctrlClient := client.New(endpoint)
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,

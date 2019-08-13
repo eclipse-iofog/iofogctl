@@ -16,6 +16,7 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -41,7 +42,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
 
 	// Update configuration before we try to deploy in case of failure
-	exe.ctrl, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
+	var user config.IofogUser
+	exe.ctrl, user, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
 	if err != nil {
 		return
 	}
@@ -54,7 +56,6 @@ func (exe *remoteExecutor) Execute() (err error) {
 		PrivKeyFilename:   exe.ctrl.KeyFile,
 		Version:           exe.ctrl.Version,
 		PackageCloudToken: exe.ctrl.PackageCloudToken,
-		IofogUser:         install.IofogUser(exe.ctrl.IofogUser),
 	}
 	installer := install.NewController(controllerOptions)
 
@@ -66,6 +67,12 @@ func (exe *remoteExecutor) Execute() (err error) {
 	// Update configuration
 	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
 	if err = config.UpdateController(exe.namespace, exe.ctrl); err != nil {
+		return
+	}
+
+	// Create new user
+	ctrlClient := client.New(exe.ctrl.Endpoint)
+	if err = ctrlClient.CreateUser(client.User(user)); err != nil {
 		return
 	}
 

@@ -53,17 +53,22 @@ func connect(opt *Options, endpoint string) error {
 		}
 	}
 
+	// TODO: We want to be able to connect to all Controllers in a namespace, but we can't right now
 	// Update Controller config
-	ctrlConfig := config.Controller{
-		Name:     opt.Name,
-		Endpoint: endpoint,
+	controlPlane := config.ControlPlane{
 		IofogUser: config.IofogUser{
 			Email:    opt.Email,
 			Password: opt.Password,
 		},
-		KubeConfig: opt.KubeFile,
+		Controllers: []config.Controller{
+			{
+				Name:       opt.Name,
+				Endpoint:   endpoint,
+				KubeConfig: opt.KubeFile,
+			},
+		},
 	}
-	err = config.AddController(opt.Namespace, ctrlConfig)
+	err = config.UpdateControlPlane(opt.Namespace, controlPlane)
 	if err != nil {
 		return err
 	}

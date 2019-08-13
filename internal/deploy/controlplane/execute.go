@@ -15,6 +15,7 @@ package deploycontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -38,8 +39,16 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Generate spec.IofogUser if required
+	if spec.IofogUser.Email == "" || spec.IofogUser.Name == "" || spec.IofogUser.Password == "" || spec.IofogUser.Surname == "" {
+		util.PrintNotify("Generating random ioFog spec.IofogUser because name, surname, email, and password were not supplied")
+		spec.IofogUser = config.NewRandomUser()
+	}
+
 	// Instantiate executors
 	var executors []execute.Executor
+
+	// Execute Controllers
 	for idx := range spec.Controllers {
 		exe, err := deploycontroller.NewExecutor(ns.Name, spec.Controllers[idx])
 		if err != nil {
@@ -47,14 +56,32 @@ func Execute(opt Options) error {
 		}
 		executors = append(executors, exe)
 	}
+	if err := runExecutors(executors); err != nil {
+		return err
+	}
 
-	// Execute
+	// Execute Connectors
+	executors = executors[:0]
+	for idx := range spec.Connectors {
+		exe, err := deployconnector.NewExecutor(ns.Name, spec.Connectors[idx])
+		if err != nil {
+			return err
+		}
+		executors = append(executors, exe)
+	}
+	if err := runExecutors(executors); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func runExecutors(executors []execute.Executor) error {
 	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
 		for idx := range errs {
 			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
 		}
 		return util.NewError("Failed to deploy")
 	}
-
 	return nil
 }

@@ -18,7 +18,6 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type microserviceExecutor struct {
@@ -35,9 +34,10 @@ func newMicroserviceExecutor(namespace string) *microserviceExecutor {
 	return a
 }
 
-func (exe *microserviceExecutor) init(controller *config.Controller) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+func (exe *microserviceExecutor) init(controlPlane config.ControlPlane) (err error) {
+	// TODO: replace controllers[0] with controplane variable
+	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
+	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
 		return
 	}
 	listMsvcs, err := exe.client.GetAllMicroservices()
@@ -55,21 +55,17 @@ func (exe *microserviceExecutor) GetName() string {
 }
 
 func (exe *microserviceExecutor) Execute() error {
-	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
+	// Get Control Plane config details
+	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
-	if len(controllers) == 0 {
+	if len(controlPlane.Controllers) == 0 {
 		// Generate empty output
 		return exe.generateMicroserviceOutput()
 	}
-	// Check Controller exists
-	if len(controllers) == 0 {
-		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller getting Microservices.")
-	}
 	// Fetch data
-	if err = exe.init(&controllers[0]); err != nil {
+	if err = exe.init(controlPlane); err != nil {
 		return err
 	}
 

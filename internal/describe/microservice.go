@@ -35,9 +35,10 @@ func newMicroserviceExecutor(namespace, name, filename string) *microserviceExec
 	return a
 }
 
-func (exe *microserviceExecutor) init(controller *config.Controller) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+func (exe *microserviceExecutor) init(controlPlane config.ControlPlane) (err error) {
+	// TODO: Replace controller[0] with variable in controlPlane
+	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
+	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
 		return
 	}
 	exe.msvc, err = exe.client.GetMicroserviceByName(exe.name)
@@ -49,17 +50,17 @@ func (exe *microserviceExecutor) GetName() string {
 }
 
 func (exe *microserviceExecutor) Execute() error {
-	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
+	// Get Control Plane config details
+	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
 	// Check Controller exists
-	if len(controllers) == 0 {
+	if len(controlPlane.Controllers) == 0 {
 		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller describing Microservices.")
 	}
 	// Fetch data
-	if err = exe.init(&controllers[0]); err != nil {
+	if err = exe.init(controlPlane); err != nil {
 		return err
 	}
 

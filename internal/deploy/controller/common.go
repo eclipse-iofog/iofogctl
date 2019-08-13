@@ -18,23 +18,20 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func prepareUserAndSaveConfig(namespace string, spec config.Controller) (configEntry config.Controller, err error) {
-	var configUser config.IofogUser
+func prepareUserAndSaveConfig(namespace string, spec config.Controller) (configEntry config.Controller, user config.IofogUser, err error) {
 	// Check for existing user
-	ctrl, err := config.GetController(namespace, spec.Name)
-	if spec.IofogUser.Email != "" && spec.IofogUser.Password != "" {
-		// Use user provided in the yaml file
-		configUser = spec.IofogUser
-	} else if err == nil {
-		// Use existing user
-		configUser = ctrl.IofogUser
-	} else {
-		// Generate new user
-		configUser = config.NewRandomUser()
+	controlPlane, err := config.GetControlPlane(namespace)
+	if err != nil {
+		return
 	}
 
-	// Record the user
-	spec.IofogUser = configUser
+	// Return and verify user
+	user = controlPlane.IofogUser
+	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
+		err = util.NewError("Cannot deploy Controller because Control Plane does not have a valid ioFog User")
+		return
+	}
+
 	spec.Created = util.NowUTC()
 	if err = config.UpdateController(namespace, spec); err != nil {
 		return

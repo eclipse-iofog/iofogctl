@@ -40,24 +40,25 @@ func (exe *applicationExecutor) GetName() string {
 
 func (exe *applicationExecutor) Execute() error {
 	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
+	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
-	if len(controllers) == 0 {
+	if len(controlPlane.Controllers) == 0 {
 		// Generate empty output
 		return exe.generateApplicationOutput()
 	}
 	// Fetch data
-	if err = exe.init(&controllers[0]); err != nil {
+	if err = exe.init(controlPlane); err != nil {
 		return err
 	}
 	return exe.generateApplicationOutput()
 }
 
-func (exe *applicationExecutor) init(controller *config.Controller) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+func (exe *applicationExecutor) init(controlPlane config.ControlPlane) (err error) {
+	// TODO: replace controllers[0] with controplane variable
+	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
+	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
 		return
 	}
 	flows, err := exe.client.GetAllFlows()

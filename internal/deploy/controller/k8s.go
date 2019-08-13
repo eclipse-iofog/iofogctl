@@ -40,7 +40,8 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
 
 	// Update configuration before we try to deploy in case of failure
-	exe.ctrl, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
+	var user config.IofogUser
+	exe.ctrl, user, err = prepareUserAndSaveConfig(exe.namespace, exe.ctrl)
 	if err != nil {
 		return
 	}
@@ -58,7 +59,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 
 	// Create controller on cluster
-	endpoint, err := installer.CreateController(install.IofogUser(exe.ctrl.IofogUser))
+	endpoint, err := installer.CreateController(install.IofogUser(user))
 	if err != nil {
 		return
 	}

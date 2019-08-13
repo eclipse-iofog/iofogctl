@@ -38,7 +38,7 @@ func NewExecutor(namespace string, ctrl config.Controller) (execute.Executor, er
 		if err != nil {
 			return nil, err
 		}
-		return newLocalExecutor(namespace, ctrl, cli), nil
+		return newLocalExecutor(namespace, ctrl, cli)
 	}
 
 	// Kubernetes executor

@@ -61,17 +61,15 @@ func (exe *remoteExecutor) Execute() (err error) {
 	defer util.SpinStop()
 	util.SpinStart("Deploying Application")
 
-	// Get Controllers from namespace
-	controllers, err := config.GetControllers(exe.namespace)
-
-	// Do we actually have any controllers?
-	if err != nil {
+	// Get Control Plane
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return
 	}
 
 	// Init remote resources
-	if err = exe.init(&controllers[0]); err != nil {
+	if err = exe.init(&controlPlane.Controllers[0], controlPlane.IofogUser); err != nil {
 		return
 	}
 
@@ -87,9 +85,9 @@ func (exe *remoteExecutor) Execute() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) init(controller *config.Controller) (err error) {
+func (exe *remoteExecutor) init(controller *config.Controller, user config.IofogUser) (err error) {
 	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+	if err = exe.client.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
 		return
 	}
 	listAgents, err := exe.client.ListAgents()

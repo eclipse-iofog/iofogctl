@@ -19,19 +19,27 @@ NS=$(echo "$NAMESPACE""-vanilla")
 @test "Deploy vanilla Controller" {
   initVanillaController
   echo "controlplane:
-  controllers:
-  - name: $NAME
+  connectors:
+  - name: ${NAME}-connector
     user: $VANILLA_USER
     host: $VANILLA_HOST
     port: $VANILLA_PORT
     keyfile: $KEY_FILE
     version: $VANILLA_VERSION
     packagecloudtoken: $PACKAGE_CLOUD_TOKEN
-    iofoguser:
-      name: Testing
-      surname: Functional
-      email: user@domain.com
-      password: S5gYVgLEZV" > test/conf/vanilla.yaml
+  controllers:
+  - name: ${NAME}-controller
+    user: $VANILLA_USER
+    host: $VANILLA_HOST
+    port: $VANILLA_PORT
+    keyfile: $KEY_FILE
+    version: $VANILLA_VERSION
+    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: user@domain.com
+    password: S5gYVgLEZV" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController

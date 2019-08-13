@@ -57,11 +57,9 @@ func (exe *remoteExecutor) Execute() error {
 }
 
 func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
-	// Get Controllers from namespace
-	controllers, err := config.GetControllers(exe.namespace)
-
-	// Do we actually have any controllers?
-	if err != nil {
+	// Get Control Plane
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return
 	}
@@ -76,7 +74,7 @@ func (exe *remoteExecutor) deployAgent() (configEntry config.Agent, err error) {
 	}
 
 	// Configure the agent with Controller details
-	uuid, err := agent.Configure(&controllers[0], install.IofogUser(controllers[0].IofogUser))
+	uuid, err := agent.Configure(&controlPlane.Controllers[0], install.IofogUser(controlPlane.IofogUser))
 	if err != nil {
 		return
 	}

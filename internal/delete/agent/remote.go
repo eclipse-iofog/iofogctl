@@ -44,23 +44,23 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	// Get Controller for the namespace
-	ctrlConfigs, err := config.GetControllers(exe.namespace)
+	// Get Control Plane for the namespace
+	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	// If controller exists, deprovision the agent
-	if len(ctrlConfigs) > 0 {
+	if len(controlPlane.Controllers) > 0 {
+		// TODO: change [0] with controlPlane variable
 		// Get Controller endpoint and connect to Controller
-		endpoint := ctrlConfigs[0].Endpoint
+		endpoint := controlPlane.Controllers[0].Endpoint
 		ctrl := client.New(endpoint)
 
 		// Log into Controller
-		userConfig := ctrlConfigs[0].IofogUser
 		user := client.LoginRequest{
-			Email:    userConfig.Email,
-			Password: userConfig.Password,
+			Email:    controlPlane.IofogUser.Email,
+			Password: controlPlane.IofogUser.Password,
 		}
 		if err := ctrl.Login(user); err != nil {
 			return err

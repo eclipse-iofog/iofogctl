@@ -175,10 +175,6 @@ func compareControllers(lhs, rhs Controller) bool {
 	for key := range lhs.Images {
 		equal = equal && (lhs.Images[key] == rhs.Images[key])
 	}
-	equal = equal && (lhs.IofogUser.Email == lhs.IofogUser.Email)
-	equal = equal && (lhs.IofogUser.Name == lhs.IofogUser.Name)
-	equal = equal && (lhs.IofogUser.Password == lhs.IofogUser.Password)
-	equal = equal && (lhs.IofogUser.Surname == lhs.IofogUser.Surname)
 
 	return equal
 }
@@ -197,12 +193,6 @@ func TestWritingController(t *testing.T) {
 			"agent":      "iofog/agent",
 			"connector":  "iofog/connector",
 			"operator":   "iofog/operator",
-		},
-		IofogUser: IofogUser{
-			Email:    "user@domain.com",
-			Name:     "Tubert",
-			Password: "NotACockroach",
-			Surname:  "Blubert",
 		},
 	}
 	if err := AddController(writeNamespace, ctrl); err != nil {

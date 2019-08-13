@@ -31,6 +31,11 @@ func NewExecutor(namespace string, cnct config.Connector) (execute.Executor, err
 		return nil, util.NewError("There are no Controllers in this namespace. You must first deploy one or more Controllers.")
 	}
 
+	// Must contain an ioFog User
+	if ns.ControlPlane.IofogUser.Email == "" || ns.ControlPlane.IofogUser.Password == "" {
+		return nil, util.NewError("The Control Plane in this namespace does not have a valid ioFog user")
+	}
+
 	// Local executor
 	if util.IsLocalHost(cnct.Host) {
 		// Check the namespace does not contain a Connector yet
@@ -45,6 +50,6 @@ func NewExecutor(namespace string, cnct config.Connector) (execute.Executor, err
 	if cnct.Host == "" || cnct.KeyFile == "" || cnct.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	ctrl := ns.ControlPlane.Controllers[0]
-	return newRemoteExecutor(namespace, cnct, ctrl.Endpoint, ctrl.IofogUser), nil
+	// TODO: Replace Controllers[0].Endpoint with different variable e.g. loadbalancer
+	return newRemoteExecutor(namespace, cnct, ns.ControlPlane.Controllers[0].Endpoint, ns.ControlPlane.IofogUser), nil
 }

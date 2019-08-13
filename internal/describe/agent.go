@@ -46,19 +46,19 @@ func (exe *agentExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	ctrls, err := config.GetControllers(exe.namespace)
+	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
-	if len(ctrls) != 1 {
+	if len(controlPlane.Controllers) != 1 {
 		return util.NewInputError("Cannot get Agent data without a Controller in namespace " + exe.namespace)
 	}
 
 	// Connect to controller
-	ctrl := client.New(ctrls[0].Endpoint)
+	ctrl := client.New(controlPlane.Controllers[0].Endpoint)
 	loginRequest := client.LoginRequest{
-		Email:    ctrls[0].IofogUser.Email,
-		Password: ctrls[0].IofogUser.Password,
+		Email:    controlPlane.IofogUser.Email,
+		Password: controlPlane.IofogUser.Password,
 	}
 
 	// Send requests to controller

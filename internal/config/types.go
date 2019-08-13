@@ -39,6 +39,7 @@ type Loadbalancer struct {
 type ControlPlane struct {
 	Database     Database
 	LoadBalancer Loadbalancer
+	IofogUser    IofogUser
 	Controllers  []Controller
 	Connectors   []Connector
 }
@@ -65,7 +66,6 @@ type Controller struct {
 	KubeConfig        string
 	KubeControllerIP  string
 	Endpoint          string
-	IofogUser         IofogUser
 	Created           string
 	Images            map[string]string
 	Version           string

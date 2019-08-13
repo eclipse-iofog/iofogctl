@@ -69,8 +69,14 @@ func (exe *localExecutor) provisionAgent() (string, error) {
 		return "", err
 	}
 
+	// Get user
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil {
+		return "", err
+	}
+
 	// Configure the agent with Controller details
-	return agent.Configure(controller, install.IofogUser(controller.IofogUser))
+	return agent.Configure(controller, install.IofogUser(controlPlane.IofogUser))
 }
 
 func (exe *localExecutor) GetName() string {
