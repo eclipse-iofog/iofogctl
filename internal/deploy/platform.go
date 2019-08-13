@@ -27,9 +27,8 @@ type Options struct {
 }
 
 func Execute(opt *Options) error {
-	// Check namespace option
-	existingControlPlane, err := config.GetControlPlane(opt.Namespace)
-	if err != nil {
+	// Check namespace exists
+	if _, err := config.GetNamespace(opt.Namespace); err != nil {
 		return err
 	}
 
@@ -50,16 +49,16 @@ func Execute(opt *Options) error {
 	if len(controlPlane.Controllers) == 0 && len(agents) == 0 && len(applications) == 0 {
 		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
-	// If no controller is provided, one must already exist
-	if len(controlPlane.Controllers) == 0 {
-		if len(existingControlPlane.Controllers) == 0 {
-			return util.NewInputError("If you are not deploying a new controller, one must exist in the specified namespace")
-		}
-	}
 
-	// Deploy ControlPlane
-	if err = deploycontrolplane.Execute(deploycontrolplane.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-		return err
+	if len(controlPlane.Controllers) > 0 {
+		// Require IofogUser
+		if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Name == "" || controlPlane.IofogUser.Password == "" || controlPlane.IofogUser.Surname == "" {
+			return util.NewInputError("You must specify an ioFog user with a name, surname, email, and password")
+		}
+		// Deploy ControlPlane
+		if err = deploycontrolplane.Execute(deploycontrolplane.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+			return err
+		}
 	}
 
 	// Deploy Agents

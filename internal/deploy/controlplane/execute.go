@@ -40,15 +40,6 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	// Require Controllers
-	if len(controlPlane.Controllers) == 0 {
-		return util.NewInputError("You must specify atleast one Controller in the Control Plane")
-	}
-	// Require IofogUser
-	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Name == "" || controlPlane.IofogUser.Password == "" || controlPlane.IofogUser.Surname == "" {
-		return util.NewInputError("You must specify an ioFog user with a name, surname, email, and password")
-	}
-
 	// Instantiate executors
 	var executors []execute.Executor
 

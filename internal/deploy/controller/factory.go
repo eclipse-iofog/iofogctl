@@ -21,18 +21,21 @@ import (
 )
 
 func NewExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
+	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
+		return nil, util.NewError("Cannot deploy Controller because ioFog user is not specified")
+	}
 	// Local executor
 	if util.IsLocalHost(ctrl.Host) {
 		// Check the namespace does not contain a Controller yet
 		nbControllers := len(controlPlane.Controllers)
-		if nbControllers > 0 {
-			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
+		if nbControllers != 1 {
+			return nil, util.NewInputError("Cannot deploy more than a single Controller locally")
 		}
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}
-		return newLocalExecutor(namespace, ctrl, cli)
+		return newLocalExecutor(namespace, ctrl, controlPlane, cli)
 	}
 
 	// Kubernetes executor

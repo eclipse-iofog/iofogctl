@@ -15,11 +15,9 @@ package deploycontroller
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"os/user"
 	"regexp"
-	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
@@ -34,15 +32,7 @@ type localExecutor struct {
 	containersNames       []string
 }
 
-func newLocalExecutor(namespace string, ctrl config.Controller, client *install.LocalContainer) (*localExecutor, error) {
-	// Check for existing user, create one if necessary
-	controlPlane, err := config.GetControlPlane(namespace)
-	if err != nil {
-		return nil, err
-	}
-	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
-		controlPlane.IofogUser = config.NewRandomUser()
-	}
+func newLocalExecutor(namespace string, ctrl config.Controller, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
 		namespace:             namespace,
 		ctrl:                  ctrl,
@@ -120,48 +110,6 @@ func (exe *localExecutor) deployContainers() error {
 	return nil
 }
 
-func (exe *localExecutor) install() error {
-	defer util.SpinStop()
-
-	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
-	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
-
-	ctrlIP := fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
-	ctrl := client.New(ctrlIP)
-	// Assign user
-	user := client.User{
-		Name:     exe.localUserConfig.Name,
-		Surname:  exe.localUserConfig.Surname,
-		Email:    exe.localUserConfig.Email,
-		Password: exe.localUserConfig.Password,
-	}
-	// Create user
-	util.SpinStart("Creating new user")
-	if err := ctrl.CreateUser(user); err != nil {
-		if !strings.Contains(err.Error(), "already an account associated") {
-			return err
-		}
-	}
-	// Login
-	if err := ctrl.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
-		return err
-	}
-	// Provision Connector
-	util.SpinStart("Provisioning Connector to Controller")
-	connectorIP := connectorContainerConfig.Host
-	connectorName := connectorContainerConfig.ContainerName
-	if err := ctrl.AddConnector(client.ConnectorInfo{
-		IP:      connectorIP,
-		Name:    connectorName,
-		Domain:  connectorContainerConfig.Host,
-		DevMode: true,
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (exe *localExecutor) GetName() string {
 	return exe.ctrl.Name
 }
@@ -179,13 +127,6 @@ func (exe *localExecutor) Execute() error {
 	// Deploy Controller and Connector images
 	err = exe.deployContainers()
 	if err != nil {
-		exe.cleanContainers()
-		return err
-	}
-
-	// Create user, login, provision connector
-	if err = exe.install(); err != nil {
-		fmt.Printf("Cleaning containers... %v", err)
 		exe.cleanContainers()
 		return err
 	}
