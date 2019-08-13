@@ -15,7 +15,6 @@ package install
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -123,9 +122,9 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser) (endpoint string, err error) {
+func (k8s *Kubernetes) CreateController() (endpoint string, err error) {
 	// Install ioFog Core
-	token, ips, err := k8s.createCore(user)
+	token, ips, err := k8s.createCore()
 	if err != nil {
 		return
 	}
@@ -261,7 +260,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) createCore(user IofogUser) (token string, ips map[string]string, err error) {
+func (k8s *Kubernetes) createCore() (token string, ips map[string]string, err error) {
 	// Create namespace
 	verbose("Creating namespace")
 	ns := &v1.Namespace{
@@ -360,39 +359,6 @@ func (k8s *Kubernetes) createCore(user IofogUser) (token string, ips map[string]
 	verbose("Waiting for Controller API")
 	endpoint := fmt.Sprintf("%s:%d", ips["controller"], k8s.ms["controller"].ports[0])
 	if err = waitForControllerAPI(endpoint); err != nil {
-		return
-	}
-	// Create new user
-	verbose("Creating new user")
-	ctrlClient := client.New(endpoint)
-	if err = ctrlClient.CreateUser(client.User{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
-		Password: util.RandomString(10, util.AlphaNum),
-	}); err != nil {
-		return
-	}
-
-	// Log in using new user
-	verbose("Logging into Controller")
-	loginRequest := client.LoginRequest{
-		Email:    user.Email,
-		Password: user.Password,
-	}
-	if err = ctrlClient.Login(loginRequest); err != nil {
-		return
-	}
-	// Return the token for Kubelet
-	token = ctrlClient.GetAccessToken()
-
-	// Provision Connector
-	verbose("Provisioning Connector")
-	if err = ctrlClient.AddConnector(client.ConnectorInfo{
-		IP:     ips["connector"],
-		Domain: ips["connector"],
-		Name:   "k8s-connector",
-	}); err != nil {
 		return
 	}
 

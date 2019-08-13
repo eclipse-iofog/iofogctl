@@ -54,7 +54,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 
 	// Create controller on cluster
-	endpoint, err := installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser))
+	endpoint, err := installer.CreateController()
 	if err != nil {
 		return
 	}
