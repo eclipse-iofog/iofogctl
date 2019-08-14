@@ -11,39 +11,34 @@
  *
  */
 
-package deletecontroller
+package deleteconnector
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func NewExecutor(namespace, name string) (execute.Executor, error) {
 	// Get controller from config
-	ctrl, err := config.GetController(namespace, name)
+	cnct, err := config.GetConnector(namespace, name)
 	if err != nil {
 		return nil, err
 	}
 
 	// Local executor
-	if util.IsLocalHost(ctrl.Host) {
-		cli, err := install.NewLocalContainerClient()
-		if err != nil {
-			return nil, err
-		}
-		return newLocalExecutor(namespace, name, cli), nil
+	if util.IsLocalHost(cnct.Host) {
+		return nil, util.NewError("Deploying local Connectors is not implemented. Use the delete controller command instead")
 	}
 
 	// Kubernetes executor
-	if ctrl.KubeConfig != "" {
+	if cnct.KubeConfig != "" {
 		return newKubernetesExecutor(namespace, name), nil
 	}
 
 	// Default executor
-	if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
-		return nil, util.NewError("Cannot execute delete command because Kube Config and SSH details for this Controller are not available")
+	if cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "" || cnct.Port == 0 {
+		return nil, util.NewError("Cannot execute delete command because Kube Config and SSH details for this Connector are not available")
 	}
 	return newRemoteExecutor(namespace, name), nil
 }
