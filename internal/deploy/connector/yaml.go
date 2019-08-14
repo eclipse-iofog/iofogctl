@@ -53,6 +53,9 @@ func UnmarshallYAML(filename string) (connectors []config.Connector, err error) 
 		if cnct.KeyFile, err = util.FormatPath(cnct.KeyFile); err != nil {
 			return
 		}
+		if cnct.KubeConfig, err = util.FormatPath(cnct.KubeConfig); err != nil {
+			return
+		}
 	}
 
 	return

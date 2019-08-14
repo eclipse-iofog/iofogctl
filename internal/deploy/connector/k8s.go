@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontroller
+package deployconnector
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -21,45 +21,44 @@ import (
 
 type kubernetesExecutor struct {
 	namespace    string
-	ctrl         *config.Controller
+	cnct         *config.Connector
 	controlPlane config.ControlPlane
 }
 
-func newKubernetesExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, cnct *config.Connector, controlPlane config.ControlPlane) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
 	k.namespace = namespace
-	k.ctrl = ctrl
+	k.cnct = cnct
 	k.controlPlane = controlPlane
 	return k
 }
 
 func (exe *kubernetesExecutor) GetName() string {
-	return exe.ctrl.Name
+	return exe.cnct.Name
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	defer util.SpinStop()
-	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
+	util.SpinStart("Deploying Connector " + exe.cnct.Name)
 
 	// Get Kubernetes installer
-	installer, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
+	installer, err := install.NewKubernetes(exe.cnct.KubeConfig, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	if err = installer.SetImages(exe.ctrl.Images); err != nil {
+	if err = installer.SetImages(map[string]string{"connector": exe.cnct.Image}); err != nil {
 		return err
 	}
-	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 
-	// Create controller on cluster
-	if err = installer.CreateController(); err != nil {
+	// Create connector on cluster
+	if err = installer.CreateConnector(install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
 		return
 	}
 
-	// Update controller (its a pointer, this is returned to caller)
-	if exe.ctrl.Endpoint, err = installer.GetControllerEndpoint(); err != nil {
+	// Update connector (its a pointer, this is returned to caller)
+	if exe.cnct.Endpoint, err = installer.GetConnectorEndpoint(); err != nil {
 		return
 	}
 

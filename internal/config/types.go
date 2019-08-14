@@ -49,6 +49,9 @@ type Connector struct {
 	Host              string
 	Port              int
 	KeyFile           string
+	KubeConfig        string
+	KubeConnectorIP   string
+	Image             string
 	Created           string
 	Version           string
 	Endpoint          string

@@ -44,6 +44,19 @@ func NewExecutor(namespace string, cnct *config.Connector, controlPlane config.C
 		return nil, util.NewError("Local Connector deploy functionality is not implemented yet")
 	}
 
+	if cnct.KubeConfig != "" {
+		// TODO: re-enable specifying images
+		// If image file specified, read it
+		//if ctrl.ImagesFile != "" {
+		//	ctrl.Images = make(map[string]string)
+		//	err := util.UnmarshalYAML(opt.ImagesFile, opt.Images)
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//}
+		return newKubernetesExecutor(namespace, cnct, controlPlane), nil
+	}
+
 	// Default executor
 	if cnct.Host == "" || cnct.KeyFile == "" || cnct.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
