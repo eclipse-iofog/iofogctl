@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func (clt *Client) GetConnectors() (response ConnectorInfoList, err error) {
+func (clt *Client) ListConnectors() (response ConnectorInfoList, err error) {
 	if !clt.isLoggedIn() {
 		err = util.NewError("Controller client must be logged into perform Get Connectors request")
 		return

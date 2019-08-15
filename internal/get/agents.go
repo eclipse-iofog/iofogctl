@@ -69,7 +69,7 @@ func generateAgentOutput(namespace string) error {
 		}
 		// Log into Controller
 		if err := ctrl.Login(loginRequest); err != nil {
-			return tabulate(agentsToPrint)
+			return tabulateAgents(agentsToPrint)
 		}
 
 		// Get Agents from Controller
@@ -100,10 +100,10 @@ func generateAgentOutput(namespace string) error {
 		}
 	}
 
-	return tabulate(agentsToPrint)
+	return tabulateAgents(agentsToPrint)
 }
 
-func tabulate(agentInfos map[string]client.AgentInfo) error {
+func tabulateAgents(agentInfos map[string]client.AgentInfo) error {
 	// Generate table and headers
 	table := make([][]string, len(agentInfos)+1)
 	headers := []string{

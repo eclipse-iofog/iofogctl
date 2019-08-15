@@ -43,6 +43,11 @@ func (exe *allExecutor) Execute() error {
 		return err
 	}
 
+	// Print connectors
+	if err := generateConnectorOutput(exe.namespace); err != nil {
+		return err
+	}
+
 	// Print agents
 	if err := generateAgentOutput(exe.namespace); err != nil {
 		return err

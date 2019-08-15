@@ -16,6 +16,9 @@ NS="$NAMESPACE"
     surname: Functional
     email: user@domain.com
     password: S5gYVgLEZV
+  connectors:
+  - name: $NAME
+    host: localhost
   controllers:
   - name: $NAME
     host: 127.0.0.1

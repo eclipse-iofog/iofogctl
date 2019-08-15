@@ -24,12 +24,8 @@ import (
 
 // TODO: Move to subcommands
 func newDescribeCommand() *cobra.Command {
-	validResources := make([]string, len(describeResources))
-	i := 0
-	for resource := range describeResources {
-		validResources[i] = resource
-		i++
-	}
+	// Values accepted in resource type argument
+	var validResources = []string{"namespace", "controlplane", "controller", "connector", "agent", "microservice", "application"}
 	filename := ""
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",
@@ -69,15 +65,4 @@ iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\
 	cmd.Flags().StringVarP(&filename, "output-file", "o", "", "YAML output file")
 
 	return cmd
-}
-
-// Values accepted in resource type argument
-var describeResources = map[string]bool{
-	"namespace":    true,
-	"controlplane": true,
-	"controller":   true,
-	"connector":    true,
-	"agent":        true,
-	"microservice": true,
-	"application":  true,
 }
