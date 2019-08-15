@@ -55,11 +55,5 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	// Update configuration
-	err = config.DeleteConnector(exe.namespace, exe.name)
-	if err != nil {
-		return err
-	}
-
-	return config.Flush()
+	return nil
 }

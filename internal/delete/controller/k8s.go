@@ -50,11 +50,5 @@ func (exe *kubernetesExecutor) Execute() error {
 		return err
 	}
 
-	// Update configuration
-	err = config.DeleteController(exe.namespace, exe.name)
-	if err != nil {
-		return err
-	}
-
-	return config.Flush()
+	return nil
 }

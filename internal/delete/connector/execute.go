@@ -11,27 +11,28 @@
  *
  */
 
-package cmd
+package deleteconnector
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
-func newDeleteCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "Delete an existing ioFog resource",
-		Long:  `Delete an existing ioFog resource.`,
+func Execute(namespace, name string) error {
+	// Get executor
+	exe, err := NewExecutor(namespace, name)
+	if err != nil {
+		return err
 	}
 
-	// Add subcommands
-	cmd.AddCommand(
-		newDeleteNamespaceCommand(),
-		newDeleteControllerCommand(),
-		newDeleteConnectorCommand(),
-		newDeleteAgentCommand(),
-		newDeleteAllCommand(),
-		newDeleteApplicationCommand(),
-	)
-	return cmd
+	// Execute deletion
+	if err = exe.Execute(); err != nil {
+		return err
+	}
+
+	// Update config
+	if err = config.DeleteConnector(namespace, name); err != nil {
+		return err
+	}
+
+	return config.Flush()
 }

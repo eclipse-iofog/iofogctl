@@ -15,10 +15,8 @@ package deletecontroller
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
-
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
@@ -52,11 +50,5 @@ func (exe *localExecutor) Execute() error {
 		}
 	}
 
-	// Update configuration
-	err := config.DeleteController(exe.namespace, exe.name)
-	if err != nil {
-		return err
-	}
-
-	return config.Flush()
+	return nil
 }

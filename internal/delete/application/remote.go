@@ -11,7 +11,7 @@
  *
  */
 
-package deployapplication
+package deleteapplication
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"

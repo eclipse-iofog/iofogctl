@@ -32,8 +32,7 @@ func newDeleteApplicationCommand() *cobra.Command {
 			namespace, err := cmd.Flags().GetString("namespace")
 
 			// Execute command
-			executor := delete.NewExecutor(namespace, name)
-			err = executor.Execute()
+			err = delete.Execute(namespace, name)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted " + name)

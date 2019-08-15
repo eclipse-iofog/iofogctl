@@ -11,28 +11,21 @@
  *
  */
 
-package deletemicroservice
+package deleteapplication
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
-type microservice struct {
-}
+func Execute(namespace, name string) error {
+	// Get executor
+	exe := NewExecutor(namespace, name)
 
-func New() *microservice {
-	c := &microservice{}
-	return c
-}
-
-func (ctrl *microservice) Execute(namespace, name string) error {
-	// TODO (Serge) Execute back-end logic
-
-	// Update configuration
-	err := config.DeleteMicroservice(namespace, name)
-	if err != nil {
+	// Execute deletion
+	if err := exe.Execute(); err != nil {
 		return err
 	}
 
+	// Leave this here as a note on general practice with Execute functions
 	return config.Flush()
 }

@@ -368,6 +368,15 @@ func DeleteNamespace(name string) error {
 	return nil
 }
 
+func DeleteControlPlane(namespace string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	ns.ControlPlane = ControlPlane{}
+	return nil
+}
+
 // DeleteController deletes a controller from a namespace
 func DeleteController(namespace, name string) error {
 	ns, err := getNamespace(namespace)
