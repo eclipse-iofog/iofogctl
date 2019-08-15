@@ -28,7 +28,7 @@ type localExecutor struct {
 	ctrl                  *config.Controller
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalControllerConfig
-	localUserConfig       *install.LocalUserConfig
+	iofogUser             config.IofogUser
 	containersNames       []string
 }
 
@@ -37,8 +37,8 @@ func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane co
 		namespace:             namespace,
 		ctrl:                  ctrl,
 		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(ctrl.Name, ctrl.Images),
-		localUserConfig:       &install.LocalUserConfig{controlPlane.IofogUser},
+		localControllerConfig: install.NewLocalControllerConfig(ctrl.Images),
+		iofogUser:             controlPlane.IofogUser,
 	}, nil
 }
 
@@ -53,9 +53,7 @@ func (exe *localExecutor) cleanContainers() {
 func (exe *localExecutor) deployContainers() error {
 
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
-	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
 	controllerContainerName := controllerContainerConfig.ContainerName
-	connectorContainerName := connectorContainerConfig.ContainerName
 
 	// Deploy controller image
 	util.SpinStart("Deploying Controller container")
@@ -78,34 +76,6 @@ func (exe *localExecutor) deployContainers() error {
 		return err
 	}
 
-	// Deploy connector image
-	util.SpinStart("Deploying Connector")
-	if _, err := exe.client.DeployContainer(connectorContainerConfig); err != nil {
-		// Remove previously deployed Controller
-		if errClean := exe.client.CleanContainer(controllerContainerName); errClean != nil {
-			fmt.Printf("Could not clean container %v", errClean)
-		}
-		return err
-	}
-
-	exe.containersNames = append(exe.containersNames, connectorContainerName)
-	// Wait for public API
-	util.SpinStart("Waiting for Connector API")
-	if err = exe.client.WaitForCommand(
-		regexp.MustCompile("\"status\":\"running\""),
-		"curl",
-		"--request",
-		"POST",
-		"--url",
-		fmt.Sprintf("http://%s:%s/api/v2/status", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host),
-		"--header",
-		"'Content-Type: application/x-www-form-urlencoded'",
-		"--data",
-		"mappingid=all",
-	); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -114,8 +84,11 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-
-	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
+	// Deploy Controller and Connector images
+	if err := exe.deployContainers(); err != nil {
+		exe.cleanContainers()
+		return err
+	}
 
 	// Get current user
 	currUser, err := user.Current()
@@ -123,17 +96,12 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	// Deploy Controller and Connector images
-	err = exe.deployContainers()
-	if err != nil {
-		exe.cleanContainers()
-		return err
-	}
-
 	// Update controller (its a pointer, this is returned to caller)
+	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 	exe.ctrl.Endpoint = fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
 	exe.ctrl.Host = controllerContainerConfig.Host
 	exe.ctrl.User = currUser.Username
+	exe.ctrl.Created = util.NowUTC()
 
 	return nil
 }

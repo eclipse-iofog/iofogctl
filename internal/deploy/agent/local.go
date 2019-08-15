@@ -43,13 +43,8 @@ func getController(namespace string) (*config.Controller, error) {
 }
 
 func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer) (*localExecutor, error) {
-	// Get controllerConfig
-	controller, err := getController(namespace)
-	if err != nil {
-		return nil, err
-	}
 	// Get Controller LocalContainerConfig
-	localControllerConfig := install.NewLocalControllerConfig(controller.Name, make(map[string]string))
+	localControllerConfig := install.NewLocalControllerConfig(make(map[string]string))
 	controllerContainerConfig, _ := localControllerConfig.ContainerMap["controller"]
 	return &localExecutor{
 		namespace:        namespace,

@@ -50,7 +50,7 @@ func (exe *remoteExecutor) Execute() error {
 	}
 	installer := install.NewConnector(controllerOptions)
 
-	// Stop Connector and Connector
+	// Stop Connector
 	if err = installer.Stop(); err != nil {
 		return err
 	}

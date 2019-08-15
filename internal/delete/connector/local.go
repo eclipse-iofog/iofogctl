@@ -11,28 +11,27 @@
  *
  */
 
-package deleteagent
+package deleteconnector
 
 import (
 	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
-	namespace        string
-	name             string
-	client           *install.LocalContainer
-	localAgentConfig *install.LocalAgentConfig
+	namespace             string
+	name                  string
+	client                *install.LocalContainer
+	localControllerConfig *install.LocalControllerConfig
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
-	ctrlConfig, _ := install.NewLocalControllerConfig(make(map[string]string)).ContainerMap["controller"]
 	exe := &localExecutor{
-		namespace:        namespace,
-		name:             name,
-		client:           client,
-		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig),
+		namespace:             namespace,
+		name:                  name,
+		client:                client,
+		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string)),
 	}
 	return exe
 }
@@ -42,9 +41,14 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// Clean all agent containers
-	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
-		fmt.Printf("Could not clean Agent container: %v", errClean)
+	// Get container config
+	containerConfig, exists := exe.localControllerConfig.ContainerMap["connector"]
+	if !exists {
+		return util.NewInternalError("Could not retrieve Connector container config")
+	}
+	// Clean container
+	if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
+		fmt.Printf("Could not clean Controller container: %v", errClean)
 	}
 
 	return nil

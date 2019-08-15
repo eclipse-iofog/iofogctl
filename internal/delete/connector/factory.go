@@ -16,6 +16,7 @@ package deleteconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -28,7 +29,11 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 
 	// Local executor
 	if util.IsLocalHost(cnct.Host) {
-		return nil, util.NewError("Deploying local Connectors is not implemented. Use the delete controller command instead")
+		cli, err := install.NewLocalContainerClient()
+		if err != nil {
+			return nil, err
+		}
+		return newLocalExecutor(namespace, name, cli), nil
 	}
 
 	// Kubernetes executor

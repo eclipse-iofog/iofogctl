@@ -31,7 +31,7 @@ func newLocalExecutor(namespace, name string, client *install.LocalContainer) *l
 		namespace:             namespace,
 		name:                  name,
 		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(name, make(map[string]string)),
+		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string)),
 	}
 	return exe
 }
@@ -41,13 +41,14 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-
-	// Clean controller and connector containers
-	for _, containerConfig := range exe.localControllerConfig.ContainerMap {
-		util.SpinStart("Cleaning container " + containerConfig.ContainerName)
-		if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
-			fmt.Printf("Could not clean Controller container: %v", errClean)
-		}
+	// Get container config
+	containerConfig, exists := exe.localControllerConfig.ContainerMap["controller"]
+	if !exists {
+		return util.NewInternalError("Could not retrieve Controller container config")
+	}
+	// Clean container
+	if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
+		fmt.Printf("Could not clean Controller container: %v", errClean)
 	}
 
 	return nil

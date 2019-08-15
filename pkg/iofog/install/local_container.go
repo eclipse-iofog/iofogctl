@@ -28,7 +28,6 @@ import (
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -56,17 +55,12 @@ type LocalContainerConfig struct {
 }
 
 type LocalControllerConfig struct {
-	Name         string
 	ContainerMap map[string]*LocalContainerConfig
 }
 
 type LocalContainerPort struct {
 	Protocol string
 	Port     string
-}
-
-type LocalUserConfig struct {
-	config.IofogUser
 }
 
 type LocalAgentConfig struct {
@@ -103,7 +97,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 }
 
 // NewLocalControllerConfig generats a static controller config
-func NewLocalControllerConfig(name string, images map[string]string) *LocalControllerConfig {
+func NewLocalControllerConfig(images map[string]string) *LocalControllerConfig {
 	controllerImg, exists := images["controller"]
 	if !exists {
 		controllerImg = "docker.io/iofog/controller:latest"
@@ -112,7 +106,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap["controller"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
 		Ports:         []port{{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}}},
-		ContainerName: sanitizeContainerName("iofog-controller-" + name),
+		ContainerName: sanitizeContainerName("iofog-controller"),
 		Image:         controllerImg,
 		Privileged:    false,
 		Binds:         []string{},
@@ -127,7 +121,7 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	containerMap["connector"] = &LocalContainerConfig{
 		Host:          "0.0.0.0",
 		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
-		ContainerName: sanitizeContainerName("iofog-connector-" + name),
+		ContainerName: sanitizeContainerName("iofog-connector"),
 		Image:         connectorImg,
 		Privileged:    false,
 		Binds:         []string{},
@@ -135,7 +129,6 @@ func NewLocalControllerConfig(name string, images map[string]string) *LocalContr
 	}
 
 	return &LocalControllerConfig{
-		Name:         name,
 		ContainerMap: containerMap,
 	}
 }

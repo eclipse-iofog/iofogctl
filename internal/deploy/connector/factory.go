@@ -16,6 +16,7 @@ package deployconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -41,7 +42,11 @@ func NewExecutor(namespace string, cnct *config.Connector, controlPlane config.C
 		if nbConnectors > 0 {
 			return nil, util.NewInputError("This namespace already contains a local Connector. Please remove it before deploying a new one.")
 		}
-		return nil, util.NewError("Local Connector deploy functionality is not implemented yet")
+		cli, err := install.NewLocalContainerClient()
+		if err != nil {
+			return nil, err
+		}
+		return newLocalExecutor(namespace, cnct, controlPlane, cli)
 	}
 
 	if cnct.KubeConfig != "" {
