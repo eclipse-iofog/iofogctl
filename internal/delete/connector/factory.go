@@ -43,7 +43,7 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 
 	// Default executor
 	if cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "" || cnct.Port == 0 {
-		return nil, util.NewError("Cannot execute delete command because Kube Config and SSH details for this Connector are not available")
+		return nil, util.NewError("Cannot execute delete command because Kube Config and SSH details for Connector " + name + " are not available")
 	}
 	return newRemoteExecutor(namespace, name), nil
 }

@@ -51,5 +51,10 @@ func (exe *localExecutor) Execute() error {
 		fmt.Printf("Could not clean Controller container: %v", errClean)
 	}
 
+	// Clear Connector from Controller
+	if err := deleteConnectorFromController(exe.namespace, containerConfig.Host); err != nil {
+		return err
+	}
+
 	return nil
 }

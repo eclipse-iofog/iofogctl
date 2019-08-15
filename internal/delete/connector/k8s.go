@@ -16,6 +16,7 @@ package deleteconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -47,6 +48,12 @@ func (exe *kubernetesExecutor) Execute() error {
 	// Delete Connector on cluster
 	err = k8s.DeleteConnector()
 	if err != nil {
+		return err
+	}
+
+	// Clear Connector from Controller
+	ip := util.Before(cnct.Endpoint, ":")
+	if err = deleteConnectorFromController(exe.namespace, ip); err != nil {
 		return err
 	}
 

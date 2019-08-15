@@ -42,16 +42,21 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Instantiate installer
-	controllerOptions := &install.ConnectorOptions{
+	connectorOptions := &install.ConnectorOptions{
 		User:            cnct.User,
 		Host:            cnct.Host,
 		Port:            cnct.Port,
 		PrivKeyFilename: cnct.KeyFile,
 	}
-	installer := install.NewConnector(controllerOptions)
+	installer := install.NewConnector(connectorOptions)
 
 	// Stop Connector
 	if err = installer.Stop(); err != nil {
+		return err
+	}
+
+	// Clear Connector from Controller
+	if err = deleteConnectorFromController(exe.namespace, cnct.Host); err != nil {
 		return err
 	}
 

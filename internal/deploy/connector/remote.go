@@ -17,6 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -60,6 +61,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 
 	// Update connector (its a pointer, this is returned to caller)
 	exe.cnct.Endpoint = exe.cnct.Host + ":" + iofog.ConnectorPortString
+	exe.cnct.Created = util.NowUTC()
 
 	return nil
 }

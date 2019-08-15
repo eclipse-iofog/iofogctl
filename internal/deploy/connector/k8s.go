@@ -16,6 +16,7 @@ package deployconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -44,19 +45,24 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure deploy
-	if err = installer.SetImages(map[string]string{"connector": exe.cnct.Image}); err != nil {
-		return err
+	if exe.cnct.Image != "" {
+		if err = installer.SetImages(map[string]string{"connector": exe.cnct.Image}); err != nil {
+			return err
+		}
 	}
 
 	// Create connector on cluster
-	if err = installer.CreateConnector(install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
+	if err = installer.CreateConnector(exe.cnct.Name, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
 		return
 	}
 
 	// Update connector (its a pointer, this is returned to caller)
-	if exe.cnct.Endpoint, err = installer.GetConnectorEndpoint(); err != nil {
+	endpoint, err := installer.GetConnectorEndpoint()
+	if err != nil {
 		return
 	}
+	exe.cnct.Endpoint = endpoint
+	exe.cnct.Created = util.NowUTC()
 
 	return
 }
