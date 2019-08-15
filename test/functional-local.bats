@@ -27,6 +27,7 @@ NS="$NAMESPACE"
 
   test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
   checkController
+  checkConnector
 }
 
 @test "Deploy Agents against local Controller" {
@@ -60,6 +61,7 @@ NS="$NAMESPACE"
 @test "Delete all" {
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
+  checkConnectorNegative
   checkAgentNegative "${NAME}_0"
 }
 

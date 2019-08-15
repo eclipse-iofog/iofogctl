@@ -34,6 +34,23 @@ func connect(opt *Options, endpoint string) error {
 		return err
 	}
 
+	// Get Connectors
+	listConnectorsResponse, err := ctrl.ListConnectors()
+	if err != nil {
+		return err
+	}
+
+	// Update Connectors config
+	for _, connector := range listConnectorsResponse.Connectors {
+		connectorConfig := config.Connector{
+			Name: connector.Name,
+			Host: connector.IP,
+		}
+		if err = config.AddConnector(opt.Namespace, connectorConfig); err != nil {
+			return err
+		}
+	}
+
 	// Get Agents
 	listAgentsResponse, err := ctrl.ListAgents()
 	if err != nil {
@@ -47,8 +64,7 @@ func connect(opt *Options, endpoint string) error {
 			UUID: agent.UUID,
 			Host: agent.IPAddressExternal,
 		}
-		err = config.AddAgent(opt.Namespace, agentConfig)
-		if err != nil {
+		if err = config.AddAgent(opt.Namespace, agentConfig); err != nil {
 			return err
 		}
 	}

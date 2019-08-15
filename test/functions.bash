@@ -115,11 +115,22 @@ function initAgents(){
 
 function checkController() {
   [[ "$NAME" == $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane "$NAME" | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane | grep "name: $NAME") ]]
+}
+
+function checkConnector() {
+  [[ "$NAME" == $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe connector "$NAME" | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane | grep "name: $NAME") ]]
 }
 
 function checkControllerNegative() {
   [[ "$NAME" != $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
+}
+
+function checkConnectorNegative() {
+  [[ "$NAME" != $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkApplication() {

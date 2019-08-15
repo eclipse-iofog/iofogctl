@@ -43,6 +43,7 @@ NS="$NAMESPACE"
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController
+  checkConnector
 }
 
 @test "Controller legacy commands after vanilla deploy" {
@@ -84,6 +85,7 @@ NS="$NAMESPACE"
 @test "Delete all" {
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
+  checkConnectorNegative
   checkAgentsNegative
 }
 

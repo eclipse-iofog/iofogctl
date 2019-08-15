@@ -48,6 +48,7 @@ controlplane:
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
+  checkConnector
 }
 
 @test "Get endpoint" {
@@ -98,6 +99,7 @@ controlplane:
   initAgents
   test iofogctl -v -n "$NS" disconnect
   checkControllerNegative
+  checkConnectorNegative
   checkAgentsNegative
 }
 
@@ -105,6 +107,7 @@ controlplane:
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   test iofogctl -v -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
+  checkConnector
   checkAgents
 }
 
@@ -112,6 +115,7 @@ controlplane:
   initAgents
   test iofogctl -v -n "$NS" disconnect
   checkControllerNegative
+  checkConnectorNegative
   checkAgentsNegative
 }
 
@@ -119,6 +123,7 @@ controlplane:
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   test iofogctl -v -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
+  checkConnector
   checkAgents
 }
 
@@ -155,6 +160,7 @@ connectors:
 @test "Delete all" {
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
+  checkConnectorNegative
   checkAgentsNegative
 }
 
