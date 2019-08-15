@@ -26,6 +26,8 @@ func NewExecutor(resourceType, namespace, name, filename string) (execute.Execut
 		return newControlPlaneExecutor(namespace, filename), nil
 	case "controller":
 		return newControllerExecutor(namespace, name, filename), nil
+	case "connector":
+		return newConnectorExecutor(namespace, name, filename), nil
 	case "agent":
 		return newAgentExecutor(namespace, name, filename), nil
 	case "microservice":

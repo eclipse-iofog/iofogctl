@@ -76,6 +76,7 @@ var describeResources = map[string]bool{
 	"namespace":    true,
 	"controlplane": true,
 	"controller":   true,
+	"connector":    true,
 	"agent":        true,
 	"microservice": true,
 	"application":  true,
