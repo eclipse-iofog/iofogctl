@@ -30,6 +30,7 @@ func Execute(namespace string) error {
 	}
 
 	// Delete Agents
+	util.SpinStart("Deleting Agents")
 	var executors []execute.Executor
 	for _, agent := range ns.Agents {
 		exe, err := deleteagent.NewExecutor(namespace, agent.Name)
@@ -48,6 +49,7 @@ func Execute(namespace string) error {
 	}
 
 	// Delete Connectors
+	util.SpinStart("Deleting Connectors")
 	executors = executors[:0]
 	for _, cnct := range ns.Connectors {
 		exe, err := deleteconnector.NewExecutor(namespace, cnct.Name)
@@ -66,6 +68,7 @@ func Execute(namespace string) error {
 	}
 
 	// Delete Controllers
+	util.SpinStart("Deleting Controllers")
 	executors = executors[:0]
 	for _, ctrl := range ns.ControlPlane.Controllers {
 		exe, err := deletecontroller.NewExecutor(namespace, ctrl.Name)

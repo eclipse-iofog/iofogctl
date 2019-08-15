@@ -25,6 +25,8 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
+	util.SpinStart("Deploying Applications")
+
 	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
@@ -36,10 +38,18 @@ func Execute(opt Options) error {
 		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
+	// Unmarshal file
 	applications, err := UnmarshallYAML(opt.InputFile)
 	if err != nil {
 		return err
 	}
+
+	// Output message
+	msg := "Deploying Application"
+	if len(applications) > 1 {
+		msg += "s"
+	}
+	util.SpinStart(msg)
 
 	// Instantiate executors
 	var executors []execute.Executor

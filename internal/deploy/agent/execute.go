@@ -37,6 +37,13 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Output message
+	msg := "Deploying Agent"
+	if len(agents) > 1 {
+		msg += "s"
+	}
+	util.SpinStart(msg)
+
 	// Instantiate executors
 	var executors []execute.Executor
 	for idx := range agents {

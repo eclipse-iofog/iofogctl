@@ -51,7 +51,6 @@ func (exe *localExecutor) cleanContainers() {
 }
 
 func (exe *localExecutor) deployContainers() error {
-	defer util.SpinStop()
 
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
@@ -115,7 +114,7 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	defer util.SpinStop()
+
 	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
 
 	// Get current user

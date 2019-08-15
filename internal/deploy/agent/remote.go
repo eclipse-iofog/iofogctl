@@ -41,9 +41,6 @@ func (exe *remoteExecutor) GetName() string {
 // Install iofog-agent stack on an agent host
 //
 func (exe *remoteExecutor) Execute() (err error) {
-	defer util.SpinStop()
-	util.SpinStart("Deploying agent " + exe.agent.Name)
-
 	// Get Control Plane
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil || len(controlPlane.Controllers) == 0 {

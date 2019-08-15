@@ -28,6 +28,8 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
+	util.SpinStart("Deploying Control Plane")
+
 	// Check the namespace exists
 	_, err := config.GetNamespace(opt.Namespace)
 	if err != nil {

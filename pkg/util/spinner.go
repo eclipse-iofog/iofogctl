@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	quiet bool
-	spin  *spinner.Spinner // There is only one spinner, output overlaps with multiple concurrent spinners
+	quiet          bool
+	spin           *spinner.Spinner // There is only one spinner, output overlaps with multiple concurrent spinners
+	currentMessage string
 )
 
 func init() {
@@ -21,6 +22,7 @@ func SpinEnable(isEnabled bool) {
 }
 
 func SpinStart(msg string) {
+	currentMessage = msg
 	if quiet {
 		fmt.Println(msg)
 		return
@@ -29,6 +31,11 @@ func SpinStart(msg string) {
 	spin.Stop()
 	spin.Suffix = " " + msg
 	spin.Start()
+}
+
+func SpinPause() string {
+	SpinStop()
+	return currentMessage
 }
 
 func SpinStop() {

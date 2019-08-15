@@ -84,7 +84,7 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	defer util.SpinStop()
+
 	// Get current user
 	currUser, err := user.Current()
 	if err != nil {

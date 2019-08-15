@@ -38,12 +38,8 @@ The Agent stack will not be uninstalled from the host.`,
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Get an executor for the command
-			exe, err := delete.NewExecutor(namespace, name)
-			util.Check(err)
-
 			// Run the command
-			err = exe.Execute()
+			err = delete.Execute(namespace, name)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)

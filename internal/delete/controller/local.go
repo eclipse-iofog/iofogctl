@@ -41,7 +41,7 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	defer util.SpinStop()
+
 	// Clean controller and connector containers
 	for _, containerConfig := range exe.localControllerConfig.ContainerMap {
 		util.SpinStart("Cleaning container " + containerConfig.ContainerName)

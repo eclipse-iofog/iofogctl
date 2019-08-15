@@ -15,9 +15,12 @@ package deleteconnector
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func Execute(namespace, name string) error {
+	util.SpinStart("Deleting Connector")
+
 	// Get executor
 	exe, err := NewExecutor(namespace, name)
 	if err != nil {

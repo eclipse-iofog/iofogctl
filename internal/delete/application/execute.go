@@ -15,9 +15,12 @@ package deleteapplication
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func Execute(namespace, name string) error {
+	util.SpinStart("Deleting Application")
+
 	// Get executor
 	exe := NewExecutor(namespace, name)
 

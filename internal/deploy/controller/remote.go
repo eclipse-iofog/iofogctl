@@ -17,7 +17,6 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -39,9 +38,6 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
-	defer util.SpinStop()
-	util.SpinStart("Deploying Controller " + exe.ctrl.Name)
-
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
 		User:              exe.ctrl.User,

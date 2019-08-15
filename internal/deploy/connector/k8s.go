@@ -16,7 +16,6 @@ package deployconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -38,9 +37,6 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	defer util.SpinStop()
-	util.SpinStart("Deploying Connector " + exe.cnct.Name)
-
 	// Get Kubernetes installer
 	installer, err := install.NewKubernetes(exe.cnct.KubeConfig, exe.namespace)
 	if err != nil {

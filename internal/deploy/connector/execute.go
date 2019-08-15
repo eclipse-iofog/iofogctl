@@ -37,6 +37,13 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Output message
+	msg := "Deploying Connector"
+	if len(connectors) > 1 {
+		msg += "s"
+	}
+	util.SpinStart(msg)
+
 	// Get the Control Plane
 	controlPlane, err := config.GetControlPlane(opt.Namespace)
 	if err != nil {

@@ -11,7 +11,7 @@
  *
  */
 
-package deletecontroller
+package deleteagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -19,7 +19,7 @@ import (
 )
 
 func Execute(namespace, name string) error {
-	util.SpinStart("Deleting Controller")
+	util.SpinStart("Deleting Agent")
 
 	// Get executor
 	exe, err := NewExecutor(namespace, name)
@@ -28,12 +28,12 @@ func Execute(namespace, name string) error {
 	}
 
 	// Execute deletion
-	if err = exe.Execute(); err != nil {
+	if err := exe.Execute(); err != nil {
 		return err
 	}
 
 	// Update config
-	if err = config.DeleteController(namespace, name); err != nil {
+	if err = config.DeleteConnector(namespace, name); err != nil {
 		return err
 	}
 

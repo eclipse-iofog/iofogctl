@@ -15,6 +15,7 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
@@ -33,6 +34,9 @@ func Execute(opt Options) error {
 	if err != nil {
 		return err
 	}
+
+	// Output message
+	util.SpinStart("Deploying Controller")
 
 	// Get the Control Plane
 	controlPlane, err := config.GetControlPlane(opt.Namespace)

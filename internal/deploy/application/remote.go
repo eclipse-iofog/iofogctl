@@ -58,9 +58,6 @@ func (exe *remoteExecutor) GetName() string {
 // Deploy application using remote controller
 //
 func (exe *remoteExecutor) Execute() (err error) {
-	defer util.SpinStop()
-	util.SpinStart("Deploying Application")
-
 	// Get Control Plane
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil || len(controlPlane.Controllers) == 0 {
@@ -218,10 +215,7 @@ func (exe *remoteExecutor) createRoutes() (err error) {
 }
 
 func (exe *remoteExecutor) deploy() (err error) {
-	defer util.SpinStop()
-
 	// Create flow
-	util.SpinStart("Creating flow")
 	flow, err := exe.client.CreateFlow(exe.app.Name, fmt.Sprintf("Flow for application: %s", exe.app.Name))
 	if err != nil {
 		return
