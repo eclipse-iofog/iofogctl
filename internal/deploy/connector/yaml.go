@@ -32,9 +32,10 @@ func UnmarshallYAML(filename string) (connectors []config.Connector, err error) 
 			return
 		}
 		// None specified
-		if cnct.Name == "" || cnct.Host == "" {
+		if cnct.Name == "" || (cnct.KubeConfig == "" && (cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "")) {
 			return
 		}
+
 		// Append the single cnct
 		connectors = append(connectors, cnct)
 	} else {

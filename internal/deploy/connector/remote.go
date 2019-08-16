@@ -43,6 +43,7 @@ func (exe *remoteExecutor) GetName() string {
 func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
+		Name:               exe.cnct.Name,
 		User:               exe.cnct.User,
 		Host:               exe.cnct.Host,
 		Port:               exe.cnct.Port,
