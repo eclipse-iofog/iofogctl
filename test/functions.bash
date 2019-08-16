@@ -122,7 +122,6 @@ function checkController() {
 function checkConnector() {
   [[ "$NAME" == $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS" describe connector "$NAME" | grep "name: $NAME") ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane | grep "name: $NAME") ]]
 }
 
 function checkControllerNegative() {
