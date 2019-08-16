@@ -109,7 +109,7 @@ func (exe *localExecutor) Execute() error {
 		fmt.Sprintf("http://%s:%s/v2/status", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host),
 	); err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
-			fmt.Printf("Could not clean container %s\n", agentContainerName)
+			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))
 		}
 		return err
 	}
@@ -119,7 +119,7 @@ func (exe *localExecutor) Execute() error {
 	uuid, err := exe.provisionAgent()
 	if err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
-			fmt.Printf("Could not clean container %s\n", agentContainerName)
+			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))
 		}
 		return err
 	}

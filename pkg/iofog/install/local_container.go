@@ -85,7 +85,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 				{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
 				{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
 			},
-			ContainerName: sanitizeContainerName(fmt.Sprintf("iofog-agent-%s", name)),
+			ContainerName: sanitizeContainerName("iofog-agent"),
 			Image:         image,
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},

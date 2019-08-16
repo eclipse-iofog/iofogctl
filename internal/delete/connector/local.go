@@ -48,7 +48,7 @@ func (exe *localExecutor) Execute() error {
 	}
 	// Clean container
 	if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
-		fmt.Printf("Could not clean Connector container: %v", errClean)
+		util.PrintNotify(fmt.Sprintf("Could not clean Connector container: %v", errClean))
 	}
 
 	// Clear Connector from Controller

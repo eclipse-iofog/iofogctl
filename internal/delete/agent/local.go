@@ -15,6 +15,7 @@ package deleteagent
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
@@ -44,7 +45,7 @@ func (exe *localExecutor) GetName() string {
 func (exe *localExecutor) Execute() error {
 	// Clean all agent containers
 	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
-		fmt.Printf("Could not clean Agent container: %v", errClean)
+		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
 	}
 
 	return nil

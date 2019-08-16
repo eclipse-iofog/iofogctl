@@ -53,7 +53,7 @@ func (exe *localExecutor) GetName() string {
 func (exe *localExecutor) cleanContainers() {
 	for _, name := range exe.containersNames {
 		if errClean := exe.client.CleanContainer(name); errClean != nil {
-			fmt.Printf("Could not clean Controller container %v", errClean)
+			util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", errClean))
 		}
 	}
 }
@@ -67,7 +67,7 @@ func (exe *localExecutor) deployContainers() error {
 	if _, err := exe.client.DeployContainer(connectorContainerConfig); err != nil {
 		// Remove previously deployed Controller
 		if errClean := exe.client.CleanContainer(connectorContainerName); errClean != nil {
-			fmt.Printf("Could not clean container %v", errClean)
+			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", errClean))
 		}
 		return err
 	}

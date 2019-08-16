@@ -45,7 +45,7 @@ func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane co
 func (exe *localExecutor) cleanContainers() {
 	for _, name := range exe.containersNames {
 		if errClean := exe.client.CleanContainer(name); errClean != nil {
-			fmt.Printf("Could not clean Controller container %v", errClean)
+			util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", errClean))
 		}
 	}
 }
