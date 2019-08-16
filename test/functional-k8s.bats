@@ -42,9 +42,9 @@ controlplane:
       scheduler: $SCHEDULER_IMAGE
       operator: $OPERATOR_IMAGE
       kubelet: $KUBELET_IMAGE
-  connectors:
-  - name: $NAME
-    kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+connectors:
+- name: $NAME
+  kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -133,27 +133,28 @@ controlplane:
   checkAgents
 }
 
-@test "Deploy Controller for idempotence" {
+@test "Deploy Controller and Connector for idempotence" {
   echo "---
-iofoguser:
-  name: Testing
-  surname: Functional
-  email: $USER_EMAIL
-  password: $USER_PW
-controllers:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
+controlplane:
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $USER_PW
+  controllers:
+  - name: $NAME
+    kubeconfig: $KUBE_CONFIG
+    images:
+      controller: $CONTROLLER_IMAGE
+      connector: $CONNECTOR_IMAGE
+      scheduler: $SCHEDULER_IMAGE
+      operator: $OPERATOR_IMAGE
+      kubelet: $KUBELET_IMAGE
 connectors:
 - name: $NAME
   kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
 
-  test iofogctl -v -n "$NS" deploy controlplane -f test/conf/k8s.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 

@@ -18,15 +18,8 @@ NS="$NAMESPACE"
 
 @test "Deploy vanilla Controller" {
   initVanillaController
-  echo "controlplane:
-  connectors:
-  - name: $NAME
-    user: $VANILLA_USER
-    host: $VANILLA_HOST
-    port: $VANILLA_PORT
-    keyfile: $KEY_FILE
-    version: $VANILLA_VERSION
-    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
+  echo "---
+controlplane:
   controllers:
   - name: $NAME
     user: $VANILLA_USER
@@ -39,7 +32,15 @@ NS="$NAMESPACE"
     name: Testing
     surname: Functional
     email: user@domain.com
-    password: S5gYVgLEZV" > test/conf/vanilla.yaml
+    password: S5gYVgLEZV
+connectors:
+- name: $NAME
+  user: $VANILLA_USER
+  host: $VANILLA_HOST
+  port: $VANILLA_PORT
+  keyfile: $KEY_FILE
+  version: $VANILLA_VERSION
+  packagecloudtoken: $PACKAGE_CLOUD_TOKEN" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController

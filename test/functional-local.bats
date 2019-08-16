@@ -10,20 +10,21 @@ NS="$NAMESPACE"
 }
 
 @test "Deploy local Controller" {
-  echo "controlplane:
+  echo "---
+controlplane:
   iofoguser:
     name: Testing
     surname: Functional
     email: user@domain.com
     password: S5gYVgLEZV
-  connectors:
-  - name: $NAME
-    host: localhost
   controllers:
   - name: $NAME
     host: 127.0.0.1
     version: $VANILLA_VERSION
-    packagecloudtoken: $PACKAGE_CLOUD_TOKEN" > test/conf/local.yaml
+    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
+connectors:
+- name: $NAME
+  host: localhost" > test/conf/local.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
   checkController
