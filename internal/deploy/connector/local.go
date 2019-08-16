@@ -102,7 +102,7 @@ func (exe *localExecutor) deployContainers() error {
 	if err := ctrlClient.AddConnector(client.ConnectorInfo{
 		IP:     exe.localControllerConfig.ContainerMap["connector"].Host,
 		Domain: exe.localControllerConfig.ContainerMap["connector"].Host,
-		Name:   "local-connector",
+		Name:   exe.name,
 	}); err != nil {
 		return err
 	}
