@@ -79,15 +79,6 @@ connectors:
   done
 }
 
-@test "Controller legacy commands after connect with Kube Config" {
-  sleep 15 # Avoid Kubernetes SSH tunnel bug
-  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
-}
-
-@test "Get Controller logs on K8s after connect with Kube Config" {
-  test iofogctl -v -n "$NS" logs controller "$NAME"
-}
-
 @test "Get Agent logs" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_${IDX}"

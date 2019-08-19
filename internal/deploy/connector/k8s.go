@@ -62,6 +62,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return
 	}
 	exe.cnct.Endpoint = endpoint
+	exe.cnct.Host = util.Before(endpoint, ":")
 	exe.cnct.Created = util.NowUTC()
 
 	return
