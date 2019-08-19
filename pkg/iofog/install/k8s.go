@@ -200,7 +200,7 @@ func (k8s *Kubernetes) DeleteConnector() error {
 		}
 	}
 	// Delete service
-	if err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete("connector", &metav1.DeleteOptions{}); err != nil {
+	if err := k8s.clientset.CoreV1().Services(k8s.ns).Delete("connector", &metav1.DeleteOptions{}); err != nil {
 		if !isNotFound(err) {
 			return err
 		}
