@@ -25,8 +25,6 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
-	util.SpinStart("Deploying Applications")
-
 	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {

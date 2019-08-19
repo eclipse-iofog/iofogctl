@@ -99,7 +99,7 @@ func runExecutors(executors []execute.Executor) error {
 		for idx := range errs {
 			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
 		}
-		return util.NewError("Failed to deploy")
+		return util.NewError("Failed to delete")
 	}
 	return nil
 }
