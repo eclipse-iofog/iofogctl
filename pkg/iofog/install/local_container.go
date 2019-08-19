@@ -104,8 +104,11 @@ func NewLocalControllerConfig(images map[string]string) *LocalControllerConfig {
 	}
 	containerMap := make(map[string]*LocalContainerConfig)
 	containerMap["controller"] = &LocalContainerConfig{
-		Host:          "0.0.0.0",
-		Ports:         []port{{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}}},
+		Host: "0.0.0.0",
+		Ports: []port{
+			{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}},
+			{Host: iofog.ControllerHostECNViewerPortString, Container: &LocalContainerPort{Port: iofog.DefaultHTTPPortString, Protocol: "tcp"}},
+		},
 		ContainerName: sanitizeContainerName("iofog-controller"),
 		Image:         controllerImg,
 		Privileged:    false,

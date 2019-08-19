@@ -1,27 +1,25 @@
-## iofogctl delete all
+## iofogctl delete connector
 
-Delete all resources within a namespace
+Delete a Connector
 
 ### Synopsis
 
-Delete all resources within a namespace.
-
-Tears down all Agents and Controllers. If you don't want to tear down the deployments but would like to free up the namespace, used the disconnect command instead.
+Delete a Connector.
 
 ```
-iofogctl delete all [flags]
+iofogctl delete connector NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl delete all -n NAMESPACE
+iofogctl delete connector NAME
 ```
 
 ### Options
 
 ```
-  -h, --help   help for all
+  -h, --help   help for connector
 ```
 
 ### Options inherited from parent commands

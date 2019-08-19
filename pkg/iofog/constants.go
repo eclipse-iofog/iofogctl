@@ -13,9 +13,16 @@
 
 package iofog
 
+// String and numeric values of TCP ports used accross ioFog
 const (
 	ControllerPort       = 51121
 	ControllerPortString = "51121"
+
+	ControllerHostECNViewerPort       = 8008
+	ControllerHostECNViewerPortString = "8008"
+
+	DefaultHTTPPort       = 80
+	DefaultHTTPPortString = "80"
 
 	ConnectorPort       = 8080
 	ConnectorPortString = "8080"
