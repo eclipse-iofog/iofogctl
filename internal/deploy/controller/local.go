@@ -15,9 +15,10 @@ package deploycontroller
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"os/user"
 	"regexp"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
@@ -27,18 +28,21 @@ type localExecutor struct {
 	namespace             string
 	ctrl                  *config.Controller
 	client                *install.LocalContainer
-	localControllerConfig *install.LocalControllerConfig
+	localControllerConfig *install.LocalContainerConfig
 	iofogUser             config.IofogUser
 	containersNames       []string
 }
 
 func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
-		namespace:             namespace,
-		ctrl:                  ctrl,
-		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(ctrl.Images),
-		iofogUser:             controlPlane.IofogUser,
+		namespace: namespace,
+		ctrl:      ctrl,
+		client:    client,
+		localControllerConfig: install.NewLocalControllerConfig(ctrl.Images, install.Credentials{
+			User:     ctrl.ImageCredentials.User,
+			Password: ctrl.ImageCredentials.Password,
+		}),
+		iofogUser: controlPlane.IofogUser,
 	}, nil
 }
 
@@ -51,8 +55,7 @@ func (exe *localExecutor) cleanContainers() {
 }
 
 func (exe *localExecutor) deployContainers() error {
-
-	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
+	controllerContainerConfig := exe.localControllerConfig
 	controllerContainerName := controllerContainerConfig.ContainerName
 
 	// Deploy controller image
@@ -97,7 +100,7 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Update controller (its a pointer, this is returned to caller)
-	controllerContainerConfig := exe.localControllerConfig.ContainerMap["controller"]
+	controllerContainerConfig := exe.localControllerConfig
 	exe.ctrl.Endpoint = fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
 	exe.ctrl.Host = controllerContainerConfig.Host
 	exe.ctrl.User = currUser.Username

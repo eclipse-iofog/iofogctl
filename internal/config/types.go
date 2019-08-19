@@ -23,6 +23,12 @@ type IofogUser struct {
 	Password string
 }
 
+// DockerCredentials credentials used to log into docker when deploying a local stack
+type DockerCredentials struct {
+	User     string
+	Password string
+}
+
 type Database struct {
 	Type     string
 	Host     string
@@ -52,6 +58,7 @@ type Connector struct {
 	KubeConfig        string
 	KubeConnectorIP   string
 	Image             string
+	ImageCredentials  DockerCredentials // Optional credentials if needed to pull image
 	Created           string
 	Version           string
 	Endpoint          string
@@ -70,20 +77,22 @@ type Controller struct {
 	Endpoint          string
 	Created           string
 	Images            map[string]string
+	ImageCredentials  DockerCredentials // Optional credentials if needed to pull images
 	Version           string
 	PackageCloudToken string
 }
 
 // Agent contains information for configuring an agent
 type Agent struct {
-	Name    string
-	User    string
-	Host    string
-	Port    int
-	KeyFile string
-	UUID    string
-	Created string
-	Image   string
+	Name             string
+	User             string
+	Host             string
+	Port             int
+	KeyFile          string
+	UUID             string
+	Created          string
+	Image            string
+	ImageCredentials DockerCredentials // Optional credentials if needed to pull image
 }
 
 // MicroserviceImages contains information about the images for a microservice

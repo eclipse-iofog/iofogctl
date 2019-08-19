@@ -44,13 +44,15 @@ func getController(namespace string) (*config.Controller, error) {
 
 func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer) (*localExecutor, error) {
 	// Get Controller LocalContainerConfig
-	localControllerConfig := install.NewLocalControllerConfig(make(map[string]string))
-	controllerContainerConfig, _ := localControllerConfig.ContainerMap["controller"]
+	controllerContainerConfig := install.NewLocalControllerConfig(make(map[string]string), install.Credentials{})
 	return &localExecutor{
-		namespace:        namespace,
-		agent:            agent,
-		client:           client,
-		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Image, controllerContainerConfig),
+		namespace: namespace,
+		agent:     agent,
+		client:    client,
+		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Image, controllerContainerConfig, install.Credentials{
+			User:     agent.ImageCredentials.User,
+			Password: agent.ImageCredentials.Password,
+		}),
 	}, nil
 }
 

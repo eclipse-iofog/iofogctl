@@ -15,6 +15,7 @@ package deletecontroller
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -23,7 +24,7 @@ type localExecutor struct {
 	namespace             string
 	name                  string
 	client                *install.LocalContainer
-	localControllerConfig *install.LocalControllerConfig
+	localControllerConfig *install.LocalContainerConfig
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
@@ -31,7 +32,7 @@ func newLocalExecutor(namespace, name string, client *install.LocalContainer) *l
 		namespace:             namespace,
 		name:                  name,
 		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string)),
+		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string), install.Credentials{}),
 	}
 	return exe
 }
@@ -42,12 +43,8 @@ func (exe *localExecutor) GetName() string {
 
 func (exe *localExecutor) Execute() error {
 	// Get container config
-	containerConfig, exists := exe.localControllerConfig.ContainerMap["controller"]
-	if !exists {
-		return util.NewInternalError("Could not retrieve Controller container config")
-	}
 	// Clean container
-	if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
+	if errClean := exe.client.CleanContainer(exe.localControllerConfig.ContainerName); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", errClean))
 	}
 

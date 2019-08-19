@@ -15,34 +15,40 @@ package deployconnector
 
 import (
 	"fmt"
+	"os/user"
+	"regexp"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"os/user"
-	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type localExecutor struct {
-	namespace             string
-	name                  string
-	cnct                  *config.Connector
-	client                *install.LocalContainer
-	localControllerConfig *install.LocalControllerConfig
-	iofogUser             config.IofogUser
-	containersNames       []string
+	namespace            string
+	name                 string
+	cnct                 *config.Connector
+	client               *install.LocalContainer
+	localConnectorConfig *install.LocalContainerConfig
+	iofogUser            config.IofogUser
+	containersNames      []string
 }
 
 func newLocalExecutor(namespace string, cnct *config.Connector, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
+	imageMap := make(map[string]string)
+	imageMap["connector"] = cnct.Image
 	return &localExecutor{
-		namespace:             namespace,
-		name:                  cnct.Name,
-		cnct:                  cnct,
-		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string)),
-		iofogUser:             controlPlane.IofogUser,
+		namespace: namespace,
+		name:      cnct.Name,
+		cnct:      cnct,
+		client:    client,
+		localConnectorConfig: install.NewLocalConnectorConfig(cnct.Image, install.Credentials{
+			User:     cnct.ImageCredentials.User,
+			Password: cnct.ImageCredentials.Password,
+		}),
+		iofogUser: controlPlane.IofogUser,
 	}, nil
 }
 
@@ -59,20 +65,13 @@ func (exe *localExecutor) cleanContainers() {
 }
 
 func (exe *localExecutor) deployContainers() error {
-	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
-	connectorContainerName := connectorContainerConfig.ContainerName
-
 	// Deploy connector image
 	util.SpinStart("Deploying Connector")
-	if _, err := exe.client.DeployContainer(connectorContainerConfig); err != nil {
-		// Remove previously deployed Controller
-		if errClean := exe.client.CleanContainer(connectorContainerName); errClean != nil {
-			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", errClean))
-		}
+	if _, err := exe.client.DeployContainer(exe.localConnectorConfig); err != nil {
 		return err
 	}
 
-	exe.containersNames = append(exe.containersNames, connectorContainerName)
+	exe.containersNames = append(exe.containersNames, exe.localConnectorConfig.ContainerName)
 	// Wait for public API
 	util.SpinStart("Waiting for Connector API")
 	if err := exe.client.WaitForCommand(
@@ -81,7 +80,7 @@ func (exe *localExecutor) deployContainers() error {
 		"--request",
 		"POST",
 		"--url",
-		fmt.Sprintf("http://%s:%s/api/v2/status", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host),
+		fmt.Sprintf("http://%s:%s/api/v2/status", exe.localConnectorConfig.Host, exe.localConnectorConfig.Ports[0].Host),
 		"--header",
 		"'Content-Type: application/x-www-form-urlencoded'",
 		"--data",
@@ -100,8 +99,8 @@ func (exe *localExecutor) deployContainers() error {
 		return err
 	}
 	if err := ctrlClient.AddConnector(client.ConnectorInfo{
-		IP:     exe.localControllerConfig.ContainerMap["connector"].Host,
-		Domain: exe.localControllerConfig.ContainerMap["connector"].Host,
+		IP:     exe.localConnectorConfig.Host,
+		Domain: exe.localConnectorConfig.Host,
 		Name:   exe.name,
 	}); err != nil {
 		return err
@@ -124,7 +123,7 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 	// Update Connector (return through pointer)
-	connectorContainerConfig := exe.localControllerConfig.ContainerMap["connector"]
+	connectorContainerConfig := exe.localConnectorConfig
 	exe.cnct.Endpoint = fmt.Sprintf("%s:%s", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host)
 	exe.cnct.Host = connectorContainerConfig.Host
 	exe.cnct.User = currUser.Username

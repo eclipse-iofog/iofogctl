@@ -15,6 +15,7 @@ package deleteagent
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
@@ -28,12 +29,12 @@ type localExecutor struct {
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
-	ctrlConfig, _ := install.NewLocalControllerConfig(make(map[string]string)).ContainerMap["controller"]
+	ctrlConfig := install.NewLocalControllerConfig(make(map[string]string), install.Credentials{})
 	exe := &localExecutor{
 		namespace:        namespace,
 		name:             name,
 		client:           client,
-		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig),
+		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig, install.Credentials{}),
 	}
 	return exe
 }

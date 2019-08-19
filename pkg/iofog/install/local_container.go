@@ -42,6 +42,11 @@ type port struct {
 	Container *LocalContainerPort
 }
 
+type Credentials struct {
+	User     string
+	Password string
+}
+
 type LocalContainerConfig struct {
 	Host          string
 	Ports         []port
@@ -52,6 +57,7 @@ type LocalContainerConfig struct {
 	Binds         []string
 	NetworkMode   string
 	Links         []string
+	Credentials   Credentials
 }
 
 type LocalControllerConfig struct {
@@ -74,7 +80,7 @@ func sanitizeContainerName(name string) string {
 }
 
 // NewAgentConfig generates a static agent config
-func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig) *LocalAgentConfig {
+func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig, credentials Credentials) *LocalAgentConfig {
 	if image == "" {
 		image = "docker.io/iofog/agent:latest"
 	}
@@ -91,19 +97,38 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
 			NetworkMode:   "bridge",
 			Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
+			Credentials:   credentials,
 		},
 		Name: name,
 	}
 }
 
+// NewLocalConnectorConfig generates a static connector config
+func NewLocalConnectorConfig(image string, credentials Credentials) *LocalContainerConfig {
+	if image == "" {
+		image = "docker.io/iofog/connector:latest"
+	}
+
+	return &LocalContainerConfig{
+		Host:          "0.0.0.0",
+		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
+		ContainerName: sanitizeContainerName("iofog-connector"),
+		Image:         image,
+		Privileged:    false,
+		Binds:         []string{},
+		NetworkMode:   "bridge",
+		Credentials:   credentials,
+	}
+
+}
+
 // NewLocalControllerConfig generats a static controller config
-func NewLocalControllerConfig(images map[string]string) *LocalControllerConfig {
+func NewLocalControllerConfig(images map[string]string, credentials Credentials) *LocalContainerConfig {
 	controllerImg, exists := images["controller"]
 	if !exists {
 		controllerImg = "docker.io/iofog/controller:latest"
 	}
-	containerMap := make(map[string]*LocalContainerConfig)
-	containerMap["controller"] = &LocalContainerConfig{
+	return &LocalContainerConfig{
 		Host: "0.0.0.0",
 		Ports: []port{
 			{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}},
@@ -114,25 +139,7 @@ func NewLocalControllerConfig(images map[string]string) *LocalControllerConfig {
 		Privileged:    false,
 		Binds:         []string{},
 		NetworkMode:   "bridge",
-	}
-
-	connectorImg, exists := images["connector"]
-	if !exists {
-		connectorImg = "docker.io/iofog/connector:latest"
-	}
-
-	containerMap["connector"] = &LocalContainerConfig{
-		Host:          "0.0.0.0",
-		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
-		ContainerName: sanitizeContainerName("iofog-connector"),
-		Image:         connectorImg,
-		Privileged:    false,
-		Binds:         []string{},
-		NetworkMode:   "bridge",
-	}
-
-	return &LocalControllerConfig{
-		ContainerMap: containerMap,
+		Credentials:   credentials,
 	}
 }
 
@@ -181,9 +188,9 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 	return lc.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
 }
 
-func (lc *LocalContainer) getPullOptions(image string) (ret types.ImagePullOptions) {
-	dockerUser := ""
-	dockerPwd := ""
+func (lc *LocalContainer) getPullOptions(config *LocalContainerConfig) (ret types.ImagePullOptions) {
+	dockerUser := config.Credentials.User
+	dockerPwd := config.Credentials.Password
 
 	if dockerUser != "" {
 		authConfig := types.AuthConfig{
@@ -263,7 +270,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	}
 
 	// Pull image
-	reader, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig.Image))
+	reader, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig))
 	imageTag := getImageTag(containerConfig.Image)
 	if err != nil {
 		fmt.Printf("Could not pull image: %v, listing local images...\n", err)

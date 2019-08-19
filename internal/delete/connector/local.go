@@ -15,23 +15,24 @@ package deleteconnector
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
-	namespace             string
-	name                  string
-	client                *install.LocalContainer
-	localControllerConfig *install.LocalControllerConfig
+	namespace            string
+	name                 string
+	client               *install.LocalContainer
+	localConnectorConfig *install.LocalContainerConfig
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
 	exe := &localExecutor{
-		namespace:             namespace,
-		name:                  name,
-		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string)),
+		namespace:            namespace,
+		name:                 name,
+		client:               client,
+		localConnectorConfig: install.NewLocalConnectorConfig("", install.Credentials{}),
 	}
 	return exe
 }
@@ -41,18 +42,13 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// Get container config
-	containerConfig, exists := exe.localControllerConfig.ContainerMap["connector"]
-	if !exists {
-		return util.NewInternalError("Could not retrieve Connector container config")
-	}
 	// Clean container
-	if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
+	if errClean := exe.client.CleanContainer(exe.localConnectorConfig.ContainerName); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Connector container: %v", errClean))
 	}
 
 	// Clear Connector from Controller
-	if err := deleteConnectorFromController(exe.namespace, containerConfig.Host); err != nil {
+	if err := deleteConnectorFromController(exe.namespace, exe.localConnectorConfig.Host); err != nil {
 		return err
 	}
 
