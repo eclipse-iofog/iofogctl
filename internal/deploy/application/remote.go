@@ -160,8 +160,8 @@ func (exe *remoteExecutor) configureAgent(msvc *config.Microservice) (agent *cli
 
 func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogItem *client.CatalogItemInfo, err error) {
 	catalogImages := []client.CatalogImage{
-		{ContainerImage: msvc.Images.X86, AgentTypeID: 1},
-		{ContainerImage: msvc.Images.ARM, AgentTypeID: 2},
+		{ContainerImage: msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
+		{ContainerImage: msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
 	if msvc.Images.CatalogID == 0 {
 		catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.app.Name, msvc.Name)
