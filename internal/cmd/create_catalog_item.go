@@ -48,7 +48,7 @@ func newCreateCatalogItemCommand() *cobra.Command {
 	cmd.Flags().StringVar(&opt.X86, "x86", "", "Container image to use on x86 agents")
 	cmd.Flags().StringVar(&opt.ARM, "arm", "", "Container image to use on arm agents")
 	cmd.Flags().StringVarP(&opt.Registry, "registry", "r", "", "Container registry to use. Either 'remote' or 'local'")
-	cmd.Flags().StringVarP(&opt.Registry, "description", "d", "", "Description of catalog item purpose")
+	cmd.Flags().StringVarP(&opt.Description, "description", "d", "", "Description of catalog item purpose")
 
 	return cmd
 }
