@@ -50,6 +50,16 @@ func NewController(options *ControllerOptions) *Controller {
 	}
 }
 
+func (ctrl *Controller) CopyScript(path string, name string) (err error) {
+	script := util.GetStaticFile(path + name)
+	reader := strings.NewReader(script)
+	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", len(script)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ctrl *Controller) Install() (err error) {
 	// Connect to server
 	verbose("Connecting to server")
@@ -60,11 +70,13 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	verbose("Copying install files to server")
-	installControllerScript := util.GetStaticFile("install_controller.sh")
-	reader := strings.NewReader(installControllerScript)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/", "install_controller.sh", "0775", len(installControllerScript)); err != nil {
-		return err
-	}
+	ctrl.CopyScript("", "install_controller.sh")
+
+	// Copy initctl service scripts to remote host
+	verbose("Copying service files to server")
+	ctrl.CopyScript("iofog-controller-service/", "iofog-controller.initctl")
+	ctrl.CopyScript("iofog-controller-service/", "iofog-controller.systemd")
+	ctrl.CopyScript("iofog-controller-service/", "iofog-controller.update-rc")
 
 	// Define commands
 	cmds := []string{
