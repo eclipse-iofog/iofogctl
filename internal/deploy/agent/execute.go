@@ -37,11 +37,6 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	// Stop here if there is nothing to deploy
-	if len(agents) == 0 {
-		return nil
-	}
-
 	// Output message
 	msg := "Deploying Agent"
 	if len(agents) > 1 {

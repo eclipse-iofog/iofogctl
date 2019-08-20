@@ -37,11 +37,6 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	// Stop here if there is nothing to deploy
-	if len(connectors) == 0 {
-		return nil
-	}
-
 	// Output message
 	msg := "Deploying Connector"
 	if len(connectors) > 1 {

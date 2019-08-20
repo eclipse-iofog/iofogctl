@@ -30,6 +30,8 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
+	util.SpinStart("Deploying Control Plane")
+
 	// Check the namespace exists
 	_, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
@@ -41,13 +43,6 @@ func Execute(opt Options) error {
 	if err != nil {
 		return err
 	}
-
-	// Stop here if there is nothing to deploy
-	if len(controlPlane.Controllers) == 0 {
-		return nil
-	}
-
-	util.SpinStart("Deploying Control Plane")
 
 	// Instantiate executors
 	var executors []execute.Executor

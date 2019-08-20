@@ -15,10 +15,10 @@ package deploy
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/application"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
+	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
+	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
+	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -67,18 +67,24 @@ func Execute(opt *Options) error {
 	}
 
 	// Deploy Connectors
-	if err = deployconnector.Execute(deployconnector.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-		return err
+	if len(connectors) > 0 {
+		if err = deployconnector.Execute(deployconnector.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+			return err
+		}
 	}
 
 	// Deploy Agents
-	if err = deployagent.Execute(deployagent.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-		return err
+	if len(agents) > 0 {
+		if err = deployagent.Execute(deployagent.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+			return err
+		}
 	}
 
 	// Deploy Applications
-	if err = deployapplication.Execute(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-		return err
+	if len(applications) > 0 {
+		if err = deployapplication.Execute(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+			return err
+		}
 	}
 
 	return nil
