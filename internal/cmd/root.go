@@ -60,7 +60,8 @@ func NewRootCommand() *cobra.Command {
 
 	// Global flags
 	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
-	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of API client")
+	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
+	cmd.PersistentFlags().BoolVar(&httpVerbose, "http-verbose", false, "Toggle for displaying verbose output of API client")
 	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
 
 	// Register all commands
@@ -88,10 +89,13 @@ var configFilename string
 // Toggle set by --verbose persistent flag
 var verbose bool
 
+// Toggle set by --http-verbose persistent flag
+var httpVerbose bool
+
 // Callback for cobra on initialization
 func initialize() {
 	config.Init(configFilename)
-	client.SetVerbosity(verbose)
+	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
 	util.SpinEnable(!verbose)
 }

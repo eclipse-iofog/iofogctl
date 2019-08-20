@@ -16,8 +16,9 @@ Delete an existing ioFog resource.
 
 ```
       --config string      CLI configuration file (default is ~/.iofog/config.yaml)
+      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
-  -v, --verbose            Toggle for displaying verbose output of API client
+  -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 
 ### SEE ALSO
