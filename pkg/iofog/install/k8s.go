@@ -86,16 +86,6 @@ func (k8s *Kubernetes) SetImages(images map[string]string) error {
 	return nil
 }
 
-func (k8s *Kubernetes) SetControllerIP(ip string) {
-	k8s.ms["controller"].IP = ip
-}
-
-func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
-	return k8s.getEndpoint(k8s.ms["controller"])
-}
-func (k8s *Kubernetes) GetConnectorEndpoint() (endpoint string, err error) {
-	return k8s.getEndpoint(k8s.ms["connector"])
-}
 func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error) {
 	if len(ms.ports) == 0 {
 		err = util.NewError("Requested endpoint of Microservice on K8s cluster that does not have an external API")

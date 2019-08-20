@@ -16,8 +16,11 @@ package install
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	"k8s.io/api/core/v1"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
@@ -124,6 +127,39 @@ func (ctrl *Controller) Stop() (err error) {
 	return
 }
 
+func (k8s *Kubernetes) SetControllerExternalDatabase(host, user, password string, port int) {
+	k8s.ms["controller"].containers[0].env = []v1.EnvVar{
+		{
+			Name:  "DB_PROVIDER",
+			Value: "postgres",
+		},
+		{
+			Name:  "DB_USERNAME",
+			Value: user,
+		},
+		{
+			Name:  "DB_PASSWORD",
+			Value: password,
+		},
+		{
+			Name:  "DB_HOST",
+			Value: host,
+		},
+		{
+			Name:  "DB_PORT",
+			Value: strconv.Itoa(port),
+		},
+	}
+}
+
+func (k8s *Kubernetes) SetControllerIP(ip string) {
+	k8s.ms["controller"].IP = ip
+}
+
+func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
+	return k8s.getEndpoint(k8s.ms["controller"])
+}
+
 func waitForControllerAPI(endpoint string) (err error) {
 	ctrlClient := client.New(endpoint)
 
@@ -142,11 +178,6 @@ func waitForControllerAPI(endpoint string) (err error) {
 			if strings.Contains(err.Error(), "connection refused") {
 				time.Sleep(time.Millisecond * 1000)
 				iter = iter + 1
-				continue
-			}
-			// Account already exists, proceed to login
-			if strings.Contains(err.Error(), "already an account associated") {
-				connected = true
 				continue
 			}
 			// Return the error otherwise

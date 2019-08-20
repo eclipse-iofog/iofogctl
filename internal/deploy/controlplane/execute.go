@@ -20,6 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"strings"
 )
 
 type Options struct {
@@ -61,7 +62,17 @@ func Execute(opt Options) error {
 	// TODO: replace with controlplane variable for endpoint
 	ctrlClient := client.New(controlPlane.Controllers[0].Endpoint)
 	if err = ctrlClient.CreateUser(client.User(controlPlane.IofogUser)); err != nil {
-		return err
+		// If not error about account existing, fail
+		if !strings.Contains(err.Error(), "already an account associated") {
+			return err
+		}
+		// Try to log in
+		if err = ctrlClient.Login(client.LoginRequest{
+			Email:    controlPlane.IofogUser.Email,
+			Password: controlPlane.IofogUser.Password,
+		}); err != nil {
+			return err
+		}
 	}
 
 	// For Kubernetes Controllers, we need to deploy extensions

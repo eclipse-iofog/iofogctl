@@ -47,7 +47,13 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if err = installer.SetImages(exe.ctrl.Images); err != nil {
 		return err
 	}
-	installer.SetControllerIP(exe.ctrl.KubeControllerIP)
+	if exe.ctrl.KubeControllerIP != "" {
+		installer.SetControllerIP(exe.ctrl.KubeControllerIP)
+	}
+	if exe.controlPlane.Database.Host != "" {
+		db := exe.controlPlane.Database
+		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Port)
+	}
 
 	// Create controller on cluster
 	if err = installer.CreateController(); err != nil {

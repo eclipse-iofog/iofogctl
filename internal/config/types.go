@@ -30,7 +30,6 @@ type DockerCredentials struct {
 }
 
 type Database struct {
-	Type     string
 	Host     string
 	Port     int
 	User     string

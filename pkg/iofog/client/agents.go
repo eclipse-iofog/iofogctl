@@ -82,6 +82,7 @@ func (clt *Client) ListAgents() (response ListAgentsResponse, err error) {
 	}
 
 	// Return body
+	util.PrintNotify(string(body))
 	if err = json.Unmarshal(body, &response); err != nil {
 		return
 	}
