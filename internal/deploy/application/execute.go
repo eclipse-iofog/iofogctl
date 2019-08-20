@@ -42,6 +42,11 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Stop here if there is nothing to deploy
+	if len(applications) == 0 {
+		return nil
+	}
+
 	// Output message
 	msg := "Deploying Application"
 	if len(applications) > 1 {

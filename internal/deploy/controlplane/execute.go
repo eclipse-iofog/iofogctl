@@ -14,13 +14,14 @@
 package deploycontrolplane
 
 import (
+	"strings"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
+	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
 )
 
 type Options struct {
@@ -29,8 +30,6 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
-	util.SpinStart("Deploying Control Plane")
-
 	// Check the namespace exists
 	_, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
@@ -42,6 +41,13 @@ func Execute(opt Options) error {
 	if err != nil {
 		return err
 	}
+
+	// Stop here if there is nothing to deploy
+	if len(controlPlane.Controllers) == 0 {
+		return nil
+	}
+
+	util.SpinStart("Deploying Control Plane")
 
 	// Instantiate executors
 	var executors []execute.Executor
