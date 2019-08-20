@@ -67,24 +67,18 @@ func Execute(opt *Options) error {
 	}
 
 	// Deploy Connectors
-	if len(connectors) > 0 {
-		if err = deployconnector.Execute(deployconnector.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-			return err
-		}
+	if err = deployconnector.Execute(deployconnector.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+		return err
 	}
 
 	// Deploy Agents
-	if len(agents) > 0 {
-		if err = deployagent.Execute(deployagent.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-			return err
-		}
+	if err = deployagent.Execute(deployagent.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+		return err
 	}
 
 	// Deploy Applications
-	if len(applications) > 0 {
-		if err = deployapplication.Execute(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
-			return err
-		}
+	if err = deployapplication.Execute(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+		return err
 	}
 
 	return nil
