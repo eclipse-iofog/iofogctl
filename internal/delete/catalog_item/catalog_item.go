@@ -33,17 +33,9 @@ func Execute(namespace, name string) error { // Get Control Plane
 		return err
 	}
 
-	// Get all catalog items
-	catalog, err := clt.GetCatalog()
+	item, err := clt.GetCatalogItemByName(name)
 	if err != nil {
 		return err
 	}
-
-	// Find catalog item
-	for _, item := range catalog.CatalogItems {
-		if item.Name == name {
-			return clt.DeleteCatalogItem(item.ID)
-		}
-	}
-	return util.NewNotFoundError("Could not find the catalog item to delete")
+	return clt.DeleteCatalogItem(item.ID)
 }

@@ -22,7 +22,6 @@ import (
 )
 
 func httpDo(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
-
 	// Encode body
 	jsonBody := ""
 	if requestBody != nil {
