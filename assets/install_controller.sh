@@ -51,6 +51,28 @@ load_existing_nvm() {
 	set -e
 }
 
+controller_service() {
+    USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
+    USE_INITCTL=`which /sbin/initctl | wc -l`
+    USE_SERVICE=`which /usr/sbin/service | wc -l`
+
+    if [ $USE_SYSTEMD -eq 1 ]; then
+        sudo cp ./iofog-controller-service/iofog-controller.systemd /etc/systemd/system/iofog-controller.service
+        sudo chmod 644 /etc/systemd/system/iofog-controller.service
+        sudo systemctl daemon-reload
+        sudo systemctl enable iofog-controller.service
+    elif [ $USE_INITCTL -eq 1 ]; then
+        sudo cp ./iofog-controller-service/iofog-controller.initctl /etc/init/iofog-controller.conf
+        sudo initctl reload-configuration
+    elif [ $USE_SERVICE -eq 1 ]; then
+        sudo cp ./iofog-controller-service/iofog-controller.update-rc /etc/init.d/iofog-controller
+        sudo chmod +x /etc/init.d/iofog-controller
+        update-rc.d iofog-controller defaults
+    else
+        echo "Unable to setup Controller startup script."
+    fi
+}
+
 deploy_controller() {
 	# Try to stop the instance if is installed
 	if [ ! -z $(command -v iofog-controller) ]; then
@@ -91,6 +113,12 @@ deploy_controller() {
 	if [ ! -f "/usr/local/bin/iofog-controller" ]; then
 		sudo ln -fFs "$INSTALL_DIR/controller/bin/iofog-controller" /usr/local/bin/iofog-controller
 	fi
+
+    # Set controller permissions
+    sudo chmod 744 -R "$INSTALL_DIR/controller"
+
+    # Startup script
+    controller_service
 
 	# Run controller
 	sudo iofog-controller start

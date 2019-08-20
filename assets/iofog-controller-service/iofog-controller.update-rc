@@ -1,0 +1,16 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    /usr/local/bin/iofog-controller start
+    ;;
+  stop)
+    /usr/local/bin/iofog-controller stop
+    ;;
+  restart)
+    /usr/local/bin/iofog-controller stop
+    /usr/local/bin/iofog-controller start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+esac
