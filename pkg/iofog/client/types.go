@@ -69,6 +69,14 @@ type CatalogItemCreateResponse struct {
 	ID int `json:"id"`
 }
 
+type CatalogItemUpdateRequest struct {
+	ID          int
+	Name        string         `json:"name,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Images      []CatalogImage `json:"images,omitempty"`
+	RegistryID  int            `json:"registryId,omitempty"`
+}
+
 type CatalogListResponse struct {
 	CatalogItems []CatalogItemInfo `json:"catalogItems"`
 }

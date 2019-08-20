@@ -45,6 +45,14 @@ func New(endpoint string) *Client {
 	}
 }
 
+func NewAndLogin(endpoint, email, password string) (clt *Client, err error) {
+	clt = New(endpoint)
+	if err = clt.Login(LoginRequest{Email: email, Password: password}); err != nil {
+		return
+	}
+	return
+}
+
 func (clt *Client) GetEndpoint() string {
 	return clt.endpoint
 }

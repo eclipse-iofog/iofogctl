@@ -23,6 +23,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -618,4 +619,41 @@ func isAlreadyExists(err error) bool {
 
 func isNotFound(err error) bool {
 	return strings.Contains(err.Error(), "not found")
+}
+
+func (k8s *Kubernetes) SetControllerExternalDatabase(host, user, password string, port int) {
+	k8s.ms["controller"].containers[0].env = []v1.EnvVar{
+		{
+			Name:  "DB_PROVIDER",
+			Value: "postgres",
+		},
+		{
+			Name:  "DB_USERNAME",
+			Value: user,
+		},
+		{
+			Name:  "DB_PASSWORD",
+			Value: password,
+		},
+		{
+			Name:  "DB_HOST",
+			Value: host,
+		},
+		{
+			Name:  "DB_PORT",
+			Value: strconv.Itoa(port),
+		},
+	}
+}
+
+func (k8s *Kubernetes) SetControllerIP(ip string) {
+	k8s.ms["controller"].IP = ip
+}
+
+func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
+	return k8s.getEndpoint(k8s.ms["controller"])
+}
+
+func (k8s *Kubernetes) GetConnectorEndpoint() (endpoint string, err error) {
+	return k8s.getEndpoint(k8s.ms["connector"])
 }

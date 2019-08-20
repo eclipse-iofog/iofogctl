@@ -15,10 +15,10 @@ package deploy
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/application"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
-	"github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
+	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
+	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
+	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 

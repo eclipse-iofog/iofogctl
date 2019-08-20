@@ -123,7 +123,3 @@ func (cnct *Connector) Stop() (err error) {
 
 	return
 }
-
-func (k8s *Kubernetes) GetConnectorEndpoint() (endpoint string, err error) {
-	return k8s.getEndpoint(k8s.ms["connector"])
-}

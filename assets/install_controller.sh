@@ -127,4 +127,11 @@ deploy_controller() {
 # main
 version="$1"
 token="$2"
+# Optional args
+export DB_PROVIDER="$3"
+export DB_HOST="$4"
+export DB_USER="$5"
+export DB_PASSWORD="$6"
+export DB_PORT="$7"
+
 deploy_controller

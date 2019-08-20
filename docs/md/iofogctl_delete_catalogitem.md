@@ -1,34 +1,33 @@
-## iofogctl delete controller
+## iofogctl delete catalogitem
 
-Delete a Controller
+Delete a Catalog item
 
 ### Synopsis
 
-Delete a Controller.
+Delete a Catalog item from the Controller.
 
 ```
-iofogctl delete controller NAME [flags]
+iofogctl delete catalogitem NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl delete controller NAME
+iofogctl delete catalogitem NAME
 ```
 
 ### Options
 
 ```
-  -h, --help   help for controller
+  -h, --help   help for catalogitem
 ```
 
 ### Options inherited from parent commands
 
 ```
       --config string      CLI configuration file (default is ~/.iofog/config.yaml)
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
-  -v, --verbose            Toggle for displaying verbose output of iofogctl
+  -v, --verbose            Toggle for displaying verbose output of API client
 ```
 
 ### SEE ALSO
