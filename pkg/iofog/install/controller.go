@@ -16,11 +16,8 @@ package install
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
-
-	"k8s.io/api/core/v1"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
@@ -36,9 +33,18 @@ type ControllerOptions struct {
 	PackageCloudToken string
 }
 
+type database struct {
+	provider string
+	host     string
+	user     string
+	password string
+	port     int
+}
+
 type Controller struct {
 	*ControllerOptions
 	ssh *util.SecureShellClient
+	db  database
 }
 
 func NewController(options *ControllerOptions) *Controller {
@@ -47,6 +53,16 @@ func NewController(options *ControllerOptions) *Controller {
 	return &Controller{
 		ControllerOptions: options,
 		ssh:               ssh,
+	}
+}
+
+func (ctrl *Controller) SetControllerExternalDatabase(host, user, password string, port int) {
+	ctrl.db = database{
+		provider: "postgres",
+		host:     host,
+		user:     user,
+		password: password,
+		port:     port,
 	}
 }
 
@@ -67,8 +83,13 @@ func (ctrl *Controller) Install() (err error) {
 	}
 
 	// Define commands
+	dbArgs := ""
+	if ctrl.db.host != "" {
+		db := ctrl.db
+		dbArgs = fmt.Sprintf(" %s %s %s %s %d", db.provider, db.host, db.user, db.password, db.port)
+	}
 	cmds := []string{
-		fmt.Sprintf("/tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken),
+		fmt.Sprintf("/tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken) + dbArgs,
 	}
 
 	// Execute commands
@@ -125,39 +146,6 @@ func (ctrl *Controller) Stop() (err error) {
 	}
 
 	return
-}
-
-func (k8s *Kubernetes) SetControllerExternalDatabase(host, user, password string, port int) {
-	k8s.ms["controller"].containers[0].env = []v1.EnvVar{
-		{
-			Name:  "DB_PROVIDER",
-			Value: "postgres",
-		},
-		{
-			Name:  "DB_USERNAME",
-			Value: user,
-		},
-		{
-			Name:  "DB_PASSWORD",
-			Value: password,
-		},
-		{
-			Name:  "DB_HOST",
-			Value: host,
-		},
-		{
-			Name:  "DB_PORT",
-			Value: strconv.Itoa(port),
-		},
-	}
-}
-
-func (k8s *Kubernetes) SetControllerIP(ip string) {
-	k8s.ms["controller"].IP = ip
-}
-
-func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
-	return k8s.getEndpoint(k8s.ms["controller"])
 }
 
 func waitForControllerAPI(endpoint string) (err error) {
