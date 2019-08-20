@@ -53,8 +53,8 @@ load_existing_nvm() {
 
 controller_service() {
     USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
-    USE_INITCTL=`which /sbin/initctl | wc -l`
-    USE_SERVICE=`which /usr/sbin/service | wc -l`
+    USE_INITCTL=`which initctl | wc -l`
+    USE_SERVICE=`which service | wc -l`
 
     if [ $USE_SYSTEMD -eq 1 ]; then
         sudo cp ./iofog-controller-service/iofog-controller.systemd /etc/systemd/system/iofog-controller.service
