@@ -14,8 +14,8 @@
 package client
 
 // Toggle HTTP output
-var verbose bool
+var Verbose bool
 
 func SetVerbosity(verbose bool) {
-	verbose = verbose
+	Verbose = verbose
 }
