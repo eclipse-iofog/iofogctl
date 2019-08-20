@@ -16,6 +16,8 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // GetCatalog retrieves all catalog items using Controller REST API
@@ -60,8 +62,35 @@ func (clt *Client) CreateCatalogItem(request *CatalogItemCreateRequest) (*Catalo
 	return clt.GetCatalogItem(response.ID)
 }
 
+// UpdateCatalogItem updates one catalog item using Controller REST API
+func (clt *Client) UpdateCatalogItem(request *CatalogItemUpdateRequest) (*CatalogItemInfo, error) {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/catalog/microservices/%d", request.ID), request)
+	if err != nil {
+		return nil, err
+	}
+	return clt.GetCatalogItem(request.ID)
+}
+
 // DeleteCatalogItem deletes one catalog item using Controller REST API
 func (clt *Client) DeleteCatalogItem(ID int) (err error) {
 	_, err = clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%d", ID), nil)
 	return
+}
+
+// GetCatalogItemByName returns a catalog item by listing all catalog items and returning the first occurence of the specified name
+func (clt *Client) GetCatalogItemByName(name string) (*CatalogItemInfo, error) {
+	// Get all catalog items
+	catalog, err := clt.GetCatalog()
+	if err != nil {
+		return nil, err
+	}
+
+	// Find catalog item
+	for _, item := range catalog.CatalogItems {
+		if item.Name == name {
+			return &item, nil
+		}
+	}
+
+	return nil, util.NewNotFoundError(fmt.Sprintf("Could not find catalog item %s\n", name))
 }

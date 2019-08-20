@@ -94,6 +94,17 @@ type Agent struct {
 	ImageCredentials DockerCredentials // Optional credentials if needed to pull image
 }
 
+// CatalogItem contains information about a catalog item
+type CatalogItem struct {
+	ID            int
+	X86           string
+	ARM           string
+	Registry      string
+	Name          string
+	Description   string
+	ConfigExample string
+}
+
 // MicroserviceImages contains information about the images for a microservice
 type MicroserviceImages struct {
 	CatalogID int

@@ -17,19 +17,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newCreateCommand() *cobra.Command {
+func newUpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a resource",
-		Long: `Create a resource.
-
-Some resources (e.g. namespaces) are relevant to iofogctl alone. Other resources are created on the ioFog cluster itself.`,
+		Use:   "update",
+		Short: "Update an existing ioFog resource",
+		Long:  `Update an existing ioFog resource.`,
 	}
 
 	// Add subcommands
 	cmd.AddCommand(
-		newCreateNamespaceCommand(),
-		newCreateCatalogItemCommand(),
+		newUpdateCatalogItemCommand(),
 	)
 	return cmd
 }
