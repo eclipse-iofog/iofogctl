@@ -86,13 +86,24 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	verbose("Copying install files to server")
-	ctrl.CopyScript("", "install_controller.sh")
+	if err = ctrl.CopyScript("", "install_controller.sh"); err != nil {
+		return err
+	}
 
-	// Copy initctl service scripts to remote host
+	// Copy service scripts to remote host
 	verbose("Copying service files to server")
-	ctrl.CopyScript("iofog-controller-service/", "iofog-controller.initctl")
-	ctrl.CopyScript("iofog-controller-service/", "iofog-controller.systemd")
-	ctrl.CopyScript("iofog-controller-service/", "iofog-controller.update-rc")
+	if _, err = ctrl.ssh.Run("mkdir -p /tmp/iofog-controller-service"); err != nil {
+		return err
+	}
+	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.initctl"); err != nil {
+		return err
+	}
+	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.systemd"); err != nil {
+		return err
+	}
+	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.update-rc"); err != nil {
+		return err
+	}
 
 	// Define commands
 	dbArgs := ""
