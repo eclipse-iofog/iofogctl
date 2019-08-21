@@ -103,7 +103,6 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	if exe.msvc.Flow == nil {
 		return util.NewInputError("You must specify an application in order to deploy a microservice")
 	}
-	var flowInfo *client.FlowInfo
 	flowList, err := exe.client.GetAllFlows()
 	if err != nil {
 		return
@@ -116,7 +115,7 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	if exe.flowInfo == nil {
 		return util.NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
 	}
-	listMsvcs, err := exe.client.GetMicroservicesPerFlow(flowInfo.ID)
+	listMsvcs, err := exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
 	if err != nil {
 		return
 	}

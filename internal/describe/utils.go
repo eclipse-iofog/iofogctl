@@ -33,6 +33,17 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	if err != nil {
 		return
 	}
+
+	routes := []string{}
+
+	for _, msvcUUID := range msvc.Routes {
+		destMsvc, err := clt.GetMicroserviceByID(msvcUUID)
+		if err != nil {
+			return nil, err
+		}
+		routes = append(routes, destMsvc.Name)
+	}
+
 	jsonConfig := make(map[string]interface{})
 	if err = json.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
@@ -90,7 +101,7 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	result.RootHostAccess = msvc.RootHostAccess
 	result.Ports = msvc.Ports
 	result.Volumes = msvc.Volumes
-	result.Routes = msvc.Routes
+	result.Routes = routes
 	result.Env = msvc.Env
 	result.Flow = &application.Name
 	return

@@ -43,18 +43,18 @@ connectors:
   checkApplication
 }
 
+@test "Deploy microservice" {
+  initMicroserviceFile
+  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  checkMicroservice
+}
+
+@test "Delete microservice" {
+  test iofogctl -v -n "$NS" delete microservice "$MICROSERVICE_NAME"
+  checkMicroserviceNegative
+}
+
 @test "Delete application" {
-  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
-  checkApplicationNegative
-}
-
-@test "Deploy application from root file" {
-  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
-  checkApplication
-}
-
-# Delete all does not delete application
-@test "Delete application (bis)" {
   test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
   checkApplicationNegative
 }
