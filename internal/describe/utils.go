@@ -29,6 +29,21 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	if err != nil {
 		return
 	}
+	application, err := clt.GetFlowByID(msvc.FlowID)
+	if err != nil {
+		return
+	}
+
+	routes := []string{}
+
+	for _, msvcUUID := range msvc.Routes {
+		destMsvc, err := clt.GetMicroserviceByID(msvcUUID)
+		if err != nil {
+			return nil, err
+		}
+		routes = append(routes, destMsvc.Name)
+	}
+
 	jsonConfig := make(map[string]interface{})
 	if err = json.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
@@ -55,9 +70,24 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 			AbstractedHardwareEnabled: &agent.AbstractedHardwareEnabled,
 		},
 	}
+	var armImage, x86Image string
+	for _, image := range catalogItem.Images {
+		switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
+		case "x86":
+			x86Image = image.ContainerImage
+			break
+		case "arm":
+			armImage = image.ContainerImage
+			break
+		default:
+			break
+		}
+	}
 	images := config.MicroserviceImages{
 		CatalogID: catalogItem.ID,
-		Registry:  catalogItem.RegistryID,
+		X86:       x86Image,
+		ARM:       armImage,
+		Registry:  client.RegistryTypeIDRegistryTypeDict[catalogItem.RegistryID],
 	}
 	for _, img := range catalogItem.Images {
 		if img.AgentTypeID == 1 {
@@ -71,8 +101,8 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	result.RootHostAccess = msvc.RootHostAccess
 	result.Ports = msvc.Ports
 	result.Volumes = msvc.Volumes
-	result.Routes = msvc.Routes
+	result.Routes = routes
 	result.Env = msvc.Env
-	result.Flow = &msvc.FlowID
+	result.Flow = &application.Name
 	return
 }

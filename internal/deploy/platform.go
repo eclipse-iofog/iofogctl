@@ -19,6 +19,7 @@ import (
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
 	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
+	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -50,8 +51,12 @@ func Execute(opt *Options) error {
 	if err != nil {
 		return err
 	}
+	microservices, err := deploymicroservice.UnmarshallYAML(opt.InputFile)
+	if err != nil {
+		return err
+	}
 	// If there are no resources return error
-	if len(controlPlane.Controllers) == 0 && len(connectors) == 0 && len(agents) == 0 && len(applications) == 0 {
+	if len(controlPlane.Controllers) == 0 && len(connectors) == 0 && len(agents) == 0 && len(applications) == 0 && len(microservices) == 0 {
 		return util.NewInputError("No resources specified to deploy in the YAML file")
 	}
 
@@ -83,6 +88,13 @@ func Execute(opt *Options) error {
 	// Deploy Applications
 	if len(applications) > 0 {
 		if err = deployapplication.Execute(deployapplication.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
+			return err
+		}
+	}
+
+	// Deploy microservices
+	if len(microservices) > 0 {
+		if err = deploymicroservice.Execute(deploymicroservice.Options{Namespace: opt.Namespace, InputFile: opt.InputFile}); err != nil {
 			return err
 		}
 	}

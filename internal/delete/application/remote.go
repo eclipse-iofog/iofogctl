@@ -16,6 +16,7 @@ package deleteapplication
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // TODO: replace this struct, should use internal/execute interface
@@ -39,7 +40,8 @@ func NewExecutor(namespace, name string) *Executor {
 func (exe *Executor) Execute() (err error) {
 	// Get Control Plane from namespace
 	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
+	if err != nil || len(controlPlane.Controllers) == 0 {
+		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return
 	}
 

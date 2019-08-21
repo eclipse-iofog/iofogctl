@@ -110,7 +110,7 @@ type MicroserviceImages struct {
 	CatalogID int
 	X86       string
 	ARM       string
-	Registry  int
+	Registry  string
 }
 
 // MicroserviceAgent contains information about required agent configuration for a microservice
@@ -131,7 +131,7 @@ type Microservice struct {
 	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes,omitempty"`
 	Env            []client.MicroserviceEnvironment   `yaml:"env,omitempty"`
 	Routes         []string                           `yaml:"routes,omitempty"`
-	Flow           *int                               `yaml:"flow,omitempty"`
+	Flow           *string                            `yaml:"application,omitempty"`
 	Created        string                             `yaml:"created,omitempty"`
 }
 

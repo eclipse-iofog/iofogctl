@@ -14,6 +14,8 @@
 package get
 
 import (
+	"strconv"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
@@ -93,7 +95,8 @@ func tabulateCatalogItems(catalogItems []config.CatalogItem) error {
 	// Generate table and headers
 	table := make([][]string, len(catalogItems)+1)
 	headers := []string{
-		"ITEM",
+		"ID",
+		"NAME",
 		"DESCRIPTION",
 		"REGISTRY",
 		"X86",
@@ -104,6 +107,7 @@ func tabulateCatalogItems(catalogItems []config.CatalogItem) error {
 	idx := 0
 	for _, item := range catalogItems {
 		row := []string{
+			strconv.Itoa(item.ID),
 			item.Name,
 			item.Description,
 			item.Registry,
