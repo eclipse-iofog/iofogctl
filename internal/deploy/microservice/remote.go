@@ -31,6 +31,7 @@ type remoteExecutor struct {
 	catalogByID        map[int]*client.CatalogItemInfo
 	catalogByName      map[string]*client.CatalogItemInfo
 	routes             []string
+	flowInfo           *client.FlowInfo
 }
 
 func newRemoteExecutor(namespace string, msvc config.Microservice) *remoteExecutor {
@@ -100,9 +101,22 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	}
 
 	if exe.msvc.Flow == nil {
-		return util.NewInputError("You must specify a flow in order to deploy a microservice")
+		return util.NewInputError("You must specify an application in order to deploy a microservice")
 	}
-	listMsvcs, err := exe.client.GetMicroservicesPerFlow(*exe.msvc.Flow)
+	var flowInfo *client.FlowInfo
+	flowList, err := exe.client.GetAllFlows()
+	if err != nil {
+		return
+	}
+	for _, flow := range flowList.Flows {
+		if flow.Name == *exe.msvc.Flow {
+			exe.flowInfo = &flow
+		}
+	}
+	if exe.flowInfo == nil {
+		return util.NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
+	}
+	listMsvcs, err := exe.client.GetMicroservicesPerFlow(flowInfo.ID)
 	if err != nil {
 		return
 	}
@@ -161,7 +175,7 @@ func (exe *remoteExecutor) deploy() (err error) {
 	_, err = exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogItem.ID,
-		FlowID:         *exe.msvc.Flow,
+		FlowID:         exe.flowInfo.ID,
 		Name:           exe.msvc.Name,
 		RootHostAccess: exe.msvc.RootHostAccess,
 		Ports:          exe.msvc.Ports,
