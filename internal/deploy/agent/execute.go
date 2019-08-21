@@ -37,6 +37,11 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Should be atleast one to deploy
+	if len(agents) == 0 {
+		return util.NewError("Could not read any Agents from YAML")
+	}
+
 	// Output message
 	msg := "Deploying Agent"
 	if len(agents) > 1 {

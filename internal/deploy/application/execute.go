@@ -42,6 +42,11 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Should be atleast one to deploy
+	if len(applications) == 0 {
+		return util.NewError("Could not read any Applications from YAML")
+	}
+
 	// Output message
 	msg := "Deploying Application"
 	if len(applications) > 1 {
@@ -67,5 +72,5 @@ func Execute(opt Options) error {
 		return util.NewError("Failed to deploy")
 	}
 
-	return nil
+	return config.Flush()
 }

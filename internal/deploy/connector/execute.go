@@ -37,6 +37,11 @@ func Execute(opt Options) error {
 		return err
 	}
 
+	// Should be atleast one to deploy
+	if len(connectors) == 0 {
+		return util.NewError("Could not read any Connectors from YAML")
+	}
+
 	// Output message
 	msg := "Deploying Connector"
 	if len(connectors) > 1 {
@@ -70,7 +75,7 @@ func Execute(opt Options) error {
 		}
 	}
 
-	return nil
+	return config.Flush()
 }
 
 func runExecutors(executors []execute.Executor) error {
