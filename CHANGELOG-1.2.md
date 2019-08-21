@@ -1,3 +1,6 @@
+## v1.2.4
+* Add latest tag to local deploy images to fix pulling image bug
+
 ## v1.2.3
 * Add deploy Application feature
 * Update K8s load balancers to avoid unnecessary KubeProxy hops
