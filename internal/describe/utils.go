@@ -57,7 +57,7 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 	images := config.MicroserviceImages{
 		CatalogID: catalogItem.ID,
-		Registry:  catalogItem.RegistryID,
+		Registry:  client.RegistryTypeIDRegistryTypeDict[catalogItem.RegistryID],
 	}
 	for _, img := range catalogItem.Images {
 		if img.AgentTypeID == 1 {

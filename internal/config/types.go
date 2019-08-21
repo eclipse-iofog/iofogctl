@@ -110,7 +110,7 @@ type MicroserviceImages struct {
 	CatalogID int
 	X86       string
 	ARM       string
-	Registry  int
+	Registry  string
 }
 
 // MicroserviceAgent contains information about required agent configuration for a microservice

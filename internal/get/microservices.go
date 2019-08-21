@@ -84,10 +84,15 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 	for _, ms := range exe.msvcPerID {
 		routes := ""
 		for idx, route := range ms.Routes {
+			routeDestName := "unknown"
+			routeDest, ok := exe.msvcPerID[route]
+			if ok == true {
+				routeDestName = routeDest.Name
+			}
 			if idx == 0 {
-				routes += exe.msvcPerID[route].Name
+				routes += routeDestName
 			} else {
-				routes += fmt.Sprintf(", %s", exe.msvcPerID[route].Name)
+				routes += fmt.Sprintf(", %s", routeDestName)
 			}
 		}
 		volumes := ""

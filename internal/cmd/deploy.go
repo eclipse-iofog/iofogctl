@@ -72,6 +72,7 @@ The YAML resource specification file should look like this (two Controllers spec
 		newDeployConnectorCommand(),
 		newDeployAgentCommand(),
 		newDeployApplicationCommand(),
+		newDeployMicroserviceCommand(),
 	)
 
 	// Register flags

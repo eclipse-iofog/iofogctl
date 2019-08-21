@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -25,17 +26,18 @@ import (
 type remoteExecutor struct {
 	namespace          string
 	app                config.Application
-	microserviceByName map[string]*config.Microservice
+	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
 	catalogByName      map[string]*client.CatalogItemInfo
 }
 
-func microserviceArrayToMap(a []config.Microservice) (result map[string]*config.Microservice) {
-	result = make(map[string]*config.Microservice)
+func microserviceArrayToMap(a []config.Microservice) (result map[string]*client.MicroserviceInfo) {
+	result = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(a); i++ {
-		result[a[i].Name] = &a[i]
+		// No need to fill information, we only need to know if the name exists
+		result[a[i].Name] = &client.MicroserviceInfo{}
 	}
 	return
 }
@@ -122,85 +124,13 @@ func (exe *remoteExecutor) validate() (err error) {
 
 	// Validate microservice
 	for _, msvc := range exe.app.Microservices {
-		if _, foundAgent := exe.agentsByName[msvc.Agent.Name]; !foundAgent {
-			return util.NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
-		}
-		if _, foundCatalogItem := exe.catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
-			return util.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
+		if err = deploymicroservice.ValidateMicroservice(msvc, exe.agentsByName, exe.catalogByID); err != nil {
+			return
 		}
 	}
 
 	// TODO: Check if application alredy exists
 	return nil
-}
-
-func (exe *remoteExecutor) configureAgent(msvc *config.Microservice) (agent *client.AgentInfo, err error) {
-	agent, _ = exe.agentsByName[msvc.Agent.Name]
-	_, err = exe.client.UpdateAgent(&client.AgentUpdateRequest{
-		UUID: agent.UUID,
-		AgentConfiguration: client.AgentConfiguration{
-			DockerURL:                 msvc.Agent.Config.DockerURL,
-			DiskLimit:                 msvc.Agent.Config.DiskLimit,
-			DiskDirectory:             msvc.Agent.Config.DiskDirectory,
-			MemoryLimit:               msvc.Agent.Config.MemoryLimit,
-			CPULimit:                  msvc.Agent.Config.CPULimit,
-			LogLimit:                  msvc.Agent.Config.LogLimit,
-			LogDirectory:              msvc.Agent.Config.LogDirectory,
-			LogFileCount:              msvc.Agent.Config.LogFileCount,
-			StatusFrequency:           msvc.Agent.Config.StatusFrequency,
-			ChangeFrequency:           msvc.Agent.Config.ChangeFrequency,
-			DeviceScanFrequency:       msvc.Agent.Config.DeviceScanFrequency,
-			BluetoothEnabled:          msvc.Agent.Config.BluetoothEnabled,
-			WatchdogEnabled:           msvc.Agent.Config.WatchdogEnabled,
-			AbstractedHardwareEnabled: msvc.Agent.Config.AbstractedHardwareEnabled,
-		},
-	})
-	return
-}
-
-func (exe *remoteExecutor) setUpCatalogItem(msvc *config.Microservice) (catalogItem *client.CatalogItemInfo, err error) {
-	catalogImages := []client.CatalogImage{
-		{ContainerImage: msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
-		{ContainerImage: msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
-	}
-	if msvc.Images.CatalogID == 0 {
-		catalogItemName := fmt.Sprintf("%s_%s_catalog", exe.app.Name, msvc.Name)
-		var found bool
-		catalogItem, found = exe.catalogByName[catalogItemName]
-		if found == true {
-			// Check if catalog item needs to be updated
-			if catalogItemNeedsUpdate(catalogItem, catalogImages, msvc.Images.Registry) {
-				// Delete catalog item
-				if err = exe.client.DeleteCatalogItem(catalogItem.ID); err != nil {
-					return nil, err
-				}
-				// Create new catalog item
-				catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
-					Name:        catalogItemName,
-					Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.app.Name),
-					Images:      catalogImages,
-					RegistryID:  msvc.Images.Registry,
-				})
-				if err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			// Create new catalog item
-			catalogItem, err = exe.client.CreateCatalogItem(&client.CatalogItemCreateRequest{
-				Name:        catalogItemName,
-				Description: fmt.Sprintf("Catalog item for %s in application %s", msvc.Name, exe.app.Name),
-				Images:      catalogImages,
-				RegistryID:  msvc.Images.Registry,
-			})
-			if err != nil {
-				return nil, err
-			}
-		}
-	} else {
-		catalogItem = exe.catalogByID[msvc.Images.CatalogID]
-	}
-	return
 }
 
 func (exe *remoteExecutor) createRoutes() (err error) {
@@ -226,13 +156,13 @@ func (exe *remoteExecutor) deploy() (err error) {
 		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
 
 		// Configure agent
-		agent, err := exe.configureAgent(&msvc)
+		agent, err := deploymicroservice.ConfigureAgent(&msvc, exe.agentsByName[msvc.Agent.Name], exe.client)
 		if err != nil {
 			return err
 		}
 
 		// Get catalog item
-		catalogItem, err := exe.setUpCatalogItem(&msvc)
+		catalogItem, err := deploymicroservice.SetUpCatalogItem(&msvc, exe.catalogByID, exe.catalogByName, exe.client)
 		if err != nil {
 			return err
 		}
@@ -262,7 +192,7 @@ func (exe *remoteExecutor) deploy() (err error) {
 		if err != nil {
 			return err
 		}
-		// Update msvc map with UUID
+		// Update msvc map with UUID for routing
 		exe.microserviceByName[msvc.Name].UUID = msvcInfo.UUID
 	}
 
@@ -281,23 +211,4 @@ func (exe *remoteExecutor) deploy() (err error) {
 		return
 	}
 	return nil
-}
-
-func catalogItemNeedsUpdate(catalogItem *client.CatalogItemInfo, catalogImages []client.CatalogImage, registry int) bool {
-	if catalogItem.RegistryID != registry || len(catalogImages) != len(catalogItem.Images) {
-		return true
-	}
-
-	currentImagesPerAgentType := make(map[int]string)
-	for _, currentImage := range catalogItem.Images {
-		currentImagesPerAgentType[currentImage.AgentTypeID] = currentImage.ContainerImage
-	}
-
-	for _, image := range catalogImages {
-		if currentImage, found := currentImagesPerAgentType[image.AgentTypeID]; !found || currentImage != image.ContainerImage {
-			return true
-		}
-	}
-
-	return false
 }

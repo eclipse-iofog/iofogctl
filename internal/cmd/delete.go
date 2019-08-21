@@ -33,6 +33,7 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteAllCommand(),
 		newDeleteApplicationCommand(),
 		newDeleteCatalogItemCommand(),
+		newDeleteMicroserviceCommand(),
 	)
 	return cmd
 }
