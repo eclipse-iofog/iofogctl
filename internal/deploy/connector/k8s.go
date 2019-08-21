@@ -51,8 +51,14 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		}
 	}
 
+	// Get Controller endpoint
+	// TODO: Change to controlplane var
+	if len(exe.controlPlane.Controllers) == 0 {
+		return util.NewError("Could not get Controller endpoint from config file to deploy Connector")
+	}
+	ctrlEndpoint := exe.controlPlane.Controllers[0].Endpoint
 	// Create connector on cluster
-	if err = installer.CreateConnector(exe.cnct.Name, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
+	if err = installer.CreateConnector(exe.cnct.Name, ctrlEndpoint, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
 		return
 	}
 

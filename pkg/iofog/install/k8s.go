@@ -124,7 +124,7 @@ func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error
 }
 
 // CreateConnector on cluster
-func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) {
+func (k8s *Kubernetes) CreateConnector(name, controllerEndpoint string, user IofogUser) (err error) {
 	// Install Connector
 	if err = k8s.createDeploymentAndService(k8s.ms["connector"]); err != nil {
 		return
@@ -137,10 +137,6 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 	connectorIP := util.Before(connectorEndpoint, ":")
 
 	// Log into Controller
-	controllerEndpoint, err := k8s.GetControllerEndpoint()
-	if err != nil {
-		return
-	}
 	ctrlClient := client.New(controllerEndpoint)
 	if err = ctrlClient.Login(client.LoginRequest{
 		Email:    user.Email,
