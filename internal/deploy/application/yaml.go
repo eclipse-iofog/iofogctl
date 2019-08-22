@@ -28,7 +28,7 @@ func UnmarshallYAML(filename string) (applications []config.Application, err err
 	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Applications) == 0 {
 		var app config.Application
 		if err = util.UnmarshalYAML(filename, &app); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename)
+			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
 			return
 		}
 		// None specified

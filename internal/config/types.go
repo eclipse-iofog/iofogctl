@@ -72,6 +72,7 @@ type Controller struct {
 	Port              int
 	KeyFile           string
 	KubeConfig        string
+	Replicas          int
 	KubeControllerIP  string
 	Endpoint          string
 	Created           string

@@ -25,7 +25,7 @@ func UnmarshallYAML(filename string) (ctrl config.Controller, err error) {
 	}
 	// None specified
 	if ctrl.Name == "" || (ctrl.KubeConfig == "" && (ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "")) {
-		err = util.NewInputError("Could not unmarshal YAML file")
+		err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
 		return
 	}
 

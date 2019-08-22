@@ -28,7 +28,7 @@ func UnmarshallYAML(filename string) (controlPlane config.ControlPlane, err erro
 	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.ControlPlane.Controllers) == 0 {
 		var ctrlPlane config.ControlPlane
 		if err = util.UnmarshalYAML(filename, &ctrlPlane); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename)
+			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
 			return
 		}
 		// None specified

@@ -37,6 +37,16 @@ export VANILLA_VERSION="1.2.2-b2538"
 
 ######################################################################
 
+######## These are necessary for HA tests
+
+# Database
+export DB_USER=""
+export DB_HOST=""
+export DB_PORT=""
+export DB_PW=""
+
+######################################################################
+
 echo ""
 echo "----- CONFIG -----"
 echo ""
@@ -52,6 +62,10 @@ echo "${!CONNECTOR_IMAGE*}: " "$CONNECTOR_IMAGE"
 echo "${!OPERATOR_IMAGE*}: " "$OPERATOR_IMAGE"
 echo "${!KUBELET_IMAGE*}: " "$KUBELET_IMAGE"
 echo "${!VANILLA_VERSION*}: " "$VANILLA_VERSION"
+echo "${!DB_USER*}: " "$DB_USER"
+echo "${!DB_HOST*}: " "$DB_HOST"
+echo "${!DB_PORT*}: " "$DB_PORT"
+echo "${!DB_PW*}: " "$DB_PW"
 echo ""
 echo "------------------"
 echo ""

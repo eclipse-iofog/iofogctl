@@ -157,7 +157,9 @@ func (k8s *Kubernetes) CreateConnector(name, controllerEndpoint string, user Iof
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController() (err error) {
+func (k8s *Kubernetes) CreateController(replicas int) (err error) {
+	// Configure replica count
+	k8s.ms["controller"].replicas = int32(replicas)
 	// Install Controller
 	if err = k8s.createDeploymentAndService(k8s.ms["controller"]); err != nil {
 		return
