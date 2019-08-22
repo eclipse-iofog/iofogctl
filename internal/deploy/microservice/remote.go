@@ -80,26 +80,6 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	if err = exe.client.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
 		return
 	}
-	listAgents, err := exe.client.ListAgents()
-	if err != nil {
-		return
-	}
-	exe.agentsByName = make(map[string]*client.AgentInfo)
-	for i := 0; i < len(listAgents.Agents); i++ {
-		exe.agentsByName[listAgents.Agents[i].Name] = &listAgents.Agents[i]
-	}
-
-	listCatalog, err := exe.client.GetCatalog()
-	if err != nil {
-		return
-	}
-	exe.catalogByID = make(map[int]*client.CatalogItemInfo)
-	exe.catalogByName = make(map[string]*client.CatalogItemInfo)
-	for i := 0; i < len(listCatalog.CatalogItems); i++ {
-		exe.catalogByID[listCatalog.CatalogItems[i].ID] = &listCatalog.CatalogItems[i]
-		exe.catalogByName[listCatalog.CatalogItems[i].Name] = &listCatalog.CatalogItems[i]
-	}
-
 	if exe.msvc.Flow == nil {
 		return util.NewInputError("You must specify an application in order to deploy a microservice")
 	}
@@ -122,7 +102,35 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	exe.microserviceByName = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(listMsvcs.Microservices); i++ {
 		exe.microserviceByName[listMsvcs.Microservices[i].Name] = &listMsvcs.Microservices[i]
+		// If msvc already exists, set UUID
+		if listMsvcs.Microservices[i].Name == exe.msvc.Name {
+			if exe.msvc.UUID == "" {
+				exe.msvc.UUID = listMsvcs.Microservices[i].UUID
+			} else if exe.msvc.UUID != listMsvcs.Microservices[i].UUID {
+				return util.NewConflictError(fmt.Sprintf("Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]", listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
+			}
+		}
 	}
+	listAgents, err := exe.client.ListAgents()
+	if err != nil {
+		return
+	}
+	exe.agentsByName = make(map[string]*client.AgentInfo)
+	for i := 0; i < len(listAgents.Agents); i++ {
+		exe.agentsByName[listAgents.Agents[i].Name] = &listAgents.Agents[i]
+	}
+
+	listCatalog, err := exe.client.GetCatalog()
+	if err != nil {
+		return
+	}
+	exe.catalogByID = make(map[int]*client.CatalogItemInfo)
+	exe.catalogByName = make(map[string]*client.CatalogItemInfo)
+	for i := 0; i < len(listCatalog.CatalogItems); i++ {
+		exe.catalogByID[listCatalog.CatalogItems[i].ID] = &listCatalog.CatalogItems[i]
+		exe.catalogByName[listCatalog.CatalogItems[i].Name] = &listCatalog.CatalogItems[i]
+	}
+
 	return
 }
 
@@ -139,7 +147,18 @@ func (exe *remoteExecutor) validate() error {
 	if err := ValidateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID); err != nil {
 		return err
 	}
-
+	// Validate update
+	if exe.msvc.UUID != "" {
+		existingMsvc := exe.microserviceByName[exe.msvc.Name]
+		if exe.msvc.Images.CatalogID != 0 && exe.msvc.Images.CatalogID != existingMsvc.CatalogItemID {
+			util.PrintNotify(fmt.Sprintf("If you wish to update the catalog item used by a microservice, please delete your microservice, then redeploy with the new catalog item"))
+			return util.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
+		}
+		if exe.flowInfo != nil && exe.flowInfo.ID != existingMsvc.FlowID {
+			util.PrintNotify(fmt.Sprintf("If you wish to update the application the microservice is running in, please delete your microservice, then redeploy it inside your new application"))
+			return util.NewInputError(fmt.Sprintf("Cannot update a microservice application"))
+		}
+	}
 	// TODO: Check if microservice already exists (Will fail on API call)
 	return nil
 }
@@ -170,17 +189,40 @@ func (exe *remoteExecutor) deploy() (err error) {
 		config = string(byteconfig)
 	}
 
+	if exe.msvc.UUID != "" {
+		// Update microservice
+		return exe.update(config, agent.UUID, catalogItem.ID)
+	}
 	// Create microservice
+	return exe.create(config, agent.UUID, catalogItem.ID)
+}
+
+func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (err error) {
 	_, err = exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
-		CatalogItemID:  catalogItem.ID,
+		CatalogItemID:  catalogID,
 		FlowID:         exe.flowInfo.ID,
 		Name:           exe.msvc.Name,
 		RootHostAccess: exe.msvc.RootHostAccess,
 		Ports:          exe.msvc.Ports,
 		Volumes:        exe.msvc.Volumes,
 		Env:            exe.msvc.Env,
-		AgentUUID:      agent.UUID,
+		AgentUUID:      agentUUID,
+		Routes:         exe.routes,
+	})
+	return err
+}
+
+func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (err error) {
+	_, err = exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
+		UUID:           exe.msvc.UUID,
+		Config:         &config,
+		Name:           &exe.msvc.Name,
+		RootHostAccess: &exe.msvc.RootHostAccess,
+		Ports:          exe.msvc.Ports,
+		Volumes:        &exe.msvc.Volumes,
+		Env:            exe.msvc.Env,
+		AgentUUID:      &agentUUID,
 		Routes:         exe.routes,
 	})
 	return err

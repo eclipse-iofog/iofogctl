@@ -128,11 +128,11 @@ type Microservice struct {
 	Images         MicroserviceImages
 	Config         map[string]interface{}
 	RootHostAccess bool
-	Ports          []client.MicroservicePortMapping   `yaml:"ports,omitempty"`
-	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes,omitempty"`
-	Env            []client.MicroserviceEnvironment   `yaml:"env,omitempty"`
-	Routes         []string                           `yaml:"routes,omitempty"`
-	Flow           *string                            `yaml:"application,omitempty"`
+	Ports          []client.MicroservicePortMapping   `yaml:"ports"`
+	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes"`
+	Env            []client.MicroserviceEnvironment   `yaml:"env"`
+	Routes         []string                           `yaml:"routes"`
+	Flow           *string                            `yaml:"application"`
 	Created        string                             `yaml:"created,omitempty"`
 }
 
