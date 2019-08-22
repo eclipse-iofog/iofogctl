@@ -185,7 +185,7 @@ func (clt *Client) DeleteMicroserviceRoute(UUID, destUUID string) (err error) {
 	return
 }
 
-func (clt *Client) updateRoutes(UUID string, currentRoutes, newRoutes []string) (err error) {
+func (clt *Client) UpdateMicroserviceRoutes(UUID string, currentRoutes, newRoutes []string) (err error) {
 	currentRouteMap := mapFromArray(currentRoutes)
 	newRouteMap := mapFromArray(newRoutes)
 
@@ -226,7 +226,7 @@ func (clt *Client) UpdateMicroservice(request MicroserviceUpdateRequest) (*Micro
 	}
 
 	// Update routing
-	if err = clt.updateRoutes(request.UUID, currentMsvc.Routes, request.Routes); err != nil {
+	if err = clt.UpdateMicroserviceRoutes(request.UUID, currentMsvc.Routes, request.Routes); err != nil {
 		return nil, err
 	}
 

@@ -147,6 +147,7 @@ type Application struct {
 	Name          string
 	Microservices []Microservice
 	Routes        []Route
+	ID            int
 }
 
 // Namespace contains information for configuring a namespace

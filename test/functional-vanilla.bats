@@ -67,12 +67,7 @@ connectors:
   checkApplication
 }
 
-@test "Delete application" {
-  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
-  checkApplicationNegative
-}
-
-@test "Deploy application from root file" {
+@test "Deploy application from root file and test deploy idempotence" {
   test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
   checkApplication
 }

@@ -22,22 +22,45 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+type ApplicationData struct {
+	MicroserviceByName map[string]*client.MicroserviceInfo
+	AgentsByName       map[string]*client.AgentInfo
+	CatalogByID        map[int]*client.CatalogItemInfo
+	CatalogByName      map[string]*client.CatalogItemInfo
+	FlowInfo           *client.FlowInfo
+}
+
 type remoteExecutor struct {
 	namespace          string
 	msvc               config.Microservice
 	microserviceByName map[string]*client.MicroserviceInfo
-	client             *client.Client
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
 	catalogByName      map[string]*client.CatalogItemInfo
-	routes             []string
 	flowInfo           *client.FlowInfo
+	client             *client.Client
+	routes             []string
 }
 
 func newRemoteExecutor(namespace string, msvc config.Microservice) *remoteExecutor {
 	exe := &remoteExecutor{
 		namespace: namespace,
 		msvc:      msvc,
+	}
+
+	return exe
+}
+
+func NewRemoteExecutorWithApplicationDataAndClient(namespace string, msvc config.Microservice, appData ApplicationData, clt *client.Client) *remoteExecutor {
+	exe := &remoteExecutor{
+		namespace:          namespace,
+		msvc:               msvc,
+		client:             clt,
+		microserviceByName: appData.MicroserviceByName,
+		flowInfo:           appData.FlowInfo,
+		catalogByID:        appData.CatalogByID,
+		catalogByName:      appData.CatalogByName,
+		agentsByName:       appData.AgentsByName,
 	}
 
 	return exe
@@ -63,13 +86,13 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 
-	// Validate application definition (routes, agents, etc.)
+	// Validate microservice definition (routes, agents, etc.)
 	if err = exe.validate(); err != nil {
 		return
 	}
 
-	// Deploy application
-	if err = exe.deploy(); err != nil {
+	// Deploy microservice
+	if _, err = exe.Deploy(); err != nil {
 		return
 	}
 	return nil
@@ -163,20 +186,20 @@ func (exe *remoteExecutor) validate() error {
 	return nil
 }
 
-func (exe *remoteExecutor) deploy() (err error) {
+func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error) {
 	// Create microservice
 	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.msvc.Name))
 
 	// Configure agent
 	agent, err := ConfigureAgent(&exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Get catalog item
 	catalogItem, err := SetUpCatalogItem(&exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Transform msvc config to JSON string
@@ -184,7 +207,7 @@ func (exe *remoteExecutor) deploy() (err error) {
 	if exe.msvc.Config != nil {
 		byteconfig, err := json.Marshal(exe.msvc.Config)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		config = string(byteconfig)
 	}
@@ -197,8 +220,8 @@ func (exe *remoteExecutor) deploy() (err error) {
 	return exe.create(config, agent.UUID, catalogItem.ID)
 }
 
-func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (err error) {
-	_, err = exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
+func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (newMsvc *client.MicroserviceInfo, err error) {
+	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
 		FlowID:         exe.flowInfo.ID,
@@ -210,11 +233,10 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (err 
 		AgentUUID:      agentUUID,
 		Routes:         exe.routes,
 	})
-	return err
 }
 
-func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (err error) {
-	_, err = exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
+func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (newMsvc *client.MicroserviceInfo, err error) {
+	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
 		Name:           &exe.msvc.Name,
@@ -225,5 +247,4 @@ func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (err 
 		AgentUUID:      &agentUUID,
 		Routes:         exe.routes,
 	})
-	return err
 }

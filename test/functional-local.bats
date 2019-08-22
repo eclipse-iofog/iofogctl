@@ -45,6 +45,17 @@ NS="$NAMESPACE"
   checkMicroserviceNegative
 }
 
+@test "Deploy microservice in application" {
+  initMicroserviceFile
+  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  checkMicroservice
+}
+
+@test "Deploy application from root file and test application update" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
+  checkApplication
+}
+
 @test "Delete application" {
   test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
   checkApplicationNegative
