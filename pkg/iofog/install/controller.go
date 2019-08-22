@@ -151,13 +151,12 @@ func (ctrl *Controller) Stop() (err error) {
 func waitForControllerAPI(endpoint string) (err error) {
 	ctrlClient := client.New(endpoint)
 
-	// Create user (this is the first API call and the service might need to resolve IP to new pods so we retry)
 	connected := false
 	iter := 0
 	for !connected {
 		// Time out
 		if iter > 60 {
-			err = util.NewInternalError("Failed to create new user with Controller")
+			err = util.NewInternalError("Timed out waiting for Controller API")
 			return
 		}
 		// Try to create the user

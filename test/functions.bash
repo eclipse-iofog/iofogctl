@@ -207,3 +207,28 @@ function checkAgentsNegative() {
     checkAgentNegative "$AGENT_NAME"
   done
 }
+
+function login() {
+  API_ENDPOINT="$1"
+  EMAIL="$2"
+  PASSWORD="$3"
+  local LOGIN=$(curl --request POST \
+--url $API_ENDPOINT/user/login \
+--header 'Content-Type: application/json' \
+--data "{\"email\":\"$PASSWORD\",\"password\":\"$PASSWORD\"}")
+  ACCESS_TOKEN=$(echo $LOGIN | jq -r .accessToken)
+  [[ ! -z "$token" ]]
+}
+
+function checkAgentListFromController() {
+  local NAMES="$@" 
+  local LIST=$(curl --request GET \
+--url $API_ENDPOINT/iofog-list \
+--header "Authorization: $ACCESS_TOKEN" \
+--header 'Content-Type: application/json')
+  for IDX in "${AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}_$(((IDX++)))"
+    local UUID=$(echo $LIST | jq -r '.fogs[] | select(.name == "'"$AGENT_NAME"'") | .uuid')
+    [[ ! -z "$UUID" ]]
+  done
+}

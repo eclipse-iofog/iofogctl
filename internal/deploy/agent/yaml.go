@@ -28,7 +28,7 @@ func UnmarshallYAML(filename string) (agents []config.Agent, err error) {
 	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Agents) == 0 {
 		var agent config.Agent
 		if err = util.UnmarshalYAML(filename, &agent); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename)
+			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
 			return
 		}
 		// None specified

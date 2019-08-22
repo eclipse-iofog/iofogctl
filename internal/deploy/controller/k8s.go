@@ -55,8 +55,12 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Port)
 	}
 
+	replicas := 1
+	if exe.ctrl.Replicas != 0 {
+		replicas = exe.ctrl.Replicas
+	}
 	// Create controller on cluster
-	if err = installer.CreateController(); err != nil {
+	if err = installer.CreateController(replicas); err != nil {
 		return
 	}
 

@@ -28,7 +28,7 @@ func UnmarshallYAML(filename string) (connectors []config.Connector, err error) 
 	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Connectors) == 0 {
 		var cnct config.Connector
 		if err = util.UnmarshalYAML(filename, &cnct); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename)
+			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
 			return
 		}
 		// None specified
