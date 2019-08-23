@@ -183,9 +183,9 @@ stages:
       displayName: 'Install Helm'
     - template: templates/functional-configure.yaml
     - script: |
-        helm install --set postgresqlUsername=$(db.user),postgresqlPassword=$(db.pw) --namespace pg-$(jobuuid) --name pg-$(jobuuid) stable/postgresql
+        helm install --set postgresqlUsername=$(db.user),postgresqlPassword=$(db.pw),persistence.size=1Gi --namespace $(jobuuid) --name $(jobuuid) stable/postgresql
         sed -i "s|DB_USER=.*|DB_USER=\"$(db.user)\"|g" test/env.sh
-        sed -i "s|DB_HOST=.*|DB_HOST=\"pg-$(jobuuid)-postgresql.pg-$(jobuuid).svc.cluster.local\"|g" test/env.sh
+        sed -i "s|DB_HOST=.*|DB_HOST=\"$(jobuuid)-postgresql.$(jobuuid).svc.cluster.local\"|g" test/env.sh
         sed -i "s|DB_PORT=.*|DB_PORT=5432|g" test/env.sh
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
       workingDirectory: '$(modulePath)'

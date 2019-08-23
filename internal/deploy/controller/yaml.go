@@ -29,6 +29,10 @@ func UnmarshallYAML(filename string) (ctrl config.Controller, err error) {
 		return
 	}
 
+	// Fix replica count
+	if ctrl.Replicas == 0 {
+		ctrl.Replicas = 1
+	}
 	// Fix SSH port
 	if ctrl.Port == 0 {
 		ctrl.Port = 22
