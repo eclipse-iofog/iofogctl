@@ -293,7 +293,7 @@ function login() {
   local LOGIN=$(curl --request POST \
 --url $API_ENDPOINT/user/login \
 --header 'Content-Type: application/json' \
---data "{\"email\":\"$PASSWORD\",\"password\":\"$PASSWORD\"}")
+--data "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
   ACCESS_TOKEN=$(echo $LOGIN | jq -r .accessToken)
   [[ ! -z "$token" ]]
 }
