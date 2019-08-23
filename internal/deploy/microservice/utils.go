@@ -38,7 +38,7 @@ func ValidateMicroservice(msvc config.Microservice, agentsByName map[string]*cli
 		return util.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
 	}
 
-	// TODO: Check if microservice already exists (Will fail on API call)
+	// TODO: Check if microservice name already exists in another flow (Will fail on API call)
 	return nil
 }
 
@@ -85,29 +85,26 @@ func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.Cat
 	if !ok {
 		registryID = 1 // Remote by default
 	}
+	// Get possible exisiting catalog item
+	catalogItemName := fmt.Sprintf("%s_catalog", msvc.Name)
+	var found bool
 	if msvc.Images.CatalogID == 0 {
-		catalogItemName := fmt.Sprintf("%s_catalog", msvc.Name)
-		var found bool
 		catalogItem, found = catalogByName[catalogItemName]
-		if found == true {
-			// Check if catalog item needs to be updated
-			if catalogItemNeedsUpdate(catalogItem, catalogImages, registryID) {
-				// Delete catalog item
-				if err = clt.DeleteCatalogItem(catalogItem.ID); err != nil {
-					return nil, err
-				}
-				// Create new catalog item
-				catalogItem, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
-					Name:        catalogItemName,
-					Description: fmt.Sprintf("Catalog item for msvc %s", msvc.Name),
-					Images:      catalogImages,
-					RegistryID:  registryID,
-				})
-				if err != nil {
-					return nil, err
-				}
+	} else {
+		catalogItem, found = catalogByID[msvc.Images.CatalogID]
+	}
+	// Update catalog item if needed
+	if found == true {
+		// Check if catalog item needs to be updated
+		if catalogItemNeedsUpdate(catalogItem, catalogImages, registryID) {
+			if msvc.Images.CatalogID != 0 {
+				util.PrintNotify(fmt.Sprintf("If you wish to update the catalog item used by a microservice, please delete your microservice, then redeploy with the new catalog item"))
+				return nil, util.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
 			}
-		} else {
+			// Delete catalog item
+			if err = clt.DeleteCatalogItem(catalogItem.ID); err != nil {
+				return nil, err
+			}
 			// Create new catalog item
 			catalogItem, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
 				Name:        catalogItemName,
@@ -119,8 +116,19 @@ func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.Cat
 				return nil, err
 			}
 		}
-	} else {
-		catalogItem = catalogByID[msvc.Images.CatalogID]
+	} else if msvc.Images.CatalogID == 0 { // If not found and no catalog item id, create a new one
+		// Create new catalog item
+		catalogItem, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
+			Name:        catalogItemName,
+			Description: fmt.Sprintf("Catalog item for msvc %s", msvc.Name),
+			Images:      catalogImages,
+			RegistryID:  registryID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else { // Not found, and catalog item id specified
+		return nil, util.NewNotFoundError(fmt.Sprintf("Could not find specified catalog item, ID: %d", msvc.Images.CatalogID))
 	}
 	return
 }

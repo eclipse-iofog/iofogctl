@@ -14,7 +14,6 @@
 package deployapplication
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -28,6 +27,7 @@ type remoteExecutor struct {
 	app                config.Application
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
+	flowInfo           *client.FlowInfo
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
 	catalogByName      map[string]*client.CatalogItemInfo
@@ -89,6 +89,22 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	if err = exe.client.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
 		return
 	}
+
+	// Look for exisiting flow
+	var flowInfo *client.FlowInfo
+	if exe.app.ID != 0 {
+		flowInfo, err = exe.client.GetFlowByID(exe.app.ID)
+	} else {
+		flowInfo, err = exe.client.GetFlowByName(exe.app.Name)
+	}
+
+	// If not notfound error, return error
+	if _, ok := err.(*util.NotFoundError); err != nil && !ok {
+		return err
+	}
+
+	exe.flowInfo = flowInfo
+
 	listAgents, err := exe.client.ListAgents()
 	if err != nil {
 		return
@@ -133,10 +149,10 @@ func (exe *remoteExecutor) validate() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) createRoutes() (err error) {
+func (exe *remoteExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
 	for _, route := range exe.app.Routes {
-		fromMsvc, _ := exe.microserviceByName[route.From]
-		toMsvc, _ := exe.microserviceByName[route.To]
+		fromMsvc, _ := microserviceByName[route.From]
+		toMsvc, _ := microserviceByName[route.To]
 		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
 			return
 		}
@@ -144,71 +160,127 @@ func (exe *remoteExecutor) createRoutes() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) deploy() (err error) {
-	// Create flow
-	flow, err := exe.client.CreateFlow(exe.app.Name, fmt.Sprintf("Flow for application: %s", exe.app.Name))
+func (exe *remoteExecutor) update() (err error) {
+	description := fmt.Sprintf("Flow for application: %s", exe.app.Name)
+	// Update and stop flow
+	active := false
+	exe.client.UpdateFlow(&client.FlowUpdateRequest{
+		Name:        &exe.app.Name,
+		Description: &description,
+		IsActivated: &active,
+	})
+
+	existingMicroservicesPerName := make(map[string]*client.MicroserviceInfo)
+	listMsvcs, err := exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
 	if err != nil {
-		return
+		return err
 	}
+	for idx := range listMsvcs.Microservices {
+		existingMicroservicesPerName[listMsvcs.Microservices[idx].Name] = &listMsvcs.Microservices[idx]
+	}
+
+	yamlMicroservicesPerName := make(map[string]*config.Microservice)
+	for idx := range exe.app.Microservices {
+		// Set flow
+		exe.app.Microservices[idx].Flow = &exe.app.Name
+		// Set possible UUID
+		if msvc, found := existingMicroservicesPerName[exe.app.Microservices[idx].Name]; found {
+			exe.app.Microservices[idx].UUID = msvc.UUID
+		}
+		yamlMicroservicesPerName[exe.app.Microservices[idx].Name] = &exe.app.Microservices[idx]
+	}
+
+	// Delete all uneeded microservices
+	for _, msvc := range listMsvcs.Microservices {
+		if _, found := yamlMicroservicesPerName[msvc.Name]; !found {
+			util.SpinStart(fmt.Sprintf("Deleting microservice %s", msvc.Name))
+			if err = exe.client.DeleteMicroservice(msvc.UUID); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Deploy microservices
+	for _, msvc := range yamlMicroservicesPerName {
+		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
+		// Force deletion of all routes
+		msvc.Routes = []string{}
+		msvcExecutor := deploymicroservice.NewRemoteExecutorWithApplicationDataAndClient(
+			exe.namespace,
+			*msvc,
+			deploymicroservice.ApplicationData{
+				MicroserviceByName: existingMicroservicesPerName,
+				AgentsByName:       exe.agentsByName,
+				CatalogByID:        exe.catalogByID,
+				CatalogByName:      exe.catalogByName,
+				FlowInfo:           exe.flowInfo,
+			},
+			exe.client,
+		)
+		newMsvc, err := msvcExecutor.Deploy()
+		if err != nil {
+			return err
+		}
+		existingMicroservicesPerName[newMsvc.Name] = newMsvc
+	}
+
+	// create routes
+	return exe.createRoutes(existingMicroservicesPerName)
+}
+
+func (exe *remoteExecutor) create() (err error) {
+	description := fmt.Sprintf("Flow for application: %s", exe.app.Name)
+	// Create flow
+	flow, err := exe.client.CreateFlow(exe.app.Name, description)
+	if err != nil {
+		return err
+	}
+
+	exe.flowInfo = flow
 
 	// Create microservices
 	for _, msvc := range exe.app.Microservices {
 		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
 
-		// Configure agent
-		agent, err := deploymicroservice.ConfigureAgent(&msvc, exe.agentsByName[msvc.Agent.Name], exe.client)
+		msvcExecutor := deploymicroservice.NewRemoteExecutorWithApplicationDataAndClient(
+			exe.namespace,
+			msvc,
+			deploymicroservice.ApplicationData{
+				MicroserviceByName: exe.microserviceByName,
+				AgentsByName:       exe.agentsByName,
+				CatalogByID:        exe.catalogByID,
+				CatalogByName:      exe.catalogByName,
+				FlowInfo:           exe.flowInfo,
+			},
+			exe.client,
+		)
+		newMsvc, err := msvcExecutor.Deploy()
 		if err != nil {
 			return err
 		}
 
-		// Get catalog item
-		catalogItem, err := deploymicroservice.SetUpCatalogItem(&msvc, exe.catalogByID, exe.catalogByName, exe.client)
-		if err != nil {
-			return err
-		}
-
-		// Transform msvc config to JSON string
-		config := ""
-		if msvc.Config != nil {
-			byteconfig, err := json.Marshal(msvc.Config)
-			if err != nil {
-				return err
-			}
-			config = string(byteconfig)
-		}
-
-		// Create microservice
-		msvcInfo, err := exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
-			Config:         config,
-			CatalogItemID:  catalogItem.ID,
-			FlowID:         flow.ID,
-			Name:           msvc.Name,
-			RootHostAccess: msvc.RootHostAccess,
-			Ports:          msvc.Ports,
-			Volumes:        msvc.Volumes,
-			Env:            msvc.Env,
-			AgentUUID:      agent.UUID,
-		})
-		if err != nil {
-			return err
-		}
-		// Update msvc map with UUID for routing
-		exe.microserviceByName[msvc.Name].UUID = msvcInfo.UUID
+		exe.microserviceByName[newMsvc.Name] = newMsvc
 	}
 
 	// Create Routes
-	if err = exe.createRoutes(); err != nil {
-		return
+	return exe.createRoutes(exe.microserviceByName)
+}
+
+func (exe *remoteExecutor) deploy() (err error) {
+	if exe.flowInfo == nil {
+		exe.create()
+	} else {
+		exe.update()
 	}
 
 	// Start flow
 	util.SpinStart("Starting flow")
 	active := true
-	if flow, err = exe.client.UpdateFlow(&client.FlowUpdateRequest{
+	if _, err = exe.client.UpdateFlow(&client.FlowUpdateRequest{
 		IsActivated: &active,
-		ID:          flow.ID,
+		ID:          exe.flowInfo.ID,
 	}); err != nil {
-		return
+		return err
 	}
 	return nil
 }

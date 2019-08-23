@@ -10,22 +10,7 @@ NS="$NAMESPACE"
 }
 
 @test "Deploy local Controller" {
-  echo "---
-controlplane:
-  iofoguser:
-    name: Testing
-    surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
-  controllers:
-  - name: $NAME
-    host: 127.0.0.1
-    version: $VANILLA_VERSION
-    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
-connectors:
-- name: $NAME
-  host: localhost" > test/conf/local.yaml
-
+  initLocalControllerFile
   test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
   checkController
   checkConnector
@@ -49,9 +34,26 @@ connectors:
   checkMicroservice
 }
 
+@test "Update microservice" {
+  initMicroserviceUpdateFile
+  test iofogctl -v -n "$NS" deploy microservice -f test/conf/updatedMicroservice.yaml
+  checkUpdatedMicroservice
+}
+
 @test "Delete microservice" {
   test iofogctl -v -n "$NS" delete microservice "$MICROSERVICE_NAME"
   checkMicroserviceNegative
+}
+
+@test "Deploy microservice in application" {
+  initMicroserviceFile
+  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  checkMicroservice
+}
+
+@test "Deploy application from root file and test application update" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
+  checkApplication
 }
 
 @test "Delete application" {

@@ -42,6 +42,41 @@ config:
   data_label: 'Anonymous Person 2'" > test/conf/microservice.yaml
 }
 
+function initMicroserviceUpdateFile() {
+  echo "name: ${MICROSERVICE_NAME}
+agent:
+  name: ${NAME}_0
+  config:
+    memorylimit: 5555
+    diskdirectory: /tmp/iofog-agent/
+images:
+  arm: edgeworx/healthcare-heart-rate:test-arm
+  x86: edgeworx/healthcare-heart-rate:test
+  registry: remote # public docker
+roothostaccess: false
+application: ${APPLICATION_NAME}
+volumes:
+  - hostdestination: /tmp/updatedmicroservice
+    containerdestination: /tmp
+    accessmode: rw
+ports:
+  - internal: 443
+    external: 5443
+  - internal: 80
+    external: 5080
+env:
+  - key: TEST
+    value: 75
+  - key: TEST_2
+    value: 42
+routes:
+  - ${MSVC1_NAME}
+config:
+  test_mode: true
+  test_data: 42
+  data_label: 'Anonymous Person 3'" > test/conf/updatedMicroservice.yaml
+}
+
 function initApplicationFiles() {
   APP="name: $APPLICATION_NAME"
   MSVCS="microservices:
@@ -103,6 +138,24 @@ function initLocalAgentFile() {
 agents:
   - name: ${NAME}_0
     host: 127.0.0.1" > test/conf/local-agent.yaml
+}
+
+function initLocalControllerFile() {
+    echo "---
+controlplane:
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: user@domain.com
+    password: S5gYVgLEZV
+  controllers:
+  - name: $NAME
+    host: 127.0.0.1
+    version: $VANILLA_VERSION
+    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
+connectors:
+- name: $NAME
+  host: localhost" > test/conf/local.yaml
 }
 
 function initAgentsFile() {
@@ -182,11 +235,6 @@ function checkMicroservice() {
   iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
-  echo "===== DEBUG CHECK MSVC ====="
-  cat test/conf/msvc_output.yaml
-  echo "\n====="
-  cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME"
-  echo "\n===== END DEBUG CHECK MSVC ====="
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC2_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "ports:") ]]
@@ -204,6 +252,51 @@ function checkMicroservice() {
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "config:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_mode: true") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous Person 2") ]]
+}
+
+function checkUpdatedMicroservice() {
+  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
+  # Check config
+  [[ "{\"data_label\":\"Anonymous Person 3\",\"test_data\":42,\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $4}') ]]
+  [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep memorylimit ) ]]
+  [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep diskdirectory ) ]]
+  # Check route
+  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $5}') ]]
+  # Check ports
+  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5443:443, 5080:80")
+  [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
+  # Check volumes
+  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/updatedmicroservice:/tmp")
+  [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
+
+  # Check describe
+  # TODO: Use another testing framework to verify proper output of yaml file
+  iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
+  [[ -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC2_NAME") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "ports:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5443") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 443") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5080") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 80") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "volumes:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- hostdestination: /tmp/updatedmicroservice") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "containerdestination: /tmp") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "images:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:test") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "arm: edgeworx/healthcare-heart-rate:test-arm") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "env:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- key: TEST") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "value: \"75\"") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- key: TEST_2") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "value: \"42\"") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "config:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_mode: true") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_data: 42") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous Person 3") ]]
 }
 
 function checkMicroserviceNegative() {
