@@ -99,7 +99,7 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 	}
 
 	// If not notfound error, return error
-	if _, ok := err.(*util.NotFoundError); err != nil && !ok {
+	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
 		return err
 	}
 
