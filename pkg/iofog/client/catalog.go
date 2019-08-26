@@ -16,8 +16,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // GetCatalog retrieves all catalog items using Controller REST API
@@ -92,5 +90,5 @@ func (clt *Client) GetCatalogItemByName(name string) (*CatalogItemInfo, error) {
 		}
 	}
 
-	return nil, util.NewNotFoundError(fmt.Sprintf("Could not find catalog item %s\n", name))
+	return nil, NewNotFoundError(fmt.Sprintf("Could not find catalog item %s\n", name))
 }

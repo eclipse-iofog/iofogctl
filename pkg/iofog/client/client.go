@@ -16,10 +16,7 @@ package client
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
-
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 type Client struct {
@@ -37,7 +34,7 @@ func New(endpoint string) *Client {
 
 	// Add default port if none specified
 	if !strings.Contains(endpoint, ":") {
-		endpoint = endpoint + ":" + strconv.Itoa(iofog.ControllerPort)
+		endpoint = endpoint + ":" + ControllerPortString
 	}
 	return &Client{
 		endpoint: endpoint,

@@ -16,13 +16,11 @@ package client
 import (
 	"encoding/json"
 	"strings"
-
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func (clt *Client) ListConnectors() (response ConnectorInfoList, err error) {
 	if !clt.isLoggedIn() {
-		err = util.NewError("Controller client must be logged into perform Get Connectors request")
+		err = NewError("Controller client must be logged into perform Get Connectors request")
 		return
 	}
 
@@ -42,7 +40,7 @@ func (clt *Client) ListConnectors() (response ConnectorInfoList, err error) {
 
 func (clt *Client) DeleteConnector(ip string) (err error) {
 	if !clt.isLoggedIn() {
-		return util.NewError("Controller client must be logged into perform Delete Connector request")
+		return NewError("Controller client must be logged into perform Delete Connector request")
 	}
 
 	// Send request
@@ -55,14 +53,14 @@ func (clt *Client) DeleteConnector(ip string) (err error) {
 
 func (clt *Client) AddConnector(request ConnectorInfo) error {
 	if !clt.isLoggedIn() {
-		return util.NewError("Controller client must be logged into perform Add Connector request")
+		return NewError("Controller client must be logged into perform Add Connector request")
 	}
 
 	// Send request
 	_, err := clt.doRequest("POST", "/connector", request)
 	if err != nil {
 		// Retry with a PUT if already exists
-		httpErr, ok := err.(*(util.HTTPError))
+		httpErr, ok := err.(*(HTTPError))
 		if ok == true && httpErr.Code == 400 && strings.Contains(httpErr.Error(), "Model already exists") {
 			_, err = clt.doRequest("PUT", "/connector", request)
 		}

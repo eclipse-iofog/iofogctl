@@ -16,8 +16,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // GetFlowByID retrieve flow information using the Controller REST API
@@ -91,7 +89,7 @@ func (clt *Client) GetFlowByName(name string) (_ *FlowInfo, err error) {
 			return &flow, nil
 		}
 	}
-	return nil, util.NewNotFoundError(fmt.Sprintf("Could not find flow: %s", name))
+	return nil, NewNotFoundError(fmt.Sprintf("Could not find flow: %s", name))
 }
 
 // DeleteFlow deletes a flow using the Controller REST API

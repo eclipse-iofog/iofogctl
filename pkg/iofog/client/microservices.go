@@ -16,8 +16,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // GetMicroserviceByName retrieves a microservice information using Controller REST API
@@ -31,7 +29,7 @@ func (clt *Client) GetMicroserviceByName(name string) (response *MicroserviceInf
 			return &listMsvcs.Microservices[i], nil
 		}
 	}
-	return nil, util.NewNotFoundError(fmt.Sprintf("Could not find a microservice named %s", name))
+	return nil, NewNotFoundError(fmt.Sprintf("Could not find a microservice named %s", name))
 }
 
 // GetMicroserviceByID retrieves a microservice information using Controller REST API
