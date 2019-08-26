@@ -33,9 +33,8 @@ func newService(namespace string, ms *microservice) *v1.Service {
 			},
 		},
 		Spec: v1.ServiceSpec{
-			Type:                  "LoadBalancer",
+			Type:                  v1.ServiceType(ms.serviceType),
 			ExternalTrafficPolicy: "Local",
-			LoadBalancerIP:        ms.IP,
 			Selector: map[string]string{
 				"name": ms.name,
 			},
@@ -54,8 +53,39 @@ func newService(namespace string, ms *microservice) *v1.Service {
 	return svc
 }
 
+func newStatefulSet(namespace string, ms *microservice) *appsv1.StatefulSet {
+	return &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ms.name,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"name": ms.name,
+			},
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Replicas: &ms.replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"name": ms.name,
+				},
+			},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"name": ms.name,
+					},
+				},
+				Spec: v1.PodSpec{
+					ServiceAccountName: ms.name,
+					Containers:         newContainers(ms.containers),
+				},
+			},
+		},
+	}
+}
+
 func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
-	dep := &appsv1.Deployment{
+	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
 			Namespace: namespace,
@@ -78,12 +108,15 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 				},
 				Spec: v1.PodSpec{
 					ServiceAccountName: ms.name,
+					Containers:         newContainers(ms.containers),
 				},
 			},
 		},
 	}
-	containers := &dep.Spec.Template.Spec.Containers
-	for _, msCont := range ms.containers {
+}
+
+func newContainers(msContainers []container) (specContainers []v1.Container) {
+	for _, msCont := range msContainers {
 		cont := v1.Container{
 			Name:            msCont.name,
 			Image:           msCont.image,
@@ -94,9 +127,9 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 			Env:             msCont.env,
 			Command:         msCont.command,
 		}
-		*containers = append(*containers, cont)
+		specContainers = append(specContainers, cont)
 	}
-	return dep
+	return
 }
 
 func newServiceAccount(namespace string, ms *microservice) *v1.ServiceAccount {

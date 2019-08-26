@@ -22,11 +22,13 @@ import (
 )
 
 type microservice struct {
-	name       string
-	IP         string
-	ports      []int
-	replicas   int32
-	containers []container
+	name        string
+	serviceType string
+	ip          string
+	ports       []int
+	replicas    int32
+	containers  []container
+	serviceSpec v1.ServiceSpec
 }
 
 type container struct {
@@ -45,9 +47,10 @@ var majorMinorPatch = strings.Split(util.Before(util.GetVersion().VersionNumber,
 var tag = majorMinorPatch[0] + "." + majorMinorPatch[1] + ".0"
 
 var controllerMicroservice = microservice{
-	name:     "controller",
-	ports:    []int{iofog.ControllerPort},
-	replicas: 1,
+	name:        "controller",
+	serviceType: "LoadBalancer",
+	ports:       []int{iofog.ControllerPort},
+	replicas:    1,
 	containers: []container{
 		{
 			name:            "controller",
@@ -69,7 +72,8 @@ var controllerMicroservice = microservice{
 }
 
 var connectorMicroservice = microservice{
-	name: "connector",
+	name:        "connector",
+	serviceType: "NodePort",
 	ports: []int{
 		iofog.ConnectorPort,
 		6000, 6001, 6002, 6003, 6004, 6005, 6006, 6007, 6008, 6009,

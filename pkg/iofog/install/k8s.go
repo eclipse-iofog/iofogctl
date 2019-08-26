@@ -372,7 +372,7 @@ func (k8s *Kubernetes) createDeploymentAndService(ms *microservice) (err error) 
 			return
 		}
 		// If trying to allocate a new static IP, we must recreate the service
-		if ms.IP != "" && ms.IP != existingSvc.Spec.LoadBalancerIP {
+		if ms.ip != "" && ms.ip != existingSvc.Spec.LoadBalancerIP {
 			// Delete existing
 			if err = k8s.clientset.CoreV1().Services(k8s.ns).Delete(svc.Name, &metav1.DeleteOptions{}); err != nil {
 				return
@@ -645,7 +645,8 @@ func (k8s *Kubernetes) SetControllerExternalDatabase(host, user, password string
 }
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {
-	k8s.ms["controller"].IP = ip
+	k8s.ms["controller"].ip = ip
+	k8s.ms["controller"].serviceSpec.LoadBalancerIP = ip
 }
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
