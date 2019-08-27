@@ -21,16 +21,18 @@ import (
 )
 
 type microserviceExecutor struct {
-	namespace string
-	client    *client.Client
-	flows     []client.FlowInfo
-	msvcPerID map[string]*client.MicroserviceInfo
+	namespace  string
+	client     *client.Client
+	flows      []client.FlowInfo
+	msvcPerID  map[string]*client.MicroserviceInfo
+	agentPerID map[string]*client.AgentInfo
 }
 
 func newMicroserviceExecutor(namespace string) *microserviceExecutor {
 	a := &microserviceExecutor{}
 	a.namespace = namespace
 	a.msvcPerID = make(map[string]*client.MicroserviceInfo)
+	a.agentPerID = make(map[string]*client.AgentInfo)
 	return a
 }
 
@@ -46,6 +48,14 @@ func (exe *microserviceExecutor) init(controlPlane config.ControlPlane) (err err
 	}
 	for i := 0; i < len(listMsvcs.Microservices); i++ {
 		exe.msvcPerID[listMsvcs.Microservices[i].UUID] = &listMsvcs.Microservices[i]
+	}
+
+	listAgents, err := exe.client.ListAgents()
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(listAgents.Agents); i++ {
+		exe.agentPerID[listAgents.Agents[i].UUID] = &listAgents.Agents[i]
 	}
 	return
 }
@@ -76,7 +86,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 
 	// Generate table and headers
 	table := make([][]string, len(exe.msvcPerID)+1)
-	headers := []string{"MICROSERVICE", "STATUS", "CONFIG", "ROUTES", "VOLUMES", "PORTS"}
+	headers := []string{"MICROSERVICE", "AGENT", "CONFIG", "ROUTES", "VOLUMES", "PORTS"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -111,9 +121,16 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 				ports += fmt.Sprintf(", %d:%d", port.External, port.Internal)
 			}
 		}
+		agent, ok := exe.agentPerID[ms.AgentUUID]
+		var agentName string
+		if !ok {
+			agentName = "-"
+		} else {
+			agentName = agent.Name
+		}
 		row := []string{
 			ms.Name,
-			"-",
+			agentName,
 			ms.Config,
 			routes,
 			volumes,
