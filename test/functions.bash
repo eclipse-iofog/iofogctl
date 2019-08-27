@@ -388,7 +388,7 @@ function login() {
 --header 'Content-Type: application/json' \
 --data "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
   ACCESS_TOKEN=$(echo $LOGIN | jq -r .accessToken)
-  [[ ! -z "$token" ]]
+  [[ ! -z "$ACCESS_TOKEN" ]]
 }
 
 function checkAgentListFromController() {
