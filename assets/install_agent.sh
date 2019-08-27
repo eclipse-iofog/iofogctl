@@ -34,6 +34,8 @@ armv6l-raspbian-jessie
 armv7l-raspbian-jessie
 armv6l-raspbian-stretch
 armv7l-raspbian-stretch
+armv6l-raspbian-buster
+armv7l-raspbian-buster
 armv7l-debian-jessie
 armv7l-debian-stretch
 armv7l-debian-buster
@@ -94,6 +96,9 @@ check_forked() {
 				fi
 				dist_version="$(sed 's/\/.*//' /etc/debian_version | sed 's/\..*//')"
 				case "$dist_version" in
+					10)
+						dist_version="buster"
+					;;
 					9)
 						dist_version="stretch"
 					;;
@@ -164,6 +169,8 @@ add_initial_apt_repos_if_not_exist() {
 				add_repo_if_not_exists "deb-src http://deb.debian.org/debian stretch-updates main"
 			elif [ "$dist_version" = "jessie" ]; then
 				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian jessie main"
+			elif [ "$dist_version" = "buster" ]; then
+				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian buster main"
 			fi
 			$sh_c 'apt-get update -qq'
 			;;
@@ -411,6 +418,9 @@ do_install() {
 		debian|raspbian)
 			dist_version="$(sed 's/\/.*//' /etc/debian_version | sed 's/\..*//')"
 			case "$dist_version" in
+				10)
+					dist_version="buster"
+				;;
 				9)
 					dist_version="stretch"
 				;;
