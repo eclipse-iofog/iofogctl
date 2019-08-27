@@ -93,7 +93,7 @@ func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error
 		return
 	}
 	// Check service exists
-	doesNotExistMsg := "Kubernetes Service controller in namespace " + k8s.ns
+	doesNotExistMsg := "Kubernetes Service " + ms.name + " in namespace " + k8s.ns
 	svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {
 		return
@@ -126,7 +126,10 @@ func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error
 // CreateConnector on cluster
 func (k8s *Kubernetes) CreateConnector(name, controllerEndpoint string, user IofogUser) (err error) {
 	// Install Connector
-	if err = k8s.createDeploymentAndService(k8s.ms["connector"]); err != nil {
+	if err = k8s.createStatefulSet(k8s.ms["connector"]); err != nil {
+		return
+	}
+	if err = k8s.createService(k8s.ms["connector"]); err != nil {
 		return
 	}
 	// Get Connector endpoint
@@ -158,10 +161,18 @@ func (k8s *Kubernetes) CreateConnector(name, controllerEndpoint string, user Iof
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController(replicas int) (err error) {
+	// Create namespace
+	if err = k8s.createNamespace(); err != nil {
+		return err
+	}
+
 	// Configure replica count
 	k8s.ms["controller"].replicas = int32(replicas)
 	// Install Controller
-	if err = k8s.createDeploymentAndService(k8s.ms["controller"]); err != nil {
+	if err = k8s.createDeployment(k8s.ms["controller"]); err != nil {
+		return
+	}
+	if err = k8s.createService(k8s.ms["controller"]); err != nil {
 		return
 	}
 	// Wait for Controller API
@@ -324,7 +335,7 @@ func (k8s *Kubernetes) delete(all bool) error {
 	return nil
 }
 
-func (k8s *Kubernetes) createDeploymentAndService(ms *microservice) (err error) {
+func (k8s *Kubernetes) createNamespace() (err error) {
 	// Create namespace
 	verbose("Creating namespace")
 	ns := &v1.Namespace{
@@ -337,29 +348,10 @@ func (k8s *Kubernetes) createDeploymentAndService(ms *microservice) (err error) 
 			return
 		}
 	}
+	return
+}
 
-	// Create Controller and Connector Services and Pods
-	verbose("Creating " + ms.name + " Deployment and Service")
-	dep := newDeployment(k8s.ns, ms)
-	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
-		if !isAlreadyExists(err) {
-			return
-		}
-		// Delete existing
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(dep.Name, &metav1.DeleteOptions{}); err != nil {
-			return
-		}
-		if err = k8s.waitForPodTerminate(dep.Name); err != nil {
-			return
-		}
-		// Create new
-		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
-			return
-		}
-		if err = k8s.waitForPod(dep.Name); err != nil {
-			return
-		}
-	}
+func (k8s *Kubernetes) createService(ms *microservice) (err error) {
 	svc := newService(k8s.ns, ms)
 	if _, err = k8s.clientset.CoreV1().Services(k8s.ns).Create(svc); err != nil {
 		if !isAlreadyExists(err) {
@@ -382,7 +374,7 @@ func (k8s *Kubernetes) createDeploymentAndService(ms *microservice) (err error) 
 				return
 			}
 			// Wait for completion
-			if _, err = k8s.waitForService(svc.Name); err != nil {
+			if _, err = k8s.waitForService(ms.name); err != nil {
 				return
 			}
 		}
@@ -394,16 +386,71 @@ func (k8s *Kubernetes) createDeploymentAndService(ms *microservice) (err error) 
 		}
 	}
 
+	// Wait for services and get IPs
+	verbose("Waiting for Service IPs")
+	_, err = k8s.waitForService(ms.name)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (k8s *Kubernetes) createStatefulSet(ms *microservice) (err error) {
+	verbose("Creating " + ms.name + " StatefulSet")
+	set := newStatefulSet(k8s.ns, ms)
+	if _, err = k8s.clientset.AppsV1().StatefulSets(k8s.ns).Create(set); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
+		// Delete existing
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(set.Name, &metav1.DeleteOptions{}); err != nil {
+			return
+		}
+		if err = k8s.waitForPodTerminate(set.Name); err != nil {
+			return
+		}
+		// Create new
+		if _, err = k8s.clientset.AppsV1().StatefulSets(k8s.ns).Create(set); err != nil {
+			return
+		}
+		if err = k8s.waitForPod(set.Name); err != nil {
+			return
+		}
+	}
 	// Wait for pods
 	verbose("Waiting for " + ms.name + " Pods")
 	if err = k8s.waitForPod(ms.name); err != nil {
 		return
 	}
 
-	// Wait for services and get IPs
-	verbose("Waiting for Service IPs")
-	_, err = k8s.waitForService(ms.name)
-	if err != nil {
+	return
+}
+
+func (k8s *Kubernetes) createDeployment(ms *microservice) (err error) {
+	verbose("Creating " + ms.name + " Deployment")
+	dep := newDeployment(k8s.ns, ms)
+	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
+		// Delete existing
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(dep.Name, &metav1.DeleteOptions{}); err != nil {
+			return
+		}
+		if err = k8s.waitForPodTerminate(dep.Name); err != nil {
+			return
+		}
+		// Create new
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
+			return
+		}
+		if err = k8s.waitForPod(dep.Name); err != nil {
+			return
+		}
+	}
+	// Wait for pods
+	verbose("Waiting for " + ms.name + " Pods")
+	if err = k8s.waitForPod(ms.name); err != nil {
 		return
 	}
 
@@ -599,13 +646,24 @@ func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
 		if svc.Name != name {
 			continue
 		}
-		// Loadbalancer must be ready
-		if len(svc.Status.LoadBalancer.Ingress) == 0 {
-			continue
-		}
 
-		ip = svc.Status.LoadBalancer.Ingress[0].IP
-		watch.Stop()
+		switch name {
+
+		case "LoadBalancer":
+			// Keep waiting
+			if len(svc.Status.LoadBalancer.Ingress) == 0 {
+				continue
+			}
+			// Stop waiting
+			ip = svc.Status.LoadBalancer.Ingress[0].IP
+			watch.Stop()
+
+		case "NodePort":
+
+		default:
+			err = util.NewInternalError("Unexpected service type (" + svc.Kind + ") for service " + name)
+			return
+		}
 	}
 
 	return
