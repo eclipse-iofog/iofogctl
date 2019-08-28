@@ -70,7 +70,7 @@ func validate(cnct config.Connector) error {
 	if cnct.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Connectors")
 	}
-	if cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "" {
+	if (cnct.Host != "localhost" && cnct.Host != "127.0.0.1") && (cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "") {
 		return util.NewInputError("For Connectors you must specify non-empty values for host, user, and keyfile")
 	}
 	return nil

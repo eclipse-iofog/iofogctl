@@ -51,7 +51,7 @@ func Validate(ctrl config.Controller) error {
 	if ctrl.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 	}
-	if ctrl.KubeConfig == "" && (ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "") {
+	if (ctrl.Host != "localhost" && ctrl.Host != "127.0.0.1") && (ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "") {
 		return util.NewInputError("For Controllers you must specify non-empty values for EITHER kubeconfig OR host, user, and keyfile")
 	}
 	return nil
