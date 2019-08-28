@@ -126,14 +126,14 @@ func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error
 // CreateConnector on cluster
 func (k8s *Kubernetes) CreateConnector(name, controllerEndpoint string, user IofogUser) (err error) {
 	// Copy and name the microservice
-	ms := k8s.ms["connector"]
+	ms := *k8s.ms["connector"]
 	ms.name = generateConnectorInstanceName(name)
 
 	// Install Connector
-	if err = k8s.createStatefulSet(ms); err != nil {
+	if err = k8s.createDeployment(&ms); err != nil {
 		return
 	}
-	if err = k8s.createService(ms); err != nil {
+	if err = k8s.createService(&ms); err != nil {
 		return
 	}
 	// Get Connector endpoint
@@ -206,6 +206,12 @@ func (k8s *Kubernetes) DeleteConnector(name string) error {
 	}
 	// Delete service
 	if err := k8s.clientset.CoreV1().Services(k8s.ns).Delete(instanceName, &metav1.DeleteOptions{}); err != nil {
+		if !isNotFound(err) {
+			return err
+		}
+	}
+	// Delete Service Account
+	if err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(instanceName, &metav1.DeleteOptions{}); err != nil {
 		if !isNotFound(err) {
 			return err
 		}
@@ -385,15 +391,9 @@ func (k8s *Kubernetes) createService(ms *microservice) (err error) {
 			}
 		}
 	}
-	svcAcc := newServiceAccount(k8s.ns, ms)
-	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
-		if !isAlreadyExists(err) {
-			return
-		}
-	}
 
 	// Wait for services and get IPs
-	verbose("Waiting for Service IPs")
+	verbose("Waiting for " + ms.name + " Service IP")
 	_, err = k8s.waitForService(ms.name)
 	if err != nil {
 		return
@@ -403,13 +403,19 @@ func (k8s *Kubernetes) createService(ms *microservice) (err error) {
 
 func (k8s *Kubernetes) createStatefulSet(ms *microservice) (err error) {
 	verbose("Creating " + ms.name + " StatefulSet")
+	svcAcc := newServiceAccount(k8s.ns, ms)
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
+	}
 	set := newStatefulSet(k8s.ns, ms)
 	if _, err = k8s.clientset.AppsV1().StatefulSets(k8s.ns).Create(set); err != nil {
 		if !isAlreadyExists(err) {
 			return
 		}
 		// Delete existing
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(set.Name, &metav1.DeleteOptions{}); err != nil {
+		if err = k8s.clientset.AppsV1().StatefulSets(k8s.ns).Delete(set.Name, &metav1.DeleteOptions{}); err != nil {
 			return
 		}
 		if err = k8s.waitForPodTerminate(set.Name); err != nil {
@@ -434,6 +440,12 @@ func (k8s *Kubernetes) createStatefulSet(ms *microservice) (err error) {
 
 func (k8s *Kubernetes) createDeployment(ms *microservice) (err error) {
 	verbose("Creating " + ms.name + " Deployment")
+	svcAcc := newServiceAccount(k8s.ns, ms)
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(svcAcc); err != nil {
+		if !isAlreadyExists(err) {
+			return
+		}
+	}
 	dep := newDeployment(k8s.ns, ms)
 	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(dep); err != nil {
 		if !isAlreadyExists(err) {
@@ -612,11 +624,15 @@ func (k8s *Kubernetes) waitForPod(name string) error {
 		if !ok {
 			return util.NewInternalError("Failed to wait for pods in namespace: " + k8s.ns)
 		}
-		// Check pod is in running state
-		if util.Before(pod.Name, "-") != name {
+		// Ignore pods based on name
+		// Get rid of K8s generated name suffix e.g. d776d454b-srd76
+		splitName := strings.Split(pod.Name, "-")
+		splitName = splitName[0 : len(splitName)-2]
+		joinName := strings.Join(splitName, "-")
+		if joinName != name {
 			continue
 		}
-
+		// Check pod is in running state
 		if pod.Status.Phase == "Running" {
 			ready := true
 			for _, cond := range pod.Status.Conditions {
@@ -708,9 +724,9 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 }
 
 func (k8s *Kubernetes) GetConnectorEndpoint(name string) (endpoint string, err error) {
-	ms := k8s.ms["connector"]
-	ms.name = name
-	return k8s.getEndpoint(ms)
+	ms := *k8s.ms["connector"]
+	ms.name = generateConnectorInstanceName(name)
+	return k8s.getEndpoint(&ms)
 }
 
 func generateConnectorInstanceName(name string) string {

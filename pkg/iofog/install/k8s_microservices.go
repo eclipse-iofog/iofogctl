@@ -73,7 +73,7 @@ var controllerMicroservice = microservice{
 
 var connectorMicroservice = microservice{
 	name:        "connector",
-	serviceType: "NodePort",
+	serviceType: "LoadBalancer",
 	ports: []int{
 		iofog.ConnectorPort,
 		6000, 6001, 6002, 6003, 6004, 6005, 6006, 6007, 6008, 6009,
