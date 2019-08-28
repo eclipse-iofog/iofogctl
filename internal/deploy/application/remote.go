@@ -154,7 +154,7 @@ func (exe *remoteExecutor) createRoutes(microserviceByName map[string]*client.Mi
 		fromMsvc, _ := microserviceByName[route.From]
 		toMsvc, _ := microserviceByName[route.To]
 		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
-			return
+			return err
 		}
 	}
 	return nil
@@ -268,9 +268,13 @@ func (exe *remoteExecutor) create() (err error) {
 
 func (exe *remoteExecutor) deploy() (err error) {
 	if exe.flowInfo == nil {
-		exe.create()
+		if err = exe.create(); err != nil {
+			return err
+		}
 	} else {
-		exe.update()
+		if err = exe.update(); err != nil {
+			return err
+		}
 	}
 
 	// Start flow
