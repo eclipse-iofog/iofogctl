@@ -63,7 +63,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Update connector (its a pointer, this is returned to caller)
-	endpoint, err := installer.GetConnectorEndpoint()
+	endpoint, err := installer.GetConnectorEndpoint(exe.cnct.Name)
 	if err != nil {
 		return
 	}

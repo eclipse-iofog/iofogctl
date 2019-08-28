@@ -125,15 +125,19 @@ func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error
 
 // CreateConnector on cluster
 func (k8s *Kubernetes) CreateConnector(name, controllerEndpoint string, user IofogUser) (err error) {
+	// Copy and name the microservice
+	ms := k8s.ms["connector"]
+	ms.name = generateConnectorInstanceName(name)
+
 	// Install Connector
-	if err = k8s.createStatefulSet(k8s.ms["connector"]); err != nil {
+	if err = k8s.createStatefulSet(ms); err != nil {
 		return
 	}
-	if err = k8s.createService(k8s.ms["connector"]); err != nil {
+	if err = k8s.createService(ms); err != nil {
 		return
 	}
 	// Get Connector endpoint
-	connectorEndpoint, err := k8s.GetConnectorEndpoint()
+	connectorEndpoint, err := k8s.GetConnectorEndpoint(name)
 	if err != nil {
 		return
 	}
@@ -192,15 +196,16 @@ func (k8s *Kubernetes) DeleteController() error {
 	return k8s.delete(false)
 }
 
-func (k8s *Kubernetes) DeleteConnector() error {
+func (k8s *Kubernetes) DeleteConnector(name string) error {
+	instanceName := generateConnectorInstanceName(name)
 	// Delete deployment
-	if err := k8s.clientset.AppsV1().Deployments(k8s.ns).Delete("connector", &metav1.DeleteOptions{}); err != nil {
+	if err := k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(instanceName, &metav1.DeleteOptions{}); err != nil {
 		if !isNotFound(err) {
 			return err
 		}
 	}
 	// Delete service
-	if err := k8s.clientset.CoreV1().Services(k8s.ns).Delete("connector", &metav1.DeleteOptions{}); err != nil {
+	if err := k8s.clientset.CoreV1().Services(k8s.ns).Delete(instanceName, &metav1.DeleteOptions{}); err != nil {
 		if !isNotFound(err) {
 			return err
 		}
@@ -646,24 +651,14 @@ func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
 		if svc.Name != name {
 			continue
 		}
-
-		switch name {
-
-		case "LoadBalancer":
-			// Keep waiting
-			if len(svc.Status.LoadBalancer.Ingress) == 0 {
-				continue
-			}
-			// Stop waiting
-			ip = svc.Status.LoadBalancer.Ingress[0].IP
-			watch.Stop()
-
-		case "NodePort":
-
-		default:
-			err = util.NewInternalError("Unexpected service type (" + svc.Kind + ") for service " + name)
-			return
+		// Keep waiting
+		if len(svc.Status.LoadBalancer.Ingress) == 0 {
+			continue
 		}
+		// Stop waiting
+		ip = svc.Status.LoadBalancer.Ingress[0].IP
+		watch.Stop()
+
 	}
 
 	return
@@ -711,6 +706,12 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	return k8s.getEndpoint(k8s.ms["controller"])
 }
 
-func (k8s *Kubernetes) GetConnectorEndpoint() (endpoint string, err error) {
-	return k8s.getEndpoint(k8s.ms["connector"])
+func (k8s *Kubernetes) GetConnectorEndpoint(name string) (endpoint string, err error) {
+	ms := k8s.ms["connector"]
+	ms.name = name
+	return k8s.getEndpoint(ms)
+}
+
+func generateConnectorInstanceName(name string) string {
+	return "connector-" + name
 }
