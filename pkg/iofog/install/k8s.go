@@ -619,11 +619,15 @@ func isNotFound(err error) bool {
 	return strings.Contains(err.Error(), "not found")
 }
 
-func (k8s *Kubernetes) SetControllerExternalDatabase(host, user, password string, port int) {
+func (k8s *Kubernetes) SetControllerExternalDatabase(host, user, password, dbName string, port int) {
 	k8s.ms["controller"].containers[0].env = []v1.EnvVar{
 		{
 			Name:  "DB_PROVIDER",
 			Value: "postgres",
+		},
+		{
+			Name:  "DB_NAME",
+			Value: dbName,
 		},
 		{
 			Name:  "DB_USERNAME",

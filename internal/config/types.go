@@ -30,10 +30,11 @@ type DockerCredentials struct {
 }
 
 type Database struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
+	Host         string
+	Port         int
+	User         string
+	Password     string
+	DatabaseName string
 }
 
 type Loadbalancer struct {

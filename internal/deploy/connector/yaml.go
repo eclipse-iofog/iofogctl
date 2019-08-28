@@ -35,6 +35,10 @@ func UnmarshallYAML(filename string) (connectors []config.Connector, err error) 
 		if cnct.Name == "" || (cnct.KubeConfig == "" && (cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "")) {
 			return
 		}
+		// Validate
+		if err = validate(cnct); err != nil {
+			return
+		}
 
 		// Append the single cnct
 		connectors = append(connectors, cnct)
@@ -60,4 +64,14 @@ func UnmarshallYAML(filename string) (connectors []config.Connector, err error) 
 	}
 
 	return
+}
+
+func validate(cnct config.Connector) error {
+	if cnct.Name == "" {
+		return util.NewInputError("You must specify a non-empty value for name value of Connectors")
+	}
+	if cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "" {
+		return util.NewInputError("For Connectors you must specify non-empty values for host, user, and keyfile")
+	}
+	return nil
 }

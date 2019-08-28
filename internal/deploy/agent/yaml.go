@@ -35,6 +35,10 @@ func UnmarshallYAML(filename string) (agents []config.Agent, err error) {
 		if agent.Host == "" {
 			return
 		}
+		//Validate
+		if err = validate(agent); err != nil {
+			return
+		}
 		// Append the single agent
 		agents = append(agents, agent)
 	} else {
@@ -55,4 +59,14 @@ func UnmarshallYAML(filename string) (agents []config.Agent, err error) {
 	}
 
 	return
+}
+
+func validate(agent config.Agent) error {
+	if agent.Name == "" {
+		return util.NewInputError("You must specify a non-empty value for name value of Agents")
+	}
+	if agent.Host == "" || agent.User == "" || agent.KeyFile == "" {
+		return util.NewInputError("For Agents you must specify non-empty values for host, user, and keyfile")
+	}
+	return nil
 }

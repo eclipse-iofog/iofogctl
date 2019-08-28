@@ -15,6 +15,7 @@ package deploycontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -40,7 +41,12 @@ func UnmarshallYAML(filename string) (controlPlane config.ControlPlane, err erro
 		controlPlane = spec.ControlPlane
 	}
 
-	// Pre-process inputs
+	// Validate inputs
+	if err = validate(controlPlane); err != nil {
+		return
+	}
+
+	// Pre-process inputs for Controllers
 	for idx := range controlPlane.Controllers {
 		ctrl := &controlPlane.Controllers[idx]
 		// Fix SSH port
@@ -57,4 +63,34 @@ func UnmarshallYAML(filename string) (controlPlane config.ControlPlane, err erro
 	}
 
 	return
+}
+
+func validate(controlPlane config.ControlPlane) error {
+	// Validate user
+	user := controlPlane.IofogUser
+	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
+		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
+	}
+	// Validate database
+	db := controlPlane.Database
+	if db.Host != "" || db.DatabaseName != "" || db.Password != "" || db.Port != 0 || db.User != "" {
+		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
+			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
+		}
+	}
+	// Validate loadbalancer
+	lb := controlPlane.LoadBalancer
+	if lb.Host != "" || lb.Port != 0 {
+		if lb.Host == "" || lb.Port == 0 {
+			return util.NewInputError("If you are specifying a load balancer you must provide non-empty valies in host and port fields")
+		}
+	}
+	// Validate Controllers
+	for _, ctrl := range controlPlane.Controllers {
+		if err := deploycontroller.Validate(ctrl); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

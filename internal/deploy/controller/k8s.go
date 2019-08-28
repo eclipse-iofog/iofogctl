@@ -52,7 +52,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 	if exe.controlPlane.Database.Host != "" {
 		db := exe.controlPlane.Database
-		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Port)
+		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.DatabaseName, db.Port)
 	}
 
 	replicas := 1
