@@ -352,6 +352,7 @@ func (k8s *Kubernetes) createNamespace() (err error) {
 		if !isAlreadyExists(err) {
 			return
 		}
+		err = nil
 	}
 	return
 }
