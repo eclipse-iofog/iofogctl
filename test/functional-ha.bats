@@ -100,8 +100,6 @@ kubeconfig: $KUBE_CONFIG" > test/conf/cnct.yaml
         kubectl delete pods/"$line" -n "$NS" &
       fi
     done <<< "$CTRL_LIST"
-    #echo $(kubectl get pods -l name=controller -n "$NS" | awk -v row=$IDX 'FNR == row {print $1}') >> /tmp/chek.txt
-    #kubectl delete pods -n "$NS" $(kubectl get pods -l name=controller -n "$NS" | awk -v row=$IDX 'FNR==row {print $1}') &
     checkAgentListFromController
   done
 }
