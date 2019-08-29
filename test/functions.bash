@@ -380,24 +380,28 @@ function checkAgentsNegative() {
 }
 
 function login() {
-  API_ENDPOINT="$1"
-  EMAIL="$2"
-  PASSWORD="$3"
+  local API_ENDPOINT="$1"
+  local EMAIL="$2"
+  local PASSWORD="$3"
   local LOGIN=$(curl --request POST \
---url $API_ENDPOINT/user/login \
+--url $API_ENDPOINT/api/v3/user/login \
 --header 'Content-Type: application/json' \
 --data "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
+  echo $LOGIN
   ACCESS_TOKEN=$(echo $LOGIN | jq -r .accessToken)
   [[ ! -z "$ACCESS_TOKEN" ]]
+  echo "$ACCESS_TOKEN" > /tmp/access_token.txt
+  echo "$API_ENDPOINT" > /tmp/api_endpoint.txt
 }
 
 function checkAgentListFromController() {
-  local NAMES="$@" 
+  local API_ENDPOINT=$(cat /tmp/api_endpoint.txt)
+  local ACCESS_TOKEN=$(cat /tmp/access_token.txt)
   local LIST=$(curl --request GET \
---url $API_ENDPOINT/iofog-list \
+--url $API_ENDPOINT/api/v3/iofog-list \
 --header "Authorization: $ACCESS_TOKEN" \
 --header 'Content-Type: application/json')
-  for IDX in "${AGENTS[@]}"; do
+  for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}_$(((IDX++)))"
     local UUID=$(echo $LIST | jq -r '.fogs[] | select(.name == "'"$AGENT_NAME"'") | .uuid')
     [[ ! -z "$UUID" ]]

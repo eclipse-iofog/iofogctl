@@ -81,16 +81,27 @@ kubeconfig: $KUBE_CONFIG" > test/conf/cnct.yaml
 
 @test "List Agents multiple times" {
   initAgents
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   login "$CONTROLLER_ENDPOINT" "$USER_EMAIL" "$USER_PW"
   for IDX in 0 1 2 3 4 5; do
     checkAgentListFromController
   done
 }
 
-@test "Delete Controller Instance and List Agents multiple times" {
+@test "Delete Controller Instances and List Agents multiple times" {
   initAgents
-  for IDX in 0 1 2 3 4 5; do
-    kubectl delete pods -n "$NS" $(kubectl get pods -l name=connector -n "$NS" | awk 'FNR == 2 {print $1}') &
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  local CTRL_LIST=$(kubectl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
+  local SAFE_CTRL=$(echo "$CTRL_LIST" | tail -n 1)
+  for IDX in 0 1 2 3 4; do
+    CTRL_LIST=$(kubectl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
+    while read -r line; do
+      if [ "$line" != "$SAFE_CTRL" ]; then
+        kubectl delete pods/"$line" -n "$NS" &
+      fi
+    done <<< "$CTRL_LIST"
+    #echo $(kubectl get pods -l name=controller -n "$NS" | awk -v row=$IDX 'FNR == row {print $1}') >> /tmp/chek.txt
+    #kubectl delete pods -n "$NS" $(kubectl get pods -l name=controller -n "$NS" | awk -v row=$IDX 'FNR==row {print $1}') &
     checkAgentListFromController
   done
 }
