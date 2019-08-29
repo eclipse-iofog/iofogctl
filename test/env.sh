@@ -44,6 +44,7 @@ export DB_USER=""
 export DB_HOST=""
 export DB_PORT=""
 export DB_PW=""
+export DB_NAME=""
 
 ######################################################################
 
@@ -66,6 +67,7 @@ echo "${!DB_USER*}: " "$DB_USER"
 echo "${!DB_HOST*}: " "$DB_HOST"
 echo "${!DB_PORT*}: " "$DB_PORT"
 echo "${!DB_PW*}: " "$DB_PW"
+echo "${!DB_NAME*}: " "$DB_NAME"
 echo ""
 echo "------------------"
 echo ""

@@ -17,6 +17,7 @@
 # DB_HOST
 # DB_PORT
 # DB_PW
+# DB_NAME
 
 . test/functions.bash
 . test/functional.vars.bash
@@ -36,6 +37,7 @@ database:
   host: $DB_HOST
   port: $DB_PORT
   password: $DB_PW
+  databasename: $DB_NAME
 iofoguser:
   name: Testing
   surname: Functional
