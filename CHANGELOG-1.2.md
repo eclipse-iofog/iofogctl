@@ -1,3 +1,6 @@
+## v1.2.5
+* Add support for Raspbian Buster
+
 ## v1.2.4
 * Add latest tag to local deploy images to fix pulling image bug
 
