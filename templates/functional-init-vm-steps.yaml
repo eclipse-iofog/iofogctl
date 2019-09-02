@@ -14,7 +14,7 @@ steps:
   displayName: 'set up gcloud'
 - script: |
     for IDX in $(seq 1 $(vm_count)); do
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$IDX --zone=$(zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=debian-9-stretch-v20190729 --image-project=debian-cloud --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$IDX
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$IDX --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=debian-9-stretch-v20190729 --image-project=debian-cloud --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$IDX
       VM_HOST=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$IDX | awk '{print $5}')
       echo "##vso[task.setvariable variable=vm_$IDX]$(gcp.vm.user)@$VM_HOST"
     done
