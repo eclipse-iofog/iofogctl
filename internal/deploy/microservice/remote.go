@@ -201,6 +201,10 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	if err != nil {
 		return nil, err
 	}
+	var catalogItemID int
+	if catalogItem != nil {
+		catalogItemID = catalogItem.ID
+	}
 
 	// Transform msvc config to JSON string
 	config := ""
@@ -214,13 +218,17 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 
 	if exe.msvc.UUID != "" {
 		// Update microservice
-		return exe.update(config, agent.UUID, catalogItem.ID)
+		return exe.update(config, agent.UUID, catalogItemID)
 	}
 	// Create microservice
-	return exe.create(config, agent.UUID, catalogItem.ID)
+	return exe.create(config, agent.UUID, catalogItemID)
 }
 
 func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (newMsvc *client.MicroserviceInfo, err error) {
+	images := []client.CatalogImage{
+		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
+		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
+	}
 	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
@@ -232,10 +240,15 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (newM
 		Env:            exe.msvc.Env,
 		AgentUUID:      agentUUID,
 		Routes:         exe.routes,
+		Images:         images,
 	})
 }
 
 func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (newMsvc *client.MicroserviceInfo, err error) {
+	images := []client.CatalogImage{
+		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
+		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
+	}
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
@@ -246,5 +259,6 @@ func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (newM
 		Env:            exe.msvc.Env,
 		AgentUUID:      &agentUUID,
 		Routes:         exe.routes,
+		Images:         images,
 	})
 }

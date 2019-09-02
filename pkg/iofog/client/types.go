@@ -112,10 +112,12 @@ type MicroserviceInfo struct {
 	CatalogItemID     int                         `json:"catalogItemId"`
 	AgentUUID         string                      `json:"iofogUuid"`
 	UserID            int                         `json:"userId"`
+	RegistryID        int                         `json:"registryId"`
 	Ports             []MicroservicePortMapping   `json:"ports"`
 	Volumes           []MicroserviceVolumeMapping `json:"volumeMappings"`
 	Routes            []string                    `json:"routes"`
 	Env               []MicroserviceEnvironment   `json:"env"`
+	Images            []CatalogImage              `json:"images"`
 }
 
 type MicroserviceCreateRequest struct {
@@ -124,12 +126,13 @@ type MicroserviceCreateRequest struct {
 	RootHostAccess bool                        `json:"rootHostAccess"`
 	LogSize        int                         `json:"logSize"`
 	FlowID         int                         `json:"flowId"`
-	CatalogItemID  int                         `json:"catalogItemId"`
+	CatalogItemID  int                         `json:"catalogItemId,omitempty"`
 	AgentUUID      string                      `json:"iofogUuid"`
 	Ports          []MicroservicePortMapping   `json:"ports"`
 	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
 	Routes         []string                    `json:"routes"`
 	Env            []MicroserviceEnvironment   `json:"env"`
+	Images         []CatalogImage              `json:"images,omitempty"`
 }
 
 type MicroserviceUpdateRequest struct {
@@ -147,6 +150,7 @@ type MicroserviceUpdateRequest struct {
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               []MicroserviceEnvironment    `json:"env,omitempty"`
+	Images            []CatalogImage               `json:"images,omitempty"`
 }
 
 type MicroserviceCreateResponse struct {

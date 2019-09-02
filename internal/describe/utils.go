@@ -25,9 +25,12 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	if err != nil {
 		return
 	}
-	catalogItem, err := clt.GetCatalogItem(msvc.CatalogItemID)
-	if err != nil {
-		return
+	var catalogItem *client.CatalogItemInfo
+	if msvc.CatalogItemID != 0 {
+		catalogItem, err = clt.GetCatalogItem(msvc.CatalogItemID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	application, err := clt.GetFlowByID(msvc.FlowID)
 	if err != nil {
@@ -71,7 +74,13 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 		},
 	}
 	var armImage, x86Image string
-	for _, image := range catalogItem.Images {
+	var msvcImages []client.CatalogImage
+	if catalogItem != nil {
+		msvcImages = catalogItem.Images
+	} else {
+		msvcImages = msvc.Images
+	}
+	for _, image := range msvcImages {
 		switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
 		case "x86":
 			x86Image = image.ContainerImage
@@ -83,13 +92,22 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 			break
 		}
 	}
+	var registryID int
+	var imgArray []client.CatalogImage
+	if catalogItem != nil {
+		registryID = catalogItem.RegistryID
+		imgArray = catalogItem.Images
+	} else {
+		registryID = msvc.RegistryID
+		imgArray = msvc.Images
+	}
 	images := config.MicroserviceImages{
-		CatalogID: catalogItem.ID,
+		CatalogID: msvc.CatalogItemID,
 		X86:       x86Image,
 		ARM:       armImage,
-		Registry:  client.RegistryTypeIDRegistryTypeDict[catalogItem.RegistryID],
+		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
 	}
-	for _, img := range catalogItem.Images {
+	for _, img := range imgArray {
 		if img.AgentTypeID == 1 {
 			images.X86 = img.ContainerImage
 		} else if img.AgentTypeID == 2 {
