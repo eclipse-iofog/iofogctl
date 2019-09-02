@@ -21,7 +21,6 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   version:
-  zone: us-west2-b
   vm_count: 3
   vm_1:
   vm_2:
@@ -73,7 +72,7 @@ stages:
     - template: templates/functional-steps.yaml
     - script: |
         for IDX in $(seq 1 $(vm_count)); do
-          gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(zone) -- ls /
+          gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
         done
       displayName: 'Wait for VM SSH access'
     - script: |
