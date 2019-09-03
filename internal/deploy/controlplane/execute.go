@@ -14,13 +14,13 @@
 package deploycontrolplane
 
 import (
-	"strings"
+	//"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	//"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	//"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -59,37 +59,37 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	// Create new user
-	// TODO: replace with controlplane variable for endpoint
-	ctrlClient := client.New(controlPlane.Controllers[0].Endpoint)
-	if err = ctrlClient.CreateUser(client.User(controlPlane.IofogUser)); err != nil {
-		// If not error about account existing, fail
-		if !strings.Contains(err.Error(), "already an account associated") {
-			return err
-		}
-		// Try to log in
-		if err = ctrlClient.Login(client.LoginRequest{
-			Email:    controlPlane.IofogUser.Email,
-			Password: controlPlane.IofogUser.Password,
-		}); err != nil {
-			return err
-		}
-	}
+	//// Create new user
+	//// TODO: replace with controlplane variable for endpoint
+	//ctrlClient := client.New(controlPlane.Controllers[0].Endpoint)
+	//if err = ctrlClient.CreateUser(client.User(controlPlane.IofogUser)); err != nil {
+	//	// If not error about account existing, fail
+	//	if !strings.Contains(err.Error(), "already an account associated") {
+	//		return err
+	//	}
+	//	// Try to log in
+	//	if err = ctrlClient.Login(client.LoginRequest{
+	//		Email:    controlPlane.IofogUser.Email,
+	//		Password: controlPlane.IofogUser.Password,
+	//	}); err != nil {
+	//		return err
+	//	}
+	//}
 
-	// For Kubernetes Controllers, we need to deploy extensions
-	for idx := range controlPlane.Controllers {
-		kubeConfig := controlPlane.Controllers[idx].KubeConfig
-		if kubeConfig != "" {
-			installer, err := install.NewKubernetes(kubeConfig, opt.Namespace)
-			if err != nil {
-				return err
-			}
-			if err = installer.CreateExtensionServices(install.IofogUser(controlPlane.IofogUser)); err != nil {
-				return err
-			}
-			break
-		}
-	}
+	//// For Kubernetes Controllers, we need to deploy extensions
+	//for idx := range controlPlane.Controllers {
+	//	kubeConfig := controlPlane.Controllers[idx].KubeConfig
+	//	if kubeConfig != "" {
+	//		installer, err := install.NewKubernetes(kubeConfig, opt.Namespace)
+	//		if err != nil {
+	//			return err
+	//		}
+	//		if err = installer.CreateExtensionServices(install.IofogUser(controlPlane.IofogUser)); err != nil {
+	//			return err
+	//		}
+	//		break
+	//	}
+	//}
 
 	// Update config
 	if err = config.UpdateControlPlane(opt.Namespace, controlPlane); err != nil {

@@ -60,7 +60,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		replicas = exe.ctrl.Replicas
 	}
 	// Create controller on cluster
-	if err = installer.CreateController(replicas); err != nil {
+	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas); err != nil {
 		return
 	}
 
