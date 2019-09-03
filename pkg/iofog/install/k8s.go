@@ -36,26 +36,6 @@ import (
 	k8sconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func tester() {
-	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
-
-	cl, err := k8sclient.New(k8sconfig.GetConfigOrDie(), k8sclient.Options{Scheme: scheme})
-	if err != nil {
-		fmt.Println("failed to create client")
-	}
-
-	appList := &v1alpha2.KogList{}
-
-	err = cl.List(context.Background(), k8sclient.InNamespace("default"), appList)
-	if err != nil {
-		fmt.Printf("failed to list appservices in namespace default: %v\n", err)
-	}
-
-	fmt.Printf("AppServiceList: %+v", appList)
-}
-
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
 type Kubernetes struct {
 	configFilename string
