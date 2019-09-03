@@ -149,6 +149,22 @@ const kogName = "iokog"
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
+	// Set up CRDs if required
+	iokogCRD := newKogCRD()
+	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iokogCRD); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+	} else {
+		// New CRD, deploy the operator
+		if err := k8s.createOperator(); err != nil {
+			return err
+		}
+		if err := k8s.waitForPod(k8s.ms["operator"].name); err != nil {
+			return err
+		}
+	}
+
 	// Check if kog exists
 	kogKey := kogclient.ObjectKey{
 		Name:      kogName,
@@ -189,6 +205,41 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 		}
 	}
 
+	return nil
+}
+
+func (k8s *Kubernetes) createOperator() error {
+	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
+	if _, err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
+		if !isAlreadyExists(err) {
+			return err
+		}
+	}
+	opRole := newRole(k8s.ns, k8s.ms["operator"])
+	if _, err := k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole); err != nil {
+		if !isAlreadyExists(err) {
+			return err
+		}
+	}
+	opRoleBind := newRoleBinding(k8s.ns, k8s.ms["operator"])
+	if _, err := k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind); err != nil {
+		if !isAlreadyExists(err) {
+			return err
+		}
+	}
+	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
+	if _, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+		if !isAlreadyExists(err) {
+			return err
+		}
+		// Exists, redeploy
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
+			return err
+		}
+		if _, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -271,7 +322,10 @@ func (k8s *Kubernetes) waitForPod(name string) error {
 			return util.NewInternalError("Failed to wait for pods in namespace: " + k8s.ns)
 		}
 		// Check pod is in running state
-		if util.Before(pod.Name, "-") != name {
+		splitName := strings.Split(pod.Name, "-")
+		splitName = splitName[0 : len(splitName)-2]
+		joinName := strings.Join(splitName, "-")
+		if joinName != name {
 			continue
 		}
 
