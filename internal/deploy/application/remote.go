@@ -192,7 +192,10 @@ func (exe *remoteExecutor) update() (err error) {
 
 	// Delete all uneeded microservices
 	for _, msvc := range listMsvcs.Microservices {
-		if _, found := yamlMicroservicesPerName[msvc.Name]; !found {
+		catalogItem, foundCatalogItem := exe.catalogByID[msvc.CatalogItemID]
+		// If !foundCatalogItem -> Catalog item not returned in init -> We cannot edit it.
+		isSystem := msvc.CatalogItemID != 0 && (!foundCatalogItem || catalogItem.Category == "SYSTEM")
+		if _, found := yamlMicroservicesPerName[msvc.Name]; !found && !isSystem {
 			util.SpinStart(fmt.Sprintf("Deleting microservice %s", msvc.Name))
 			if err = exe.client.DeleteMicroservice(msvc.UUID); err != nil {
 				return err

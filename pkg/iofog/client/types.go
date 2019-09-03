@@ -56,6 +56,7 @@ type CatalogItemInfo struct {
 	Description string         `json:"description"`
 	Images      []CatalogImage `json:"images"`
 	RegistryID  int            `json:"registryId"`
+	Category    string         `json:"category"`
 }
 
 type CatalogItemCreateRequest struct {
