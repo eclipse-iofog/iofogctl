@@ -45,7 +45,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	k8s, err := install.NewKubernetes(cnct.KubeConfig, exe.namespace)
 
 	// Delete Connector on cluster
-	err = k8s.DeleteConnector()
+	err = k8s.DeleteConnector(exe.name)
 	if err != nil {
 		return err
 	}
