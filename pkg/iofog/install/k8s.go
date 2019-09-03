@@ -215,38 +215,45 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 		return err
 	}
 
-	kog := v1alpha2.Kog{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      kogName,
-			Namespace: k8s.ns,
+	// Check if kog exists
+	kogKey := k8sclient.ObjectKey{
+		Name:      kogName,
+		Namespace: k8s.ns,
+	}
+	var kog v1alpha2.Kog
+	found := true
+	if err = cl.Get(context.Background(), kogKey, &kog); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			return err
+		}
+		// Not found
+		found = false
+		kog = v1alpha2.Kog{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      kogName,
+				Namespace: k8s.ns,
+			},
+		}
+	}
+	kog.Spec = v1alpha2.KogSpec{
+		ControlPlane: v1alpha2.ControlPlane{
+			IofogUser:              v1alpha2.IofogUser(user),
+			ControllerReplicaCount: int32(replicas),
+			ControllerImage:        k8s.ms["controller"].containers[0].image,
 		},
-		Spec: v1alpha2.KogSpec{
-			ControlPlane: v1alpha2.ControlPlane{
-				IofogUser:              v1alpha2.IofogUser(user),
-				ControllerReplicaCount: int32(replicas),
-				ControllerImage:        k8s.ms["controller"].containers[0].image,
-			},
-			Connectors: v1alpha2.Connectors{
-				Instances: []v1alpha2.Connector{},
-			},
+		Connectors: v1alpha2.Connectors{
+			Instances: []v1alpha2.Connector{},
 		},
 	}
-	err = cl.Create(context.Background(), &kog)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		return err
+	if found {
+		if err = cl.Update(context.Background(), &kog); err != nil {
+			return err
+		}
+	} else {
+		if err = cl.Create(context.Background(), &kog); err != nil {
+			return err
+		}
 	}
-	//// Configure replica count
-	//k8s.ms["controller"].replicas = int32(replicas)
-	//// Install Controller
-	//if err = k8s.createDeploymentAndService(k8s.ms["controller"]); err != nil {
-	//	return
-	//}
-	//// Wait for Controller API
-	//verbose("Waiting for Controller API")
-	//endpoint, err := k8s.GetControllerEndpoint()
-	//if err = waitForControllerAPI(endpoint); err != nil {
-	//	return
-	//}
 
 	return nil
 }

@@ -44,7 +44,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure deploy
-	if err = installer.SetImages(exe.ctrl.Images); err != nil {
+	if err = installer.SetImages(exe.controlPlane.Images); err != nil {
 		return err
 	}
 	if exe.ctrl.KubeControllerIP != "" {
