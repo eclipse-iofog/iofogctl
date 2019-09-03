@@ -32,13 +32,13 @@ import (
 
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
-	k8sconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
+	kogclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
 type Kubernetes struct {
 	configFilename string
+	kogClient      kogclient.Client
 	clientset      *kubernetes.Clientset
 	extsClientset  *extsclientset.Clientset
 	crdName        string
@@ -54,7 +54,14 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		return nil, err
 	}
 
-	// Instantiate Kubernetes client
+	// Instantiate Kubernetes clients
+	scheme := runtime.NewScheme()
+	clientgoscheme.AddToScheme(scheme)
+	crdapi.AddToScheme(scheme)
+	kogClient, err := kogclient.New(config, kogclient.Options{Scheme: scheme})
+	if err != nil {
+		return nil, err
+	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -73,6 +80,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 
 	return &Kubernetes{
 		configFilename: configFilename,
+		kogClient:      kogClient,
 		clientset:      clientset,
 		extsClientset:  extsClientset,
 		crdName:        "iofogs.k8s.iofog.org",
@@ -95,55 +103,10 @@ func (k8s *Kubernetes) SetImages(images map[string]string) error {
 	return nil
 }
 
-func (k8s *Kubernetes) getEndpoint(ms *microservice) (endpoint string, err error) {
-	if len(ms.ports) == 0 {
-		err = util.NewError("Requested endpoint of Microservice on K8s cluster that does not have an external API")
-		return
-	}
-	//// Check service exists
-	//doesNotExistMsg := "Kubernetes Service " + ms.name + " in namespace " + k8s.ns
-	//svcs, err := k8s.clientset.CoreV1().Services(k8s.ns).List(metav1.ListOptions{})
-	//if err != nil {
-	//	return
-	//}
-	//if svcs == nil || len(svcs.Items) == 0 {
-	//	err = util.NewNotFoundError(doesNotExistMsg)
-	//	return
-	//}
-	//found := false
-	//for _, svc := range svcs.Items {
-	//	if svc.Name == ms.name {
-	//		found = true
-	//		break
-	//	}
-	//}
-	//if !found {
-	//	err = util.NewNotFoundError(doesNotExistMsg)
-	//	return
-	//}
-
-	// Wait for IP
-	ip, err := k8s.waitForService(ms.name)
-	if err != nil {
-		return
-	}
-	endpoint = fmt.Sprintf("%s:%d", ip, ms.ports[0])
-	return
-}
-
 // CreateConnector on cluster
 func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) {
-	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
-
-	cl, err := k8sclient.New(k8sconfig.GetConfigOrDie(), k8sclient.Options{Scheme: scheme})
-	if err != nil {
-		return err
-	}
-
 	kogList := &v1alpha2.KogList{}
-	if err = cl.List(context.Background(), k8sclient.InNamespace(k8s.ns), kogList); err != nil {
+	if err = k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
 		return err
 	}
 	if len(kogList.Items) == 0 {
@@ -174,7 +137,7 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 	}
 	existingKog.Spec.Connectors.Image = k8s.ms["connector"].containers[0].image
 
-	err = cl.Update(context.Background(), existingKog)
+	err = k8s.kogClient.Update(context.Background(), existingKog)
 	if err != nil {
 		return err
 	}
@@ -186,23 +149,14 @@ const kogName = "iokog"
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
-	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
-
-	cl, err := k8sclient.New(k8sconfig.GetConfigOrDie(), k8sclient.Options{Scheme: scheme})
-	if err != nil {
-		return err
-	}
-
 	// Check if kog exists
-	kogKey := k8sclient.ObjectKey{
+	kogKey := kogclient.ObjectKey{
 		Name:      kogName,
 		Namespace: k8s.ns,
 	}
 	var kog v1alpha2.Kog
 	found := true
-	if err = cl.Get(context.Background(), kogKey, &kog); err != nil {
+	if err := k8s.kogClient.Get(context.Background(), kogKey, &kog); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return err
 		}
@@ -226,11 +180,11 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 		},
 	}
 	if found {
-		if err = cl.Update(context.Background(), &kog); err != nil {
+		if err := k8s.kogClient.Update(context.Background(), &kog); err != nil {
 			return err
 		}
 	} else {
-		if err = cl.Create(context.Background(), &kog); err != nil {
+		if err := k8s.kogClient.Create(context.Background(), &kog); err != nil {
 			return err
 		}
 	}
@@ -239,22 +193,13 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 }
 
 func (k8s *Kubernetes) DeleteController() error {
-	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
-
-	cl, err := k8sclient.New(k8sconfig.GetConfigOrDie(), k8sclient.Options{Scheme: scheme})
-	if err != nil {
-		return err
-	}
-
 	kog := &v1alpha2.Kog{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      kogName,
 			Namespace: k8s.ns,
 		},
 	}
-	if err = cl.Delete(context.Background(), kog); err != nil {
+	if err := k8s.kogClient.Delete(context.Background(), kog); err != nil {
 		return err
 	}
 
@@ -262,17 +207,8 @@ func (k8s *Kubernetes) DeleteController() error {
 }
 
 func (k8s *Kubernetes) DeleteConnector(name string) error {
-	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
-
-	cl, err := k8sclient.New(k8sconfig.GetConfigOrDie(), k8sclient.Options{Scheme: scheme})
-	if err != nil {
-		return err
-	}
-
 	kogList := &v1alpha2.KogList{}
-	if err = cl.List(context.Background(), k8sclient.InNamespace(k8s.ns), kogList); err != nil {
+	if err := k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
 		return err
 	}
 	if len(kogList.Items) == 0 {
@@ -293,7 +229,7 @@ func (k8s *Kubernetes) DeleteConnector(name string) error {
 		if connector.Name == name {
 			instances := existingKog.Spec.Connectors.Instances
 			existingKog.Spec.Connectors.Instances = append(instances[:idx], instances[idx+1:]...)
-			if err = cl.Update(context.Background(), existingKog); err != nil {
+			if err := k8s.kogClient.Update(context.Background(), existingKog); err != nil {
 				return err
 			}
 			break
