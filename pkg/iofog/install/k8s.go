@@ -19,7 +19,6 @@ import (
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
 	"github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -187,7 +186,7 @@ func (k8s *Kubernetes) enableKogClient() (err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
+func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Database) error {
 	// Create namespace if required
 	verbose("Creating namespace " + k8s.ns)
 	ns := &v1.Namespace{
@@ -233,6 +232,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 			IofogUser:              v1alpha2.IofogUser(user),
 			ControllerReplicaCount: int32(replicas),
 			ControllerImage:        k8s.ms["controller"].containers[0].image,
+			Database:               v1alpha2.Database(db),
 		},
 		Connectors: v1alpha2.Connectors{
 			Instances: []v1alpha2.Connector{},
@@ -268,23 +268,16 @@ func (k8s *Kubernetes) createOperator() (err error) {
 	}
 
 	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
-	var liveDep *appsv1.Deployment
-	if liveDep, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
 		if !isAlreadyExists(err) {
 			return
 		}
-		// Operator exists, redeploy if image is different
-		containers := liveDep.Spec.Template.Spec.Containers
-		if len(containers) != 1 {
-			return util.NewError(fmt.Sprintf("Expected 1 container Operator Deployment config. Found %d", len(containers)))
+		// Redeploy the operator
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
+			return
 		}
-		if containers[0].Image != opDep.Spec.Template.Spec.Containers[0].Image {
-			if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
-				return
-			}
-			if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
-				return
-			}
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+			return
 		}
 	}
 	return nil
