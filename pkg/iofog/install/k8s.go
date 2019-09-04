@@ -19,6 +19,7 @@ import (
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
 	"github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -145,16 +146,12 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 const kogName = "iokog"
 
 func (k8s *Kubernetes) enableCustomResources() error {
-	deployOperator := false
-
 	// Kogs
 	iokogCRD := newKogCRD()
 	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iokogCRD); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
-	} else {
-		deployOperator = true
 	}
 
 	// Iofogs
@@ -163,15 +160,11 @@ func (k8s *Kubernetes) enableCustomResources() error {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
-	} else {
-		deployOperator = true
 	}
 
-	if deployOperator {
-		// New CRDs, deploy the operator
-		if err := k8s.createOperator(); err != nil {
-			return err
-		}
+	// Deploy operator again
+	if err := k8s.createOperator(); err != nil {
+		return err
 	}
 
 	//	// Wait for Kogs CRD
@@ -210,12 +203,27 @@ func (k8s *Kubernetes) enableKogClient() (err error) {
 
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
+	// Create namespace if required
+	verbose("Creating namespace " + k8s.ns)
+	ns := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: k8s.ns,
+		},
+	}
+	if _, err := k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
+		if !isAlreadyExists(err) {
+			return err
+		}
+	}
+
 	// Set up CRDs if required
+	verbose("Enabling CRDs")
 	if err := k8s.enableCustomResources(); err != nil {
 		return err
 	}
 
 	// Check if kog exists
+	verbose("Finding existing Kog")
 	kogKey := kogclient.ObjectKey{
 		Name:      kogName,
 		Namespace: k8s.ns,
@@ -246,10 +254,12 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 		},
 	}
 	if found {
+		verbose("Updating existing Kog")
 		if err := k8s.kogClient.Update(context.Background(), &kog); err != nil {
 			return err
 		}
 	} else {
+		verbose("Deploying new Kog")
 		if err := k8s.kogClient.Create(context.Background(), &kog); err != nil {
 			return err
 		}
@@ -258,36 +268,43 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
 	return nil
 }
 
-func (k8s *Kubernetes) createOperator() error {
+func (k8s *Kubernetes) createOperator() (err error) {
 	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
-	if _, err := k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
 		if !isAlreadyExists(err) {
-			return err
+			return
 		}
 	}
 	opRole := newRole(k8s.ns, k8s.ms["operator"])
-	if _, err := k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole); err != nil {
+	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole); err != nil {
 		if !isAlreadyExists(err) {
-			return err
+			return
 		}
 	}
 	opRoleBind := newRoleBinding(k8s.ns, k8s.ms["operator"])
-	if _, err := k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind); err != nil {
+	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind); err != nil {
 		if !isAlreadyExists(err) {
-			return err
+			return
 		}
 	}
 	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
-	if _, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+	var liveDep *appsv1.Deployment
+	if liveDep, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
 		if !isAlreadyExists(err) {
-			return err
+			return
 		}
-		// Exists, redeploy
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
-			return err
+		// Operator exists, redeploy if image is different
+		containers := liveDep.Spec.Template.Spec.Containers
+		if len(containers) != 1 {
+			return util.NewError(fmt.Sprintf("Expected 1 container Operator Deployment config. Found %d", len(containers)))
 		}
-		if _, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
-			return err
+		if containers[0].Image != opDep.Spec.Template.Spec.Containers[0].Image {
+			if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
+				return
+			}
+			if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+				return
+			}
 		}
 	}
 	return nil
