@@ -227,10 +227,14 @@ func newServiceAccount(namespace string, ms *microservice) *v1.ServiceAccount {
 	}
 }
 
+func getClusterRoleBindingName(namespace, resourceName string) string {
+	return namespace + "-" + resourceName
+}
+
 func newClusterRoleBinding(namespace string, ms *microservice) *rbacv1.ClusterRoleBinding {
 	return &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace + "-" + ms.name,
+			Name: getClusterRoleBindingName(namespace, ms.name),
 		},
 		Subjects: []rbacv1.Subject{
 			{
