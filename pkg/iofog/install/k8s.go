@@ -25,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"strconv"
 	"strings"
@@ -37,13 +38,13 @@ import (
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
 type Kubernetes struct {
-	configFilename string
-	kogClient      kogclient.Client
-	clientset      *kubernetes.Clientset
-	extsClientset  *extsclientset.Clientset
-	crdName        string
-	ns             string
-	ms             map[string]*microservice
+	config        *restclient.Config
+	kogClient     kogclient.Client
+	clientset     *kubernetes.Clientset
+	extsClientset *extsclientset.Clientset
+	crdName       string
+	ns            string
+	ms            map[string]*microservice
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -55,13 +56,6 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	}
 
 	// Instantiate Kubernetes clients
-	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
-	kogClient, err := kogclient.New(config, kogclient.Options{Scheme: scheme})
-	if err != nil {
-		return nil, err
-	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -79,13 +73,12 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	microservices["kubelet"] = &kubeletMicroservice
 
 	return &Kubernetes{
-		configFilename: configFilename,
-		kogClient:      kogClient,
-		clientset:      clientset,
-		extsClientset:  extsClientset,
-		crdName:        "iofogs.k8s.iofog.org",
-		ns:             namespace,
-		ms:             microservices,
+		config:        config,
+		clientset:     clientset,
+		extsClientset: extsClientset,
+		crdName:       "iofogs.k8s.iofog.org",
+		ns:            namespace,
+		ms:            microservices,
 	}, nil
 }
 
@@ -105,6 +98,10 @@ func (k8s *Kubernetes) SetImages(images map[string]string) error {
 
 // CreateConnector on cluster
 func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) {
+	if err := k8s.enableKogClient(); err != nil {
+		return err
+	}
+
 	kogList := &v1alpha2.KogList{}
 	if err = k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
 		return err
@@ -147,22 +144,75 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 
 const kogName = "iokog"
 
-// CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
-	// Set up CRDs if required
+func (k8s *Kubernetes) enableCustomResources() error {
+	deployOperator := false
+
+	// Kogs
 	iokogCRD := newKogCRD()
 	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iokogCRD); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
 	} else {
-		// New CRD, deploy the operator
+		deployOperator = true
+	}
+
+	// Iofogs
+	iofogCRD := newIofogCRD()
+	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iofogCRD); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+	} else {
+		deployOperator = true
+	}
+
+	if deployOperator {
+		// New CRDs, deploy the operator
 		if err := k8s.createOperator(); err != nil {
 			return err
 		}
-		if err := k8s.waitForPod(k8s.ms["operator"].name); err != nil {
-			return err
-		}
+	}
+
+	//	// Wait for Kogs CRD
+	//	kog := v1alpha2.Kog{}
+	//	kogKey := kogclient.ObjectKey{
+	//		Name: "fake-does-not-exist",
+	//		Namespace: "default",
+	//	}
+	//	for {
+	//		if err := k8s.kogClient.Get(context.Background(), kogKey, &kog); err != nil {
+	//			println(err.Error())
+	//			if k8serrors.IsNotFound(err) {
+	//				break
+	//			}
+	//		}
+	//		time.Sleep(time.Second)
+	//	}
+
+	if err := k8s.enableKogClient(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k8s *Kubernetes) enableKogClient() (err error) {
+	scheme := runtime.NewScheme()
+	clientgoscheme.AddToScheme(scheme)
+	crdapi.AddToScheme(scheme)
+	k8s.kogClient, err = kogclient.New(k8s.config, kogclient.Options{Scheme: scheme})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateController on cluster
+func (k8s *Kubernetes) CreateController(user IofogUser, replicas int) error {
+	// Set up CRDs if required
+	if err := k8s.enableCustomResources(); err != nil {
+		return err
 	}
 
 	// Check if kog exists
@@ -244,6 +294,10 @@ func (k8s *Kubernetes) createOperator() error {
 }
 
 func (k8s *Kubernetes) DeleteController() error {
+	if err := k8s.enableKogClient(); err != nil {
+		return err
+	}
+
 	kog := &v1alpha2.Kog{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      kogName,
@@ -258,6 +312,10 @@ func (k8s *Kubernetes) DeleteController() error {
 }
 
 func (k8s *Kubernetes) DeleteConnector(name string) error {
+	if err := k8s.enableKogClient(); err != nil {
+		return err
+	}
+
 	kogList := &v1alpha2.KogList{}
 	if err := k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
 		return err
@@ -290,12 +348,13 @@ func (k8s *Kubernetes) DeleteConnector(name string) error {
 	return nil
 }
 
-func (k8s *Kubernetes) waitForPodTerminate(name string) error {
+func (k8s *Kubernetes) waitForDeploymentTerminate(name string) error {
 	terminating := false
 	for !terminating {
-		_, err := k8s.clientset.CoreV1().Pods(k8s.ns).Get(name, metav1.GetOptions{})
+		_, err := k8s.clientset.AppsV1().Deployments(k8s.ns).Get(name, metav1.GetOptions{})
 		if err != nil {
-			terminating = strings.Contains(err.Error(), "not found")
+			terminating = k8serrors.IsNotFound(err)
+			println(err.Error())
 			if !terminating {
 				return err
 			}
