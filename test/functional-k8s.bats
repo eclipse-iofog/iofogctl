@@ -25,7 +25,7 @@ USER_EMAIL="user@domain.com"
   test iofogctl create namespace "$NS"
 }
 
-@test "Deploy Control Plane" {
+@test "Deploy Control Plane and Connector" {
   echo "---
 controlplane:
   iofoguser:
@@ -36,12 +36,12 @@ controlplane:
   controllers:
   - name: $NAME
     kubeconfig: $KUBE_CONFIG
-    images:
-      controller: $CONTROLLER_IMAGE
-      connector: $CONNECTOR_IMAGE
-      scheduler: $SCHEDULER_IMAGE
-      operator: $OPERATOR_IMAGE
-      kubelet: $KUBELET_IMAGE
+  images:
+    controller: $CONTROLLER_IMAGE
+    connector: $CONNECTOR_IMAGE
+    scheduler: $SCHEDULER_IMAGE
+    operator: $OPERATOR_IMAGE
+    kubelet: $KUBELET_IMAGE
 connectors:
 - name: $NAME
   kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
@@ -58,7 +58,6 @@ connectors:
 }
 
 @test "Controller legacy commands after deploy" {
-  sleep 25 # Sleep to avoid SSH tunnel bug from K8s
   test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
 }
 
@@ -135,12 +134,12 @@ controlplane:
   controllers:
   - name: $NAME
     kubeconfig: $KUBE_CONFIG
-    images:
-      controller: $CONTROLLER_IMAGE
-      connector: $CONNECTOR_IMAGE
-      scheduler: $SCHEDULER_IMAGE
-      operator: $OPERATOR_IMAGE
-      kubelet: $KUBELET_IMAGE
+  images:
+    controller: $CONTROLLER_IMAGE
+    connector: $CONNECTOR_IMAGE
+    scheduler: $SCHEDULER_IMAGE
+    operator: $OPERATOR_IMAGE
+    kubelet: $KUBELET_IMAGE
 connectors:
 - name: $NAME
   kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml

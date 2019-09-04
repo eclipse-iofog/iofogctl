@@ -47,12 +47,12 @@ controllers:
 - name: $NAME
   kubeconfig: $KUBE_CONFIG
   replicas: 2
-  images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+images:
+  controller: $CONTROLLER_IMAGE
+  connector: $CONNECTOR_IMAGE
+  scheduler: $SCHEDULER_IMAGE
+  operator: $OPERATOR_IMAGE
+  kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy controlplane -f test/conf/k8s.yaml
   checkController
