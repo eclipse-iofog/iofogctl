@@ -167,22 +167,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 		return err
 	}
 
-	//	// Wait for Kogs CRD
-	//	kog := v1alpha2.Kog{}
-	//	kogKey := kogclient.ObjectKey{
-	//		Name: "fake-does-not-exist",
-	//		Namespace: "default",
-	//	}
-	//	for {
-	//		if err := k8s.kogClient.Get(context.Background(), kogKey, &kog); err != nil {
-	//			println(err.Error())
-	//			if k8serrors.IsNotFound(err) {
-	//				break
-	//			}
-	//		}
-	//		time.Sleep(time.Second)
-	//	}
-
+	// Enable client after CRDs have been made
 	if err := k8s.enableKogClient(); err != nil {
 		return err
 	}
@@ -275,18 +260,13 @@ func (k8s *Kubernetes) createOperator() (err error) {
 			return
 		}
 	}
-	opRole := newRole(k8s.ns, k8s.ms["operator"])
-	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(opRole); err != nil {
+	crb := newClusterRoleBinding(k8s.ns, k8s.ms["operator"])
+	if _, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(crb); err != nil {
 		if !isAlreadyExists(err) {
 			return
 		}
 	}
-	opRoleBind := newRoleBinding(k8s.ns, k8s.ms["operator"])
-	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(opRoleBind); err != nil {
-		if !isAlreadyExists(err) {
-			return
-		}
-	}
+
 	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
 	var liveDep *appsv1.Deployment
 	if liveDep, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
