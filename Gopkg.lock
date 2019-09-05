@@ -129,7 +129,7 @@
   version = "v0.4.0"
 
 [[projects]]
-  digest = "1:b93179983d4504d56897e8d4e1d21a57f8aea8ee7286505593a27cc5cfe3a592"
+  digest = "1:f4efc8d82f6d7885857047720b0feab08c2a005d8dec58e71c0c80912bfbe0be"
   name = "github.com/eclipse-iofog/iofog-operator"
   packages = [
     "pkg/apis",
@@ -137,7 +137,7 @@
     "pkg/apis/k8s/v1alpha2",
   ]
   pruneopts = "UT"
-  revision = "24a79dc0c1cb0bd48c3cc84091f1dbaaf6df4928"
+  revision = "317d23fb50f3816219aaba9a36f94610e9bf6a0d"
 
 [[projects]]
   digest = "1:b2754ad67d4ed5a0741d69396c6f5cbe1e426a8adc2e8e97e09a1ee5a4621653"

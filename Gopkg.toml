@@ -30,8 +30,7 @@
 
 [[override]]
   name = "github.com/eclipse-iofog/iofog-operator"
-  revision = "24a79dc0c1cb0bd48c3cc84091f1dbaaf6df4928"
-  #branch = "feature/iokog"
+  revision = "317d23fb50f3816219aaba9a36f94610e9bf6a0d"
 
 [[constraint]]
   name = "github.com/mitchellh/go-homedir"
@@ -48,11 +47,6 @@
 [[constraint]]
   name = "k8s.io/client-go"
   version = "v11.0.0"
-
-[[override]]
-  name = "k8s.io/code-generator"
-  # revision for tag "kubernetes-1.12.3"
-  revision = "3dcf91f64f638563e5106f21f50c31fa361c918d"
 
 [[override]]
   name = "k8s.io/api"

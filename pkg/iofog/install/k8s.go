@@ -238,7 +238,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		if !k8serrors.IsNotFound(err) {
 			return err
 		}
-		// Not found
+		// Not found, set basic info
 		found = false
 		kog = v1alpha2.Kog{
 			ObjectMeta: metav1.ObjectMeta{
@@ -247,6 +247,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 			},
 		}
 	}
+	// Set specification
 	kog.Spec = v1alpha2.KogSpec{
 		ControlPlane: v1alpha2.ControlPlane{
 			IofogUser:              v1alpha2.IofogUser(user),
@@ -258,6 +259,8 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 			Instances: []v1alpha2.Connector{},
 		},
 	}
+
+	// Create or update Kog
 	if found {
 		verbose("Updating existing Kog")
 		if err := k8s.kogClient.Update(context.Background(), &kog); err != nil {
