@@ -139,31 +139,6 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 	return nil
 }
 
-func (k8s *Kubernetes) disableCustomResources() error {
-	// Delete iokog CRD
-	iokogCRD := newKogCRD()
-	if err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(iokogCRD.ObjectMeta.Name, &metav1.DeleteOptions{}); err != nil {
-		if !k8serrors.IsNotFound(err) {
-			return err
-		}
-	}
-
-	// Delete iofog CRD
-	iofogCRD := newIofogCRD()
-	if err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(iofogCRD.ObjectMeta.Name, &metav1.DeleteOptions{}); err != nil {
-		if !k8serrors.IsNotFound(err) {
-			return err
-		}
-	}
-
-	// Delete Operator
-	if err := k8s.deleteOperator(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (k8s *Kubernetes) enableCustomResources() error {
 	// Kogs
 	iokogCRD := newKogCRD()
@@ -355,8 +330,8 @@ func (k8s *Kubernetes) DeleteController() error {
 		return err
 	}
 
-	// Delete CRDs and Operator
-	if err := k8s.disableCustomResources(); err != nil {
+	// Delete Operator
+	if err := k8s.deleteOperator(); err != nil {
 		return err
 	}
 

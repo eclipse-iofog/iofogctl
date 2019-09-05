@@ -30,7 +30,7 @@
 
 [[override]]
   name = "github.com/eclipse-iofog/iofog-operator"
-  revision = "317d23fb50f3816219aaba9a36f94610e9bf6a0d"
+  revision = "433bd55e39c61d35e8edd2286395536f0ccd795c"
 
 [[constraint]]
   name = "github.com/mitchellh/go-homedir"
