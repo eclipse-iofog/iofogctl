@@ -40,10 +40,9 @@ func (exe *namespaceExecutor) Execute() error {
 
 	// Populate rows
 	for idx, ns := range namespaces {
-
 		age, err := util.ElapsedUTC(ns.Created, util.NowUTC())
 		if err != nil {
-			return err
+			age = "-"
 		}
 		row := []string{
 			ns.Name,
@@ -53,6 +52,5 @@ func (exe *namespaceExecutor) Execute() error {
 	}
 
 	// Print the table
-	err := print(table)
-	return err
+	return print(table)
 }
