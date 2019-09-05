@@ -108,10 +108,14 @@ func newServiceAccount(namespace string, ms *microservice) *v1.ServiceAccount {
 	}
 }
 
+func getClusterRoleBindingName(namespace, resourceName string) string {
+	return namespace + "-" + resourceName
+}
+
 func newClusterRoleBinding(namespace string, ms *microservice) *rbacv1.ClusterRoleBinding {
 	return &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ms.name,
+			Name: getClusterRoleBindingName(namespace, ms.name),
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -224,11 +228,11 @@ func newRole(namespace string, ms *microservice) *rbacv1.Role {
 	}
 }
 
-func newCustomResourceDefinition(name string) *extsv1.CustomResourceDefinition {
+func newIofogCRD() *extsv1.CustomResourceDefinition {
 	labelSelectorPath := ".status.labelSelector"
 	return &extsv1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name: "iofogs.k8s.iofog.org",
 		},
 		Spec: extsv1.CustomResourceDefinitionSpec{
 			Group: "k8s.iofog.org",
@@ -247,6 +251,28 @@ func newCustomResourceDefinition(name string) *extsv1.CustomResourceDefinition {
 					StatusReplicasPath: ".status.replicas",
 					LabelSelectorPath:  &labelSelectorPath,
 				},
+			},
+		},
+	}
+}
+
+func newKogCRD() *extsv1.CustomResourceDefinition {
+	return &extsv1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "kogs.k8s.iofog.org",
+		},
+		Spec: extsv1.CustomResourceDefinitionSpec{
+			Group: "k8s.iofog.org",
+			Names: extsv1.CustomResourceDefinitionNames{
+				Kind:     "Kog",
+				ListKind: "KogList",
+				Plural:   "kogs",
+				Singular: "kog",
+			},
+			Scope:   extsv1.ResourceScope("Namespaced"),
+			Version: "v1alpha2",
+			Subresources: &extsv1.CustomResourceSubresources{
+				Status: &extsv1.CustomResourceSubresourceStatus{},
 			},
 		},
 	}

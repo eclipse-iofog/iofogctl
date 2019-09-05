@@ -172,9 +172,6 @@ func compareControllers(lhs, rhs Controller) bool {
 	equal = equal && (lhs.KubeControllerIP == rhs.KubeControllerIP)
 	equal = equal && (lhs.Name == rhs.Name)
 	equal = equal && (lhs.User == lhs.User)
-	for key := range lhs.Images {
-		equal = equal && (lhs.Images[key] == rhs.Images[key])
-	}
 
 	return equal
 }
@@ -188,12 +185,6 @@ func TestWritingController(t *testing.T) {
 		KubeControllerIP: "123.12.123.13",
 		Name:             "Hubert",
 		User:             "Kubert",
-		Images: map[string]string{
-			"controller": "iofog/controller",
-			"agent":      "iofog/agent",
-			"connector":  "iofog/connector",
-			"operator":   "iofog/operator",
-		},
 	}
 	if err := AddController(writeNamespace, ctrl); err != nil {
 		t.Errorf("Error Creating controller in write namespace: %s", err.Error())

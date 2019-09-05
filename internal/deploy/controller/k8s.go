@@ -44,15 +44,11 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure deploy
-	if err = installer.SetImages(exe.ctrl.Images); err != nil {
+	if err = installer.SetImages(exe.controlPlane.Images); err != nil {
 		return err
 	}
 	if exe.ctrl.KubeControllerIP != "" {
 		installer.SetControllerIP(exe.ctrl.KubeControllerIP)
-	}
-	if exe.controlPlane.Database.Host != "" {
-		db := exe.controlPlane.Database
-		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.DatabaseName, db.Port)
 	}
 
 	replicas := 1
@@ -60,7 +56,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		replicas = exe.ctrl.Replicas
 	}
 	// Create controller on cluster
-	if err = installer.CreateController(replicas); err != nil {
+	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {
 		return
 	}
 

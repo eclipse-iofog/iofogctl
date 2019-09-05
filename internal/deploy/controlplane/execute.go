@@ -20,7 +20,6 @@ import (
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -73,21 +72,6 @@ func Execute(opt Options) error {
 			Password: controlPlane.IofogUser.Password,
 		}); err != nil {
 			return err
-		}
-	}
-
-	// For Kubernetes Controllers, we need to deploy extensions
-	for idx := range controlPlane.Controllers {
-		kubeConfig := controlPlane.Controllers[idx].KubeConfig
-		if kubeConfig != "" {
-			installer, err := install.NewKubernetes(kubeConfig, opt.Namespace)
-			if err != nil {
-				return err
-			}
-			if err = installer.CreateExtensionServices(install.IofogUser(controlPlane.IofogUser)); err != nil {
-				return err
-			}
-			break
 		}
 	}
 

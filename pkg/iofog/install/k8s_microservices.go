@@ -102,12 +102,12 @@ var schedulerMicroservice = microservice{
 }
 
 var operatorMicroservice = microservice{
-	name:     "operator",
+	name:     "iofog-operator",
 	ports:    []int{60000},
 	replicas: 1,
 	containers: []container{
 		{
-			name:            "operator",
+			name:            "iofog-operator",
 			image:           "iofog/iofog-operator:" + tag,
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
@@ -142,7 +142,7 @@ var operatorMicroservice = microservice{
 				},
 				{
 					Name:  "OPERATOR_NAME",
-					Value: "operator",
+					Value: "iofog-operator",
 				},
 			},
 			ports: []v1.ContainerPort{

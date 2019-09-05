@@ -19,3 +19,12 @@ type IofogUser struct {
 	Email    string
 	Password string
 }
+
+type Database struct {
+	Provider     string
+	Host         string
+	Port         int
+	User         string
+	Password     string
+	DatabaseName string
+}

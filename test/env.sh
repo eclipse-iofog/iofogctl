@@ -29,7 +29,7 @@ export KEY_FILE="~/.ssh/id_rsa"
 export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:latest"
 export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:latest"
 #export SCHEDULER_IMAGE="gcr.io/focal-freedom-236620/scheduler:develop"
-export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
+export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:latest"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys

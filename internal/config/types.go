@@ -30,6 +30,7 @@ type DockerCredentials struct {
 }
 
 type Database struct {
+	Provider     string
 	Host         string
 	Port         int
 	User         string
@@ -47,6 +48,7 @@ type ControlPlane struct {
 	LoadBalancer Loadbalancer
 	IofogUser    IofogUser
 	Controllers  []Controller
+	Images       map[string]string
 }
 
 type Connector struct {
@@ -77,7 +79,6 @@ type Controller struct {
 	KubeControllerIP  string
 	Endpoint          string
 	Created           string
-	Images            map[string]string
 	ImageCredentials  DockerCredentials // Optional credentials if needed to pull images
 	Version           string
 	PackageCloudToken string
