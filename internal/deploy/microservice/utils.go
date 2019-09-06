@@ -77,8 +77,6 @@ func ConfigureAgent(msvc *config.Microservice, agent *client.AgentInfo, clt *cli
 }
 
 func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.CatalogItemInfo, catalogByName map[string]*client.CatalogItemInfo, clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
-	// TODO - Rework catalog item logic once it is implemented properly controller side
-	// Temporary, return if no catalog Id provided
 	if msvc.Images.CatalogID == 0 {
 		return
 	}
