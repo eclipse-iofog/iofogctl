@@ -155,7 +155,6 @@ stages:
     - template: templates/functional-post-test.yaml
     - template: templates/functional-clean-vm.yaml
   - job: HA
-    condition: eq('false', 'true') # Job disabled
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
@@ -180,15 +179,18 @@ stages:
         chmod +x /usr/local/bin/helm
         rm -r linux-amd64
       displayName: 'Install Helm'
-    - template: templates/functional-configure.yaml
     - script: |
         helm install --set postgresqlUsername=$(db.user),postgresqlPassword=$(db.pw),persistence.size=1Gi --namespace $(jobuuid) --name $(jobuuid) stable/postgresql
+        sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
         sed -i "s|DB_USER=.*|DB_USER=\"$(db.user)\"|g" test/env.sh
         sed -i "s|DB_HOST=.*|DB_HOST=\"$(jobuuid)-postgresql.$(jobuuid).svc.cluster.local\"|g" test/env.sh
         sed -i "s|DB_PORT=.*|DB_PORT=5432|g" test/env.sh
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
+        sed -i "s|DB_NAME=.*|DB_NAME=\"$(jobuuid)\"|g" test/env.sh
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"docker.io/edgeworx/enterprise-controller:latest\"|g" test/env.sh
       workingDirectory: '$(modulePath)'
       displayName: 'Set up Postgres on K8s cluster'
+    - template: templates/functional-configure.yaml
     - script: |
         set -o pipefail
         test/run.bash functional-ha | tee test/conf/results-functional-ha.tap
