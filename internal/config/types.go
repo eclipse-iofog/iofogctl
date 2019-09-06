@@ -133,8 +133,8 @@ type Microservice struct {
 	Ports          []client.MicroservicePortMapping   `yaml:"ports"`
 	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes"`
 	Env            []client.MicroserviceEnvironment   `yaml:"env"`
-	Routes         []string                           `yaml:"routes"`
-	Flow           *string                            `yaml:"application"`
+	Routes         []string                           `yaml:"routes,omitempty"`
+	Flow           *string                            `yaml:"application,omitempty"`
 	Created        string                             `yaml:"created,omitempty"`
 }
 

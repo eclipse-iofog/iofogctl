@@ -71,7 +71,16 @@ func (exe *applicationExecutor) init(controlPlane config.ControlPlane) (err erro
 		if err != nil {
 			return err
 		}
-		exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], listMsvcs.Microservices...)
+
+		// Filter System microservices
+		for _, ms := range listMsvcs.Microservices {
+			// 4 is hard coded. TODO: Find a way to maintain this ID from Controller.
+			// Catalog item 1, 2, 3 are SYSTEM microservices, and are not inspectable by the user
+			if ms.CatalogItemID != 0 && ms.CatalogItemID < 4 {
+				continue
+			}
+			exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], ms)
+		}
 	}
 	return
 }

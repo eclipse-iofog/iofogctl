@@ -29,7 +29,11 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	if msvc.CatalogItemID != 0 {
 		catalogItem, err = clt.GetCatalogItem(msvc.CatalogItemID)
 		if err != nil {
-			return nil, err
+			if httpErr, ok := err.(*client.HTTPError); ok && httpErr.Code == 404 {
+				catalogItem = nil
+			} else {
+				return nil, err
+			}
 		}
 	}
 	application, err := clt.GetFlowByID(msvc.FlowID)
