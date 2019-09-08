@@ -187,7 +187,7 @@ stages:
         sed -i "s|DB_PORT=.*|DB_PORT=5432|g" test/env.sh
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"docker.io/edgeworx/enterprise-controller:alex\"|g" test/env.sh
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"docker.io/edgeworx/enterprise-controller:latest\"|g" test/env.sh
       workingDirectory: '$(modulePath)'
       displayName: 'Set up Postgres on K8s cluster'
     - template: templates/functional-configure.yaml
