@@ -54,9 +54,7 @@ func (exe *applicationExecutor) init(controlPlane config.ControlPlane) (err erro
 
 	// Filter system microservices
 	for _, msvc := range msvcListResponse.Microservices {
-		// 4 is hard coded. TODO: Find a way to maintain this ID from Controller.
-		// Catalog item 1, 2, 3 are SYSTEM microservices, and are not inspectable by the user
-		if msvc.CatalogItemID != 0 && msvc.CatalogItemID < 4 {
+		if util.IsSystemMsvc(msvc) {
 			continue
 		}
 		exe.msvcs = append(exe.msvcs, msvc)

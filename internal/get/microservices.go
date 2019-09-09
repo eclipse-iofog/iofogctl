@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type microserviceExecutor struct {
@@ -92,10 +93,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 	// Populate rows
 	count := 0
 	for _, ms := range exe.msvcPerID {
-
-		// 4 is hard coded. TODO: Find a way to maintain this ID from Controller.
-		// Catalog item 1, 2, 3 are SYSTEM microservices, and are not inspectable by the user
-		if ms.CatalogItemID != 0 && ms.CatalogItemID < 4 {
+		if util.IsSystemMsvc(*ms) {
 			continue
 		}
 

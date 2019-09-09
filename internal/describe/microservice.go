@@ -64,9 +64,7 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 
-	// 4 is hard coded. TODO: Find a way to maintain this ID from Controller.
-	// Catalog item 1, 2, 3 are SYSTEM microservices, and are not inspectable by the user
-	if exe.msvc.CatalogItemID != 0 && exe.msvc.CatalogItemID < 4 {
+	if util.IsSystemMsvc(*(exe.msvc)) {
 		return nil
 	}
 
