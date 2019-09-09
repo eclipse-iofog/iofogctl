@@ -9,6 +9,7 @@ NAMESPACE="$1"
 echo "Cleaning namespace $NAMESPACE"
 
 iofogctl delete all -n "$NAMESPACE" -v
+kubectl delete kogs/iokog -n "$NAMESPACE"
 kubectl delete all --all -n "$NAMESPACE"
 kubectl delete ns "$NAMESPACE"
 iofogctl disconnect "$NAMESPACE" -v

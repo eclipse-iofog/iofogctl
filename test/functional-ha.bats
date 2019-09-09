@@ -13,6 +13,7 @@
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
 # VANILLA_VERSION
+# DB_PROVIDER
 # DB_USER
 # DB_HOST
 # DB_PORT
@@ -33,6 +34,7 @@ USER_EMAIL="user@domain.com"
 @test "Deploy Control Plane" {
   echo "---
 database:
+  provider: $DB_PROVIDER
   user: $DB_USER
   host: $DB_HOST
   port: $DB_PORT
@@ -67,7 +69,6 @@ images:
 @test "Deploy Connector" {
   echo "---
 name: $NAME
-replicas: 1
 kubeconfig: $KUBE_CONFIG" > test/conf/cnct.yaml
   test iofogctl -v -n "$NS" deploy connector -f test/conf/cnct.yaml
   checkConnector
