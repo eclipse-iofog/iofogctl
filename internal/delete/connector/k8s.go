@@ -50,10 +50,5 @@ func (exe *kubernetesExecutor) Execute() error {
 		return err
 	}
 
-	// Clear Connector from Controller
-	if err = deleteConnectorFromController(exe.namespace, cnct.Host); err != nil {
-		return err
-	}
-
 	return nil
 }

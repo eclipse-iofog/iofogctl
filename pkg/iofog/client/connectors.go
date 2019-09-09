@@ -38,13 +38,13 @@ func (clt *Client) ListConnectors() (response ConnectorInfoList, err error) {
 	return
 }
 
-func (clt *Client) DeleteConnector(ip string) (err error) {
+func (clt *Client) DeleteConnector(name string) (err error) {
 	if !clt.isLoggedIn() {
 		return NewError("Controller client must be logged into perform Delete Connector request")
 	}
 
 	// Send request
-	if _, err = clt.doRequest("DELETE", "/connector", ConnectorInfo{IP: ip}); err != nil {
+	if _, err = clt.doRequest("DELETE", "/connector", ConnectorInfo{Name: name}); err != nil {
 		return
 	}
 
