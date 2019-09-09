@@ -16,6 +16,7 @@ package deleteconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"strings"
 )
 
 func deleteConnectorFromController(namespace, connectorIP string) error {
@@ -38,7 +39,9 @@ func deleteConnectorFromController(namespace, connectorIP string) error {
 		return err
 	}
 	if err = ctrlClient.DeleteConnector(connectorIP); err != nil {
-		return err
+		if !strings.Contains(err.Error(), "NotFoundError") {
+			return err
+		}
 	}
 
 	return nil

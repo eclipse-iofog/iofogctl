@@ -327,7 +327,9 @@ func (k8s *Kubernetes) DeleteController() error {
 		},
 	}
 	if err := k8s.kogClient.Delete(context.Background(), kog); err != nil {
-		return err
+		if !k8serrors.IsNotFound(err) {
+			return err
+		}
 	}
 
 	// Delete Operator
