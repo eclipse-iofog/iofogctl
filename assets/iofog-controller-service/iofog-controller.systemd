@@ -1,0 +1,10 @@
+[Unit]
+Description=ioFog Controller
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/iofog-controller start
+ExecStop=/usr/local/bin/iofog-controller stop
+
+[Install]
+WantedBy=multi-user.target

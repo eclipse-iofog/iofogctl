@@ -79,7 +79,7 @@ iofogctl legacy agent NAME status`,
 					util.Check(sshClient.Connect())
 					defer sshClient.Disconnect()
 
-					sshCmd := "iofog-controller"
+					sshCmd := "sudo iofog-controller"
 					for _, arg := range args[2:] {
 						sshCmd = sshCmd + " " + arg
 					}
