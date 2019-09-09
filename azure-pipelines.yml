@@ -171,16 +171,7 @@ stages:
     - template: templates/ssh-steps.yaml
     - script: echo "##vso[task.setvariable variable=vm_count]2"
     - template: templates/functional-init-vm-steps.yaml
-    #- script: |
-    #    curl -Lo helm.tar.gz https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz
-    #    tar -xf helm.tar.gz
-    #    rm helm.tar.gz
-    #    sudo mv linux-amd64/helm /usr/local/bin
-    #    chmod +x /usr/local/bin/helm
-    #    rm -r linux-amd64
-    #  displayName: 'Install Helm'
     - script: |
-        #helm install --set postgresqlUsername=$(db.user),postgresqlPassword=$(db.pw),persistence.size=1Gi --namespace $(jobuuid) --name $(jobuuid) stable/postgresql
         sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
         sed -i "s|DB_USER=.*|DB_USER=\"$(db.user)\"|g" test/env.sh
         sed -i "s|DB_HOST=.*|DB_HOST=\"postgres-postgresql.postgres.svc.cluster.local\"|g" test/env.sh
@@ -203,9 +194,6 @@ stages:
       condition: succeededOrFailed()
     - script: |
           test/clean.bash $(jobuuid)
-          #helm del --purge pg-$(jobuuid)
-          #kubectl get persistentvolumeclaims -n $(jobuuid) | awk 'FNR == 2 {print $1}'
-          #kubectl delete namespace pg-$(jobuuid)
       workingDirectory: '$(modulePath)'
       displayName: 'Clean K8s Cluster'
       condition: always()
