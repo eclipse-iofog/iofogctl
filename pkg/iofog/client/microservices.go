@@ -80,7 +80,7 @@ func (clt *Client) GetMicroservicesPerFlow(flowID int) (response *MicroserviceLi
 	if err != nil {
 		return
 	}
-	response = new(MicroserviceListusResponse)
+	response = new(MicroserviceListResponse)
 	err = json.Unmarshal(body, response)
 	return
 }
