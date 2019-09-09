@@ -62,8 +62,18 @@ func Execute(opt Options) error {
 		if err != nil {
 			return err
 		}
-		executors = append(executors, exe)
+		// TODO: Replace serial execution when CRD updated
+		// Kubernetes Connectors cannot run in parallel
+		if connectors[idx].KubeConfig != "" {
+			if err = exe.Execute(); err != nil {
+				return err
+			}
+		} else {
+			executors = append(executors, exe)
+		}
 	}
+
+	// Run parallel executors
 	if err := runExecutors(executors); err != nil {
 		return err
 	}
