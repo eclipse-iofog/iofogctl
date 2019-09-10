@@ -30,10 +30,10 @@ export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:latest"
 export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:latest"
 #export SCHEDULER_IMAGE="gcr.io/focal-freedom-236620/scheduler:develop"
 export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:latest"
-export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
+export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:latest"
 
 # Controller version for vanilla deploys
-export VANILLA_VERSION="1.2.2-b2538"
+export VANILLA_VERSION="1.2.2-b3530"
 
 ######################################################################
 
