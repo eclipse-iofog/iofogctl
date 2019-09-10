@@ -33,11 +33,7 @@ export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:latest"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:latest"
 
 # Controller version for vanilla deploys
-<<<<<<< HEAD
 export VANILLA_VERSION="1.2.3-b3530"
-=======
-export VANILLA_VERSION="1.2.2-b3375"
->>>>>>> Update controller version in functional tests
 
 ######################################################################
 
