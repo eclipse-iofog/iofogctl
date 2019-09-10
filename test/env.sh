@@ -33,7 +33,7 @@ export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:latest"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:latest"
 
 # Controller version for vanilla deploys
-export VANILLA_VERSION=""
+export VANILLA_VERSION="latest"
 
 ######################################################################
 

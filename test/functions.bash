@@ -144,7 +144,7 @@ function initLocalControllerFile() {
     echo "---
 controlplane:
   images: 
-    controller: gcr.io/focal-freedom-236620/controller:latest
+    controller: ${CONTROLLER_IMAGE}
   iofoguser:
     name: Testing
     surname: Functional
