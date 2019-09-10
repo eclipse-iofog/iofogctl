@@ -20,6 +20,7 @@ variables:
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
+  controller_image: 'gcr.io/focal-freedom-236620/controller:latest'
   version:
   vm_count: 3
   vm_1:
@@ -92,6 +93,9 @@ stages:
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
+    - script: |
+        docker pull $(controller_image)
+      displayName: 'Pull latest Controller docker image'
     - template: templates/workdir-steps.yaml
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
