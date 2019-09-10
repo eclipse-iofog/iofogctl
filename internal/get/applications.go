@@ -92,9 +92,9 @@ func (exe *applicationExecutor) generateApplicationOutput() error {
 
 	// Populate rows
 	for idx, flow := range exe.flows {
-		status := "Inactive"
+		status := "INACTIVE"
 		if flow.IsActivated == true {
-			status = "Running"
+			status = "RUNNING"
 		}
 		msvcs := ""
 		first := true
