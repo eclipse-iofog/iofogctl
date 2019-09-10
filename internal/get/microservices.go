@@ -134,7 +134,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 			agentName = agent.Name
 		}
 		status := ms.Status.Status
-		if (status == "") {
+		if status == "" {
 			status = "Not Supported"
 		}
 		row := []string{
