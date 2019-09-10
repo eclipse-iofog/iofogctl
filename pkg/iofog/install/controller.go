@@ -140,7 +140,7 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Wait for API
 	endpoint := fmt.Sprintf("%s:%s", ctrl.Host, iofog.ControllerPortString)
-	if err = waitForControllerAPI(endpoint); err != nil {
+	if err = WaitForControllerAPI(endpoint); err != nil {
 		return
 	}
 
@@ -171,7 +171,7 @@ func (ctrl *Controller) Stop() (err error) {
 	return
 }
 
-func waitForControllerAPI(endpoint string) (err error) {
+func WaitForControllerAPI(endpoint string) (err error) {
 	ctrlClient := client.New(endpoint)
 
 	connected := false

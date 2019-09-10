@@ -86,6 +86,9 @@ func validate(controlPlane config.ControlPlane) error {
 		}
 	}
 	// Validate Controllers
+	if len(controlPlane.Controllers) == 0 {
+		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
+	}
 	for _, ctrl := range controlPlane.Controllers {
 		if err := deploycontroller.Validate(ctrl); err != nil {
 			return err

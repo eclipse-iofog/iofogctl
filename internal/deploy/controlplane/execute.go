@@ -14,6 +14,7 @@
 package deploycontrolplane
 
 import (
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -58,9 +59,14 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	// Create new user
+	// Make sure Controller API is ready
 	// TODO: replace with controlplane variable for endpoint
-	ctrlClient := client.New(controlPlane.Controllers[0].Endpoint)
+	endpoint := controlPlane.Controllers[0].Endpoint
+	if err = install.WaitForControllerAPI(endpoint); err != nil {
+		return err
+	}
+	// Create new user
+	ctrlClient := client.New(endpoint)
 	if err = ctrlClient.CreateUser(client.User(controlPlane.IofogUser)); err != nil {
 		// If not error about account existing, fail
 		if !strings.Contains(err.Error(), "already an account associated") {
