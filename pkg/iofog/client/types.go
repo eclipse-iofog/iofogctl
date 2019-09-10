@@ -101,6 +101,15 @@ type MicroserviceEnvironment struct {
 	Value string `json:"value"`
 }
 
+type MicroserviceStatus struct {
+	Status            string  `json:"status"`
+	StartTimne        int64   `json:"startTime"`
+	OperatingDuration int64   `json:"operatingDuration"`
+	MemoryUsage       float64 `json:"memoryUsage"`
+	CpuUsage          float64 `json:"cpuUsage"`
+	ContainerId       string  `json:"containerId"`
+}
+
 type MicroserviceInfo struct {
 	UUID              string                      `json:"uuid"`
 	Config            string                      `json:"config"`
@@ -118,6 +127,7 @@ type MicroserviceInfo struct {
 	Volumes           []MicroserviceVolumeMapping `json:"volumeMappings"`
 	Routes            []string                    `json:"routes"`
 	Env               []MicroserviceEnvironment   `json:"env"`
+	Status            MicroserviceStatus          `json:"status"`
 	Images            []CatalogImage              `json:"images"`
 }
 
