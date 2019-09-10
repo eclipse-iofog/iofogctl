@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type microserviceExecutor struct {
@@ -92,6 +93,10 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 	// Populate rows
 	count := 0
 	for _, ms := range exe.msvcPerID {
+		if util.IsSystemMsvc(*ms) {
+			continue
+		}
+
 		routes := ""
 		for idx, route := range ms.Routes {
 			routeDestName := "unknown"

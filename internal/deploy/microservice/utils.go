@@ -77,6 +77,9 @@ func ConfigureAgent(msvc *config.Microservice, agent *client.AgentInfo, clt *cli
 }
 
 func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.CatalogItemInfo, catalogByName map[string]*client.CatalogItemInfo, clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
+	if msvc.Images.CatalogID == 0 {
+		return
+	}
 	catalogImages := []client.CatalogImage{
 		{ContainerImage: msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},

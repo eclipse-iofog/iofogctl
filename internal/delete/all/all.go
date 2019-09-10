@@ -15,10 +15,11 @@ package deleteall
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/delete/agent"
-	"github.com/eclipse-iofog/iofogctl/internal/delete/connector"
-	"github.com/eclipse-iofog/iofogctl/internal/delete/controller"
+	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
+	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
+	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -45,6 +46,27 @@ func Execute(namespace string) error {
 	for _, agent := range ns.Agents {
 		if err = config.DeleteAgent(namespace, agent.Name); err != nil {
 			return err
+		}
+	}
+
+	// Delete routes (which would prevent connector from being deleted)
+	util.SpinStart("Deleting Routes")
+	executors = executors[:0]
+	for _, ctrl := range ns.ControlPlane.Controllers {
+		clt, err := client.NewAndLogin(ctrl.Endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+		if err != nil {
+			return err
+		}
+		msvcs, err := clt.GetAllMicroservices()
+		if err != nil {
+			return err
+		}
+		for _, msvc := range msvcs.Microservices {
+			for _, destUUID := range msvc.Routes {
+				if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
+					return err
+				}
+			}
 		}
 	}
 

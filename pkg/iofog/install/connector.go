@@ -2,11 +2,12 @@ package install
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"regexp"
-	"strings"
 )
 
 type ConnectorOptions struct {
@@ -90,9 +91,10 @@ func (cnct *Connector) Install() (err error) {
 		return
 	}
 	if err = ctrlClient.AddConnector(client.ConnectorInfo{
-		IP:     cnct.Host,
-		Domain: cnct.Host,
-		Name:   cnct.Name,
+		IP:      cnct.Host,
+		Domain:  cnct.Host,
+		Name:    cnct.Name,
+		DevMode: true,
 	}); err != nil {
 		return
 	}

@@ -51,7 +51,14 @@ func (exe *applicationExecutor) init(controlPlane config.ControlPlane) (err erro
 	if err != nil {
 		return
 	}
-	exe.msvcs = msvcListResponse.Microservices
+
+	// Filter system microservices
+	for _, msvc := range msvcListResponse.Microservices {
+		if util.IsSystemMsvc(msvc) {
+			continue
+		}
+		exe.msvcs = append(exe.msvcs, msvc)
+	}
 	exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(exe.msvcs); i++ {
 		exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
@@ -102,6 +109,7 @@ func (exe *applicationExecutor) Execute() error {
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
 		Routes:        yamlRoutes,
+		ID:            exe.flow.ID,
 	}
 
 	if exe.filename == "" {

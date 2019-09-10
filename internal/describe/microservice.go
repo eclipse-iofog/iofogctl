@@ -64,6 +64,10 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 
+	if util.IsSystemMsvc(*(exe.msvc)) {
+		return nil
+	}
+
 	yamlMsvc, err := MapClientMicroserviceToConfigMicroservice(exe.msvc, exe.client)
 	if err != nil {
 		return err

@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type applicationExecutor struct {
@@ -71,7 +72,14 @@ func (exe *applicationExecutor) init(controlPlane config.ControlPlane) (err erro
 		if err != nil {
 			return err
 		}
-		exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], listMsvcs.Microservices...)
+
+		// Filter System microservices
+		for _, ms := range listMsvcs.Microservices {
+			if util.IsSystemMsvc(ms) {
+				continue
+			}
+			exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], ms)
+		}
 	}
 	return
 }
