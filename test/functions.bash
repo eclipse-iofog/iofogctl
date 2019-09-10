@@ -143,6 +143,8 @@ agents:
 function initLocalControllerFile() {
     echo "---
 controlplane:
+  images: 
+    controller: ${CONTROLLER_IMAGE}
   iofoguser:
     name: Testing
     surname: Functional
@@ -151,8 +153,6 @@ controlplane:
   controllers:
   - name: $NAME
     host: 127.0.0.1
-    version: $VANILLA_VERSION
-    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
 connectors:
 - name: $NAME
   host: localhost" > test/conf/local.yaml
