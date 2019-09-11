@@ -16,8 +16,10 @@ package deleteagent
 import (
 	"fmt"
 
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
@@ -44,9 +46,47 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// Clean all agent containers
+	// Get Control Plane config details
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	iofogClient, err := client.NewAndLogin(controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+	if err != nil {
+		return err
+	}
+
+	// Get agent UUID
+	agentList, err := iofogClient.ListAgents()
+	if err != nil {
+		return err
+	}
+	var agentUUID string
+	for _, agent := range agentList.Agents {
+		if agent.Name == exe.name {
+			agentUUID = agent.UUID
+		}
+	}
+
+	// Get list of microservices
+	microservicesList, err := iofogClient.GetAllMicroservices()
+	if err != nil {
+		return err
+	}
+
+	// Clean agent container
 	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
+	}
+
+	// Clean microservices
+	for _, msvc := range microservicesList.Microservices {
+		if agentUUID == msvc.AgentUUID {
+			if errClean := exe.client.CleanContainer(fmt.Sprintf("iofog_%s", msvc.UUID)); errClean != nil {
+				util.PrintNotify(fmt.Sprintf("Could not clean Microservice container: %v", errClean))
+			}
+		}
 	}
 
 	return nil
