@@ -39,7 +39,7 @@ routes:
   - ${MSVC2_NAME}
 config:
   test_mode: true
-  data_label: 'Anonymous Person 2'" > test/conf/microservice.yaml
+  data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
 }
 
 function initMicroserviceUpdateFile() {
@@ -74,7 +74,7 @@ routes:
 config:
   test_mode: true
   test_data: 42
-  data_label: 'Anonymous Person 3'" > test/conf/updatedMicroservice.yaml
+  data_label: 'Anonymous_Person_3'" > test/conf/updatedMicroservice.yaml
 }
 
 function initApplicationFiles() {
@@ -98,7 +98,7 @@ function initApplicationFiles() {
     ports: []
     config:
       test_mode: true
-      data_label: 'Anonymous Person'
+      data_label: 'Anonymous_Person'
   # Simple JSON viewer for the heart rate output
   - name: $MSVC2_NAME
     agent:
@@ -219,7 +219,7 @@ function checkMicroservice() {
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous Person 2\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $5}') ]]
+  [[ "{\"data_label\":\"Anonymous_Person_2\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
   [[ "memorylimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep memorylimit ) ]]
   # Check route
   [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
@@ -251,14 +251,14 @@ function checkMicroservice() {
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "value: \"42\"") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "config:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_mode: true") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous Person 2") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous_Person_2") ]]
 }
 
 function checkUpdatedMicroservice() {
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous Person 3\",\"test_data\":42,\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $5}') ]]
+  [[ "{\"data_label\":\"Anonymous_Person_3\",\"test_data\":42,\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
   [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep memorylimit ) ]]
   [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep diskdirectory ) ]]
   # Check route
@@ -296,7 +296,7 @@ function checkUpdatedMicroservice() {
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "config:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_mode: true") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_data: 42") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous Person 3") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous_Person_3") ]]
 }
 
 function checkMicroserviceNegative() {
@@ -310,10 +310,10 @@ function checkApplication() {
   [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
   [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous Person\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk -F '\t' '{print $5}') ]]
+  [[ "{\"data_label\":\"Anonymous_Person\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $4}') ]]
   [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep bluetooth ) ]]
   # Check route
-  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $6}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
@@ -344,8 +344,7 @@ function checkApplication() {
   [[ ! -z $(cat test/conf/app_output.yaml | grep "value: http://localhost:8080/data") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "config:") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "test_mode: true") ]]
-  [[ ! -z $(cat test/conf/app_output.yaml | grep "data_label: Anonymous Person") ]]
-  rm -f test/conf/app_output.yaml
+  [[ ! -z $(cat test/conf/app_output.yaml | grep "data_label: Anonymous_Person") ]]
 }
 
 function checkApplicationNegative() {
