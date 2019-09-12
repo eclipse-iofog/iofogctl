@@ -89,6 +89,9 @@ func (clt *Client) GetMicroservicesPerFlow(flowID int) (response *MicroserviceLi
 // then getting a list of microservices per flow.
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
 	flows, err := clt.GetAllFlows()
+	if err != nil {
+		return nil, err
+	}
 	response = new(MicroserviceListResponse)
 
 	for _, flow := range flows.Flows {
