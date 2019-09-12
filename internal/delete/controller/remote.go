@@ -55,5 +55,10 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
+	// Update config
+	if err = config.DeleteController(exe.namespace, exe.name); err != nil {
+		return err
+	}
+
 	return nil
 }

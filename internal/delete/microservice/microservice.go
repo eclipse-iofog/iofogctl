@@ -38,5 +38,10 @@ func Execute(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	return clt.DeleteMicroservice(item.UUID)
+
+	if err = clt.DeleteMicroservice(item.UUID); err != nil {
+		return err
+	}
+
+	return nil
 }

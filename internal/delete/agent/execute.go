@@ -33,7 +33,7 @@ func Execute(namespace, name string) error {
 	}
 
 	// Update config
-	if err = config.DeleteConnector(namespace, name); err != nil {
+	if err = config.DeleteAgent(namespace, name); err != nil {
 		return err
 	}
 

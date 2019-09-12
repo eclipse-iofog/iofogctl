@@ -15,8 +15,8 @@ package deleteagent
 
 import (
 	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
@@ -87,6 +87,11 @@ func (exe *localExecutor) Execute() error {
 				util.PrintNotify(fmt.Sprintf("Could not clean Microservice container: %v", errClean))
 			}
 		}
+	}
+
+	// Update config
+	if err := config.DeleteAgent(exe.namespace, exe.name); err != nil {
+		return err
 	}
 
 	return nil

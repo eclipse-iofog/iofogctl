@@ -50,5 +50,10 @@ func (exe *kubernetesExecutor) Execute() error {
 		return err
 	}
 
+	// Update config
+	if err = config.DeleteConnector(exe.namespace, exe.name); err != nil {
+		return err
+	}
+
 	return nil
 }

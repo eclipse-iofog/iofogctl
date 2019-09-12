@@ -15,6 +15,7 @@ package deletecontroller
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -46,6 +47,11 @@ func (exe *localExecutor) Execute() error {
 	// Clean container
 	if errClean := exe.client.CleanContainer(exe.localControllerConfig.ContainerName); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", errClean))
+	}
+
+	// Update config
+	if err := config.DeleteController(exe.namespace, exe.name); err != nil {
+		return err
 	}
 
 	return nil

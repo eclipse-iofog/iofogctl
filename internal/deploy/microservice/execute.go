@@ -25,6 +25,9 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
+	// Make sure to update config despite failure
+	defer config.Flush()
+
 	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
@@ -72,5 +75,5 @@ func Execute(opt Options) error {
 		return util.NewError("Failed to deploy")
 	}
 
-	return config.Flush()
+	return nil
 }
