@@ -24,6 +24,9 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
+	// Make sure to update config despite failure
+	defer config.Flush()
+
 	_, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return err
@@ -60,5 +63,5 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }

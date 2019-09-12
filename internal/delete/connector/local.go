@@ -15,6 +15,7 @@ package deleteconnector
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -49,6 +50,11 @@ func (exe *localExecutor) Execute() error {
 
 	// Clear Connector from Controller
 	if err := deleteConnectorFromController(exe.namespace, exe.localConnectorConfig.Host); err != nil {
+		return err
+	}
+
+	// Update config
+	if err := config.DeleteConnector(exe.namespace, exe.name); err != nil {
 		return err
 	}
 

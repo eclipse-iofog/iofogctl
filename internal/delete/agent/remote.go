@@ -84,5 +84,10 @@ func (exe *remoteExecutor) Execute() error {
 		}
 	}
 
+	// Update config
+	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
+		return err
+	}
+
 	return nil
 }

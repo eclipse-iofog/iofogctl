@@ -24,6 +24,9 @@ import (
 )
 
 func Execute(namespace string) error {
+	// Make sure to update config despite failure
+	defer config.Flush()
+
 	// Get namespace
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -42,11 +45,6 @@ func Execute(namespace string) error {
 	}
 	if err := runExecutors(executors); err != nil {
 		return err
-	}
-	for _, agent := range ns.Agents {
-		if err = config.DeleteAgent(namespace, agent.Name); err != nil {
-			return err
-		}
 	}
 
 	// Delete routes (which would prevent connector from being deleted)
@@ -91,11 +89,6 @@ func Execute(namespace string) error {
 	if err := runExecutors(executors); err != nil {
 		return err
 	}
-	for _, cnct := range ns.Connectors {
-		if err = config.DeleteConnector(namespace, cnct.Name); err != nil {
-			return err
-		}
-	}
 
 	// Delete Controllers
 	util.SpinStart("Deleting Controllers")
@@ -110,18 +103,13 @@ func Execute(namespace string) error {
 	if err := runExecutors(executors); err != nil {
 		return err
 	}
-	for _, ctrl := range ns.ControlPlane.Controllers {
-		if err = config.DeleteController(namespace, ctrl.Name); err != nil {
-			return err
-		}
-	}
 
 	// Delete Control Plane
 	if err = config.DeleteControlPlane(namespace); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }
 
 func runExecutors(executors []execute.Executor) error {

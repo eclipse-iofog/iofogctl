@@ -30,6 +30,9 @@ type Options struct {
 }
 
 func Execute(opt Options) error {
+	// Make sure to update config despite failure
+	defer config.Flush()
+
 	util.SpinStart("Deploying Control Plane")
 
 	// Check the namespace exists
@@ -86,7 +89,7 @@ func Execute(opt Options) error {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }
 
 func runExecutors(executors []execute.Executor) error {

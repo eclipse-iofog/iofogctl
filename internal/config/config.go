@@ -16,23 +16,26 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
 )
 
-// struct that file is unmarshalled into
-var conf configuration
+var (
+	conf           configuration // struct that file is unmarshalled into
+	configFilename string        // Name of file
+	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
+	mux = &sync.Mutex{}
+)
 
-// Name of file
-var configFilename string
-
-const defaultDirname = ".iofog/"
-const defaultFilename = "config.yaml"
-
-// DefaultConfigPath is used if user does not specify a config file path
-const DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+const (
+	defaultDirname  = ".iofog/"
+	defaultFilename = "config.yaml"
+	// DefaultConfigPath is used if user does not specify a config file path
+	DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+)
 
 // Init initializes config and unmarshalls the file
 func Init(filename string) {
@@ -213,7 +216,9 @@ func AddNamespace(name, created string) error {
 		Name:    name,
 		Created: created,
 	}
+	mux.Lock()
 	conf.Namespaces = append(conf.Namespaces, newNamespace)
+	mux.Unlock()
 	return nil
 }
 
@@ -223,7 +228,9 @@ func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
 	if err != nil {
 		return err
 	}
+	mux.Lock()
 	ns.ControlPlane = controlPlane
+	mux.Unlock()
 	return nil
 }
 
@@ -236,7 +243,9 @@ func UpdateController(namespace string, controller Controller) error {
 	// Update existing controller if exists
 	for idx := range ns.ControlPlane.Controllers {
 		if ns.ControlPlane.Controllers[idx].Name == controller.Name {
+			mux.Lock()
 			ns.ControlPlane.Controllers[idx] = controller
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -255,7 +264,9 @@ func UpdateConnector(namespace string, connector Connector) error {
 	// Update existing connector if exists
 	for idx := range ns.Connectors {
 		if ns.Connectors[idx].Name == connector.Name {
+			mux.Lock()
 			ns.Connectors[idx] = connector
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -274,7 +285,9 @@ func UpdateAgent(namespace string, agent Agent) error {
 	// Update existing agent if exists
 	for idx := range ns.Agents {
 		if ns.Agents[idx].Name == agent.Name {
+			mux.Lock()
 			ns.Agents[idx] = agent
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -297,7 +310,9 @@ func AddController(namespace string, controller Controller) error {
 	}
 
 	// Append the controller
+	mux.Lock()
 	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
+	mux.Unlock()
 
 	return nil
 }
@@ -315,7 +330,9 @@ func AddConnector(namespace string, connector Connector) error {
 	}
 
 	// Append the connector
+	mux.Lock()
 	ns.Connectors = append(ns.Connectors, connector)
+	mux.Unlock()
 
 	return nil
 }
@@ -333,7 +350,9 @@ func AddAgent(namespace string, agent Agent) error {
 	}
 
 	// Append the controller
+	mux.Lock()
 	ns.Agents = append(ns.Agents, agent)
+	mux.Unlock()
 
 	return nil
 }
@@ -351,7 +370,9 @@ func AddMicroservice(namespace string, microservice Microservice) error {
 	}
 
 	// Append the controller
+	mux.Lock()
 	ns.Microservices = append(ns.Microservices, microservice)
+	mux.Unlock()
 
 	return nil
 }
@@ -360,7 +381,9 @@ func AddMicroservice(namespace string, microservice Microservice) error {
 func DeleteNamespace(name string) error {
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx].Name == name {
+			mux.Lock()
 			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -373,7 +396,9 @@ func DeleteControlPlane(namespace string) error {
 	if err != nil {
 		return err
 	}
+	mux.Lock()
 	ns.ControlPlane = ControlPlane{}
+	mux.Unlock()
 	return nil
 }
 
@@ -386,7 +411,9 @@ func DeleteController(namespace, name string) error {
 
 	for idx := range ns.ControlPlane.Controllers {
 		if ns.ControlPlane.Controllers[idx].Name == name {
+			mux.Lock()
 			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -403,7 +430,9 @@ func DeleteConnector(namespace, name string) error {
 
 	for idx := range ns.Connectors {
 		if ns.Connectors[idx].Name == name {
+			mux.Lock()
 			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -420,7 +449,9 @@ func DeleteAgent(namespace, name string) error {
 
 	for idx := range ns.Agents {
 		if ns.Agents[idx].Name == name {
+			mux.Lock()
 			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -437,7 +468,9 @@ func DeleteMicroservice(namespace, name string) error {
 
 	for idx := range ns.Microservices {
 		if ns.Microservices[idx].Name == name {
+			mux.Lock()
 			ns.Microservices = append(ns.Microservices[:idx], ns.Microservices[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
