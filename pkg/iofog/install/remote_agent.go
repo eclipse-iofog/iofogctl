@@ -54,7 +54,6 @@ func (agent *RemoteAgent) Bootstrap() error {
 	if agent.version != "" && agent.packageCloudToken != "" {
 		installArgs = "dev " + agent.version + " " + agent.packageCloudToken
 	}
-	println(installArgs)
 
 	// Define bootstrap commands
 	cmds := []string{
