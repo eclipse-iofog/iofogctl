@@ -37,8 +37,5 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Default executor
-	if agent.Host == "" || agent.KeyFile == "" || agent.User == "" {
-		return nil, util.NewError("Cannot execute delete command because SSH details for Agent " + name + " are not available")
-	}
 	return newRemoteExecutor(namespace, name), nil
 }

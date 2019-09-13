@@ -16,6 +16,7 @@ package deleteconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -52,7 +53,7 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Stop Connector
 	if err = installer.Stop(); err != nil {
-		return err
+		util.PrintNotify("Could not stop daemon for Connector " + exe.name)
 	}
 
 	// Clear Connector from Controller

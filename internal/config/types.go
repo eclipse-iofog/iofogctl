@@ -86,15 +86,17 @@ type Controller struct {
 
 // Agent contains information for configuring an agent
 type Agent struct {
-	Name             string
-	User             string
-	Host             string
-	Port             int
-	KeyFile          string
-	UUID             string
-	Created          string
-	Image            string
-	ImageCredentials DockerCredentials // Optional credentials if needed to pull image
+	Name              string
+	User              string
+	Host              string
+	Port              int
+	KeyFile           string
+	UUID              string
+	Created           string
+	Image             string
+	ImageCredentials  DockerCredentials // Optional credentials if needed to pull image
+	Version           string
+	PackageCloudToken string
 }
 
 // CatalogItem contains information about a catalog item

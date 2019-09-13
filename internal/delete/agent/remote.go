@@ -76,7 +76,7 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Stop the Agent process on remote server
 	if agent.Host == "" || agent.User == "" || agent.KeyFile == "" || agent.Port == 0 {
-		util.PrintNotify("Cannot stop Agent process on remote server because SSH details for server are not available")
+		util.PrintNotify("Could not stop daemon for Agent " + agent.Name)
 	} else {
 		sshAgent := install.NewRemoteAgent(agent.User, agent.Host, agent.Port, agent.KeyFile, agent.Name)
 		if err = sshAgent.Stop(); err != nil {

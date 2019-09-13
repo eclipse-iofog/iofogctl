@@ -51,6 +51,9 @@ func (exe *remoteExecutor) Execute() (err error) {
 	// Connect to agent via SSH
 	agent := install.NewRemoteAgent(exe.agent.User, exe.agent.Host, exe.agent.Port, exe.agent.KeyFile, exe.agent.Name)
 
+	// Set version
+	agent.SetVersion(exe.agent.Version, exe.agent.PackageCloudToken)
+
 	// Try the install
 	err = agent.Bootstrap()
 	if err != nil {

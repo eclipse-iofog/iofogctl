@@ -15,7 +15,6 @@ package install
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -25,7 +24,9 @@ import (
 // Remote agent uses SSH
 type RemoteAgent struct {
 	defaultAgent
-	ssh *util.SecureShellClient
+	ssh               *util.SecureShellClient
+	version           string
+	packageCloudToken string
 }
 
 func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName string) *RemoteAgent {
@@ -37,6 +38,11 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 	}
 }
 
+func (agent *RemoteAgent) SetVersion(version, packageCloudToken string) {
+	agent.version = version
+	agent.packageCloudToken = packageCloudToken
+}
+
 func (agent *RemoteAgent) Bootstrap() error {
 	// Prepare Agent for bootstrap
 	if err := agent.copyScriptsToAgent(); err != nil {
@@ -45,11 +51,10 @@ func (agent *RemoteAgent) Bootstrap() error {
 
 	// Instantiate install arguments
 	installArgs := ""
-	pkgCloudToken, pkgExists := os.LookupEnv("PACKAGE_CLOUD_TOKEN")
-	agentVersion, verExists := os.LookupEnv("IOFOG_AGENT_VERSION")
-	if pkgExists && verExists {
-		installArgs = "dev " + agentVersion + " " + pkgCloudToken
+	if agent.version != "" && agent.packageCloudToken != "" {
+		installArgs = "dev " + agent.version + " " + agent.packageCloudToken
 	}
+	println(installArgs)
 
 	// Define bootstrap commands
 	cmds := []string{
