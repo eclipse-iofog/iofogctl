@@ -14,6 +14,7 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -57,7 +58,7 @@ func After(input string, substr string) string {
 func IsLowerAlphanumeric(input string) error {
 	regex := regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
 	if !regex.MatchString(input) {
-		return NewInputError("Resource names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character")
+		return NewInputError(fmt.Sprintf("Resource [%s]: Invalid name. Names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character\n", input))
 	}
 	return nil
 }
