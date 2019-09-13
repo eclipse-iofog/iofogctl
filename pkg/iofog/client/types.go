@@ -139,6 +139,7 @@ type MicroserviceCreateRequest struct {
 	FlowID         int                         `json:"flowId"`
 	CatalogItemID  int                         `json:"catalogItemId,omitempty"`
 	AgentUUID      string                      `json:"iofogUuid"`
+	RegistryID     int                         `json:"registryId"`
 	Ports          []MicroservicePortMapping   `json:"ports"`
 	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
 	Routes         []string                    `json:"routes"`
@@ -157,6 +158,7 @@ type MicroserviceUpdateRequest struct {
 	FlowID            *int                         `json:"flowId,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
+	RegistryID        *int                         `json:"registryId"`
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls

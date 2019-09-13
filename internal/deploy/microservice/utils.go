@@ -38,6 +38,10 @@ func ValidateMicroservice(msvc config.Microservice, agentsByName map[string]*cli
 		return util.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
 	}
 
+	if _, foundRegistry := client.RegistryTypeRegistryTypeIDDict[msvc.Images.Registry]; msvc.Images.Registry != "" && !foundRegistry {
+		return util.NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
+	}
+
 	// TODO: Check if microservice name already exists in another flow (Will fail on API call)
 	return nil
 }

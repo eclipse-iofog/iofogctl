@@ -170,6 +170,7 @@ func (exe *remoteExecutor) validate() error {
 	if err := ValidateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID); err != nil {
 		return err
 	}
+
 	// Validate update
 	if exe.msvc.UUID != "" {
 		existingMsvc := exe.microserviceByName[exe.msvc.Name]
@@ -190,12 +191,6 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	// Create microservice
 	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.msvc.Name))
 
-	// Configure agent
-	agent, err := ConfigureAgent(&exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
-	if err != nil {
-		return nil, err
-	}
-
 	// Get catalog item
 	catalogItem, err := SetUpCatalogItem(&exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
 	if err != nil {
@@ -204,6 +199,14 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	var catalogItemID int
 	if catalogItem != nil {
 		catalogItemID = catalogItem.ID
+	}
+
+	// Get registry
+
+	// Configure agent
+	agent, err := ConfigureAgent(&exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
+	if err != nil {
+		return nil, err
 	}
 
 	// Transform msvc config to JSON string
@@ -216,15 +219,20 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 		config = string(byteconfig)
 	}
 
+	var registryID int
+	if exe.msvc.Images.Registry != "" {
+		registryID = client.RegistryTypeRegistryTypeIDDict[exe.msvc.Images.Registry]
+	}
+
 	if exe.msvc.UUID != "" {
 		// Update microservice
-		return exe.update(config, agent.UUID, catalogItemID)
+		return exe.update(config, agent.UUID, catalogItemID, registryID)
 	}
 	// Create microservice
-	return exe.create(config, agent.UUID, catalogItemID)
+	return exe.create(config, agent.UUID, catalogItemID, registryID)
 }
 
-func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (newMsvc *client.MicroserviceInfo, err error) {
+func (exe *remoteExecutor) create(config, agentUUID string, catalogID, registryID int) (newMsvc *client.MicroserviceInfo, err error) {
 	images := []client.CatalogImage{
 		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
@@ -237,6 +245,7 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (newM
 		RootHostAccess: exe.msvc.RootHostAccess,
 		Ports:          exe.msvc.Ports,
 		Volumes:        exe.msvc.Volumes,
+		RegistryID:     registryID,
 		Env:            exe.msvc.Env,
 		AgentUUID:      agentUUID,
 		Routes:         exe.routes,
@@ -244,11 +253,12 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID int) (newM
 	})
 }
 
-func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (newMsvc *client.MicroserviceInfo, err error) {
+func (exe *remoteExecutor) update(config, agentUUID string, catalogID, registryID int) (newMsvc *client.MicroserviceInfo, err error) {
 	images := []client.CatalogImage{
 		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
+
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
@@ -258,6 +268,7 @@ func (exe *remoteExecutor) update(config, agentUUID string, catalogID int) (newM
 		Volumes:        &exe.msvc.Volumes,
 		Env:            exe.msvc.Env,
 		AgentUUID:      &agentUUID,
+		RegistryID:     &registryID,
 		Routes:         exe.routes,
 		Images:         images,
 	})
