@@ -19,6 +19,9 @@ import (
 )
 
 func Execute(name string) error {
+	if err := util.IsLowerAlphanumeric(name); err != nil {
+		return err
+	}
 	// Update configuration
 	err := config.AddNamespace(name, util.NowUTC())
 	if err != nil {

@@ -21,6 +21,10 @@ import (
 )
 
 func newExecutor(namespace string, agent *config.Agent) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
+		return nil, err
+	}
+
 	// Check the namespace exists
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {

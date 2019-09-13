@@ -66,12 +66,17 @@ images:
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
-@test "Deploy Connector" {
+@test "Deploy Connectors" {
+  local CNCT_A="connector-a"
+  local CNCT_B="connector-b"
   echo "---
-name: $NAME
-kubeconfig: $KUBE_CONFIG" > test/conf/cnct.yaml
-  test iofogctl -v -n "$NS" deploy connector -f test/conf/cnct.yaml
-  checkConnector
+connectors:
+- name: $CNCT_A
+  kubeconfig: $KUBE_CONFIG
+- name: $CNCT_B
+  kubeconfig: $KUBE_CONFIG" > test/conf/cncts.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/cncts.yaml
+  checkConnectors "$CNCT_A" "$CNCT_B"
 }
 
 @test "Deploy Agents" {

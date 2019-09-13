@@ -19,7 +19,7 @@ NS="$NAMESPACE"
 @test "Deploy Agents against local Controller" {
   initLocalAgentFile
   test iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
-  checkAgent "${NAME}_0"
+  checkAgent "${NAME}-0"
 }
 
 @test "Deploy application" {
@@ -65,7 +65,7 @@ NS="$NAMESPACE"
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
   checkConnectorNegative
-  checkAgentNegative "${NAME}_0"
+  checkAgentNegative "${NAME}-0"
 }
 
 @test "Delete namespace" {

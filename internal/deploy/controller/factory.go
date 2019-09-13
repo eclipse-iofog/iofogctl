@@ -21,6 +21,10 @@ import (
 )
 
 func NewExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(ctrl.Name); err != nil {
+		return nil, err
+	}
+
 	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
 		return nil, util.NewError("Cannot deploy Controller because ioFog user is not specified")
 	}

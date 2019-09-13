@@ -73,14 +73,14 @@ connectors:
 
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_${IDX}"
+    local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
   done
 }
 
 @test "Get Agent logs" {
   for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_${IDX}"
+    local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
   done
 }

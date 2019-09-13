@@ -15,7 +15,7 @@ function initVanillaController(){
 function initMicroserviceFile() {
   echo "name: ${MICROSERVICE_NAME}
 agent:
-  name: ${NAME}_0
+  name: ${NAME}-0
   config:
     memorylimit: 8192
 images:
@@ -45,7 +45,7 @@ config:
 function initMicroserviceUpdateFile() {
   echo "name: ${MICROSERVICE_NAME}
 agent:
-  name: ${NAME}_0
+  name: ${NAME}-0
   config:
     memorylimit: 5555
     diskdirectory: /tmp/iofog-agent/
@@ -82,7 +82,7 @@ function initApplicationFiles() {
   MSVCS="microservices:
   - name: $MSVC1_NAME
     agent:
-      name: ${NAME}_0
+      name: ${NAME}-0
       config:
         bluetoothenabled: true # this will install the iofog/restblue microservice
         abstractedhardwareEnabled: false
@@ -102,7 +102,7 @@ function initApplicationFiles() {
   # Simple JSON viewer for the heart rate output
   - name: $MSVC2_NAME
     agent:
-      name: ${NAME}_0
+      name: ${NAME}-0
     images:
       arm: edgeworx/healthcare-heart-rate-ui:arm
       x86: edgeworx/healthcare-heart-rate-ui:x86
@@ -136,7 +136,7 @@ function initApplicationFiles() {
 function initLocalAgentFile() {
   echo "---
 agents:
-  - name: ${NAME}_0
+  - name: ${NAME}-0
     host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
@@ -162,7 +162,7 @@ function initAgentsFile() {
   initAgents
   echo "agents:" > test/conf/agents.yaml
   for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_${IDX}"
+    local AGENT_NAME="${NAME}-${IDX}"
     echo "- name: $AGENT_NAME
   user: ${USERS[$IDX]}
   host: ${HOSTS[$IDX]}
@@ -207,6 +207,13 @@ function checkConnector() {
   [[ ! -z $(iofogctl -v -n "$NS" describe connector "$NAME" | grep "name: $NAME") ]]
 }
 
+function checkConnectors() {
+  for CNCT in "$@"; do
+    [[ "$CNCT" == $(iofogctl -v -n "$NS" get connectors | grep "$CNCT" | awk '{print $1}') ]]
+    [[ ! -z $(iofogctl -v -n "$NS" describe connector "$CNCT" | grep "name: $CNCT") ]]
+  done
+}
+
 function checkControllerNegative() {
   [[ "$NAME" != $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
 }
@@ -220,7 +227,7 @@ function checkMicroservice() {
   [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
   [[ "{\"data_label\":\"Anonymous_Person_2\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
-  [[ "memorylimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep memorylimit ) ]]
+  [[ "memorylimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit ) ]]
   # Check route
   [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
@@ -259,8 +266,8 @@ function checkUpdatedMicroservice() {
   [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
   [[ "{\"data_label\":\"Anonymous_Person_3\",\"test_data\":42,\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
-  [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep memorylimit ) ]]
-  [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep diskdirectory ) ]]
+  [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit ) ]]
+  [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep diskdirectory ) ]]
   # Check route
   [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
@@ -311,7 +318,7 @@ function checkApplication() {
   [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   # Check config
   [[ "{\"data_label\":\"Anonymous_Person\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $4}') ]]
-  [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}_0" | grep bluetooth ) ]]
+  [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep bluetooth ) ]]
   # Check route
   [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
   # Check ports
@@ -366,14 +373,14 @@ function checkAgentNegative() {
 
 function checkAgents() {
   for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_$(((IDX++)))"
+    local AGENT_NAME="${NAME}-$(((IDX++)))"
     checkAgent "$AGENT_NAME"
   done
 }
 
 function checkAgentsNegative() {
   for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_$(((IDX++)))"
+    local AGENT_NAME="${NAME}-$(((IDX++)))"
     checkAgentNegative "$AGENT_NAME"
   done
 }
@@ -401,7 +408,7 @@ function checkAgentListFromController() {
 --header "Authorization: $ACCESS_TOKEN" \
 --header 'Content-Type: application/json')
   for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}_$(((IDX++)))"
+    local AGENT_NAME="${NAME}-$(((IDX++)))"
     local UUID=$(echo $LIST | jq -r '.fogs[] | select(.name == "'"$AGENT_NAME"'") | .uuid')
     [[ ! -z "$UUID" ]]
   done
