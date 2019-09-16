@@ -62,16 +62,23 @@ deploy_controller() {
 	else
 		nvm use lts/* || true
 	fi
-	
-	# Clean npmrc for registry setup
-	if [ -f ~/.npmrc ]; then
-		rm ~/.npmrc
+
+	# npmrc
+	if [ -z "$(command -v npmrc)" ]; then
+		npm i npmrc -g
 	fi
+
 	# If token is provided, set up private registry
 	if [ ! -z $token ]; then
-		curl -s https://"$token":@packagecloud.io/install/repositories/iofog/iofog-controller-snapshots/script.node.sh | bash
+		if [ ! -z $(npmrc | grep iofog)]; then
+			npmrc -c iofog
+			npmrc iofog
+		fi
+		curl -s https://"$token":@packagecloud.io/install/repositories/iofog/iofog-controller-snapshots/script.node.sh | force_npm=1 bash
+		mv ~/.npmrc ~/.npmrcs/npmrc
+		ln -s ~/.npmrcs/npmrc ~/.npmrc
 	else
-		npm config set registry https://registry.npmjs.com/
+		npmrc default		
 	fi
 
 	# Install in temporary location
