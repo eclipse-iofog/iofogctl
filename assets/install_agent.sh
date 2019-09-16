@@ -238,6 +238,7 @@ start_docker() {
 
 install_docker_apt() {
 	sudo $1 update -qy
+	sudo $1 upgrade -qy
 	sudo $1 install \
 			apt-transport-https \
 			ca-certificates \
