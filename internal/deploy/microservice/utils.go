@@ -87,7 +87,7 @@ func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.Cat
 	}
 	// Catalog item, and no image
 	if msvc.Images.CatalogID > 0 && msvc.Images.X86 == "" && msvc.Images.ARM == "" {
-		return
+		return catalogByID[msvc.Images.CatalogID], nil
 	}
 	catalogImages := []client.CatalogImage{
 		{ContainerImage: msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
