@@ -5,40 +5,6 @@ set -e
 INSTALL_DIR="/opt/iofog"
 TMP_DIR="/tmp/iofog"
 
-install_iofog_controller_snapshot() {
-	echo "# Installing ioFog Controller snapshot (dev) repo"
-	echo
-	token="?master_token="$token
-	npmrc_file=${HOME}/.npmrc
-	epoch_time=`date +%s`
-	save_npmrc=${HOME}/${epoch_time}.npmrc.bak
-	add_npm_repository=1
-	if [ -f $npmrc_file ]; then
-		if [ ! -z "$(cat $npmrc_file | grep '//packagecloud.io/iofog/iofog-controller-snapshots/npm/:_authToken=')" ]; then
-			# assume we don't need to install npm repo
-			add_npm_repository=0
-		fi
-		# Save any prexisting .npmrc
-		echo "Moving npmrc"
-		mv ${npmrc_file} ${save_npmrc}
-	fi
-	if [ $add_npm_repository -eq 1 ]; then
-		curl -s https://packagecloud.io/install/repositories/iofog/iofog-controller-snapshots/script.node.sh$token | bash
-	fi
-	if [ -f $save_npmrc ]; then
-		echo "Restoring npmrc"
-		if [ $add_npm_repository -eq 1 ]; then
-			# Append previous npmrc configuration
-			echo "" >> $npmrc_file
-			cat $save_npmrc >> $npmrc_file
-			rm $save_npmrc
-		else
-			# Save any prexisting .npmrc
-			mv ${save_npmrc} ${npmrc_file}
-		fi
-	fi
-}
-
 load_existing_nvm() {
 	set +e
 	if [ -z "$(command -v nvm)" ]; then
@@ -90,9 +56,15 @@ deploy_controller() {
 		nvm use lts/* || true
 	fi
 	
-	# Set up repo
+	# Clean npmrc for registry setup
+	if [ -f ~/.npmrc ]; then
+		rm ~/.npmrc
+	fi
+	# If token is provided, set up private registry
 	if [ ! -z $token ]; then
-		install_iofog_controller_snapshot
+		curl -s https://"$token":@packagecloud.io/install/repositories/iofog/iofog-controller-snapshots/script.node.sh | bash
+	else
+		npm config set registry https://registry.npmjs.com/
 	fi
 
 	# Install in temporary location
