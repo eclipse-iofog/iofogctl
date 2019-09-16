@@ -39,11 +39,18 @@ controller_service() {
     fi
 }
 
-deploy_controller() {
-	# Try to stop the instance if is installed
-	if [ ! -z $(command -v iofog-controller) ]; then
-		sudo iofog-controller stop || true
+install_deps() {
+	if [ -z "$(command -v lsof)" ]; then
+		sudo apt install lsof
 	fi
+}
+
+deploy_controller() {
+	# Nuke any existing instances
+	if [ ! -z $(sudo lsof -ti tcp:51121) ]; then
+		sudo lsof -ti tcp:51121 | xargs sudo kill
+	fi
+
 	# nvm
 	load_existing_nvm
 	if [ -z "$(command -v nvm)" ]; then
@@ -106,4 +113,5 @@ export DB_USER="$5"
 export DB_PASSWORD="$6"
 export DB_PORT="$7"
 
+install_deps
 deploy_controller
