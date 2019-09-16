@@ -242,7 +242,7 @@ install_docker_apt() {
 			apt-transport-https \
 			ca-certificates \
 			curl \
-			gnupg2 \
+			gnupg-agent \
 			software-properties-common -qy
 	DISTRO=$(lsb_release -a 2> /dev/null | grep 'Distributor ID' | awk '{print $3}')
 	if [ "$DISTRO" == "Ubuntu" ]; then
