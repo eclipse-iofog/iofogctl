@@ -20,6 +20,7 @@ import (
 )
 
 func newDeleteNamespaceCommand() *cobra.Command {
+	force := false
 	cmd := &cobra.Command{
 		Use:   "namespace NAME",
 		Short: "Delete a Namespace",
@@ -33,12 +34,14 @@ The namespace must not have any resources within it.`,
 			name := args[0]
 
 			// Execute command
-			err := delete.Execute(name)
+			err := delete.Execute(name, force)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted " + name)
 		},
 	}
+
+	cmd.Flags().BoolVarP(&force, "force", "f", false, "Force deletion of all resources within the namespace")
 
 	return cmd
 }
