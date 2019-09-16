@@ -2,7 +2,7 @@ steps:
 - script: |
     if [[ $(ref) == refs/heads/release* ]]; then
       RCVERS=$(echo $(ref) | sed "s|refs/heads/release/||g")
-      echo "##vso[task.setvariable variable=version]$RCVERS-b$(build)"
+      echo "##vso[task.setvariable variable=version]$RCVERS-rc.$(rc_version)"
     elif [[ $(ref) == refs/tags* ]]; then
       TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
       echo "##vso[task.setvariable variable=version]$TAG"
