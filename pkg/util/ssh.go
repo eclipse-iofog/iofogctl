@@ -125,7 +125,7 @@ func format(err error, stdout, stderr *bytes.Buffer) error {
 		return err
 	}
 
-	msg := fmt.Sprintf("Error during SSH session\nstderr:\n%s\nstdout:\n%s", stdout.String(), stderr.String())
+	msg := fmt.Sprintf("Error during SSH session\nstderr:\n%s\nstdout:\n%s", stderr.String(), stdout.String())
 	return errors.New(msg)
 }
 
