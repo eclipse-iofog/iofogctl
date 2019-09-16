@@ -1,8 +1,8 @@
 # ioFog Unified CLI
 
 `iofogctl` is a CLI for the installation, configuration, and operation of ioFog Edge Compute Networks (ECNs).
-It can be used to remotely manage multiple different clusters from a single host. It is built for an
-ioFog user and a DevOps engineering wanting to manage ioFog clusters.  
+It can be used to remotely manage multiple ECNs from a single host. It is built for an
+ioFog user and a DevOps engineer wanting to manage ECNs.
 
 ## Install
 
@@ -33,7 +33,15 @@ sudo apt install iofogctl
 
 ### Documentation
 
-The entire CLI documentation can be found [here](https://github.com/eclipse-iofog/iofogctl/blob/develop/docs/md/iofogctl.md)
+The best way to learn how to use iofogctl is through the iofog.org learning resources.
+
+If you are new to iofogctl, try the quickstart [guide](https://iofog.org/docs/1.2.0/getting-started/quick-start.html) first.
+
+If you want a complete walkthrough of a remote deployment, check out the remote deployment [guide](https://iofog.org/docs/1.2.0/remote-deployment/prepare-your-remote-hosts.html).
+
+For YAML specifications go [here](https://iofog.org/docs/1.2.0/tools/iofogctl/yaml-spec.html).
+
+There are also auto-generated docs in this [repo](./docs/md).
 
 #### Quick Start
 
