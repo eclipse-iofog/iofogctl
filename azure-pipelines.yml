@@ -21,7 +21,6 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   controller_image: 'gcr.io/focal-freedom-236620/controller:latest'
-  rc_version: 1 # Manually update this on your release branches as necessary. Should always be 1 on develop branch
   version:
   vm_count: 3
   vm_1:
