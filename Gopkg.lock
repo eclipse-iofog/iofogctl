@@ -130,6 +130,14 @@
 
 [[projects]]
   branch = "develop"
+  digest = "1:0ce7383f812c4828e92a0d003a85a6dc07e6b695f095af1e3b2f6e981ecaa6fa"
+  name = "github.com/eclipse-iofog/iofog-go-sdk"
+  packages = ["pkg/client"]
+  pruneopts = "UT"
+  revision = "bbb60edef4a40fd34daf2ab163062cc686f2c3b4"
+
+[[projects]]
+  branch = "develop"
   digest = "1:5b8d590fd7c8538c0d4870de9e404ac740b6ee7cacd0cda42ead1532f27d6014"
   name = "github.com/eclipse-iofog/iofog-operator"
   packages = [
@@ -777,6 +785,7 @@
     "github.com/docker/docker/api/types/container",
     "github.com/docker/docker/client",
     "github.com/docker/go-connections/nat",
+    "github.com/eclipse-iofog/iofog-go-sdk/pkg/client",
     "github.com/eclipse-iofog/iofog-operator/pkg/apis",
     "github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2",
     "github.com/mitchellh/go-homedir",

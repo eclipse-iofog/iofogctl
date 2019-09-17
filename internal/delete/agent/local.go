@@ -19,7 +19,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 

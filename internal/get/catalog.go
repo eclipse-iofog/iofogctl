@@ -16,8 +16,8 @@ package get
 import (
 	"strconv"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
 
 type catalogExecutor struct {

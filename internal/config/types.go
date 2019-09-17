@@ -13,7 +13,7 @@
 
 package config
 
-import "github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+import "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {

@@ -14,12 +14,12 @@
 package deleteall
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
 	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 

@@ -16,9 +16,9 @@ package deployapplication
 import (
 	"fmt"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 

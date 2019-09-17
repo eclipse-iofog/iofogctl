@@ -14,8 +14,8 @@
 package connect
 
 import (
+	client "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	client "github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
 
 func connect(opt *Options, endpoint string) error {
