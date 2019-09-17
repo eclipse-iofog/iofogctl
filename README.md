@@ -33,15 +33,9 @@ sudo apt install iofogctl
 
 ### Documentation
 
-The best way to learn how to use iofogctl is through the iofog.org learning resources.
+The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/1.2.0/getting-started/quick-start.html) learning resources.
 
-If you are new to iofogctl, try the quickstart [guide](https://iofog.org/docs/1.2.0/getting-started/quick-start.html) first.
-
-If you want a complete walkthrough of a remote deployment, check out the remote deployment [guide](https://iofog.org/docs/1.2.0/remote-deployment/prepare-your-remote-hosts.html).
-
-For YAML specifications go [here](https://iofog.org/docs/1.2.0/tools/iofogctl/yaml-spec.html).
-
-There are also auto-generated docs in this [repo](./docs/md).
+There are also auto-generated docs within this [repo](./docs/md).
 
 #### Quick Start
 
