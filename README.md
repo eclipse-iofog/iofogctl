@@ -33,7 +33,7 @@ sudo apt install iofogctl
 
 ### Documentation
 
-The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/1.2.0/getting-started/quick-start.html) learning resources.
+The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/1.3.0/getting-started/quick-start.html) learning resources.
 
 There are also auto-generated docs within this [repo](./docs/md).
 

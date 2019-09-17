@@ -51,7 +51,7 @@ var controllerMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "controller",
-			image:           "iofog/controller:" + "1.2.1", // TODO: (Serge) Replace 1.2.1 with tag var after 1.2.x
+			image:           "iofog/controller:" + tag,
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{

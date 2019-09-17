@@ -129,15 +129,14 @@
   version = "v0.4.0"
 
 [[projects]]
-  branch = "develop"
-  digest = "1:0ce7383f812c4828e92a0d003a85a6dc07e6b695f095af1e3b2f6e981ecaa6fa"
+  digest = "1:cf1702841ebf825e519030ce6a74ab8af00efe0db6da5f861d7012e6f0cce421"
   name = "github.com/eclipse-iofog/iofog-go-sdk"
   packages = ["pkg/client"]
   pruneopts = "UT"
-  revision = "bbb60edef4a40fd34daf2ab163062cc686f2c3b4"
+  revision = "567f508c90247f2aeac15ae81071e6334429f6ff"
+  version = "v1.3.0-rc1"
 
 [[projects]]
-  branch = "develop"
   digest = "1:5b8d590fd7c8538c0d4870de9e404ac740b6ee7cacd0cda42ead1532f27d6014"
   name = "github.com/eclipse-iofog/iofog-operator"
   packages = [
@@ -146,7 +145,8 @@
     "pkg/apis/k8s/v1alpha2",
   ]
   pruneopts = "UT"
-  revision = "9edcd4fa01858855fdf39185c68110f1643c3d3a"
+  revision = "4fa9e08663ed47d587f8b8f28765126baa7e66c8"
+  version = "v1.3.0-rc1"
 
 [[projects]]
   digest = "1:b2754ad67d4ed5a0741d69396c6f5cbe1e426a8adc2e8e97e09a1ee5a4621653"
