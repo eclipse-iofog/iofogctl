@@ -228,6 +228,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 			IofogUser:              v1alpha2.IofogUser(user),
 			ControllerReplicaCount: int32(replicas),
 			ControllerImage:        k8s.ms["controller"].containers[0].image,
+			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
 			Database:               v1alpha2.Database(db),
 		},
 		Connectors: v1alpha2.Connectors{
