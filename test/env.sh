@@ -30,7 +30,7 @@ export CONTROLLER_IMAGE="iofog/controller:1.3.0-rc1"
 export CONNECTOR_IMAGE="iofog/connector:1.3.0-rc1"
 #export SCHEDULER_IMAGE="gcr.io/focal-freedom-236620/scheduler:develop"
 export OPERATOR_IMAGE="iofog/iofog-operator:1.3.0-rc1"
-export KUBELET_IMAGE="iofog/iofog-operator:1.3.0-rc1"
+export KUBELET_IMAGE="iofog/iofog-kubelet:1.3.0-rc1"
 
 # Controller version for vanilla deploys
 export VANILLA_VERSION="latest"
