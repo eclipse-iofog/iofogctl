@@ -14,7 +14,7 @@
 package describe
 
 import (
-	"encoding/json"
+	"github.com/json-iterator/go"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -52,7 +52,7 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 
 	jsonConfig := make(map[string]interface{})
-	if err = json.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
+	if err = jsoniter.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
 	}
 	result = new(config.Microservice)
