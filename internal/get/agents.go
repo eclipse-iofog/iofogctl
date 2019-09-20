@@ -80,6 +80,16 @@ func generateAgentOutput(namespace string) error {
 
 		// Process Agents
 		for _, remoteAgent := range listAgentsResponse.Agents {
+			// Server may have agents that the client is not aware of, update config if so
+			if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
+				newAgentConf := config.Agent{
+					Name: remoteAgent.Name,
+					UUID: remoteAgent.UUID,
+					Host: remoteAgent.IPAddressExternal,
+				}
+				config.AddAgent(namespace, newAgentConf)
+			}
+
 			// Use the pre-processed default info if necessary
 			if remoteAgent.IPAddressExternal == "0.0.0.0" {
 				remoteAgent.IPAddressExternal = agentsToPrint[remoteAgent.Name].IPAddressExternal
