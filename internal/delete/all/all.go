@@ -109,7 +109,7 @@ func Execute(namespace string) error {
 		return err
 	}
 
-	return nil
+	return config.Flush()
 }
 
 func runExecutors(executors []execute.Executor) error {
