@@ -238,18 +238,25 @@ start_docker() {
 
 install_docker_apt() {
 	sudo $1 update -qy
-	sudo $1 upgrade -qy
 	sudo $1 install \
 			apt-transport-https \
 			ca-certificates \
 			curl \
-			gnupg-agent \
+			gnupg2 \
 			software-properties-common -qy
 	DISTRO=$(lsb_release -a 2> /dev/null | grep 'Distributor ID' | awk '{print $3}')
 	if [ "$DISTRO" == "Ubuntu" ]; then
 		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+   		sudo add-apt-repository \
+   		"deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   		$(lsb_release -cs) \
+   		stable"
 	else
 		curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+   		sudo add-apt-repository \
+   		"deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+   		$(lsb_release -cs) \
+   		stable"
 	fi
 	sudo $1 update -qy
 	sudo $1 install docker-ce docker-ce-cli containerd.io -qy
@@ -289,7 +296,7 @@ do_install_docker() {
 		fi
 	fi
 	echo "# Installing Docker..."
-	# install_docker_linux
+	install_docker_linux
 	sleep 3
 	curl -fsSL https://get.docker.com/ | sh
 	
@@ -402,6 +409,9 @@ do_install() {
 			exit 1
 		fi
 	fi
+
+	# TODO: Remove this
+	echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp
 	
 	get_distribution
 
@@ -526,4 +536,5 @@ else
 	echo "Will be installing iofog-agent from public repo"
 	echo "To install from snapshot repo, run script with additional param 'dev <VERSION> <PACKAGE_CLOUD_TOKEN>'"
 fi
+
 do_install
