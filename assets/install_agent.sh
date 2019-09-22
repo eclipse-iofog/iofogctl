@@ -66,7 +66,7 @@ check_forked() {
 	if command_exists lsb_release; then
 		# Check if the `-u` option is supported
 		set +e
-		lsb_release -a -u
+		lsb_release -a
 		lsb_release_exit_code=$?
 		set -e
 
@@ -78,8 +78,8 @@ check_forked() {
 			EOF
 
 			# Get the upstream release info
-			lsb_dist=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[:space:]')
-			dist_version=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[:space:]')
+			lsb_dist=$(lsb_release -a 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[:space:]')
+			dist_version=$(lsb_release -a 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[:space:]')
 
 			# Print info about upstream distro
 			cat <<-EOF
@@ -258,7 +258,7 @@ install_docker_apt() {
 install_docker_linux() {
     if [ -x "$(command -v apt-get)" ]; then
 			install_docker_apt "apt-get"
-		elif [ -x "$(command -v apt)" ]; then
+	elif [ -x "$(command -v apt)" ]; then
 			install_docker_apt "apt"
     elif [ -x "$(command -v dnf)" ]; then
         sudo dnf -y install dnf-plugins-core
@@ -486,9 +486,7 @@ do_install() {
 	disable_package_preconfiguration
 
 	# Run setup for each distro accordingly
-	set +e
 	add_initial_apt_repos_if_not_exist
-	set -e
 	
 	do_install_java
 	
