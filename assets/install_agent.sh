@@ -172,7 +172,7 @@ add_initial_apt_repos_if_not_exist() {
 			elif [ "$dist_version" = "buster" ]; then
 				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian buster main"
 			fi
-			$sh_c 'apt-get update -qy'
+			$sh_c 'apt-get update -qq'
 			;;
 	esac
 }
@@ -357,9 +357,6 @@ do_install() {
 			exit 1
 		fi
 	fi
-
-	# TODO: Remove this. Why is it necessary?
-	echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp
 
 	get_distribution
 
