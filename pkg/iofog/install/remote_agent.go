@@ -57,8 +57,6 @@ func (agent *RemoteAgent) Bootstrap() error {
 
 	// Define bootstrap commands
 	cmds := []string{
-		"echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo -S tee /etc/apt/apt.conf.d/99temp",
-		"sudo -S apt --assume-yes install apt-transport-https ca-certificates curl software-properties-common jq",
 		"/tmp/install_agent.sh " + installArgs,
 		"sudo -S service iofog-agent start",
 		"/tmp/wait_agent.sh",
