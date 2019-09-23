@@ -358,9 +358,6 @@ do_install() {
 		fi
 	fi
 
-	# TODO: Remove this
-	echo 'APT::Get::AllowUnauthenticated \"true\";' | sudo tee /etc/apt/apt.conf.d/99temp
-	
 	get_distribution
 
 	case "$lsb_dist" in
