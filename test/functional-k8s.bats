@@ -123,6 +123,14 @@ connectors:
   checkAgents
 }
 
+@test "Delete Agents" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+  done
+  checkAgentsNegative
+}
+
 @test "Deploy Controller and Connector for idempotence" {
   echo "---
 controlplane:
