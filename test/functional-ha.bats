@@ -117,6 +117,15 @@ connectors:
   checkAgents
 }
 
+@test "Delete Agents" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+  done
+  checkAgentsNegative
+  sleep 10 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
+}
+
 @test "Delete all" {
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
