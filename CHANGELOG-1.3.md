@@ -1,10 +1,11 @@
 ## v1.3.0
 * Add support for HA Controllers and Connectors
 * Refactor YAML specifications for HA support
+* Add more support for deploying microservices
+* Display microservice deployment status
 * Allow for users to deploy Connectors to dedicated remote hosts
 * Allow for users to optionally deploy Connectors on K8s cluster
 * Add Connector as a standalone resource for iofogctl commands
-* Display microservice deployment status
 * Replace -q with -v
 * Integrate with ioFog K8s operator for deploying K8s Controller, Connector, and Kubelet
 * Force resource names to be lowercase alphanumeric with - characters
