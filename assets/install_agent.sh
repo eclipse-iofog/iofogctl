@@ -172,6 +172,9 @@ add_initial_apt_repos_if_not_exist() {
 			elif [ "$dist_version" = "buster" ]; then
 				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian buster main"
 			fi
+			local ITER=0
+			echo "Waiting for apt"
+			while [ "$ITER" -lt 30 && ! -z $(ps -A | grep apt) ]; do ITER=$((ITER+1)); sleep 1; done
 			$sh_c 'apt-get update -qq'
 			;;
 	esac
