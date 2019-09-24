@@ -51,7 +51,6 @@ controllers:
   replicas: 2
 images:
   controller: $CONTROLLER_IMAGE
-  connector: $CONNECTOR_IMAGE
   scheduler: $SCHEDULER_IMAGE
   operator: $OPERATOR_IMAGE
   kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
@@ -72,8 +71,10 @@ images:
   echo "---
 connectors:
 - name: $CNCT_A
+  image: $CONNECTOR_IMAGE
   kubeconfig: $KUBE_CONFIG
 - name: $CNCT_B
+  image: $CONNECTOR_IMAGE
   kubeconfig: $KUBE_CONFIG" > test/conf/cncts.yaml
   test iofogctl -v -n "$NS" deploy -f test/conf/cncts.yaml
   checkConnectors "$CNCT_A" "$CNCT_B"
