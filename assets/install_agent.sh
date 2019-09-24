@@ -66,7 +66,7 @@ check_forked() {
 	if command_exists lsb_release; then
 		# Check if the `-u` option is supported
 		set +e
-		lsb_release -a -u
+		lsb_release -a
 		lsb_release_exit_code=$?
 		set -e
 
@@ -78,8 +78,8 @@ check_forked() {
 			EOF
 
 			# Get the upstream release info
-			lsb_dist=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[:space:]')
-			dist_version=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[:space:]')
+			lsb_dist=$(lsb_release -a 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[:space:]')
+			dist_version=$(lsb_release -a 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[:space:]')
 
 			# Print info about upstream distro
 			cat <<-EOF
@@ -172,6 +172,9 @@ add_initial_apt_repos_if_not_exist() {
 			elif [ "$dist_version" = "buster" ]; then
 				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian buster main"
 			fi
+			local ITER=0
+			echo "Waiting for apt"
+			while [ "$ITER" -lt 30 && ! -z $(ps -A | grep apt) ]; do ITER=$((ITER+1)); sleep 1; done
 			$sh_c 'apt-get update -qq'
 			;;
 	esac
@@ -236,49 +239,6 @@ start_docker() {
 	fi
 }
 
-install_docker_apt() {
-	sudo $1 update -qy
-	sudo $1 upgrade -qy
-	sudo $1 install \
-			apt-transport-https \
-			ca-certificates \
-			curl \
-			gnupg-agent \
-			software-properties-common -qy
-	DISTRO=$(lsb_release -a 2> /dev/null | grep 'Distributor ID' | awk '{print $3}')
-	if [ "$DISTRO" == "Ubuntu" ]; then
-		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-	else
-		curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-	fi
-	sudo $1 update -qy
-	sudo $1 install docker-ce docker-ce-cli containerd.io -qy
-}
-
-install_docker_linux() {
-    if [ -x "$(command -v apt-get)" ]; then
-			install_docker_apt "apt-get"
-		elif [ -x "$(command -v apt)" ]; then
-			install_docker_apt "apt"
-    elif [ -x "$(command -v dnf)" ]; then
-        sudo dnf -y install dnf-plugins-core
-        sudo dnf config-manager \
-            --add-repo \
-            https://download.docker.com/linux/fedora/docker-ce.repo
-        sudo dnf install docker-ce docker-ce-cli containerd.io -y
-    elif [ -x "$(command -v yum)" ]; then
-        sudo yum install -y yum-utils \
-            device-mapper-persistent-data \
-            lvm2 -qy
-        sudo yum-config-manager \
-            --add-repo \
-            https://download.docker.com/linux/centos/docker-ce.repo
-        sudo yum install docker-ce docker-ce-cli containerd.io -qy
-    else
-        handle_docker_unsuccessful_installation
-    fi
-}
-
 do_install_docker() {
 	# Check that Docker 18.09.2 or greater is installed
 	if command_exists docker; then
@@ -289,8 +249,6 @@ do_install_docker() {
 		fi
 	fi
 	echo "# Installing Docker..."
-	# install_docker_linux
-	sleep 3
 	curl -fsSL https://get.docker.com/ | sh
 	
 	handle_docker_unsuccessful_installation
@@ -402,7 +360,7 @@ do_install() {
 			exit 1
 		fi
 	fi
-	
+
 	get_distribution
 
 	case "$lsb_dist" in
@@ -486,9 +444,7 @@ do_install() {
 	disable_package_preconfiguration
 
 	# Run setup for each distro accordingly
-	set +e
 	add_initial_apt_repos_if_not_exist
-	set -e
 	
 	do_install_java
 	
@@ -528,4 +484,5 @@ else
 	echo "Will be installing iofog-agent from public repo"
 	echo "To install from snapshot repo, run script with additional param 'dev <VERSION> <PACKAGE_CLOUD_TOKEN>'"
 fi
+
 do_install

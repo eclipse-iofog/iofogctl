@@ -56,9 +56,12 @@ func After(input string, substr string) string {
 }
 
 func IsLowerAlphanumeric(input string) error {
+	if len(input) <= 2 {
+		return NewInputError(fmt.Sprintf("Resource [%s]: Invalid name. Names must be atleast 3 characters in length.", input))
+	}
 	regex := regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
 	if !regex.MatchString(input) {
-		return NewInputError(fmt.Sprintf("Resource [%s]: Invalid name. Names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character\n", input))
+		return NewInputError(fmt.Sprintf("Resource [%s]: Invalid name. Names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character", input))
 	}
 	return nil
 }

@@ -85,9 +85,9 @@ deploy_controller() {
 	sudo mkdir -p "$TMP_DIR/controller"
 	sudo chmod 0777 "$TMP_DIR/controller"
 	if [ -z $version ]; then
-		npm install -g -f iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
+		npm install -g -f minipass@2.7.0 iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
-		npm install -g -f "iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
+		npm install -g -f minipass@2.7.0 "iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
 	fi
 
 	# Move files into $INSTALL_DIR/controller
