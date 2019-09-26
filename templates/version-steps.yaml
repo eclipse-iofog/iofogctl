@@ -1,13 +1,15 @@
 steps:
 - script: |
+    . version
+    VERS=$MAJOR.$MINOR.$PATCH$SUFFIX
     if [[ $(ref) == refs/tags* ]]; then
       TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
-      echo "##vso[task.setvariable variable=version]$TAG"
-    else
-      LATESTTAG=$(git tag | tail -1)
-      LATESTVERS=${LATESTTAG#?}
-      if [ -z "$LATESTVERS" ]; then LATESTVERS=0.0.0; fi
-      echo "##vso[task.setvariable variable=version]$LATESTVERS-b$(build)"
+      if [[ $TAG != $(VERS) ]]; then
+        echo 'Version file does not match git tag'
+        exit 1
+      fi
     fi
+    echo "##vso[task.setvariable variable=version]$TAG"
     echo $(version)
   displayName: 'Set version variable'
+  workingDirectory: '$(modulePath)'
