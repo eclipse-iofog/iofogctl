@@ -248,12 +248,23 @@ stages:
         git config --global user.name "Serge Radinovich"
         git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
         cd homebrew-iofogctl
-        sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" iofogctl.rb
-        sed -i "s/    version.*/    version \"$(version)\"/g" iofogctl.rb
-        sed -i "s|http://edgeworx.io/downloads/iofogctl/dev/.*\.tar\.gz\"|http://edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz\"|g" iofogctl.rb
-        git add iofogctl.rb
+        short_version=$(echo $(version) | tr -d '-')
+        brew_file=iofogctl@${short_version}.rb
+        if [ ! -f $brew_file ]; then
+          cat ./templates/brew.tpl > $brew_file
+          at_version=$(echo $short_version | tr -d '.')
+          sed -i "s/<AT_VERSION>/$at_version/g" $brew_file
+          sed -i "s/<DEV_SHA256>/$checksum/g" $brew_file
+          sed -i "s/<DEV_VERSION>/$(version)/g" $brew_file
+        else
+          sed -i "s/    sha256.*/    sha256 \"$checksum\"/g" $brew_file
+          sed -i "s/    version.*/    version \"$(version)\"/g" $brew_file
+          sed -i "s|http://edgeworx.io/downloads/iofogctl/dev/.*\.tar\.gz\"|http://edgeworx.io/downloads/iofogctl/dev/$(version).tar.gz\"|g" $brew_file
+        fi
+        git add $brew_file
         git commit -m "Publish develop version $(version)"
         git push origin master
+      condition: and(succeeded(), startsWith(variables['ref'], 'refs/tags'))
       workingDirectory: '$(modulePath)'
       displayName: 'Build and publish OSX binary'
     - template: templates/publish-steps.yaml
