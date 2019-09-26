@@ -34,8 +34,8 @@ stages:
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - template: templates/version-steps.yaml
     - template: templates/prebuild-steps.yaml
+    - template: templates/version-steps.yaml
     - script: |
         . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
         make build
@@ -280,6 +280,7 @@ stages:
     - script: |
         sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/workdir-steps.yaml
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |
@@ -315,6 +316,7 @@ stages:
         artifactName: iofogctl-linux
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+    - template: templates/workdir-steps.yaml
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |
