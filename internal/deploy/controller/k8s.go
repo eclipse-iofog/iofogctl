@@ -50,6 +50,11 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if exe.ctrl.KubeControllerIP != "" {
 		installer.SetControllerIP(exe.ctrl.KubeControllerIP)
 	}
+	if exe.ctrl.ServiceType != "" {
+		if err = installer.SetControllerServiceType(exe.ctrl.ServiceType); err != nil {
+			return
+		}
+	}
 
 	replicas := 1
 	if exe.ctrl.Replicas != 0 {

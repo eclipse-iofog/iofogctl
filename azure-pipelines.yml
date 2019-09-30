@@ -34,10 +34,11 @@ stages:
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - template: templates/version-steps.yaml
     - template: templates/prebuild-steps.yaml
+    - template: templates/version-steps.yaml
     - script: |
-        VERSION=$(version) make build
+        . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
+        make build
       workingDirectory: '$(modulePath)'
       displayName: 'Build Linux version'
     - task: PublishBuildArtifacts@1
@@ -45,7 +46,8 @@ stages:
         pathtoPublish: '$(modulePath)/bin'
         artifactName: iofogctl-linux
     - script: |
-        GOOS=darwin VERSION=$(version) make build
+        . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
+        GOOS=darwin make build
       workingDirectory: '$(modulePath)'
       displayName: 'Build OSX Binary'
     - task: PublishBuildArtifacts@1
@@ -239,6 +241,7 @@ stages:
     - template: templates/version-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: |
+        . version
         tar -zcf iofogctl.tar.gz bin/iofogctl
         checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
         cp iofogctl.tar.gz $(Build.ArtifactStagingDirectory)/$(version).tar.gz
@@ -248,12 +251,10 @@ stages:
         git config --global user.name "Serge Radinovich"
         git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
         cd homebrew-iofogctl
-        short_version=$(echo $(version) | tr -d '-')
-        brew_file=iofogctl@${short_version}.rb
+        brew_file=iofogctl@$MAJOR.$MINOR.rb
         if [ ! -f $brew_file ]; then
           cat ../templates/brew.tpl > $brew_file
-          at_version=$(echo $short_version | tr -d '.')
-          sed -i "s/<AT_VERSION>/$at_version/g" $brew_file
+          sed -i "s/<AT_VERSION>/$MAJOR$MINOR/g" $brew_file
           sed -i "s/<DEV_SHA256>/$checksum/g" $brew_file
           sed -i "s/<DEV_VERSION>/$(version)/g" $brew_file
         else
@@ -264,7 +265,6 @@ stages:
         git add $brew_file
         git commit -m "Publish develop version $(version)"
         git push origin master
-      condition: and(succeeded(), startsWith(variables['ref'], 'refs/tags'))
       workingDirectory: '$(modulePath)'
       displayName: 'Build and publish OSX binary'
     - template: templates/publish-steps.yaml
@@ -280,6 +280,7 @@ stages:
     - script: |
         sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
+    - template: templates/workdir-steps.yaml
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |
@@ -315,6 +316,7 @@ stages:
         artifactName: iofogctl-linux
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+    - template: templates/workdir-steps.yaml
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |

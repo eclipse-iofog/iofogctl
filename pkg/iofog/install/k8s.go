@@ -230,6 +230,8 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 			ControllerImage:        k8s.ms["controller"].containers[0].image,
 			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
 			Database:               v1alpha2.Database(db),
+			ServiceType:            k8s.ms["controller"].serviceType,
+			LoadBalancerIP:         k8s.ms["controller"].IP,
 		},
 		Connectors: v1alpha2.Connectors{
 			Instances: []v1alpha2.Connector{},
@@ -390,8 +392,7 @@ func (k8s *Kubernetes) DeleteConnector(name string) error {
 	return nil
 }
 
-// TODO: Move this to operator?
-func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
+func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string, nodePort int32, err error) {
 	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(metav1.ListOptions{})
 	if err != nil {
@@ -411,15 +412,66 @@ func (k8s *Kubernetes) waitForService(name string) (ip string, err error) {
 			continue
 		}
 
-		// Loadbalancer must be ready
-		if len(svc.Status.LoadBalancer.Ingress) == 0 {
-			continue
+		switch svc.Spec.Type {
+		case "LoadBalancer":
+			// Load balancer must be ready
+			if len(svc.Status.LoadBalancer.Ingress) == 0 {
+				continue
+			}
+			nodePort = targetPort
+			ip = svc.Status.LoadBalancer.Ingress[0].IP
+
+		case "NodePort":
+			// Get a list of K8s nodes and return one of their external IPs
+			var nodeList *v1.NodeList
+			nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+			if err == nil {
+				if len(nodeList.Items) == 0 {
+					err = util.NewError("Could not find Kubernetes nodes when waiting for NodePort service " + name)
+				} else {
+					// Return external IP of any of the nodes in the cluster
+					for _, node := range nodeList.Items {
+						for _, addrs := range node.Status.Addresses {
+							if addrs.Type == "ExternalIP" {
+								ip = addrs.Address
+								break
+							}
+						}
+					}
+					if ip == "" {
+						err = util.NewError("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name)
+					}
+				}
+			}
+			// Get the port allocated on the node
+			if err == nil {
+				for _, port := range svc.Spec.Ports {
+					if port.TargetPort.IntVal == targetPort {
+						nodePort = port.NodePort
+						break
+					}
+				}
+				if nodePort == 0 {
+					err = util.NewError("Could not get node port for Kubernetes service " + name)
+				}
+			}
+
+		case "ClusterIP":
+			err = util.NewError("Cannot wait for K8s Service of type ClusterIP for " + name)
 		}
 
-		ip = svc.Status.LoadBalancer.Ingress[0].IP
+		// End the loop
 		watch.Stop()
 	}
 
+	return
+}
+
+func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
+	if svcType != "LoadBalancer" && svcType != "NodePort" {
+		err = util.NewInputError("Tried to set K8s Controller Service type to " + svcType + ". Only LoadBalancer and NodePort types are acceptable.")
+	}
+	k8s.ms["controller"].serviceType = svcType
 	return
 }
 
@@ -428,20 +480,22 @@ func (k8s *Kubernetes) SetControllerIP(ip string) {
 }
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
-	ip, err := k8s.waitForService("controller")
+	ms := k8s.ms["controller"]
+	ip, port, err := k8s.waitForService(ms.name, ms.ports[0])
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["controller"].ports[0])
+	endpoint = fmt.Sprintf("%s:%d", ip, port)
 	return
 }
 
 func (k8s *Kubernetes) GetConnectorEndpoint(name string) (endpoint string, err error) {
+	ms := k8s.ms["connector"]
 	// TODO: This name formatting is magic that depends on the operator
-	ip, err := k8s.waitForService("connector-" + name)
+	ip, port, err := k8s.waitForService("connector-"+name, ms.ports[0])
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("%s:%d", ip, k8s.ms["connector"].ports[0])
+	endpoint = fmt.Sprintf("%s:%d", ip, port)
 	return
 }

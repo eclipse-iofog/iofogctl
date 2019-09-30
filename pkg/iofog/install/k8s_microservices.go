@@ -21,11 +21,12 @@ import (
 )
 
 type microservice struct {
-	name       string
-	IP         string
-	ports      []int
-	replicas   int32
-	containers []container
+	name        string
+	IP          string
+	ports       []int32
+	serviceType string
+	replicas    int32
+	containers  []container
 }
 
 type container struct {
@@ -40,9 +41,10 @@ type container struct {
 }
 
 var controllerMicroservice = microservice{
-	name:     "controller",
-	ports:    []int{iofog.ControllerPort},
-	replicas: 1,
+	name:        "controller",
+	ports:       []int32{iofog.ControllerPort, 80},
+	replicas:    1,
+	serviceType: "LoadBalancer",
 	containers: []container{
 		{
 			name:            "controller",
@@ -65,7 +67,7 @@ var controllerMicroservice = microservice{
 
 var connectorMicroservice = microservice{
 	name: "connector",
-	ports: []int{
+	ports: []int32{
 		iofog.ConnectorPort,
 		6000, 6001, 6002, 6003, 6004, 6005, 6006, 6007, 6008, 6009,
 		6010, 6011, 6012, 6013, 6014, 6015, 6016, 6017, 6018, 6019,
@@ -74,7 +76,8 @@ var connectorMicroservice = microservice{
 		6040, 6041, 6042, 6043, 6044, 6045, 6046, 6047, 6048, 6049,
 		6050,
 	},
-	replicas: 1,
+	replicas:    1,
+	serviceType: "LoadBalancer",
 	containers: []container{
 		{
 			name:            "connector",
@@ -98,7 +101,7 @@ var schedulerMicroservice = microservice{
 
 var operatorMicroservice = microservice{
 	name:     "iofog-operator",
-	ports:    []int{60000},
+	ports:    []int32{60000},
 	replicas: 1,
 	containers: []container{
 		{
@@ -155,7 +158,7 @@ var operatorMicroservice = microservice{
 
 var kubeletMicroservice = microservice{
 	name:     "kubelet",
-	ports:    []int{60000},
+	ports:    []int32{60000},
 	replicas: 1,
 	containers: []container{
 		{
