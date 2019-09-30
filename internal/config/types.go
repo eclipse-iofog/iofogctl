@@ -76,6 +76,7 @@ type Controller struct {
 	KeyFile           string
 	KubeConfig        string
 	Replicas          int
+	ServiceType       string
 	KubeControllerIP  string
 	Endpoint          string
 	Created           string

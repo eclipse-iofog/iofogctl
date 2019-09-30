@@ -46,7 +46,7 @@ func newService(namespace string, ms *microservice) *v1.Service {
 		svcPort := v1.ServicePort{
 			Name:       ms.name + strconv.Itoa(idx),
 			Port:       int32(port),
-			TargetPort: intstr.FromInt(port),
+			TargetPort: intstr.FromInt(int(port)),
 			Protocol:   v1.Protocol("TCP"),
 		}
 		svc.Spec.Ports = append(svc.Spec.Ports, svcPort)
