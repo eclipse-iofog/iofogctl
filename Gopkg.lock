@@ -146,7 +146,7 @@
     "pkg/apis/k8s/v1alpha2",
   ]
   pruneopts = "UT"
-  revision = "2eb42b143ea59cb335748c0c6fc29228a2fd9ddf"
+  revision = "7a62726642bee3b1020da1a7e4827742b7e2a6ed"
 
 [[projects]]
   digest = "1:b2754ad67d4ed5a0741d69396c6f5cbe1e426a8adc2e8e97e09a1ee5a4621653"

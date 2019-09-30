@@ -31,6 +31,7 @@ type remoteExecutor struct {
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
 	catalogByName      map[string]*client.CatalogItemInfo
+	registryByID       map[int]*client.RegistryInfo
 }
 
 func microserviceArrayToMap(a []config.Microservice) (result map[string]*client.MicroserviceInfo) {
@@ -124,6 +125,14 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 		exe.catalogByID[listCatalog.CatalogItems[i].ID] = &listCatalog.CatalogItems[i]
 		exe.catalogByName[listCatalog.CatalogItems[i].Name] = &listCatalog.CatalogItems[i]
 	}
+	listRegistries, err := exe.client.ListRegistries()
+	if err != nil {
+		return
+	}
+	exe.registryByID = make(map[int]*client.RegistryInfo)
+	for i := 0; i < len(listRegistries.Registries); i++ {
+		exe.registryByID[listRegistries.Registries[i].ID] = &listRegistries.Registries[i]
+	}
 	return
 }
 
@@ -140,7 +149,7 @@ func (exe *remoteExecutor) validate() (err error) {
 
 	// Validate microservice
 	for _, msvc := range exe.app.Microservices {
-		if err = deploymicroservice.ValidateMicroservice(msvc, exe.agentsByName, exe.catalogByID); err != nil {
+		if err = deploymicroservice.ValidateMicroservice(msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 			return
 		}
 	}
@@ -216,6 +225,7 @@ func (exe *remoteExecutor) update() (err error) {
 				AgentsByName:       exe.agentsByName,
 				CatalogByID:        exe.catalogByID,
 				CatalogByName:      exe.catalogByName,
+				RegistryByID:       exe.registryByID,
 				FlowInfo:           exe.flowInfo,
 			},
 			exe.client,
