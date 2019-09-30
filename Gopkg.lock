@@ -130,11 +130,11 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:0ce7383f812c4828e92a0d003a85a6dc07e6b695f095af1e3b2f6e981ecaa6fa"
+  digest = "1:983c43f8a57a630eb03fff5481cc5ef9e106f3a02fecc0be23c928e6ff59144f"
   name = "github.com/eclipse-iofog/iofog-go-sdk"
   packages = ["pkg/client"]
   pruneopts = "UT"
-  revision = "bbb60edef4a40fd34daf2ab163062cc686f2c3b4"
+  revision = "276137b0671227c5ea0b95113bea0a0dcb0756e9"
 
 [[projects]]
   branch = "develop"
