@@ -134,7 +134,7 @@
   name = "github.com/eclipse-iofog/iofog-go-sdk"
   packages = ["pkg/client"]
   pruneopts = "UT"
-  revision = "276137b0671227c5ea0b95113bea0a0dcb0756e9"
+  revision = "ff1e7d6a75f37890824e09b3f6b2a3eab48cd2ff"
 
 [[projects]]
   branch = "develop"
