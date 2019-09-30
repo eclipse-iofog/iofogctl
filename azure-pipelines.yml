@@ -297,11 +297,14 @@ stages:
         declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster")
         for ubu in "${UBUNTU_VERS[@]}"
         do
+            package_cloud yank iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud
         done
         for deb in "${DEBIAN_VERS[@]}"
         do
+            package_cloud yank iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
+            package_cloud yank iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish deb to package-cloud'
@@ -333,10 +336,12 @@ stages:
         declare -a REDHAT_VERS=("6" "7")
         for fed in ${FEDORA_VERS[@]}
         do
+            package_cloud yank iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
         done
         for red in ${REDHAT_VERS[@]}
         do
+            package_cloud yank iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish RPM to package-cloud'
