@@ -6,6 +6,7 @@
 * Allow for users to deploy Connectors to dedicated remote hosts
 * Allow for users to optionally deploy Connectors on K8s cluster
 * Add Connector as a standalone resource for iofogctl commands
+* Add NodePort service support for k8s install
 * Replace -q with -v
 * Integrate with ioFog K8s operator for deploying K8s Controller, Connector, and Kubelet
 * Force resource names to be lowercase alphanumeric with - characters
