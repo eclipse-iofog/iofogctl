@@ -24,6 +24,7 @@ var (
 	kubeletTag    = "undefined"
 	operatorTag   = "undefined"
 	schedulerTag  = "undefined"
+	agentTag      = "undefined"
 )
 
 type Version struct {
@@ -60,4 +61,8 @@ func GetOperatorTag() string {
 
 func GetSchedulerTag() string {
 	return schedulerTag
+}
+
+func GetAgentTag() string {
+	return agentTag
 }
