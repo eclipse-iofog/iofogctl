@@ -137,18 +137,6 @@
   revision = "ff1e7d6a75f37890824e09b3f6b2a3eab48cd2ff"
 
 [[projects]]
-  branch = "develop"
-  digest = "1:2e29fd53284e3f3ea2f6e16c605f06e5861e974f1b18d595c9a956d75a10a593"
-  name = "github.com/eclipse-iofog/iofog-operator"
-  packages = [
-    "pkg/apis",
-    "pkg/apis/k8s/v1alpha1",
-    "pkg/apis/k8s/v1alpha2",
-  ]
-  pruneopts = "UT"
-  revision = "7a62726642bee3b1020da1a7e4827742b7e2a6ed"
-
-[[projects]]
   digest = "1:b2754ad67d4ed5a0741d69396c6f5cbe1e426a8adc2e8e97e09a1ee5a4621653"
   name = "github.com/emicklei/go-restful"
   packages = [
@@ -794,8 +782,6 @@
     "github.com/docker/docker/client",
     "github.com/docker/go-connections/nat",
     "github.com/eclipse-iofog/iofog-go-sdk/pkg/client",
-    "github.com/eclipse-iofog/iofog-operator/pkg/apis",
-    "github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/browser",
     "github.com/spf13/cobra",
