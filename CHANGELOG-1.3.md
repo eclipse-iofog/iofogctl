@@ -13,6 +13,5 @@
 * Add microservice logs command for microservices on remote agents
 * Add --force to delete namespace command
 * Refactor and improve parallelism during commands like deploy -f and delete all
-* Integrate with ioFog operator
 * Fix vanilla Controller install bugs and make the installation idempotent
 * Stop logging stdout to file during SSH sessions and dump to terminal instead
