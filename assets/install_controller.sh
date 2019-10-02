@@ -41,11 +41,11 @@ controller_service() {
 
 install_deps() {
 	if [ -z "$(command -v lsof)" ]; then
-		sudo apt install lsof
+		sudo apt install -y lsof
 	fi
 
 	if [ -z "$(command -v setcap)" ]; then
-		sudo apt install libcap2-bin
+		sudo apt install -y libcap2-bin
 	fi
 }
 
