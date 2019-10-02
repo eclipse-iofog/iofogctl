@@ -118,7 +118,7 @@ deploy_controller() {
     # Allow node to listen on port 80
     sudo setcap 'cap_net_bind_service=+ep' $(which node)
 
-	# Run controller
+    # Run controller
     iofog-controller start
 }
 
