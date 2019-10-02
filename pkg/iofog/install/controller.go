@@ -157,7 +157,7 @@ func (ctrl *Controller) Stop() (err error) {
 	// TODO: Clear the database
 	// Define commands
 	cmds := []string{
-		"sudo iofog-controller stop",
+		"iofog-controller stop",
 	}
 
 	// Execute commands

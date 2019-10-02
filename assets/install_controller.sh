@@ -58,7 +58,8 @@ deploy_controller() {
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 		nvm install lts/*
-		sudo ln -Ffs $(which node) /usr/local/bin/node
+		NODE=$(which node)
+		sudo ln -Ffs "$NODE" /usr/local/bin/node
 	else
 		nvm use lts/* || true
 	fi
@@ -83,7 +84,7 @@ deploy_controller() {
 
 	# Install in temporary location
 	sudo mkdir -p "$TMP_DIR/controller"
-	sudo chmod 0777 "$TMP_DIR/controller"
+	sudo chmod -R 777 "$TMP_DIR/controller"
 	if [ -z $version ]; then
 		npm install -g -f minipass@2.7.0 iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
@@ -95,19 +96,26 @@ deploy_controller() {
 	sudo rm -rf "$INSTALL_DIR/controller" # Clean possible previous install
 	sudo mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
 
+	sudo mkdir -p /var/log/iofog-controller
+	sudo chmod -R 777 /var/log/iofog-controller
+
 	# Symbolic links
 	if [ ! -f "/usr/local/bin/iofog-controller" ]; then
 		sudo ln -fFs "$INSTALL_DIR/controller/bin/iofog-controller" /usr/local/bin/iofog-controller
+        sudo chmod 777 /usr/local/bin/iofog-controller
 	fi
 
     # Set controller permissions
-    sudo chmod 744 -R "$INSTALL_DIR/controller"
+    sudo chmod 777 -R "$INSTALL_DIR/controller"
 
     # Startup script
     controller_service
 
+    # Allow node to listen on port 80
+    sudo setcap 'cap_net_bind_service=+ep' $(which node)
+
 	# Run controller
-	sudo iofog-controller start
+    iofog-controller start
 }
 
 # main
