@@ -43,6 +43,10 @@ install_deps() {
 	if [ -z "$(command -v lsof)" ]; then
 		sudo apt install lsof
 	fi
+
+	if [ -z "$(command -v setcap)" ]; then
+		sudo apt install libcap2-bin
+	fi
 }
 
 deploy_controller() {
