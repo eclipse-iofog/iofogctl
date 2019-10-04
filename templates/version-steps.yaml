@@ -4,7 +4,7 @@ steps:
     VERS=$MAJOR.$MINOR.$PATCH$SUFFIX
     if [[ $(ref) == refs/tags* ]]; then
       TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
-      if [[ $TAG != $(VERS) ]]; then
+      if [[ $TAG != $VERS ]]; then
         echo 'Version file does not match git tag'
         exit 1
       fi
