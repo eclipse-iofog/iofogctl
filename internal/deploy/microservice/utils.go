@@ -15,6 +15,7 @@ package deploymicroservice
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -29,7 +30,7 @@ func MicroserviceArrayToMap(a []config.Microservice) (result map[string]*config.
 	return
 }
 
-func ValidateMicroservice(msvc config.Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo) (err error) {
+func ValidateMicroservice(msvc config.Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
 	// Validate microservice
 	if _, foundAgent := agentsByName[msvc.Agent.Name]; !foundAgent {
 		return util.NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
@@ -37,9 +38,11 @@ func ValidateMicroservice(msvc config.Microservice, agentsByName map[string]*cli
 	if _, foundCatalogItem := catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
 		return util.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
 	}
-
-	if _, foundRegistry := client.RegistryTypeRegistryTypeIDDict[msvc.Images.Registry]; msvc.Images.Registry != "" && !foundRegistry {
-		return util.NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
+	registryID, _ := strconv.Atoi(msvc.Images.Registry)
+	if _, foundRegistry := registryByID[registryID]; msvc.Images.Registry != "" && !foundRegistry {
+		if _, foundRegistry := client.RegistryTypeRegistryTypeIDDict[msvc.Images.Registry]; msvc.Images.Registry != "" && !foundRegistry {
+			return util.NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
+		}
 	}
 
 	// TODO: Check if microservice name already exists in another flow (Will fail on API call)

@@ -25,79 +25,79 @@ type IofogUser struct {
 
 // DockerCredentials credentials used to log into docker when deploying a local stack
 type DockerCredentials struct {
-	User     string
-	Password string
+	User     string `yaml:",omitempty"`
+	Password string `yaml:",omitempty"`
 }
 
 type Database struct {
-	Provider     string
-	Host         string
-	Port         int
-	User         string
-	Password     string
-	DatabaseName string
+	Provider     string `yaml:",omitempty"`
+	Host         string `yaml:",omitempty"`
+	Port         int    `yaml:",omitempty"`
+	User         string `yaml:",omitempty"`
+	Password     string `yaml:",omitempty"`
+	DatabaseName string `yaml:",omitempty"`
 }
 
 type Loadbalancer struct {
-	Host string
-	Port int
+	Host string `yaml:",omitempty"`
+	Port int    `yaml:",omitempty"`
 }
 
 type ControlPlane struct {
-	Database     Database
-	LoadBalancer Loadbalancer
+	Database     Database     `yaml:",omitempty"`
+	LoadBalancer Loadbalancer `yaml:",omitempty"`
 	IofogUser    IofogUser
 	Controllers  []Controller
-	Images       map[string]string
+	Images       map[string]string `yaml:",omitempty"`
 }
 
 type Connector struct {
-	Name              string
-	User              string
-	Host              string
-	Port              int
-	KeyFile           string
-	KubeConfig        string
-	KubeConnectorIP   string
-	Image             string
-	ImageCredentials  DockerCredentials // Optional credentials if needed to pull image
-	Created           string
-	Version           string
-	Endpoint          string
-	PackageCloudToken string
+	Name              string            `yaml:",omitempty"`
+	User              string            `yaml:",omitempty"`
+	Host              string            `yaml:",omitempty"`
+	Port              int               `yaml:",omitempty"`
+	KeyFile           string            `yaml:",omitempty"`
+	KubeConfig        string            `yaml:",omitempty"`
+	KubeConnectorIP   string            `yaml:",omitempty"`
+	Image             string            `yaml:",omitempty"`
+	ImageCredentials  DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull image
+	Created           string            `yaml:",omitempty"`
+	Version           string            `yaml:",omitempty"`
+	Endpoint          string            `yaml:",omitempty"`
+	PackageCloudToken string            `yaml:",omitempty"`
 }
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name              string
-	User              string
-	Host              string
-	Port              int
-	KeyFile           string
-	KubeConfig        string
-	Replicas          int
-	ServiceType       string
-	KubeControllerIP  string
-	Endpoint          string
-	Created           string
-	ImageCredentials  DockerCredentials // Optional credentials if needed to pull images
-	Version           string
-	PackageCloudToken string
+	Name              string            `yaml:",omitempty"`
+	User              string            `yaml:",omitempty"`
+	Host              string            `yaml:",omitempty"`
+	Port              int               `yaml:",omitempty"`
+	KeyFile           string            `yaml:",omitempty"`
+	KubeConfig        string            `yaml:",omitempty"`
+	Replicas          int               `yaml:",omitempty"`
+	ServiceType       string            `yaml:",omitempty"`
+	KubeControllerIP  string            `yaml:",omitempty"`
+	Endpoint          string            `yaml:",omitempty"`
+	Created           string            `yaml:",omitempty"`
+	ImageCredentials  DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull images
+	Version           string            `yaml:",omitempty"`
+	PackageCloudToken string            `yaml:",omitempty"`
 }
 
 // Agent contains information for configuring an agent
 type Agent struct {
-	Name              string
-	User              string
-	Host              string
-	Port              int
-	KeyFile           string
-	UUID              string
-	Created           string
-	Image             string
-	ImageCredentials  DockerCredentials // Optional credentials if needed to pull image
-	Version           string
-	PackageCloudToken string
+	Name              string            `yaml:",omitempty"`
+	User              string            `yaml:",omitempty"`
+	Host              string            `yaml:",omitempty"`
+	Port              int               `yaml:",omitempty"`
+	KeyFile           string            `yaml:",omitempty"`
+	UUID              string            `yaml:",omitempty"`
+	Created           string            `yaml:",omitempty"`
+	Image             string            `yaml:",omitempty"`
+	ImageCredentials  DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull image
+	Version           string            `yaml:",omitempty"`
+	PackageCloudToken string            `yaml:",omitempty"`
 }
 
 // CatalogItem contains information about a catalog item

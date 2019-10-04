@@ -85,7 +85,7 @@ stages:
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
-        tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml
+        tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml || true
       workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
@@ -129,7 +129,7 @@ stages:
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
-        tap-junit -i test/conf/results-functional-local.tap -o test/conf -s Local -n results-functional-local.xml
+        tap-junit -i test/conf/results-functional-local.tap -o test/conf -s Local -n results-functional-local.xml || true
       workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
@@ -163,7 +163,7 @@ stages:
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
-        tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml
+        tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml || true
       workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
@@ -208,7 +208,7 @@ stages:
       workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
-        tap-junit -i test/conf/results-functional-ha.tap -o test/conf -s HA -n results-functional-ha.xml
+        tap-junit -i test/conf/results-functional-ha.tap -o test/conf -s HA -n results-functional-ha.xml || true
       workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
@@ -297,11 +297,14 @@ stages:
         declare -a DEBIAN_VERS=("wheezy" "jessie" "stretch" "buster")
         for ubu in "${UBUNTU_VERS[@]}"
         do
+            package_cloud yank iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud
         done
         for deb in "${DEBIAN_VERS[@]}"
         do
+            package_cloud yank iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
+            package_cloud yank iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/raspbian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish deb to package-cloud'
@@ -333,10 +336,12 @@ stages:
         declare -a REDHAT_VERS=("6" "7")
         for fed in ${FEDORA_VERS[@]}
         do
+            package_cloud yank iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
         done
         for red in ${REDHAT_VERS[@]}
         do
+            package_cloud yank iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish RPM to package-cloud'

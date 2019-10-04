@@ -16,6 +16,7 @@ package deploymicroservice
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -26,6 +27,7 @@ type ApplicationData struct {
 	MicroserviceByName map[string]*client.MicroserviceInfo
 	AgentsByName       map[string]*client.AgentInfo
 	CatalogByID        map[int]*client.CatalogItemInfo
+	RegistryByID       map[int]*client.RegistryInfo
 	CatalogByName      map[string]*client.CatalogItemInfo
 	FlowInfo           *client.FlowInfo
 }
@@ -37,6 +39,7 @@ type remoteExecutor struct {
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
 	catalogByName      map[string]*client.CatalogItemInfo
+	registryByID       map[int]*client.RegistryInfo
 	flowInfo           *client.FlowInfo
 	client             *client.Client
 	routes             []string
@@ -61,6 +64,7 @@ func NewRemoteExecutorWithApplicationDataAndClient(namespace string, msvc config
 		catalogByID:        appData.CatalogByID,
 		catalogByName:      appData.CatalogByName,
 		agentsByName:       appData.AgentsByName,
+		registryByID:       appData.RegistryByID,
 	}
 
 	return exe
@@ -154,6 +158,15 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 		exe.catalogByName[listCatalog.CatalogItems[i].Name] = &listCatalog.CatalogItems[i]
 	}
 
+	listRegistries, err := exe.client.ListRegistries()
+	if err != nil {
+		return
+	}
+	exe.registryByID = make(map[int]*client.RegistryInfo)
+	for i := 0; i < len(listRegistries.Registries); i++ {
+		exe.registryByID[listRegistries.Registries[i].ID] = &listRegistries.Registries[i]
+	}
+
 	return
 }
 
@@ -167,7 +180,7 @@ func (exe *remoteExecutor) validate() error {
 	exe.routes = routes
 
 	// Validate microservice
-	if err := ValidateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID); err != nil {
+	if err := ValidateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
 	}
 
@@ -221,7 +234,10 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 
 	var registryID int
 	if exe.msvc.Images.Registry != "" {
-		registryID = client.RegistryTypeRegistryTypeIDDict[exe.msvc.Images.Registry]
+		registryID, err = strconv.Atoi(exe.msvc.Images.Registry)
+		if err != nil {
+			registryID = client.RegistryTypeRegistryTypeIDDict[exe.msvc.Images.Registry]
+		}
 	}
 
 	if exe.msvc.UUID != "" {

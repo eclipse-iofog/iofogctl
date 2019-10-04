@@ -99,5 +99,5 @@ func initialize() {
 	config.Init(configFilename)
 	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
-	util.SpinEnable(!verbose)
+	util.SpinEnable(!verbose && !httpVerbose)
 }

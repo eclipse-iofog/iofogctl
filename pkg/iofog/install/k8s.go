@@ -457,7 +457,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 			}
 
 		case "ClusterIP":
-			err = util.NewError("Cannot wait for K8s Service of type ClusterIP for " + name)
+			// Note: ClusterIPs are internal to K8s cluster only
 		}
 
 		// End the loop
@@ -468,8 +468,8 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 }
 
 func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
-	if svcType != "LoadBalancer" && svcType != "NodePort" {
-		err = util.NewInputError("Tried to set K8s Controller Service type to " + svcType + ". Only LoadBalancer and NodePort types are acceptable.")
+	if svcType != "LoadBalancer" && svcType != "NodePort" && svcType != "ClusterIP" {
+		err = util.NewInputError("Tried to set K8s Controller Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
 	}
 	k8s.ms["controller"].serviceType = svcType
 	return
