@@ -150,31 +150,20 @@ disable_package_preconfiguration() {
 	fi
 }
 
-add_repo_if_not_exists() {
-	repo="$1"
-	if ! grep -Fxq "$repo" /etc/apt/sources.list; then
-		($sh_c "echo \"$repo\" >> /etc/apt/sources.list")
-	fi
-}
-
 add_initial_apt_repos_if_not_exist() {
 	case "$lsb_dist" in
 		debian)
+			$sh_c 'apt-get update -qq'
+			$sh_c 'apt-get install -y software-properties-common'
 			if [ "$dist_version" = "stretch" ]; then
-				add_repo_if_not_exists "deb http://deb.debian.org/debian stretch main"
-				add_repo_if_not_exists "deb-src http://deb.debian.org/debian stretch main"
-				add_repo_if_not_exists "deb http://deb.debian.org/debian-security/ stretch/updates main"
-				add_repo_if_not_exists "deb-src http://deb.debian.org/debian-security/ stretch/updates main"
-				add_repo_if_not_exists "deb http://deb.debian.org/debian stretch-updates main"
-				add_repo_if_not_exists "deb-src http://deb.debian.org/debian stretch-updates main"
+				$sh_c 'add-apt-repository -s "deb http://deb.debian.org/debian stretch main"'
+				$sh_c 'add-apt-repository -s "deb http://deb.debian.org/debian-security/ stretch/updates main"'
+				$sh_c 'add-apt-repository -s "deb http://deb.debian.org/debian stretch-updates main"'
 			elif [ "$dist_version" = "jessie" ]; then
-				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian jessie main"
+				$sh_c 'add-apt-repository -s "deb http://ftp.de.debian.org/debian jessie main"'
 			elif [ "$dist_version" = "buster" ]; then
-				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian buster main"
+				$sh_c 'add-apt-repository -s "deb http://ftp.de.debian.org/debian buster main"'
 			fi
-			local ITER=0
-			echo "Waiting for apt"
-			while [ "$ITER" -lt 30 && ! -z $(ps -A | grep apt) ]; do ITER=$((ITER+1)); sleep 1; done
 			$sh_c 'apt-get update -qq'
 			;;
 	esac
