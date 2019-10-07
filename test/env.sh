@@ -26,12 +26,12 @@ export KUBE_CONFIG="~/.kube/config"
 export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster or local deploy
-export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:latest"
-export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:latest"
-export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:latest"
+export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:develop"
+export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:develop"
+export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:develop"
 #export SCHEDULER_IMAGE="gcr.io/focal-freedom-236620/scheduler:develop"
-export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:latest"
-export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:latest"
+export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
+export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys
 export VANILLA_VERSION="latest"
