@@ -25,6 +25,8 @@ variables:
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
   vm_count: 3
+  agent_distro:
+  controller_distro:
   vm_1:
   vm_2:
   vm_3:
@@ -74,6 +76,10 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
+    - script: |
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.stretch)"
+      displayName: 'Set VM Distros'
     - template: templates/functional-init-vm-steps.yaml
     - template: templates/functional-configure.yaml
     - script: |
@@ -165,6 +171,10 @@ stages:
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: echo "##vso[task.setvariable variable=vm_count]2"
+    - script: |
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.stretch)"
+      displayName: 'Set VM Distros'
     - template: templates/functional-init-vm-steps.yaml
     - template: templates/functional-configure.yaml
     - script: |
@@ -200,6 +210,10 @@ stages:
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: echo "##vso[task.setvariable variable=vm_count]2"
+    - script: |
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.stretch)"
+      displayName: 'Set VM Distros'
     - template: templates/functional-init-vm-steps.yaml
     - script: |
         sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
