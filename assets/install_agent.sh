@@ -312,6 +312,22 @@ do_install_iofog_dev() {
 	do_check_iofog_on_arm
 }
 
+do_install_deps() {
+	local installer=""
+	case "$lsb_dist" in
+		ubuntu|debian|raspbian)
+			installer="apt"
+			;;
+		fedora|centos)
+			installer="yum"
+			;;
+	esac
+	$sh_c "$installer update"
+	if [ -z $(command -v wget) ]; then
+		$sh_c "$installer install -y wget"
+	fi
+}
+
 do_install() {
 	echo "# Executing iofog install script"
 	
@@ -412,6 +428,8 @@ do_install() {
 	fi
 
 	disable_package_preconfiguration
+
+	do_install_deps
 
 	do_install_java
 	
