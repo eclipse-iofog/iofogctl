@@ -20,7 +20,9 @@ variables:
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:latest'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
   vm_count: 3
   vm_1:
@@ -111,7 +113,9 @@ stages:
       displayName: 'set up gcloud'
     - script: |
         docker pull $(controller_image)
-      displayName: 'Pull latest Controller docker image'
+        docker pull $(agent_image)
+        docker pull $(connector_image)
+      displayName: 'Pull develop gcr docker image'
     - template: templates/workdir-steps.yaml
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
@@ -123,6 +127,12 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/functional-configure.yaml
+    - script: |
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
+        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
+        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+      workingDirectory: '$(modulePath)'
+      displayName: 'Configure Local Tests'
     - script: |
         set -o pipefail
         test/run.bash functional-local | tee test/conf/results-functional-local.tap

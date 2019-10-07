@@ -25,9 +25,10 @@ export KUBE_CONFIG="~/.kube/config"
 # SSH private key that can be used to log into agents specified by AGENTS variable
 export KEY_FILE="~/.ssh/id_rsa"
 
-# Images of ioFog services deployed on Kubernetes cluster
+# Images of ioFog services deployed on Kubernetes cluster or local deploy
 export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:latest"
 export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:latest"
+export AGENT_IMAGE="gcr.io/focal-freedom-236620/connector:latest"
 #export SCHEDULER_IMAGE="gcr.io/focal-freedom-236620/scheduler:develop"
 export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:latest"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:latest"
