@@ -150,25 +150,6 @@ disable_package_preconfiguration() {
 	fi
 }
 
-add_initial_apt_repos_if_not_exist() {
-	case "$lsb_dist" in
-		debian)
-			$sh_c 'apt-get update -qq'
-			$sh_c 'apt-get install -y software-properties-common'
-			if [ "$dist_version" = "stretch" ]; then
-				$sh_c 'add-apt-repository -s "deb http://deb.debian.org/debian stretch main"'
-				$sh_c 'add-apt-repository -s "deb http://deb.debian.org/debian-security/ stretch/updates main"'
-				$sh_c 'add-apt-repository -s "deb http://deb.debian.org/debian stretch-updates main"'
-			elif [ "$dist_version" = "jessie" ]; then
-				$sh_c 'add-apt-repository -s "deb http://ftp.de.debian.org/debian jessie main"'
-			elif [ "$dist_version" = "buster" ]; then
-				$sh_c 'add-apt-repository -s "deb http://ftp.de.debian.org/debian buster main"'
-			fi
-			$sh_c 'apt-get update -qq'
-			;;
-	esac
-}
-
 do_install_java() {
 	echo "# Installing java 8..."
 	echo
@@ -432,9 +413,6 @@ do_install() {
 
 	disable_package_preconfiguration
 
-	# Run setup for each distro accordingly
-	add_initial_apt_repos_if_not_exist
-	
 	do_install_java
 	
 	do_install_docker
