@@ -60,6 +60,14 @@ func (exe *localExecutor) deployContainers() error {
 
 	// Deploy controller image
 	util.SpinStart("Deploying Controller container")
+
+	// If container already exists, clean it
+	if _, err := exe.client.GetContainerByName(controllerContainerName); err == nil {
+		if err := exe.client.CleanContainer(controllerContainerName); err != nil {
+			return err
+		}
+	}
+
 	_, err := exe.client.DeployContainer(controllerContainerConfig)
 	if err != nil {
 		return err

@@ -21,6 +21,18 @@ NS="$NAMESPACE"
   test iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
   checkAgent "${NAME}-0"
 }
+@test "Deploy local Controller again for indempotence" {
+  initLocalControllerFile
+  test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
+  checkController
+  checkConnector
+}
+
+@test "Deploy Agents against local Controller again for indempotence" {
+  initLocalAgentFile
+  test iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
+  checkAgent "${NAME}-0"
+}
 
 @test "Deploy application" {
   initApplicationFiles

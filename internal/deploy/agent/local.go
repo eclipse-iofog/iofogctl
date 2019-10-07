@@ -94,11 +94,17 @@ func (exe *localExecutor) Execute() error {
 		exe.agent.Image = exe.localAgentConfig.DefaultImage
 	}
 
+	// If container already exists, clean it
+	agentContainerName := exe.localAgentConfig.ContainerName
+	if _, err := exe.client.GetContainerByName(agentContainerName); err == nil {
+		if err := exe.client.CleanContainer(agentContainerName); err != nil {
+			return err
+		}
+	}
+
 	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
 		return err
 	}
-
-	agentContainerName := exe.localAgentConfig.ContainerName
 
 	// Wait for agent
 	util.SpinStart("Waiting for Agent")
