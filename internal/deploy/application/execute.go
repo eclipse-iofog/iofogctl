@@ -14,9 +14,9 @@
 package deployapplication
 
 import (
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 

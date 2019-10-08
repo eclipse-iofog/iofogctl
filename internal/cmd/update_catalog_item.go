@@ -14,8 +14,8 @@
 package cmd
 
 import (
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
 	update "github.com/eclipse-iofog/iofogctl/internal/update/catalog_item"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )

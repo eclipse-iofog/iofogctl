@@ -130,11 +130,16 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:88164c357c9afedafb83a21cbd775e8b3929cc26305879bf9e90f9420d1c56c8"
+  digest = "1:1d1215e71815318a081f3e3c0e791d74e572771f688a4683b13ac4c75d24680c"
   name = "github.com/eclipse-iofog/iofog-go-sdk"
-  packages = ["pkg/client"]
+  packages = [
+    "pkg/client",
+    "pkg/deployapps",
+    "pkg/deployapps/application",
+    "pkg/deployapps/microservice",
+  ]
   pruneopts = "UT"
-  revision = "ff1e7d6a75f37890824e09b3f6b2a3eab48cd2ff"
+  revision = "0f97b4bf1b91c18ee746754d1f6f23a3274e0f78"
 
 [[projects]]
   branch = "develop"
@@ -794,6 +799,9 @@
     "github.com/docker/docker/client",
     "github.com/docker/go-connections/nat",
     "github.com/eclipse-iofog/iofog-go-sdk/pkg/client",
+    "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps",
+    "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps/application",
+    "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps/microservice",
     "github.com/eclipse-iofog/iofog-operator/pkg/apis",
     "github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2",
     "github.com/mitchellh/go-homedir",

@@ -15,8 +15,8 @@ package updatecatalogitem
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 

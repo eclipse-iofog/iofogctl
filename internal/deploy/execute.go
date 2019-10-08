@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"io/ioutil"
 
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
@@ -24,7 +25,6 @@ import (
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
 )

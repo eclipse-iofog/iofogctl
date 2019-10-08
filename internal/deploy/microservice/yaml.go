@@ -14,7 +14,7 @@
 package deploymicroservice
 
 import (
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
 )

@@ -14,9 +14,9 @@
 package deploymicroservice
 
 import (
+	deploytypes "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps/microservice"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	deploytypes "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy/microservice"
 )
 
 type remoteExecutor struct {

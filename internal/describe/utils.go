@@ -17,7 +17,7 @@ import (
 	"encoding/json"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
 )
 
 func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *deploy.Microservice, err error) {

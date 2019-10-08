@@ -14,9 +14,9 @@
 package deployapplication
 
 import (
+	deploytypes "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps/application"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	deploytypes "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
-	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy/application"
 )
 
 type remoteExecutor struct {
