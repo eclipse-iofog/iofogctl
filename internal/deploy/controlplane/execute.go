@@ -14,8 +14,9 @@
 package deploycontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -26,7 +27,7 @@ import (
 
 type Options struct {
 	Namespace string
-	InputFile string
+	Yaml      []byte
 }
 
 func Execute(opt Options) error {
@@ -42,7 +43,7 @@ func Execute(opt Options) error {
 	}
 
 	// Read the input file
-	controlPlane, err := UnmarshallYAML(opt.InputFile)
+	controlPlane, err := UnmarshallYAML(opt.Yaml)
 	if err != nil {
 		return err
 	}

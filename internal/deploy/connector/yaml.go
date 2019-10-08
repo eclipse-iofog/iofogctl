@@ -16,19 +16,20 @@ package deployconnector
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 type specification struct {
 	Connectors []config.Connector
 }
 
-func UnmarshallYAML(filename string) (connectors []config.Connector, err error) {
+func UnmarshallYAML(file []byte) (connectors []config.Connector, err error) {
 	// Unmarshall the input file
 	var spec specification
-	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Connectors) == 0 {
+	if err = yaml.Unmarshal(file, &spec); err != nil || len(spec.Connectors) == 0 {
 		var cnct config.Connector
-		if err = util.UnmarshalYAML(filename, &cnct); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
+		if err = yaml.Unmarshal(file, &cnct); err != nil {
+			err = util.NewInputError("Could not unmarshall\n" + err.Error())
 			return
 		}
 		// None specified

@@ -13,8 +13,6 @@
 
 package config
 
-import "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
 	Name     string
@@ -100,69 +98,13 @@ type Agent struct {
 	PackageCloudToken string            `yaml:",omitempty"`
 }
 
-// CatalogItem contains information about a catalog item
-type CatalogItem struct {
-	ID            int
-	X86           string
-	ARM           string
-	Registry      string
-	Name          string
-	Description   string
-	ConfigExample string
-}
-
-// MicroserviceImages contains information about the images for a microservice
-type MicroserviceImages struct {
-	CatalogID int
-	X86       string
-	ARM       string
-	Registry  string
-}
-
-// MicroserviceAgent contains information about required agent configuration for a microservice
-type MicroserviceAgent struct {
-	Name   string
-	Config client.AgentConfiguration
-}
-
-// Microservice contains information for configuring a microservice
-type Microservice struct {
-	UUID           string `yaml:"-"`
-	Name           string
-	Agent          MicroserviceAgent
-	Images         MicroserviceImages
-	Config         map[string]interface{}
-	RootHostAccess bool
-	Ports          []client.MicroservicePortMapping   `yaml:"ports"`
-	Volumes        []client.MicroserviceVolumeMapping `yaml:"volumes"`
-	Env            []client.MicroserviceEnvironment   `yaml:"env"`
-	Routes         []string                           `yaml:"routes,omitempty"`
-	Flow           *string                            `yaml:"application,omitempty"`
-	Created        string                             `yaml:"created,omitempty"`
-}
-
-// Route contains information about a route from one microservice to another
-type Route struct {
-	From string
-	To   string
-}
-
-// Application contains information for configuring an application
-type Application struct {
-	Name          string
-	Microservices []Microservice
-	Routes        []Route
-	ID            int
-}
-
 // Namespace contains information for configuring a namespace
 type Namespace struct {
-	Name          string
-	ControlPlane  ControlPlane
-	Connectors    []Connector
-	Agents        []Agent
-	Microservices []Microservice
-	Created       string
+	Name         string
+	ControlPlane ControlPlane
+	Connectors   []Connector
+	Agents       []Agent
+	Created      string
 }
 
 // configuration contains the unmarshalled configuration file

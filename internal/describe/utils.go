@@ -17,10 +17,10 @@ import (
 	"encoding/json"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 )
 
-func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *config.Microservice, err error) {
+func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *deploy.Microservice, err error) {
 	agent, err := clt.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
 		return
@@ -55,10 +55,10 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	if err = json.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
 	}
-	result = new(config.Microservice)
+	result = new(deploy.Microservice)
 	result.UUID = msvc.UUID
 	result.Name = msvc.Name
-	result.Agent = config.MicroserviceAgent{
+	result.Agent = deploy.MicroserviceAgent{
 		Name: agent.Name,
 		Config: client.AgentConfiguration{
 			DockerURL:                 &agent.DockerURL,
@@ -105,7 +105,7 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 		registryID = msvc.RegistryID
 		imgArray = msvc.Images
 	}
-	images := config.MicroserviceImages{
+	images := deploy.MicroserviceImages{
 		CatalogID: msvc.CatalogItemID,
 		X86:       x86Image,
 		ARM:       armImage,

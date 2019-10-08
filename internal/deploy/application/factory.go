@@ -14,10 +14,27 @@
 package deployapplication
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	deploytypes "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy/application"
 )
 
-func newExecutor(namespace string, opt config.Application) (execute.Executor, error) {
-	return newRemoteExecutor(namespace, opt), nil
+type remoteExecutor struct {
+	application deploytypes.Application
+	controller  deploytypes.IofogController
+}
+
+func (exe remoteExecutor) GetName() string {
+	return exe.application.Name
+}
+
+func (exe remoteExecutor) Execute() error {
+	return deploy.Execute(exe.controller, exe.application)
+}
+
+func newExecutor(controller deploytypes.IofogController, opt deploytypes.Application) (execute.Executor, error) {
+	return remoteExecutor{
+		controller:  controller,
+		application: opt,
+	}, nil
 }

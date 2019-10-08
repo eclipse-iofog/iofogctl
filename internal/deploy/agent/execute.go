@@ -21,7 +21,7 @@ import (
 
 type Options struct {
 	Namespace string
-	InputFile string
+	Yaml      []byte
 }
 
 func Execute(opt Options) error {
@@ -32,7 +32,7 @@ func Execute(opt Options) error {
 	}
 
 	// Read the input file
-	agents, err := UnmarshallYAML(opt.InputFile)
+	agents, err := UnmarshallYAML(opt.Yaml)
 	if err != nil {
 		return err
 	}

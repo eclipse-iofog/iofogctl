@@ -20,7 +20,7 @@ import (
 
 type Options struct {
 	Namespace string
-	InputFile string
+	Yaml      []byte
 }
 
 func Execute(opt Options) error {
@@ -33,7 +33,7 @@ func Execute(opt Options) error {
 	}
 
 	// Unmarshall file
-	ctrl, err := UnmarshallYAML(opt.InputFile)
+	ctrl, err := UnmarshallYAML(opt.Yaml)
 	if err != nil {
 		return err
 	}

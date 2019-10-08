@@ -16,6 +16,7 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -85,8 +86,8 @@ func (exe *applicationExecutor) Execute() error {
 		return err
 	}
 
-	yamlMsvcs := []config.Microservice{}
-	yamlRoutes := []config.Route{}
+	yamlMsvcs := []deploy.Microservice{}
+	yamlRoutes := []deploy.Route{}
 
 	for _, msvc := range exe.msvcs {
 		yamlMsvc, err := MapClientMicroserviceToConfigMicroservice(&msvc, exe.client)
@@ -94,7 +95,7 @@ func (exe *applicationExecutor) Execute() error {
 			return err
 		}
 		for _, route := range msvc.Routes {
-			yamlRoutes = append(yamlRoutes, config.Route{
+			yamlRoutes = append(yamlRoutes, deploy.Route{
 				From: yamlMsvc.Name,
 				To:   exe.msvcPerID[route].Name,
 			})
@@ -105,7 +106,7 @@ func (exe *applicationExecutor) Execute() error {
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 
-	application := config.Application{
+	application := deploy.Application{
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
 		Routes:        yamlRoutes,

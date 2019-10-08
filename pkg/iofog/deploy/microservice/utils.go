@@ -18,30 +18,29 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	types "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 )
 
-func MicroserviceArrayToMap(a []config.Microservice) (result map[string]*config.Microservice) {
-	result = make(map[string]*config.Microservice)
+func MicroserviceArrayToMap(a []types.Microservice) (result map[string]*types.Microservice) {
+	result = make(map[string]*types.Microservice)
 	for i := 0; i < len(a); i++ {
 		result[a[i].Name] = &a[i]
 	}
 	return
 }
 
-func ValidateMicroservice(msvc config.Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
+func ValidateMicroservice(msvc types.Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
 	// Validate microservice
 	if _, foundAgent := agentsByName[msvc.Agent.Name]; !foundAgent {
-		return util.NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
+		return types.NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
 	}
 	if _, foundCatalogItem := catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
-		return util.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
+		return types.NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
 	}
 	registryID, _ := strconv.Atoi(msvc.Images.Registry)
 	if _, foundRegistry := registryByID[registryID]; msvc.Images.Registry != "" && !foundRegistry {
 		if _, foundRegistry := client.RegistryTypeRegistryTypeIDDict[msvc.Images.Registry]; msvc.Images.Registry != "" && !foundRegistry {
-			return util.NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
+			return types.NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
 		}
 	}
 
@@ -54,14 +53,14 @@ func validateRoutes(routes []string, microserviceByName map[string]*client.Micro
 	for _, route := range routes {
 		msvc, foundTo := microserviceByName[route]
 		if !foundTo {
-			return routesUUIDs, util.NewNotFoundError(fmt.Sprintf("Could not find microservice [%s] required by a route", route))
+			return routesUUIDs, types.NewNotFoundError(fmt.Sprintf("Could not find microservice [%s] required by a route", route))
 		}
 		routesUUIDs = append(routesUUIDs, msvc.UUID)
 	}
 	return routesUUIDs, nil
 }
 
-func ConfigureAgent(msvc *config.Microservice, agent *client.AgentInfo, clt *client.Client) (*client.AgentInfo, error) {
+func ConfigureAgent(msvc *types.Microservice, agent *client.AgentInfo, clt *client.Client) (*client.AgentInfo, error) {
 	return clt.UpdateAgent(&client.AgentUpdateRequest{
 		UUID: agent.UUID,
 		AgentConfiguration: client.AgentConfiguration{
@@ -83,7 +82,7 @@ func ConfigureAgent(msvc *config.Microservice, agent *client.AgentInfo, clt *cli
 	})
 }
 
-func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.CatalogItemInfo, catalogByName map[string]*client.CatalogItemInfo, clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
+func SetUpCatalogItem(msvc *types.Microservice, catalogByID map[int]*client.CatalogItemInfo, catalogByName map[string]*client.CatalogItemInfo, clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
 	// No catalog item
 	if msvc.Images.CatalogID == 0 {
 		return
@@ -113,8 +112,7 @@ func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.Cat
 		// Check if catalog item needs to be updated
 		if catalogItemNeedsUpdate(catalogItem, catalogImages, registryID) {
 			if msvc.Images.CatalogID != 0 {
-				util.PrintNotify(fmt.Sprintf("If you wish to update the catalog item used by a microservice, please delete your microservice, then redeploy with the new catalog item"))
-				return nil, util.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
+				return nil, types.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
 			}
 			// Delete catalog item
 			if err = clt.DeleteCatalogItem(catalogItem.ID); err != nil {
@@ -143,12 +141,12 @@ func SetUpCatalogItem(msvc *config.Microservice, catalogByID map[int]*client.Cat
 			return nil, err
 		}
 	} else { // Not found, and catalog item id specified
-		return nil, util.NewNotFoundError(fmt.Sprintf("Could not find specified catalog item, ID: %d", msvc.Images.CatalogID))
+		return nil, types.NewNotFoundError(fmt.Sprintf("Could not find specified catalog item, ID: %d", msvc.Images.CatalogID))
 	}
 	return
 }
 
-func CreateRoutes(routes []config.Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) (err error) {
+func CreateRoutes(routes []types.Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) (err error) {
 	for _, route := range routes {
 		fromMsvc, _ := microserviceByName[route.From]
 		toMsvc, _ := microserviceByName[route.To]

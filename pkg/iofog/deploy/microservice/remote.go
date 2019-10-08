@@ -19,10 +19,10 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	types "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 )
 
+// ApplicationData is data fetched from controller at init time
 type ApplicationData struct {
 	MicroserviceByName map[string]*client.MicroserviceInfo
 	AgentsByName       map[string]*client.AgentInfo
@@ -33,8 +33,8 @@ type ApplicationData struct {
 }
 
 type remoteExecutor struct {
-	namespace          string
-	msvc               config.Microservice
+	controller         types.IofogController
+	msvc               types.Microservice
 	microserviceByName map[string]*client.MicroserviceInfo
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
@@ -45,18 +45,19 @@ type remoteExecutor struct {
 	routes             []string
 }
 
-func newRemoteExecutor(namespace string, msvc config.Microservice) *remoteExecutor {
+func newRemoteExecutor(controller types.IofogController, msvc types.Microservice) *remoteExecutor {
 	exe := &remoteExecutor{
-		namespace: namespace,
-		msvc:      msvc,
+		controller: controller,
+		msvc:       msvc,
 	}
 
 	return exe
 }
 
-func NewRemoteExecutorWithApplicationDataAndClient(namespace string, msvc config.Microservice, appData ApplicationData, clt *client.Client) *remoteExecutor {
+// NewRemoteExecutorWithApplicationDataAndClient used by application deployment in order to reuse already initialised data
+func NewRemoteExecutorWithApplicationDataAndClient(controller types.IofogController, msvc types.Microservice, appData ApplicationData, clt *client.Client) *remoteExecutor {
 	exe := &remoteExecutor{
-		namespace:          namespace,
+		controller:         controller,
 		msvc:               msvc,
 		client:             clt,
 		microserviceByName: appData.MicroserviceByName,
@@ -78,15 +79,8 @@ func (exe *remoteExecutor) GetName() string {
 // Deploy application using remote controller
 //
 func (exe *remoteExecutor) Execute() (err error) {
-	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return
-	}
-
 	// Init remote resources
-	if err = exe.init(&controlPlane.Controllers[0], controlPlane.IofogUser); err != nil {
+	if err = exe.init(); err != nil {
 		return
 	}
 
@@ -102,13 +96,13 @@ func (exe *remoteExecutor) Execute() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) init(controller *config.Controller, user config.IofogUser) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
+func (exe *remoteExecutor) init() (err error) {
+	exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+	if err != nil {
 		return
 	}
 	if exe.msvc.Flow == nil {
-		return util.NewInputError("You must specify an application in order to deploy a microservice")
+		return types.NewInputError("You must specify an application in order to deploy a microservice")
 	}
 	flowList, err := exe.client.GetAllFlows()
 	if err != nil {
@@ -120,7 +114,7 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 		}
 	}
 	if exe.flowInfo == nil {
-		return util.NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
+		return types.NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
 	}
 	listMsvcs, err := exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
 	if err != nil {
@@ -134,7 +128,7 @@ func (exe *remoteExecutor) init(controller *config.Controller, user config.Iofog
 			if exe.msvc.UUID == "" {
 				exe.msvc.UUID = listMsvcs.Microservices[i].UUID
 			} else if exe.msvc.UUID != listMsvcs.Microservices[i].UUID {
-				return util.NewConflictError(fmt.Sprintf("Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]", listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
+				return types.NewConflictError(fmt.Sprintf("Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]", listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
 			}
 		}
 	}
@@ -188,12 +182,10 @@ func (exe *remoteExecutor) validate() error {
 	if exe.msvc.UUID != "" {
 		existingMsvc := exe.microserviceByName[exe.msvc.Name]
 		if exe.msvc.Images.CatalogID != 0 && exe.msvc.Images.CatalogID != existingMsvc.CatalogItemID {
-			util.PrintNotify(fmt.Sprintf("If you wish to update the catalog item used by a microservice, please delete your microservice, then redeploy with the new catalog item"))
-			return util.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
+			return types.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
 		}
 		if exe.flowInfo != nil && exe.flowInfo.ID != existingMsvc.FlowID {
-			util.PrintNotify(fmt.Sprintf("If you wish to update the application the microservice is running in, please delete your microservice, then redeploy it inside your new application"))
-			return util.NewInputError(fmt.Sprintf("Cannot update a microservice application"))
+			return types.NewInputError(fmt.Sprintf("Cannot update a microservice application"))
 		}
 	}
 	// TODO: Check if microservice already exists (Will fail on API call)
@@ -201,9 +193,6 @@ func (exe *remoteExecutor) validate() error {
 }
 
 func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error) {
-	// Create microservice
-	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.msvc.Name))
-
 	// Get catalog item
 	catalogItem, err := SetUpCatalogItem(&exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
 	if err != nil {

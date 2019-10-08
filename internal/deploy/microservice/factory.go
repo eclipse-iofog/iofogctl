@@ -14,10 +14,27 @@
 package deploymicroservice
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	deploytypes "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy/microservice"
 )
 
-func newExecutor(namespace string, opt config.Microservice) (execute.Executor, error) {
-	return newRemoteExecutor(namespace, opt), nil
+type remoteExecutor struct {
+	microservice deploytypes.Microservice
+	controller   deploytypes.IofogController
+}
+
+func (exe remoteExecutor) GetName() string {
+	return exe.microservice.Name
+}
+
+func (exe remoteExecutor) Execute() error {
+	return deploy.Execute(exe.controller, exe.microservice)
+}
+
+func newExecutor(controller deploytypes.IofogController, opt deploytypes.Microservice) (execute.Executor, error) {
+	return remoteExecutor{
+		controller:   controller,
+		microservice: opt,
+	}, nil
 }

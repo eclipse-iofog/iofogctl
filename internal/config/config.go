@@ -106,16 +106,6 @@ func GetConnectors(namespace string) ([]Connector, error) {
 	return nil, util.NewNotFoundError(namespace)
 }
 
-// GetMicroservices returns all microservices within a namespace
-func GetMicroservices(namespace string) ([]Microservice, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.Microservices, nil
-		}
-	}
-	return nil, util.NewNotFoundError(namespace)
-}
-
 // GetNamespace returns a single namespace
 func GetNamespace(name string) (namespace Namespace, err error) {
 	for _, ns := range conf.Namespaces {
@@ -179,22 +169,6 @@ func GetAgent(namespace, name string) (agent Agent, err error) {
 			for _, ag := range ns.Agents {
 				if ag.Name == name {
 					agent = ag
-					return
-				}
-			}
-		}
-	}
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
-}
-
-// GetMicroservice returns a single microservice within a namespace
-func GetMicroservice(namespace, name string) (microservice Microservice, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, ms := range ns.Microservices {
-				if ms.Name == name {
-					microservice = ms
 					return
 				}
 			}
@@ -357,26 +331,6 @@ func AddAgent(namespace string, agent Agent) error {
 	return nil
 }
 
-// AddMicroservice adds a new microservice to the namespace
-func AddMicroservice(namespace string, microservice Microservice) error {
-	_, err := GetMicroservice(namespace, microservice.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + microservice.Name)
-	}
-
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	// Append the controller
-	mux.Lock()
-	ns.Microservices = append(ns.Microservices, microservice)
-	mux.Unlock()
-
-	return nil
-}
-
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
 	for idx := range conf.Namespaces {
@@ -451,25 +405,6 @@ func DeleteAgent(namespace, name string) error {
 		if ns.Agents[idx].Name == name {
 			mux.Lock()
 			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(namespace + "/" + name)
-}
-
-// DeleteMicroservice deletes a microservice from a namespace
-func DeleteMicroservice(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	for idx := range ns.Microservices {
-		if ns.Microservices[idx].Name == name {
-			mux.Lock()
-			ns.Microservices = append(ns.Microservices[:idx], ns.Microservices[idx+1:]...)
 			mux.Unlock()
 			return nil
 		}

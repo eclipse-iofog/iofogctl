@@ -65,16 +65,6 @@ The YAML resource specification file should look like this (two Controllers spec
 		},
 	}
 
-	// Add subcommands
-	cmd.AddCommand(
-		newDeployControlPlaneCommand(),
-		newDeployControllerCommand(),
-		newDeployConnectorCommand(),
-		newDeployAgentCommand(),
-		newDeployApplicationCommand(),
-		newDeployMicroserviceCommand(),
-	)
-
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
 

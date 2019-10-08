@@ -14,21 +14,22 @@
 package deployapplication
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 type specification struct {
-	Applications []config.Application
+	Applications []deploy.Application
 }
 
-func UnmarshallYAML(filename string) (applications []config.Application, err error) {
+func UnmarshallYAML(file []byte) (applications []deploy.Application, err error) {
 	// Unmarshall the input file
 	var spec specification
-	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Applications) == 0 {
-		var app config.Application
-		if err = util.UnmarshalYAML(filename, &app); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
+	if err = yaml.Unmarshal(file, &spec); err != nil || len(spec.Applications) == 0 {
+		var app deploy.Application
+		if err = yaml.Unmarshal(file, &app); err != nil {
+			err = util.NewInputError("Could not unmarshall\n" + err.Error())
 			return
 		}
 		// None specified

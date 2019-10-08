@@ -16,19 +16,20 @@ package deployagent
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 type specification struct {
 	Agents []config.Agent
 }
 
-func UnmarshallYAML(filename string) (agents []config.Agent, err error) {
+func UnmarshallYAML(file []byte) (agents []config.Agent, err error) {
 	// Unmarshall the input file
 	var spec specification
-	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Agents) == 0 {
+	if err = yaml.Unmarshal(file, &spec); err != nil || len(spec.Agents) == 0 {
 		var agent config.Agent
-		if err = util.UnmarshalYAML(filename, &agent); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
+		if err = yaml.Unmarshal(file, &agent); err != nil {
+			err = util.NewInputError("Could not unmarshall\n" + err.Error())
 			return
 		}
 		// None specified

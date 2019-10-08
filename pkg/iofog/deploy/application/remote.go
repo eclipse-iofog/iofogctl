@@ -17,14 +17,18 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	types "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
+	deploymicroservice "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy/microservice"
 )
 
+type iofogUser struct {
+	email    string
+	password string
+}
+
 type remoteExecutor struct {
-	namespace          string
-	app                config.Application
+	controller         types.IofogController
+	app                types.Application
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
 	flowInfo           *client.FlowInfo
@@ -34,7 +38,7 @@ type remoteExecutor struct {
 	registryByID       map[int]*client.RegistryInfo
 }
 
-func microserviceArrayToMap(a []config.Microservice) (result map[string]*client.MicroserviceInfo) {
+func microserviceArrayToMap(a []types.Microservice) (result map[string]*client.MicroserviceInfo) {
 	result = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(a); i++ {
 		// No need to fill information, we only need to know if the name exists
@@ -43,9 +47,9 @@ func microserviceArrayToMap(a []config.Microservice) (result map[string]*client.
 	return
 }
 
-func newRemoteExecutor(namespace string, app config.Application) *remoteExecutor {
+func newRemoteExecutor(controller types.IofogController, app types.Application) *remoteExecutor {
 	exe := &remoteExecutor{
-		namespace:          namespace,
+		controller:         controller,
 		app:                app,
 		microserviceByName: microserviceArrayToMap(app.Microservices),
 	}
@@ -61,15 +65,8 @@ func (exe *remoteExecutor) GetName() string {
 // Deploy application using remote controller
 //
 func (exe *remoteExecutor) Execute() (err error) {
-	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return
-	}
-
 	// Init remote resources
-	if err = exe.init(&controlPlane.Controllers[0], controlPlane.IofogUser); err != nil {
+	if err = exe.init(); err != nil {
 		return
 	}
 
@@ -85,9 +82,9 @@ func (exe *remoteExecutor) Execute() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) init(controller *config.Controller, user config.IofogUser) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: user.Email, Password: user.Password}); err != nil {
+func (exe *remoteExecutor) init() (err error) {
+	exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+	if err != nil {
 		return
 	}
 
@@ -140,10 +137,10 @@ func (exe *remoteExecutor) validate() (err error) {
 	// Validate routes
 	for _, route := range exe.app.Routes {
 		if _, foundFrom := exe.microserviceByName[route.From]; !foundFrom {
-			return util.NewNotFoundError(fmt.Sprintf("Could not find origin microservice for the route %v", route))
+			return types.NewNotFoundError(fmt.Sprintf("Could not find origin microservice for the route %v", route))
 		}
 		if _, foundTo := exe.microserviceByName[route.To]; !foundTo {
-			return util.NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
+			return types.NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
 		}
 	}
 
@@ -188,7 +185,7 @@ func (exe *remoteExecutor) update() (err error) {
 		existingMicroservicesPerName[listMsvcs.Microservices[idx].Name] = &listMsvcs.Microservices[idx]
 	}
 
-	yamlMicroservicesPerName := make(map[string]*config.Microservice)
+	yamlMicroservicesPerName := make(map[string]*types.Microservice)
 	for idx := range exe.app.Microservices {
 		// Set flow
 		exe.app.Microservices[idx].Flow = &exe.app.Name
@@ -205,7 +202,6 @@ func (exe *remoteExecutor) update() (err error) {
 		// If !foundCatalogItem -> Catalog item not returned in init -> We cannot edit it.
 		isSystem := msvc.CatalogItemID != 0 && (!foundCatalogItem || catalogItem.Category == "SYSTEM")
 		if _, found := yamlMicroservicesPerName[msvc.Name]; !found && !isSystem {
-			util.SpinStart(fmt.Sprintf("Deleting microservice %s", msvc.Name))
 			if err = exe.client.DeleteMicroservice(msvc.UUID); err != nil {
 				return err
 			}
@@ -214,11 +210,10 @@ func (exe *remoteExecutor) update() (err error) {
 
 	// Deploy microservices
 	for _, msvc := range yamlMicroservicesPerName {
-		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
 		// Force deletion of all routes
 		msvc.Routes = []string{}
 		msvcExecutor := deploymicroservice.NewRemoteExecutorWithApplicationDataAndClient(
-			exe.namespace,
+			exe.controller,
 			*msvc,
 			deploymicroservice.ApplicationData{
 				MicroserviceByName: existingMicroservicesPerName,
@@ -253,10 +248,8 @@ func (exe *remoteExecutor) create() (err error) {
 
 	// Create microservices
 	for _, msvc := range exe.app.Microservices {
-		util.SpinStart(fmt.Sprintf("Deploying microservice %s", msvc.Name))
-
 		msvcExecutor := deploymicroservice.NewRemoteExecutorWithApplicationDataAndClient(
-			exe.namespace,
+			exe.controller,
 			msvc,
 			deploymicroservice.ApplicationData{
 				MicroserviceByName: exe.microserviceByName,
@@ -291,7 +284,6 @@ func (exe *remoteExecutor) deploy() (err error) {
 	}
 
 	// Start flow
-	util.SpinStart("Starting flow")
 	active := true
 	if _, err = exe.client.UpdateFlow(&client.FlowUpdateRequest{
 		IsActivated: &active,

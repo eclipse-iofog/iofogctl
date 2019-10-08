@@ -14,21 +14,22 @@
 package deploymicroservice
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 type specification struct {
-	Microservices []config.Microservice
+	Microservices []deploy.Microservice
 }
 
-func UnmarshallYAML(filename string) (microservices []config.Microservice, err error) {
+func UnmarshallYAML(file []byte) (microservices []deploy.Microservice, err error) {
 	// Unmarshall the input file
 	var spec specification
-	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Microservices) == 0 {
-		var msvc config.Microservice
-		if err = util.UnmarshalYAML(filename, &msvc); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename)
+	if err = yaml.Unmarshal(file, &spec); err != nil || len(spec.Microservices) == 0 {
+		var msvc deploy.Microservice
+		if err = yaml.Unmarshal(file, &msvc); err != nil {
+			err = util.NewInputError("Could not unmarshall\n" + err.Error())
 			return
 		}
 		// None specified

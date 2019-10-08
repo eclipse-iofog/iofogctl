@@ -16,12 +16,13 @@ package deploymicroservice
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	deploytypes "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
 	Namespace string
-	InputFile string
+	Yaml      []byte
 }
 
 func Execute(opt Options) error {
@@ -40,7 +41,7 @@ func Execute(opt Options) error {
 	}
 
 	// Unmarshal file
-	microservices, err := UnmarshallYAML(opt.InputFile)
+	microservices, err := UnmarshallYAML(opt.Yaml)
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,11 @@ func Execute(opt Options) error {
 	// Instantiate executors
 	var executors []execute.Executor
 	for idx := range microservices {
-		exe, err := newExecutor(ns.Name, microservices[idx])
+		exe, err := newExecutor(deploytypes.IofogController{
+			Endpoint: ns.ControlPlane.Controllers[0].Endpoint,
+			Email:    ns.ControlPlane.IofogUser.Email,
+			Password: ns.ControlPlane.IofogUser.Password,
+		}, microservices[idx])
 		if err != nil {
 			return err
 		}
