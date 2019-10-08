@@ -62,46 +62,24 @@ stages:
     
 - stage: Test
   jobs:
-  - job: Vanilla
+  - job: Vanilla_Buster
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - template: templates/workdir-steps.yaml
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Build Artifacts'
-      inputs:
-        artifactName: iofogctl-linux
-        downloadPath: $(System.DefaultWorkingDirectory)
-    - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
-        sudo chmod 0755 /usr/local/bin/iofogctl
-    - template: templates/postinstall-steps.yaml
-    - template: templates/ssh-steps.yaml
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.buster)"
         echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.buster)"
       displayName: 'Set VM Distros'
-    - script: echo "##vso[task.setvariable variable=vm_count]$(vm_max)"
-    - template: templates/functional-init-vm-steps.yaml
-    - template: templates/functional-configure.yaml
+    - template: templates/test-vanilla-steps.yaml
+  - job: Vanilla_Stretch
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
     - script: |
-        sleep 30 # This should not be necessary but getting connection refused on Buster VMs
-        for IDX in $(seq 1 $(vm_count)); do
-          gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
-        done
-      displayName: 'Wait for VM SSH access'
-    - script: |
-        set -o pipefail
-        test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
-      workingDirectory: '$(modulePath)'
-      displayName: 'Run Functional Tests'
-    - script: |
-        tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml || true
-      workingDirectory: '$(modulePath)'
-      displayName: 'Convert test output from TAP to JUnit'
-      condition: succeededOrFailed()
-    - template: templates/functional-post-test.yaml
-    - template: templates/functional-clean-vm.yaml
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.stretch)"
+      displayName: 'Set VM Distros'
+    - template: templates/test-vanilla-steps.yaml
   - job: Local
     pool:
       vmImage: 'Ubuntu-16.04'
