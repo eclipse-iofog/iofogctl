@@ -46,7 +46,7 @@ deploy_connector() {
 			sudo service iofog-connector stop || true
 		fi
 		sudo apt-get -y update
-		sudo apt-get -y install openjdk-8-jre
+		sudo apt-get -y install openjdk-11-jre
 		curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.deb.sh | sudo bash
 		sudo apt-get -y install iofog-connector
 		config_connector
