@@ -253,7 +253,7 @@ function checkMicroservice() {
   [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
   [[ "{\"data_label\":\"Anonymous_Person_2\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
-  [[ "memorylimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit ) ]]
+  [[ "memorylimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit | awk '{$1=$1};1' ) ]]
   # Check route
   [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
@@ -292,8 +292,8 @@ function checkUpdatedMicroservice() {
   [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
   [[ "{\"data_label\":\"Anonymous_Person_3\",\"test_data\":42,\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
-  [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit ) ]]
-  [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep diskdirectory ) ]]
+  [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit | awk '{$1=$1};1' ) ]]
+  [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep diskdirectory | awk '{$1=$1};1') ]]
   # Check route
   [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
@@ -344,7 +344,7 @@ function checkApplication() {
   [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   # Check config
   [[ "{\"data_label\":\"Anonymous_Person\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $4}') ]]
-  [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep bluetooth ) ]]
+  [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check route
   [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
   # Check ports
