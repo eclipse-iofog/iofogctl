@@ -37,6 +37,13 @@ config_connector() {
 	sudo chmod 0775 /etc/iofog-connector
 }
 
+get_distro() {
+	distro=$(lsb_release -a 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[:space:]')
+	distro_version=$(lsb_release -a 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[:space:]')
+	echo "$distro"
+	echo "$distro_version"
+}
+
 deploy_connector() {
 	# Install if does not exist 
 	if [ ! -z $(command -v apt-get) ]; then
@@ -44,6 +51,9 @@ deploy_connector() {
 		if [ ! -z $(command -v iofog-connector) ]; then
 			# Stop existing deployments
 			sudo service iofog-connector stop || true
+		fi
+		if [ "$distro" = "ubuntu" ] && [ "$distro_version" = "xenial" ]; then
+			sudo add-apt-repository ppa:openjdk-r/ppa
 		fi
 		sudo apt-get -y update
 		sudo apt-get -y install openjdk-11-jre
@@ -72,4 +82,5 @@ deploy_connector() {
 # main
 version="$1"
 token="$2"
+get_distro
 deploy_connector
