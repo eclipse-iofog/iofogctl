@@ -24,8 +24,8 @@ variables:
   connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
-  vm_count:
-  vm_max: 3
+  agent_count:
+  controller_count:
   agent_distro:
   controller_distro:
   vm_1:
@@ -69,7 +69,9 @@ stages:
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.xenial)"
         echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.xenial)"
-      displayName: 'Set VM Distros'
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
     - template: templates/test-vanilla-steps.yaml
   - job: Vanilla_Bionic
     pool:
@@ -78,6 +80,10 @@ stages:
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.bionic)"
         echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.bionic)"
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
+    - script: |
       displayName: 'Set VM Distros'
     - template: templates/test-vanilla-steps.yaml
   - job: Vanilla_Buster
@@ -87,7 +93,9 @@ stages:
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.buster)"
         echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.buster)"
-      displayName: 'Set VM Distros'
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
     - template: templates/test-vanilla-steps.yaml
   - job: Vanilla_Stretch
     pool:
@@ -96,7 +104,9 @@ stages:
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
         echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.stretch)"
-      displayName: 'Set VM Distros'
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
     - template: templates/test-vanilla-steps.yaml
   - job: Local
     pool:
@@ -169,10 +179,11 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - script: echo "##vso[task.setvariable variable=vm_count]2"
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
-      displayName: 'Set VM Distros'
+        echo "##vso[task.setvariable variable=agent_count]2"
+        echo "##vso[task.setvariable variable=controller_count]0"
+      displayName: 'Set VM variables'
     - template: templates/functional-init-vm-steps.yaml
     - template: templates/functional-configure.yaml
     - script: |
@@ -207,10 +218,11 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - script: echo "##vso[task.setvariable variable=vm_count]2"
     - script: |
         echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.buster)"
-      displayName: 'Set VM Distros'
+        echo "##vso[task.setvariable variable=agent_count]2"
+        echo "##vso[task.setvariable variable=controller_count]0"
+      displayName: 'Set VM variables'
     - template: templates/functional-init-vm-steps.yaml
     - script: |
         sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
