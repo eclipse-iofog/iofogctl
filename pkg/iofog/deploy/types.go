@@ -36,6 +36,7 @@ const (
 	ControlPlaneKind Kind = "iofog-controlplane"
 	AgentKind        Kind = "iofog-agent"
 	ConnectorKind    Kind = "iofog-connector"
+	ControllerKind   Kind = "iofog-controller"
 )
 
 // Header contains k8s yaml header

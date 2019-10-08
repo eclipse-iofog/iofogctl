@@ -19,28 +19,33 @@ NS="$NAMESPACE"
 @test "Deploy vanilla Controller" {
   initVanillaController
   echo "---
-controlplane:
-  controllers:
+kind: iofog-controlplane
+spec:
+  controlplane:
+    controllers:
+    - name: $NAME
+      user: $VANILLA_USER
+      host: $VANILLA_HOST
+      port: $VANILLA_PORT
+      keyfile: $KEY_FILE
+      version: $VANILLA_VERSION
+      packagecloudtoken: $PACKAGE_CLOUD_TOKEN
+    iofoguser:
+      name: Testing
+      surname: Functional
+      email: user@domain.com
+      password: S5gYVgLEZV
+---
+kind: iofog-connector
+spec:
+  connectors:
   - name: $NAME
     user: $VANILLA_USER
     host: $VANILLA_HOST
     port: $VANILLA_PORT
     keyfile: $KEY_FILE
     version: $VANILLA_VERSION
-    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
-  iofoguser:
-    name: Testing
-    surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
-connectors:
-- name: $NAME
-  user: $VANILLA_USER
-  host: $VANILLA_HOST
-  port: $VANILLA_PORT
-  keyfile: $KEY_FILE
-  version: $VANILLA_VERSION
-  packagecloudtoken: $PACKAGE_CLOUD_TOKEN" > test/conf/vanilla.yaml
+    packagecloudtoken: $PACKAGE_CLOUD_TOKEN" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController

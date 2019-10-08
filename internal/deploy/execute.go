@@ -21,6 +21,7 @@ import (
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
 	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
+	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
@@ -68,12 +69,20 @@ func deployConnector(namespace string, yaml []byte) error {
 	return nil
 }
 
+func deployController(namespace string, yaml []byte) error {
+	if err := deploycontroller.Execute(deploycontroller.Options{Namespace: namespace, Yaml: yaml}); err != nil {
+		return err
+	}
+	return nil
+}
+
 var kindHandlers = map[deploy.Kind]func(string, []byte) error{
 	deploy.ApplicationKind:  deployApplication,
 	deploy.MicroserviceKind: deployMicroservice,
 	deploy.ControlPlaneKind: deployControlPlane,
 	deploy.AgentKind:        deployAgent,
 	deploy.ConnectorKind:    deployConnector,
+	deploy.ControllerKind:   deployController,
 }
 
 func execDocument(header deploy.Header, namespace string) error {

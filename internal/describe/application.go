@@ -90,7 +90,7 @@ func (exe *applicationExecutor) Execute() error {
 	yamlRoutes := []deploy.Route{}
 
 	for _, msvc := range exe.msvcs {
-		yamlMsvc, err := MapClientMicroserviceToConfigMicroservice(&msvc, exe.client)
+		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(&msvc, exe.client)
 		if err != nil {
 			return err
 		}
@@ -113,12 +113,20 @@ func (exe *applicationExecutor) Execute() error {
 		ID:            exe.flow.ID,
 	}
 
+	header := deploy.Header{
+		Kind: deploy.ApplicationKind,
+		Metadata: deploy.HeaderMetadata{
+			Namespace: exe.namespace,
+		},
+		Spec: application,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(application); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(application, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

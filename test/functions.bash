@@ -13,162 +13,184 @@ function initVanillaController(){
 }
 
 function initMicroserviceFile() {
-  echo "name: ${MICROSERVICE_NAME}
-agent:
-  name: ${NAME}-0
+  echo "---
+kind: iofog-microservice
+spec:
+  name: ${MICROSERVICE_NAME}
+  agent:
+    name: ${NAME}-0
+    config:
+      memorylimit: 8192
+  images:
+    arm: edgeworx/healthcare-heart-rate:test-arm
+    x86: edgeworx/healthcare-heart-rate:test
+    registry: remote # public docker
+  roothostaccess: false
+  application: ${APPLICATION_NAME}
+  volumes:
+    - hostdestination: /tmp/microservice
+      containerdestination: /tmp
+      accessmode: rw
+  ports:
+    - internal: 443
+      external: 5005
+  env:
+    - key: TEST
+      value: 42
+  routes:
+    - ${MSVC1_NAME}
+    - ${MSVC2_NAME}
   config:
-    memorylimit: 8192
-images:
-  arm: edgeworx/healthcare-heart-rate:test-arm
-  x86: edgeworx/healthcare-heart-rate:test
-  registry: remote # public docker
-roothostaccess: false
-application: ${APPLICATION_NAME}
-volumes:
-  - hostdestination: /tmp/microservice
-    containerdestination: /tmp
-    accessmode: rw
-ports:
-  - internal: 443
-    external: 5005
-env:
-  - key: TEST
-    value: 42
-routes:
-  - ${MSVC1_NAME}
-  - ${MSVC2_NAME}
-config:
-  test_mode: true
-  data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
+    test_mode: true
+    data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
 }
 
 function initMicroserviceUpdateFile() {
-  echo "name: ${MICROSERVICE_NAME}
-agent:
-  name: ${NAME}-0
+  echo "---
+kind: iofog-microservice
+spec:
+  name: ${MICROSERVICE_NAME}
+  agent:
+    name: ${NAME}-0
+    config:
+      memorylimit: 5555
+      diskdirectory: /tmp/iofog-agent/
+  images:
+    arm: edgeworx/healthcare-heart-rate:test-arm
+    x86: edgeworx/healthcare-heart-rate:test
+    registry: remote # public docker
+  roothostaccess: false
+  application: ${APPLICATION_NAME}
+  volumes:
+    - hostdestination: /tmp/updatedmicroservice
+      containerdestination: /tmp
+      accessmode: rw
+  ports:
+    - internal: 443
+      external: 5443
+    - internal: 80
+      external: 5080
+  env:
+    - key: TEST
+      value: 75
+    - key: TEST_2
+      value: 42
+  routes:
+    - ${MSVC1_NAME}
   config:
-    memorylimit: 5555
-    diskdirectory: /tmp/iofog-agent/
-images:
-  arm: edgeworx/healthcare-heart-rate:test-arm
-  x86: edgeworx/healthcare-heart-rate:test
-  registry: remote # public docker
-roothostaccess: false
-application: ${APPLICATION_NAME}
-volumes:
-  - hostdestination: /tmp/updatedmicroservice
-    containerdestination: /tmp
-    accessmode: rw
-ports:
-  - internal: 443
-    external: 5443
-  - internal: 80
-    external: 5080
-env:
-  - key: TEST
-    value: 75
-  - key: TEST_2
-    value: 42
-routes:
-  - ${MSVC1_NAME}
-config:
-  test_mode: true
-  test_data: 42
-  data_label: 'Anonymous_Person_3'" > test/conf/updatedMicroservice.yaml
+    test_mode: true
+    test_data: 42
+    data_label: 'Anonymous_Person_3'" > test/conf/updatedMicroservice.yaml
 }
 
 function initApplicationFiles() {
-  APP="name: $APPLICATION_NAME"
-  MSVCS="microservices:
-  - name: $MSVC1_NAME
-    agent:
-      name: ${NAME}-0
+  APP="  name: $APPLICATION_NAME"
+  MSVCS="  microservices:
+    - name: $MSVC1_NAME
+      agent:
+        name: ${NAME}-0
+        config:
+          bluetoothenabled: true # this will install the iofog/restblue microservice
+          abstractedhardwareEnabled: false
+      images:
+        arm: edgeworx/healthcare-heart-rate:arm-v1
+        x86: edgeworx/healthcare-heart-rate:x86-v1
+        registry: remote # public docker
+      roothostaccess: false
+      volumes:
+        - hostdestination: /tmp/msvc
+          containerdestination: /tmp
+          accessmode: z
+      ports: []
       config:
-        bluetoothenabled: true # this will install the iofog/restblue microservice
-        abstractedhardwareEnabled: false
-    images:
-      arm: edgeworx/healthcare-heart-rate:arm-v1
-      x86: edgeworx/healthcare-heart-rate:x86-v1
-      registry: remote # public docker
-    roothostaccess: false
-    volumes:
-      - hostdestination: /tmp/msvc
-        containerdestination: /tmp
-        accessmode: z
-    ports: []
-    config:
-      test_mode: true
-      data_label: 'Anonymous_Person'
-  # Simple JSON viewer for the heart rate output
-  - name: $MSVC2_NAME
-    agent:
-      name: ${NAME}-0
-    images:
-      arm: edgeworx/healthcare-heart-rate-ui:arm
-      x86: edgeworx/healthcare-heart-rate-ui:x86
-      registry: remote
-    roothostaccess: false
-    ports:
-      # The ui will be listening on port 80 (internal).
-      - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
-        internal: 80 # The ui is listening on port 80. Do not edit this.
-        publicmode: false # Do not edit this.
-    volumes: []
-    env:
-      - key: BASE_URL
-        value: http://localhost:8080/data"
-  ROUTES="routes:
-  # Use this section to configure route between microservices
-  # Use microservice name
-  - from: $MSVC1_NAME
-    to: $MSVC2_NAME"
+        test_mode: true
+        data_label: 'Anonymous_Person'
+    # Simple JSON viewer for the heart rate output
+    - name: $MSVC2_NAME
+      agent:
+        name: ${NAME}-0
+      images:
+        arm: edgeworx/healthcare-heart-rate-ui:arm
+        x86: edgeworx/healthcare-heart-rate-ui:x86
+        registry: remote
+      roothostaccess: false
+      ports:
+        # The ui will be listening on port 80 (internal).
+        - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
+          internal: 80 # The ui is listening on port 80. Do not edit this.
+          publicmode: false # Do not edit this.
+      volumes: []
+      env:
+        - key: BASE_URL
+          value: http://localhost:8080/data"
+  ROUTES="  routes:
+    # Use this section to configure route between microservices
+    # Use microservice name
+    - from: $MSVC1_NAME
+      to: $MSVC2_NAME"
 
-  echo "$APP" > test/conf/application.yaml
+  echo "---
+  kind: iofog-application
+  spec:
+  $APP" > test/conf/application.yaml
   echo "$MSVCS" >> test/conf/application.yaml
   echo "$ROUTES" >> test/conf/application.yaml
-  echo -n "applications:
-  - " > test/conf/root_application.yaml
+  echo -n "---
+  kind: iofog-application
+  spec:
+    applications:
+    - " > test/conf/root_application.yaml
   echo "$APP" >> test/conf/root_application.yaml
-  echo "$MSVCS" | awk '{print "   ", $0}' >> test/conf/root_application.yaml
-  echo "$ROUTES" | awk '{print "   ", $0}' >> test/conf/root_application.yaml
+  echo "$MSVCS" | awk '{print "     ", $0}' >> test/conf/root_application.yaml
+  echo "$ROUTES" | awk '{print "     ", $0}' >> test/conf/root_application.yaml
 }
 
 function initLocalAgentFile() {
   echo "---
-agents:
-  - name: ${NAME}-0
-    image: ${AGENT_IMAGE}
-    host: 127.0.0.1" > test/conf/local-agent.yaml
+kind: iofog-agent
+spec:
+  agents:
+    - name: ${NAME}-0
+      image: ${AGENT_IMAGE}
+      host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
 function initLocalControllerFile() {
     echo "---
-controlplane:
-  images: 
-    controller: ${CONTROLLER_IMAGE}
-  iofoguser:
-    name: Testing
-    surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
-  controllers:
+kind: iofog-controlplane
+spec:
+  controlplane:
+    images: 
+      controller: ${CONTROLLER_IMAGE}
+    iofoguser:
+      name: Testing
+      surname: Functional
+      email: user@domain.com
+      password: S5gYVgLEZV
+    controllers:
+    - name: $NAME
+      host: 127.0.0.1
+---
+kind: iofog-connector
+spec:
+  connectors:
   - name: $NAME
-    host: 127.0.0.1
-connectors:
-- name: $NAME
-  image: ${CONNECTOR_IMAGE}
-  host: localhost" > test/conf/local.yaml
+    image: ${CONNECTOR_IMAGE}
+    host: localhost" > test/conf/local.yaml
 }
 
 function initAgentsFile() {
   initAgents
-  echo "agents:" > test/conf/agents.yaml
+  echo "---
+  kind: iofog-agent
+  spec:
+    agents:" > test/conf/agents.yaml
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    echo "- name: $AGENT_NAME
-  user: ${USERS[$IDX]}
-  host: ${HOSTS[$IDX]}
-  keyfile: $KEY_FILE" >> test/conf/agents.yaml
+    echo "  - name: $AGENT_NAME
+      user: ${USERS[$IDX]}
+      host: ${HOSTS[$IDX]}
+      keyfile: $KEY_FILE" >> test/conf/agents.yaml
   done
 }
 

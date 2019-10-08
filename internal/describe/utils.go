@@ -20,7 +20,7 @@ import (
 	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 )
 
-func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *deploy.Microservice, err error) {
+func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *deploy.Microservice, err error) {
 	agent, err := clt.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
 		return

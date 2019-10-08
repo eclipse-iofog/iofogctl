@@ -16,6 +16,7 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -68,17 +69,25 @@ func (exe *microserviceExecutor) Execute() error {
 		return nil
 	}
 
-	yamlMsvc, err := MapClientMicroserviceToConfigMicroservice(exe.msvc, exe.client)
+	yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(exe.msvc, exe.client)
 	if err != nil {
 		return err
 	}
 
+	header := deploy.Header{
+		Kind: deploy.MicroserviceKind,
+		Metadata: deploy.HeaderMetadata{
+			Namespace: exe.namespace,
+		},
+		Spec: yamlMsvc,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(yamlMsvc); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(yamlMsvc, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

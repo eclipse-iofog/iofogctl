@@ -14,11 +14,11 @@
 package describe
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofogctl/pkg/iofog/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -74,14 +74,20 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	// Print result
-	fmt.Printf("namespace: %s\n", exe.namespace)
+	header := deploy.Header{
+		Kind: deploy.AgentKind,
+		Metadata: deploy.HeaderMetadata{
+			Namespace: exe.namespace,
+		},
+		Spec: getAgentResponse,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(getAgentResponse); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(getAgentResponse, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}
