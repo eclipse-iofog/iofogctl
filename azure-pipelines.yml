@@ -85,6 +85,7 @@ stages:
     - template: templates/functional-init-vm-steps.yaml
     - template: templates/functional-configure.yaml
     - script: |
+        sleep 30 # This should not be necessary but getting connection refused on Buster VMs
         for IDX in $(seq 1 $(vm_count)); do
           gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
         done
