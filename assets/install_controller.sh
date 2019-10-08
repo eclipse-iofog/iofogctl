@@ -41,7 +41,12 @@ controller_service() {
 
 install_deps() {
 	if [ -z "$(command -v lsof)" ]; then
-		sudo apt install lsof
+		if [ -z "$(command -v apt)" ]; then
+			echo "Unsupported distro"
+			exit 1
+		fi
+		sudo apt update -qq
+		sudo apt install -y lsof
 	fi
 }
 
