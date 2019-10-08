@@ -183,13 +183,14 @@ spec:
 
 function initAgentsFile() {
   initAgents
-  echo "---
+  echo -n "---
   kind: iofog-agent
   spec:
     agents:" > test/conf/agents.yaml
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    echo "  - name: $AGENT_NAME
+    echo -n "
+    - name: $AGENT_NAME
       user: ${USERS[$IDX]}
       host: ${HOSTS[$IDX]}
       keyfile: $KEY_FILE" >> test/conf/agents.yaml
