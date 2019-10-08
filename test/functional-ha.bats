@@ -33,29 +33,31 @@ USER_EMAIL="user@domain.com"
 
 @test "Deploy Control Plane" {
   echo "---
-database:
-  provider: $DB_PROVIDER
-  user: $DB_USER
-  host: $DB_HOST
-  port: $DB_PORT
-  password: $DB_PW
-  databasename: $DB_NAME
-iofoguser:
-  name: Testing
-  surname: Functional
-  email: $USER_EMAIL
-  password: $USER_PW
-controllers:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG
-  replicas: 2
-images:
-  controller: $CONTROLLER_IMAGE
-  scheduler: $SCHEDULER_IMAGE
-  operator: $OPERATOR_IMAGE
-  kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+kind: iofog-controlplane
+spec:
+  database:
+    provider: $DB_PROVIDER
+    user: $DB_USER
+    host: $DB_HOST
+    port: $DB_PORT
+    password: $DB_PW
+    databasename: $DB_NAME
+  iofoguser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $USER_PW
+  controllers:
+  - name: $NAME
+    kubeconfig: $KUBE_CONFIG
+    replicas: 2
+  images:
+    controller: $CONTROLLER_IMAGE
+    scheduler: $SCHEDULER_IMAGE
+    operator: $OPERATOR_IMAGE
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
-  test iofogctl -v -n "$NS" deploy controlplane -f test/conf/k8s.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 
@@ -69,13 +71,15 @@ images:
   local CNCT_A="connector-a"
   local CNCT_B="connector-b"
   echo "---
-connectors:
-- name: $CNCT_A
-  image: $CONNECTOR_IMAGE
-  kubeconfig: $KUBE_CONFIG
-- name: $CNCT_B
-  image: $CONNECTOR_IMAGE
-  kubeconfig: $KUBE_CONFIG" > test/conf/cncts.yaml
+kind: iofog-connector
+spec:
+  connectors:
+  - name: $CNCT_A
+    image: $CONNECTOR_IMAGE
+    kubeconfig: $KUBE_CONFIG
+  - name: $CNCT_B
+    image: $CONNECTOR_IMAGE
+    kubeconfig: $KUBE_CONFIG" > test/conf/cncts.yaml
   test iofogctl -v -n "$NS" deploy -f test/conf/cncts.yaml
   checkConnectors "$CNCT_A" "$CNCT_B"
 }

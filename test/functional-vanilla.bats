@@ -68,7 +68,7 @@ spec:
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -v -n "$NS" deploy application -f test/conf/application.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
