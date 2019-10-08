@@ -85,7 +85,8 @@ spec:
 
 function initApplicationFiles() {
   APP="  name: $APPLICATION_NAME"
-  MSVCS="  microservices:
+  MSVCS="
+    microservices:
     - name: $MSVC1_NAME
       agent:
         name: ${NAME}-0
@@ -123,26 +124,27 @@ function initApplicationFiles() {
       env:
         - key: BASE_URL
           value: http://localhost:8080/data"
-  ROUTES="  routes:
+  ROUTES="
+    routes:
     # Use this section to configure route between microservices
     # Use microservice name
     - from: $MSVC1_NAME
       to: $MSVC2_NAME"
 
-  echo "---
+  echo -n "---
   kind: iofog-application
   spec:
   $APP" > test/conf/application.yaml
-  echo "$MSVCS" >> test/conf/application.yaml
+  echo -n "$MSVCS" >> test/conf/application.yaml
   echo "$ROUTES" >> test/conf/application.yaml
   echo -n "---
   kind: iofog-application
   spec:
     applications:
     - " > test/conf/root_application.yaml
-  echo "$APP" >> test/conf/root_application.yaml
-  echo "$MSVCS" | awk '{print "     ", $0}' >> test/conf/root_application.yaml
-  echo "$ROUTES" | awk '{print "     ", $0}' >> test/conf/root_application.yaml
+  echo -n "$APP"| awk '{$1=$1};1' >> test/conf/root_application.yaml
+  echo -n "$MSVCS" | awk '{print " ", $0}' >> test/conf/root_application.yaml
+  echo "$ROUTES" | awk '{print " ", $0}' >> test/conf/root_application.yaml
 }
 
 function initLocalAgentFile() {
