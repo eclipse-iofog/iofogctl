@@ -17,8 +17,8 @@ steps:
       distro=$(agent_distro)
       repo=$([[ $distro == *"debian"* ]] && echo "debian-cloud" || echo "ubuntu-os-cloud")
       gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
-      VM_HOST=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
-      echo "##vso[task.setvariable variable=vm_$idx]$(gcp.vm.user)@$VM_HOST"
+      vm_host=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
+      echo "##vso[task.setvariable variable=vm_$idx]$(gcp.vm.user)@$vm_host"
     done
     if [ $(controller_count) -gt 0 ]; then
       count=$(agent_count)
@@ -26,8 +26,8 @@ steps:
       distro=$(controller_distro)
       repo=$([[ $distro == *"debian"* ]] && echo "debian-cloud" || echo "ubuntu-os-cloud")
       gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
-      VM_HOST=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
-      echo "##vso[task.setvariable variable=vm_$idx]$(gcp.vm.user)@$VM_HOST"
+      vm_host=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
+      echo "##vso[task.setvariable variable=vm_$idx]$(gcp.vm.user)@$vm_host"
     fi
   displayName: 'Deploy Test VMs'
 - script: |
