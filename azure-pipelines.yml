@@ -28,9 +28,8 @@ variables:
   controller_count:
   agent_distro:
   controller_distro:
-  vm_1:
-  vm_2:
-  vm_3:
+  agent_vm_list:
+  controller_vm:
 
 stages:
 - stage: Build
