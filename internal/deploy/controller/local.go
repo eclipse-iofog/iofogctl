@@ -95,6 +95,14 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
+	// If container already exists, clean it
+	connectorContainerName := exe.localControllerConfig.ContainerName
+	if _, err := exe.client.GetContainerByName(connectorContainerName); err == nil {
+		if err := exe.client.CleanContainer(connectorContainerName); err != nil {
+			return err
+		}
+	}
+
 	// Deploy Controller and Connector images
 	if err := exe.deployContainers(); err != nil {
 		exe.cleanContainers()
