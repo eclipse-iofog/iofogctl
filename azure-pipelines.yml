@@ -21,6 +21,7 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:latest'
   connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
@@ -230,7 +231,7 @@ stages:
         sed -i "s|DB_PORT=.*|DB_PORT=5432|g" test/env.sh
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"docker.io/edgeworx/enterprise-controller:latest\"|g" test/env.sh
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(enterprise_image)\"|g" test/env.sh
       workingDirectory: '$(modulePath)'
       displayName: 'Set up Postgres on K8s cluster'
     - template: templates/functional-configure.yaml
