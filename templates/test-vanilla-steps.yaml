@@ -14,10 +14,14 @@ steps:
 - template: functional-configure.yaml
 - script: |
     sleep 30 # This should not be necessary but getting connection refused on Buster VMs
-    count=$((agent_count+controller_count))
+    a=$(agent_count)
+    b=$(controller_count)
+    count=$((a+b))
     for IDX in $(seq 1 $count); do
+      echo "Connecting to iofogctl-ci-$(jobuuid)-$IDX"
       gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
     done
+    echo "Completed waiting for $count VMs"
   displayName: 'Wait for VM SSH access'
 - script: |
     set -o pipefail
