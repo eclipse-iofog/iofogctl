@@ -14,7 +14,7 @@
 package describe
 
 import (
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -79,15 +79,15 @@ func (exe *applicationExecutor) Execute() error {
 	}
 	// Check Controller exists
 	if len(controlPlane.Controllers) == 0 {
-		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller describing Applications.")
+		return util.NewInputError("This namespace does not have a Controller. You must first apps.a Controller describing Applications.")
 	}
 	// Fetch data
 	if err = exe.init(controlPlane); err != nil {
 		return err
 	}
 
-	yamlMsvcs := []deploy.Microservice{}
-	yamlRoutes := []deploy.Route{}
+	yamlMsvcs := []apps.Microservice{}
+	yamlRoutes := []apps.Route{}
 
 	for _, msvc := range exe.msvcs {
 		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(&msvc, exe.client)
@@ -95,7 +95,7 @@ func (exe *applicationExecutor) Execute() error {
 			return err
 		}
 		for _, route := range msvc.Routes {
-			yamlRoutes = append(yamlRoutes, deploy.Route{
+			yamlRoutes = append(yamlRoutes, apps.Route{
 				From: yamlMsvc.Name,
 				To:   exe.msvcPerID[route].Name,
 			})
@@ -106,16 +106,16 @@ func (exe *applicationExecutor) Execute() error {
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 
-	application := deploy.Application{
+	application := apps.Application{
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
 		Routes:        yamlRoutes,
 		ID:            exe.flow.ID,
 	}
 
-	header := deploy.Header{
-		Kind: deploy.ApplicationKind,
-		Metadata: deploy.HeaderMetadata{
+	header := apps.Header{
+		Kind: apps.ApplicationKind,
+		Metadata: apps.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: application,

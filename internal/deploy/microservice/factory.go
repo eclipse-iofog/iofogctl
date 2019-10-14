@@ -16,8 +16,7 @@ package deploymicroservice
 import (
 	"fmt"
 
-	deploytypes "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps/microservice"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -31,8 +30,8 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	microservice deploytypes.Microservice
-	controller   deploytypes.IofogController
+	microservice apps.Microservice
+	controller   apps.IofogController
 }
 
 func (exe remoteExecutor) GetName() string {
@@ -41,7 +40,7 @@ func (exe remoteExecutor) GetName() string {
 
 func (exe remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.GetName()))
-	return deploy.Execute(exe.controller, exe.microservice)
+	return apps.DeployMicroservice(exe.controller, exe.microservice)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -57,7 +56,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Unmarshal file
-	var microservice deploytypes.Microservice
+	var microservice apps.Microservice
 	if err = yaml.Unmarshal(opt.Yaml, &microservice); err != nil {
 		err = util.NewInputError("Could not unmarshall\n" + err.Error())
 		return
@@ -68,7 +67,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	return remoteExecutor{
-		controller: deploytypes.IofogController{
+		controller: apps.IofogController{
 			Endpoint: ns.ControlPlane.Controllers[0].Endpoint,
 			Email:    ns.ControlPlane.IofogUser.Email,
 			Password: ns.ControlPlane.IofogUser.Password,

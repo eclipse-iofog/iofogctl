@@ -16,7 +16,7 @@ package describe
 import (
 	"strings"
 
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -74,9 +74,9 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	header := deploy.Header{
-		Kind: deploy.AgentKind,
-		Metadata: deploy.HeaderMetadata{
+	header := apps.Header{
+		Kind: apps.AgentKind,
+		Metadata: apps.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: getAgentResponse,

@@ -14,7 +14,7 @@
 package describe
 
 import (
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -43,9 +43,9 @@ func (exe *controllerExecutor) Execute() error {
 		return err
 	}
 
-	header := deploy.Header{
-		Kind: deploy.ControllerKind,
-		Metadata: deploy.HeaderMetadata{
+	header := apps.Header{
+		Kind: apps.ControllerKind,
+		Metadata: apps.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: controller,

@@ -16,7 +16,7 @@ package get
 import (
 	"strconv"
 
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
@@ -50,7 +50,7 @@ func generateCatalogOutput(namespace string) error {
 		return err
 	}
 
-	var items []deploy.CatalogItem
+	var items []apps.CatalogItem
 
 	// Connect to Controller if it is ready
 	if len(ns.ControlPlane.Controllers) > 0 && ns.ControlPlane.Controllers[0].Endpoint != "" {
@@ -67,7 +67,7 @@ func generateCatalogOutput(namespace string) error {
 			return err
 		}
 		for _, item := range listCatalogResponse.CatalogItems {
-			catalogItem := deploy.CatalogItem{
+			catalogItem := apps.CatalogItem{
 				ID:          item.ID,
 				Name:        item.Name,
 				Description: item.Description,
@@ -92,7 +92,7 @@ func generateCatalogOutput(namespace string) error {
 	return tabulateCatalogItems(items)
 }
 
-func tabulateCatalogItems(catalogItems []deploy.CatalogItem) error {
+func tabulateCatalogItems(catalogItems []apps.CatalogItem) error {
 	// Generate table and headers
 	table := make([][]string, len(catalogItems)+1)
 	headers := []string{

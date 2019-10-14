@@ -17,7 +17,7 @@ import (
 	"bytes"
 	"io/ioutil"
 
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
@@ -30,14 +30,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var kindOrder = []deploy.Kind{
+var kindOrder = []apps.Kind{
 	// Connector cannot be ran in parallel.
-	// deploy.ControlPlaneKind,
-	// deploy.ControllerKind,
-	// deploy.ConnectorKind,
-	deploy.AgentKind,
-	deploy.ApplicationKind,
-	deploy.MicroserviceKind,
+	// apps.ControlPlaneKind,
+	// apps.ControllerKind,
+	// apps.ConnectorKind,
+	apps.AgentKind,
+	apps.ApplicationKind,
+	apps.MicroserviceKind,
 }
 
 type Options struct {
@@ -69,16 +69,16 @@ func deployController(namespace, name string, yaml []byte) (exe execute.Executor
 	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: namespace, Yaml: yaml, Name: name})
 }
 
-var kindHandlers = map[deploy.Kind]func(string, string, []byte) (execute.Executor, error){
-	deploy.ApplicationKind:  deployApplication,
-	deploy.MicroserviceKind: deployMicroservice,
-	deploy.ControlPlaneKind: deployControlPlane,
-	deploy.AgentKind:        deployAgent,
-	deploy.ConnectorKind:    deployConnector,
-	deploy.ControllerKind:   deployController,
+var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
+	apps.ApplicationKind:  deployApplication,
+	apps.MicroserviceKind: deployMicroservice,
+	apps.ControlPlaneKind: deployControlPlane,
+	apps.AgentKind:        deployAgent,
+	apps.ConnectorKind:    deployConnector,
+	apps.ControllerKind:   deployController,
 }
 
-func execDocument(header deploy.Header, namespace string) (exe execute.Executor, err error) {
+func execDocument(header apps.Header, namespace string) (exe execute.Executor, err error) {
 	// Check namespace exists
 	if len(header.Metadata.Namespace) > 0 {
 		namespace = header.Metadata.Namespace
@@ -112,12 +112,12 @@ func Execute(opt *Options) (err error) {
 
 	namespace := opt.Namespace
 	var raw yaml.MapSlice
-	header := deploy.Header{
+	header := apps.Header{
 		Spec: raw,
 	}
 
 	// Generate all executors
-	executorsMap := make(map[deploy.Kind][]execute.Executor)
+	executorsMap := make(map[apps.Kind][]execute.Executor)
 	for dec.Decode(&header) == nil {
 		exe, err := execDocument(header, namespace)
 		if err != nil {
@@ -130,19 +130,19 @@ func Execute(opt *Options) (err error) {
 	// Connector cannot be deployed in parallel
 
 	// Controlplane
-	if err = executeKind(executorsMap[deploy.ControlPlaneKind]); err != nil {
+	if err = executeKind(executorsMap[apps.ControlPlaneKind]); err != nil {
 		return
 	}
 
 	// Controller
-	if err = executeKind(executorsMap[deploy.ControllerKind]); err != nil {
+	if err = executeKind(executorsMap[apps.ControllerKind]); err != nil {
 		return
 	}
 
 	// Connector
-	for idx := range executorsMap[deploy.ConnectorKind] {
-		if err = executorsMap[deploy.ConnectorKind][idx].Execute(); err != nil {
-			util.PrintNotify("Error from " + executorsMap[deploy.ConnectorKind][idx].GetName() + ": " + err.Error())
+	for idx := range executorsMap[apps.ConnectorKind] {
+		if err = executorsMap[apps.ConnectorKind][idx].Execute(); err != nil {
+			util.PrintNotify("Error from " + executorsMap[apps.ConnectorKind][idx].GetName() + ": " + err.Error())
 			return util.NewError("Failed to deploy")
 		}
 	}

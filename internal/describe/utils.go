@@ -16,11 +16,11 @@ package describe
 import (
 	jsoniter "github.com/json-iterator/go"
 
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
-func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *deploy.Microservice, err error) {
+func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *apps.Microservice, err error) {
 	agent, err := clt.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
 		return
@@ -55,12 +55,12 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	if err = jsoniter.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
 	}
-	result = new(deploy.Microservice)
+	result = new(apps.Microservice)
 	result.UUID = msvc.UUID
 	result.Name = msvc.Name
-	result.Agent = deploy.MicroserviceAgent{
+	result.Agent = apps.MicroserviceAgent{
 		Name: agent.Name,
-		Config: deploy.AgentConfiguration{
+		Config: apps.AgentConfiguration{
 			DockerURL:                 &agent.DockerURL,
 			DiskLimit:                 &agent.DiskLimit,
 			DiskDirectory:             &agent.DiskDirectory,
@@ -105,7 +105,7 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 		registryID = msvc.RegistryID
 		imgArray = msvc.Images
 	}
-	images := deploy.MicroserviceImages{
+	images := apps.MicroserviceImages{
 		CatalogID: msvc.CatalogItemID,
 		X86:       x86Image,
 		ARM:       armImage,
@@ -131,23 +131,23 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	return
 }
 
-func mapPorts(in []client.MicroservicePortMapping) (out []deploy.MicroservicePortMapping) {
+func mapPorts(in []client.MicroservicePortMapping) (out []apps.MicroservicePortMapping) {
 	for _, port := range in {
-		out = append(out, deploy.MicroservicePortMapping(port))
+		out = append(out, apps.MicroservicePortMapping(port))
 	}
 	return
 }
 
-func mapVolumes(in []client.MicroserviceVolumeMapping) (out []deploy.MicroserviceVolumeMapping) {
+func mapVolumes(in []client.MicroserviceVolumeMapping) (out []apps.MicroserviceVolumeMapping) {
 	for _, vol := range in {
-		out = append(out, deploy.MicroserviceVolumeMapping(vol))
+		out = append(out, apps.MicroserviceVolumeMapping(vol))
 	}
 	return
 }
 
-func mapEnvs(in []client.MicroserviceEnvironment) (out []deploy.MicroserviceEnvironment) {
+func mapEnvs(in []client.MicroserviceEnvironment) (out []apps.MicroserviceEnvironment) {
 	for _, env := range in {
-		out = append(out, deploy.MicroserviceEnvironment(env))
+		out = append(out, apps.MicroserviceEnvironment(env))
 	}
 	return
 }

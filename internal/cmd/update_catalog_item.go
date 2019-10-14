@@ -14,14 +14,14 @@
 package cmd
 
 import (
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	update "github.com/eclipse-iofog/iofogctl/internal/update/catalog_item"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newUpdateCatalogItemCommand() *cobra.Command {
-	opt := deploy.CatalogItem{}
+	opt := apps.CatalogItem{}
 	cmd := &cobra.Command{
 		Use:     "catalogitem NAME",
 		Short:   "Update a catalog item",

@@ -14,13 +14,13 @@
 package createcatalogitem
 
 import (
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(opt deploy.CatalogItem, namespace string) error {
+func Execute(opt apps.CatalogItem, namespace string) error {
 	// Get Control Plane
 	controlPlane, err := config.GetControlPlane(namespace)
 	if err != nil || len(controlPlane.Controllers) == 0 {
@@ -54,7 +54,7 @@ func Execute(opt deploy.CatalogItem, namespace string) error {
 	return nil
 }
 
-func validate(opt deploy.CatalogItem) error {
+func validate(opt apps.CatalogItem) error {
 	if opt.Name == "" {
 		return util.NewInputError("Name must be specified")
 	}
