@@ -27,24 +27,30 @@ USER_EMAIL="user@domain.com"
 
 @test "Deploy Control Plane and Connector" {
   echo "---
-controlplane:
-  iofoguser:
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
     name: Testing
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeconfig: $KUBE_CONFIG
+    kubeConfig: $KUBE_CONFIG
   images:
     controller: $CONTROLLER_IMAGE
     connector: $CONNECTOR_IMAGE
     scheduler: $SCHEDULER_IMAGE
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
-connectors:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+---
+kind: Connector
+metadata:
+  name: $NAME
+spec:
+  kubeConfig: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -135,24 +141,30 @@ connectors:
 
 @test "Deploy Controller and Connector for idempotence" {
   echo "---
-controlplane:
-  iofoguser:
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
     name: Testing
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeconfig: $KUBE_CONFIG
+    kubeConfig: $KUBE_CONFIG
   images:
     controller: $CONTROLLER_IMAGE
     connector: $CONNECTOR_IMAGE
     scheduler: $SCHEDULER_IMAGE
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
-connectors:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+---
+kind: Connector 
+metadata:
+  name: $NAME
+spec:
+  kubeConfig: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController

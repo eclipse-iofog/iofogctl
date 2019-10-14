@@ -14,8 +14,7 @@
 package describe
 
 import (
-	"fmt"
-
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -41,13 +40,21 @@ func (exe *controlPlaneExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("namespace: %s\n", exe.namespace)
+
+	header := deploy.Header{
+		Kind: deploy.ControlPlaneKind,
+		Metadata: deploy.HeaderMetadata{
+			Namespace: exe.namespace,
+		},
+		Spec: controlPlane,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(controlPlane); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(controlPlane, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

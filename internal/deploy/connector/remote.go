@@ -27,12 +27,10 @@ type remoteExecutor struct {
 	iofogUser          config.IofogUser
 }
 
-func newRemoteExecutor(namespace string, cnct *config.Connector, controllerEndpoint string, iofogUser config.IofogUser) *remoteExecutor {
+func newRemoteExecutor(namespace string, cnct *config.Connector) *remoteExecutor {
 	d := &remoteExecutor{}
 	d.namespace = namespace
 	d.cnct = cnct
-	d.controllerEndpoint = controllerEndpoint
-	d.iofogUser = iofogUser
 	return d
 }
 
@@ -41,6 +39,15 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
+	// Get Control Plane
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
+		util.PrintError("You must deploy a Controller to a namespace before deploying any Connector")
+		return
+	}
+	exe.controllerEndpoint = controlPlane.Controllers[0].Endpoint
+	exe.iofogUser = controlPlane.IofogUser
+
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
 		Name:               exe.cnct.Name,

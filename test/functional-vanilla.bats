@@ -19,28 +19,34 @@ NS="$NAMESPACE"
 @test "Deploy vanilla Controller" {
   initVanillaController
   echo "---
-controlplane:
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
   controllers:
   - name: $NAME
     user: $VANILLA_USER
     host: $VANILLA_HOST
     port: $VANILLA_PORT
-    keyfile: $KEY_FILE
+    keyFile: $KEY_FILE
     version: $VANILLA_VERSION
-    packagecloudtoken: $PACKAGE_CLOUD_TOKEN
-  iofoguser:
+    packageCloudToken: $PACKAGE_CLOUD_TOKEN
+  iofogUser:
     name: Testing
     surname: Functional
     email: user@domain.com
     password: S5gYVgLEZV
-connectors:
-- name: $NAME
+---
+kind: Connector
+metadata:
+  name: $NAME
+spec:
   user: $VANILLA_USER
   host: $VANILLA_HOST
   port: $VANILLA_PORT
-  keyfile: $KEY_FILE
+  keyFile: $KEY_FILE
   version: $VANILLA_VERSION
-  packagecloudtoken: $PACKAGE_CLOUD_TOKEN" > test/conf/vanilla.yaml
+  packageCloudToken: $PACKAGE_CLOUD_TOKEN" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController
@@ -63,12 +69,12 @@ connectors:
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -v -n "$NS" deploy application -f test/conf/application.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
-@test "Deploy application from root file and test deploy idempotence" {
-  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
+@test "Deploy application from file and test deploy idempotence" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 

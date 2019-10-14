@@ -25,11 +25,10 @@ type kubernetesExecutor struct {
 	controlPlane config.ControlPlane
 }
 
-func newKubernetesExecutor(namespace string, cnct *config.Connector, controlPlane config.ControlPlane) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, cnct *config.Connector) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
 	k.namespace = namespace
 	k.cnct = cnct
-	k.controlPlane = controlPlane
 	return k
 }
 
@@ -38,6 +37,14 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
+	// Get Control Plane
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
+		util.PrintError("You must deploy a Controller to a namespace before deploying any Connector")
+		return err
+	}
+	exe.controlPlane = controlPlane
+
 	// Get Kubernetes installer
 	installer, err := install.NewKubernetes(exe.cnct.KubeConfig, exe.namespace)
 	if err != nil {

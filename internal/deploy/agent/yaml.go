@@ -16,52 +16,32 @@ package deployagent
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
-type specification struct {
-	Agents []config.Agent
-}
-
-func UnmarshallYAML(filename string) (agents []config.Agent, err error) {
+func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
 	// Unmarshall the input file
-	var spec specification
-	if err = util.UnmarshalYAML(filename, &spec); err != nil || len(spec.Agents) == 0 {
-		var agent config.Agent
-		if err = util.UnmarshalYAML(filename, &agent); err != nil {
-			err = util.NewInputError("Could not unmarshall " + filename + "\n" + err.Error())
-			return
-		}
-		// None specified
-		if agent.Host == "" {
-			return
-		}
-		//Validate
-		if err = validate(agent); err != nil {
-			return
-		}
-		// Append the single agent
-		agents = append(agents, agent)
-	} else {
-		// Record multiple agents
-		agents = spec.Agents
+	if err = yaml.Unmarshal(file, &agent); err != nil {
+		err = util.NewInputError("Could not unmarshall\n" + err.Error())
+		return
+	}
+	// None specified
+	if agent.Host == "" {
+		return
 	}
 
-	for idx := range agents {
-		agent := &agents[idx]
-		// Fix SSH port
-		if agent.Port == 0 {
-			agent.Port = 22
-		}
-		// Format file paths
-		if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
-			return
-		}
+	if agent.Port == 0 {
+		agent.Port = 22
+	}
+	// Format file paths
+	if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
+		return
 	}
 
 	return
 }
 
-func validate(agent config.Agent) error {
+func ValidateYAML(agent config.Agent) error {
 	if agent.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Agents")
 	}

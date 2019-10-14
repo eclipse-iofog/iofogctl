@@ -36,19 +36,19 @@ NS="$NAMESPACE"
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -v -n "$NS" deploy application -f test/conf/application.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
 @test "Deploy microservice" {
   initMicroserviceFile
-  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/microservice.yaml
   checkMicroservice
 }
 
 @test "Update microservice" {
   initMicroserviceUpdateFile
-  test iofogctl -v -n "$NS" deploy microservice -f test/conf/updatedMicroservice.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
   checkUpdatedMicroservice
 }
 
@@ -59,12 +59,12 @@ NS="$NAMESPACE"
 
 @test "Deploy microservice in application" {
   initMicroserviceFile
-  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/microservice.yaml
   checkMicroservice
 }
 
-@test "Deploy application from root file and test application update" {
-  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
+@test "Deploy application from file and test application update" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 

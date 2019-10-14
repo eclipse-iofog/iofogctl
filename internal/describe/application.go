@@ -14,6 +14,7 @@
 package describe
 
 import (
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -85,16 +86,16 @@ func (exe *applicationExecutor) Execute() error {
 		return err
 	}
 
-	yamlMsvcs := []config.Microservice{}
-	yamlRoutes := []config.Route{}
+	yamlMsvcs := []deploy.Microservice{}
+	yamlRoutes := []deploy.Route{}
 
 	for _, msvc := range exe.msvcs {
-		yamlMsvc, err := MapClientMicroserviceToConfigMicroservice(&msvc, exe.client)
+		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(&msvc, exe.client)
 		if err != nil {
 			return err
 		}
 		for _, route := range msvc.Routes {
-			yamlRoutes = append(yamlRoutes, config.Route{
+			yamlRoutes = append(yamlRoutes, deploy.Route{
 				From: yamlMsvc.Name,
 				To:   exe.msvcPerID[route].Name,
 			})
@@ -105,19 +106,27 @@ func (exe *applicationExecutor) Execute() error {
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 
-	application := config.Application{
+	application := deploy.Application{
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
 		Routes:        yamlRoutes,
 		ID:            exe.flow.ID,
 	}
 
+	header := deploy.Header{
+		Kind: deploy.ApplicationKind,
+		Metadata: deploy.HeaderMetadata{
+			Namespace: exe.namespace,
+		},
+		Spec: application,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(application); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(application, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

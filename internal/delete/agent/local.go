@@ -15,8 +15,9 @@ package deleteagent
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
@@ -51,6 +52,10 @@ func (exe *localExecutor) Execute() error {
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
+	}
+
+	if len(controlPlane.Controllers) == 0 {
+		return util.NewInputError("You must be connected to a controller in order to delete an agent")
 	}
 
 	iofogClient, err := client.NewAndLogin(controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)

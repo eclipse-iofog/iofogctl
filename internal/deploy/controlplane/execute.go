@@ -14,8 +14,10 @@
 package deploycontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"fmt"
 	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -26,70 +28,90 @@ import (
 
 type Options struct {
 	Namespace string
-	InputFile string
+	Yaml      []byte
+	Name      string
 }
 
-func Execute(opt Options) error {
-	// Make sure to update config despite failure
-	defer config.Flush()
+type controlPlaneExecutor struct {
+	controllerExecutors []execute.Executor
+	controlPlane        config.ControlPlane
+	namespace           string
+	name                string
+}
 
-	util.SpinStart("Deploying Control Plane")
-
-	// Check the namespace exists
-	_, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
-
-	// Read the input file
-	controlPlane, err := UnmarshallYAML(opt.InputFile)
-	if err != nil {
-		return err
-	}
-
-	// Instantiate executors
-	var executors []execute.Executor
-
-	// Execute Controllers
-	for idx := range controlPlane.Controllers {
-		exe, err := deploycontroller.NewExecutor(opt.Namespace, &controlPlane.Controllers[idx], controlPlane)
-		if err != nil {
-			return err
-		}
-		executors = append(executors, exe)
-	}
-	if err := runExecutors(executors); err != nil {
+func (exe controlPlaneExecutor) Execute() (err error) {
+	util.SpinStart(fmt.Sprintf("Deploying controlplane %s", exe.GetName()))
+	if err := runExecutors(exe.controllerExecutors); err != nil {
 		return err
 	}
 
 	// Make sure Controller API is ready
 	// TODO: replace with controlplane variable for endpoint
-	endpoint := controlPlane.Controllers[0].Endpoint
+	endpoint := exe.controlPlane.Controllers[0].Endpoint
 	if err = install.WaitForControllerAPI(endpoint); err != nil {
 		return err
 	}
 	// Create new user
 	ctrlClient := client.New(endpoint)
-	if err = ctrlClient.CreateUser(client.User(controlPlane.IofogUser)); err != nil {
+	if err = ctrlClient.CreateUser(client.User(exe.controlPlane.IofogUser)); err != nil {
 		// If not error about account existing, fail
 		if !strings.Contains(err.Error(), "already an account associated") {
 			return err
 		}
 		// Try to log in
 		if err = ctrlClient.Login(client.LoginRequest{
-			Email:    controlPlane.IofogUser.Email,
-			Password: controlPlane.IofogUser.Password,
+			Email:    exe.controlPlane.IofogUser.Email,
+			Password: exe.controlPlane.IofogUser.Password,
 		}); err != nil {
 			return err
 		}
 	}
-
 	// Update config
-	if err = config.UpdateControlPlane(opt.Namespace, controlPlane); err != nil {
+	if err = config.UpdateControlPlane(exe.namespace, exe.controlPlane); err != nil {
 		return err
 	}
+	return config.Flush()
+}
 
-	return nil
+func (exe controlPlaneExecutor) GetName() string {
+	return exe.name
+}
+
+func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane config.ControlPlane) execute.Executor {
+	return controlPlaneExecutor{
+		controllerExecutors: executors,
+		namespace:           namespace,
+		controlPlane:        controlPlane,
+		name:                name,
+	}
+}
+
+func NewExecutor(opt Options) (exe execute.Executor, err error) {
+	// Check the namespace exists
+	_, err = config.GetNamespace(opt.Namespace)
+	if err != nil {
+		return
+	}
+
+	// Read the input file
+	controlPlane, err := UnmarshallYAML(opt.Yaml)
+	if err != nil {
+		return
+	}
+
+	// Instantiate executors
+	var controllerExecutors []execute.Executor
+
+	// Create exe Controllers
+	for idx := range controlPlane.Controllers {
+		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, &controlPlane.Controllers[idx], controlPlane)
+		if err != nil {
+			return nil, err
+		}
+		controllerExecutors = append(controllerExecutors, exe)
+	}
+
+	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, controlPlane), nil
 }
 
 func runExecutors(executors []execute.Executor) error {

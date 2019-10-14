@@ -14,14 +14,14 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	create "github.com/eclipse-iofog/iofogctl/internal/create/catalog_item"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newCreateCatalogItemCommand() *cobra.Command {
-	opt := config.CatalogItem{}
+	opt := deploy.CatalogItem{}
 	cmd := &cobra.Command{
 		Use:     "catalogitem NAME",
 		Short:   "Create a catalog item",
