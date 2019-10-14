@@ -73,13 +73,13 @@ deploy_controller() {
 		npm i npmrc -g
 	fi
 
-	# If token is provided, set up private registry
+	# If token is provided, set up private repo
 	if [ ! -z $token ]; then
 		if [ ! -z $(npmrc | grep iofog)]; then
 			npmrc -c iofog
 			npmrc iofog
 		fi
-		curl -s https://"$token":@packagecloud.io/install/repositories/"$registry"/script.node.sh | force_npm=1 bash
+		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh | force_npm=1 bash
 		mv ~/.npmrc ~/.npmrcs/npmrc
 		ln -s ~/.npmrcs/npmrc ~/.npmrc
 	else
@@ -117,7 +117,7 @@ deploy_controller() {
 
 # main
 version="$1"
-registry=$([ -z "$2" ] && echo "iofog/iofog-controller-snapshots" || echo "$2")
+repo=$([ -z "$2" ] && echo "iofog/iofog-controller-snapshots" || echo "$2")
 token="$3"
 # Optional args
 export DB_PROVIDER="$4"

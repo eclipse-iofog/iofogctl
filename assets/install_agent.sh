@@ -259,52 +259,26 @@ do_check_iofog_on_arm() {
 
 do_install_iofog() {
 	echo "# Installing ioFog agent..."
-	echo
+
+	prefix=$([ -z "$token" ] && echo "" || echo "$token:@")
+
 	case "$lsb_dist" in
 		ubuntu)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent/script.deb.sh | $sh_c "bash"
-			$sh_c "apt-get install -y iofog-agent"
+			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
+			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			command_status=$?
 			;;
 		fedora|centos)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent/script.rpm.sh | $sh_c "bash"
-			$sh_c "yum install -y iofog-agent"
+			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | $sh_c "bash"
+			$sh_c "yum install -y iofog-agent-"$agent_version"-1.noarch"
 			command_status=$?
 			;;
 		debian|raspbian)
 			if [ "$lsb_dist" = "debian" ]; then
 				$sh_c "apt-get install -y -qq net-tools"
 			fi
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent/script.deb.sh | $sh_c "bash"
-			$sh_c "apt-get install -y iofog-agent"
-			command_status=$?
-			;;
-	esac
-
-	do_check_iofog_on_arm
-}
-
-do_install_iofog_dev() {
-	echo "# Installing ioFog agent dev version: "$version 
-	echo
-	token="?master_token="$token
-	case "$lsb_dist" in
-		ubuntu)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.deb.sh$token | $sh_c "bash"
-			$sh_c "apt-get install -y --allow-downgrades iofog-agent="$version""
-			command_status=$?
-			;;
-		fedora|centos)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.rpm.sh$token  | $sh_c "bash"
-			$sh_c "yum install -y iofog-agent-"$version"-1.noarch"
-			command_status=$?
-			;;
-		debian|raspbian)
-			if [ "$lsb_dist" = "debian" ]; then
-				$sh_c "apt-get install -y --allow-downgrades -qq net-tools"
-			fi
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.deb.sh$token  | $sh_c "bash"
-			$sh_c "apt-get install -y --allow-downgrades iofog-agent="$version""
+			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
+			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			command_status=$?
 			;;
 	esac
@@ -437,37 +411,15 @@ do_install() {
 	
 	do_stop_iofog
 
-	if [ "$env" = "dev" ]
-	then
-		do_install_iofog_dev 
-	else
-		do_install_iofog
-	fi
+	do_install_iofog
 }
 
-env="$1"
-version="$2"
+agent_version="$1"
+repo=$([ -z "$2" ] && echo "iofog/iofog-agent" || echo "$2")
 token="$3"
 echo "Using variables"
-echo "Env: ${env}"
-echo "version: ${version}"
-echo "token: ${token}"
-if [ "$env" = "dev" ]; then
-	echo "----> Dev environment"
-fi
-if ! [ -z "$version" ]; then
-	echo "----> Dev environment, version: $version"
-fi
-if ! [ -z "$token" ]; then
-	echo "----> Dev environment, token: $token"
-fi
-
-if [ "$env" = "dev" ] && ! [ -z "$version" ] && ! [ -z "$token" ]; then
-	echo "Will be installing iofog-agent version $version from snapshot repo"
-else 
-	env=""
-	echo "Will be installing iofog-agent from public repo"
-	echo "To install from snapshot repo, run script with additional param 'dev <VERSION> <PACKAGE_CLOUD_TOKEN>'"
-fi
+echo "version: $agent_version"
+echo "repo: $repo"
+echo "token: $token"
 
 do_install
