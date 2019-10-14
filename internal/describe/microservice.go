@@ -74,9 +74,9 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 
-	header := apps.Header{
+	header := config.Header{
 		Kind: apps.MicroserviceKind,
-		Metadata: apps.HeaderMetadata{
+		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: yamlMsvc,

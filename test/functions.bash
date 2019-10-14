@@ -12,6 +12,14 @@ function initVanillaController(){
   VANILLA_PORT="${PORT:-22}"
 }
 
+function initAllLocalDeleteFile() {
+  cat test/conf/local.yaml > test/conf/all-local.yaml
+  echo "" >> test/conf/all-local.yaml
+  cat test/conf/local-agent.yaml >> test/conf/all-local.yaml
+  echo "" >> test/conf/all-local.yaml
+  cat test/conf/application.yaml >> test/conf/all-local.yaml
+}
+
 function initMicroserviceFile() {
   echo "---
 kind: Microservice 
@@ -49,8 +57,9 @@ spec:
 function initMicroserviceUpdateFile() {
   echo "---
 kind: Microservice
-spec:
+metadata:
   name: ${MICROSERVICE_NAME}
+spec:
   agent:
     name: ${NAME}-0
     config:

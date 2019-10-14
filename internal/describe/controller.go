@@ -43,9 +43,9 @@ func (exe *controllerExecutor) Execute() error {
 		return err
 	}
 
-	header := apps.Header{
+	header := config.Header{
 		Kind: apps.ControllerKind,
-		Metadata: apps.HeaderMetadata{
+		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: controller,

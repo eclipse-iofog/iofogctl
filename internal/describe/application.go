@@ -113,9 +113,9 @@ func (exe *applicationExecutor) Execute() error {
 		ID:            exe.flow.ID,
 	}
 
-	header := apps.Header{
+	header := config.Header{
 		Kind: apps.ApplicationKind,
-		Metadata: apps.HeaderMetadata{
+		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: application,

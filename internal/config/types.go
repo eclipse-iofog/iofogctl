@@ -13,6 +13,8 @@
 
 package config
 
+import "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
 	Name     string `yaml:"name,omitempty"`
@@ -81,6 +83,8 @@ type Controller struct {
 	ImageCredentials  DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull images
 	Version           string            `yaml:"version,omitempty"`
 	PackageCloudToken string            `yaml:"packageCloudToken,omitempty"`
+	Repo              string            `yaml:",omitempty"`
+	Token             string            `yaml:",omitempty"`
 }
 
 // Agent contains information for configuring an agent
@@ -96,6 +100,8 @@ type Agent struct {
 	ImageCredentials  DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
 	Version           string            `yaml:"version,omitempty"`
 	PackageCloudToken string            `yaml:"packageCloudToken,omitempty"`
+	Repo              string            `yaml:",omitempty"`
+	Token             string            `yaml:",omitempty"`
 }
 
 // Namespace contains information for configuring a namespace
@@ -110,4 +116,18 @@ type Namespace struct {
 // configuration contains the unmarshalled configuration file
 type configuration struct {
 	Namespaces []Namespace `yaml:"namespaces,omitempty"`
+}
+
+// HeaderMetadata contains k8s metadata
+type HeaderMetadata struct {
+	Name      string `yaml:"name" json:"name"`
+	Namespace string `yaml:"namespace" json:"namespace"`
+}
+
+// Header contains k8s yaml header
+type Header struct {
+	APIVersion string         `yaml:"apiVersion" json:"apiVersion"`
+	Kind       apps.Kind      `yaml:"kind" json:"kind"`
+	Metadata   HeaderMetadata `yaml:"metadata" json:"metadata"`
+	Spec       interface{}    `yaml:"spec" json:"spec"`
 }

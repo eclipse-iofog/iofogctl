@@ -11,11 +11,11 @@
  *
  */
 
-package deleteapplication
+package deletecontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -23,8 +23,6 @@ import (
 type Executor struct {
 	namespace string
 	name      string
-	client    *client.Client
-	flow      *client.FlowInfo
 }
 
 func NewExecutor(namespace, name string) (execute.Executor, error) {
@@ -43,37 +41,39 @@ func (exe *Executor) GetName() string {
 
 // Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() (err error) {
-	util.SpinStart("Deleting Application")
-	// Get Control Plane from namespace
+	// Get Control Plane
 	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return
+	if err != nil {
+		return err
 	}
 
-	// Init remote resources
-	if err = exe.init(controlPlane); err != nil {
-		return
+	var executors []execute.Executor
+	for _, controller := range controlPlane.Controllers {
+		exe, err := deletecontroller.NewExecutor(exe.namespace, controller.Name)
+		if err != nil {
+			return err
+		}
+		executors = append(executors, exe)
 	}
 
-	// Delete flow
-	if err = exe.client.DeleteFlow(exe.flow.ID); err != nil {
-		return
+	if err = runExecutors(executors); err != nil {
+		return err
 	}
 
-	return nil
+	// Delete Control Plane
+	if err = config.DeleteControlPlane(exe.namespace); err != nil {
+		return err
+	}
+
+	return config.Flush()
 }
 
-func (exe *Executor) init(controlPlane config.ControlPlane) (err error) {
-	// TODO: replace controllers[0] with controplane variable
-	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
-		return
+func runExecutors(executors []execute.Executor) error {
+	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
+		for idx := range errs {
+			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
+		}
+		return util.NewError("Failed to delete")
 	}
-	flow, err := exe.client.GetFlowByName(exe.name)
-	if err != nil {
-		return
-	}
-	exe.flow = flow
-	return
+	return nil
 }

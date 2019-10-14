@@ -74,9 +74,9 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	header := apps.Header{
+	header := config.Header{
 		Kind: apps.AgentKind,
-		Metadata: apps.HeaderMetadata{
+		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: getAgentResponse,

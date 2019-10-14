@@ -41,7 +41,7 @@ The namespace must not have any resources within it.`,
 		},
 	}
 
-	cmd.Flags().BoolVarP(&force, "force", "f", false, "Force deletion of all resources within the namespace")
+	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of all resources within the namespace")
 
 	return cmd
 }

@@ -52,8 +52,8 @@ NS="$NAMESPACE"
   checkUpdatedMicroservice
 }
 
-@test "Delete microservice" {
-  test iofogctl -v -n "$NS" delete microservice "$MICROSERVICE_NAME"
+@test "Delete microservice using file option" {
+  test iofogctl -v -n "$NS" delete -f test/conf/updatedMicroservice.yaml
   checkMicroserviceNegative
 }
 
@@ -68,13 +68,10 @@ NS="$NAMESPACE"
   checkApplication
 }
 
-@test "Delete application" {
-  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
+@test "Delete all using file" {
+  initAllLocalDeleteFile
+  test iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml
   checkApplicationNegative
-}
-
-@test "Delete all" {
-  test iofogctl -v -n "$NS" delete all
   checkControllerNegative
   checkConnectorNegative
   checkAgentNegative "${NAME}-0"

@@ -31,26 +31,34 @@ func newDeployCommand() *cobra.Command {
 		Long: `Deploy ioFog platform or individual components on existing infrastructure.
 
 The YAML resource specification file should look like this (two Controllers specified for example only):` + "\n```\n" +
-			`controlplane:
-  controllers:
-  - name: k8s # Controller name
-    kubeConfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
-  - name: vanilla 
-    user: serge # SSH user
-    host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
-    keyFile: ~/.ssh/id_rsa # SSH private key
-  agents:
-  - name: agent1 # Agent name
+			`kind: ControlPlane
+	metadata:
+		name: alpaca-1 # ControlPlane name
+	spec:
+		controllers:
+		- name: k8s # Controller name
+			kubeConfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
+		- name: vanilla
+			user: serge # SSH user
+			host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
+			keyFile: ~/.ssh/id_rsa # SSH private key
+---
+	kind: Agent
+	metadata:
+		name: agent1 # Agent name
+	spec:
     user: serge # SSH User
     host: 35.239.157.151 # SSH host
-    keyFile: ~/.ssh/id_rsa # SSH private key
-  - name: agent2
+		keyFile: ~/.ssh/id_rsa # SSH private key
+---
+	kind: Agent
+	metadata:
+		name: agent2
+	spec:
     user: serge
     host: 35.232.114.32
-    keyFile: ~/.ssh/id_rsa
-  applications: [] # See iofogctl deploy application for an application yaml schema
-  microservices: [] # See iofogctl deploy microservices
-` + "\n```\n",
+		keyFile: ~/.ssh/id_rsa
+` + "\n```\n" + `The complete description of yaml file definition can be found [here](https://iofog.org/docs/tools/iofogctl/stack-yaml-spec.html) and [here](https://iofog.org/docs/tools/iofogctl/application-yaml-spec.html)`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			// Get namespace

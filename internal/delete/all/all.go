@@ -18,7 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
+	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -102,24 +102,12 @@ func Execute(namespace string) error {
 	}
 
 	// Delete Controllers
-	if len(ns.ControlPlane.Controllers) > 0 {
-		util.SpinStart("Deleting Controllers")
-
-		var executors []execute.Executor
-		for _, ctrl := range ns.ControlPlane.Controllers {
-			exe, err := deletecontroller.NewExecutor(namespace, ctrl.Name)
-			if err != nil {
-				return err
-			}
-			executors = append(executors, exe)
-		}
-		if err := runExecutors(executors); err != nil {
-			return err
-		}
+	util.SpinStart("Deleting ControlPlane")
+	exe, err := deletecontrolplane.NewExecutor(namespace, "controlplane")
+	if err != nil {
+		return err
 	}
-
-	// Delete Control Plane
-	if err = config.DeleteControlPlane(namespace); err != nil {
+	if err = exe.Execute(); err != nil {
 		return err
 	}
 

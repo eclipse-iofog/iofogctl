@@ -41,9 +41,9 @@ func (exe *controlPlaneExecutor) Execute() error {
 		return err
 	}
 
-	header := apps.Header{
+	header := config.Header{
 		Kind: apps.ControlPlaneKind,
-		Metadata: apps.HeaderMetadata{
+		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 		},
 		Spec: controlPlane,

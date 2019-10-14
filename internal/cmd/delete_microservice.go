@@ -33,7 +33,8 @@ func newDeleteMicroserviceCommand() *cobra.Command {
 			util.Check(err)
 
 			// Get an executor for the command
-			err = delete.Execute(namespace, name)
+			exe, _ := delete.NewExecutor(namespace, name)
+			err = exe.Execute()
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted microservice " + name)

@@ -78,7 +78,7 @@ var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor,
 	apps.ControllerKind:   deployController,
 }
 
-func execDocument(header apps.Header, namespace string) (exe execute.Executor, err error) {
+func execDocument(header config.Header, namespace string) (exe execute.Executor, err error) {
 	// Check namespace exists
 	if len(header.Metadata.Namespace) > 0 {
 		namespace = header.Metadata.Namespace
@@ -112,7 +112,7 @@ func Execute(opt *Options) (err error) {
 
 	namespace := opt.Namespace
 	var raw yaml.MapSlice
-	header := apps.Header{
+	header := config.Header{
 		Spec: raw,
 	}
 
