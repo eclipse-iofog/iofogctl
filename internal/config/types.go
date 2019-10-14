@@ -82,6 +82,7 @@ type Controller struct {
 	Created           string            `yaml:",omitempty"`
 	ImageCredentials  DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull images
 	Version           string            `yaml:",omitempty"`
+	Registry          string            `yaml:",omitempty"`
 	PackageCloudToken string            `yaml:",omitempty"`
 }
 

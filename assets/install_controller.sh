@@ -79,7 +79,7 @@ deploy_controller() {
 			npmrc -c iofog
 			npmrc iofog
 		fi
-		curl -s https://"$token":@packagecloud.io/install/repositories/iofog/iofog-controller-snapshots/script.node.sh | force_npm=1 bash
+		curl -s https://"$token":@packagecloud.io/install/repositories/"$registry"/script.node.sh | force_npm=1 bash
 		mv ~/.npmrc ~/.npmrcs/npmrc
 		ln -s ~/.npmrcs/npmrc ~/.npmrc
 	else
@@ -117,13 +117,14 @@ deploy_controller() {
 
 # main
 version="$1"
-token="$2"
+registry=$([ -z "$2" ] && echo "iofog/iofog-controller-snapshots" || echo "$2")
+token="$3"
 # Optional args
-export DB_PROVIDER="$3"
-export DB_HOST="$4"
-export DB_USER="$5"
-export DB_PASSWORD="$6"
-export DB_PORT="$7"
+export DB_PROVIDER="$4"
+export DB_HOST="$5"
+export DB_USER="$6"
+export DB_PASSWORD="$7"
+export DB_PORT="$8"
 
 install_deps
 deploy_controller

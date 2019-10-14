@@ -30,6 +30,7 @@ type ControllerOptions struct {
 	Port              int
 	PrivKeyFilename   string
 	Version           string
+	Registry          string
 	PackageCloudToken string
 }
 
@@ -112,7 +113,7 @@ func (ctrl *Controller) Install() (err error) {
 		dbArgs = fmt.Sprintf(" %s %s %s %s %d", db.provider, db.host, db.user, db.password, db.port)
 	}
 	cmds := []string{
-		fmt.Sprintf("/tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken) + dbArgs,
+		fmt.Sprintf("/tmp/install_controller.sh %s %s %s", ctrl.Version, ctrl.Registry, ctrl.PackageCloudToken) + dbArgs,
 	}
 
 	// Execute commands

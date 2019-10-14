@@ -45,6 +45,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Port:              exe.ctrl.Port,
 		PrivKeyFilename:   exe.ctrl.KeyFile,
 		Version:           exe.ctrl.Version,
+		Registry:          exe.ctrl.Registry,
 		PackageCloudToken: exe.ctrl.PackageCloudToken,
 	}
 	installer := install.NewController(controllerOptions)
