@@ -78,6 +78,7 @@ func (exe *agentExecutor) Execute() error {
 		Kind: apps.AgentKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
+			Name:      exe.name,
 		},
 		Spec: getAgentResponse,
 	}

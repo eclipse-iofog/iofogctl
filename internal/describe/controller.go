@@ -47,6 +47,7 @@ func (exe *controllerExecutor) Execute() error {
 		Kind: apps.ControllerKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
+			Name:      exe.name,
 		},
 		Spec: controller,
 	}

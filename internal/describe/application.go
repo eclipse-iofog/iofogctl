@@ -117,6 +117,7 @@ func (exe *applicationExecutor) Execute() error {
 		Kind: apps.ApplicationKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
+			Name:      exe.name,
 		},
 		Spec: application,
 	}

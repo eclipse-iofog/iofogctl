@@ -45,6 +45,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 		Kind: apps.ControlPlaneKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
+			Name:      "controlPlane",
 		},
 		Spec: controlPlane,
 	}

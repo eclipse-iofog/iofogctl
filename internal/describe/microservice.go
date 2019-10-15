@@ -78,6 +78,7 @@ func (exe *microserviceExecutor) Execute() error {
 		Kind: apps.MicroserviceKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
+			Name:      exe.name,
 		},
 		Spec: yamlMsvc,
 	}

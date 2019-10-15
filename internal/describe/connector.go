@@ -47,6 +47,7 @@ func (exe *connectorExecutor) Execute() error {
 		Kind: apps.ConnectorKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
+			Name:      exe.name,
 		},
 		Spec: connector,
 	}
