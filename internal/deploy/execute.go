@@ -15,6 +15,7 @@ package deploy
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
@@ -118,12 +119,18 @@ func Execute(opt *Options) (err error) {
 
 	// Generate all executors
 	executorsMap := make(map[apps.Kind][]execute.Executor)
-	for dec.Decode(&header) == nil {
+	decodeErr := dec.Decode(&header)
+	for decodeErr == nil {
 		exe, err := execDocument(header, namespace)
 		if err != nil {
 			return err
 		}
 		executorsMap[header.Kind] = append(executorsMap[header.Kind], exe)
+		decodeErr = dec.Decode(&header)
+	}
+
+	if decodeErr != io.EOF && decodeErr != nil {
+		return err
 	}
 
 	// Execute in parallel by priority order
