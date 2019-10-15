@@ -34,24 +34,27 @@ func Execute(namespace string) error {
 	}
 
 	// Delete Agents
-	util.SpinStart("Deleting Agents")
-	var executors []execute.Executor
-	for _, agent := range ns.Agents {
-		exe, err := deleteagent.NewExecutor(namespace, agent.Name)
-		if err != nil {
+	if len(ns.Agents) > 0 {
+		util.SpinStart("Deleting Agents")
+
+		var executors []execute.Executor
+		for _, agent := range ns.Agents {
+			exe, err := deleteagent.NewExecutor(namespace, agent.Name)
+			if err != nil {
+				return err
+			}
+			executors = append(executors, exe)
+		}
+		if err := runExecutors(executors); err != nil {
 			return err
 		}
-		executors = append(executors, exe)
-	}
-	if err := runExecutors(executors); err != nil {
-		return err
 	}
 
 	// Delete routes (which would prevent connector from being deleted)
-	util.SpinStart("Deleting Routes")
-	executors = executors[:0]
-	for _, ctrl := range ns.ControlPlane.Controllers {
-		clt, err := client.NewAndLogin(ctrl.Endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+	if len(ns.ControlPlane.Controllers) > 0 {
+		// Get list of microservices from backend
+		endpoint := ns.ControlPlane.Controllers[0].Endpoint
+		clt, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
 		if err != nil {
 			return err
 		}
@@ -59,49 +62,60 @@ func Execute(namespace string) error {
 		if err != nil {
 			return err
 		}
-		for _, msvc := range msvcs.Microservices {
-			for _, destUUID := range msvc.Routes {
-				if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
-					return err
+		// Delete routes
+		if len(msvcs.Microservices) > 0 {
+			util.SpinStart("Deleting Routes")
+
+			for _, msvc := range msvcs.Microservices {
+				for _, destUUID := range msvc.Routes {
+					if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
+						return err
+					}
 				}
 			}
 		}
 	}
 
 	// Delete Connectors
-	util.SpinStart("Deleting Connectors")
-	executors = executors[:0]
-	for _, cnct := range ns.Connectors {
-		exe, err := deleteconnector.NewExecutor(namespace, cnct.Name)
-		if err != nil {
-			return err
-		}
-		// TODO: Replace serial execution when CRD updated
-		// Kubernetes Connectors cannot run in parallel
-		if cnct.KubeConfig != "" {
-			if err = exe.Execute(); err != nil {
+	if len(ns.Connectors) > 0 {
+		util.SpinStart("Deleting Connectors")
+
+		var executors []execute.Executor
+		for _, cnct := range ns.Connectors {
+			exe, err := deleteconnector.NewExecutor(namespace, cnct.Name)
+			if err != nil {
 				return err
 			}
-		} else {
-			executors = append(executors, exe)
+			// TODO: Replace serial execution when CRD updated
+			// Kubernetes Connectors cannot run in parallel
+			if cnct.KubeConfig != "" {
+				if err = exe.Execute(); err != nil {
+					return err
+				}
+			} else {
+				executors = append(executors, exe)
+			}
 		}
-	}
-	if err := runExecutors(executors); err != nil {
-		return err
+		if err := runExecutors(executors); err != nil {
+			return err
+		}
 	}
 
 	// Delete Controllers
-	util.SpinStart("Deleting Controllers")
-	executors = executors[:0]
-	for _, ctrl := range ns.ControlPlane.Controllers {
-		exe, err := deletecontroller.NewExecutor(namespace, ctrl.Name)
-		if err != nil {
+	if len(ns.ControlPlane.Controllers) > 0 {
+		util.SpinStart("Deleting Controllers")
+
+		var executors []execute.Executor
+		for _, ctrl := range ns.ControlPlane.Controllers {
+			exe, err := deletecontroller.NewExecutor(namespace, ctrl.Name)
+			if err != nil {
+				return err
+			}
+			executors = append(executors, exe)
+		}
+		if err := runExecutors(executors); err != nil {
 			return err
 		}
-		executors = append(executors, exe)
-	}
-	if err := runExecutors(executors); err != nil {
-		return err
 	}
 
 	// Delete Control Plane
@@ -109,7 +123,7 @@ func Execute(namespace string) error {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }
 
 func runExecutors(executors []execute.Executor) error {
