@@ -24,9 +24,10 @@ import (
 // Remote agent uses SSH
 type RemoteAgent struct {
 	defaultAgent
-	ssh               *util.SecureShellClient
-	version           string
-	packageCloudToken string
+	ssh     *util.SecureShellClient
+	version string
+	repo    string
+	token   string
 }
 
 func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName string) *RemoteAgent {
@@ -35,12 +36,23 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName stri
 	return &RemoteAgent{
 		defaultAgent: defaultAgent{name: agentName},
 		ssh:          ssh,
+		version:      util.GetAgentTag(),
 	}
 }
 
-func (agent *RemoteAgent) SetVersion(version, packageCloudToken string) {
+func (agent *RemoteAgent) SetVersion(version string) {
+	if version == "" {
+		return
+	}
 	agent.version = version
-	agent.packageCloudToken = packageCloudToken
+}
+
+func (agent *RemoteAgent) SetRepository(repo, token string) {
+	if repo == "" {
+		return
+	}
+	agent.repo = repo
+	agent.token = token
 }
 
 func (agent *RemoteAgent) Bootstrap() error {
@@ -49,13 +61,8 @@ func (agent *RemoteAgent) Bootstrap() error {
 		return err
 	}
 
-	// Instantiate install arguments
-	installArgs := ""
-	if agent.version != "" && agent.packageCloudToken != "" {
-		installArgs = "dev " + agent.version + " " + agent.packageCloudToken
-	}
-
 	// Define bootstrap commands
+	installArgs := agent.version + " " + agent.repo + " " + agent.token
 	cmds := []string{
 		"/tmp/install_agent.sh " + installArgs,
 		"sudo -S service iofog-agent start",
