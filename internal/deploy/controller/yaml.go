@@ -14,8 +14,6 @@
 package deploycontroller
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -51,12 +49,6 @@ func Validate(ctrl config.Controller) error {
 		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 	}
 	if ctrl.KubeConfig == "" && ((ctrl.Host != "localhost" && ctrl.Host != "127.0.0.1") && (ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "")) {
-		// TODO: Remove output when flaky test result fixed
-		fmt.Printf("=====> Invalid controller: %v\n", ctrl)
-		fmt.Printf("=====> controller.KubeConfig: [%s]\n", ctrl.KubeConfig)
-		fmt.Printf("=====> controller.Host: [%s]\n", ctrl.Host)
-		fmt.Printf("=====> controller.User: [%s]\n", ctrl.User)
-		fmt.Printf("=====> controller.KeyFile: [%s]\n", ctrl.KeyFile)
 		return util.NewInputError("For Controllers you must specify non-empty values for EITHER kubeconfig OR host, user, and keyfile")
 	}
 	return nil
