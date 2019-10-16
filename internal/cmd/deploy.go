@@ -14,6 +14,9 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
+
 	"github.com/eclipse-iofog/iofogctl/internal/deploy"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -67,6 +70,10 @@ The YAML resource specification file should look like this (two Controllers spec
 
 			// Execute command
 			err = deploy.Execute(opt)
+			if err != nil {
+				yamlFile, _ := ioutil.ReadFile(opt.InputFile)
+				fmt.Printf("File to deploy\n%s", string(yamlFile))
+			}
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deployed resources to namespace " + opt.Namespace)
