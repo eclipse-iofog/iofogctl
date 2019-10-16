@@ -80,6 +80,8 @@ func NewRootCommand() *cobra.Command {
 		newBashCompleteCommand(cmd),
 		newGenerateDocumentationCommand(cmd),
 		newViewCommand(),
+		newStartCommand(),
+		newStopCommand(),
 	)
 
 	return cmd
