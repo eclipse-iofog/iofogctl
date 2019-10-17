@@ -204,6 +204,10 @@ start_docker() {
 			$sh_c "service docker start"
 			command_status=$?
 		fi
+		if [ $command_status -ne 0 ]; then
+			echo "Could not start Docker daemon"
+			exit 1
+		fi
 	else
 		command_status=0	
 	fi
@@ -215,6 +219,7 @@ do_install_docker() {
 		docker_version=$(docker -v | sed 's/.*version \(.*\),.*/\1/' | tr -d '.')
 		if [ "$docker_version" -ge 18090 ]; then
 			echo "# Docker $docker_version already installed"
+			start_docker
 			return
 		fi
 	fi
