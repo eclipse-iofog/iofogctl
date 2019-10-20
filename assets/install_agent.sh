@@ -120,27 +120,6 @@ command_exists() {
 	command -v "$@"
 }
 
-check_command_status() {
-	if [ $1 -eq 0 ]; then
-		echo
-		echo "$2"
-		echo
-	elif [ $1 -eq 776 ]; then
-		echo
-		echo "$5"
-		echo
-	elif [ $1 -eq 777 ]; then
-		echo
-		echo "$4"
-		echo 
-	else
-		echo
-		echo "$3"
-		echo
-		exit $1
-	fi
-}
-
 disable_package_preconfiguration() {
 	if [ "$lsb_dist" = "debian" ]; then
 		if [ -f /etc/apt/apt.conf.d/70debconf ]; then
@@ -170,38 +149,30 @@ do_install_java() {
 		case "$lsb_dist" in
 			debian|raspbian|ubuntu)
 				$sh_c "update-alternatives --install /usr/bin/java java /opt/jdk1.8.0_211/bin/java 1100"
-				command_status=$?
 				;;		
 			fedora|centos)
 				$sh_c "alternatives --install /usr/bin/java java /opt/jdk1.8.0_211/bin/java 4"
-				command_status=$?
 				;;
 		esac
-		# Proceeding with existing java if java update failed
-		if [ "$command_status" -ne "0" ] && [ ! -z "$java8_version" ]; then
-			command_status=776
-		fi
-	else
-		command_status=777
 	fi
 }
 
 start_docker() {
+	set +e
 	# check if docker is running
 	if [ ! -f /var/run/docker.pid ]; then
 		$sh_c "/etc/init.d/docker start"
-		command_status=$?
-		if [ $command_status -ne 0 ]; then
+		local err_code=$?
+		if [ $err_code -ne 0 ]; then
 			$sh_c "service docker start"
-			command_status=$?
+			err_code=$?
 		fi
-		if [ $command_status -ne 0 ]; then
+		if [ $err_code -ne 0 ]; then
 			echo "Could not start Docker daemon"
 			exit 1
 		fi
-	else
-		command_status=0	
 	fi
+	set -e
 }
 
 do_install_docker() {
@@ -232,7 +203,6 @@ do_install_docker() {
 		$sh_c 'echo "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" >> /etc/systemd/system/docker.service.d/overlay.conf'
 		$sh_c "systemctl daemon-reload"
 		$sh_c "service docker restart"
-		command_status=$?
 	fi
 }
 
@@ -265,17 +235,14 @@ do_install_iofog() {
 		ubuntu)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
 			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
-			command_status=$?
 			;;
 		fedora|centos)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | $sh_c "bash"
 			$sh_c "yum install -y iofog-agent-"$agent_version"-1.noarch"
-			command_status=$?
 			;;
 		debian|raspbian)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
 			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
-			command_status=$?
 			;;
 	esac
 
@@ -301,7 +268,6 @@ do_install_deps() {
 do_install() {
 	echo "# Executing iofog install script"
 	
-	command_status=0
 	sh_c='sh -c'
 	if [ "$user" != 'root' ]; then
 		if command_exists sudo; then
