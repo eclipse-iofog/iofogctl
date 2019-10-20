@@ -279,9 +279,6 @@ do_install_iofog() {
 			command_status=$?
 			;;
 		debian|raspbian)
-			if [ "$lsb_dist" = "debian" ]; then
-				$sh_c "apt-get install -y -qq net-tools"
-			fi
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
 			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			command_status=$?
