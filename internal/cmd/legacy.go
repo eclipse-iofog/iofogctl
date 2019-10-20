@@ -75,15 +75,16 @@ iofogctl legacy agent NAME status`,
 					if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
 						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Controller are not available"))
 					}
-					sshClient := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
-					util.Check(sshClient.Connect())
-					defer sshClient.Disconnect()
+					ssh := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
+					ssh.SetPort(ctrl.Port)
+					util.Check(ssh.Connect())
+					defer ssh.Disconnect()
 
 					sshCmd := "sudo iofog-controller"
 					for _, arg := range args[2:] {
 						sshCmd = sshCmd + " " + arg
 					}
-					logs, err := sshClient.Run(sshCmd)
+					logs, err := ssh.Run(sshCmd)
 					util.Check(err)
 					fmt.Print(logs.String())
 				}
@@ -96,6 +97,7 @@ iofogctl legacy agent NAME status`,
 					util.Check(util.NewError("Cannot execute legacy command because SSH details for this Agent are not available"))
 				}
 				ssh := util.NewSecureShellClient(agent.User, agent.Host, agent.KeyFile)
+				ssh.SetPort(agent.Port)
 				util.Check(ssh.Connect())
 				// Execute
 				args[0] = "sudo"
