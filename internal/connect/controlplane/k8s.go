@@ -11,7 +11,7 @@
  *
  */
 
-package connect
+package connectcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -19,22 +19,25 @@ import (
 )
 
 type kubernetesExecutor struct {
-	opt *Options
+	ctrlPlane config.ControlPlane
+	namespace string
 }
 
-func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
-	k := &kubernetesExecutor{}
-	k.opt = opt
+func newKubernetesExecutor(ctrlPlane config.ControlPlane, namespace string) *kubernetesExecutor {
+	k := &kubernetesExecutor{
+		ctrlPlane: ctrlPlane,
+		namespace: namespace,
+	}
 	return k
 }
 
 func (exe *kubernetesExecutor) GetName() string {
-	return exe.opt.Name
+	return "Control Plane"
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
-	k8s, err := install.NewKubernetes(exe.opt.KubeFile, exe.opt.Namespace)
+	k8s, err := install.NewKubernetes(exe.ctrlPlane.Controllers[0].KubeConfig, exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -52,9 +55,15 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Establish connection
-	err = connect(exe.opt, endpoint)
+	err = connect(exe.ctrlPlane, endpoint, exe.namespace)
 	if err != nil {
 		return err
 	}
+
+	err = config.UpdateControlPlane(exe.namespace, exe.ctrlPlane)
+	if err != nil {
+		return err
+	}
+
 	return config.Flush()
 }

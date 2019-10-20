@@ -11,14 +11,14 @@
  *
  */
 
-package connect
+package connectcontrolplane
 
 import (
 	client "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
-func connect(opt *Options, endpoint string) error {
+func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 	// Connect to Controller
 	ctrl := client.New(endpoint)
 
@@ -27,8 +27,8 @@ func connect(opt *Options, endpoint string) error {
 
 	// Login user
 	loginRequest := client.LoginRequest{
-		Email:    opt.Email,
-		Password: opt.Password,
+		Email:    ctrlPlane.IofogUser.Email,
+		Password: ctrlPlane.IofogUser.Password,
 	}
 	if err := ctrl.Login(loginRequest); err != nil {
 		return err
@@ -46,7 +46,7 @@ func connect(opt *Options, endpoint string) error {
 			Name: connector.Name,
 			Host: connector.IP,
 		}
-		if err = config.AddConnector(opt.Namespace, connectorConfig); err != nil {
+		if err = config.AddConnector(namespace, connectorConfig); err != nil {
 			return err
 		}
 	}
@@ -64,29 +64,9 @@ func connect(opt *Options, endpoint string) error {
 			UUID: agent.UUID,
 			Host: agent.IPAddressExternal,
 		}
-		if err = config.AddAgent(opt.Namespace, agentConfig); err != nil {
+		if err = config.AddAgent(namespace, agentConfig); err != nil {
 			return err
 		}
-	}
-
-	// TODO: We want to be able to connect to all Controllers in a namespace, but we can't right now
-	// Update Controller config
-	controlPlane := config.ControlPlane{
-		IofogUser: config.IofogUser{
-			Email:    opt.Email,
-			Password: opt.Password,
-		},
-		Controllers: []config.Controller{
-			{
-				Name:       opt.Name,
-				Endpoint:   endpoint,
-				KubeConfig: opt.KubeFile,
-			},
-		},
-	}
-	err = config.UpdateControlPlane(opt.Namespace, controlPlane)
-	if err != nil {
-		return err
 	}
 
 	return nil

@@ -20,27 +20,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type specification struct {
-	ControlPlane config.ControlPlane
-}
-
 func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 	// Unmarshall the input file
-	var spec specification
-	if err = yaml.Unmarshal(file, &spec); err != nil || len(spec.ControlPlane.Controllers) == 0 {
-		var ctrlPlane config.ControlPlane
-		if err = yaml.Unmarshal(file, &ctrlPlane); err != nil {
-			err = util.NewInputError("Could not unmarshall\n" + err.Error())
-			return
-		}
-		// None specified
-		if len(ctrlPlane.Controllers) == 0 {
-			return
-		}
-		controlPlane = ctrlPlane
-	} else {
-		controlPlane = spec.ControlPlane
+	var ctrlPlane config.ControlPlane
+	if err = yaml.Unmarshal(file, &ctrlPlane); err != nil {
+		err = util.NewInputError("Could not unmarshall\n" + err.Error())
+		return
 	}
+	// None specified
+	if len(ctrlPlane.Controllers) == 0 {
+		return
+	}
+	controlPlane = ctrlPlane
 
 	// Validate inputs
 	if err = validate(controlPlane); err != nil {
