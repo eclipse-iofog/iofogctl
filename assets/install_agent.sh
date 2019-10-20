@@ -186,15 +186,6 @@ do_install_java() {
 	fi
 }
 
-handle_docker_unsuccessful_installation() {
-	if ! command_exists docker; then
-		# for fedora 28
-		if [ "$lsb_dist" == "fedora" ] && [ "$dist_version" == "28" ]; then
-			$sh_c "dnf -y -q install https://download.docker.com/linux/fedora/27/x86_64/stable/Packages/docker-ce-18.03.1.ce-1.fc27.x86_64.rpm"
-		fi	
-	fi
-}
-
 start_docker() {
 	# check if docker is running
 	if [ ! -f /var/run/docker.pid ]; then
@@ -226,7 +217,10 @@ do_install_docker() {
 	echo "# Installing Docker..."
 	curl -fsSL https://get.docker.com/ | sh
 	
-	handle_docker_unsuccessful_installation
+	if ! command_exists docker; then
+		echo "Failed to install Docker"
+		exit 1
+	fi
 	start_docker
 
 	if [ "$lsb_dist" = "raspbian" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv8" ]; then
