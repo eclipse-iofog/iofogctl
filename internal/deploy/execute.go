@@ -17,7 +17,9 @@ import (
 	"fmt"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent-config"
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
 	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
@@ -33,6 +35,7 @@ var kindOrder = []apps.Kind{
 	// apps.ControllerKind,
 	// apps.ConnectorKind,
 	apps.AgentKind,
+	config.AgentConfigKind,
 	apps.ApplicationKind,
 	apps.MicroserviceKind,
 }
@@ -58,6 +61,10 @@ func deployAgent(namespace, name string, yaml []byte) (exe execute.Executor, err
 	return deployagent.NewExecutor(deployagent.Options{Namespace: namespace, Yaml: yaml, Name: name})
 }
 
+func deployAgentConfig(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
+	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: namespace, Yaml: yaml, Name: name})
+}
+
 func deployConnector(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
 	return deployconnector.NewExecutor(deployconnector.Options{Namespace: namespace, Yaml: yaml, Name: name})
 }
@@ -67,12 +74,13 @@ func deployController(namespace, name string, yaml []byte) (exe execute.Executor
 }
 
 var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
-	apps.ApplicationKind:  deployApplication,
-	apps.MicroserviceKind: deployMicroservice,
-	apps.ControlPlaneKind: deployControlPlane,
-	apps.AgentKind:        deployAgent,
-	apps.ConnectorKind:    deployConnector,
-	apps.ControllerKind:   deployController,
+	apps.ApplicationKind:   deployApplication,
+	apps.MicroserviceKind:  deployMicroservice,
+	apps.ControlPlaneKind:  deployControlPlane,
+	apps.AgentKind:         deployAgent,
+	config.AgentConfigKind: deployAgentConfig,
+	apps.ConnectorKind:     deployConnector,
+	apps.ControllerKind:    deployController,
 }
 
 // Execute deploy from yaml file

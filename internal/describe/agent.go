@@ -18,7 +18,6 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -64,7 +63,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		Kind: apps.AgentKind,
+		Kind: config.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

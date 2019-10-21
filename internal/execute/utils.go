@@ -15,6 +15,7 @@ package execute
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -40,7 +41,8 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[a
 
 	createExecutorFunc, found := kindHandlers[header.Kind]
 	if !found {
-		return exe, util.NewInputError("Invalid kind")
+		util.PrintNotify(fmt.Sprintf("Could not handle kind %s. Skipping document\n", header.Kind))
+		return nil, nil
 	}
 
 	return createExecutorFunc(namespace, header.Metadata.Name, subYamlBytes)
@@ -68,7 +70,9 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kin
 		if err != nil {
 			return nil, err
 		}
-		executorsMap[header.Kind] = append(executorsMap[header.Kind], exe)
+		if exe != nil {
+			executorsMap[header.Kind] = append(executorsMap[header.Kind], exe)
+		}
 		decodeErr = dec.Decode(&header)
 	}
 	if decodeErr != io.EOF && decodeErr != nil {

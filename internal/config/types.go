@@ -13,7 +13,15 @@
 
 package config
 
-import "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+)
+
+// iofogctl specific Kinds
+const (
+	AgentConfigKind apps.Kind = "AgentConfig"
+)
 
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
@@ -87,7 +95,18 @@ type Controller struct {
 	Token             string            `yaml:",omitempty"`
 }
 
-// Agent contains information for configuring an agent
+// AgentConfiguration contains configuration information for a deployed agent
+type AgentConfiguration struct {
+	Name                      string  `json:"name,omitempty" yaml:"name"`
+	Location                  string  `json:"location,omitempty" yaml:"location"`
+	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
+	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
+	Description               string  `json:"description,omitempty" yaml:"description"`
+	FogType                   int64   `json:"fogType,omitempty" yaml:"agentType"`
+	client.AgentConfiguration `yaml:",inline"`
+}
+
+// Agent contains information for deploying an agent
 type Agent struct {
 	Name              string            `yaml:"name,omitempty"`
 	User              string            `yaml:"user,omitempty"`
