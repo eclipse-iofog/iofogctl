@@ -101,6 +101,6 @@ func newExecutor(namespace string, cnct *config.Connector) (execute.Executor, er
 	if cnct.Host == "" || cnct.KeyFile == "" || cnct.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	// TODO: Replace Controllers[0].Endpoint with different variable e.g. loadbalancer
+
 	return newFacadeExecutor(newRemoteExecutor(namespace, cnct), namespace, cnct), nil
 }

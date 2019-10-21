@@ -24,7 +24,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func execDocument(header config.Header, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (exe Executor, err error) {
+func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (exe Executor, err error) {
 	// Check namespace exists
 	if len(header.Metadata.Namespace) > 0 {
 		namespace = header.Metadata.Namespace
@@ -38,12 +38,12 @@ func execDocument(header config.Header, namespace string, kindHandlers map[apps.
 		return exe, err
 	}
 
-	createExecutorf, found := kindHandlers[header.Kind]
+	createExecutorFunc, found := kindHandlers[header.Kind]
 	if !found {
 		return exe, util.NewInputError("Invalid kind")
 	}
 
-	return createExecutorf(namespace, header.Metadata.Name, subYamlBytes)
+	return createExecutorFunc(namespace, header.Metadata.Name, subYamlBytes)
 }
 
 func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (executorsMap map[apps.Kind][]Executor, err error) {
@@ -64,7 +64,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kin
 	executorsMap = make(map[apps.Kind][]Executor)
 	decodeErr := dec.Decode(&header)
 	for decodeErr == nil {
-		exe, err := execDocument(header, namespace, kindHandlers)
+		exe, err := generateExecutor(header, namespace, kindHandlers)
 		if err != nil {
 			return nil, err
 		}

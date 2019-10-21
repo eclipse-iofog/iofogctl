@@ -16,25 +16,18 @@ package createcatalogitem
 import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func Execute(opt apps.CatalogItem, namespace string) error {
-	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return err
-	}
-
 	// Validate catalog item definition
-	if err = validate(opt); err != nil {
+	if err := validate(opt); err != nil {
 		return err
 	}
 
 	// Init remote resources
-	clt, err := client.NewAndLogin(controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+	clt, err := internal.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

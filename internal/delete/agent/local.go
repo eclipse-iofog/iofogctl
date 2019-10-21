@@ -17,11 +17,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
@@ -48,17 +48,7 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// Get Control Plane config details
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-
-	if len(controlPlane.Controllers) == 0 {
-		return util.NewInputError("You must be connected to a controller in order to delete an agent")
-	}
-
-	iofogClient, err := client.NewAndLogin(controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+	iofogClient, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

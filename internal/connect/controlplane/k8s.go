@@ -43,8 +43,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Check the resources exist in K8s namespace
-	err = k8s.ExistsInNamespace(exe.opt.Namespace)
-	if err != nil {
+	if err = k8s.ExistsInNamespace(exe.namespace); err != nil {
 		return err
 	}
 
@@ -60,6 +59,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return err
 	}
 
+	exe.ctrlPlane.Controllers[0].Endpoint = endpoint
 	err = config.UpdateControlPlane(exe.namespace, exe.ctrlPlane)
 	if err != nil {
 		return err

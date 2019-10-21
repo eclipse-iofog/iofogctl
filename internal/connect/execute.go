@@ -79,7 +79,7 @@ func Execute(opt Options) (err error) {
 
 	// Controlplane, Controller, Connector, Agent
 	for idx := range kindOrder {
-		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); err != nil {
+		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("connect %s", kindOrder[idx])); err != nil {
 			return err
 		}
 	}

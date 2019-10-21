@@ -47,7 +47,10 @@ func (exe controlPlaneExecutor) Execute() (err error) {
 
 	// Make sure Controller API is ready
 	// TODO: replace with controlplane variable for endpoint
-	endpoint := exe.controlPlane.Controllers[0].Endpoint
+	endpoint, err := exe.controlPlane.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
 	if err = install.WaitForControllerAPI(endpoint); err != nil {
 		return err
 	}

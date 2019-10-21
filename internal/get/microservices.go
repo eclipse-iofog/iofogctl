@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -37,10 +37,12 @@ func newMicroserviceExecutor(namespace string) *microserviceExecutor {
 	return a
 }
 
-func (exe *microserviceExecutor) init(controlPlane config.ControlPlane) (err error) {
-	// TODO: replace controllers[0] with controplane variable
-	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
+func (exe *microserviceExecutor) init() (err error) {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
+		if err.Error() == "This control plane does not have controller" {
+			return nil
+		}
 		return
 	}
 	listMsvcs, err := exe.client.GetAllMicroservices()
@@ -66,17 +68,8 @@ func (exe *microserviceExecutor) GetName() string {
 }
 
 func (exe *microserviceExecutor) Execute() error {
-	// Get Control Plane config details
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-	if len(controlPlane.Controllers) == 0 {
-		// Generate empty output
-		return exe.generateMicroserviceOutput()
-	}
 	// Fetch data
-	if err = exe.init(controlPlane); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 

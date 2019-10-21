@@ -14,28 +14,14 @@
 package deleteconnector
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal"
 )
 
 func deleteConnectorFromController(namespace, connectorIP string) error {
-	// Get the Control Plane to access Controller API
-	controlPlane, err := config.GetControlPlane(namespace)
+	ctrlClient, err := internal.NewControllerClient(namespace)
 	if err != nil {
-		return err
-	}
-	if len(controlPlane.Controllers) == 0 {
-		// No Controllers, finish
-		return nil
-	}
-	// Login and delete the Connector
-	// TODO: replace endpoint with controlplane var
-	ctrlClient := client.New(controlPlane.Controllers[0].Endpoint)
-	if err = ctrlClient.Login(client.LoginRequest{
-		Email:    controlPlane.IofogUser.Email,
-		Password: controlPlane.IofogUser.Password,
-	}); err != nil {
 		return err
 	}
 	if err = ctrlClient.DeleteConnector(connectorIP); err != nil {

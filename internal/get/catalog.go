@@ -53,10 +53,11 @@ func generateCatalogOutput(namespace string) error {
 	var items []apps.CatalogItem
 
 	// Connect to Controller if it is ready
-	if len(ns.ControlPlane.Controllers) > 0 && ns.ControlPlane.Controllers[0].Endpoint != "" {
+	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if err == nil {
 		// Instantiate client
 		// Log into Controller
-		ctrlClient, err := client.NewAndLogin(ns.ControlPlane.Controllers[0].Endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+		ctrlClient, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
 		if err != nil {
 			return tabulateConnectors(ns.Connectors)
 		}

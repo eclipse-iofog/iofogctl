@@ -16,6 +16,7 @@ package describe
 import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -38,10 +39,10 @@ func newApplicationExecutor(namespace, name, filename string) *applicationExecut
 	return a
 }
 
-func (exe *applicationExecutor) init(controlPlane config.ControlPlane) (err error) {
+func (exe *applicationExecutor) init() (err error) {
 	// TODO: Replace controller[0] with variable in controlPlane
-	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
 		return
 	}
 	exe.flow, err = exe.client.GetFlowByName(exe.name)
@@ -72,17 +73,8 @@ func (exe *applicationExecutor) GetName() string {
 }
 
 func (exe *applicationExecutor) Execute() error {
-	// Get Control Plane config details
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-	// Check Controller exists
-	if len(controlPlane.Controllers) == 0 {
-		return util.NewInputError("This namespace does not have a Controller. You must first apps.a Controller describing Applications.")
-	}
 	// Fetch data
-	if err = exe.init(controlPlane); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 
@@ -123,11 +115,11 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	if exe.filename == "" {
-		if err = util.Print(header); err != nil {
+		if err := util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(header, exe.filename); err != nil {
+		if err := util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

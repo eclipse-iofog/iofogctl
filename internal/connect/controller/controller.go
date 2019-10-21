@@ -52,7 +52,7 @@ func (exe executor) Execute() error {
 	return nil
 }
 
-func NewExecutor(name, namespace string, yaml []byte) (execute.Executor, error) {
+func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
 	// Read the input file
 	controller, err := deploycontroller.UnmarshallYAML(yaml)
 	if err != nil {

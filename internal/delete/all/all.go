@@ -53,7 +53,7 @@ func Execute(namespace string) error {
 	// Delete routes (which would prevent connector from being deleted)
 	if len(ns.ControlPlane.Controllers) > 0 {
 		// Get list of microservices from backend
-		endpoint := ns.ControlPlane.Controllers[0].Endpoint
+		endpoint, _ := ns.ControlPlane.GetControllerEndpoint()
 		clt, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
 		if err != nil {
 			return err

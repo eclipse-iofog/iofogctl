@@ -41,11 +41,13 @@ func (exe *remoteExecutor) GetName() string {
 func (exe *remoteExecutor) Execute() (err error) {
 	// Get Control Plane
 	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Connector")
+	if err != nil {
 		return
 	}
-	exe.controllerEndpoint = controlPlane.Controllers[0].Endpoint
+	exe.controllerEndpoint, err = controlPlane.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
 	exe.iofogUser = controlPlane.IofogUser
 
 	// Instantiate installer

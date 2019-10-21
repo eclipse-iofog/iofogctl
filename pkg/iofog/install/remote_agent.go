@@ -78,8 +78,11 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(ctrl *config.Controller, user IofogUser) (uuid string, err error) {
-	controllerEndpoint := ctrl.Endpoint
+func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUser) (uuid string, err error) {
+	controllerEndpoint, err := ctrlPlane.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
 
 	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {

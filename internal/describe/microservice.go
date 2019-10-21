@@ -16,6 +16,7 @@ package describe
 import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -36,10 +37,10 @@ func newMicroserviceExecutor(namespace, name, filename string) *microserviceExec
 	return a
 }
 
-func (exe *microserviceExecutor) init(controlPlane config.ControlPlane) (err error) {
+func (exe *microserviceExecutor) init() (err error) {
 	// TODO: Replace controller[0] with variable in controlPlane
-	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
 		return
 	}
 	exe.msvc, err = exe.client.GetMicroserviceByName(exe.name)
@@ -51,17 +52,8 @@ func (exe *microserviceExecutor) GetName() string {
 }
 
 func (exe *microserviceExecutor) Execute() error {
-	// Get Control Plane config details
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-	// Check Controller exists
-	if len(controlPlane.Controllers) == 0 {
-		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller describing Microservices.")
-	}
 	// Fetch data
-	if err = exe.init(controlPlane); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 

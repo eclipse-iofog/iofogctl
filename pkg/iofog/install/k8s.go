@@ -16,10 +16,11 @@ package install
 import (
 	"context"
 	"fmt"
+
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
 	"github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -511,6 +512,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	ms := k8s.ms["controller"]
+	fmt.Printf("Microservice %v\n", ms)
 	ip, port, err := k8s.waitForService(ms.name, ms.ports[0])
 	if err != nil {
 		return

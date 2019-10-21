@@ -62,7 +62,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Configure the agent with Controller details
-	uuid, err := agent.Configure(&controlPlane.Controllers[0], install.IofogUser(controlPlane.IofogUser))
+	uuid, err := agent.Configure(controlPlane, install.IofogUser(controlPlane.IofogUser))
 	if err != nil {
 		return
 	}

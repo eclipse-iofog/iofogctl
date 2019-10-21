@@ -18,7 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 )
 
-func NewExecutor(name, namespace string, yaml []byte) (execute.Executor, error) {
+func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
 	// Read the input file
 	controlPlane, err := deploycontrolplane.UnmarshallYAML(yaml)
 	if err != nil {

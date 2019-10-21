@@ -66,9 +66,14 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		microservice.Name = opt.Name
 	}
 
+	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
+
 	return remoteExecutor{
 		controller: apps.IofogController{
-			Endpoint: ns.ControlPlane.Controllers[0].Endpoint,
+			Endpoint: endpoint,
 			Email:    ns.ControlPlane.IofogUser.Email,
 			Password: ns.ControlPlane.IofogUser.Password,
 		},

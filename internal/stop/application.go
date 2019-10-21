@@ -14,10 +14,8 @@
 package stopapplication
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
@@ -42,17 +40,7 @@ func (exe *executor) GetName() string {
 }
 
 func (exe *executor) Execute() (err error) {
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-	if len(controlPlane.Controllers) == 0 {
-		return util.NewError("You must have at least one controller to be able to start an application")
-	}
-
-	controller := controlPlane.Controllers[0]
-
-	clt, err := client.NewAndLogin(controller.Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+	clt, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

@@ -16,8 +16,9 @@ package describe
 import (
 	"strings"
 
+	"github.com/eclipse-iofog/iofogctl/internal"
+
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -46,25 +47,13 @@ func (exe *agentExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+
+	// Connect to controller
+	ctrl, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
-	if len(controlPlane.Controllers) != 1 {
-		return util.NewInputError("Cannot get Agent data without a Controller in namespace " + exe.namespace)
-	}
 
-	// Connect to controller
-	ctrl := client.New(controlPlane.Controllers[0].Endpoint)
-	loginRequest := client.LoginRequest{
-		Email:    controlPlane.IofogUser.Email,
-		Password: controlPlane.IofogUser.Password,
-	}
-
-	// Send requests to controller
-	if err := ctrl.Login(loginRequest); err != nil {
-		return err
-	}
 	getAgentResponse, err := ctrl.GetAgentByID(agent.UUID)
 	if err != nil {
 		// The agents might not be provisioned with Controller

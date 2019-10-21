@@ -15,7 +15,7 @@ package deleteapplication
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -44,15 +44,8 @@ func (exe *Executor) GetName() string {
 // Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() (err error) {
 	util.SpinStart("Deleting Application")
-	// Get Control Plane from namespace
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return
-	}
-
 	// Init remote resources
-	if err = exe.init(controlPlane); err != nil {
+	if err = exe.init(); err != nil {
 		return
 	}
 
@@ -64,10 +57,9 @@ func (exe *Executor) Execute() (err error) {
 	return nil
 }
 
-func (exe *Executor) init(controlPlane config.ControlPlane) (err error) {
-	// TODO: replace controllers[0] with controplane variable
-	exe.client = client.New(controlPlane.Controllers[0].Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controlPlane.IofogUser.Email, Password: controlPlane.IofogUser.Password}); err != nil {
+func (exe *Executor) init() (err error) {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
 		return
 	}
 	flow, err := exe.client.GetFlowByName(exe.name)
