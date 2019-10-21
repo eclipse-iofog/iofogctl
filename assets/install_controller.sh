@@ -62,7 +62,7 @@ deploy_controller() {
 		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-		nvm install lts/*
+		nvm install v10.16.3
 		sudo ln -Ffs $(which node) /usr/local/bin/node
 	else
 		nvm use lts/* || true
