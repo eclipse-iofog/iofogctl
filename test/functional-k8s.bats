@@ -99,25 +99,9 @@ spec:
   checkAgentsNegative
 }
 
-@test "Connect to cluster using Controller IP" {
+@test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -v -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkController
-  checkConnector
-  checkAgents
-}
-
-@test "Disconnect from cluster again" {
-  initAgents
-  test iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
-  checkConnectorNegative
-  checkAgentsNegative
-}
-
-@test "Connect to cluster using Kube Config" {
-  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -v -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
+  test iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
   checkController
   checkConnector
   checkAgents

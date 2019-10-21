@@ -230,51 +230,57 @@ function initAgents(){
 }
 
 function checkController() {
-  [[ "$NAME" == $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane | grep "name: $NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "name: $NAME") ]]
 }
 
 function checkConnector() {
-  [[ "$NAME" == $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe connector "$NAME" | grep "name: $NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$NAME" | grep "name: $NAME") ]]
 }
 
 function checkConnectors() {
+  NS_CHECK=$NS
   for CNCT in "$@"; do
-    [[ "$CNCT" == $(iofogctl -v -n "$NS" get connectors | grep "$CNCT" | awk '{print $1}') ]]
-    [[ ! -z $(iofogctl -v -n "$NS" describe connector "$CNCT" | grep "name: $CNCT") ]]
+    [[ "$CNCT" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$CNCT" | awk '{print $1}') ]]
+    [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$CNCT" | grep "name: $CNCT") ]]
   done
 }
 
 function checkControllerNegative() {
-  [[ "$NAME" != $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkConnectorNegative() {
-  [[ "$NAME" != $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkMicroservice() {
-  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  MSVC_CONFIG=$(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
+  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
   checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
   checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person_2\""
-  [[ "memoryLimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
+  [[ "memoryLimit: 8192" == $(iofogctl -v -n "$NS_CHECK" describe agent "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
   # Check route
-  [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
+  [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5005:443")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5005:443")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/microservice:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/microservice:/tmp")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
+  iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
@@ -297,27 +303,28 @@ function checkMicroservice() {
 }
 
 function checkUpdatedMicroservice() {
-  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  MSVC_CONFIG=$(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
+  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
   checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
   checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person_3\""
   checkMsvcConfig "${MSVC_CONFIG}" "\"test_data\":{\"key\":42}"
-  [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
-  [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
+  [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS_CHECK" describe agent "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
+  [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS_CHECK" describe agent "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
   # Check route
-  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
+  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5443:443, 5080:80")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5443:443, 5080:80")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/updatedmicroservice:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/updatedmicroservice:/tmp")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
+  iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
@@ -346,7 +353,8 @@ function checkUpdatedMicroservice() {
 }
 
 function checkMicroserviceNegative() {
-  [[ "$MICROSERVICE_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$MICROSERVICE_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
 }
 
 # Takes the config as $1 and the expected key:value as $2
@@ -355,28 +363,29 @@ function checkMsvcConfig() {
 }
 
 function checkApplication() {
-  [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
-  [[ "$MSVC1_NAME," == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
-  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
-  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
+  [[ "$MSVC1_NAME," == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
+  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   # Check config
-  MSVC_CONFIG=$(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $4}')
+  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $4}')
   checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
   checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person\""
-  [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
+  [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check route
-  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5000:80")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/msvc:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/msvc:/tmp")
   [[ "$MSVC1_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
+  iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $APPLICATION_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC1_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC2_NAME") ]]
@@ -401,33 +410,38 @@ function checkApplication() {
 }
 
 function checkApplicationNegative() {
-  [[ "$NAME" != $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
-  [[ "$MSVC1_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
-  [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
+  [[ "$MSVC1_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
+  [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgent() {
+  NS_CHECK=${2:-$NS}
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
+  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
 }
 
 function checkAgentNegative() {
+  NS_CHECK=${2:-$NS}
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" != $(iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ "$AGENT_NAME" != $(iofogctl -v -n "$NS_CHECK" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgents() {
+  NS_CHECK=${1:-$NS}
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-$(((IDX++)))"
-    checkAgent "$AGENT_NAME"
+    checkAgent "$AGENT_NAME" "$NS_CHECK"
   done
 }
 
 function checkAgentsNegative() {
+  NS_CHECK=${1:-$NS}
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-$(((IDX++)))"
-    checkAgentNegative "$AGENT_NAME"
+    checkAgentNegative "$AGENT_NAME" "$NS_CHECK"
   done
 }
 

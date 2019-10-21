@@ -4,6 +4,7 @@
 . test/functional.vars.bash
 
 NS="$NAMESPACE"
+NS2="$NS"_2
 
 # TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
 #@test "Deploy vanilla Controller" {
@@ -73,13 +74,33 @@ spec:
   checkApplication
 }
 
-@test "Deploy application from file and test deploy idempotence" {
+@test "Deploy application and test deploy idempotence" {
   test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
+@test "Connect in another namespace" {
+  test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
+  checkController "$NS2"
+  checkConnector "$NS2"
+  checkAgents "$NS2"
+  checkApplication "$NS2"
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" legacy agent "$AGENT_NAME" status
+  done
+}
+
+@test "Disconnect other namespace" {
+  test iofogctl -v -n "$NS2" disconnect
+  checkControllerNegative "$NS2"
+  checkConnectorNegative "$NS2"
+  checkAgentsNegative "$NS2"
+  checkApplicationNegative "$NS2"
+}
+
 # Delete all does not delete application
-@test "Delete application (bis)" {
+@test "Delete application" {
   test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
   checkApplicationNegative
 }
@@ -91,7 +112,8 @@ spec:
   checkAgentsNegative
 }
 
-@test "Delete namespace" {
+@test "Delete namespaces" {
   test iofogctl delete namespace "$NS"
+  test iofogctl delete namespace "$NS2"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
 }
