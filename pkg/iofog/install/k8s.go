@@ -487,6 +487,28 @@ func (k8s *Kubernetes) SetControllerIP(ip string) {
 	k8s.ms["controller"].IP = ip
 }
 
+func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
+	// Check namespace exists
+	if _, err := k8s.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{}); err != nil {
+		if k8serrors.IsNotFound(err) {
+			return util.NewError("Could not find Namespace " + namespace + " on Kubernetes cluster")
+		}
+		return err
+	}
+
+	// Check services exist
+	svcList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, svc := range svcList.Items {
+		if svc.Name == k8s.ms["controller"].name {
+			return nil
+		}
+	}
+	return util.NewError("Could not find Controller Service in Kubernetes namespace " + namespace)
+}
+
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	ms := k8s.ms["controller"]
 	ip, port, err := k8s.waitForService(ms.name, ms.ports[0])

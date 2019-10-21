@@ -39,6 +39,12 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return err
 	}
 
+	// Check the resources exist in K8s namespace
+	err = k8s.ExistsInNamespace(exe.opt.Namespace)
+	if err != nil {
+		return err
+	}
+
 	// Get Controller endpoint
 	endpoint, err := k8s.GetControllerEndpoint()
 	if err != nil {
