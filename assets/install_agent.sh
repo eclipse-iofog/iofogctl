@@ -120,15 +120,6 @@ command_exists() {
 	command -v "$@"
 }
 
-disable_package_preconfiguration() {
-	if [ "$lsb_dist" = "debian" ]; then
-		if [ -f /etc/apt/apt.conf.d/70debconf ]; then
-			$sh_c 'ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf'
-			$sh_c 'dpkg-reconfigure debconf -f noninteractive -p critical'
-		fi
-	fi
-}
-
 do_install_java() {
 	echo "# Installing java 8..."
 	echo
@@ -362,8 +353,6 @@ do_install() {
 		EOF
 		exit 1
 	fi
-
-	disable_package_preconfiguration
 
 	do_install_deps
 
