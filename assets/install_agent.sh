@@ -250,7 +250,13 @@ do_install_deps() {
 			installer="yum"
 			;;
 	esac
-	$sh_c "$installer update"
+
+	local iter=0
+	while [ ! $($sh_c "$installer update") ] && [ "$iter" -lt 6 ]; do
+		sleep 5
+		iter=$((iter+1))
+	done
+
 	if [ -z $(command -v wget) ]; then
 		$sh_c "$installer install -y wget"
 	fi
