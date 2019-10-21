@@ -99,9 +99,6 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	fmt.Printf("===> New configuration: %s\n", string(opt.Yaml))
-	fmt.Printf("===> New configuration: %v\n", *agentConfig.ChangeFrequency)
-
 	return remoteExecutor{
 		name:        opt.Name,
 		agentConfig: agentConfig,

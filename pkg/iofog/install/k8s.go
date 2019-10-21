@@ -512,7 +512,6 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	ms := k8s.ms["controller"]
-	fmt.Printf("Microservice %v\n", ms)
 	ip, port, err := k8s.waitForService(ms.name, ms.ports[0])
 	if err != nil {
 		return
