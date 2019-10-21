@@ -108,29 +108,40 @@ iofogctl legacy agent NAME status`,
 
 				fmt.Print(out.String())
 			case "connector":
-				// Get config
-				ctrl, err := config.GetController(namespace, name)
+				// Check connector exists
+				_, err := config.GetConnector(namespace, name)
 				util.Check(err)
-				if ctrl.KubeConfig == "" {
-					util.Check(util.NewError("Cannot execute legacy command because Kube config file is not available"))
+				// Get kube config
+				ctrlPlane, err := config.GetControlPlane(namespace)
+				util.Check(err)
+				if len(ctrlPlane.Controllers) == 0 {
+					util.Check(util.NewError("Namespace " + namespace + " does not have any deployed Controllers"))
 				}
-				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
-				util.Check(err)
+				kubeConfig := ""
+				for idx := range ctrlPlane.Controllers {
+					if ctrlPlane.Controllers[idx].KubeConfig != "" {
+						kubeConfig = ctrlPlane.Controllers[idx].KubeConfig
+						break
+					}
+				}
+				if kubeConfig == "" {
+					util.Check(util.NewError("Namespace " + namespace + " does not have any Kubernetes Controllers"))
+				}
 				// Connect to cluster
 				//Execute
-				config, err := clientcmd.BuildConfigFromFlags("", ctrl.KubeConfig)
+				config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 				util.Check(err)
 				// Instantiate Kubernetes client
 				clientset, err := kubernetes.NewForConfig(config)
 				util.Check(err)
-				podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=connector"})
+				podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=connector-" + name})
 				if err != nil {
 					return
 				}
 				podName := podList.Items[0].Name
 				kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-connector"}
 				kubeArgs = append(kubeArgs, args[2:]...)
-				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
+				out, err := util.Exec("KUBECONFIG="+kubeConfig, "kubectl", kubeArgs...)
 				util.Check(err)
 				fmt.Print(out.String())
 			default:
