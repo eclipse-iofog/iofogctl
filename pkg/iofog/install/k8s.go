@@ -148,7 +148,15 @@ func (k8s *Kubernetes) enableCustomResources() error {
 		}
 	}
 
-	// Iofogs
+	// Applications
+	appCRD := newAppCRD()
+	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(appCRD); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+	}
+
+	// Iofogs (legacy)
 	iofogCRD := newIofogCRD()
 	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iofogCRD); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
