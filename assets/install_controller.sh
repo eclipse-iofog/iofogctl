@@ -62,11 +62,10 @@ deploy_controller() {
 		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-		nvm install lts/carbon
-		ln -Ffs $(which node) /usr/local/bin/node
-	else
-		nvm use lts/carbon || true
 	fi
+	nvm install lts/dubnium
+	nvm use lts/dubnium
+	ln -Ffs $(which node) /usr/local/bin/node
 
 	# npmrc
 	if [ -z "$(command -v npmrc)" ]; then
