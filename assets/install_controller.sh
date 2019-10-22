@@ -74,7 +74,7 @@ deploy_controller() {
 
 	# If token is provided, set up private repo
 	if [ ! -z $token ]; then
-		if [ ! -z $(npmrc | grep iofog)]; then
+		if [ ! -z $(npmrc | grep iofog) ]; then
 			npmrc -c iofog
 			npmrc iofog
 		fi
