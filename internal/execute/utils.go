@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -32,6 +33,10 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[a
 	}
 	if _, err := config.GetNamespace(namespace); err != nil {
 		return exe, err
+	}
+
+	if err = internal.ValidateHeader(header); err != nil {
+		return nil, err
 	}
 
 	subYamlBytes, err := yaml.Marshal(header.Spec)

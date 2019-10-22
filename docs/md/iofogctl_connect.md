@@ -8,27 +8,25 @@ Connect to an existing ioFog cluster.
 
 This command must be executed within an empty or non-existent namespace.
 All resources provisioned with the corresponding Controller will become visible under the namespace.
+All ssh access will be configured as provided in the config file.
+See [iofogctl deploy](../deploy.html) for the yaml format
 
 ```
-iofogctl connect CONTROLLERNAME [flags]
+iofogctl connect -f platform.yaml [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl connect CONTROLLERNAME --controller 123.321.123.22 --email EMAIL --pass PASSWORD
-iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass PASSWORD
+iofogctl connect -f platform.yaml
 ```
 
 ### Options
 
 ```
-      --controller string    Host and (optionally) port of the Controller you are connecting to
-      --email string         Email address of user registered against Controller
-      --force                Overwrite existing namespace
-  -h, --help                 help for connect
-      --kube-config string   Filename of Kubernetes cluster config file
-      --pass string          Password of user registered against Controller
+  -f, --file string   YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
+      --force         Overwrite existing namespace
+  -h, --help          help for connect
 ```
 
 ### Options inherited from parent commands

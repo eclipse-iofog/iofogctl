@@ -14,8 +14,11 @@
 package internal
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
@@ -30,4 +33,17 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 		return nil, err
 	}
 	return client.NewAndLogin(endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+}
+
+const APIVersionGroup = "iofog.org"
+
+var supportedAPIVersionsMap = map[string]bool{
+	APIVersionGroup + "/v1": true,
+}
+
+func ValidateHeader(header config.Header) error {
+	if _, found := supportedAPIVersionsMap[header.APIVersion]; found == false {
+		return util.NewInputError(fmt.Sprintf("Invalid YAML API version [%s]", header.APIVersion))
+	}
+	return nil
 }

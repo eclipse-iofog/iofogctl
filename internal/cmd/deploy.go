@@ -32,6 +32,7 @@ func newDeployCommand() *cobra.Command {
 
 The YAML resource specification file should look like this (two Controllers specified for example only):` + "\n```\n" +
 			`kind: ControlPlane
+	apiVersion: iofog.org/v1
 	metadata:
 		name: alpaca-1 # ControlPlane name
 	spec:
@@ -43,6 +44,7 @@ The YAML resource specification file should look like this (two Controllers spec
 			host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
 			keyFile: ~/.ssh/id_rsa # SSH private key
 ---
+	apiVersion: iofog.org/v1
 	kind: Agent
 	metadata:
 		name: agent1 # Agent name
@@ -51,6 +53,7 @@ The YAML resource specification file should look like this (two Controllers spec
     host: 35.239.157.151 # SSH host
 		keyFile: ~/.ssh/id_rsa # SSH private key
 ---
+	apiVersion: iofog.org/v1
 	kind: Agent
 	metadata:
 		name: agent2
