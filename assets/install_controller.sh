@@ -63,8 +63,8 @@ deploy_controller() {
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 	fi
-	nvm install lts/dubnium
-	nvm use lts/dubnium
+	nvm install lts/carbon
+	nvm use lts/carbon
 	ln -Ffs $(which node) /usr/local/bin/node
 
 	# npmrc
