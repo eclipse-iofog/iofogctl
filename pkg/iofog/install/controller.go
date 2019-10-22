@@ -113,7 +113,7 @@ func (ctrl *Controller) Install() (err error) {
 		dbArgs = fmt.Sprintf(" %s %s %s %s %d", db.provider, db.host, db.user, db.password, db.port)
 	}
 	cmds := []string{
-		fmt.Sprintf("/tmp/install_controller.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
+		fmt.Sprintf("sudo /tmp/install_controller.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
 	}
 
 	// Execute commands

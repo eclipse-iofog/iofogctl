@@ -23,16 +23,16 @@ controller_service() {
     USE_SERVICE=`which service | wc -l`
 
     if [ $USE_SYSTEMD -eq 1 ]; then
-        sudo cp /tmp/iofog-controller-service/iofog-controller.systemd /etc/systemd/system/iofog-controller.service
-        sudo chmod 644 /etc/systemd/system/iofog-controller.service
-        sudo systemctl daemon-reload
-        sudo systemctl enable iofog-controller.service
+        cp /tmp/iofog-controller-service/iofog-controller.systemd /etc/systemd/system/iofog-controller.service
+        chmod 644 /etc/systemd/system/iofog-controller.service
+        systemctl daemon-reload
+        systemctl enable iofog-controller.service
     elif [ $USE_INITCTL -eq 1 ]; then
-        sudo cp /tmp/iofog-controller-service/iofog-controller.initctl /etc/init/iofog-controller.conf
-        sudo initctl reload-configuration
+        cp /tmp/iofog-controller-service/iofog-controller.initctl /etc/init/iofog-controller.conf
+        initctl reload-configuration
     elif [ $USE_SERVICE -eq 1 ]; then
-        sudo cp /tmp/iofog-controller-service/iofog-controller.update-rc /etc/init.d/iofog-controller
-        sudo chmod +x /etc/init.d/iofog-controller
+        cp /tmp/iofog-controller-service/iofog-controller.update-rc /etc/init.d/iofog-controller
+        chmod +x /etc/init.d/iofog-controller
         update-rc.d iofog-controller defaults
     else
         echo "Unable to setup Controller startup script."
@@ -45,15 +45,15 @@ install_deps() {
 			echo "Unsupported distro"
 			exit 1
 		fi
-		sudo apt update -qq
-		sudo apt install -y lsof
+		apt update -qq
+		apt install -y lsof
 	fi
 }
 
 deploy_controller() {
 	# Nuke any existing instances
-	if [ ! -z $(sudo lsof -ti tcp:51121) ]; then
-		sudo lsof -ti tcp:51121 | xargs sudo kill
+	if [ ! -z $(lsof -ti tcp:51121) ]; then
+		lsof -ti tcp:51121 | xargs kill
 	fi
 
 	# nvm
@@ -87,8 +87,8 @@ deploy_controller() {
 	fi
 
 	# Install in temporary location
-	sudo mkdir -p "$TMP_DIR/controller"
-	sudo chmod 0777 "$TMP_DIR/controller"
+	mkdir -p "$TMP_DIR/controller"
+	chmod 0777 "$TMP_DIR/controller"
 	if [ -z $version ]; then
 		npm install -g -f minipass@2.7.0 iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
@@ -96,23 +96,23 @@ deploy_controller() {
 	fi
 
 	# Move files into $INSTALL_DIR/controller
-	sudo mkdir -p "$INSTALL_DIR/"
-	sudo rm -rf "$INSTALL_DIR/controller" # Clean possible previous install
-	sudo mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
+	mkdir -p "$INSTALL_DIR/"
+	rm -rf "$INSTALL_DIR/controller" # Clean possible previous install
+	mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
 
 	# Symbolic links
 	if [ ! -f "/usr/local/bin/iofog-controller" ]; then
-		sudo ln -fFs "$INSTALL_DIR/controller/bin/iofog-controller" /usr/local/bin/iofog-controller
+		ln -fFs "$INSTALL_DIR/controller/bin/iofog-controller" /usr/local/bin/iofog-controller
 	fi
 
     # Set controller permissions
-    sudo chmod 744 -R "$INSTALL_DIR/controller"
+    chmod 744 -R "$INSTALL_DIR/controller"
 
     # Startup script
     controller_service
 
-	# Run controller
-	sudo iofog-controller start
+    # Run controller
+    iofog-controller start
 }
 
 # main
