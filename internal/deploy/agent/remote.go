@@ -52,7 +52,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 	agent := install.NewRemoteAgent(exe.agent.User, exe.agent.Host, exe.agent.Port, exe.agent.KeyFile, exe.agent.Name)
 
 	// Set version
-	agent.SetVersion(exe.agent.Version, exe.agent.PackageCloudToken)
+	agent.SetVersion(exe.agent.Version)
+	agent.SetRepository(exe.agent.Repo, exe.agent.Token)
 
 	// Try the install
 	err = agent.Bootstrap()

@@ -148,7 +148,15 @@ func (k8s *Kubernetes) enableCustomResources() error {
 		}
 	}
 
-	// Iofogs
+	// Applications
+	appCRD := newAppCRD()
+	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(appCRD); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+	}
+
+	// Iofogs (legacy)
 	iofogCRD := newIofogCRD()
 	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iofogCRD); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
@@ -477,6 +485,28 @@ func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {
 	k8s.ms["controller"].IP = ip
+}
+
+func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
+	// Check namespace exists
+	if _, err := k8s.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{}); err != nil {
+		if k8serrors.IsNotFound(err) {
+			return util.NewError("Could not find Namespace " + namespace + " on Kubernetes cluster")
+		}
+		return err
+	}
+
+	// Check services exist
+	svcList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, svc := range svcList.Items {
+		if svc.Name == k8s.ms["controller"].name {
+			return nil
+		}
+	}
+	return util.NewError("Could not find Controller Service in Kubernetes namespace " + namespace)
 }
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {

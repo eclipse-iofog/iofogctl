@@ -1,0 +1,37 @@
+steps:
+- template: workdir-steps.yaml
+- task: DownloadBuildArtifacts@0
+  displayName: 'Download Build Artifacts'
+  inputs:
+    artifactName: iofogctl-linux
+    downloadPath: $(System.DefaultWorkingDirectory)
+- script: |
+    sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+    sudo chmod 0755 /usr/local/bin/iofogctl
+- template: postinstall-steps.yaml
+- template: ssh-steps.yaml
+- template: functional-init-vm-steps.yaml
+- template: functional-configure.yaml
+- script: |
+    sleep 30 # This should not be necessary but getting connection refused on Buster VMs
+    a=$(agent_count)
+    b=$(controller_count)
+    count=$((a+b))
+    for IDX in $(seq 1 $count); do
+      echo "Connecting to iofogctl-ci-$(jobuuid)-$IDX"
+      gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
+    done
+    echo "Completed waiting for $count VMs"
+  displayName: 'Wait for VM SSH access'
+- script: |
+    set -o pipefail
+    test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
+  workingDirectory: '$(modulePath)'
+  displayName: 'Run Functional Tests'
+- script: |
+    tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml || true
+  workingDirectory: '$(modulePath)'
+  displayName: 'Convert test output from TAP to JUnit'
+  condition: succeededOrFailed()
+- template: functional-post-test.yaml
+- template: functional-clean-vm.yaml

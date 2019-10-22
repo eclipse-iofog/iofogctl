@@ -154,7 +154,7 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 	}, nil
 }
 
-func (lc *LocalContainer) getContainerByName(name string) (types.Container, error) {
+func (lc *LocalContainer) GetContainerByName(name string) (types.Container, error) {
 	ctx := context.Background()
 	// List containers
 	containers, err := lc.client.ContainerList(ctx, types.ContainerListOptions{})
@@ -177,7 +177,7 @@ func (lc *LocalContainer) getContainerByName(name string) (types.Container, erro
 func (lc *LocalContainer) CleanContainer(name string) error {
 	ctx := context.Background()
 
-	container, err := lc.getContainerByName(name)
+	container, err := lc.GetContainerByName(name)
 	if err != nil {
 		return err
 	}
@@ -368,7 +368,7 @@ func (lc *LocalContainer) WaitForCommand(condition *regexp.Regexp, command strin
 func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 	ctx := context.Background()
 
-	container, err := lc.getContainerByName(name)
+	container, err := lc.GetContainerByName(name)
 	if err != nil {
 		return err
 	}

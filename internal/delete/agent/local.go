@@ -16,6 +16,7 @@ package deleteagent
 import (
 	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
@@ -66,6 +67,7 @@ func (exe *localExecutor) Execute() error {
 	for _, agent := range agentList.Agents {
 		if agent.Name == exe.name {
 			agentUUID = agent.UUID
+			break
 		}
 	}
 
@@ -86,6 +88,13 @@ func (exe *localExecutor) Execute() error {
 			if errClean := exe.client.CleanContainer(fmt.Sprintf("iofog_%s", msvc.UUID)); errClean != nil {
 				util.PrintNotify(fmt.Sprintf("Could not clean Microservice container: %v", errClean))
 			}
+		}
+	}
+
+	// Perform deletion of Agent through Controller
+	if err = iofogClient.DeleteAgent(agentUUID); err != nil {
+		if !strings.Contains(err.Error(), "NotFoundError") {
+			return err
 		}
 	}
 

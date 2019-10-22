@@ -67,6 +67,15 @@ func (exe *localExecutor) cleanContainers() {
 func (exe *localExecutor) deployContainers() error {
 	// Deploy connector image
 	util.SpinStart("Deploying Connector")
+
+	// If container already exists, clean it
+	connectorContainerName := exe.localConnectorConfig.ContainerName
+	if _, err := exe.client.GetContainerByName(connectorContainerName); err == nil {
+		if err := exe.client.CleanContainer(connectorContainerName); err != nil {
+			return err
+		}
+	}
+
 	if _, err := exe.client.DeployContainer(exe.localConnectorConfig); err != nil {
 		return err
 	}

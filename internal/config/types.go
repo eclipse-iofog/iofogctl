@@ -69,35 +69,37 @@ type Connector struct {
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name              string            `yaml:",omitempty"`
-	User              string            `yaml:",omitempty"`
-	Host              string            `yaml:",omitempty"`
-	Port              int               `yaml:",omitempty"`
-	KeyFile           string            `yaml:",omitempty"`
-	KubeConfig        string            `yaml:",omitempty"`
-	Replicas          int               `yaml:",omitempty"`
-	ServiceType       string            `yaml:",omitempty"`
-	KubeControllerIP  string            `yaml:",omitempty"`
-	Endpoint          string            `yaml:",omitempty"`
-	Created           string            `yaml:",omitempty"`
-	ImageCredentials  DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull images
-	Version           string            `yaml:",omitempty"`
-	PackageCloudToken string            `yaml:",omitempty"`
+	Name             string            `yaml:",omitempty"`
+	User             string            `yaml:",omitempty"`
+	Host             string            `yaml:",omitempty"`
+	Port             int               `yaml:",omitempty"`
+	KeyFile          string            `yaml:",omitempty"`
+	KubeConfig       string            `yaml:",omitempty"`
+	Replicas         int               `yaml:",omitempty"`
+	ServiceType      string            `yaml:",omitempty"`
+	KubeControllerIP string            `yaml:",omitempty"`
+	Endpoint         string            `yaml:",omitempty"`
+	Created          string            `yaml:",omitempty"`
+	ImageCredentials DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull images
+	Version          string            `yaml:",omitempty"`
+	Repo             string            `yaml:",omitempty"`
+	Token            string            `yaml:",omitempty"`
 }
 
 // Agent contains information for configuring an agent
 type Agent struct {
-	Name              string            `yaml:",omitempty"`
-	User              string            `yaml:",omitempty"`
-	Host              string            `yaml:",omitempty"`
-	Port              int               `yaml:",omitempty"`
-	KeyFile           string            `yaml:",omitempty"`
-	UUID              string            `yaml:",omitempty"`
-	Created           string            `yaml:",omitempty"`
-	Image             string            `yaml:",omitempty"`
-	ImageCredentials  DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull image
-	Version           string            `yaml:",omitempty"`
-	PackageCloudToken string            `yaml:",omitempty"`
+	Name             string            `yaml:",omitempty"`
+	User             string            `yaml:",omitempty"`
+	Host             string            `yaml:",omitempty"`
+	Port             int               `yaml:",omitempty"`
+	KeyFile          string            `yaml:",omitempty"`
+	UUID             string            `yaml:",omitempty"`
+	Created          string            `yaml:",omitempty"`
+	Image            string            `yaml:",omitempty"`
+	ImageCredentials DockerCredentials `yaml:",omitempty"` // Optional credentials if needed to pull image
+	Version          string            `yaml:",omitempty"`
+	Repo             string            `yaml:",omitempty"`
+	Token            string            `yaml:",omitempty"`
 }
 
 // CatalogItem contains information about a catalog item

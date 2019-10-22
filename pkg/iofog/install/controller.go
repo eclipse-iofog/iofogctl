@@ -25,12 +25,13 @@ import (
 )
 
 type ControllerOptions struct {
-	User              string
-	Host              string
-	Port              int
-	PrivKeyFilename   string
-	Version           string
-	PackageCloudToken string
+	User            string
+	Host            string
+	Port            int
+	PrivKeyFilename string
+	Version         string
+	Repo            string
+	Token           string
 }
 
 type database struct {
@@ -112,7 +113,7 @@ func (ctrl *Controller) Install() (err error) {
 		dbArgs = fmt.Sprintf(" %s %s %s %s %d", db.provider, db.host, db.user, db.password, db.port)
 	}
 	cmds := []string{
-		fmt.Sprintf("/tmp/install_controller.sh %s %s", ctrl.Version, ctrl.PackageCloudToken) + dbArgs,
+		fmt.Sprintf("sudo /tmp/install_controller.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
 	}
 
 	// Execute commands

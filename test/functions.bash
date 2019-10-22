@@ -137,6 +137,7 @@ function initLocalAgentFile() {
   echo "---
 agents:
   - name: ${NAME}-0
+    image: ${AGENT_IMAGE}
     host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
@@ -155,6 +156,7 @@ controlplane:
     host: 127.0.0.1
 connectors:
 - name: $NAME
+  image: ${CONNECTOR_IMAGE}
   host: localhost" > test/conf/local.yaml
 }
 

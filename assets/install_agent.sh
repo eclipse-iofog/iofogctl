@@ -120,66 +120,6 @@ command_exists() {
 	command -v "$@"
 }
 
-check_command_status() {
-	if [ $1 -eq 0 ]; then
-		echo
-		echo "$2"
-		echo
-	elif [ $1 -eq 776 ]; then
-		echo
-		echo "$5"
-		echo
-	elif [ $1 -eq 777 ]; then
-		echo
-		echo "$4"
-		echo 
-	else
-		echo
-		echo "$3"
-		echo
-		exit $1
-	fi
-}
-
-disable_package_preconfiguration() {
-	if [ "$lsb_dist" = "debian" ]; then
-		if [ -f /etc/apt/apt.conf.d/70debconf ]; then
-			$sh_c 'ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf'
-			$sh_c 'dpkg-reconfigure debconf -f noninteractive -p critical'
-		fi
-	fi
-}
-
-add_repo_if_not_exists() {
-	repo="$1"
-	if ! grep -Fxq "$repo" /etc/apt/sources.list; then
-		($sh_c "echo \"$repo\" >> /etc/apt/sources.list")
-	fi
-}
-
-add_initial_apt_repos_if_not_exist() {
-	case "$lsb_dist" in
-		debian)
-			if [ "$dist_version" = "stretch" ]; then
-				add_repo_if_not_exists "deb http://deb.debian.org/debian stretch main"
-				add_repo_if_not_exists "deb-src http://deb.debian.org/debian stretch main"
-				add_repo_if_not_exists "deb http://deb.debian.org/debian-security/ stretch/updates main"
-				add_repo_if_not_exists "deb-src http://deb.debian.org/debian-security/ stretch/updates main"
-				add_repo_if_not_exists "deb http://deb.debian.org/debian stretch-updates main"
-				add_repo_if_not_exists "deb-src http://deb.debian.org/debian stretch-updates main"
-			elif [ "$dist_version" = "jessie" ]; then
-				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian jessie main"
-			elif [ "$dist_version" = "buster" ]; then
-				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian buster main"
-			fi
-			local ITER=0
-			echo "Waiting for apt"
-			while [ "$ITER" -lt 30 && ! -z $(ps -A | grep apt) ]; do ITER=$((ITER+1)); sleep 1; done
-			$sh_c 'apt-get update -qq'
-			;;
-	esac
-}
-
 do_install_java() {
 	echo "# Installing java 8..."
 	echo
@@ -200,43 +140,30 @@ do_install_java() {
 		case "$lsb_dist" in
 			debian|raspbian|ubuntu)
 				$sh_c "update-alternatives --install /usr/bin/java java /opt/jdk1.8.0_211/bin/java 1100"
-				command_status=$?
 				;;		
 			fedora|centos)
 				$sh_c "alternatives --install /usr/bin/java java /opt/jdk1.8.0_211/bin/java 4"
-				command_status=$?
 				;;
 		esac
-		# Proceeding with existing java if java update failed
-		if [ "$command_status" -ne "0" ] && [ ! -z "$java8_version" ]; then
-			command_status=776
-		fi
-	else
-		command_status=777
-	fi
-}
-
-handle_docker_unsuccessful_installation() {
-	if ! command_exists docker; then
-		# for fedora 28
-		if [ "$lsb_dist" == "fedora" ] && [ "$dist_version" == "28" ]; then
-			$sh_c "dnf -y -q install https://download.docker.com/linux/fedora/27/x86_64/stable/Packages/docker-ce-18.03.1.ce-1.fc27.x86_64.rpm"
-		fi	
 	fi
 }
 
 start_docker() {
+	set +e
 	# check if docker is running
 	if [ ! -f /var/run/docker.pid ]; then
 		$sh_c "/etc/init.d/docker start"
-		command_status=$?
-		if [ $command_status -ne 0 ]; then
+		local err_code=$?
+		if [ $err_code -ne 0 ]; then
 			$sh_c "service docker start"
-			command_status=$?
+			err_code=$?
 		fi
-	else
-		command_status=0	
+		if [ $err_code -ne 0 ]; then
+			echo "Could not start Docker daemon"
+			exit 1
+		fi
 	fi
+	set -e
 }
 
 do_install_docker() {
@@ -245,13 +172,17 @@ do_install_docker() {
 		docker_version=$(docker -v | sed 's/.*version \(.*\),.*/\1/' | tr -d '.')
 		if [ "$docker_version" -ge 18090 ]; then
 			echo "# Docker $docker_version already installed"
+			start_docker
 			return
 		fi
 	fi
 	echo "# Installing Docker..."
 	curl -fsSL https://get.docker.com/ | sh
 	
-	handle_docker_unsuccessful_installation
+	if ! command_exists docker; then
+		echo "Failed to install Docker"
+		exit 1
+	fi
 	start_docker
 
 	if [ "$lsb_dist" = "raspbian" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv8" ]; then
@@ -263,7 +194,6 @@ do_install_docker() {
 		$sh_c 'echo "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" >> /etc/systemd/system/docker.service.d/overlay.conf'
 		$sh_c "systemctl daemon-reload"
 		$sh_c "service docker restart"
-		command_status=$?
 	fi
 }
 
@@ -289,63 +219,52 @@ do_check_iofog_on_arm() {
 
 do_install_iofog() {
 	echo "# Installing ioFog agent..."
-	echo
+
+	prefix=$([ -z "$token" ] && echo "" || echo "$token:@")
+
 	case "$lsb_dist" in
 		ubuntu)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent/script.deb.sh | $sh_c "bash"
-			$sh_c "apt-get install -y iofog-agent"
-			command_status=$?
+			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
+			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			;;
 		fedora|centos)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent/script.rpm.sh | $sh_c "bash"
-			$sh_c "yum install -y iofog-agent"
-			command_status=$?
+			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | $sh_c "bash"
+			$sh_c "yum install -y iofog-agent-"$agent_version"-1.noarch"
 			;;
 		debian|raspbian)
-			if [ "$lsb_dist" = "debian" ]; then
-				$sh_c "apt-get install -y -qq net-tools"
-			fi
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent/script.deb.sh | $sh_c "bash"
-			$sh_c "apt-get install -y iofog-agent"
-			command_status=$?
+			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
+			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			;;
 	esac
 
 	do_check_iofog_on_arm
 }
 
-do_install_iofog_dev() {
-	echo "# Installing ioFog agent dev version: "$version 
-	echo
-	token="?master_token="$token
+do_install_deps() {
+	local installer=""
 	case "$lsb_dist" in
-		ubuntu)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.deb.sh$token | $sh_c "bash"
-			$sh_c "apt-get install -y --allow-downgrades iofog-agent="$version""
-			command_status=$?
+		ubuntu|debian|raspbian)
+			installer="apt"
 			;;
 		fedora|centos)
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.rpm.sh$token  | $sh_c "bash"
-			$sh_c "yum install -y iofog-agent-"$version"-1.noarch"
-			command_status=$?
-			;;
-		debian|raspbian)
-			if [ "$lsb_dist" = "debian" ]; then
-				$sh_c "apt-get install -y --allow-downgrades -qq net-tools"
-			fi
-			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.deb.sh$token  | $sh_c "bash"
-			$sh_c "apt-get install -y --allow-downgrades iofog-agent="$version""
-			command_status=$?
+			installer="yum"
 			;;
 	esac
 
-	do_check_iofog_on_arm
+	local iter=0
+	while [ ! $($sh_c "$installer update") ] && [ "$iter" -lt 6 ]; do
+		sleep 5
+		iter=$((iter+1))
+	done
+
+	if [ -z $(command -v wget) ]; then
+		$sh_c "$installer install -y wget"
+	fi
 }
 
 do_install() {
 	echo "# Executing iofog install script"
 	
-	command_status=0
 	sh_c='sh -c'
 	if [ "$user" != 'root' ]; then
 		if command_exists sudo; then
@@ -441,48 +360,23 @@ do_install() {
 		exit 1
 	fi
 
-	disable_package_preconfiguration
+	do_install_deps
 
-	# Run setup for each distro accordingly
-	add_initial_apt_repos_if_not_exist
-	
 	do_install_java
 	
 	do_install_docker
 	
 	do_stop_iofog
 
-	if [ "$env" = "dev" ]
-	then
-		do_install_iofog_dev 
-	else
-		do_install_iofog
-	fi
+	do_install_iofog
 }
 
-env="$1"
-version="$2"
+agent_version="$1"
+repo=$([ -z "$2" ] && echo "iofog/iofog-agent" || echo "$2")
 token="$3"
 echo "Using variables"
-echo "Env: ${env}"
-echo "version: ${version}"
-echo "token: ${token}"
-if [ "$env" = "dev" ]; then
-	echo "----> Dev environment"
-fi
-if ! [ -z "$version" ]; then
-	echo "----> Dev environment, version: $version"
-fi
-if ! [ -z "$token" ]; then
-	echo "----> Dev environment, token: $token"
-fi
-
-if [ "$env" = "dev" ] && ! [ -z "$version" ] && ! [ -z "$token" ]; then
-	echo "Will be installing iofog-agent version $version from snapshot repo"
-else 
-	env=""
-	echo "Will be installing iofog-agent from public repo"
-	echo "To install from snapshot repo, run script with additional param 'dev <VERSION> <PACKAGE_CLOUD_TOKEN>'"
-fi
+echo "version: $agent_version"
+echo "repo: $repo"
+echo "token: $token"
 
 do_install

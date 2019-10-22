@@ -277,3 +277,25 @@ func newKogCRD() *extsv1.CustomResourceDefinition {
 		},
 	}
 }
+
+func newAppCRD() *extsv1.CustomResourceDefinition {
+	return &extsv1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "apps.k8s.iofog.org",
+		},
+		Spec: extsv1.CustomResourceDefinitionSpec{
+			Group: "k8s.iofog.org",
+			Names: extsv1.CustomResourceDefinitionNames{
+				Kind:     "Application",
+				ListKind: "ApplicationList",
+				Plural:   "apps",
+				Singular: "app",
+			},
+			Scope:   extsv1.ResourceScope("Namespaced"),
+			Version: "v1alpha2",
+			Subresources: &extsv1.CustomResourceSubresources{
+				Status: &extsv1.CustomResourceSubresourceStatus{},
+			},
+		},
+	}
+}

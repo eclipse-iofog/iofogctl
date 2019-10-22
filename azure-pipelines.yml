@@ -20,12 +20,17 @@ variables:
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:latest'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:latest'
+  connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
-  vm_count: 3
-  vm_1:
-  vm_2:
-  vm_3:
+  agent_count:
+  controller_count:
+  agent_distro:
+  controller_distro:
+  agent_vm_list:
+  controller_vm:
 
 stages:
 - stage: Build
@@ -57,40 +62,52 @@ stages:
     
 - stage: Test
   jobs:
-  - job: Vanilla
+  - job: Vanilla_Xenial
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - template: templates/workdir-steps.yaml
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Build Artifacts'
-      inputs:
-        artifactName: iofogctl-linux
-        downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
-        sudo chmod 0755 /usr/local/bin/iofogctl
-    - template: templates/postinstall-steps.yaml
-    - template: templates/ssh-steps.yaml
-    - template: templates/functional-init-vm-steps.yaml
-    - template: templates/functional-configure.yaml
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.xenial)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.xenial)"
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
+    - template: templates/test-vanilla-steps.yaml
+  - job: Vanilla_Bionic
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
     - script: |
-        for IDX in $(seq 1 $(vm_count)); do
-          gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
-        done
-      displayName: 'Wait for VM SSH access'
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.bionic)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.bionic)"
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
     - script: |
-        set -o pipefail
-        test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
-      workingDirectory: '$(modulePath)'
-      displayName: 'Run Functional Tests'
+      displayName: 'Set VM Distros'
+    - template: templates/test-vanilla-steps.yaml
+  - job: Vanilla_Buster
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
     - script: |
-        tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml || true
-      workingDirectory: '$(modulePath)'
-      displayName: 'Convert test output from TAP to JUnit'
-      condition: succeededOrFailed()
-    - template: templates/functional-post-test.yaml
-    - template: templates/functional-clean-vm.yaml
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.buster)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.buster)"
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
+    - template: templates/test-vanilla-steps.yaml
+  - job: Vanilla_Stretch
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - script: |
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=controller_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=agent_count]1"
+        echo "##vso[task.setvariable variable=controller_count]1"
+      displayName: 'Set VM variables'
+    - template: templates/test-vanilla-steps.yaml
   - job: Local
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -111,7 +128,9 @@ stages:
       displayName: 'set up gcloud'
     - script: |
         docker pull $(controller_image)
-      displayName: 'Pull latest Controller docker image'
+        docker pull $(agent_image)
+        docker pull $(connector_image)
+      displayName: 'Pull develop gcr docker image'
     - template: templates/workdir-steps.yaml
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
@@ -122,6 +141,12 @@ stages:
         sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
+    - script: |
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
+        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
+        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+      workingDirectory: '$(modulePath)'
+      displayName: 'Configure Local Tests'
     - template: templates/functional-configure.yaml
     - script: |
         set -o pipefail
@@ -154,7 +179,11 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - script: echo "##vso[task.setvariable variable=vm_count]2"
+    - script: |
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.stretch)"
+        echo "##vso[task.setvariable variable=agent_count]2"
+        echo "##vso[task.setvariable variable=controller_count]0"
+      displayName: 'Set VM variables'
     - template: templates/functional-init-vm-steps.yaml
     - template: templates/functional-configure.yaml
     - script: |
@@ -189,7 +218,11 @@ stages:
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - script: echo "##vso[task.setvariable variable=vm_count]2"
+    - script: |
+        echo "##vso[task.setvariable variable=agent_distro]$(gcp.vm.distro.buster)"
+        echo "##vso[task.setvariable variable=agent_count]2"
+        echo "##vso[task.setvariable variable=controller_count]0"
+      displayName: 'Set VM variables'
     - template: templates/functional-init-vm-steps.yaml
     - script: |
         sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
@@ -198,7 +231,7 @@ stages:
         sed -i "s|DB_PORT=.*|DB_PORT=5432|g" test/env.sh
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"docker.io/edgeworx/enterprise-controller:latest\"|g" test/env.sh
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(enterprise_image)\"|g" test/env.sh
       workingDirectory: '$(modulePath)'
       displayName: 'Set up Postgres on K8s cluster'
     - template: templates/functional-configure.yaml
