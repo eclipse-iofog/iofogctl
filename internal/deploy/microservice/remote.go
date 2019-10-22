@@ -282,7 +282,7 @@ func (exe *remoteExecutor) update(config, agentUUID string, catalogID, registryI
 		RootHostAccess: &exe.msvc.RootHostAccess,
 		Ports:          exe.msvc.Ports,
 		Volumes:        &exe.msvc.Volumes,
-		Env:            exe.msvc.Env,
+		Env:            &exe.msvc.Env,
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
 		Routes:         exe.routes,
