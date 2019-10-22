@@ -63,11 +63,31 @@ func (agent *RemoteAgent) Bootstrap() error {
 
 	// Define bootstrap commands
 	installArgs := agent.version + " " + agent.repo + " " + agent.token
-	cmds := []string{
-		"/tmp/install_agent.sh " + installArgs,
-		"sudo -S service iofog-agent start",
-		"/tmp/wait_agent.sh",
-		"sudo -S iofog-agent config -cf 10 -sf 10",
+	cmds := []command{
+		{
+			cmd: "/tmp/agent_install_java.sh " + installArgs,
+			msg: "Installing Java on Agent " + agent.name,
+		},
+		{
+			cmd: "/tmp/agent_install_docker.sh " + installArgs,
+			msg: "Installing Docker on Agent " + agent.name,
+		},
+		{
+			cmd: "/tmp/agent_install_iofog.sh " + installArgs,
+			msg: "Installing ioFog daemon on Agent " + agent.name,
+		},
+		{
+			cmd: "sudo -S service iofog-agent start",
+			msg: "Starting Agent " + agent.name,
+		},
+		{
+			cmd: "/tmp/agent_wait.sh",
+			msg: "Waiting for Agent " + agent.name,
+		},
+		{
+			cmd: "sudo -S iofog-agent config -cf 10 -sf 10",
+			msg: "Configuring Agent frequencies",
+		},
 	}
 
 	// Execute commands on remote server
@@ -91,9 +111,15 @@ func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUse
 
 	// Instantiate commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
-	cmds := []string{
-		"sudo iofog-agent config -a " + controllerBaseURL,
-		"sudo iofog-agent provision " + key,
+	cmds := []command{
+		{
+			cmd: "sudo iofog-agent config -a " + controllerBaseURL,
+			msg: "Configuring Agent " + agent.name + " with Controller URL " + controllerBaseURL,
+		},
+		{
+			cmd: "sudo iofog-agent provision " + key,
+			msg: "Provisioning Agent " + agent.name + " with Controller",
+		},
 	}
 
 	// Execute commands on remote server
@@ -106,8 +132,11 @@ func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUse
 
 func (agent *RemoteAgent) Stop() (err error) {
 	// Prepare commands
-	cmds := []string{
-		"sudo -S service iofog-agent stop",
+	cmds := []command{
+		{
+			cmd: "sudo -S service iofog-agent stop",
+			msg: "Stopping Agent " + agent.name,
+		},
 	}
 
 	// Execute commands on remote server
@@ -118,7 +147,7 @@ func (agent *RemoteAgent) Stop() (err error) {
 	return
 }
 
-func (agent *RemoteAgent) run(cmds []string) (err error) {
+func (agent *RemoteAgent) run(cmds []command) (err error) {
 	// Establish SSH to agent
 	if err = agent.ssh.Connect(); err != nil {
 		return
@@ -127,7 +156,8 @@ func (agent *RemoteAgent) run(cmds []string) (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		if _, err = agent.ssh.Run(cmd); err != nil {
+		verbose(cmd.msg)
+		if _, err = agent.ssh.Run(cmd.cmd); err != nil {
 			return
 		}
 	}
@@ -136,24 +166,34 @@ func (agent *RemoteAgent) run(cmds []string) (err error) {
 }
 
 func (agent RemoteAgent) copyScriptsToAgent() error {
+	verbose("Copying install scripts to Agent " + agent.name)
 	// Establish SSH to agent
 	if err := agent.ssh.Connect(); err != nil {
 		return err
 	}
 	defer agent.ssh.Disconnect()
 
-	// Copy installation scripts to remote hosts
-	installAgentScript := util.GetStaticFile("install_agent.sh")
-	reader := strings.NewReader(installAgentScript)
-	if err := agent.ssh.CopyTo(reader, "/tmp/", "install_agent.sh", "0775", len(installAgentScript)); err != nil {
-		return err
+	// Declare scripts to copy
+	scripts := []string{
+		"agent_init.sh",
+		"agent_install_java.sh",
+		"agent_install_docker.sh",
+		"agent_install_iofog.sh",
+		"agent_wait.sh",
 	}
-
-	waitAgentScript := util.GetStaticFile("wait_agent.sh")
-	reader = strings.NewReader(waitAgentScript)
-	if err := agent.ssh.CopyTo(reader, "/tmp/", "wait_agent.sh", "0775", len(waitAgentScript)); err != nil {
-		return err
+	// Copy scripts to remote host
+	for _, script := range scripts {
+		staticFile := util.GetStaticFile(script)
+		reader := strings.NewReader(staticFile)
+		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", len(staticFile)); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+type command struct {
+	cmd string
+	msg string
 }

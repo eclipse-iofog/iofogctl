@@ -130,7 +130,7 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:a729551a88fdb90f5287a75a2cab9a45b51ee661a7479b461c3a9825a3039d4f"
+  digest = "1:1b8b7e7ff9275971e8ce4cf6766fc37062d0bb37b46fa07dbd1b172baecf7238"
   name = "github.com/eclipse-iofog/iofog-go-sdk"
   packages = [
     "pkg/apps",
