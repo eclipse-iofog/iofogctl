@@ -22,6 +22,7 @@ function initAllLocalDeleteFile() {
 
 function initMicroserviceFile() {
   echo "---
+apiVersion: iofog.org/v1
 kind: Microservice 
 metadata:
   name: ${MICROSERVICE_NAME}
@@ -56,6 +57,7 @@ spec:
 
 function initMicroserviceUpdateFile() {
   echo "---
+apiVersion: iofog.org/v1
 kind: Microservice
 metadata:
   name: ${MICROSERVICE_NAME}
@@ -142,6 +144,7 @@ function initApplicationFiles() {
       to: $MSVC2_NAME"
 
   echo -n "---
+  apiVersion: iofog.org/v1
   kind: Application
   metadata:
     name: $APPLICATION_NAME
@@ -152,6 +155,7 @@ function initApplicationFiles() {
 
 function initLocalAgentFile() {
   echo "---
+apiVersion: iofog.org/v1
 kind: Agent
 metadata:
   name: ${NAME}-0
@@ -162,6 +166,7 @@ spec:
 
 function initLocalControllerFile() {
     echo "---
+apiVersion: iofog.org/v1
 kind: ControlPlane
 spec:
   images: 
@@ -175,6 +180,7 @@ spec:
   - name: $NAME
     host: 127.0.0.1
 ---
+apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
@@ -190,6 +196,7 @@ function initAgentsFile() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     echo "---
+apiVersion: iofog.org/v1
 kind: Agent 
 metadata:
   name: $AGENT_NAME

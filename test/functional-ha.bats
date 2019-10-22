@@ -33,6 +33,7 @@ USER_EMAIL="user@domain.com"
 
 @test "Deploy Control Plane" {
   echo "---
+apiVersion: iofog.org/v1
 kind: ControlPlane
 metadata:
   name: ha-controlplane
@@ -73,6 +74,7 @@ spec:
   local CNCT_A="connector-a"
   local CNCT_B="connector-b"
   echo "---
+apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $CNCT_A
@@ -80,6 +82,7 @@ spec:
   image: $CONNECTOR_IMAGE
   kubeConfig: $KUBE_CONFIG
 ---
+apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $CNCT_B

@@ -27,6 +27,7 @@ USER_EMAIL="user@domain.com"
 
 @test "Deploy Control Plane and Connector" {
   echo "---
+apiVersion: iofog.org/v1
 kind: ControlPlane
 metadata:
   name: func-controlplane
@@ -46,6 +47,7 @@ spec:
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
 ---
+apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
@@ -125,6 +127,7 @@ spec:
 
 @test "Deploy Controller and Connector for idempotence" {
   echo "---
+apiVersion: iofog.org/v1
 kind: ControlPlane
 metadata:
   name: func-controlplane
@@ -144,6 +147,7 @@ spec:
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
 ---
+apiVersion: iofog.org/v1
 kind: Connector 
 metadata:
   name: $NAME

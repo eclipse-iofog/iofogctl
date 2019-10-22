@@ -20,6 +20,7 @@ NS2="$NS"_2
 @test "Deploy vanilla Controller" {
   initVanillaController
   echo "---
+apiVersion: iofog.org/v1
 kind: ControlPlane
 metadata:
   name: func-controlplane
@@ -38,6 +39,7 @@ spec:
     email: user@domain.com
     password: S5gYVgLEZV
 ---
+apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
