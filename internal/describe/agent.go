@@ -63,7 +63,8 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		Kind: config.AgentConfigKind,
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       config.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

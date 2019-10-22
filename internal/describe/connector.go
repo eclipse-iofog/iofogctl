@@ -15,6 +15,7 @@ package describe
 
 import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -44,7 +45,8 @@ func (exe *connectorExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		Kind: apps.ConnectorKind,
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       apps.ConnectorKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

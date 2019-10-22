@@ -15,6 +15,7 @@ package describe
 
 import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -42,7 +43,8 @@ func (exe *controlPlaneExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		Kind: apps.ControlPlaneKind,
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       apps.ControlPlaneKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      "controlPlane",
