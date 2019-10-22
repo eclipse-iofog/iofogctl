@@ -63,8 +63,8 @@ deploy_controller() {
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 	fi
-	nvm install lts/carbon
-	nvm use lts/carbon
+	nvm install v10.16.3
+	nvm use v10.16.3
 	ln -Ffs $(which node) /usr/local/bin/node
 
 	# npmrc
