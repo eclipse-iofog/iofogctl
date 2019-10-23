@@ -15,11 +15,11 @@ steps:
 - script: |
     echo $(Agent.TempDirectory)/id_rsa > /tmp/id_rsa
     chmod 400 /tmp/id_rsa
-    alias cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/id_rsa'
+    cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/id_rsa'
     for agent in $(agent_vm_list); do
       echo "Waiting for VM $agent"
       iter=0
-      while [ ! $(cssh $agent -- echo "SSH success") ] && [ $iter -lt 15 ]; do
+      while [ ! $($cssh $agent -- echo "SSH success") ] && [ $iter -lt 15 ]; do
         iter=$((iter+1))
         sleep 5
       done
@@ -31,7 +31,7 @@ steps:
     if [ $(controller_count) -gt 0 ]; then
       echo "Waiting for VM $(controller_vm)"
       iter=0
-      while [ ! $(cssh $(controller_vm) -- echo "SSH success") ] && [ $iter -lt 15 ]; do
+      while [ ! $($cssh $(controller_vm) -- echo "SSH success") ] && [ $iter -lt 15 ]; do
         iter=$((iter+1))
         sleep 5
       done
