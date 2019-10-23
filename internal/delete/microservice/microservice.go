@@ -14,27 +14,40 @@
 package deletecatalogitem
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(namespace, name string) error {
-	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
-		return err
+type Executor struct {
+	namespace string
+	name      string
+}
+
+func NewExecutor(namespace, name string) (execute.Executor, error) {
+	exe := &Executor{
+		namespace: namespace,
+		name:      name,
 	}
 
+	return exe, nil
+}
+
+// GetName returns application name
+func (exe *Executor) GetName() string {
+	return exe.name
+}
+
+// Execute deletes application by deleting its associated flow
+func (exe *Executor) Execute() (err error) {
 	util.SpinStart("Deleting Microservice")
 	// Init remote resources
-	clt, err := client.NewAndLogin(controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+	clt, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	item, err := clt.GetMicroserviceByName(name)
+	item, err := clt.GetMicroserviceByName(exe.name)
 	if err != nil {
 		return err
 	}

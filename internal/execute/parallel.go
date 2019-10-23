@@ -14,12 +14,25 @@
 package execute
 
 import (
+	"fmt"
 	"sync"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type jobResult struct {
 	err error
 	exe Executor
+}
+
+func RunExecutors(executors []Executor, execType string) error {
+	if errs, failedExes := ForParallel(executors); len(errs) > 0 {
+		for idx := range errs {
+			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
+		}
+		return util.NewError(fmt.Sprintf("Failed to %s\n", execType))
+	}
+	return nil
 }
 
 func ForParallel(exes []Executor) (errs []error, failedExes []Executor) {

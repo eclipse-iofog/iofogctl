@@ -14,8 +14,8 @@
 package describe
 
 import (
-	"fmt"
-
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -43,13 +43,23 @@ func (exe *controllerExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("namespace: %s\n", exe.namespace)
+
+	header := config.Header{
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       apps.ControllerKind,
+		Metadata: config.HeaderMetadata{
+			Namespace: exe.namespace,
+			Name:      exe.name,
+		},
+		Spec: controller,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(controller); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(controller, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

@@ -6,10 +6,21 @@ Delete an existing ioFog resource
 
 Delete an existing ioFog resource.
 
+```
+iofogctl delete [flags]
+```
+
+### Examples
+
+```
+deploy -f platform.yaml
+```
+
 ### Options
 
 ```
-  -h, --help   help for delete
+  -f, --file string   YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
+  -h, --help          help for delete
 ```
 
 ### Options inherited from parent commands

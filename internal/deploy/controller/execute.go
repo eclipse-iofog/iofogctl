@@ -15,53 +15,46 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 )
 
 type Options struct {
 	Namespace string
-	InputFile string
+	Yaml      []byte
+	Name      string
 }
 
-func Execute(opt Options) error {
-	// Make sure to update config despite failure
-	defer config.Flush()
-
-	_, err := config.GetNamespace(opt.Namespace)
+func NewExecutorWithoutParsing(namespace string, controller *config.Controller, controlPlane config.ControlPlane) (exe execute.Executor, err error) {
+	_, err = config.GetNamespace(namespace)
 	if err != nil {
-		return err
+		return
 	}
 
+	// Instantiate executor
+	return newExecutor(namespace, controller, controlPlane)
+}
+
+func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Unmarshall file
-	ctrl, err := UnmarshallYAML(opt.InputFile)
+	ctrl, err := UnmarshallYAML(opt.Yaml)
 	if err != nil {
-		return err
+		return
 	}
 
-	// Output message
-	util.SpinStart("Deploying Controller")
+	if len(opt.Name) > 0 {
+		ctrl.Name = opt.Name
+	}
+
+	// Validate
+	if err = Validate(ctrl); err != nil {
+		return
+	}
 
 	// Get the Control Plane
 	controlPlane, err := config.GetControlPlane(opt.Namespace)
 	if err != nil {
-		return err
+		return
 	}
 
-	// Instantiate executor
-	exe, err := NewExecutor(opt.Namespace, &ctrl, controlPlane)
-	if err != nil {
-		return err
-	}
-
-	// Execute command
-	if err := exe.Execute(); err != nil {
-		return err
-	}
-
-	// Update configuration
-	if err = config.UpdateController(opt.Namespace, ctrl); err != nil {
-		return err
-	}
-
-	return nil
+	return NewExecutorWithoutParsing(opt.Namespace, &ctrl, controlPlane)
 }

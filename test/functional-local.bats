@@ -36,45 +36,42 @@ NS="$NAMESPACE"
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -v -n "$NS" deploy application -f test/conf/application.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
 @test "Deploy microservice" {
   initMicroserviceFile
-  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/microservice.yaml
   checkMicroservice
 }
 
 @test "Update microservice" {
   initMicroserviceUpdateFile
-  test iofogctl -v -n "$NS" deploy microservice -f test/conf/updatedMicroservice.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
   checkUpdatedMicroservice
 }
 
-@test "Delete microservice" {
-  test iofogctl -v -n "$NS" delete microservice "$MICROSERVICE_NAME"
+@test "Delete microservice using file option" {
+  test iofogctl -v -n "$NS" delete -f test/conf/updatedMicroservice.yaml
   checkMicroserviceNegative
 }
 
 @test "Deploy microservice in application" {
   initMicroserviceFile
-  test iofogctl -v -n "$NS" deploy microservice -f test/conf/microservice.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/microservice.yaml
   checkMicroservice
 }
 
-@test "Deploy application from root file and test application update" {
-  test iofogctl -v -n "$NS" deploy -f test/conf/root_application.yaml
+@test "Deploy application from file and test application update" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
-@test "Delete application" {
-  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
+@test "Delete all using file" {
+  initAllLocalDeleteFile
+  test iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml
   checkApplicationNegative
-}
-
-@test "Delete all" {
-  test iofogctl -v -n "$NS" delete all
   checkControllerNegative
   checkConnectorNegative
   checkAgentNegative "${NAME}-0"

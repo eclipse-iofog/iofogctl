@@ -14,10 +14,10 @@
 package describe
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -46,25 +46,13 @@ func (exe *agentExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+
+	// Connect to controller
+	ctrl, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
-	if len(controlPlane.Controllers) != 1 {
-		return util.NewInputError("Cannot get Agent data without a Controller in namespace " + exe.namespace)
-	}
 
-	// Connect to controller
-	ctrl := client.New(controlPlane.Controllers[0].Endpoint)
-	loginRequest := client.LoginRequest{
-		Email:    controlPlane.IofogUser.Email,
-		Password: controlPlane.IofogUser.Password,
-	}
-
-	// Send requests to controller
-	if err := ctrl.Login(loginRequest); err != nil {
-		return err
-	}
 	getAgentResponse, err := ctrl.GetAgentByID(agent.UUID)
 	if err != nil {
 		// The agents might not be provisioned with Controller
@@ -74,14 +62,22 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	// Print result
-	fmt.Printf("namespace: %s\n", exe.namespace)
+	header := config.Header{
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       config.AgentConfigKind,
+		Metadata: config.HeaderMetadata{
+			Namespace: exe.namespace,
+			Name:      exe.name,
+		},
+		Spec: getAgentResponse,
+	}
+
 	if exe.filename == "" {
-		if err = util.Print(getAgentResponse); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(getAgentResponse, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

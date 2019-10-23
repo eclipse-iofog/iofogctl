@@ -15,11 +15,12 @@ package deleteagent
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
 )
 
 type remoteExecutor struct {
@@ -44,28 +45,10 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	// Get Control Plane for the namespace
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
 
+	ctrl, err := internal.NewControllerClient(exe.namespace)
 	// If controller exists, deprovision the agent
-	if len(controlPlane.Controllers) > 0 {
-		// TODO: change [0] with controlPlane variable
-		// Get Controller endpoint and connect to Controller
-		endpoint := controlPlane.Controllers[0].Endpoint
-		ctrl := client.New(endpoint)
-
-		// Log into Controller
-		user := client.LoginRequest{
-			Email:    controlPlane.IofogUser.Email,
-			Password: controlPlane.IofogUser.Password,
-		}
-		if err := ctrl.Login(user); err != nil {
-			return err
-		}
-
+	if err == nil {
 		// Perform deletion of Agent through Controller
 		if err = ctrl.DeleteAgent(agent.UUID); err != nil {
 			if !strings.Contains(err.Error(), "NotFoundError") {

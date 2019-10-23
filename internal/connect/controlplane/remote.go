@@ -11,31 +11,43 @@
  *
  */
 
-package connect
+package connectcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 type remoteExecutor struct {
-	opt *Options
+	ctrlPlane config.ControlPlane
+	namespace string
 }
 
-func newRemoteExecutor(opt *Options) *remoteExecutor {
-	r := &remoteExecutor{}
-	r.opt = opt
+func newRemoteExecutor(ctrlPlane config.ControlPlane, namespace string) *remoteExecutor {
+	r := &remoteExecutor{
+		ctrlPlane: ctrlPlane,
+		namespace: namespace,
+	}
 	return r
 }
 
 func (exe *remoteExecutor) GetName() string {
-	return exe.opt.Name
+	return "Control Plane"
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
 	// Establish connection
-	err = connect(exe.opt, exe.opt.Endpoint)
+	endpoint := exe.ctrlPlane.Controllers[0].Host + ":" + iofog.ControllerPortString
+	err = connect(exe.ctrlPlane, endpoint, exe.namespace)
 	if err != nil {
 		return err
 	}
+
+	exe.ctrlPlane.Controllers[0].Endpoint = endpoint
+	err = config.UpdateControlPlane(exe.namespace, exe.ctrlPlane)
+	if err != nil {
+		return err
+	}
+
 	return config.Flush()
 }
