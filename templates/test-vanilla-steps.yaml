@@ -16,7 +16,7 @@ steps:
     for agent in $(agent_vm_list); do
       echo "Waiting for VM $agent"
       iter=0
-      while [ ! $(ssh -i $(Agent.TempDirectory)/id_rsa $agent -- echo "SSH success") ] && [ $iter -lt 15 ]; do
+      while [ ! $(ssh -o StrictHostKeyChecking=no -i $(Agent.TempDirectory)/id_rsa $agent -- echo "SSH success") ] && [ $iter -lt 15 ]; do
         iter=$((iter+1))
         sleep 5
       done
@@ -27,7 +27,7 @@ steps:
     done
     if [ $(controller_count) -gt 0 ]; then
       iter=0
-      while [ ! $(ssh -i $(Agent.TempDirectory)/id_rsa $controller_vm -- echo "SSH success") ] && [ $iter -lt 15 ]; do
+      while [ ! $(ssh -o StrictHostKeyChecking=no -i $(Agent.TempDirectory)/id_rsa $controller_vm -- echo "SSH success") ] && [ $iter -lt 15 ]; do
         iter=$((iter+1))
         sleep 5
       done
