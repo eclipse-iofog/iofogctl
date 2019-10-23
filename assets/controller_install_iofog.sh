@@ -5,17 +5,6 @@ set -e
 INSTALL_DIR="/opt/iofog"
 TMP_DIR="/tmp/iofog"
 
-install_deps() {
-	if [ -z "$(command -v lsof)" ]; then
-		if [ -z "$(command -v apt)" ]; then
-			echo "Unsupported distro"
-			exit 1
-		fi
-		apt update -qq
-		apt install -y lsof
-	fi
-}
-
 controller_service() {
     USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
     USE_INITCTL=`which initctl | wc -l`
@@ -36,6 +25,33 @@ controller_service() {
     else
         echo "Unable to setup Controller startup script."
     fi
+}
+
+install_package() {
+		if [ -z "$(command -v apt)" ]; then
+			echo "Unsupported distro"
+			exit 1
+		fi
+		apt update -qq
+		apt install -y $1
+}
+
+install_deps() {
+	if [ -z "$(command -v curl)" ]; then
+        install_package "curl"
+	fi
+
+	if [ -z "$(command -v lsof)" ]; then
+        install_package "lsof"
+	fi
+
+	if [ -z "$(command -v make)" ]; then
+        install_package "build-essential"
+	fi
+
+	if [ -z "$(command -v python)" ]; then
+        install_package "python"
+	fi
 }
 
 deploy_controller() {
