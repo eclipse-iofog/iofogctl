@@ -13,7 +13,9 @@ steps:
 - template: functional-init-vm-steps.yaml
 - template: functional-configure.yaml
 - script: |
-    sleep 30 # This should not be necessary but getting connection refused on Buster VMs
+    if [[ $(controller_distro) == *"buster"* ]]; then
+      sleep 60 # This should not be necessary but getting connection refused on Buster VMs
+    fi
     a=$(agent_count)
     b=$(controller_count)
     count=$((a+b))
