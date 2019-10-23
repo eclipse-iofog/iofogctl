@@ -137,7 +137,7 @@ iofogctl legacy agent NAME status`,
 				if connector.KubeConfig != "" {
 					k8sExecute(connector.KubeConfig, namespace, "name=connector-"+name, cliCommand, args[2:])
 				} else if util.IsLocalHost(connector.Host) {
-					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
+					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
 				} else {
 					if connector.Host == "" || connector.User == "" || connector.KeyFile == "" || connector.Port == 0 {
 						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Connector are not available"))

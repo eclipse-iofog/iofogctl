@@ -452,7 +452,6 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (execResult Exec
 	execResult.StdErr = string(stderr)
 
 	// Run command
-	fmt.Printf("%v\n", execConfig)
 	if err = lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck); err != nil {
 		return
 	}

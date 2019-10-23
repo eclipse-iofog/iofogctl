@@ -67,6 +67,12 @@ spec:
 
 @test "Controller legacy commands after deploy" {
   test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
+  checkLegacyController
+}
+
+@test "Connector legacy commands after deploy" {
+  test iofogctl -v -n "$NS" legacy connector "$NAME" status
+  checkLegacyConnector
 }
 
 @test "Get Controller logs on K8s after deploy" {
@@ -83,6 +89,7 @@ spec:
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
+    checkLegacyAgent "$AGENT_NAME"
   done
 }
 
