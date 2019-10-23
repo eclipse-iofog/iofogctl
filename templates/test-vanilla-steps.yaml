@@ -17,9 +17,10 @@ steps:
     a=$(agent_count)
     b=$(controller_count)
     count=$((a+b))
+    echo $(ssh.user.pub) > $(Agent.TempDirectory)/id_rsa.pub
     for IDX in $(seq 1 $count); do
       echo "Connecting to iofogctl-ci-$(jobuuid)-$IDX"
-      gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) -- ls /
+      gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) --ssh-key-file $(Agent.TempDirectory)/id_rsa -- ls /
     done
     echo "Completed waiting for $count VMs"
   displayName: 'Wait for VM SSH access'
