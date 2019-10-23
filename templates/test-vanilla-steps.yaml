@@ -13,18 +13,29 @@ steps:
 - template: functional-init-vm-steps.yaml
 - template: functional-configure.yaml
 - script: |
-    if [[ $(controller_distro) == *"buster"* ]]; then
-      sleep 60 # This should not be necessary but getting connection refused on Buster VMs
-    fi
-    a=$(agent_count)
-    b=$(controller_count)
-    count=$((a+b))
-    echo $(ssh.user.pub) > $(Agent.TempDirectory)/id_rsa.pub
-    for IDX in $(seq 1 $count); do
-      echo "Connecting to iofogctl-ci-$(jobuuid)-$IDX"
-      gcloud compute ssh iofogctl-ci-$(jobuuid)-$IDX --zone $(gcp.vm.zone) --ssh-key-file $(Agent.TempDirectory)/id_rsa -- ls /
+    for agent in $(agent_vm_list); do
+      echo "Waiting for VM $agent"
+      iter=0
+      while [ ! $(ssh -i $(Agent.TempDirectory)/id_rsa $agent -- echo "SSH success") ] && [ $iter -lt 15 ]; do
+        iter=$((iter+1))
+        sleep 5
+      done
+      if [ ! $iter -lt 15 ]; then
+        echo "Timed out waiting for $agent"
+        exit 1
+      fi
     done
-    echo "Completed waiting for $count VMs"
+    if [ $(controller_count) -gt 0 ]; then
+      iter=0
+      while [ ! $(ssh -i $(Agent.TempDirectory)/id_rsa $controller_vm -- echo "SSH success") ] && [ $iter -lt 15 ]; do
+        iter=$((iter+1))
+        sleep 5
+      done
+      if [ ! $iter -lt 15 ]; then
+        echo "Timed out waiting for $controller_vm"
+        exit 1
+      fi
+    fi
   displayName: 'Wait for VM SSH access'
 - script: |
     set -o pipefail
