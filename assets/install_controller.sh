@@ -39,14 +39,30 @@ controller_service() {
     fi
 }
 
-install_deps() {
-	if [ -z "$(command -v lsof)" ]; then
+install_package() {
 		if [ -z "$(command -v apt)" ]; then
 			echo "Unsupported distro"
 			exit 1
 		fi
 		apt update -qq
-		apt install -y lsof
+		apt install -y $1
+}
+
+install_deps() {
+	if [ -z "$(command -v curl)" ]; then
+        install_package "curl"
+	fi
+
+	if [ -z "$(command -v lsof)" ]; then
+        install_package "lsof"
+	fi
+
+	if [ -z "$(command -v make)" ]; then
+        install_package "build-essential"
+	fi
+
+	if [ -z "$(command -v python)" ]; then
+        install_package "python"
 	fi
 }
 
