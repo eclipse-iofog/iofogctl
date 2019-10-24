@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
-	"github.com/eclipse-iofog/iofog-operator/pkg/apis/k8s/v1alpha2"
+	iofogv1 "github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	v1 "k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -100,14 +100,14 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 		return err
 	}
 
-	kogList := &v1alpha2.KogList{}
+	kogList := &iofogv1.KogList{}
 	if err = k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
 		return err
 	}
 	if len(kogList.Items) == 0 {
 		return util.NewError("Could not find existing ioKog on the Kubernetes cluster")
 	}
-	var existingKog *v1alpha2.Kog
+	var existingKog *iofogv1.Kog
 	for _, kog := range kogList.Items {
 		if kog.ObjectMeta.Name == k8s.kogInstanceName {
 			existingKog = &kog
@@ -126,7 +126,7 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 		}
 	}
 	if !connectorExists {
-		existingKog.Spec.Connectors.Instances = append(existingKog.Spec.Connectors.Instances, v1alpha2.Connector{
+		existingKog.Spec.Connectors.Instances = append(existingKog.Spec.Connectors.Instances, iofogv1.Connector{
 			Name: name,
 		})
 	}
@@ -152,14 +152,6 @@ func (k8s *Kubernetes) enableCustomResources() error {
 	// Applications
 	appCRD := newAppCRD()
 	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(appCRD); err != nil {
-		if !k8serrors.IsAlreadyExists(err) {
-			return err
-		}
-	}
-
-	// Iofogs (legacy)
-	iofogCRD := newIofogCRD()
-	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iofogCRD); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
@@ -216,7 +208,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		Name:      k8s.kogInstanceName,
 		Namespace: k8s.ns,
 	}
-	var kog v1alpha2.Kog
+	var kog iofogv1.Kog
 	found := true
 	if err := k8s.kogClient.Get(context.Background(), kogKey, &kog); err != nil {
 		if !k8serrors.IsNotFound(err) {
@@ -224,7 +216,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		}
 		// Not found, set basic info
 		found = false
-		kog = v1alpha2.Kog{
+		kog = iofogv1.Kog{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      k8s.kogInstanceName,
 				Namespace: k8s.ns,
@@ -232,18 +224,18 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		}
 	}
 	// Set specification
-	kog.Spec = v1alpha2.KogSpec{
-		ControlPlane: v1alpha2.ControlPlane{
-			IofogUser:              v1alpha2.IofogUser(user),
+	kog.Spec = iofogv1.KogSpec{
+		ControlPlane: iofogv1.ControlPlane{
+			IofogUser:              iofogv1.IofogUser(user),
 			ControllerReplicaCount: int32(replicas),
 			ControllerImage:        k8s.ms["controller"].containers[0].image,
 			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
-			Database:               v1alpha2.Database(db),
+			Database:               iofogv1.Database(db),
 			ServiceType:            k8s.ms["controller"].serviceType,
 			LoadBalancerIP:         k8s.ms["controller"].IP,
 		},
-		Connectors: v1alpha2.Connectors{
-			Instances: []v1alpha2.Connector{},
+		Connectors: iofogv1.Connectors{
+			Instances: []iofogv1.Connector{},
 		},
 	}
 
@@ -332,7 +324,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	}
 
 	// Delete Kog
-	kog := &v1alpha2.Kog{
+	kog := &iofogv1.Kog{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      k8s.kogInstanceName,
 			Namespace: k8s.ns,
@@ -368,14 +360,14 @@ func (k8s *Kubernetes) DeleteConnector(name string) error {
 	}
 
 	// Find existing kog
-	kogList := &v1alpha2.KogList{}
+	kogList := &iofogv1.KogList{}
 	if err := k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
 		return err
 	}
 	if len(kogList.Items) == 0 {
 		return util.NewError("Could not find existing ioKog on the Kubernetes cluster")
 	}
-	var existingKog *v1alpha2.Kog
+	var existingKog *iofogv1.Kog
 	for _, kog := range kogList.Items {
 		if kog.ObjectMeta.Name == k8s.kogInstanceName {
 			existingKog = &kog
