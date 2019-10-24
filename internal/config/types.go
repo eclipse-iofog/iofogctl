@@ -60,39 +60,39 @@ type ControlPlane struct {
 }
 
 type Connector struct {
-	Name              string            `yaml:"name,omitempty"`
-	User              string            `yaml:"user,omitempty"`
-	Host              string            `yaml:"host,omitempty"`
-	Port              int               `yaml:"port,omitempty"`
-	KeyFile           string            `yaml:"keyFile,omitempty"`
-	KubeConfig        string            `yaml:"kubeConfig,omitempty"`
-	KubeConnectorIP   string            `yaml:"kubeConnectorIP,omitempty"`
-	Image             string            `yaml:"image,omitempty"`
-	ImageCredentials  DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
-	Created           string            `yaml:"created,omitempty"`
-	Version           string            `yaml:"version,omitempty"`
-	Endpoint          string            `yaml:"endpoint,omitempty"`
-	PackageCloudToken string            `yaml:"packageCloudToken,omitempty"`
+	Name             string            `yaml:"name,omitempty"`
+	User             string            `yaml:"user,omitempty"`
+	Host             string            `yaml:"host,omitempty"`
+	Port             int               `yaml:"port,omitempty"`
+	KeyFile          string            `yaml:"keyFile,omitempty"`
+	KubeConfig       string            `yaml:"kubeConfig,omitempty"`
+	KubeConnectorIP  string            `yaml:"kubeConnectorIP,omitempty"`
+	Image            string            `yaml:"image,omitempty"`
+	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
+	Created          string            `yaml:"created,omitempty"`
+	Endpoint         string            `yaml:"endpoint,omitempty"`
+	Version          string            `yaml:"version,omitempty"`
+	Repo             string            `yaml:",omitempty"`
+	Token            string            `yaml:",omitempty"`
 }
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name              string            `yaml:"name,omitempty"`
-	User              string            `yaml:"user,omitempty"`
-	Host              string            `yaml:"host,omitempty"`
-	Port              int               `yaml:"port,omitempty"`
-	KeyFile           string            `yaml:"keyFile,omitempty"`
-	KubeConfig        string            `yaml:"kubeConfig,omitempty"`
-	Replicas          int               `yaml:"replicas,omitempty"`
-	ServiceType       string            `yaml:"serviceType,omitempty"`
-	KubeControllerIP  string            `yaml:"kubeControllerIP,omitempty"`
-	Endpoint          string            `yaml:"endpoint,omitempty"`
-	Created           string            `yaml:"created,omitempty"`
-	ImageCredentials  DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull images
-	Version           string            `yaml:"version,omitempty"`
-	PackageCloudToken string            `yaml:"packageCloudToken,omitempty"`
-	Repo              string            `yaml:",omitempty"`
-	Token             string            `yaml:",omitempty"`
+	Name             string            `yaml:"name,omitempty"`
+	User             string            `yaml:"user,omitempty"`
+	Host             string            `yaml:"host,omitempty"`
+	Port             int               `yaml:"port,omitempty"`
+	KeyFile          string            `yaml:"keyFile,omitempty"`
+	KubeConfig       string            `yaml:"kubeConfig,omitempty"`
+	Replicas         int               `yaml:"replicas,omitempty"`
+	ServiceType      string            `yaml:"serviceType,omitempty"`
+	KubeControllerIP string            `yaml:"kubeControllerIP,omitempty"`
+	Endpoint         string            `yaml:"endpoint,omitempty"`
+	Created          string            `yaml:"created,omitempty"`
+	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull images
+	Version          string            `yaml:"version,omitempty"`
+	Repo             string            `yaml:",omitempty"`
+	Token            string            `yaml:",omitempty"`
 }
 
 // AgentConfiguration contains configuration information for a deployed agent
@@ -108,19 +108,18 @@ type AgentConfiguration struct {
 
 // Agent contains information for deploying an agent
 type Agent struct {
-	Name              string            `yaml:"name,omitempty"`
-	User              string            `yaml:"user,omitempty"`
-	Host              string            `yaml:"host,omitempty"`
-	Port              int               `yaml:"port,omitempty"`
-	KeyFile           string            `yaml:"keyFile,omitempty"`
-	UUID              string            `yaml:"uuid,omitempty"`
-	Created           string            `yaml:"created,omitempty"`
-	Image             string            `yaml:"image,omitempty"`
-	ImageCredentials  DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
-	Version           string            `yaml:"version,omitempty"`
-	PackageCloudToken string            `yaml:"packageCloudToken,omitempty"`
-	Repo              string            `yaml:",omitempty"`
-	Token             string            `yaml:",omitempty"`
+	Name             string            `yaml:"name,omitempty"`
+	User             string            `yaml:"user,omitempty"`
+	Host             string            `yaml:"host,omitempty"`
+	Port             int               `yaml:"port,omitempty"`
+	KeyFile          string            `yaml:"keyFile,omitempty"`
+	UUID             string            `yaml:"uuid,omitempty"`
+	Created          string            `yaml:"created,omitempty"`
+	Image            string            `yaml:"image,omitempty"`
+	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
+	Version          string            `yaml:"version,omitempty"`
+	Repo             string            `yaml:",omitempty"`
+	Token            string            `yaml:",omitempty"`
 }
 
 // Namespace contains information for configuring a namespace

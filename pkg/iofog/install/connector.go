@@ -17,7 +17,8 @@ type ConnectorOptions struct {
 	Port               int
 	PrivKeyFilename    string
 	Version            string
-	PackageCloudToken  string
+	Token              string
+	Repo               string
 	IofogUser          IofogUser
 	ControllerEndpoint string
 }
@@ -54,7 +55,7 @@ func (cnct *Connector) Install() (err error) {
 
 	// Define commands
 	cmds := []string{
-		fmt.Sprintf("/tmp/connector_install.sh %s %s", cnct.Version, cnct.PackageCloudToken),
+		fmt.Sprintf("/tmp/connector_install.sh %s %s %s", cnct.Version, cnct.Repo, cnct.Token),
 	}
 
 	// Execute commands

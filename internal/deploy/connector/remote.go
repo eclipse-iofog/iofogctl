@@ -58,7 +58,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Port:               exe.cnct.Port,
 		PrivKeyFilename:    exe.cnct.KeyFile,
 		Version:            exe.cnct.Version,
-		PackageCloudToken:  exe.cnct.PackageCloudToken,
+		Repo:               exe.cnct.Repo,
+		Token:              exe.cnct.Token,
 		ControllerEndpoint: exe.controllerEndpoint,
 		IofogUser:          install.IofogUser(exe.iofogUser),
 	}

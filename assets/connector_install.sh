@@ -57,7 +57,7 @@ deploy_connector() {
 		fi
 		sudo apt-get -y update
 		sudo apt-get -y install openjdk-11-jre
-		curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.deb.sh | sudo bash
+		curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | sudo bash
 		sudo apt-get -y install iofog-connector
 		config_connector
 		sudo service iofog-connector start
@@ -69,7 +69,7 @@ deploy_connector() {
 		fi
 		su -c "yum update -y"
 		su -c "yum install java-1.8.0-openjdk -y"
-		curl -s https://packagecloud.io/install/repositories/iofog/iofog-connector/script.rpm.sh | sudo bash
+		curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | sudo bash
 		sudo yum install iofog-connector -y
 		config_connector
 		sudo systemctl start iofog-connector
@@ -81,6 +81,8 @@ deploy_connector() {
 
 # main
 version="$1"
-token="$2"
+repo=$([ -z "$2" ] && echo "iofog/iofog-connector" || echo "$2")
+token="$3"
+prefix=$([ -z "$token" ] && echo "" || echo "$token:@")
 get_distro
 deploy_connector
