@@ -81,7 +81,7 @@
   version = "v2.7.1"
 
 [[projects]]
-  digest = "1:4f96a54c908f2cc9f29e90c551670353d5b41241c7226969aafa4a0a5d7830f4"
+  digest = "1:a5ffc4c8c20be839fa719b91f4d6b5ef904a78057a14f19bc62a23bad490505d"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -102,6 +102,7 @@
     "api/types/volume",
     "client",
     "errdefs",
+    "pkg/stdcopy",
   ]
   pruneopts = "UT"
   revision = "705d9623b7c1fac1f8cf48074d5861847d09eb67"
@@ -795,6 +796,7 @@
     "github.com/docker/docker/api/types",
     "github.com/docker/docker/api/types/container",
     "github.com/docker/docker/client",
+    "github.com/docker/docker/pkg/stdcopy",
     "github.com/docker/go-connections/nat",
     "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps",
     "github.com/eclipse-iofog/iofog-go-sdk/pkg/client",

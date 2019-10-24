@@ -63,7 +63,7 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uui
 
 	// Execute commands
 	for _, cmd := range cmds {
-		err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
+		_, err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
 		if err != nil {
 			return
 		}

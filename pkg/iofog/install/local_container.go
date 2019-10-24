@@ -14,6 +14,7 @@
 package install
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -27,6 +28,7 @@ import (
 	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -35,6 +37,13 @@ import (
 // LocalContainer struct to encapsulate utilities around docker
 type LocalContainer struct {
 	client *client.Client
+}
+
+// ExecResult contains the output of a command ran into docker exec
+type ExecResult struct {
+	StdOut   string
+	StdErr   string
+	ExitCode int
 }
 
 type port struct {
@@ -74,6 +83,19 @@ type LocalAgentConfig struct {
 	Name string
 }
 
+func GetLocalContainerName(t string) string {
+	names := map[string]string{
+		"controller": sanitizeContainerName("iofog-controller"),
+		"connector":  sanitizeContainerName("iofog-connector"),
+		"agent":      sanitizeContainerName("iofog-agent"),
+	}
+	name, ok := names[t]
+	if ok == false {
+		return ""
+	}
+	return name
+}
+
 func sanitizeContainerName(name string) string {
 	r := regexp.MustCompile("[^a-zA-Z0-9_.-]")
 	return r.ReplaceAllString(name, "-")
@@ -91,7 +113,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 				{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
 				{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
 			},
-			ContainerName: sanitizeContainerName("iofog-agent"),
+			ContainerName: GetLocalContainerName("agent"),
 			Image:         image,
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
@@ -112,7 +134,7 @@ func NewLocalConnectorConfig(image string, credentials Credentials) *LocalContai
 	return &LocalContainerConfig{
 		Host:          "0.0.0.0",
 		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
-		ContainerName: sanitizeContainerName("iofog-connector"),
+		ContainerName: GetLocalContainerName("connector"),
 		Image:         image,
 		Privileged:    false,
 		Binds:         []string{},
@@ -134,7 +156,7 @@ func NewLocalControllerConfig(images map[string]string, credentials Credentials)
 			{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}},
 			{Host: iofog.ControllerHostECNViewerPortString, Container: &LocalContainerPort{Port: iofog.DefaultHTTPPortString, Protocol: "tcp"}},
 		},
-		ContainerName: sanitizeContainerName("iofog-controller"),
+		ContainerName: GetLocalContainerName("controller"),
 		Image:         controllerImg,
 		Privileged:    false,
 		Binds:         []string{},
@@ -365,12 +387,12 @@ func (lc *LocalContainer) WaitForCommand(condition *regexp.Regexp, command strin
 	return util.NewInternalError("Timed out waiting for container")
 }
 
-func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
+func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (execResult ExecResult, err error) {
 	ctx := context.Background()
 
 	container, err := lc.GetContainerByName(name)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Create command to execute inside container
@@ -380,16 +402,58 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 
 	execID, err := lc.client.ContainerExecCreate(ctx, container.ID, execConfig)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Attach command to container
 	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execStartCheck)
 	if err != nil {
-		return err
+		return
 	}
 	defer res.Close()
 
+	// read the output
+	var outBuf, errBuf bytes.Buffer
+	outputDone := make(chan error)
+
+	go func() {
+		// StdCopy demultiplexes the stream into two buffers
+		_, err = stdcopy.StdCopy(&outBuf, &errBuf, res.Reader)
+		outputDone <- err
+	}()
+
+	select {
+	case err := <-outputDone:
+		if err != nil {
+			return execResult, err
+		}
+		break
+
+	case <-ctx.Done():
+		return execResult, ctx.Err()
+	}
+
+	stdout, err := ioutil.ReadAll(&outBuf)
+	if err != nil {
+		return execResult, err
+	}
+	stderr, err := ioutil.ReadAll(&errBuf)
+	if err != nil {
+		return execResult, err
+	}
+
+	inspect, err := lc.client.ContainerExecInspect(ctx, execID.ID)
+	if err != nil {
+		return execResult, err
+	}
+
+	execResult.ExitCode = inspect.ExitCode
+	execResult.StdOut = string(stdout)
+	execResult.StdErr = string(stderr)
+
 	// Run command
-	return lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck)
+	if err = lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck); err != nil {
+		return
+	}
+	return
 }

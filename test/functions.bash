@@ -480,3 +480,15 @@ function checkAgentListFromController() {
     [[ ! -z "$UUID" ]]
   done
 }
+
+function checkLegacyConnector() {
+  [[ ! -z $(iofogctl -v -n "$NS" legacy connector $NAME status | grep 'is up and running') ]]
+}
+
+function checkLegacyController() {
+  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME controller status | grep 'online') ]]
+}
+
+function checkLegacyAgent() {
+  [[ ! -z $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'RUNNING') ]]
+}
