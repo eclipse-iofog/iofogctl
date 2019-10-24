@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -54,7 +53,7 @@ func (exe executor) Execute() error {
 
 func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
 	// Read the input file
-	connector, err := deployconnector.UnmarshallYAML(yaml)
+	connector, err := unmarshallYAML(yaml)
 	if err != nil {
 		return nil, err
 	}

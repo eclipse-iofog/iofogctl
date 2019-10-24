@@ -14,13 +14,12 @@
 package connectcontrolplane
 
 import (
-	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 )
 
 func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
 	// Read the input file
-	controlPlane, err := deploycontrolplane.UnmarshallYAML(yaml)
+	controlPlane, err := unmarshallYAML(yaml)
 	if err != nil {
 		return nil, err
 	}

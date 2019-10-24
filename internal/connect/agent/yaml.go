@@ -11,7 +11,7 @@
  *
  */
 
-package deployagent
+package connectagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -19,14 +19,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
+func unmarshallYAML(file []byte) (agent config.Agent, err error) {
 	// Unmarshall the input file
 	if err = yaml.Unmarshal(file, &agent); err != nil {
 		err = util.NewInputError("Could not unmarshall\n" + err.Error())
-		return
-	}
-	// None specified
-	if agent.Host == "" {
 		return
 	}
 
@@ -39,14 +35,4 @@ func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
 	}
 
 	return
-}
-
-func Validate(agent config.Agent) error {
-	if agent.Name == "" {
-		return util.NewInputError("You must specify a non-empty value for name value of Agents")
-	}
-	if (agent.Host != "localhost" && agent.Host != "127.0.0.1") && (agent.Host == "" || agent.User == "" || agent.KeyFile == "") {
-		return util.NewInputError("For Agents you must specify non-empty values for host, user, and keyfile")
-	}
-	return nil
 }

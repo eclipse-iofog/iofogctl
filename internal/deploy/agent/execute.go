@@ -35,7 +35,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Validate
-	if err = ValidateYAML(agent); err != nil {
+	if err = Validate(agent); err != nil {
 		return
 	}
 

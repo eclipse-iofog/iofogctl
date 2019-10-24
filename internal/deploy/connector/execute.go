@@ -41,7 +41,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Validate
-	if err = ValidateYAML(connector); err != nil {
+	if err = Validate(connector); err != nil {
 		return
 	}
 
