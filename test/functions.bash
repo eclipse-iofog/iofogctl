@@ -490,5 +490,5 @@ function checkLegacyController() {
 }
 
 function checkLegacyAgent() {
-  [[ ! -z $(iofogctl -v -n "$NS" legacy connector $1 status | grep 'RUNNING') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'RUNNING') ]]
 }
