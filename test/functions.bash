@@ -482,13 +482,13 @@ function checkAgentListFromController() {
 }
 
 function checkLegacyConnector() {
-  [[ ! -z $(iofogctl legacy connector $NAME status | grep 'is up and running' )]]
+  [[ ! -z $(iofogctl legacy connector $NAME status | grep 'is up and running') ]]
 }
 
 function checkLegacyController() {
-  [[ ! -z $(iofogctl legacy controller $NAME controller status | grep 'online' )]]
+  [[ ! -z $(iofogctl legacy controller $NAME controller status | grep 'online') ]]
 }
 
 function checkLegacyAgent() {
-  [[ ! -z $(iofogctl legacy connector $1 status | grep 'RUNNING' )]]
+  [[ ! -z $(iofogctl legacy connector $1 status | grep 'RUNNING') ]]
 }
