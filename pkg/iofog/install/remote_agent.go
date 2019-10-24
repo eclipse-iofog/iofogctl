@@ -65,11 +65,11 @@ func (agent *RemoteAgent) Bootstrap() error {
 	installArgs := agent.version + " " + agent.repo + " " + agent.token
 	cmds := []command{
 		{
-			cmd: "/tmp/agent_install_java.sh " + installArgs,
+			cmd: "/tmp/agent_install_java.sh ",
 			msg: "Installing Java on Agent " + agent.name,
 		},
 		{
-			cmd: "/tmp/agent_install_docker.sh " + installArgs,
+			cmd: "/tmp/agent_install_docker.sh ",
 			msg: "Installing Docker on Agent " + agent.name,
 		},
 		{

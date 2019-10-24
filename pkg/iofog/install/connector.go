@@ -46,15 +46,15 @@ func (cnct *Connector) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	verbose("Copying install files to server")
-	installConnectorScript := util.GetStaticFile("install_connector.sh")
+	installConnectorScript := util.GetStaticFile("connector_install.sh")
 	reader := strings.NewReader(installConnectorScript)
-	if err := cnct.ssh.CopyTo(reader, "/tmp/", "install_connector.sh", "0775", len(installConnectorScript)); err != nil {
+	if err := cnct.ssh.CopyTo(reader, "/tmp/", "connector_install.sh", "0775", len(installConnectorScript)); err != nil {
 		return err
 	}
 
 	// Define commands
 	cmds := []string{
-		fmt.Sprintf("/tmp/install_connector.sh %s %s", cnct.Version, cnct.PackageCloudToken),
+		fmt.Sprintf("/tmp/connector_install.sh %s %s", cnct.Version, cnct.PackageCloudToken),
 	}
 
 	// Execute commands

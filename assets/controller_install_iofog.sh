@@ -5,16 +5,15 @@ set -e
 INSTALL_DIR="/opt/iofog"
 TMP_DIR="/tmp/iofog"
 
-load_existing_nvm() {
-	set +e
-	if [ -z "$(command -v nvm)" ]; then
-		export NVM_DIR="${HOME}/.nvm"
-		mkdir -p $NVM_DIR
-		if [ -f "$NVM_DIR/nvm.sh" ]; then
-			[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+install_deps() {
+	if [ -z "$(command -v lsof)" ]; then
+		if [ -z "$(command -v apt)" ]; then
+			echo "Unsupported distro"
+			exit 1
 		fi
+		apt update -qq
+		apt install -y lsof
 	fi
-	set -e
 }
 
 controller_service() {
@@ -39,37 +38,10 @@ controller_service() {
     fi
 }
 
-install_deps() {
-	if [ -z "$(command -v lsof)" ]; then
-		if [ -z "$(command -v apt)" ]; then
-			echo "Unsupported distro"
-			exit 1
-		fi
-		apt update -qq
-		apt install -y lsof
-	fi
-}
-
 deploy_controller() {
 	# Nuke any existing instances
 	if [ ! -z $(lsof -ti tcp:51121) ]; then
 		lsof -ti tcp:51121 | xargs kill
-	fi
-
-	# nvm
-	load_existing_nvm
-	if [ -z "$(command -v nvm)" ]; then
-		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-		export NVM_DIR="${HOME}/.nvm"
-		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-	fi
-	nvm install v10.16.3
-	nvm use v10.16.3
-	ln -Ffs $(which node) /usr/local/bin/node
-
-	# npmrc
-	if [ -z "$(command -v npmrc)" ]; then
-		npm i npmrc -g
 	fi
 
 	# If token is provided, set up private repo
