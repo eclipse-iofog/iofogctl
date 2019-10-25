@@ -81,7 +81,7 @@ func remoteExec(user, host, keyFile string, port int, cliCmd string, cmd []strin
 // NOTE: (Serge) This code will be discarded eventually. Keeping it one file.
 func newLegacyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "legacy resource RESOURCE COMMAND ARGS...",
+		Use:   "legacy resource NAME COMMAND ARGS...",
 		Short: "Execute commands using legacy CLI",
 		Long:  `Execute commands using legacy CLI`,
 		Example: `iofogctl get all

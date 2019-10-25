@@ -25,7 +25,9 @@ func newDeleteAllCommand() *cobra.Command {
 		Short: "Delete all resources within a namespace",
 		Long: `Delete all resources within a namespace.
 
-Tears down all Agents and Controllers. If you don't want to tear down the deployments but would like to free up the namespace, used the disconnect command instead.`,
+Tears down all components of an Edge Compute Network.
+
+If you don't want to tear down the deployments but would like to free up the namespace, use the disconnect command instead.`,
 		Example: `iofogctl delete all -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
 			namespace, err := cmd.Flags().GetString("namespace")

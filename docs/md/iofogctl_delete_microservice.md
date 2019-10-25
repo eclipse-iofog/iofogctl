@@ -4,7 +4,7 @@ Delete a Microservice
 
 ### Synopsis
 
-Delete a Microservice from the Controller.
+Delete a Microservice
 
 ```
 iofogctl delete microservice NAME [flags]

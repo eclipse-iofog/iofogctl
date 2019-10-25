@@ -7,7 +7,7 @@ Execute commands using legacy CLI
 Execute commands using legacy CLI
 
 ```
-iofogctl legacy resource RESOURCE COMMAND ARGS... [flags]
+iofogctl legacy resource NAME COMMAND ARGS... [flags]
 ```
 
 ### Examples
