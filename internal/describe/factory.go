@@ -30,6 +30,8 @@ func NewExecutor(resourceType, namespace, name, filename string) (execute.Execut
 		return newConnectorExecutor(namespace, name, filename), nil
 	case "agent":
 		return newAgentExecutor(namespace, name, filename), nil
+	case "agent-config":
+		return newAgentConfigExecutor(namespace, name, filename), nil
 	case "microservice":
 		return newMicroserviceExecutor(namespace, name, filename), nil
 	case "application":
