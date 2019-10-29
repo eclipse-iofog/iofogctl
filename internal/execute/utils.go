@@ -61,6 +61,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kin
 
 	r := bytes.NewReader(yamlFile)
 	dec := yaml.NewDecoder(r)
+	dec.SetStrict(true)
 
 	var raw yaml.MapSlice
 	header := config.Header{

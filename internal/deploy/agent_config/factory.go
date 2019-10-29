@@ -99,7 +99,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 
 	// Unmarshal file
 	agentConfig := config.AgentConfiguration{}
-	if err = yaml.Unmarshal(opt.Yaml, &agentConfig); err != nil {
+	if err = yaml.UnmarshalStrict(opt.Yaml, &agentConfig); err != nil {
 		err = util.NewInputError("Could not unmarshall\n" + err.Error())
 		return
 	}

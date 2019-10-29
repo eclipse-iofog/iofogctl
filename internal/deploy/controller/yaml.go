@@ -21,7 +21,7 @@ import (
 
 func UnmarshallYAML(file []byte) (ctrl config.Controller, err error) {
 	// Unmarshall the input file
-	if err = yaml.Unmarshal(file, &ctrl); err != nil {
+	if err = yaml.UnmarshalStrict(file, &ctrl); err != nil {
 		return
 	}
 
