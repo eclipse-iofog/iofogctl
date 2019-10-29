@@ -122,7 +122,7 @@
     "pkg/client",
   ]
   pruneopts = "UT"
-  revision = "89fcbc9f1540dc41507c00f5f79b415477a0bd14"
+  revision = "f049408807817dd796e5e5df01c75d8df8e57dfc"
 
 [[projects]]
   branch = "develop"

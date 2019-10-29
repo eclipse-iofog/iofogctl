@@ -102,8 +102,22 @@ type AgentConfiguration struct {
 	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description               string  `json:"description,omitempty" yaml:"description"`
-	FogType                   int64   `json:"fogType,omitempty" yaml:"agentType"`
+	FogType                   string  `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
+}
+
+// FogTypeStringMap map human readable fog type to Controller fog type
+var FogTypeStringMap = map[string]int64{
+	"auto": 0,
+	"x86":  1,
+	"arm":  2,
+}
+
+// FogTypeIntMap map Controller fog type to human readable fog type
+var FogTypeIntMap = map[int]string{
+	0: "auto",
+	1: "x86",
+	2: "arm",
 }
 
 // Agent contains information for deploying an agent

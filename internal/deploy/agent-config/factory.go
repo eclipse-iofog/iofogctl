@@ -56,13 +56,18 @@ func (exe remoteExecutor) Execute() error {
 		return err
 	}
 
+	fogType, found := config.FogTypeStringMap[exe.agentConfig.FogType]
+	if !found {
+		fogType = 0
+	}
+
 	updateAgentConfigRequest := client.AgentUpdateRequest{
 		UUID:               agent.UUID,
 		Location:           exe.agentConfig.Location,
 		Latitude:           exe.agentConfig.Latitude,
 		Longitude:          exe.agentConfig.Longitude,
 		Description:        exe.agentConfig.Description,
-		FogType:            exe.agentConfig.FogType,
+		FogType:            fogType,
 		Name:               exe.agentConfig.Name,
 		AgentConfiguration: exe.agentConfig.AgentConfiguration,
 	}

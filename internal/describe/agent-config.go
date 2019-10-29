@@ -16,6 +16,7 @@ package describe
 import (
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -62,6 +63,36 @@ func (exe *agentConfigExecutor) Execute() error {
 		return err
 	}
 
+	fogType, found := config.FogTypeIntMap[getAgentResponse.FogType]
+	if !found {
+		fogType = "auto"
+	}
+
+	agentConfig := config.AgentConfiguration{
+		Name:        getAgentResponse.Name,
+		Location:    getAgentResponse.Location,
+		Latitude:    getAgentResponse.Latitude,
+		Longitude:   getAgentResponse.Longitude,
+		Description: getAgentResponse.Description,
+		FogType:     fogType,
+		AgentConfiguration: client.AgentConfiguration{
+			DockerURL:                 &getAgentResponse.DockerURL,
+			DiskLimit:                 &getAgentResponse.DiskLimit,
+			DiskDirectory:             &getAgentResponse.DiskDirectory,
+			MemoryLimit:               &getAgentResponse.MemoryLimit,
+			CPULimit:                  &getAgentResponse.CPULimit,
+			LogLimit:                  &getAgentResponse.LogLimit,
+			LogDirectory:              &getAgentResponse.LogDirectory,
+			LogFileCount:              &getAgentResponse.LogFileCount,
+			StatusFrequency:           &getAgentResponse.StatusFrequency,
+			ChangeFrequency:           &getAgentResponse.ChangeFrequency,
+			DeviceScanFrequency:       &getAgentResponse.DeviceScanFrequency,
+			BluetoothEnabled:          &getAgentResponse.BluetoothEnabled,
+			WatchdogEnabled:           &getAgentResponse.WatchdogEnabled,
+			AbstractedHardwareEnabled: &getAgentResponse.AbstractedHardwareEnabled,
+		},
+	}
+
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
 		Kind:       config.AgentConfigKind,
@@ -69,7 +100,7 @@ func (exe *agentConfigExecutor) Execute() error {
 			Namespace: exe.namespace,
 			Name:      exe.name,
 		},
-		Spec: getAgentResponse,
+		Spec: agentConfig,
 	}
 
 	if exe.filename == "" {
