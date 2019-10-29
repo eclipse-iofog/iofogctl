@@ -32,7 +32,6 @@ spec:
     port: $VANILLA_PORT
     keyFile: $KEY_FILE
     version: $VANILLA_VERSION
-    packageCloudToken: $PACKAGE_CLOUD_TOKEN
   iofogUser:
     name: Testing
     surname: Functional
@@ -48,8 +47,7 @@ spec:
   host: $VANILLA_HOST
   port: $VANILLA_PORT
   keyFile: $KEY_FILE
-  version: $VANILLA_VERSION
-  packageCloudToken: $PACKAGE_CLOUD_TOKEN" > test/conf/vanilla.yaml
+  version: $VANILLA_VERSION" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController
