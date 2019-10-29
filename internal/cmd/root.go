@@ -71,7 +71,6 @@ func NewRootCommand() *cobra.Command {
 		newDeployCommand(),
 		newDeleteCommand(),
 		newCreateCommand(),
-		newUpdateCommand(),
 		newGetCommand(),
 		newDescribeCommand(),
 		newLogsCommand(),

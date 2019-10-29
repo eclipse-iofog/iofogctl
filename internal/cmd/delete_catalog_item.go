@@ -33,7 +33,9 @@ func newDeleteCatalogItemCommand() *cobra.Command {
 			util.Check(err)
 
 			// Get an executor for the command
-			err = delete.Execute(namespace, name)
+			exe, err := delete.NewExecutor(namespace, name)
+			util.Check(err)
+			err = exe.Execute()
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted catalog item " + name)

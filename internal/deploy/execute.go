@@ -19,8 +19,9 @@ import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent-config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
+	deploycatalogitem "github.com/eclipse-iofog/iofogctl/internal/deploy/catalog_item"
 	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
@@ -36,6 +37,7 @@ var kindOrder = []apps.Kind{
 	// apps.ConnectorKind,
 	apps.AgentKind,
 	config.AgentConfigKind,
+	config.CatalogItemKind,
 	apps.ApplicationKind,
 	apps.MicroserviceKind,
 }
@@ -43,6 +45,10 @@ var kindOrder = []apps.Kind{
 type Options struct {
 	Namespace string
 	InputFile string
+}
+
+func deployCatalogItem(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
+	return deploycatalogitem.NewExecutor(deploycatalogitem.Options{Namespace: namespace, Yaml: yaml, Name: name})
 }
 
 func deployApplication(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
@@ -75,6 +81,7 @@ func deployController(namespace, name string, yaml []byte) (exe execute.Executor
 
 var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
 	apps.ApplicationKind:   deployApplication,
+	config.CatalogItemKind: deployCatalogItem,
 	apps.MicroserviceKind:  deployMicroservice,
 	apps.ControlPlaneKind:  deployControlPlane,
 	apps.AgentKind:         deployAgent,
@@ -111,7 +118,7 @@ func Execute(opt *Options) (err error) {
 		}
 	}
 
-	// Agents, Application, Microservice
+	// Agents, AgentConfig, CatalogItem, Application, Microservice
 	for idx := range kindOrder {
 		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); err != nil {
 			return

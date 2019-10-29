@@ -17,8 +17,10 @@ import (
 	"fmt"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	deleteapplication "github.com/eclipse-iofog/iofogctl/internal/delete/application"
+	deletecatalogitem "github.com/eclipse-iofog/iofogctl/internal/delete/catalog_item"
 	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
 	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
@@ -32,6 +34,7 @@ type Options struct {
 }
 
 var kindOrder = []apps.Kind{
+	config.CatalogItemKind,
 	apps.MicroserviceKind,
 	apps.ApplicationKind,
 	apps.AgentKind,
@@ -58,6 +61,9 @@ var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor,
 	},
 	apps.ControllerKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(namespace, name)
+	},
+	config.CatalogItemKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
+		return deletecatalogitem.NewExecutor(namespace, name)
 	},
 }
 

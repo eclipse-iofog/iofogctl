@@ -33,7 +33,6 @@ iofogctl [flags]
 * [iofogctl logs](iofogctl_logs.md)	 - Get log contents of deployed resource
 * [iofogctl start](iofogctl_start.md)	 - Starts a resource
 * [iofogctl stop](iofogctl_stop.md)	 - Stops a resource
-* [iofogctl update](iofogctl_update.md)	 - Update an existing ioFog resource
 * [iofogctl version](iofogctl_version.md)	 - Get CLI application version
 * [iofogctl view](iofogctl_view.md)	 - Open ECN Viewer
 
