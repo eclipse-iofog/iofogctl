@@ -67,6 +67,7 @@ func NewRootCommand() *cobra.Command {
 	// Register all commands
 	cmd.AddCommand(
 		newConnectCommand(),
+		newConfigureCommand(),
 		newDisconnectCommand(),
 		newDeployCommand(),
 		newDeleteCommand(),

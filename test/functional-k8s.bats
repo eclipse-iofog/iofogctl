@@ -132,6 +132,13 @@ spec:
   sleep 30 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
 }
 
+@test "Configure Controller and Connector" {
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube fake
+    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep kubeConfig | sed "s|.*fake.*|fake|g") ]]
+  done
+}
+
 @test "Deploy Controller and Connector for idempotence" {
   echo "---
 apiVersion: iofog.org/v1

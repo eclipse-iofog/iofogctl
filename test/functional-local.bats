@@ -84,6 +84,19 @@ NS="$NAMESPACE"
   checkApplication
 }
 
+@test "Configure Agent, Controller, and Connector" {
+  initAgents
+  test iofogctl -v -n "$NS" configure agent "${NAME}-0" --user fake --port 100 --key fake
+  # Cannot use describe to get SSH details for agent
+
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS" configure "$resource" "$NAME" --user fake --port 100 --key fake
+    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep keyFile | sed "s|.*fake.*|fake|g") ]]
+    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep user | sed "s|.*fake.*|fake|g") ]]
+    [[ "100" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep port | sed "s|.*100.*|100|g") ]]
+  done
+}
+
 @test "Delete all using file" {
   initAllLocalDeleteFile
   test iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml
