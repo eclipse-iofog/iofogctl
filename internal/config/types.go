@@ -21,6 +21,7 @@ import (
 // iofogctl specific Kinds
 const (
 	AgentConfigKind apps.Kind = "AgentConfig"
+	CatalogItemKind apps.Kind = "CatalogItem"
 )
 
 // IofogUser contains information about users registered against a controller
