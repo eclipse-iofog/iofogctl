@@ -16,6 +16,7 @@ package connectcontrolplane
 import (
 	client "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
@@ -43,8 +44,8 @@ func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 	// Update Connectors config
 	for _, connector := range listConnectorsResponse.Connectors {
 		connectorConfig := config.Connector{
-			Name: connector.Name,
-			Host: connector.IP,
+			Name:     connector.Name,
+			Endpoint: connector.IP + ":" + iofog.ConnectorPortString,
 		}
 		if err = config.AddConnector(namespace, connectorConfig); err != nil {
 			return err
