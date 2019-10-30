@@ -6,13 +6,6 @@
 NS="$NAMESPACE"
 NS2="$NS"_2
 
-# TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
-#@test "Deploy vanilla Controller" {
-#  initVanillaController
-#  test iofogctl -v -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
-#  checkController
-#}
-
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
 }

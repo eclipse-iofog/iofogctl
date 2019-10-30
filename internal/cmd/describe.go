@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO: Move to subcommands
 func newDescribeCommand() *cobra.Command {
 	// Values accepted in resource type argument
 	var validResources = []string{"namespace", "controlplane", "controller", "connector", "agent", "agent-config", "microservice", "application"}
