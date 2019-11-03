@@ -75,15 +75,10 @@ func generateConnectorOutput(namespace string) error {
 			// Server may have connectors that the client is not aware of, update config if so
 			if _, exists := connectorsToPrint[remoteConnector.Name]; !exists {
 				newConnectorConf := config.Connector{
-					Name: remoteConnector.Name,
-					Host: remoteConnector.IP,
+					Name:     remoteConnector.Name,
+					Endpoint: remoteConnector.IP,
 				}
 				config.AddConnector(namespace, newConnectorConf)
-			}
-
-			clientConnectorIP := connectorsToPrint[remoteConnector.Name].Host
-			if clientConnectorIP != remoteConnector.IP {
-				util.PrintNotify("Detected endpoint discrepancy between client (" + clientConnectorIP + ") and server (" + remoteConnector.IP + ") for Connector " + remoteConnector.Name)
 			}
 		}
 	}
@@ -100,6 +95,7 @@ func tabulateConnectors(connectors []config.Connector) error {
 		"AGE",
 		"UPTIME",
 		"IP",
+		"PORT",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
@@ -114,7 +110,8 @@ func tabulateConnectors(connectors []config.Connector) error {
 			"online",
 			age,
 			age,
-			connector.Host,
+			util.Before(connector.Endpoint, ":"),
+			util.After(connector.Endpoint, ":"),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 		idx = idx + 1
