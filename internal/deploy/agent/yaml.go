@@ -22,7 +22,7 @@ import (
 func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &agent); err != nil {
-		err = util.NewInputError("Could not unmarshall\n" + err.Error())
+		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 	// None specified

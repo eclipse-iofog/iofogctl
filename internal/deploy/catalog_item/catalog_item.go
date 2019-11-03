@@ -121,7 +121,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Unmarshal file
 	var catalogItem apps.CatalogItem
 	if err = yaml.UnmarshalStrict(opt.Yaml, &catalogItem); err != nil {
-		err = util.NewInputError("Could not unmarshall\n" + err.Error())
+		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 

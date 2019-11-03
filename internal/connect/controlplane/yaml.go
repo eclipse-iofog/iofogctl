@@ -24,7 +24,7 @@ func unmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 	// Unmarshall the input file
 	var ctrlPlane config.ControlPlane
 	if err = yaml.UnmarshalStrict(file, &ctrlPlane); err != nil {
-		err = util.NewInputError("Could not unmarshall\n" + err.Error())
+		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 	// None specified

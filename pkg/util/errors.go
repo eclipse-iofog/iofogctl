@@ -27,51 +27,51 @@ func Check(err error) {
 }
 
 type Error struct {
-	msg string
+	message string
 }
 
-func NewError(msg string) (err *Error) {
-	err = new(Error)
-	err.msg = msg
-	return err
+func NewError(message string) *Error {
+	return &Error{
+		message: message,
+	}
 }
 
 func (err *Error) Error() string {
-	return err.msg
+	return err.message
 }
 
 // NotFoundError export
 type NotFoundError struct {
-	msg string
+	message string
 }
 
 // NewNotFoundError export
-func NewNotFoundError(msg string) (err *NotFoundError) {
-	err = new(NotFoundError)
-	err.msg = msg
-	return err
+func NewNotFoundError(message string) *NotFoundError {
+	return &NotFoundError{
+		message: message,
+	}
 }
 
 // Error export
 func (err *NotFoundError) Error() string {
-	return fmt.Sprintf("Unknown resource error\n%s", err.msg)
+	return fmt.Sprintf("Unknown resource error\n%s", err.message)
 }
 
 //ConflictError export
 type ConflictError struct {
-	msg string
+	message string
 }
 
 // NewConflictError export
-func NewConflictError(msg string) (err *ConflictError) {
-	err = new(ConflictError)
-	err.msg = msg
-	return err
+func NewConflictError(message string) *ConflictError {
+	return &ConflictError{
+		message: message,
+	}
 }
 
 // Error export
 func (err *ConflictError) Error() string {
-	return fmt.Sprintf("Resource conflict error\n%s", err.msg)
+	return fmt.Sprintf("Resource conflict error\n%s", err.message)
 }
 
 // InputError export
@@ -80,10 +80,10 @@ type InputError struct {
 }
 
 //NewInputError export
-func NewInputError(message string) (err *InputError) {
-	err = new(InputError)
-	err.message = message
-	return err
+func NewInputError(message string) *InputError {
+	return &InputError{
+		message: message,
+	}
 }
 
 // Error export
@@ -97,10 +97,10 @@ type InternalError struct {
 }
 
 // NewInternalError export
-func NewInternalError(message string) (err *InternalError) {
-	err = new(InternalError)
-	err.message = message
-	return err
+func NewInternalError(message string) *InternalError {
+	return &InternalError{
+		message: message,
+	}
 }
 
 // Error export
@@ -115,14 +115,28 @@ type HTTPError struct {
 }
 
 // NewHTTPError export
-func NewHTTPError(message string, code int) (err *HTTPError) {
-	err = new(HTTPError)
-	err.message = message
-	err.Code = code
-	return err
+func NewHTTPError(message string, code int) *HTTPError {
+	return &HTTPError{
+		message: message,
+		Code:    code,
+	}
 }
 
 // Error export
 func (err *HTTPError) Error() string {
 	return "Unexpected HTTP response\n" + err.message
+}
+
+type UnmarshalError struct {
+	message string
+}
+
+func NewUnmarshalError(message string) *UnmarshalError {
+	return &UnmarshalError{
+		message: message,
+	}
+}
+
+func (err *UnmarshalError) Error() string {
+	return fmt.Sprintf("Failed to unmarshal input file. \n%s\nMake sure to use camel case field names. E.g. `keyFile: ~/.ssh/id_rsa`", err.message)
 }

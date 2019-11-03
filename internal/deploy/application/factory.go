@@ -58,7 +58,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Unmarshal file
 	application := apps.Application{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &application); err != nil {
-		err = util.NewInputError("Could not unmarshall\n" + err.Error())
+		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
