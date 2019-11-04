@@ -86,7 +86,7 @@ spec:
   checkApplication
 }
 
-@test "Connect in another namespace" {
+@test "Connect in another namespace using file" {
   test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
   checkController "$NS2"
   checkConnector "$NS2"
@@ -96,6 +96,22 @@ spec:
     local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS2" legacy agent "$AGENT_NAME" status
   done
+}
+
+@test "Disconnect other namespace" {
+  test iofogctl -v -n "$NS2" disconnect
+  checkControllerNegative "$NS2"
+  checkConnectorNegative "$NS2"
+  checkAgentsNegative "$NS2"
+  checkApplicationNegative "$NS2"
+}
+
+@test "Connect in other namespace using flags" {
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
+  checkController
+  checkConnector
+  checkAgents
 }
 
 @test "Disconnect other namespace" {

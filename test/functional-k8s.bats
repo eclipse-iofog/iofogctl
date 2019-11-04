@@ -70,11 +70,6 @@ spec:
   checkLegacyController
 }
 
-@test "Connector legacy commands after deploy" {
-  test iofogctl -v -n "$NS" legacy connector "$NAME" status
-  checkLegacyConnector
-}
-
 @test "Get Controller logs on K8s after deploy" {
   test iofogctl -v -n "$NS" logs controller "$NAME"
 }
@@ -111,6 +106,22 @@ spec:
 @test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   test iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
+  checkController
+  checkConnector
+  checkAgents
+}
+
+@test "Disconnect from cluster again" {
+  initAgents
+  test iofogctl -v -n "$NS" disconnect
+  checkControllerNegative
+  checkConnectorNegative
+  checkAgentsNegative
+}
+
+@test "Connect to cluster using flags" {
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  test iofogctl -v -n "$NS" connect --name "$NAME" --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
   checkConnector
   checkAgents
