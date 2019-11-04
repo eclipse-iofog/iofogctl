@@ -33,7 +33,8 @@ func NewExecutor(resourceType, namespace, name string) (execute.Executor, error)
 		if len(controlPlane.Controllers) == 0 {
 			return nil, util.NewError("No Controllers found in namespace " + namespace)
 		}
-		if util.IsLocalHost(controlPlane.Controllers[0].Host) {
+		endpoint, _ := controlPlane.GetControllerEndpoint()
+		if util.IsLocalHost(endpoint) {
 			return nil, util.NewInputError("Microservice logs for local deploys is not supported. Use docker logs directly instead.")
 		}
 		return newRemoteMicroserviceExecutor(namespace, name), nil

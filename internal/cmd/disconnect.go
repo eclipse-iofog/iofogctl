@@ -29,7 +29,7 @@ func newDisconnectCommand() *cobra.Command {
 		Short: "Disconnect from an ioFog cluster",
 		Long: `Disconnect from an ioFog cluster.
 
-This will NOT teardown any components of the cluster. If you would like to tear down deployments, use the delete command.
+This will not teardown any components of the cluster. If you would like to tear down deployments, use the delete command.
 
 This will leave the corresponding namespace empty.`,
 		Example: `iofogctl disconnect -n NAMESPACE`,

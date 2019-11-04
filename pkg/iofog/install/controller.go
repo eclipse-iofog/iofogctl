@@ -87,7 +87,10 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	verbose("Copying install files to server")
-	if err = ctrl.CopyScript("", "install_controller.sh"); err != nil {
+	if err = ctrl.CopyScript("", "controller_install_node.sh"); err != nil {
+		return err
+	}
+	if err = ctrl.CopyScript("", "controller_install_iofog.sh"); err != nil {
 		return err
 	}
 
@@ -112,14 +115,21 @@ func (ctrl *Controller) Install() (err error) {
 		db := ctrl.db
 		dbArgs = fmt.Sprintf(" %s %s %s %s %d", db.provider, db.host, db.user, db.password, db.port)
 	}
-	cmds := []string{
-		fmt.Sprintf("sudo /tmp/install_controller.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
+	cmds := []command{
+		{
+			cmd: "sudo /tmp/controller_install_node.sh",
+			msg: "Installing Node.js on Controller " + ctrl.Host,
+		},
+		{
+			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
+			msg: "Installing ioFog on Controller " + ctrl.Host,
+		},
 	}
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose("Running command: " + cmd)
-		_, err = ctrl.ssh.Run(cmd)
+		verbose(cmd.msg)
+		_, err = ctrl.ssh.Run(cmd.cmd)
 		if err != nil {
 			return
 		}
@@ -130,7 +140,7 @@ func (ctrl *Controller) Install() (err error) {
 		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 	}
 	// Wait for Controller
-	verbose("Waiting for Controller")
+	verbose("Waiting for Controller " + ctrl.Host)
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),

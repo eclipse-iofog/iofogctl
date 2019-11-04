@@ -55,15 +55,12 @@ func generateConnectorOutput(namespace string) error {
 	}
 
 	// Connect to Controller if it is ready
-	if len(ns.ControlPlane.Controllers) > 0 && ns.ControlPlane.Controllers[0].Endpoint != "" {
+	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if err == nil {
 		// Instantiate client
-		ctrlClient := client.New(ns.ControlPlane.Controllers[0].Endpoint)
-		loginRequest := client.LoginRequest{
-			Email:    ns.ControlPlane.IofogUser.Email,
-			Password: ns.ControlPlane.IofogUser.Password,
-		}
 		// Log into Controller
-		if err := ctrlClient.Login(loginRequest); err != nil {
+		ctrlClient, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+		if err != nil {
 			return tabulateConnectors(ns.Connectors)
 		}
 
@@ -78,15 +75,10 @@ func generateConnectorOutput(namespace string) error {
 			// Server may have connectors that the client is not aware of, update config if so
 			if _, exists := connectorsToPrint[remoteConnector.Name]; !exists {
 				newConnectorConf := config.Connector{
-					Name: remoteConnector.Name,
-					Host: remoteConnector.IP,
+					Name:     remoteConnector.Name,
+					Endpoint: remoteConnector.IP,
 				}
 				config.AddConnector(namespace, newConnectorConf)
-			}
-
-			clientConnectorIP := connectorsToPrint[remoteConnector.Name].Host
-			if clientConnectorIP != remoteConnector.IP {
-				util.PrintNotify("Detected endpoint discrepancy between client (" + clientConnectorIP + ") and server (" + remoteConnector.IP + ") for Connector " + remoteConnector.Name)
 			}
 		}
 	}
@@ -103,6 +95,7 @@ func tabulateConnectors(connectors []config.Connector) error {
 		"AGE",
 		"UPTIME",
 		"IP",
+		"PORT",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
@@ -117,7 +110,8 @@ func tabulateConnectors(connectors []config.Connector) error {
 			"online",
 			age,
 			age,
-			connector.Host,
+			util.Before(connector.Endpoint, ":"),
+			util.After(connector.Endpoint, ":"),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 		idx = idx + 1

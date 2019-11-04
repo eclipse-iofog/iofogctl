@@ -22,10 +22,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO: Move to subcommands
 func newDescribeCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"namespace", "controlplane", "controller", "connector", "agent", "microservice", "application"}
+	var validResources = []string{"namespace", "controlplane", "controller", "connector", "agent", "agent-config", "microservice", "application"}
 	filename := ""
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",
@@ -37,6 +36,7 @@ Resources such as Agents require a working Controller in the namespace in order 
 iofogctl describe controlplane
 iofogctl describe controller NAME
 iofogctl describe agent NAME
+iofogctl describe agent-config NAME
 iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {

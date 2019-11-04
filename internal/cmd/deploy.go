@@ -30,27 +30,37 @@ func newDeployCommand() *cobra.Command {
 		Short:   "Deploy ioFog platform or components on existing infrastructure",
 		Long: `Deploy ioFog platform or individual components on existing infrastructure.
 
-The YAML resource specification file should look like this (two Controllers specified for example only):` + "\n```\n" +
-			`controlplane:
+The YAML resource specification file should look like this (two Controllers specified for example only):` + "\n```\n" + `kind: ControlPlane
+apiVersion: iofog.org/v1
+metadata:
+  name: alpaca-1 # ControlPlane name
+spec:
   controllers:
   - name: k8s # Controller name
-    kubeconfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
-  - name: vanilla 
+    kubeConfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
+  - name: vanilla
     user: serge # SSH user
     host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
-    keyfile: ~/.ssh/id_rsa # SSH private key
-  agents:
-  - name: agent1 # Agent name
-    user: serge # SSH User
-    host: 35.239.157.151 # SSH host
-    keyfile: ~/.ssh/id_rsa # SSH private key
-  - name: agent2
-    user: serge
-    host: 35.232.114.32
-    keyfile: ~/.ssh/id_rsa
-  applications: [] # See iofogctl deploy application for an application yaml schema
-  microservices: [] # See iofogctl deploy microservices
-` + "\n```\n",
+    keyFile: ~/.ssh/id_rsa # SSH private key
+---
+apiVersion: iofog.org/v1
+kind: Agent
+metadata:
+  name: agent1 # Agent name
+spec:
+  user: serge # SSH User
+  host: 35.239.157.151 # SSH host
+  keyFile: ~/.ssh/id_rsa # SSH private key
+---
+apiVersion: iofog.org/v1
+kind: Agent
+metadata:
+  name: agent2
+spec:
+  user: serge
+  host: 35.232.114.32
+  keyFile: ~/.ssh/id_rsa
+` + "\n```\n" + `The complete description of yaml file definition can be found at iofog.org`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			// Get namespace
@@ -64,16 +74,6 @@ The YAML resource specification file should look like this (two Controllers spec
 			util.PrintSuccess("Successfully deployed resources to namespace " + opt.Namespace)
 		},
 	}
-
-	// Add subcommands
-	cmd.AddCommand(
-		newDeployControlPlaneCommand(),
-		newDeployControllerCommand(),
-		newDeployConnectorCommand(),
-		newDeployAgentCommand(),
-		newDeployApplicationCommand(),
-		newDeployMicroserviceCommand(),
-	)
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")

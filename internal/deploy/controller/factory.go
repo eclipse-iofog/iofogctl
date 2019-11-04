@@ -14,13 +14,44 @@
 package deploycontroller
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
+type facadeExecutor struct {
+	exe        execute.Executor
+	controller *config.Controller
+	namespace  string
+}
+
+func (facade facadeExecutor) Execute() (err error) {
+	util.SpinStart(fmt.Sprintf("Deploying controller %s", facade.GetName()))
+	if err = facade.exe.Execute(); err != nil {
+		return
+	}
+	if err = config.UpdateController(facade.namespace, *facade.controller); err != nil {
+		return
+	}
+	return config.Flush()
+}
+
+func (facade facadeExecutor) GetName() string {
+	return facade.exe.GetName()
+}
+
+func newFacadeExecutor(exe execute.Executor, namespace string, controller *config.Controller) execute.Executor {
+	return facadeExecutor{
+		exe:        exe,
+		namespace:  namespace,
+		controller: controller,
+	}
+}
+
+func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric(ctrl.Name); err != nil {
 		return nil, err
 	}
@@ -39,7 +70,11 @@ func NewExecutor(namespace string, ctrl *config.Controller, controlPlane config.
 		if err != nil {
 			return nil, err
 		}
-		return newLocalExecutor(namespace, ctrl, controlPlane, cli)
+		exe, err := newLocalExecutor(namespace, ctrl, controlPlane, cli)
+		if err != nil {
+			return nil, err
+		}
+		return newFacadeExecutor(exe, namespace, ctrl), nil
 	}
 
 	// Kubernetes executor
@@ -53,12 +88,12 @@ func NewExecutor(namespace string, ctrl *config.Controller, controlPlane config.
 		//		return nil, err
 		//	}
 		//}
-		return newKubernetesExecutor(namespace, ctrl, controlPlane), nil
+		return newFacadeExecutor(newKubernetesExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
 	}
 
 	// Default executor
 	if ctrl.Host == "" || ctrl.KeyFile == "" || ctrl.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	return newRemoteExecutor(namespace, ctrl, controlPlane), nil
+	return newFacadeExecutor(newRemoteExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
 }

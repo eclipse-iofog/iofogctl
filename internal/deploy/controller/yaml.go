@@ -16,15 +16,13 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(filename string) (ctrl config.Controller, err error) {
+func UnmarshallYAML(file []byte) (ctrl config.Controller, err error) {
 	// Unmarshall the input file
-	if err = util.UnmarshalYAML(filename, &ctrl); err != nil {
-		return
-	}
-	// Validate
-	if err = Validate(ctrl); err != nil {
+	if err = yaml.UnmarshalStrict(file, &ctrl); err != nil {
+		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 

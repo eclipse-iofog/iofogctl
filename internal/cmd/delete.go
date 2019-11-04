@@ -14,14 +14,32 @@
 package cmd
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/delete"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newDeleteCommand() *cobra.Command {
+	// Instantiate options
+	opt := &delete.Options{}
+
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "Delete an existing ioFog resource",
-		Long:  `Delete an existing ioFog resource.`,
+		Use:     "delete",
+		Example: `deploy -f platform.yaml`,
+		Short:   "Delete an existing ioFog resource",
+		Long:    `Delete an existing ioFog resource.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			// Get namespace
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
+			util.Check(err)
+
+			// Execute command
+			err = delete.Execute(opt)
+			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted resources from namespace " + opt.Namespace)
+		},
 	}
 
 	// Add subcommands
@@ -35,5 +53,9 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteCatalogItemCommand(),
 		newDeleteMicroserviceCommand(),
 	)
+
+	// Register flags
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+
 	return cmd
 }

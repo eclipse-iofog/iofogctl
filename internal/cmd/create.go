@@ -29,7 +29,6 @@ Some resources (e.g. namespaces) are relevant to iofogctl alone. Other resources
 	// Add subcommands
 	cmd.AddCommand(
 		newCreateNamespaceCommand(),
-		newCreateCatalogItemCommand(),
 	)
 	return cmd
 }

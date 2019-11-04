@@ -15,12 +15,13 @@ package deleteagent
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
@@ -47,13 +48,7 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// Get Control Plane config details
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-
-	iofogClient, err := client.NewAndLogin(controlPlane.Controllers[0].Endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+	iofogClient, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

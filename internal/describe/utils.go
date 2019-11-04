@@ -14,13 +14,13 @@
 package describe
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
-func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *config.Microservice, err error) {
+func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *apps.Microservice, err error) {
 	agent, err := clt.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
 		return
@@ -52,15 +52,15 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 
 	jsonConfig := make(map[string]interface{})
-	if err = json.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
+	if err = jsoniter.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
 	}
-	result = new(config.Microservice)
+	result = new(apps.Microservice)
 	result.UUID = msvc.UUID
 	result.Name = msvc.Name
-	result.Agent = config.MicroserviceAgent{
+	result.Agent = apps.MicroserviceAgent{
 		Name: agent.Name,
-		Config: client.AgentConfiguration{
+		Config: apps.AgentConfiguration{
 			DockerURL:                 &agent.DockerURL,
 			DiskLimit:                 &agent.DiskLimit,
 			DiskDirectory:             &agent.DiskDirectory,
@@ -105,7 +105,7 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 		registryID = msvc.RegistryID
 		imgArray = msvc.Images
 	}
-	images := config.MicroserviceImages{
+	images := apps.MicroserviceImages{
 		CatalogID: msvc.CatalogItemID,
 		X86:       x86Image,
 		ARM:       armImage,
@@ -118,13 +118,36 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 			images.ARM = img.ContainerImage
 		}
 	}
-	result.Images = images
+	volumes := mapVolumes(msvc.Volumes)
+	envs := mapEnvs(msvc.Env)
+	result.Images = &images
 	result.Config = jsonConfig
 	result.RootHostAccess = msvc.RootHostAccess
-	result.Ports = msvc.Ports
-	result.Volumes = msvc.Volumes
+	result.Ports = mapPorts(msvc.Ports)
+	result.Volumes = &volumes
+	result.Env = &envs
 	result.Routes = routes
-	result.Env = msvc.Env
 	result.Flow = &application.Name
+	return
+}
+
+func mapPorts(in []client.MicroservicePortMapping) (out []apps.MicroservicePortMapping) {
+	for _, port := range in {
+		out = append(out, apps.MicroservicePortMapping(port))
+	}
+	return
+}
+
+func mapVolumes(in []client.MicroserviceVolumeMapping) (out []apps.MicroserviceVolumeMapping) {
+	for _, vol := range in {
+		out = append(out, apps.MicroserviceVolumeMapping(vol))
+	}
+	return
+}
+
+func mapEnvs(in []client.MicroserviceEnvironment) (out []apps.MicroserviceEnvironment) {
+	for _, env := range in {
+		out = append(out, apps.MicroserviceEnvironment(env))
+	}
 	return
 }

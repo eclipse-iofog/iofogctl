@@ -16,10 +16,11 @@ package logs
 import (
 	"bytes"
 	"fmt"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
 )
 
 type remoteMicroserviceExecutor struct {
@@ -39,14 +40,8 @@ func (ms *remoteMicroserviceExecutor) GetName() string {
 }
 
 func (ms *remoteMicroserviceExecutor) Execute() error {
-	// Get Controller endpoint
-	controlPlane, err := config.GetControlPlane(ms.namespace)
-	if err != nil {
-		return err
-	}
-
 	// Get image name of the microservice and details of the Agent its deployed on
-	agent, image, err := getAgentAndImage(ms.namespace, ms.name, controlPlane)
+	agent, image, err := getAgentAndImage(ms.namespace, ms.name)
 	if err != nil {
 		return err
 	}
@@ -111,20 +106,9 @@ func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.Sec
 	return
 }
 
-func getAgentAndImage(namespace, msvcName string, controlPlane config.ControlPlane) (agent config.Agent, image string, err error) {
-	// TODO: Replace this with controlplane var
-	if len(controlPlane.Controllers) == 0 {
-		err = util.NewError("Expected to find Controllers in namespace " + namespace)
-		return
-	}
-	endpoint := controlPlane.Controllers[0].Endpoint
-	ctrlClient := client.New(endpoint)
-
-	// Login
-	if err = ctrlClient.Login(client.LoginRequest{
-		Email:    controlPlane.IofogUser.Email,
-		Password: controlPlane.IofogUser.Password,
-	}); err != nil {
+func getAgentAndImage(namespace, msvcName string) (agent config.Agent, image string, err error) {
+	ctrlClient, err := internal.NewControllerClient(namespace)
+	if err != nil {
 		return
 	}
 

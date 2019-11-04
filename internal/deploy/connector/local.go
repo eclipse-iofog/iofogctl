@@ -36,7 +36,7 @@ type localExecutor struct {
 	containersNames      []string
 }
 
-func newLocalExecutor(namespace string, cnct *config.Connector, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, cnct *config.Connector, client *install.LocalContainer) (*localExecutor, error) {
 	imageMap := make(map[string]string)
 	imageMap["connector"] = cnct.Image
 	return &localExecutor{
@@ -48,7 +48,6 @@ func newLocalExecutor(namespace string, cnct *config.Connector, controlPlane con
 			User:     cnct.ImageCredentials.User,
 			Password: cnct.ImageCredentials.Password,
 		}),
-		iofogUser: controlPlane.IofogUser,
 	}, nil
 }
 
@@ -119,6 +118,13 @@ func (exe *localExecutor) deployContainers() error {
 }
 
 func (exe *localExecutor) Execute() error {
+	// Get Control Plane
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
+		util.PrintError("You must deploy a Controller to a namespace before deploying any Connector")
+		return err
+	}
+	exe.iofogUser = controlPlane.IofogUser
 
 	// Deploy Controller and Connector images
 	if err := exe.deployContainers(); err != nil {

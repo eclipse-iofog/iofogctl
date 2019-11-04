@@ -27,24 +27,32 @@ USER_EMAIL="user@domain.com"
 
 @test "Deploy Control Plane and Connector" {
   echo "---
-controlplane:
-  iofoguser:
+apiVersion: iofog.org/v1
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
     name: Testing
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeconfig: $KUBE_CONFIG
+    kubeConfig: $KUBE_CONFIG
   images:
     controller: $CONTROLLER_IMAGE
     connector: $CONNECTOR_IMAGE
     scheduler: $SCHEDULER_IMAGE
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
-connectors:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+---
+apiVersion: iofog.org/v1
+kind: Connector
+metadata:
+  name: $NAME
+spec:
+  kubeConfig: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -59,6 +67,12 @@ connectors:
 
 @test "Controller legacy commands after deploy" {
   test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
+  checkLegacyController
+}
+
+@test "Connector legacy commands after deploy" {
+  test iofogctl -v -n "$NS" legacy connector "$NAME" status
+  checkLegacyConnector
 }
 
 @test "Get Controller logs on K8s after deploy" {
@@ -75,6 +89,7 @@ connectors:
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
+    checkLegacyAgent "$AGENT_NAME"
   done
 }
 
@@ -93,25 +108,9 @@ connectors:
   checkAgentsNegative
 }
 
-@test "Connect to cluster using Controller IP" {
+@test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -v -n "$NS" connect "$NAME" --controller "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkController
-  checkConnector
-  checkAgents
-}
-
-@test "Disconnect from cluster again" {
-  initAgents
-  test iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
-  checkConnectorNegative
-  checkAgentsNegative
-}
-
-@test "Connect to cluster using Kube Config" {
-  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  test iofogctl -v -n "$NS" connect "$NAME" --kube-config "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
+  test iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
   checkController
   checkConnector
   checkAgents
@@ -133,26 +132,41 @@ connectors:
   sleep 30 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
 }
 
+@test "Configure Controller and Connector" {
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube fake
+    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep kubeConfig | sed "s|.*fake.*|fake|g") ]]
+  done
+}
+
 @test "Deploy Controller and Connector for idempotence" {
   echo "---
-controlplane:
-  iofoguser:
+apiVersion: iofog.org/v1
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
     name: Testing
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeconfig: $KUBE_CONFIG
+    kubeConfig: $KUBE_CONFIG
   images:
     controller: $CONTROLLER_IMAGE
     connector: $CONNECTOR_IMAGE
     scheduler: $SCHEDULER_IMAGE
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
-connectors:
-- name: $NAME
-  kubeconfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+---
+apiVersion: iofog.org/v1
+kind: Connector 
+metadata:
+  name: $NAME
+spec:
+  kubeConfig: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController

@@ -23,7 +23,7 @@ func newDeleteMicroserviceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "microservice NAME",
 		Short:   "Delete a Microservice",
-		Long:    `Delete a Microservice from the Controller.`,
+		Long:    `Delete a Microservice`,
 		Example: `iofogctl delete microservice NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -33,7 +33,8 @@ func newDeleteMicroserviceCommand() *cobra.Command {
 			util.Check(err)
 
 			// Get an executor for the command
-			err = delete.Execute(namespace, name)
+			exe, _ := delete.NewExecutor(namespace, name)
+			err = exe.Execute()
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted microservice " + name)

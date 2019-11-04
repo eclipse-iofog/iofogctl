@@ -12,141 +12,166 @@ function initVanillaController(){
   VANILLA_PORT="${PORT:-22}"
 }
 
+function initAllLocalDeleteFile() {
+  cat test/conf/local.yaml > test/conf/all-local.yaml
+  echo "" >> test/conf/all-local.yaml
+  cat test/conf/local-agent.yaml >> test/conf/all-local.yaml
+  echo "" >> test/conf/all-local.yaml
+  cat test/conf/application.yaml >> test/conf/all-local.yaml
+}
+
 function initMicroserviceFile() {
-  echo "name: ${MICROSERVICE_NAME}
-agent:
-  name: ${NAME}-0
+  echo "---
+apiVersion: iofog.org/v1
+kind: Microservice 
+metadata:
+  name: ${MICROSERVICE_NAME}
+spec:
+  agent:
+    name: ${NAME}-0
+    config:
+      memoryLimit: 8192
+  images:
+    arm: edgeworx/healthcare-heart-rate:test-arm
+    x86: edgeworx/healthcare-heart-rate:test
+    registry: remote # public docker
+  rootHostAccess: false
+  application: ${APPLICATION_NAME}
+  volumes:
+    - hostDestination: /tmp/microservice
+      containerDestination: /tmp
+      accessMode: rw
+  ports:
+    - internal: 443
+      external: 5005
+  env:
+    - key: TEST
+      value: 42
+  routes:
+    - ${MSVC1_NAME}
+    - ${MSVC2_NAME}
   config:
-    memorylimit: 8192
-images:
-  arm: edgeworx/healthcare-heart-rate:test-arm
-  x86: edgeworx/healthcare-heart-rate:test
-  registry: remote # public docker
-roothostaccess: false
-application: ${APPLICATION_NAME}
-volumes:
-  - hostdestination: /tmp/microservice
-    containerdestination: /tmp
-    accessmode: rw
-ports:
-  - internal: 443
-    external: 5005
-env:
-  - key: TEST
-    value: 42
-routes:
-  - ${MSVC1_NAME}
-  - ${MSVC2_NAME}
-config:
-  test_mode: true
-  data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
+    test_mode: true
+    data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
 }
 
 function initMicroserviceUpdateFile() {
-  echo "name: ${MICROSERVICE_NAME}
-agent:
-  name: ${NAME}-0
+  echo "---
+apiVersion: iofog.org/v1
+kind: Microservice
+metadata:
+  name: ${MICROSERVICE_NAME}
+spec:
+  agent:
+    name: ${NAME}-0
+    config:
+      memoryLimit: 5555
+      diskDirectory: /tmp/iofog-agent/
+  images:
+    arm: edgeworx/healthcare-heart-rate:test-arm
+    x86: edgeworx/healthcare-heart-rate:test
+    registry: remote # public docker
+  rootHostAccess: false
+  application: ${APPLICATION_NAME}
+  volumes:
+    - hostDestination: /tmp/updatedmicroservice
+      containerDestination: /tmp
+      accessMode: rw
+  ports:
+    - internal: 443
+      external: 5443
+    - internal: 80
+      external: 5080
+  env:
+    - key: TEST
+      value: 75
+    - key: TEST_2
+      value: 42
+  routes:
+    - ${MSVC1_NAME}
   config:
-    memorylimit: 5555
-    diskdirectory: /tmp/iofog-agent/
-images:
-  arm: edgeworx/healthcare-heart-rate:test-arm
-  x86: edgeworx/healthcare-heart-rate:test
-  registry: remote # public docker
-roothostaccess: false
-application: ${APPLICATION_NAME}
-volumes:
-  - hostdestination: /tmp/updatedmicroservice
-    containerdestination: /tmp
-    accessmode: rw
-ports:
-  - internal: 443
-    external: 5443
-  - internal: 80
-    external: 5080
-env:
-  - key: TEST
-    value: 75
-  - key: TEST_2
-    value: 42
-routes:
-  - ${MSVC1_NAME}
-config:
-  test_mode: true
-  test_data: 42
-  data_label: 'Anonymous_Person_3'" > test/conf/updatedMicroservice.yaml
+    test_mode: true
+    test_data:
+      key: 42
+    data_label: 'Anonymous_Person_3'" > test/conf/updatedMicroservice.yaml
 }
 
 function initApplicationFiles() {
-  APP="name: $APPLICATION_NAME"
-  MSVCS="microservices:
-  - name: $MSVC1_NAME
-    agent:
-      name: ${NAME}-0
+  MSVCS="
+    microservices:
+    - name: $MSVC1_NAME
+      agent:
+        name: ${NAME}-0
+        config:
+          bluetoothEnabled: true # this will install the iofog/restblue microservice
+          abstractedHardwareEnabled: false
+      images:
+        arm: edgeworx/healthcare-heart-rate:arm-v1
+        x86: edgeworx/healthcare-heart-rate:x86-v1
+        registry: remote # public docker
+      rootHostAccess: false
+      volumes:
+        - hostDestination: /tmp/msvc
+          containerDestination: /tmp
+          accessMode: z
+      ports: []
       config:
-        bluetoothenabled: true # this will install the iofog/restblue microservice
-        abstractedhardwareEnabled: false
-    images:
-      arm: edgeworx/healthcare-heart-rate:arm-v1
-      x86: edgeworx/healthcare-heart-rate:x86-v1
-      registry: remote # public docker
-    roothostaccess: false
-    volumes:
-      - hostdestination: /tmp/msvc
-        containerdestination: /tmp
-        accessmode: z
-    ports: []
-    config:
-      test_mode: true
-      data_label: 'Anonymous_Person'
-  # Simple JSON viewer for the heart rate output
-  - name: $MSVC2_NAME
-    agent:
-      name: ${NAME}-0
-    images:
-      arm: edgeworx/healthcare-heart-rate-ui:arm
-      x86: edgeworx/healthcare-heart-rate-ui:x86
-      registry: remote
-    roothostaccess: false
-    ports:
-      # The ui will be listening on port 80 (internal).
-      - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
-        internal: 80 # The ui is listening on port 80. Do not edit this.
-        publicmode: false # Do not edit this.
-    volumes: []
-    env:
-      - key: BASE_URL
-        value: http://localhost:8080/data"
-  ROUTES="routes:
-  # Use this section to configure route between microservices
-  # Use microservice name
-  - from: $MSVC1_NAME
-    to: $MSVC2_NAME"
+        test_mode: true
+        data_label: 'Anonymous_Person'
+    # Simple JSON viewer for the heart rate output
+    - name: $MSVC2_NAME
+      agent:
+        name: ${NAME}-0
+      images:
+        arm: edgeworx/healthcare-heart-rate-ui:arm
+        x86: edgeworx/healthcare-heart-rate-ui:x86
+        registry: remote
+      rootHostAccess: false
+      ports:
+        # The ui will be listening on port 80 (internal).
+        - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
+          internal: 80 # The ui is listening on port 80. Do not edit this.
+          publicMode: false # Do not edit this.
+      volumes: []
+      env:
+        - key: BASE_URL
+          value: http://localhost:8080/data"
+  ROUTES="
+    routes:
+    # Use this section to configure route between microservices
+    # Use microservice name
+    - from: $MSVC1_NAME
+      to: $MSVC2_NAME"
 
-  echo "$APP" > test/conf/application.yaml
-  echo "$MSVCS" >> test/conf/application.yaml
+  echo -n "---
+  apiVersion: iofog.org/v1
+  kind: Application
+  metadata:
+    name: $APPLICATION_NAME
+  spec:" > test/conf/application.yaml
+  echo -n "$MSVCS" >> test/conf/application.yaml
   echo "$ROUTES" >> test/conf/application.yaml
-  echo -n "applications:
-  - " > test/conf/root_application.yaml
-  echo "$APP" >> test/conf/root_application.yaml
-  echo "$MSVCS" | awk '{print "   ", $0}' >> test/conf/root_application.yaml
-  echo "$ROUTES" | awk '{print "   ", $0}' >> test/conf/root_application.yaml
 }
 
 function initLocalAgentFile() {
   echo "---
-agents:
-  - name: ${NAME}-0
-    image: ${AGENT_IMAGE}
-    host: 127.0.0.1" > test/conf/local-agent.yaml
+apiVersion: iofog.org/v1
+kind: Agent
+metadata:
+  name: ${NAME}-0
+spec:
+  image: ${AGENT_IMAGE}
+  host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
 function initLocalControllerFile() {
     echo "---
-controlplane:
+apiVersion: iofog.org/v1
+kind: ControlPlane
+spec:
   images: 
     controller: ${CONTROLLER_IMAGE}
-  iofoguser:
+  iofogUser:
     name: Testing
     surname: Functional
     email: user@domain.com
@@ -154,21 +179,34 @@ controlplane:
   controllers:
   - name: $NAME
     host: 127.0.0.1
-connectors:
-- name: $NAME
+---
+apiVersion: iofog.org/v1
+kind: Connector
+metadata:
+  name: $NAME
+spec:
   image: ${CONNECTOR_IMAGE}
   host: localhost" > test/conf/local.yaml
 }
 
 function initAgentsFile() {
   initAgents
-  echo "agents:" > test/conf/agents.yaml
+  # Empty file
+  echo -n "" > test/conf/agents.yaml
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    echo "- name: $AGENT_NAME
+    echo "---
+apiVersion: iofog.org/v1
+kind: Agent 
+metadata:
+  name: $AGENT_NAME
+spec:
   user: ${USERS[$IDX]}
   host: ${HOSTS[$IDX]}
-  keyfile: $KEY_FILE" >> test/conf/agents.yaml
+  keyFile: $KEY_FILE" >> test/conf/agents.yaml
+
+  echo "====> Agent File:"
+  cat test/conf/agents.yaml
   done
 }
 
@@ -199,49 +237,57 @@ function initAgents(){
 }
 
 function checkController() {
-  [[ "$NAME" == $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controller "$NAME" | grep "name: $NAME") ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe controlplane | grep "name: $NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "name: $NAME") ]]
 }
 
 function checkConnector() {
-  [[ "$NAME" == $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe connector "$NAME" | grep "name: $NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$NAME" | grep "name: $NAME") ]]
 }
 
 function checkConnectors() {
+  NS_CHECK=$NS
   for CNCT in "$@"; do
-    [[ "$CNCT" == $(iofogctl -v -n "$NS" get connectors | grep "$CNCT" | awk '{print $1}') ]]
-    [[ ! -z $(iofogctl -v -n "$NS" describe connector "$CNCT" | grep "name: $CNCT") ]]
+    [[ "$CNCT" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$CNCT" | awk '{print $1}') ]]
+    [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$CNCT" | grep "name: $CNCT") ]]
   done
 }
 
 function checkControllerNegative() {
-  [[ "$NAME" != $(iofogctl -v -n "$NS" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkConnectorNegative() {
-  [[ "$NAME" != $(iofogctl -v -n "$NS" get connectors | grep "$NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkMicroservice() {
-  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous_Person_2\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
-  [[ "memorylimit: 8192" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit ) ]]
+  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
+  checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
+  checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person_2\""
+  [[ "memoryLimit: 8192" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
   # Check route
-  [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
+  [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5005:443")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5005:443")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/microservice:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/microservice:/tmp")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
+  iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
@@ -250,8 +296,8 @@ function checkMicroservice() {
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5005") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 443") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "volumes:") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- hostdestination: /tmp/microservice") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "containerdestination: /tmp") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- hostDestination: /tmp/microservice") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "containerDestination: /tmp") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "images:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:test") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "arm: edgeworx/healthcare-heart-rate:test-arm") ]]
@@ -264,24 +310,28 @@ function checkMicroservice() {
 }
 
 function checkUpdatedMicroservice() {
-  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous_Person_3\",\"test_data\":42,\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}') ]]
-  [[ "memorylimit: 5555" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep memorylimit ) ]]
-  [[ "diskdirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep diskdirectory ) ]]
+  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
+  checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
+  checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person_3\""
+  checkMsvcConfig "${MSVC_CONFIG}" "\"test_data\":{\"key\":42}"
+  [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
+  [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
   # Check route
-  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
+  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5443:443, 5080:80")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5443:443, 5080:80")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/updatedmicroservice:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/updatedmicroservice:/tmp")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -v -n "$NS" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
+  iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
@@ -292,8 +342,8 @@ function checkUpdatedMicroservice() {
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5080") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 80") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "volumes:") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- hostdestination: /tmp/updatedmicroservice") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "containerdestination: /tmp") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- hostDestination: /tmp/updatedmicroservice") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "containerDestination: /tmp") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "images:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:test") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "arm: edgeworx/healthcare-heart-rate:test-arm") ]]
@@ -304,35 +354,45 @@ function checkUpdatedMicroservice() {
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "value: \"42\"") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "config:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_mode: true") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_data: 42") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "test_data:") ]]
+  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "key: 42") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "data_label: Anonymous_Person_3") ]]
 }
 
 function checkMicroserviceNegative() {
-  [[ "$MICROSERVICE_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$MICROSERVICE_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
+}
+
+# Takes the config as $1 and the expected key:value as $2
+function checkMsvcConfig() {
+  [[ ! -z $(echo $1 | grep $2) ]]
 }
 
 function checkApplication() {
-  [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
-  [[ "$MSVC1_NAME," == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
-  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
-  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
+  [[ "$MSVC1_NAME," == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $4}') ]]
+  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   # Check config
-  [[ "{\"data_label\":\"Anonymous_Person\",\"test_mode\":true}" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $4}') ]]
-  [[ "bluetoothenabled: true" == $(iofogctl -v -n "$NS" describe agent "${NAME}-0" | grep bluetooth ) ]]
+  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $4}')
+  checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
+  checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person\""
+  [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check route
-  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
+  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS" get microservices | grep "5000:80")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS" get microservices | grep "/tmp/msvc:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/msvc:/tmp")
   [[ "$MSVC1_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
-  iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
+  iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" -o "test/conf/app_output.yaml"
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $APPLICATION_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC1_NAME") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "name: $MSVC2_NAME") ]]
@@ -343,8 +403,8 @@ function checkApplication() {
   [[ ! -z $(cat test/conf/app_output.yaml | grep "external: 5000") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "\- internal: 80") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "volumes:") ]]
-  [[ ! -z $(cat test/conf/app_output.yaml | grep "\- hostdestination: /tmp/msvc") ]]
-  [[ ! -z $(cat test/conf/app_output.yaml | grep "containerdestination: /tmp") ]]
+  [[ ! -z $(cat test/conf/app_output.yaml | grep "\- hostDestination: /tmp/msvc") ]]
+  [[ ! -z $(cat test/conf/app_output.yaml | grep "containerDestination: /tmp") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "images:") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:x86-v1") ]]
   [[ ! -z $(cat test/conf/app_output.yaml | grep "arm: edgeworx/healthcare-heart-rate:arm-v1") ]]
@@ -357,33 +417,38 @@ function checkApplication() {
 }
 
 function checkApplicationNegative() {
-  [[ "$NAME" != $(iofogctl -v -n "$NS" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
-  [[ "$MSVC1_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
-  [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
+  NS_CHECK=${1:-$NS}
+  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
+  [[ "$MSVC1_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
+  [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgent() {
+  NS_CHECK=${2:-$NS}
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
+  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
 }
 
 function checkAgentNegative() {
+  NS_CHECK=${2:-$NS}
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" != $(iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ "$AGENT_NAME" != $(iofogctl -v -n "$NS_CHECK" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgents() {
+  NS_CHECK=${1:-$NS}
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-$(((IDX++)))"
-    checkAgent "$AGENT_NAME"
+    checkAgent "$AGENT_NAME" "$NS_CHECK"
   done
 }
 
 function checkAgentsNegative() {
+  NS_CHECK=${1:-$NS}
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-$(((IDX++)))"
-    checkAgentNegative "$AGENT_NAME"
+    checkAgentNegative "$AGENT_NAME" "$NS_CHECK"
   done
 }
 
@@ -414,4 +479,16 @@ function checkAgentListFromController() {
     local UUID=$(echo $LIST | jq -r '.fogs[] | select(.name == "'"$AGENT_NAME"'") | .uuid')
     [[ ! -z "$UUID" ]]
   done
+}
+
+function checkLegacyConnector() {
+  [[ ! -z $(iofogctl -v -n "$NS" legacy connector $NAME status | grep 'is up and running') ]]
+}
+
+function checkLegacyController() {
+  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME controller status | grep 'online') ]]
+}
+
+function checkLegacyAgent() {
+  [[ ! -z $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'RUNNING') ]]
 }

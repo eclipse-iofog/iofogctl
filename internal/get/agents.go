@@ -60,15 +60,12 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Connect to Controller if it is ready
-	if len(ns.ControlPlane.Controllers) > 0 && ns.ControlPlane.Controllers[0].Endpoint != "" {
+	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if err == nil {
 		// Instantiate client
-		ctrl := client.New(ns.ControlPlane.Controllers[0].Endpoint)
-		loginRequest := client.LoginRequest{
-			Email:    ns.ControlPlane.IofogUser.Email,
-			Password: ns.ControlPlane.IofogUser.Password,
-		}
 		// Log into Controller
-		if err := ctrl.Login(loginRequest); err != nil {
+		ctrl, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+		if err != nil {
 			return tabulateAgents(agentsToPrint)
 		}
 
