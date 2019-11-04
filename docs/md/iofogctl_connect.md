@@ -20,7 +20,7 @@ iofogctl connect [flags]
 ```
 iofogctl connect -f platform.yaml
 iofogctl connect --kube FILE --name NAME --email EMAIL --pass PASSWORD
-iofogctl connect --controller ENDPOINT --name NAME --email EMAIL --pass PASSWORD
+iofogctl connect --endpoint ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 ```
 
 ### Options
