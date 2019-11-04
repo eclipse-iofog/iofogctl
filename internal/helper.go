@@ -44,7 +44,7 @@ var supportedAPIVersionsMap = map[string]bool{
 
 func ValidateHeader(header config.Header) error {
 	if _, found := supportedAPIVersionsMap[header.APIVersion]; found == false {
-		return util.NewInputError(fmt.Sprintf("Invalid YAML API version [%s]", header.APIVersion))
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
 	return nil
 }
