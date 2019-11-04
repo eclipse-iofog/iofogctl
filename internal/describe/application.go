@@ -40,7 +40,6 @@ func newApplicationExecutor(namespace, name, filename string) *applicationExecut
 }
 
 func (exe *applicationExecutor) init() (err error) {
-	// TODO: Replace controller[0] with variable in controlPlane
 	exe.client, err = internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return

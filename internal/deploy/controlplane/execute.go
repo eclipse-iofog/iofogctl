@@ -46,7 +46,6 @@ func (exe controlPlaneExecutor) Execute() (err error) {
 	}
 
 	// Make sure Controller API is ready
-	// TODO: replace with controlplane variable for endpoint
 	endpoint, err := exe.controlPlane.GetControllerEndpoint()
 	if err != nil {
 		return

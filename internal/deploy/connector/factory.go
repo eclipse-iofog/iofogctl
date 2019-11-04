@@ -85,15 +85,6 @@ func newExecutor(namespace string, cnct *config.Connector) (execute.Executor, er
 	}
 
 	if cnct.KubeConfig != "" {
-		// TODO: re-enable specifying images
-		// If image file specified, read it
-		//if ctrl.ImagesFile != "" {
-		//	ctrl.Images = make(map[string]string)
-		//	err := util.UnmarshalYAML(opt.ImagesFile, opt.Images)
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//}
 		return newFacadeExecutor(newKubernetesExecutor(namespace, cnct), namespace, cnct), nil
 	}
 

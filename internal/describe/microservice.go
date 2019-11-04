@@ -38,7 +38,6 @@ func newMicroserviceExecutor(namespace, name, filename string) *microserviceExec
 }
 
 func (exe *microserviceExecutor) init() (err error) {
-	// TODO: Replace controller[0] with variable in controlPlane
 	exe.client, err = internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
