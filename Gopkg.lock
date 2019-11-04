@@ -114,37 +114,26 @@
   version = "v0.4.0"
 
 [[projects]]
-  digest = "1:88164c357c9afedafb83a21cbd775e8b3929cc26305879bf9e90f9420d1c56c8"
+  digest = "1:fa45ab82b520adac9a4c6db078b16955e2b5166490431b83da4fc45a9ec31db1"
   name = "github.com/eclipse-iofog/iofog-go-sdk"
   packages = [
     "pkg/apps",
     "pkg/client",
   ]
   pruneopts = "UT"
-  revision = "857176811d8d5ccc5035579864deca1f7ac1aea3"
-  version = "v1.3.0-beta"
+  revision = "c163e2e90f72055083b80b5b03d419e5800a028d"
+  version = "v1.3.0-rc1"
 
 [[projects]]
-  digest = "1:2e29fd53284e3f3ea2f6e16c605f06e5861e974f1b18d595c9a956d75a10a593"
+  digest = "1:1d7a6b80f0bc862ce6f3a2edd7fe33402f19e638abd28d3fecd9525008073b25"
   name = "github.com/eclipse-iofog/iofog-operator"
   packages = [
     "pkg/apis",
     "pkg/apis/iofog/v1",
   ]
   pruneopts = "UT"
-  revision = "6a0eabd8301da80b012a92308bf3cce5d2f610ca"
-  version = "v1.3.0-beta"
-
-[[projects]]
-  digest = "1:b2754ad67d4ed5a0741d69396c6f5cbe1e426a8adc2e8e97e09a1ee5a4621653"
-  name = "github.com/emicklei/go-restful"
-  packages = [
-    ".",
-    "log",
-  ]
-  pruneopts = "UT"
-  revision = "6ac3b8eb89d325e5c750d77f344a6870464d03c3"
-  version = "v2.9.6"
+  revision = "7a5606812cc1e8f54ab703b9b448b403b7905746"
+  version = "v1.3.0-rc1"
 
 [[projects]]
   digest = "1:865079840386857c809b72ce300be7580cb50d3d3129ce11bf9aa6ca2bc1934a"
