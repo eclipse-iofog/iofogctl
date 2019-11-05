@@ -107,27 +107,27 @@ iofogctl legacy agent NAME status`,
 				cliCommand := []string{"sudo", "iofog-controller"}
 				if ctrl.Kube.Config != "" {
 					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
-				} else if util.IsLocalHost(ctrl.SSH.Host) {
+				} else if util.IsLocalHost(ctrl.Host) {
 					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
 				} else {
-					if ctrl.SSH.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
+					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Controller are not available"))
 					}
-					remoteExec(ctrl.SSH.User, ctrl.SSH.Host, ctrl.SSH.KeyFile, ctrl.SSH.Port, "sudo iofog-controller", args[2:])
+					remoteExec(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile, ctrl.SSH.Port, "sudo iofog-controller", args[2:])
 				}
 			case "agent":
 				// Get config
 				agent, err := config.GetAgent(namespace, name)
 				util.Check(err)
-				if util.IsLocalHost(agent.SSH.Host) {
+				if util.IsLocalHost(agent.Host) {
 					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
 					return
 				} else {
 					// SSH connect
-					if agent.SSH.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
+					if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Agent are not available"))
 					}
-					remoteExec(agent.SSH.User, agent.SSH.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
+					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
 				}
 			case "connector":
 				// Get config
@@ -136,13 +136,13 @@ iofogctl legacy agent NAME status`,
 				cliCommand := []string{"sudo", "iofog-connector"}
 				if connector.Kube.Config != "" {
 					k8sExecute(connector.Kube.Config, namespace, "name=connector-"+name, cliCommand, args[2:])
-				} else if util.IsLocalHost(connector.SSH.Host) {
+				} else if util.IsLocalHost(connector.Host) {
 					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
 				} else {
-					if connector.SSH.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "" || connector.SSH.Port == 0 {
+					if connector.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "" || connector.SSH.Port == 0 {
 						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Connector are not available"))
 					}
-					remoteExec(connector.SSH.User, connector.SSH.Host, connector.SSH.KeyFile, connector.SSH.Port, "sudo iofog-connector", args[2:])
+					remoteExec(connector.SSH.User, connector.Host, connector.SSH.KeyFile, connector.SSH.Port, "sudo iofog-connector", args[2:])
 				}
 			default:
 				util.Check(util.NewInputError("Unknown legacy CLI " + resource))

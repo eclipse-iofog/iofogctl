@@ -63,9 +63,7 @@ func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 		agentConfig := config.Agent{
 			Name: agent.Name,
 			UUID: agent.UUID,
-			SSH: config.SSH{
-				Host: agent.IPAddressExternal,
-			},
+			Host: agent.IPAddressExternal,
 		}
 		if err = config.AddAgent(namespace, agentConfig); err != nil {
 			return err

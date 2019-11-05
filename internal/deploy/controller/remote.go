@@ -41,7 +41,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
 		User:            exe.ctrl.SSH.User,
-		Host:            exe.ctrl.SSH.Host,
+		Host:            exe.ctrl.Host,
 		Port:            exe.ctrl.SSH.Port,
 		PrivKeyFilename: exe.ctrl.SSH.KeyFile,
 		Version:         exe.ctrl.Package.Version,
@@ -61,7 +61,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 	// Update controller (its a pointer, this is returned to caller)
-	exe.ctrl.Endpoint = exe.ctrl.SSH.Host + ":" + iofog.ControllerPortString
+	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
 
 	return
 }

@@ -40,11 +40,11 @@ func newViewCommand() *cobra.Command {
 				os.Exit(1)
 			}
 			ctrl := controlPlane.Controllers[0]
-			url := ctrl.SSH.Host
+			url := ctrl.Host
 			if !strings.HasPrefix(url, "http") {
 				url = "http://" + url
 			}
-			if util.IsLocalHost(ctrl.SSH.Host) {
+			if util.IsLocalHost(ctrl.Host) {
 				url += ":" + iofog.ControllerHostECNViewerPortString
 			}
 			if err := browser.OpenURL(url); err != nil {

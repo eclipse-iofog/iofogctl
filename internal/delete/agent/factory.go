@@ -28,7 +28,7 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Local executor
-	if util.IsLocalHost(agent.SSH.Host) {
+	if util.IsLocalHost(agent.Host) {
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err

@@ -37,7 +37,6 @@ type Package struct {
 
 type SSH struct {
 	User    string `yaml:"user,omitempty"`
-	Host    string `yaml:"host,omitempty"`
 	Port    int    `yaml:"port,omitempty"`
 	KeyFile string `yaml:"keyFile,omitempty"`
 }
@@ -92,6 +91,7 @@ type ControlPlane struct {
 
 type Connector struct {
 	Name      string    `yaml:"name,omitempty"`
+	Host      string    `yaml:"host,omitempty"`
 	SSH       SSH       `yaml:"ssh,omitempty"`
 	Kube      Kube      `yaml:"kube,omitempty"`
 	Created   string    `yaml:"created,omitempty"`
@@ -103,6 +103,7 @@ type Connector struct {
 // Controller contains information for configuring a controller
 type Controller struct {
 	Name      string    `yaml:"name,omitempty"`
+	Host      string    `yaml:"host,omitempty"`
 	SSH       SSH       `yaml:"ssh,omitempty"`
 	Kube      Kube      `yaml:"kube,omitempty"`
 	Endpoint  string    `yaml:"endpoint,omitempty"`
@@ -139,6 +140,7 @@ var FogTypeIntMap = map[int]string{
 // Agent contains information for deploying an agent
 type Agent struct {
 	Name      string    `yaml:"name,omitempty"`
+	Host      string    `yaml:"host,omitempty"`
 	SSH       SSH       `yaml:"ssh,omitempty"`
 	UUID      string    `yaml:"uuid,omitempty"`
 	Created   string    `yaml:"created,omitempty"`

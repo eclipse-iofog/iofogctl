@@ -28,9 +28,7 @@ func TestLocal(t *testing.T) {
 	ns := "default"
 	agent := config.Agent{
 		Name: "test_local",
-		SSH: config.SSH{
-			Host: "localhost",
-		},
+		Host: "localhost",
 	}
 	if err := config.AddAgent(ns, agent); err != nil {
 		t.Errorf("Error when testing local and creating Agent in default namespace: %s", err.Error())
@@ -44,9 +42,9 @@ func TestRemote(t *testing.T) {
 	ns := "default"
 	agent := config.Agent{
 		Name: "test_remote",
+		Host: "123.123.123.123",
 		SSH: config.SSH{
 			User:    "serge",
-			Host:    "123.123.123.123",
 			KeyFile: "~/.ssh/id_rsa",
 		},
 	}

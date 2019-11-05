@@ -44,7 +44,7 @@ func (exe *remoteExecutor) Execute() error {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
 		User:            ctrl.SSH.User,
-		Host:            ctrl.SSH.Host,
+		Host:            ctrl.Host,
 		Port:            ctrl.SSH.Port,
 		PrivKeyFilename: ctrl.SSH.KeyFile,
 	}

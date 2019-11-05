@@ -60,7 +60,7 @@ func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.
 		return nil, util.NewError("Cannot deploy Controller because ioFog user is not specified")
 	}
 	// Local executor
-	if util.IsLocalHost(ctrl.SSH.Host) {
+	if util.IsLocalHost(ctrl.Host) {
 		// Check the namespace does not contain a Controller yet
 		nbControllers := len(controlPlane.Controllers)
 		if nbControllers != 1 {
@@ -83,7 +83,7 @@ func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.
 	}
 
 	// Default executor
-	if ctrl.SSH.Host == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.User == "" {
+	if ctrl.Host == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
 	return newFacadeExecutor(newRemoteExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil

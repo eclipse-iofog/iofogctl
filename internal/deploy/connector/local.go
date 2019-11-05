@@ -140,7 +140,7 @@ func (exe *localExecutor) Execute() error {
 	// Update Connector (return through pointer)
 	connectorContainerConfig := exe.localConnectorConfig
 	exe.cnct.Endpoint = fmt.Sprintf("%s:%s", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host)
-	exe.cnct.SSH.Host = connectorContainerConfig.Host
+	exe.cnct.Host = connectorContainerConfig.Host
 	exe.cnct.SSH.User = currUser.Username
 	exe.cnct.Created = util.NowUTC()
 

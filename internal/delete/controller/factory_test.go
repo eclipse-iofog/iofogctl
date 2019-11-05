@@ -28,9 +28,7 @@ func TestLocal(t *testing.T) {
 	ns := "default"
 	ctrl := config.Controller{
 		Name: "test_local",
-		SSH: config.SSH{
-			Host: "localhost",
-		},
+		Host: "localhost",
 	}
 	if err := config.AddController(ns, ctrl); err != nil {
 		t.Errorf("Error when testing local and creating Controller in default namespace: %s", err.Error())

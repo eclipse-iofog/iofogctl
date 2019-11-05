@@ -55,7 +55,7 @@ func generateAgentOutput(namespace string) error {
 	for _, agent := range ns.Agents {
 		agentsToPrint[agent.Name] = client.AgentInfo{
 			Name:              agent.Name,
-			IPAddressExternal: agent.SSH.Host,
+			IPAddressExternal: agent.Host,
 		}
 	}
 
@@ -82,9 +82,7 @@ func generateAgentOutput(namespace string) error {
 				newAgentConf := config.Agent{
 					Name: remoteAgent.Name,
 					UUID: remoteAgent.UUID,
-					SSH: config.SSH{
-						Host: remoteAgent.IPAddressExternal,
-					},
+					Host: remoteAgent.IPAddressExternal,
 				}
 				config.AddAgent(namespace, newAgentConf)
 			}

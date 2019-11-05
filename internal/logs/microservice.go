@@ -47,12 +47,12 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 	}
 
 	// Verify we can SSH into the Agent
-	if agent.SSH.User == "" || agent.SSH.Host == "" || agent.SSH.KeyFile == "" {
+	if agent.SSH.User == "" || agent.Host == "" || agent.SSH.KeyFile == "" {
 		return util.NewError("Cannot get logs for microservice on Agent " + agent.Name + " because SSH details are not available")
 	}
 
 	// SSH into the Agent and get the logs
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.SSH.Host, agent.SSH.KeyFile)
+	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
 	if err = ssh.Connect(); err != nil {
 		return err
 	}

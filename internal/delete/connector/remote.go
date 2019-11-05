@@ -45,7 +45,7 @@ func (exe *remoteExecutor) Execute() error {
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
 		User:            cnct.SSH.User,
-		Host:            cnct.SSH.Host,
+		Host:            cnct.Host,
 		Port:            cnct.SSH.Port,
 		PrivKeyFilename: cnct.SSH.KeyFile,
 	}
@@ -57,7 +57,7 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Clear Connector from Controller
-	if err = deleteConnectorFromController(exe.namespace, cnct.SSH.Host); err != nil {
+	if err = deleteConnectorFromController(exe.namespace, cnct.Host); err != nil {
 		return err
 	}
 

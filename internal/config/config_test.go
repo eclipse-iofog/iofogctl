@@ -166,7 +166,7 @@ func TestWritingNamespace(t *testing.T) {
 func compareControllers(lhs, rhs Controller) bool {
 	equal := (lhs.Created == rhs.Created)
 	equal = equal && (lhs.Endpoint == rhs.Endpoint)
-	equal = equal && (lhs.SSH.Host == lhs.SSH.Host)
+	equal = equal && (lhs.Host == lhs.Host)
 	equal = equal && (lhs.SSH.KeyFile == rhs.SSH.KeyFile)
 	equal = equal && (lhs.Kube.Config == rhs.Kube.Config)
 	equal = equal && (lhs.Kube.StaticIP == rhs.Kube.StaticIP)
@@ -179,9 +179,9 @@ func TestWritingController(t *testing.T) {
 	ctrl := Controller{
 		Created:  "Now",
 		Endpoint: "localhost:" + iofog.ControllerPortString,
+		Host:     "localhost",
 		SSH: SSH{
 			User:    "Kubert",
-			Host:    "localhost",
 			KeyFile: "~/.key/file",
 		},
 		Kube: Kube{
@@ -210,7 +210,7 @@ func TestWritingController(t *testing.T) {
 		t.Error("Expected different Controllers to not be identical")
 	}
 
-	ctrlTwo.SSH.Host = "changed"
+	ctrlTwo.Host = "changed"
 	if err = UpdateController(writeNamespace, ctrlTwo); err != nil {
 		t.Errorf("Error updating Controller in write namespace: %s", err.Error())
 	}
@@ -229,7 +229,7 @@ func TestWritingController(t *testing.T) {
 
 func compareAgents(lhs, rhs Agent) bool {
 	equal := (lhs.Created == rhs.Created)
-	equal = equal && (lhs.SSH.Host == rhs.SSH.Host)
+	equal = equal && (lhs.Host == rhs.Host)
 	equal = equal && (lhs.Container.Image == rhs.Container.Image)
 	equal = equal && (lhs.SSH.KeyFile == rhs.SSH.KeyFile)
 	equal = equal && (lhs.Name == rhs.Name)
@@ -243,8 +243,8 @@ func compareAgents(lhs, rhs Agent) bool {
 func TestWritingAgent(t *testing.T) {
 	agent := Agent{
 		Created: "Now",
+		Host:    "localhost",
 		SSH: SSH{
-			Host:    "localhost",
 			User:    "Kubert",
 			KeyFile: "~/.key/file",
 		},
@@ -270,7 +270,7 @@ func TestWritingAgent(t *testing.T) {
 		t.Error("Expected different Agents to not be identical")
 	}
 
-	agentTwo.SSH.Host = "changed"
+	agentTwo.Host = "changed"
 	if err = UpdateAgent(writeNamespace, agentTwo); err != nil {
 		t.Errorf("Error updating Agent in write namespace: %s", err.Error())
 	}

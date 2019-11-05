@@ -55,7 +55,7 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Disallow editing k8s fields for vanilla Controller
-	if controller.SSH.Host != "" && exe.kubeConfig != "" {
+	if controller.Host != "" && exe.kubeConfig != "" {
 		return util.NewInputError("Controller " + exe.name + " is not deployed on Kubernetes. You cannot add Kube Config details to this Controller")
 	}
 

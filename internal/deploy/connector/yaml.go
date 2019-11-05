@@ -26,7 +26,7 @@ func UnmarshallYAML(file []byte) (connector config.Connector, err error) {
 		return
 	}
 	// None specified
-	if connector.Kube.Config == "" && (connector.SSH.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "") {
+	if connector.Kube.Config == "" && (connector.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "") {
 		return
 	}
 
@@ -50,7 +50,7 @@ func Validate(cnct config.Connector) error {
 	if cnct.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Connectors")
 	}
-	if cnct.Kube.Config == "" && ((cnct.SSH.Host != "localhost" && cnct.SSH.Host != "127.0.0.1") && (cnct.SSH.Host == "" || cnct.SSH.User == "" || cnct.SSH.KeyFile == "")) {
+	if cnct.Kube.Config == "" && ((cnct.Host != "localhost" && cnct.Host != "127.0.0.1") && (cnct.Host == "" || cnct.SSH.User == "" || cnct.SSH.KeyFile == "")) {
 		return util.NewInputError("For Connectors you must specify non-empty values for host, user, and keyfile")
 	}
 	return nil

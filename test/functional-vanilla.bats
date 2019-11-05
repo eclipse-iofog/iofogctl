@@ -22,9 +22,9 @@ metadata:
 spec:
   controllers:
   - name: $NAME
+    host: $VANILLA_HOST
     ssh:
       user: $VANILLA_USER
-      host: $VANILLA_HOST
       port: $VANILLA_PORT
       keyFile: $KEY_FILE
     package:
@@ -40,9 +40,9 @@ kind: Connector
 metadata:
   name: $NAME
 spec:
+  host: $VANILLA_HOST
   ssh:
     user: $VANILLA_USER
-    host: $VANILLA_HOST
     port: $VANILLA_PORT
     keyFile: $KEY_FILE
   package:

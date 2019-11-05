@@ -54,7 +54,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	connectorOptions := &install.ConnectorOptions{
 		Name:               exe.cnct.Name,
 		User:               exe.cnct.SSH.User,
-		Host:               exe.cnct.SSH.Host,
+		Host:               exe.cnct.Host,
 		Port:               exe.cnct.SSH.Port,
 		PrivKeyFilename:    exe.cnct.SSH.KeyFile,
 		Version:            exe.cnct.Package.Version,
@@ -71,7 +71,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Update connector (its a pointer, this is returned to caller)
-	exe.cnct.Endpoint = exe.cnct.SSH.Host + ":" + iofog.ConnectorPortString
+	exe.cnct.Endpoint = exe.cnct.Host + ":" + iofog.ConnectorPortString
 	exe.cnct.Created = util.NowUTC()
 
 	return nil
