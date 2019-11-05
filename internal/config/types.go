@@ -24,6 +24,11 @@ const (
 	CatalogItemKind apps.Kind = "CatalogItem"
 )
 
+type Container struct {
+	Image       string      `yaml:"image,omitempty"`
+	Credentials Credentials `yaml:"credentials,omitempty"` // Optional credentials if needed to pull images
+}
+
 type Package struct {
 	Version string `yaml:"version,omitempty"`
 	Repo    string `yaml:"repo,omitempty"`
@@ -52,8 +57,8 @@ type IofogUser struct {
 	Password string `yaml:"password,omitempty"`
 }
 
-// DockerCredentials credentials used to log into docker when deploying a local stack
-type DockerCredentials struct {
+// Credentials credentials used to log into docker when deploying a local stack
+type Credentials struct {
 	User     string `yaml:"user,omitempty"`
 	Password string `yaml:"password,omitempty"`
 }
@@ -81,25 +86,24 @@ type ControlPlane struct {
 }
 
 type Connector struct {
-	Name             string            `yaml:"name,omitempty"`
-	SSH              SSH               `yaml:"ssh,omitempty"`
-	Kube             Kube              `yaml:"kube,omitempty"`
-	Created          string            `yaml:"created,omitempty"`
-	Endpoint         string            `yaml:"endpoint,omitempty"`
-	Image            string            `yaml:"image,omitempty"`
-	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
-	Package          Package           `yaml:"package,omitempty"`
+	Name      string    `yaml:"name,omitempty"`
+	SSH       SSH       `yaml:"ssh,omitempty"`
+	Kube      Kube      `yaml:"kube,omitempty"`
+	Created   string    `yaml:"created,omitempty"`
+	Endpoint  string    `yaml:"endpoint,omitempty"`
+	Package   Package   `yaml:"package,omitempty"`
+	Container Container `yaml:"container,omitempty"`
 }
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name             string            `yaml:"name,omitempty"`
-	SSH              SSH               `yaml:"ssh,omitempty"`
-	Kube             Kube              `yaml:"kube,omitempty"`
-	Endpoint         string            `yaml:"endpoint,omitempty"`
-	Created          string            `yaml:"created,omitempty"`
-	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull images
-	Package          Package           `yaml:"package,omitempty"`
+	Name      string    `yaml:"name,omitempty"`
+	SSH       SSH       `yaml:"ssh,omitempty"`
+	Kube      Kube      `yaml:"kube,omitempty"`
+	Endpoint  string    `yaml:"endpoint,omitempty"`
+	Created   string    `yaml:"created,omitempty"`
+	Package   Package   `yaml:"package,omitempty"`
+	Container Container `yaml:"container,omitempty"`
 }
 
 // AgentConfiguration contains configuration information for a deployed agent
@@ -129,13 +133,12 @@ var FogTypeIntMap = map[int]string{
 
 // Agent contains information for deploying an agent
 type Agent struct {
-	Name             string            `yaml:"name,omitempty"`
-	SSH              SSH               `yaml:"ssh,omitempty"`
-	UUID             string            `yaml:"uuid,omitempty"`
-	Created          string            `yaml:"created,omitempty"`
-	Image            string            `yaml:"image,omitempty"`
-	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
-	Package          Package           `yaml:"package,omitempty"`
+	Name      string    `yaml:"name,omitempty"`
+	SSH       SSH       `yaml:"ssh,omitempty"`
+	UUID      string    `yaml:"uuid,omitempty"`
+	Created   string    `yaml:"created,omitempty"`
+	Container Container `yaml:"container,omitempty"`
+	Package   Package   `yaml:"package,omitempty"`
 }
 
 // Namespace contains information for configuring a namespace

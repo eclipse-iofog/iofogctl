@@ -38,15 +38,15 @@ type localExecutor struct {
 
 func newLocalExecutor(namespace string, cnct *config.Connector, client *install.LocalContainer) (*localExecutor, error) {
 	imageMap := make(map[string]string)
-	imageMap["connector"] = cnct.Image
+	imageMap["connector"] = cnct.Container.Image
 	return &localExecutor{
 		namespace: namespace,
 		name:      cnct.Name,
 		cnct:      cnct,
 		client:    client,
-		localConnectorConfig: install.NewLocalConnectorConfig(cnct.Image, install.Credentials{
-			User:     cnct.ImageCredentials.User,
-			Password: cnct.ImageCredentials.Password,
+		localConnectorConfig: install.NewLocalConnectorConfig(cnct.Container.Image, install.Credentials{
+			User:     cnct.Container.Credentials.User,
+			Password: cnct.Container.Credentials.Password,
 		}),
 	}, nil
 }

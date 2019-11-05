@@ -52,8 +52,8 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure deploy
-	if exe.cnct.Image != "" {
-		if err = installer.SetImages(map[string]string{"connector": exe.cnct.Image}); err != nil {
+	if exe.cnct.Container.Image != "" {
+		if err = installer.SetImages(map[string]string{"connector": exe.cnct.Container.Image}); err != nil {
 			return err
 		}
 	}

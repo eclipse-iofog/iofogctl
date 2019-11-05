@@ -166,11 +166,11 @@ spec:
     password: $USER_PW
   controllers:
   - name: $NAME
+    container:
+      image: $CONTROLLER_IMAGE
     kube:
       config: $KUBE_CONFIG
   images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
     scheduler: $SCHEDULER_IMAGE
     operator: $OPERATOR_IMAGE
     kubelet: $KUBELET_IMAGE
@@ -180,6 +180,8 @@ kind: Connector
 metadata:
   name: $NAME
 spec:
+  container:
+    image: $CONNECTOR_IMAGE
   kube:
     config: $KUBE_CONFIG" > test/conf/k8s.yaml
 

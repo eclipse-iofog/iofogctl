@@ -230,7 +230,7 @@ func TestWritingController(t *testing.T) {
 func compareAgents(lhs, rhs Agent) bool {
 	equal := (lhs.Created == rhs.Created)
 	equal = equal && (lhs.SSH.Host == rhs.SSH.Host)
-	equal = equal && (lhs.Image == rhs.Image)
+	equal = equal && (lhs.Container.Image == rhs.Container.Image)
 	equal = equal && (lhs.SSH.KeyFile == rhs.SSH.KeyFile)
 	equal = equal && (lhs.Name == rhs.Name)
 	equal = equal && (lhs.SSH.Port == rhs.SSH.Port)

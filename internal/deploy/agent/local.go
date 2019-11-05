@@ -49,9 +49,9 @@ func newLocalExecutor(namespace string, agent *config.Agent, client *install.Loc
 		namespace: namespace,
 		agent:     agent,
 		client:    client,
-		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Image, controllerContainerConfig, install.Credentials{
-			User:     agent.ImageCredentials.User,
-			Password: agent.ImageCredentials.Password,
+		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Container.Image, controllerContainerConfig, install.Credentials{
+			User:     agent.Container.Credentials.User,
+			Password: agent.Container.Credentials.Password,
 		}),
 	}, nil
 }
@@ -90,8 +90,8 @@ func (exe *localExecutor) Execute() error {
 
 	// Deploy agent image
 	util.SpinStart("Deploying Agent container")
-	if exe.agent.Image == "" {
-		exe.agent.Image = exe.localAgentConfig.DefaultImage
+	if exe.agent.Container.Image == "" {
+		exe.agent.Container.Image = exe.localAgentConfig.DefaultImage
 	}
 
 	// If container already exists, clean it

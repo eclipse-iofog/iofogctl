@@ -39,8 +39,8 @@ func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane co
 		ctrl:      ctrl,
 		client:    client,
 		localControllerConfig: install.NewLocalControllerConfig(controlPlane.Images, install.Credentials{
-			User:     ctrl.ImageCredentials.User,
-			Password: ctrl.ImageCredentials.Password,
+			User:     ctrl.Container.Credentials.User,
+			Password: ctrl.Container.Credentials.Password,
 		}),
 		iofogUser: controlPlane.IofogUser,
 	}, nil
