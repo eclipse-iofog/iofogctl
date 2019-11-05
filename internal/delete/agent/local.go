@@ -33,7 +33,8 @@ type localExecutor struct {
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
-	ctrlConfig := install.NewLocalControllerConfig(make(map[string]string), install.Credentials{})
+	// Empty string for default image
+	ctrlConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	exe := &localExecutor{
 		namespace:        namespace,
 		name:             name,

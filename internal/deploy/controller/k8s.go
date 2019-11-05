@@ -44,18 +44,12 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Configure deploy
-	images := exe.controlPlane.Images
-	images["controller"] = exe.ctrl.Container.Image
-	if err = installer.SetImages(images); err != nil {
-		return err
-	}
-	if exe.ctrl.Kube.StaticIP != "" {
-		installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
-	}
-	if exe.ctrl.Kube.ServiceType != "" {
-		if err = installer.SetControllerServiceType(exe.ctrl.Kube.ServiceType); err != nil {
-			return
-		}
+	installer.SetKubeletImage(exe.ctrl.Kube.Images.Kubelet)
+	installer.SetOperatorImage(exe.ctrl.Kube.Images.Operator)
+	installer.SetControllerImage(exe.ctrl.Container.Image)
+	installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
+	if err = installer.SetControllerServiceType(exe.ctrl.Kube.ServiceType); err != nil {
+		return
 	}
 
 	replicas := 1

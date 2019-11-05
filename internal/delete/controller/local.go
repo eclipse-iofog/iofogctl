@@ -33,7 +33,7 @@ func newLocalExecutor(namespace, name string, client *install.LocalContainer) *l
 		namespace:             namespace,
 		name:                  name,
 		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(make(map[string]string), install.Credentials{}),
+		localControllerConfig: install.NewLocalControllerConfig("", install.Credentials{}),
 	}
 	return exe
 }

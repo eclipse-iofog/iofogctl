@@ -39,20 +39,21 @@ spec:
     password: $USER_PW
   controllers:
   - name: $NAME
+    container:
+      image: $CONTROLLER_IMAGE
     kube:
       config: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
+      images:
+        operator: $OPERATOR_IMAGE
+        kubelet: $KUBELET_IMAGE
 ---
 apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
 spec:
+  container:
+    image: $CONNECTOR_IMAGE
   kube:
     config: $KUBE_CONFIG" > test/conf/k8s.yaml
 
@@ -170,10 +171,9 @@ spec:
       image: $CONTROLLER_IMAGE
     kube:
       config: $KUBE_CONFIG
-  images:
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
+      images:
+        operator: $OPERATOR_IMAGE
+        kubelet: $KUBELET_IMAGE
 ---
 apiVersion: iofog.org/v1
 kind: Connector 

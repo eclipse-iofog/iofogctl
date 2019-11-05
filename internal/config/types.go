@@ -42,11 +42,17 @@ type SSH struct {
 	KeyFile string `yaml:"keyFile,omitempty"`
 }
 
+type KubeImages struct {
+	Operator string `yaml:"operator,omitempty"`
+	Kubelet  string `yaml:"kubelet,omitempty"`
+}
+
 type Kube struct {
-	Config      string `yaml:"config,omitempty"`
-	StaticIP    string `yaml:"staticIP,omitempty"`
-	Replicas    int    `yaml:"replicas,omitempty"`
-	ServiceType string `yaml:"serviceType,omitempty"`
+	Config      string     `yaml:"config,omitempty"`
+	StaticIP    string     `yaml:"staticIP,omitempty"`
+	Replicas    int        `yaml:"replicas,omitempty"`
+	ServiceType string     `yaml:"serviceType,omitempty"`
+	Images      KubeImages `yaml:"images,omitempty"`
 }
 
 // IofogUser contains information about users registered against a controller
@@ -78,11 +84,10 @@ type Loadbalancer struct {
 }
 
 type ControlPlane struct {
-	Database     Database          `yaml:"database,omitempty"`
-	LoadBalancer Loadbalancer      `yaml:"loadBalancer,omitempty"`
-	IofogUser    IofogUser         `yaml:"iofogUser,omitempty"`
-	Controllers  []Controller      `yaml:"controllers,omitempty"`
-	Images       map[string]string `yaml:"images,omitempty"`
+	Database     Database     `yaml:"database,omitempty"`
+	LoadBalancer Loadbalancer `yaml:"loadBalancer,omitempty"`
+	IofogUser    IofogUser    `yaml:"iofogUser,omitempty"`
+	Controllers  []Controller `yaml:"controllers,omitempty"`
 }
 
 type Connector struct {

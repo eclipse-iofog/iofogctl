@@ -38,7 +38,7 @@ func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane co
 		namespace: namespace,
 		ctrl:      ctrl,
 		client:    client,
-		localControllerConfig: install.NewLocalControllerConfig(controlPlane.Images, install.Credentials{
+		localControllerConfig: install.NewLocalControllerConfig(ctrl.Container.Image, install.Credentials{
 			User:     ctrl.Container.Credentials.User,
 			Password: ctrl.Container.Credentials.Password,
 		}),

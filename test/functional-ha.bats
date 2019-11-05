@@ -57,10 +57,9 @@ spec:
     kube:
       config: $KUBE_CONFIG
       replicas: 2
-  images:
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+      images:
+        operator: $OPERATOR_IMAGE
+        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
