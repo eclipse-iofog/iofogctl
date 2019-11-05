@@ -54,7 +54,7 @@ spec:
   - name: $NAME
     kube:
       config: $KUBE_CONFIG
-    replicas: 2
+      replicas: 2
   images:
     controller: $CONTROLLER_IMAGE
     scheduler: $SCHEDULER_IMAGE
