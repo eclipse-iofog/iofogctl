@@ -49,7 +49,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Connect to agent via SSH
-	agent := install.NewRemoteAgent(exe.agent.User, exe.agent.Host, exe.agent.Port, exe.agent.KeyFile, exe.agent.Name)
+	agent := install.NewRemoteAgent(exe.agent.SSH.User, exe.agent.SSH.Host, exe.agent.SSH.Port, exe.agent.SSH.KeyFile, exe.agent.Name)
 
 	// Set version
 	agent.SetVersion(exe.agent.Version)

@@ -47,15 +47,15 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	if exe.keyFile != "" {
-		agent.KeyFile = exe.keyFile
+		agent.SSH.KeyFile = exe.keyFile
 	}
 
 	if exe.user != "" {
-		agent.User = exe.user
+		agent.SSH.User = exe.user
 	}
 
 	if exe.port != 0 {
-		agent.Port = exe.port
+		agent.SSH.Port = exe.port
 	}
 
 	// Save config

@@ -161,7 +161,8 @@ metadata:
   name: ${NAME}-0
 spec:
   image: ${AGENT_IMAGE}
-  host: 127.0.0.1" > test/conf/local-agent.yaml
+  ssh:
+    host: 127.0.0.1" > test/conf/local-agent.yaml
 }
 
 function initLocalControllerFile() {
@@ -178,7 +179,8 @@ spec:
     password: S5gYVgLEZV
   controllers:
   - name: $NAME
-    host: 127.0.0.1
+    ssh:
+      host: 127.0.0.1
 ---
 apiVersion: iofog.org/v1
 kind: Connector
@@ -186,7 +188,8 @@ metadata:
   name: $NAME
 spec:
   image: ${CONNECTOR_IMAGE}
-  host: localhost" > test/conf/local.yaml
+  ssh:
+    host: localhost" > test/conf/local.yaml
 }
 
 function initAgentsFile() {
@@ -201,9 +204,10 @@ kind: Agent
 metadata:
   name: $AGENT_NAME
 spec:
-  user: ${USERS[$IDX]}
-  host: ${HOSTS[$IDX]}
-  keyFile: $KEY_FILE" >> test/conf/agents.yaml
+  ssh:
+    user: ${USERS[$IDX]}
+    host: ${HOSTS[$IDX]}
+    keyFile: $KEY_FILE" >> test/conf/agents.yaml
 
   echo "====> Agent File:"
   cat test/conf/agents.yaml

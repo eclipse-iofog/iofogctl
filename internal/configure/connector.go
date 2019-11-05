@@ -55,20 +55,20 @@ func (exe *connectorExecutor) Execute() error {
 	}
 
 	// Disallow editing k8s fields for vanilla Connector
-	if connector.Host != "" && exe.kubeConfig != "" {
+	if connector.SSH.Host != "" && exe.kubeConfig != "" {
 		return util.NewInputError("Connector " + exe.name + " is not deployed on Kubernetes. You cannot add Kube Config details to this Connector")
 	}
 
 	if exe.keyFile != "" {
-		connector.KeyFile = exe.keyFile
+		connector.SSH.KeyFile = exe.keyFile
 	}
 
 	if exe.user != "" {
-		connector.User = exe.user
+		connector.SSH.User = exe.user
 	}
 
 	if exe.port != 0 {
-		connector.Port = exe.port
+		connector.SSH.Port = exe.port
 	}
 
 	if exe.kubeConfig != "" {

@@ -72,7 +72,7 @@ func newExecutor(namespace string, cnct *config.Connector) (execute.Executor, er
 	}
 
 	// Local executor
-	if util.IsLocalHost(cnct.Host) {
+	if util.IsLocalHost(cnct.SSH.Host) {
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
@@ -89,7 +89,7 @@ func newExecutor(namespace string, cnct *config.Connector) (execute.Executor, er
 	}
 
 	// Default executor
-	if cnct.Host == "" || cnct.KeyFile == "" || cnct.User == "" {
+	if cnct.SSH.Host == "" || cnct.SSH.KeyFile == "" || cnct.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
 

@@ -39,9 +39,9 @@ func (exe executor) Execute() error {
 	for _, agent := range agents {
 		if agent.Name == exe.agent.Name {
 			// Only update ssh info
-			agent.KeyFile = exe.agent.KeyFile
-			agent.Port = exe.agent.Port
-			agent.User = exe.agent.User
+			agent.SSH.KeyFile = exe.agent.SSH.KeyFile
+			agent.SSH.Port = exe.agent.SSH.Port
+			agent.SSH.User = exe.agent.SSH.User
 			config.UpdateAgent(exe.namespace, agent)
 			return nil
 		}

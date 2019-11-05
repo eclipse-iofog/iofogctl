@@ -31,11 +31,11 @@ func unmarshallYAML(file []byte) (ctrl config.Controller, err error) {
 		ctrl.Replicas = 1
 	}
 	// Fix SSH port
-	if ctrl.Port == 0 {
-		ctrl.Port = 22
+	if ctrl.SSH.Port == 0 {
+		ctrl.SSH.Port = 22
 	}
 	// Format file paths
-	if ctrl.KeyFile, err = util.FormatPath(ctrl.KeyFile); err != nil {
+	if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
 		return
 	}
 	if ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig); err != nil {
@@ -49,7 +49,7 @@ func Validate(ctrl config.Controller) error {
 	if ctrl.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 	}
-	if ctrl.KubeConfig == "" && ((ctrl.Host != "localhost" && ctrl.Host != "127.0.0.1") && ctrl.Host == "") {
+	if ctrl.KubeConfig == "" && ((ctrl.SSH.Host != "localhost" && ctrl.SSH.Host != "127.0.0.1") && ctrl.SSH.Host == "") {
 		return util.NewInputError("To connect, for Controllers you must specify non-empty values for EITHER kubeconfig OR host")
 	}
 	return nil

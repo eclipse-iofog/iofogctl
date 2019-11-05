@@ -40,10 +40,10 @@ func (exe *remoteExecutor) GetName() string {
 func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
-		User:            exe.ctrl.User,
-		Host:            exe.ctrl.Host,
-		Port:            exe.ctrl.Port,
-		PrivKeyFilename: exe.ctrl.KeyFile,
+		User:            exe.ctrl.SSH.User,
+		Host:            exe.ctrl.SSH.Host,
+		Port:            exe.ctrl.SSH.Port,
+		PrivKeyFilename: exe.ctrl.SSH.KeyFile,
 		Version:         exe.ctrl.Version,
 		Repo:            exe.ctrl.Repo,
 		Token:           exe.ctrl.Token,
@@ -61,7 +61,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 	// Update controller (its a pointer, this is returned to caller)
-	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
+	exe.ctrl.Endpoint = exe.ctrl.SSH.Host + ":" + iofog.ControllerPortString
 
 	return
 }

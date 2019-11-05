@@ -28,7 +28,7 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Local executor
-	if util.IsLocalHost(ctrl.Host) {
+	if util.IsLocalHost(ctrl.SSH.Host) {
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
@@ -42,7 +42,7 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Default executor
-	if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
+	if ctrl.SSH.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 		return nil, util.NewError("Cannot execute delete command because Kube Config and SSH details for this Controller are not available")
 	}
 	return newRemoteExecutor(namespace, name), nil

@@ -17,27 +17,30 @@ spec:
   - name: k8s # Controller name
     kubeConfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
   - name: vanilla
-    user: serge # SSH user
-    host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
-    keyFile: ~/.ssh/id_rsa # SSH private key
+    ssh:
+      user: serge # SSH user
+      host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
+      keyFile: ~/.ssh/id_rsa # SSH private key
 ---
 apiVersion: iofog.org/v1
 kind: Agent
 metadata:
   name: agent1 # Agent name
 spec:
-  user: serge # SSH User
-  host: 35.239.157.151 # SSH host
-  keyFile: ~/.ssh/id_rsa # SSH private key
+  ssh:
+    user: serge # SSH User
+    host: 35.239.157.151 # SSH host
+    keyFile: ~/.ssh/id_rsa # SSH private key
 ---
 apiVersion: iofog.org/v1
 kind: Agent
 metadata:
   name: agent2
 spec:
-  user: serge
-  host: 35.232.114.32
-  keyFile: ~/.ssh/id_rsa
+  ssh:
+    user: serge
+    host: 35.232.114.32
+    keyFile: ~/.ssh/id_rsa
 
 ```
 The complete description of yaml file definition can be found at iofog.org

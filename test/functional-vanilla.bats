@@ -22,10 +22,11 @@ metadata:
 spec:
   controllers:
   - name: $NAME
-    user: $VANILLA_USER
-    host: $VANILLA_HOST
-    port: $VANILLA_PORT
-    keyFile: $KEY_FILE
+    ssh:
+      user: $VANILLA_USER
+      host: $VANILLA_HOST
+      port: $VANILLA_PORT
+      keyFile: $KEY_FILE
     version: $VANILLA_VERSION
   iofogUser:
     name: Testing
@@ -38,10 +39,11 @@ kind: Connector
 metadata:
   name: $NAME
 spec:
-  user: $VANILLA_USER
-  host: $VANILLA_HOST
-  port: $VANILLA_PORT
-  keyFile: $KEY_FILE
+  ssh:
+    user: $VANILLA_USER
+    host: $VANILLA_HOST
+    port: $VANILLA_PORT
+    keyFile: $KEY_FILE
   version: $VANILLA_VERSION" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml

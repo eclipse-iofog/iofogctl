@@ -26,11 +26,11 @@ func unmarshallYAML(file []byte) (agent config.Agent, err error) {
 		return
 	}
 
-	if agent.Port == 0 {
-		agent.Port = 22
+	if agent.SSH.Port == 0 {
+		agent.SSH.Port = 22
 	}
 	// Format file paths
-	if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
+	if agent.SSH.KeyFile, err = util.FormatPath(agent.SSH.KeyFile); err != nil {
 		return
 	}
 

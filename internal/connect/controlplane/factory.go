@@ -33,7 +33,7 @@ func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) 
 	}
 
 	// In YAML, the endpoint will come through Host variable
-	controlPlane.Controllers[0].Endpoint = formatEndpoint(controlPlane.Controllers[0].Host)
+	controlPlane.Controllers[0].Endpoint = formatEndpoint(controlPlane.Controllers[0].SSH.Host)
 	return newRemoteExecutor(controlPlane, namespace), nil
 }
 
@@ -57,7 +57,7 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 	}
 
 	// In manual approach, host address can be inferred from Endpoint variable
-	controlPlane.Controllers[0].Host = util.Before(endpoint, ":")
+	controlPlane.Controllers[0].SSH.Host = util.Before(endpoint, ":")
 	return newRemoteExecutor(controlPlane, namespace), nil
 }
 

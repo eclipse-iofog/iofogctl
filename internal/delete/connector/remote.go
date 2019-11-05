@@ -44,10 +44,10 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
-		User:            cnct.User,
-		Host:            cnct.Host,
-		Port:            cnct.Port,
-		PrivKeyFilename: cnct.KeyFile,
+		User:            cnct.SSH.User,
+		Host:            cnct.SSH.Host,
+		Port:            cnct.SSH.Port,
+		PrivKeyFilename: cnct.SSH.KeyFile,
 	}
 	installer := install.NewConnector(connectorOptions)
 
@@ -57,7 +57,7 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Clear Connector from Controller
-	if err = deleteConnectorFromController(exe.namespace, cnct.Host); err != nil {
+	if err = deleteConnectorFromController(exe.namespace, cnct.SSH.Host); err != nil {
 		return err
 	}
 

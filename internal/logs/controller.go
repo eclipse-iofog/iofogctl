@@ -43,7 +43,7 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Local
-	if ctrl.Host == "localhost" {
+	if ctrl.SSH.Host == "localhost" {
 		return util.NewInternalError("Not Implemented")
 	}
 
@@ -58,11 +58,11 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Remote
-	if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
+	if ctrl.SSH.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 		util.Check(util.NewError("Cannot get logs because SSH details for this Controller are not available"))
 	}
-	ssh := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
-	ssh.SetPort(ctrl.Port)
+	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.SSH.Host, ctrl.SSH.KeyFile)
+	ssh.SetPort(ctrl.SSH.Port)
 
 	if err = ssh.Connect(); err != nil {
 		return err

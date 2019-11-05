@@ -39,9 +39,9 @@ func (exe executor) Execute() error {
 	for _, controller := range controllers {
 		if controller.Name == exe.controller.Name {
 			// Only update ssh info
-			controller.KeyFile = exe.controller.KeyFile
-			controller.Port = exe.controller.Port
-			controller.User = exe.controller.User
+			controller.SSH.KeyFile = exe.controller.SSH.KeyFile
+			controller.SSH.Port = exe.controller.SSH.Port
+			controller.SSH.User = exe.controller.SSH.User
 			config.UpdateController(exe.namespace, controller)
 			return nil
 		}

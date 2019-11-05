@@ -100,8 +100,8 @@ func TestReadingControllers(t *testing.T) {
 				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedName, ctrl.Name)
 			}
 			expectedUser := "root" + strconv.Itoa(idx)
-			if ctrl.User != expectedUser {
-				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedUser, ctrl.User)
+			if ctrl.SSH.User != expectedUser {
+				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedUser, ctrl.SSH.User)
 			}
 
 			// Test single Controller queries
@@ -112,8 +112,8 @@ func TestReadingControllers(t *testing.T) {
 			if singleCtrl.Name != expectedName {
 				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedName, singleCtrl.Name)
 			}
-			if singleCtrl.User != expectedUser {
-				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedUser, singleCtrl.User)
+			if singlectrl.SSH.User != expectedUser {
+				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedUser, singlectrl.SSH.User)
 			}
 		}
 	}
@@ -133,8 +133,8 @@ func TesReadingtAgents(t *testing.T) {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedName, agent.Name)
 			}
 			expectedUser := "root" + strconv.Itoa(idx)
-			if agent.User != expectedUser {
-				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, agent.User)
+			if agent.SSH.User != expectedUser {
+				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, agent.SSH.User)
 			}
 
 			// Test single Agent queries
@@ -145,8 +145,8 @@ func TesReadingtAgents(t *testing.T) {
 			if singleAgent.Name != expectedName {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedName, singleAgent.Name)
 			}
-			if singleAgent.User != expectedUser {
-				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, singleAgent.User)
+			if singleagent.SSH.User != expectedUser {
+				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, singleagent.SSH.User)
 			}
 		}
 	}

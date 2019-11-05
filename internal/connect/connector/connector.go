@@ -39,9 +39,9 @@ func (exe executor) Execute() error {
 	for _, connector := range connectors {
 		if connector.Name == exe.connector.Name {
 			// Only update ssh info
-			connector.KeyFile = exe.connector.KeyFile
-			connector.Port = exe.connector.Port
-			connector.User = exe.connector.User
+			connector.SSH.KeyFile = exe.connector.SSH.KeyFile
+			connector.SSH.Port = exe.connector.SSH.Port
+			connector.SSH.User = exe.connector.SSH.User
 			config.UpdateConnector(exe.namespace, connector)
 			return nil
 		}

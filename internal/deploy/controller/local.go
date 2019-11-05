@@ -118,8 +118,8 @@ func (exe *localExecutor) Execute() error {
 	// Update controller (its a pointer, this is returned to caller)
 	controllerContainerConfig := exe.localControllerConfig
 	exe.ctrl.Endpoint = fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
-	exe.ctrl.Host = controllerContainerConfig.Host
-	exe.ctrl.User = currUser.Username
+	exe.ctrl.SSH.Host = controllerContainerConfig.Host
+	exe.ctrl.SSH.User = currUser.Username
 	exe.ctrl.Created = util.NowUTC()
 
 	return nil
