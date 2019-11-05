@@ -28,7 +28,9 @@ func TestLocal(t *testing.T) {
 	ns := "default"
 	ctrl := config.Controller{
 		Name: "test_local",
-		Host: "localhost",
+		SSH: config.SSH{
+			Host: "localhost",
+		},
 	}
 	if err := config.AddController(ns, ctrl); err != nil {
 		t.Errorf("Error when testing local and creating Controller in default namespace: %s", err.Error())
@@ -41,8 +43,10 @@ func TestLocal(t *testing.T) {
 func TestRemote(t *testing.T) {
 	ns := "default"
 	ctrl := config.Controller{
-		Name:       "test_remote",
-		KubeConfig: "~/.kube/config",
+		Name: "test_remote",
+		Kube: config.Kube{
+			Config: "~/.kube/config",
+		},
 	}
 	if err := config.AddController(ns, ctrl); err != nil {
 		t.Errorf("Error when testing remote creating Controller in default namespace: %s", err.Error())

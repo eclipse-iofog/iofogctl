@@ -112,8 +112,8 @@ func TestReadingControllers(t *testing.T) {
 			if singleCtrl.Name != expectedName {
 				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedName, singleCtrl.Name)
 			}
-			if singlectrl.SSH.User != expectedUser {
-				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedUser, singlectrl.SSH.User)
+			if singleCtrl.SSH.User != expectedUser {
+				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedUser, singleCtrl.SSH.User)
 			}
 		}
 	}
@@ -145,8 +145,8 @@ func TesReadingtAgents(t *testing.T) {
 			if singleAgent.Name != expectedName {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedName, singleAgent.Name)
 			}
-			if singleagent.SSH.User != expectedUser {
-				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, singleagent.SSH.User)
+			if singleAgent.SSH.User != expectedUser {
+				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedUser, singleAgent.SSH.User)
 			}
 		}
 	}
@@ -166,25 +166,29 @@ func TestWritingNamespace(t *testing.T) {
 func compareControllers(lhs, rhs Controller) bool {
 	equal := (lhs.Created == rhs.Created)
 	equal = equal && (lhs.Endpoint == rhs.Endpoint)
-	equal = equal && (lhs.Host == lhs.Host)
-	equal = equal && (lhs.KeyFile == rhs.KeyFile)
-	equal = equal && (lhs.KubeConfig == rhs.KubeConfig)
+	equal = equal && (lhs.SSH.Host == lhs.SSH.Host)
+	equal = equal && (lhs.SSH.KeyFile == rhs.SSH.KeyFile)
+	equal = equal && (lhs.Kube.Config == rhs.Kube.Config)
 	equal = equal && (lhs.Kube.StaticIP == rhs.Kube.StaticIP)
 	equal = equal && (lhs.Name == rhs.Name)
-	equal = equal && (lhs.User == lhs.User)
+	equal = equal && (lhs.SSH.User == lhs.SSH.User)
 
 	return equal
 }
 func TestWritingController(t *testing.T) {
 	ctrl := Controller{
-		Created:       "Now",
-		Endpoint:      "localhost:" + iofog.ControllerPortString,
-		Host:          "localhost",
-		KeyFile:       "~/.key/file",
-		KubeConfig:    "~/.kube/config",
-		Kube.StaticIP: "123.12.123.13",
-		Name:          "Hubert",
-		User:          "Kubert",
+		Created:  "Now",
+		Endpoint: "localhost:" + iofog.ControllerPortString,
+		SSH: SSH{
+			User:    "Kubert",
+			Host:    "localhost",
+			KeyFile: "~/.key/file",
+		},
+		Kube: Kube{
+			Config:   "~/.kube/config",
+			StaticIP: "123.12.123.13",
+		},
+		Name: "Hubert",
 	}
 	if err := AddController(writeNamespace, ctrl); err != nil {
 		t.Errorf("Error Creating controller in write namespace: %s", err.Error())
@@ -206,7 +210,7 @@ func TestWritingController(t *testing.T) {
 		t.Error("Expected different Controllers to not be identical")
 	}
 
-	ctrlTwo.Host = "changed"
+	ctrlTwo.SSH.Host = "changed"
 	if err = UpdateController(writeNamespace, ctrlTwo); err != nil {
 		t.Errorf("Error updating Controller in write namespace: %s", err.Error())
 	}
@@ -225,13 +229,13 @@ func TestWritingController(t *testing.T) {
 
 func compareAgents(lhs, rhs Agent) bool {
 	equal := (lhs.Created == rhs.Created)
-	equal = equal && (lhs.Host == rhs.Host)
+	equal = equal && (lhs.SSH.Host == rhs.SSH.Host)
 	equal = equal && (lhs.Image == rhs.Image)
-	equal = equal && (lhs.KeyFile == rhs.KeyFile)
+	equal = equal && (lhs.SSH.KeyFile == rhs.SSH.KeyFile)
 	equal = equal && (lhs.Name == rhs.Name)
-	equal = equal && (lhs.Port == rhs.Port)
+	equal = equal && (lhs.SSH.Port == rhs.SSH.Port)
 	equal = equal && (lhs.UUID == rhs.UUID)
-	equal = equal && (lhs.User == rhs.User)
+	equal = equal && (lhs.SSH.User == rhs.SSH.User)
 
 	return equal
 }
@@ -239,10 +243,12 @@ func compareAgents(lhs, rhs Agent) bool {
 func TestWritingAgent(t *testing.T) {
 	agent := Agent{
 		Created: "Now",
-		Host:    "localhost",
-		KeyFile: "~/.key/file",
-		Name:    "Hubert",
-		User:    "Kubert",
+		SSH: SSH{
+			Host:    "localhost",
+			User:    "Kubert",
+			KeyFile: "~/.key/file",
+		},
+		Name: "Hubert",
 	}
 	if err := AddAgent(writeNamespace, agent); err != nil {
 		t.Errorf("Error Creating Agent in write namespace: %s", err.Error())
@@ -264,7 +270,7 @@ func TestWritingAgent(t *testing.T) {
 		t.Error("Expected different Agents to not be identical")
 	}
 
-	agentTwo.Host = "changed"
+	agentTwo.SSH.Host = "changed"
 	if err = UpdateAgent(writeNamespace, agentTwo); err != nil {
 		t.Errorf("Error updating Agent in write namespace: %s", err.Error())
 	}
