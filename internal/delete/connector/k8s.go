@@ -43,6 +43,9 @@ func (exe *kubernetesExecutor) Execute() error {
 
 	// Instantiate Kubernetes object
 	k8s, err := install.NewKubernetes(cnct.KubeConfig, exe.namespace)
+	if err != nil {
+		return err
+	}
 
 	// Delete Connector on cluster
 	err = k8s.DeleteConnector(exe.name)

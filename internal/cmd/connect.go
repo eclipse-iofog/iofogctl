@@ -53,7 +53,7 @@ iofogctl connect --endpoint ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
 	cmd.Flags().StringVar(&opt.ControllerName, "name", "", "Name you would like to assign to Controller")
-	cmd.Flags().StringVar(&opt.ControllerEndpoint, "endpoint", "IP or IP:PORT of existing Controller", "")
+	cmd.Flags().StringVar(&opt.ControllerEndpoint, "endpoint", "", "IP or IP:PORT of existing Controller")
 	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Kubernetes config file. Typically ~/.kube/config")
 	cmd.Flags().StringVar(&opt.IofogUserEmail, "email", "", "ioFog user email address")
 	cmd.Flags().StringVar(&opt.IofogUserPass, "pass", "", "ioFog user password")

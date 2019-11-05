@@ -53,8 +53,8 @@ var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor,
 
 func Execute(opt Options) error {
 	// Check inputs
-	if opt.InputFile != "" && hasFlags(opt) {
-		return util.NewInputError("Either use a YAML file or provide Controller endpoint or kube config along with a Controller name and ioFog user email/password.")
+	if opt.InputFile != "" && (opt.ControllerEndpoint != "" || opt.KubeConfig != "") {
+		return util.NewInputError("Either use a YAML file or provide Controller endpoint or Kube config to connect")
 	}
 
 	// Check for existing namespace
@@ -119,8 +119,4 @@ func executeWithYAML(yamlFile, namespace string) error {
 
 func hasAllFlags(opt Options) bool {
 	return opt.ControllerName != "" && opt.IofogUserEmail != "" && opt.IofogUserPass != "" && (opt.KubeConfig != "" || opt.ControllerEndpoint != "")
-}
-
-func hasFlags(opt Options) bool {
-	return opt.KubeConfig != "" || opt.ControllerEndpoint != "" || opt.ControllerName != "" || opt.IofogUserEmail != "" || opt.IofogUserPass != ""
 }

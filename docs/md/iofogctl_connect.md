@@ -27,7 +27,7 @@ iofogctl connect --endpoint ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 
 ```
       --email string      ioFog user email address
-      --endpoint string    (default "IP or IP:PORT of existing Controller")
+      --endpoint string   IP or IP:PORT of existing Controller
   -f, --file string       YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
       --force             Overwrite existing namespace
   -h, --help              help for connect
