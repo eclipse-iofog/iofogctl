@@ -57,9 +57,9 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Host:               exe.cnct.SSH.Host,
 		Port:               exe.cnct.SSH.Port,
 		PrivKeyFilename:    exe.cnct.SSH.KeyFile,
-		Version:            exe.cnct.Version,
-		Repo:               exe.cnct.Repo,
-		Token:              exe.cnct.Token,
+		Version:            exe.cnct.Package.Version,
+		Repo:               exe.cnct.Package.Repo,
+		Token:              exe.cnct.Package.Token,
 		ControllerEndpoint: exe.controllerEndpoint,
 		IofogUser:          install.IofogUser(exe.iofogUser),
 	}

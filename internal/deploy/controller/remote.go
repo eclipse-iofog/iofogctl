@@ -44,9 +44,9 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Host:            exe.ctrl.SSH.Host,
 		Port:            exe.ctrl.SSH.Port,
 		PrivKeyFilename: exe.ctrl.SSH.KeyFile,
-		Version:         exe.ctrl.Version,
-		Repo:            exe.ctrl.Repo,
-		Token:           exe.ctrl.Token,
+		Version:         exe.ctrl.Package.Version,
+		Repo:            exe.ctrl.Package.Repo,
+		Token:           exe.ctrl.Package.Token,
 	}
 	installer := install.NewController(controllerOptions)
 

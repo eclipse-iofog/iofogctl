@@ -27,7 +27,8 @@ spec:
       host: $VANILLA_HOST
       port: $VANILLA_PORT
       keyFile: $KEY_FILE
-    version: $VANILLA_VERSION
+    package:
+      version: $VANILLA_VERSION
   iofogUser:
     name: Testing
     surname: Functional
@@ -44,7 +45,8 @@ spec:
     host: $VANILLA_HOST
     port: $VANILLA_PORT
     keyFile: $KEY_FILE
-  version: $VANILLA_VERSION" > test/conf/vanilla.yaml
+  package:
+    version: $VANILLA_VERSION" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController

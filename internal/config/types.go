@@ -24,6 +24,12 @@ const (
 	CatalogItemKind apps.Kind = "CatalogItem"
 )
 
+type Package struct {
+	Version string `yaml:"version,omitempty"`
+	Repo    string `yaml:"repo,omitempty"`
+	Token   string `yaml:"token,omitempty"`
+}
+
 type SSH struct {
 	User    string `yaml:"user,omitempty"`
 	Host    string `yaml:"host,omitempty"`
@@ -82,9 +88,7 @@ type Connector struct {
 	Endpoint         string            `yaml:"endpoint,omitempty"`
 	Image            string            `yaml:"image,omitempty"`
 	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
-	Version          string            `yaml:"version,omitempty"`
-	Repo             string            `yaml:",omitempty"`
-	Token            string            `yaml:",omitempty"`
+	Package          Package           `yaml:"package,omitempty"`
 }
 
 // Controller contains information for configuring a controller
@@ -95,9 +99,7 @@ type Controller struct {
 	Endpoint         string            `yaml:"endpoint,omitempty"`
 	Created          string            `yaml:"created,omitempty"`
 	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull images
-	Version          string            `yaml:"version,omitempty"`
-	Repo             string            `yaml:",omitempty"`
-	Token            string            `yaml:",omitempty"`
+	Package          Package           `yaml:"package,omitempty"`
 }
 
 // AgentConfiguration contains configuration information for a deployed agent
@@ -133,9 +135,7 @@ type Agent struct {
 	Created          string            `yaml:"created,omitempty"`
 	Image            string            `yaml:"image,omitempty"`
 	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
-	Version          string            `yaml:"version,omitempty"`
-	Repo             string            `yaml:",omitempty"`
-	Token            string            `yaml:",omitempty"`
+	Package          Package           `yaml:"package,omitempty"`
 }
 
 // Namespace contains information for configuring a namespace
