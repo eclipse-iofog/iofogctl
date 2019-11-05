@@ -52,7 +52,8 @@ spec:
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeConfig: $KUBE_CONFIG
+    kube:
+      config: $KUBE_CONFIG
     replicas: 2
   images:
     controller: $CONTROLLER_IMAGE
@@ -80,7 +81,8 @@ metadata:
   name: $CNCT_A
 spec:
   image: $CONNECTOR_IMAGE
-  kubeConfig: $KUBE_CONFIG
+  kube:
+    config: $KUBE_CONFIG
 ---
 apiVersion: iofog.org/v1
 kind: Connector
@@ -88,7 +90,8 @@ metadata:
   name: $CNCT_B
 spec:
   image: $CONNECTOR_IMAGE
-  kubeConfig: $KUBE_CONFIG" > test/conf/cncts.yaml
+  kube:
+    config: $KUBE_CONFIG" > test/conf/cncts.yaml
   test iofogctl -v -n "$NS" deploy -f test/conf/cncts.yaml
   checkConnectors "$CNCT_A" "$CNCT_B"
 }

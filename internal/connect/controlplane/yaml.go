@@ -37,7 +37,7 @@ func unmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 		if ctrlPlane.Controllers[idx].SSH.KeyFile, err = util.FormatPath(ctrlPlane.Controllers[idx].SSH.KeyFile); err != nil {
 			return
 		}
-		if ctrlPlane.Controllers[idx].KubeConfig, err = util.FormatPath(ctrlPlane.Controllers[idx].KubeConfig); err != nil {
+		if ctrlPlane.Controllers[idx].Kube.Config, err = util.FormatPath(ctrlPlane.Controllers[idx].Kube.Config); err != nil {
 			return
 		}
 	}

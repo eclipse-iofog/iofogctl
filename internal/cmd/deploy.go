@@ -37,11 +37,12 @@ metadata:
 spec:
   controllers:
   - name: k8s # Controller name
-    kubeConfig: ~/.kube/conf # Will deploy a controller in a kubernetes cluster
+    kube:
+      config: ~/.kube/config # Will deploy a controller in a kubernetes cluster
   - name: vanilla
     ssh:
       user: serge # SSH user
-      host: 35.239.157.151 # SSH Host - Will deploy a controller as a standalone binary
+      host: 35.239.157.151 # Will deploy a controller as a standalone binary
       keyFile: ~/.ssh/id_rsa # SSH private key
 ---
 apiVersion: iofog.org/v1

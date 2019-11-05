@@ -42,7 +42,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Instantiate Kubernetes object
-	k8s, err := install.NewKubernetes(cnct.KubeConfig, exe.namespace)
+	k8s, err := install.NewKubernetes(cnct.Kube.Config, exe.namespace)
 	if err != nil {
 		return err
 	}

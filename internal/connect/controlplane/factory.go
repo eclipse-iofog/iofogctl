@@ -28,7 +28,7 @@ func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) 
 	}
 
 	// Kubernetes controller
-	if controlPlane.Controllers[0].KubeConfig != "" {
+	if controlPlane.Controllers[0].Kube.Config != "" {
 		return newKubernetesExecutor(controlPlane, namespace), nil
 	}
 
@@ -45,9 +45,11 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 		},
 		Controllers: []config.Controller{
 			{
-				Name:       name,
-				Endpoint:   formatEndpoint(endpoint),
-				KubeConfig: kubeConfig,
+				Name:     name,
+				Endpoint: formatEndpoint(endpoint),
+				Kube: config.Kube{
+					Config: kubeConfig,
+				},
 			},
 		},
 	}

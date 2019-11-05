@@ -37,7 +37,7 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Kubernetes executor
-	if cnct.KubeConfig != "" {
+	if cnct.Kube.Config != "" {
 		return newKubernetesExecutor(namespace, name), nil
 	}
 

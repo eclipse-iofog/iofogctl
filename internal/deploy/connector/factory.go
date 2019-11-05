@@ -84,7 +84,7 @@ func newExecutor(namespace string, cnct *config.Connector) (execute.Executor, er
 		return newFacadeExecutor(exe, namespace, cnct), nil
 	}
 
-	if cnct.KubeConfig != "" {
+	if cnct.Kube.Config != "" {
 		return newFacadeExecutor(newKubernetesExecutor(namespace, cnct), namespace, cnct), nil
 	}
 

@@ -46,7 +46,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	exe.controlPlane = controlPlane
 
 	// Get Kubernetes installer
-	installer, err := install.NewKubernetes(exe.cnct.KubeConfig, exe.namespace)
+	installer, err := install.NewKubernetes(exe.cnct.Kube.Config, exe.namespace)
 	if err != nil {
 		return
 	}

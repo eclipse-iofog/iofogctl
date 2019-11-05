@@ -31,6 +31,13 @@ type SSH struct {
 	KeyFile string `yaml:"keyFile,omitempty"`
 }
 
+type Kube struct {
+	Config      string `yaml:"config,omitempty"`
+	StaticIP    string `yaml:"staticIP,omitempty"`
+	Replicas    int    `yaml:"replicas,omitempty"`
+	ServiceType string `yaml:"serviceType,omitempty"`
+}
+
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
 	Name     string `yaml:"name,omitempty"`
@@ -70,12 +77,11 @@ type ControlPlane struct {
 type Connector struct {
 	Name             string            `yaml:"name,omitempty"`
 	SSH              SSH               `yaml:"ssh,omitempty"`
-	KubeConfig       string            `yaml:"kubeConfig,omitempty"`
-	KubeConnectorIP  string            `yaml:"kubeConnectorIP,omitempty"`
-	Image            string            `yaml:"image,omitempty"`
-	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
+	Kube             Kube              `yaml:"kube,omitempty"`
 	Created          string            `yaml:"created,omitempty"`
 	Endpoint         string            `yaml:"endpoint,omitempty"`
+	Image            string            `yaml:"image,omitempty"`
+	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull image
 	Version          string            `yaml:"version,omitempty"`
 	Repo             string            `yaml:",omitempty"`
 	Token            string            `yaml:",omitempty"`
@@ -85,10 +91,7 @@ type Connector struct {
 type Controller struct {
 	Name             string            `yaml:"name,omitempty"`
 	SSH              SSH               `yaml:"ssh,omitempty"`
-	KubeConfig       string            `yaml:"kubeConfig,omitempty"`
-	Replicas         int               `yaml:"replicas,omitempty"`
-	ServiceType      string            `yaml:"serviceType,omitempty"`
-	KubeControllerIP string            `yaml:"kubeControllerIP,omitempty"`
+	Kube             Kube              `yaml:"kube,omitempty"`
 	Endpoint         string            `yaml:"endpoint,omitempty"`
 	Created          string            `yaml:"created,omitempty"`
 	ImageCredentials DockerCredentials `yaml:"imageCredentials,omitempty"` // Optional credentials if needed to pull images

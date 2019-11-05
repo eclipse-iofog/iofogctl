@@ -48,8 +48,8 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// K8s
-	if ctrl.KubeConfig != "" {
-		out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", "logs", "-l", "name=controller", "-n", "iofog")
+	if ctrl.Kube.Config != "" {
+		out, err := util.Exec("KUBECONFIG="+ctrl.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", "iofog")
 		if err != nil {
 			return err
 		}

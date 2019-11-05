@@ -31,7 +31,7 @@ func unmarshallYAML(file []byte) (connector config.Connector, err error) {
 	if connector.SSH.Port == 0 {
 		connector.SSH.Port = 22
 	}
-	if connector.KubeConfig, err = util.FormatPath(connector.KubeConfig); err != nil {
+	if connector.Kube.Config, err = util.FormatPath(connector.Kube.Config); err != nil {
 		return
 	}
 

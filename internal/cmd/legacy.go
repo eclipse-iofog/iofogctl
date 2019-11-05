@@ -105,8 +105,8 @@ iofogctl legacy agent NAME status`,
 				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
 				cliCommand := []string{"sudo", "iofog-controller"}
-				if ctrl.KubeConfig != "" {
-					k8sExecute(ctrl.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
+				if ctrl.Kube.Config != "" {
+					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
 				} else if util.IsLocalHost(ctrl.SSH.Host) {
 					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
 				} else {
@@ -134,8 +134,8 @@ iofogctl legacy agent NAME status`,
 				connector, err := config.GetConnector(namespace, name)
 				util.Check(err)
 				cliCommand := []string{"sudo", "iofog-connector"}
-				if connector.KubeConfig != "" {
-					k8sExecute(connector.KubeConfig, namespace, "name=connector-"+name, cliCommand, args[2:])
+				if connector.Kube.Config != "" {
+					k8sExecute(connector.Kube.Config, namespace, "name=connector-"+name, cliCommand, args[2:])
 				} else if util.IsLocalHost(connector.SSH.Host) {
 					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
 				} else {
