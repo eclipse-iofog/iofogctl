@@ -40,19 +40,19 @@ spec:
     kube:
       config: ~/.kube/config # Will deploy a controller in a kubernetes cluster
   - name: vanilla
+    host: 35.239.157.151 # Will deploy a controller as a standalone binary
     ssh:
       user: serge # SSH user
-      host: 35.239.157.151 # Will deploy a controller as a standalone binary
-      keyFile: ~/.ssh/id_rsa # SSH private key
+	  keyFile: ~/.ssh/id_rsa # SSH private key
 ---
 apiVersion: iofog.org/v1
 kind: Agent
 metadata:
   name: agent1 # Agent name
 spec:
+  host: 35.239.157.151 # SSH host
   ssh:
     user: serge # SSH User
-    host: 35.239.157.151 # SSH host
     keyFile: ~/.ssh/id_rsa # SSH private key
 ---
 apiVersion: iofog.org/v1
@@ -60,9 +60,9 @@ kind: Agent
 metadata:
   name: agent2
 spec:
+  host: 35.232.114.32
   ssh:
     user: serge
-    host: 35.232.114.32
     keyFile: ~/.ssh/id_rsa
 ` + "\n```\n" + `The complete description of yaml file definition can be found at iofog.org`,
 		Run: func(cmd *cobra.Command, args []string) {
