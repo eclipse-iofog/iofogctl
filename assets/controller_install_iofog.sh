@@ -56,7 +56,7 @@ install_deps() {
 
 deploy_controller() {
 	# Nuke any existing instances
-	if [ ! -z $(lsof -ti tcp:51121) ]; then
+	if [ ! -z "$(lsof -ti tcp:51121)" ]; then
 		lsof -ti tcp:51121 | xargs kill
 	fi
 
