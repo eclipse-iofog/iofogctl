@@ -12,7 +12,7 @@ iofogctl delete all -n "$NAMESPACE" -v
 kubectl delete kogs/iokog -n "$NAMESPACE"
 kubectl delete all --all -n "$NAMESPACE"
 kubectl delete ns "$NAMESPACE"
-iofogctl disconnect "$NAMESPACE" -v
+iofogctl disconnect -n "$NAMESPACE" -v
 iofogctl delete namespace "$NAMESPACE" -v
 
 exit 0

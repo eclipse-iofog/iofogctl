@@ -14,7 +14,10 @@
 package connectcontrolplane
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
@@ -29,5 +32,40 @@ func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) 
 		return newKubernetesExecutor(controlPlane, namespace), nil
 	}
 
+	// In YAML, the endpoint will come through Host variable
+	controlPlane.Controllers[0].Endpoint = formatEndpoint(controlPlane.Controllers[0].Host)
 	return newRemoteExecutor(controlPlane, namespace), nil
+}
+
+func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
+	controlPlane := config.ControlPlane{
+		IofogUser: config.IofogUser{
+			Email:    email,
+			Password: password,
+		},
+		Controllers: []config.Controller{
+			{
+				Name:       name,
+				Endpoint:   formatEndpoint(endpoint),
+				KubeConfig: kubeConfig,
+			},
+		},
+	}
+
+	if kubeConfig != "" {
+		return newKubernetesExecutor(controlPlane, namespace), nil
+	}
+
+	// In manual approach, host address can be inferred from Endpoint variable
+	controlPlane.Controllers[0].Host = util.Before(endpoint, ":")
+	return newRemoteExecutor(controlPlane, namespace), nil
+}
+
+func formatEndpoint(endpoint string) string {
+	before := util.Before(endpoint, ":")
+	after := util.After(endpoint, ":")
+	if after == "" {
+		after = iofog.ControllerPortString
+	}
+	return before + ":" + after
 }

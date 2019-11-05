@@ -5,6 +5,8 @@
 
 NS="$NAMESPACE"
 NS2="$NS"_2
+USER_PW="S5gYVgLEZV"
+USER_EMAIL="user@domain.com"
 
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
@@ -28,8 +30,8 @@ spec:
   iofogUser:
     name: Testing
     surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
+    email: $USER_EMAIL
+    password: $USER_PW
 ---
 apiVersion: iofog.org/v1
 kind: Connector
@@ -86,7 +88,7 @@ spec:
   checkApplication
 }
 
-@test "Connect in another namespace" {
+@test "Connect in another namespace using file" {
   test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
   checkController "$NS2"
   checkConnector "$NS2"
@@ -96,6 +98,23 @@ spec:
     local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS2" legacy agent "$AGENT_NAME" status
   done
+}
+
+@test "Disconnect other namespace" {
+  test iofogctl -v -n "$NS2" disconnect
+  checkControllerNegative "$NS2"
+  checkConnectorNegative "$NS2"
+  checkAgentsNegative "$NS2"
+  checkApplicationNegative "$NS2"
+}
+
+@test "Connect in other namespace using flags" {
+  initVanillaController
+  CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
+  test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
+  checkController
+  checkConnector
+  checkAgents
 }
 
 @test "Disconnect other namespace" {

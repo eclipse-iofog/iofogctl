@@ -50,7 +50,7 @@ func Before(input string, substr string) string {
 func After(input string, substr string) string {
 	pos := strings.Index(input, substr)
 	if pos == -1 || pos >= len(input)-1 {
-		return input
+		return ""
 	}
 	return input[pos+1:]
 }
