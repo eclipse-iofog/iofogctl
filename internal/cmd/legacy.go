@@ -104,7 +104,7 @@ iofogctl legacy agent NAME status`,
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
-				cliCommand := []string{"sudo", "iofog-controller"}
+				cliCommand := []string{"iofog-controller"}
 				if ctrl.Kube.Config != "" {
 					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
 				} else if util.IsLocalHost(ctrl.Host) {
