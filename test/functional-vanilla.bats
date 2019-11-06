@@ -142,7 +142,7 @@ spec:
   done
 }
 
-@test "Disconnect other namespace" {
+@test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
   checkConnectorNegative "$NS2"
