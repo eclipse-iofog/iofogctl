@@ -58,8 +58,6 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 		return newKubernetesExecutor(controlPlane, namespace), nil
 	}
 
-	// In manual approach, host address can be inferred from Endpoint variable
-	controlPlane.Controllers[0].Host = util.Before(endpoint, ":")
 	return newRemoteExecutor(controlPlane, namespace), nil
 }
 

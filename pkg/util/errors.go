@@ -16,6 +16,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Check error and exit
@@ -139,4 +140,25 @@ func NewUnmarshalError(message string) *UnmarshalError {
 
 func (err *UnmarshalError) Error() string {
 	return fmt.Sprintf("Failed to unmarshal input file. \n%s\nMake sure to use camel case field names. E.g. `keyFile: ~/.ssh/id_rsa`", err.message)
+}
+
+type NoConfigError struct {
+	message string
+}
+
+func NewNoConfigError(resource string) *NoConfigError {
+	res := strings.ToLower(resource)
+	var kubeText string
+	if res == "connector" || res == "controller" {
+		kubeText = "Kube Config and"
+	}
+	message := fmt.Sprintf("Cannot perform command because %s SSH details for this %s are not available. Use the configure command to add required details.", kubeText, res)
+
+	return &NoConfigError{
+		message: message,
+	}
+}
+
+func (err *NoConfigError) Error() string {
+	return err.message
 }

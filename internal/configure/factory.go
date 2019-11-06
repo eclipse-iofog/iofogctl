@@ -23,6 +23,7 @@ type Options struct {
 	Namespace    string
 	Name         string
 	KubeConfig   string
+	Host         string
 	KeyFile      string
 	User         string
 	Port         int
@@ -35,6 +36,9 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	case "connector":
 		return newConnectorExecutor(opt), nil
 	case "agent":
+		if opt.Host != "" {
+			return nil, util.NewInputError("Cannot change host address of Agent")
+		}
 		return newAgentExecutor(opt), nil
 	default:
 		msg := "Unsupported resource type: '" + opt.ResourceType + "'"

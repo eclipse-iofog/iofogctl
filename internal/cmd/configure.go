@@ -60,9 +60,10 @@ iofogctl configure connector NAME --kube KUBECONFIG` + fmt.Sprintf("\n\nValid re
 			util.Check(err)
 		},
 	}
-	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host that iofogctl must SSH into to install Controller service")
-	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key that iofogctl must use to SSH into remote host to install Controller service")
-	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Path to Kubernetes configuration file that iofogctl uses to install Controller service to Kubernetes cluster")
+	cmd.Flags().StringVar(&opt.Host, "host", "", "Hostname of remote host")
+	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host")
+	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key")
+	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Path to Kubernetes configuration file")
 	cmd.Flags().IntVar(&opt.Port, "port", 0, "Port number that iofogctl uses to SSH into remote hosts")
 
 	return cmd

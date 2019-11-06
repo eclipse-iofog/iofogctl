@@ -25,10 +25,11 @@ Valid resources are: controller, connector, agent
 
 ```
   -h, --help          help for configure
-      --key string    Path to private SSH key that iofogctl must use to SSH into remote host to install Controller service
-      --kube string   Path to Kubernetes configuration file that iofogctl uses to install Controller service to Kubernetes cluster
+      --host string   Hostname of remote host
+      --key string    Path to private SSH key
+      --kube string   Path to Kubernetes configuration file
       --port int      Port number that iofogctl uses to SSH into remote hosts
-      --user string   Username of remote host that iofogctl must SSH into to install Controller service
+      --user string   Username of remote host
 ```
 
 ### Options inherited from parent commands
