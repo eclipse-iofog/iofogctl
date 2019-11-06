@@ -136,6 +136,25 @@ spec:
   checkAgents
 }
 
+@test "Configure Controller and Connector" {
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube "$KUBE_CONFIG"
+  done
+  test iofogctl -v -n "$NS" logs controller "$NAME"
+  checkLegacyController
+  checkLegacyConnector
+}
+
+@test "Configure Agents" {
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS" configure agent "$AGENT_NAME" --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX}"
+    test iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME"
+  done
+}
+
 @test "Delete Agents" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
@@ -144,13 +163,6 @@ spec:
   done
   checkAgentsNegative
   sleep 30 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
-}
-
-@test "Configure Controller and Connector" {
-  for resource in controller connector; do
-    test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube fake
-    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep config | sed "s|.*fake.*|fake|g") ]]
-  done
 }
 
 @test "Deploy Controller and Connector for idempotence" {
