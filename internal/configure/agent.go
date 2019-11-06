@@ -15,6 +15,7 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentExecutor struct {
@@ -23,6 +24,7 @@ type agentExecutor struct {
 	keyFile   string
 	user      string
 	port      int
+	host      string
 }
 
 func newAgentExecutor(opt Options) *agentExecutor {
@@ -32,6 +34,7 @@ func newAgentExecutor(opt Options) *agentExecutor {
 		keyFile:   opt.KeyFile,
 		user:      opt.User,
 		port:      opt.Port,
+		host:      opt.Host,
 	}
 }
 
@@ -40,6 +43,10 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
+	if exe.host != "" {
+		return util.NewInputError("Cannot change host address of Agents")
+	}
+
 	// Get config
 	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {

@@ -29,6 +29,13 @@ type Options struct {
 	Port         int
 }
 
+var multipleResources = map[string]bool{
+	"all":         true,
+	"controllers": true,
+	"connectors":  true,
+	"agents":      true,
+}
+
 func NewExecutor(opt Options) (execute.Executor, error) {
 	switch opt.ResourceType {
 	case "controller":
@@ -36,12 +43,11 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	case "connector":
 		return newConnectorExecutor(opt), nil
 	case "agent":
-		if opt.Host != "" {
-			return nil, util.NewInputError("Cannot change host address of Agent")
-		}
 		return newAgentExecutor(opt), nil
 	default:
-		msg := "Unsupported resource type: '" + opt.ResourceType + "'"
-		return nil, util.NewInputError(msg)
+		if _, exists := multipleResources[opt.ResourceType]; !exists {
+			return nil, util.NewInputError("Unsupported resource: " + opt.ResourceType)
+		}
+		return newMultipleExecutor(opt), nil
 	}
 }

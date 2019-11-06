@@ -24,17 +24,28 @@ import (
 
 func newConfigureCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"controller", "connector", "agent"}
+	var validResources = []string{"controller", "connector", "agent", "all", "agents", "controllers", "connectors"}
 	// Instantiate options
 	var opt configure.Options
 
 	cmd := &cobra.Command{
 		Use:   "configure resource NAME",
 		Short: "Configure SSH details for an existing resource",
-		Long:  `Configure SSH details for an existing resource.`,
-		Example: `iofogctl configure controller NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agent NAME --port PORTNUM
-iofogctl configure connector NAME --kube KUBECONFIG` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+		Long: `Configure SSH details for an existing resource.
+
+Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
+		Example: `iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure connector NAME --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controller NAME --kube KUBECONFIG
+iofogctl configure connector NAME --kube KUBECONFIG
+iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
+
+iofogctl configure all --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port PORTNUM
+iofogctl configure connectors --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
+` + fmt.Sprintf("\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				util.Check(util.NewInputError("Must specify a resource to configure"))
@@ -43,6 +54,10 @@ iofogctl configure connector NAME --kube KUBECONFIG` + fmt.Sprintf("\n\nValid re
 			opt.ResourceType = args[0]
 			if len(args) > 1 {
 				opt.Name = args[1]
+			} else {
+				if opt.ResourceType != "all" && opt.ResourceType != "controllers" && opt.ResourceType != "connectors" && opt.ResourceType != "agents" {
+					util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
+				}
 			}
 
 			var err error
