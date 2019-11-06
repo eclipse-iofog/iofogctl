@@ -150,9 +150,9 @@ func NewNoConfigError(resource string) *NoConfigError {
 	res := strings.ToLower(resource)
 	var kubeText string
 	if res == "connector" || res == "controller" {
-		kubeText = "Kube Config and"
+		kubeText = "Kube Config and "
 	}
-	message := fmt.Sprintf("Cannot perform command because %s SSH details for this %s are not available. Use the configure command to add required details.", kubeText, res)
+	message := fmt.Sprintf("Cannot perform command because %sSSH details for this %s are not available. Use the configure command to add required details.", kubeText, res)
 
 	return &NoConfigError{
 		message: message,
