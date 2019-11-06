@@ -38,27 +38,23 @@ func (exe *kubernetesExecutor) GetName() string {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Get Kubernetes installer
-	installer, err := install.NewKubernetes(exe.ctrl.KubeConfig, exe.namespace)
+	installer, err := install.NewKubernetes(exe.ctrl.Kube.Config, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	if err = installer.SetImages(exe.controlPlane.Images); err != nil {
-		return err
-	}
-	if exe.ctrl.KubeControllerIP != "" {
-		installer.SetControllerIP(exe.ctrl.KubeControllerIP)
-	}
-	if exe.ctrl.ServiceType != "" {
-		if err = installer.SetControllerServiceType(exe.ctrl.ServiceType); err != nil {
-			return
-		}
+	installer.SetKubeletImage(exe.ctrl.Kube.Images.Kubelet)
+	installer.SetOperatorImage(exe.ctrl.Kube.Images.Operator)
+	installer.SetControllerImage(exe.ctrl.Container.Image)
+	installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
+	if err = installer.SetControllerServiceType(exe.ctrl.Kube.ServiceType); err != nil {
+		return
 	}
 
 	replicas := 1
-	if exe.ctrl.Replicas != 0 {
-		replicas = exe.ctrl.Replicas
+	if exe.ctrl.Kube.Replicas != 0 {
+		replicas = exe.ctrl.Kube.Replicas
 	}
 	// Create controller on cluster
 	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {

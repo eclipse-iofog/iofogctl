@@ -48,8 +48,8 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// K8s
-	if ctrl.KubeConfig != "" {
-		out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", "logs", "-l", "name=controller", "-n", "iofog")
+	if ctrl.Kube.Config != "" {
+		out, err := util.Exec("KUBECONFIG="+ctrl.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", "iofog")
 		if err != nil {
 			return err
 		}
@@ -58,11 +58,11 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Remote
-	if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
+	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 		util.Check(util.NewError("Cannot get logs because SSH details for this Controller are not available"))
 	}
-	ssh := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
-	ssh.SetPort(ctrl.Port)
+	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
+	ssh.SetPort(ctrl.SSH.Port)
 
 	if err = ssh.Connect(); err != nil {
 		return err

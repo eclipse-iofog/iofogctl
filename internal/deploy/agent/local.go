@@ -44,14 +44,14 @@ func getController(namespace string) (*config.Controller, error) {
 
 func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer) (*localExecutor, error) {
 	// Get Controller LocalContainerConfig
-	controllerContainerConfig := install.NewLocalControllerConfig(make(map[string]string), install.Credentials{})
+	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	return &localExecutor{
 		namespace: namespace,
 		agent:     agent,
 		client:    client,
-		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Image, controllerContainerConfig, install.Credentials{
-			User:     agent.ImageCredentials.User,
-			Password: agent.ImageCredentials.Password,
+		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Container.Image, controllerContainerConfig, install.Credentials{
+			User:     agent.Container.Credentials.User,
+			Password: agent.Container.Credentials.Password,
 		}),
 	}, nil
 }
@@ -90,8 +90,8 @@ func (exe *localExecutor) Execute() error {
 
 	// Deploy agent image
 	util.SpinStart("Deploying Agent container")
-	if exe.agent.Image == "" {
-		exe.agent.Image = exe.localAgentConfig.DefaultImage
+	if exe.agent.Container.Image == "" {
+		exe.agent.Container.Image = exe.localAgentConfig.DefaultImage
 	}
 
 	// If container already exists, clean it
@@ -133,7 +133,7 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Return new Agent config because variable is a pointer
-	exe.agent.User = currUser.Username
+	exe.agent.SSH.User = currUser.Username
 	exe.agent.Host = fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
 	exe.agent.UUID = uuid
 

@@ -42,14 +42,14 @@ func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 	for idx := range controlPlane.Controllers {
 		ctrl := &controlPlane.Controllers[idx]
 		// Fix SSH port
-		if ctrl.Port == 0 {
-			ctrl.Port = 22
+		if ctrl.SSH.Port == 0 {
+			ctrl.SSH.Port = 22
 		}
 		// Format file paths
-		if ctrl.KeyFile, err = util.FormatPath(ctrl.KeyFile); err != nil {
+		if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
 			return
 		}
-		if ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig); err != nil {
+		if ctrl.Kube.Config, err = util.FormatPath(ctrl.Kube.Config); err != nil {
 			return
 		}
 	}

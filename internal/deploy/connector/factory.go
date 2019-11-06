@@ -84,12 +84,12 @@ func newExecutor(namespace string, cnct *config.Connector) (execute.Executor, er
 		return newFacadeExecutor(exe, namespace, cnct), nil
 	}
 
-	if cnct.KubeConfig != "" {
+	if cnct.Kube.Config != "" {
 		return newFacadeExecutor(newKubernetesExecutor(namespace, cnct), namespace, cnct), nil
 	}
 
 	// Default executor
-	if cnct.Host == "" || cnct.KeyFile == "" || cnct.User == "" {
+	if cnct.Host == "" || cnct.SSH.KeyFile == "" || cnct.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
 

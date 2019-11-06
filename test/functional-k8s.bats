@@ -39,20 +39,23 @@ spec:
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeConfig: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
+    container:
+      image: $CONTROLLER_IMAGE
+    kube:
+      config: $KUBE_CONFIG
+      images:
+        operator: $OPERATOR_IMAGE
+        kubelet: $KUBELET_IMAGE
 ---
 apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
 spec:
-  kubeConfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+  container:
+    image: $CONNECTOR_IMAGE
+  kube:
+    config: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -146,7 +149,7 @@ spec:
 @test "Configure Controller and Connector" {
   for resource in controller connector; do
     test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube fake
-    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep kubeConfig | sed "s|.*fake.*|fake|g") ]]
+    [[ "fake" == $(iofogctl -n "$NS" describe "$resource" "$NAME" | grep config | sed "s|.*fake.*|fake|g") ]]
   done
 }
 
@@ -164,20 +167,23 @@ spec:
     password: $USER_PW
   controllers:
   - name: $NAME
-    kubeConfig: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    connector: $CONNECTOR_IMAGE
-    scheduler: $SCHEDULER_IMAGE
-    operator: $OPERATOR_IMAGE
-    kubelet: $KUBELET_IMAGE
+    container:
+      image: $CONTROLLER_IMAGE
+    kube:
+      config: $KUBE_CONFIG
+      images:
+        operator: $OPERATOR_IMAGE
+        kubelet: $KUBELET_IMAGE
 ---
 apiVersion: iofog.org/v1
 kind: Connector 
 metadata:
   name: $NAME
 spec:
-  kubeConfig: $KUBE_CONFIG" > test/conf/k8s.yaml
+  container:
+    image: $CONNECTOR_IMAGE
+  kube:
+    config: $KUBE_CONFIG" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController

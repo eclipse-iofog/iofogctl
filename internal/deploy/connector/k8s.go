@@ -46,17 +46,13 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	exe.controlPlane = controlPlane
 
 	// Get Kubernetes installer
-	installer, err := install.NewKubernetes(exe.cnct.KubeConfig, exe.namespace)
+	installer, err := install.NewKubernetes(exe.cnct.Kube.Config, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	if exe.cnct.Image != "" {
-		if err = installer.SetImages(map[string]string{"connector": exe.cnct.Image}); err != nil {
-			return err
-		}
-	}
+	installer.SetConnectorImage(exe.cnct.Container.Image)
 
 	// Create connector on cluster
 	if err = installer.CreateConnector(exe.cnct.Name, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {

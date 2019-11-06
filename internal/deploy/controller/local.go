@@ -38,9 +38,9 @@ func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane co
 		namespace: namespace,
 		ctrl:      ctrl,
 		client:    client,
-		localControllerConfig: install.NewLocalControllerConfig(controlPlane.Images, install.Credentials{
-			User:     ctrl.ImageCredentials.User,
-			Password: ctrl.ImageCredentials.Password,
+		localControllerConfig: install.NewLocalControllerConfig(ctrl.Container.Image, install.Credentials{
+			User:     ctrl.Container.Credentials.User,
+			Password: ctrl.Container.Credentials.Password,
 		}),
 		iofogUser: controlPlane.IofogUser,
 	}, nil
@@ -119,7 +119,7 @@ func (exe *localExecutor) Execute() error {
 	controllerContainerConfig := exe.localControllerConfig
 	exe.ctrl.Endpoint = fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
 	exe.ctrl.Host = controllerContainerConfig.Host
-	exe.ctrl.User = currUser.Username
+	exe.ctrl.SSH.User = currUser.Username
 	exe.ctrl.Created = util.NowUTC()
 
 	return nil

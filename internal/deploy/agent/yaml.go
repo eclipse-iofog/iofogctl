@@ -30,11 +30,11 @@ func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
 		return
 	}
 
-	if agent.Port == 0 {
-		agent.Port = 22
+	if agent.SSH.Port == 0 {
+		agent.SSH.Port = 22
 	}
 	// Format file paths
-	if agent.KeyFile, err = util.FormatPath(agent.KeyFile); err != nil {
+	if agent.SSH.KeyFile, err = util.FormatPath(agent.SSH.KeyFile); err != nil {
 		return
 	}
 
@@ -45,7 +45,7 @@ func Validate(agent config.Agent) error {
 	if agent.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Agents")
 	}
-	if (agent.Host != "localhost" && agent.Host != "127.0.0.1") && (agent.Host == "" || agent.User == "" || agent.KeyFile == "") {
+	if (agent.Host != "localhost" && agent.Host != "127.0.0.1") && (agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "") {
 		return util.NewInputError("For Agents you must specify non-empty values for host, user, and keyfile")
 	}
 	return nil

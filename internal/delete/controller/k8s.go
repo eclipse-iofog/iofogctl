@@ -42,7 +42,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Instantiate Kubernetes object
-	k8s, err := install.NewKubernetes(ctrl.KubeConfig, exe.namespace)
+	k8s, err := install.NewKubernetes(ctrl.Kube.Config, exe.namespace)
 
 	// Delete Controller on cluster
 	err = k8s.DeleteController()

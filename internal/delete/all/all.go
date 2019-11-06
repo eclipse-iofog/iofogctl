@@ -88,7 +88,7 @@ func Execute(namespace string) error {
 			}
 			// TODO: Replace serial execution when CRD updated
 			// Kubernetes Connectors cannot run in parallel
-			if cnct.KubeConfig != "" {
+			if cnct.Kube.Config != "" {
 				if err = exe.Execute(); err != nil {
 					return err
 				}

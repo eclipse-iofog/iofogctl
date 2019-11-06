@@ -26,20 +26,20 @@ func UnmarshallYAML(file []byte) (connector config.Connector, err error) {
 		return
 	}
 	// None specified
-	if connector.KubeConfig == "" && (connector.Host == "" || connector.User == "" || connector.KeyFile == "") {
+	if connector.Kube.Config == "" && (connector.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "") {
 		return
 	}
 
 	// Pre-process the fields
 	// Fix SSH port
-	if connector.Port == 0 {
-		connector.Port = 22
+	if connector.SSH.Port == 0 {
+		connector.SSH.Port = 22
 	}
 	// Format file paths
-	if connector.KeyFile, err = util.FormatPath(connector.KeyFile); err != nil {
+	if connector.SSH.KeyFile, err = util.FormatPath(connector.SSH.KeyFile); err != nil {
 		return
 	}
-	if connector.KubeConfig, err = util.FormatPath(connector.KubeConfig); err != nil {
+	if connector.Kube.Config, err = util.FormatPath(connector.Kube.Config); err != nil {
 		return
 	}
 
@@ -50,7 +50,7 @@ func Validate(cnct config.Connector) error {
 	if cnct.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Connectors")
 	}
-	if cnct.KubeConfig == "" && ((cnct.Host != "localhost" && cnct.Host != "127.0.0.1") && (cnct.Host == "" || cnct.User == "" || cnct.KeyFile == "")) {
+	if cnct.Kube.Config == "" && ((cnct.Host != "localhost" && cnct.Host != "127.0.0.1") && (cnct.Host == "" || cnct.SSH.User == "" || cnct.SSH.KeyFile == "")) {
 		return util.NewInputError("For Connectors you must specify non-empty values for host, user, and keyfile")
 	}
 	return nil

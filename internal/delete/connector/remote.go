@@ -44,10 +44,10 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
-		User:            cnct.User,
+		User:            cnct.SSH.User,
 		Host:            cnct.Host,
-		Port:            cnct.Port,
-		PrivKeyFilename: cnct.KeyFile,
+		Port:            cnct.SSH.Port,
+		PrivKeyFilename: cnct.SSH.KeyFile,
 	}
 	installer := install.NewConnector(connectorOptions)
 
