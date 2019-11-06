@@ -134,9 +134,9 @@ spec:
 
 @test "Configure Agents" {
   initAgents
+  test iofogctl -v -n "$NS2" configure agents --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    test iofogctl -v -n "$NS2" configure agent "$AGENT_NAME" --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
     test iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
     checkLegacyAgent "$AGENT_NAME"
   done
