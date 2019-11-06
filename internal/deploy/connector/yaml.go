@@ -32,7 +32,7 @@ func UnmarshallYAML(file []byte) (connector config.Connector, err error) {
 
 	// Pre-process the fields
 	// Fix SSH port
-	if connector.SSH.Port == 0 {
+	if connector.Host != "" && connector.SSH.Port == 0 {
 		connector.SSH.Port = 22
 	}
 	// Format file paths
