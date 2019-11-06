@@ -74,6 +74,7 @@ spec:
 }
 
 @test "Agent legacy commands" {
+  initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
@@ -121,7 +122,27 @@ spec:
   checkAgents
 }
 
-@test "Disconnect other namespace" {
+@test "Configure Controller and Connector" {
+  initVanillaController
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+  done
+  test iofogctl -v -n "$NS2" logs controller "$NAME"
+  checkLegacyController
+  checkLegacyConnector
+}
+
+@test "Configure Agents" {
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" configure agent "$AGENT_NAME" --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
+    test iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME"
+  done
+}
+
+@test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
   checkConnectorNegative "$NS2"

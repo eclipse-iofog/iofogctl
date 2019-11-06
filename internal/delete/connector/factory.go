@@ -42,5 +42,8 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Default executor
+	if cnct.Host == "" || cnct.SSH.User == "" || cnct.SSH.KeyFile == "" || cnct.SSH.Port == 0 {
+		return nil, util.NewNoConfigError("Connector")
+	}
 	return newRemoteExecutor(namespace, name), nil
 }

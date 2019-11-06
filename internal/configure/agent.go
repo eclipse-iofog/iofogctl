@@ -46,16 +46,20 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
+	// Only updated fields specified
 	if exe.keyFile != "" {
 		agent.SSH.KeyFile = exe.keyFile
 	}
-
 	if exe.user != "" {
 		agent.SSH.User = exe.user
 	}
-
 	if exe.port != 0 {
 		agent.SSH.Port = exe.port
+	}
+
+	// Add port if not specified or existing
+	if agent.SSH.Port == 0 {
+		agent.SSH.Port = 22
 	}
 
 	// Save config

@@ -46,6 +46,7 @@ func TestRemote(t *testing.T) {
 		SSH: config.SSH{
 			User:    "serge",
 			KeyFile: "~/.ssh/id_rsa",
+			Port:    22,
 		},
 	}
 	if err := config.AddAgent(ns, agent); err != nil {

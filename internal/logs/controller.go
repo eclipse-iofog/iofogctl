@@ -59,7 +59,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	// Remote
 	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
-		util.Check(util.NewError("Cannot get logs because SSH details for this Controller are not available"))
+		util.Check(util.NewNoConfigError("Controller"))
 	}
 	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
 	ssh.SetPort(ctrl.SSH.Port)

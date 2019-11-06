@@ -31,7 +31,7 @@ func UnmarshallYAML(file []byte) (ctrl config.Controller, err error) {
 		ctrl.Kube.Replicas = 1
 	}
 	// Fix SSH port
-	if ctrl.SSH.Port == 0 {
+	if ctrl.Host != "" && ctrl.SSH.Port == 0 {
 		ctrl.SSH.Port = 22
 	}
 	// Format file paths

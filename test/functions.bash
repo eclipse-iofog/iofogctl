@@ -489,7 +489,7 @@ function checkLegacyConnector() {
 }
 
 function checkLegacyController() {
-  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME controller status | grep 'online') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME status | grep 'ioFogController') ]]
 }
 
 function checkLegacyAgent() {
