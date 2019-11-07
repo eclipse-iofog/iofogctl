@@ -15,7 +15,7 @@ package connectcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -37,13 +37,15 @@ func (exe *remoteExecutor) GetName() string {
 
 func (exe *remoteExecutor) Execute() (err error) {
 	// Establish connection
-	endpoint := exe.ctrlPlane.Controllers[0].Host + ":" + iofog.ControllerPortString
+	if len(exe.ctrlPlane.Controllers) == 0 {
+		return util.NewError("Control Plane in Namespace " + exe.namespace + " has no Controllers. Try deploying a Control Plane to this Namespace.")
+	}
+	endpoint := exe.ctrlPlane.Controllers[0].Endpoint
 	err = connect(exe.ctrlPlane, endpoint, exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	exe.ctrlPlane.Controllers[0].Endpoint = endpoint
 	err = config.UpdateControlPlane(exe.namespace, exe.ctrlPlane)
 	if err != nil {
 		return err

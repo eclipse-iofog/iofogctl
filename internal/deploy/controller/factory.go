@@ -78,21 +78,12 @@ func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.
 	}
 
 	// Kubernetes executor
-	if ctrl.KubeConfig != "" {
-		// TODO: re-enable specifying images
-		// If image file specified, read it
-		//if ctrl.ImagesFile != "" {
-		//	ctrl.Images = make(map[string]string)
-		//	err := util.UnmarshalYAML(opt.ImagesFile, opt.Images)
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//}
+	if ctrl.Kube.Config != "" {
 		return newFacadeExecutor(newKubernetesExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
 	}
 
 	// Default executor
-	if ctrl.Host == "" || ctrl.KeyFile == "" || ctrl.User == "" {
+	if ctrl.Host == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
 	return newFacadeExecutor(newRemoteExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil

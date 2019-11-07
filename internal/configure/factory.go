@@ -23,9 +23,17 @@ type Options struct {
 	Namespace    string
 	Name         string
 	KubeConfig   string
+	Host         string
 	KeyFile      string
 	User         string
 	Port         int
+}
+
+var multipleResources = map[string]bool{
+	"all":         true,
+	"controllers": true,
+	"connectors":  true,
+	"agents":      true,
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {
@@ -37,7 +45,9 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	case "agent":
 		return newAgentExecutor(opt), nil
 	default:
-		msg := "Unsupported resource type: '" + opt.ResourceType + "'"
-		return nil, util.NewInputError(msg)
+		if _, exists := multipleResources[opt.ResourceType]; !exists {
+			return nil, util.NewInputError("Unsupported resource: " + opt.ResourceType)
+		}
+		return newMultipleExecutor(opt), nil
 	}
 }

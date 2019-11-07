@@ -53,13 +53,13 @@ func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	connectorOptions := &install.ConnectorOptions{
 		Name:               exe.cnct.Name,
-		User:               exe.cnct.User,
+		User:               exe.cnct.SSH.User,
 		Host:               exe.cnct.Host,
-		Port:               exe.cnct.Port,
-		PrivKeyFilename:    exe.cnct.KeyFile,
-		Version:            exe.cnct.Version,
-		Repo:               exe.cnct.Repo,
-		Token:              exe.cnct.Token,
+		Port:               exe.cnct.SSH.Port,
+		PrivKeyFilename:    exe.cnct.SSH.KeyFile,
+		Version:            exe.cnct.Package.Version,
+		Repo:               exe.cnct.Package.Repo,
+		Token:              exe.cnct.Package.Token,
 		ControllerEndpoint: exe.controllerEndpoint,
 		IofogUser:          install.IofogUser(exe.iofogUser),
 	}

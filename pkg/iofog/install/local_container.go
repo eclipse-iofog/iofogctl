@@ -145,10 +145,9 @@ func NewLocalConnectorConfig(image string, credentials Credentials) *LocalContai
 }
 
 // NewLocalControllerConfig generats a static controller config
-func NewLocalControllerConfig(images map[string]string, credentials Credentials) *LocalContainerConfig {
-	controllerImg, exists := images["controller"]
-	if !exists {
-		controllerImg = "docker.io/iofog/controller:" + util.GetControllerTag()
+func NewLocalControllerConfig(image string, credentials Credentials) *LocalContainerConfig {
+	if image == "" {
+		image = "docker.io/iofog/controller:" + util.GetControllerTag()
 	}
 	return &LocalContainerConfig{
 		Host: "0.0.0.0",
@@ -157,7 +156,7 @@ func NewLocalControllerConfig(images map[string]string, credentials Credentials)
 			{Host: iofog.ControllerHostECNViewerPortString, Container: &LocalContainerPort{Port: iofog.DefaultHTTPPortString, Protocol: "tcp"}},
 		},
 		ContainerName: GetLocalContainerName("controller"),
-		Image:         controllerImg,
+		Image:         image,
 		Privileged:    false,
 		Binds:         []string{},
 		NetworkMode:   "bridge",

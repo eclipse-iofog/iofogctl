@@ -81,7 +81,7 @@ func newExecutor(namespace string, agent *config.Agent) (execute.Executor, error
 	}
 
 	// Default executor
-	if agent.Host == "" || agent.KeyFile == "" || agent.User == "" {
+	if agent.Host == "" || agent.SSH.KeyFile == "" || agent.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
 	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent), nil

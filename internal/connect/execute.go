@@ -27,9 +27,14 @@ import (
 )
 
 type Options struct {
-	InputFile          string
 	Namespace          string
 	OverwriteNamespace bool
+	InputFile          string
+	ControllerName     string
+	ControllerEndpoint string
+	KubeConfig         string
+	IofogUserEmail     string
+	IofogUserPass      string
 }
 
 var kindOrder = []apps.Kind{
@@ -46,7 +51,12 @@ var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor,
 	apps.ControllerKind:   connectcontroller.NewExecutor,
 }
 
-func Execute(opt Options) (err error) {
+func Execute(opt Options) error {
+	// Check inputs
+	if opt.InputFile != "" && (opt.ControllerEndpoint != "" || opt.KubeConfig != "") {
+		return util.NewInputError("Either use a YAML file or provide Controller endpoint or Kube config to connect")
+	}
+
 	// Check for existing namespace
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {
@@ -72,9 +82,29 @@ func Execute(opt Options) (err error) {
 	// Flush at the end
 	defer config.Flush()
 
-	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers)
+	if opt.InputFile != "" {
+		if err = executeWithYAML(opt.InputFile, opt.Namespace); err != nil {
+			return err
+		}
+	} else {
+		if !hasAllFlags(opt) {
+			return util.NewInputError("If no YAML file is provided, must provide Controller endpoint or kube config along with Controller name and ioFog user email/password")
+		}
+		exe, err := connectcontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+		if err != nil {
+			return err
+		}
+		if err = exe.Execute(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func executeWithYAML(yamlFile, namespace string) error {
+	executorsMap, err := execute.GetExecutorsFromYAML(yamlFile, namespace, kindHandlers)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Controlplane, Controller, Connector, Agent
@@ -84,5 +114,9 @@ func Execute(opt Options) (err error) {
 		}
 	}
 
-	return
+	return nil
+}
+
+func hasAllFlags(opt Options) bool {
+	return opt.ControllerName != "" && opt.IofogUserEmail != "" && opt.IofogUserPass != "" && (opt.KubeConfig != "" || opt.ControllerEndpoint != "")
 }

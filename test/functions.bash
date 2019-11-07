@@ -160,8 +160,9 @@ kind: Agent
 metadata:
   name: ${NAME}-0
 spec:
-  image: ${AGENT_IMAGE}
-  host: 127.0.0.1" > test/conf/local-agent.yaml
+  host: 127.0.0.1
+  container:
+    image: ${AGENT_IMAGE}" > test/conf/local-agent.yaml
 }
 
 function initLocalControllerFile() {
@@ -169,8 +170,6 @@ function initLocalControllerFile() {
 apiVersion: iofog.org/v1
 kind: ControlPlane
 spec:
-  images: 
-    controller: ${CONTROLLER_IMAGE}
   iofogUser:
     name: Testing
     surname: Functional
@@ -179,14 +178,17 @@ spec:
   controllers:
   - name: $NAME
     host: 127.0.0.1
+    container:
+      image: ${CONTROLLER_IMAGE}
 ---
 apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
 spec:
-  image: ${CONNECTOR_IMAGE}
-  host: localhost" > test/conf/local.yaml
+  host: localhost
+  container:
+    image: ${CONNECTOR_IMAGE}" > test/conf/local.yaml
 }
 
 function initAgentsFile() {
@@ -201,9 +203,10 @@ kind: Agent
 metadata:
   name: $AGENT_NAME
 spec:
-  user: ${USERS[$IDX]}
   host: ${HOSTS[$IDX]}
-  keyFile: $KEY_FILE" >> test/conf/agents.yaml
+  ssh:
+    user: ${USERS[$IDX]}
+    keyFile: $KEY_FILE" >> test/conf/agents.yaml
 
   echo "====> Agent File:"
   cat test/conf/agents.yaml
@@ -486,7 +489,7 @@ function checkLegacyConnector() {
 }
 
 function checkLegacyController() {
-  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME controller status | grep 'online') ]]
+  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME status | grep 'ioFogController') ]]
 }
 
 function checkLegacyAgent() {

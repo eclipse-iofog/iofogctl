@@ -80,18 +80,28 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	}, nil
 }
 
-func (k8s *Kubernetes) SetImages(images map[string]string) error {
-	for key, img := range images {
-		if img == "" {
-			util.PrintNotify("Empty image name specified for " + key + ". Ignoring and using default")
-			continue
-		}
-		if _, exists := k8s.ms[key]; !exists {
-			return util.NewInputError("Invalid ioFog service image name specified: " + key)
-		}
-		k8s.ms[key].containers[0].image = img
+func (k8s *Kubernetes) SetKubeletImage(image string) {
+	if image != "" {
+		k8s.ms["kubelet"].containers[0].image = image
 	}
-	return nil
+}
+
+func (k8s *Kubernetes) SetOperatorImage(image string) {
+	if image != "" {
+		k8s.ms["operator"].containers[0].image = image
+	}
+}
+
+func (k8s *Kubernetes) SetConnectorImage(image string) {
+	if image != "" {
+		k8s.ms["connector"].containers[0].image = image
+	}
+}
+
+func (k8s *Kubernetes) SetControllerImage(image string) {
+	if image != "" {
+		k8s.ms["controller"].containers[0].image = image
+	}
 }
 
 // CreateConnector on cluster
@@ -469,6 +479,9 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 }
 
 func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
+	if svcType == "" {
+		return nil
+	}
 	if svcType != "LoadBalancer" && svcType != "NodePort" && svcType != "ClusterIP" {
 		err = util.NewInputError("Tried to set K8s Controller Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
 	}
@@ -477,7 +490,9 @@ func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
 }
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {
-	k8s.ms["controller"].IP = ip
+	if ip != "" {
+		k8s.ms["controller"].IP = ip
+	}
 }
 
 func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {

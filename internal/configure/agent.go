@@ -15,6 +15,7 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentExecutor struct {
@@ -23,6 +24,7 @@ type agentExecutor struct {
 	keyFile   string
 	user      string
 	port      int
+	host      string
 }
 
 func newAgentExecutor(opt Options) *agentExecutor {
@@ -32,6 +34,7 @@ func newAgentExecutor(opt Options) *agentExecutor {
 		keyFile:   opt.KeyFile,
 		user:      opt.User,
 		port:      opt.Port,
+		host:      opt.Host,
 	}
 }
 
@@ -40,22 +43,30 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
+	if exe.host != "" {
+		return util.NewInputError("Cannot change host address of Agents")
+	}
+
 	// Get config
 	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}
 
+	// Only updated fields specified
 	if exe.keyFile != "" {
-		agent.KeyFile = exe.keyFile
+		agent.SSH.KeyFile = exe.keyFile
 	}
-
 	if exe.user != "" {
-		agent.User = exe.user
+		agent.SSH.User = exe.user
+	}
+	if exe.port != 0 {
+		agent.SSH.Port = exe.port
 	}
 
-	if exe.port != 0 {
-		agent.Port = exe.port
+	// Add port if not specified or existing
+	if agent.SSH.Port == 0 {
+		agent.SSH.Port = 22
 	}
 
 	// Save config

@@ -40,13 +40,13 @@ func (exe *remoteExecutor) GetName() string {
 func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
-		User:            exe.ctrl.User,
+		User:            exe.ctrl.SSH.User,
 		Host:            exe.ctrl.Host,
-		Port:            exe.ctrl.Port,
-		PrivKeyFilename: exe.ctrl.KeyFile,
-		Version:         exe.ctrl.Version,
-		Repo:            exe.ctrl.Repo,
-		Token:           exe.ctrl.Token,
+		Port:            exe.ctrl.SSH.Port,
+		PrivKeyFilename: exe.ctrl.SSH.KeyFile,
+		Version:         exe.ctrl.Package.Version,
+		Repo:            exe.ctrl.Package.Repo,
+		Token:           exe.ctrl.Package.Token,
 	}
 	installer := install.NewController(controllerOptions)
 

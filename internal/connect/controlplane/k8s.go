@@ -37,7 +37,7 @@ func (exe *kubernetesExecutor) GetName() string {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
-	k8s, err := install.NewKubernetes(exe.ctrlPlane.Controllers[0].KubeConfig, exe.namespace)
+	k8s, err := install.NewKubernetes(exe.ctrlPlane.Controllers[0].Kube.Config, exe.namespace)
 	if err != nil {
 		return err
 	}

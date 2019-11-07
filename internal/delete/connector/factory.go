@@ -37,10 +37,13 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Kubernetes executor
-	if cnct.KubeConfig != "" {
+	if cnct.Kube.Config != "" {
 		return newKubernetesExecutor(namespace, name), nil
 	}
 
 	// Default executor
+	if cnct.Host == "" || cnct.SSH.User == "" || cnct.SSH.KeyFile == "" || cnct.SSH.Port == 0 {
+		return nil, util.NewNoConfigError("Connector")
+	}
 	return newRemoteExecutor(namespace, name), nil
 }

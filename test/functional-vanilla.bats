@@ -5,6 +5,8 @@
 
 NS="$NAMESPACE"
 NS2="$NS"_2
+USER_PW="S5gYVgLEZV"
+USER_EMAIL="user@domain.com"
 
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
@@ -20,27 +22,31 @@ metadata:
 spec:
   controllers:
   - name: $NAME
-    user: $VANILLA_USER
     host: $VANILLA_HOST
-    port: $VANILLA_PORT
-    keyFile: $KEY_FILE
-    version: $VANILLA_VERSION
+    ssh:
+      user: $VANILLA_USER
+      port: $VANILLA_PORT
+      keyFile: $KEY_FILE
+    package:
+      version: $VANILLA_VERSION
   iofogUser:
     name: Testing
     surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
+    email: $USER_EMAIL
+    password: $USER_PW
 ---
 apiVersion: iofog.org/v1
 kind: Connector
 metadata:
   name: $NAME
 spec:
-  user: $VANILLA_USER
   host: $VANILLA_HOST
-  port: $VANILLA_PORT
-  keyFile: $KEY_FILE
-  version: $VANILLA_VERSION" > test/conf/vanilla.yaml
+  ssh:
+    user: $VANILLA_USER
+    port: $VANILLA_PORT
+    keyFile: $KEY_FILE
+  package:
+    version: $VANILLA_VERSION" > test/conf/vanilla.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController
@@ -68,6 +74,7 @@ spec:
 }
 
 @test "Agent legacy commands" {
+  initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
@@ -86,7 +93,7 @@ spec:
   checkApplication
 }
 
-@test "Connect in another namespace" {
+@test "Connect in another namespace using file" {
   test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
   checkController "$NS2"
   checkConnector "$NS2"
@@ -99,6 +106,43 @@ spec:
 }
 
 @test "Disconnect other namespace" {
+  test iofogctl -v -n "$NS2" disconnect
+  checkControllerNegative "$NS2"
+  checkConnectorNegative "$NS2"
+  checkAgentsNegative "$NS2"
+  checkApplicationNegative "$NS2"
+}
+
+@test "Connect in other namespace using flags" {
+  initVanillaController
+  CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
+  test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
+  checkController
+  checkConnector
+  checkAgents
+}
+
+@test "Configure Controller and Connector" {
+  initVanillaController
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+  done
+  test iofogctl -v -n "$NS2" logs controller "$NAME"
+  checkLegacyController
+  checkLegacyConnector
+}
+
+@test "Configure Agents" {
+  initAgents
+  test iofogctl -v -n "$NS2" configure agents --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME"
+  done
+}
+
+@test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
   checkConnectorNegative "$NS2"

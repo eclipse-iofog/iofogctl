@@ -38,15 +38,15 @@ type localExecutor struct {
 
 func newLocalExecutor(namespace string, cnct *config.Connector, client *install.LocalContainer) (*localExecutor, error) {
 	imageMap := make(map[string]string)
-	imageMap["connector"] = cnct.Image
+	imageMap["connector"] = cnct.Container.Image
 	return &localExecutor{
 		namespace: namespace,
 		name:      cnct.Name,
 		cnct:      cnct,
 		client:    client,
-		localConnectorConfig: install.NewLocalConnectorConfig(cnct.Image, install.Credentials{
-			User:     cnct.ImageCredentials.User,
-			Password: cnct.ImageCredentials.Password,
+		localConnectorConfig: install.NewLocalConnectorConfig(cnct.Container.Image, install.Credentials{
+			User:     cnct.Container.Credentials.User,
+			Password: cnct.Container.Credentials.Password,
 		}),
 	}, nil
 }
@@ -141,7 +141,7 @@ func (exe *localExecutor) Execute() error {
 	connectorContainerConfig := exe.localConnectorConfig
 	exe.cnct.Endpoint = fmt.Sprintf("%s:%s", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host)
 	exe.cnct.Host = connectorContainerConfig.Host
-	exe.cnct.User = currUser.Username
+	exe.cnct.SSH.User = currUser.Username
 	exe.cnct.Created = util.NowUTC()
 
 	return nil

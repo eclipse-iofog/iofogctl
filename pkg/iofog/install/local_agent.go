@@ -46,7 +46,7 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uui
 	}
 
 	// get local controller config
-	ctrlContainerConfig := NewLocalControllerConfig(make(map[string]string), Credentials{})
+	ctrlContainerConfig := NewLocalControllerConfig(ctrl.Container.Image, Credentials{})
 
 	// Use the container name as host
 	controllerEndpoint := fmt.Sprintf("%s:%s", ctrlContainerConfig.ContainerName, ctrlContainerConfig.Ports[0].Host)
