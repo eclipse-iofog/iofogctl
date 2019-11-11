@@ -14,6 +14,7 @@
 package deleteconnector
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -42,18 +43,21 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	// Instantiate installer
-	connectorOptions := &install.ConnectorOptions{
-		User:            cnct.SSH.User,
-		Host:            cnct.Host,
-		Port:            cnct.SSH.Port,
-		PrivKeyFilename: cnct.SSH.KeyFile,
-	}
-	installer := install.NewConnector(connectorOptions)
+	if cnct.Host == "" || cnct.SSH.User == "" || cnct.SSH.KeyFile == "" || cnct.SSH.Port == 0 {
+		util.PrintNotify("Could not stop daemon for Connector " + cnct.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
+	} else {
+		// Instantiate installer
+		installer := install.NewConnector(&install.ConnectorOptions{
+			User:            cnct.SSH.User,
+			Host:            cnct.Host,
+			Port:            cnct.SSH.Port,
+			PrivKeyFilename: cnct.SSH.KeyFile,
+		})
 
-	// Stop Connector
-	if err = installer.Stop(); err != nil {
-		util.PrintNotify("Could not stop daemon for Connector " + exe.name)
+		// Stop Connector
+		if err = installer.Stop(); err != nil {
+			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Connector %s. %s", cnct.Name, err.Error()))
+		}
 	}
 
 	// Clear Connector from Controller

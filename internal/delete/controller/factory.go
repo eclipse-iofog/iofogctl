@@ -41,9 +41,10 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 		return newKubernetesExecutor(namespace, name), nil
 	}
 
-	// Default executor
+	// Can't kill Controller without configuration
 	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 		return nil, util.NewNoConfigError("Controller")
 	}
+	// Default executor
 	return newRemoteExecutor(namespace, name), nil
 }

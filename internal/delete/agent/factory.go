@@ -37,8 +37,5 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 	}
 
 	// Default executor
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-		return nil, util.NewNoConfigError("Agent")
-	}
 	return newRemoteExecutor(namespace, name), nil
 }
