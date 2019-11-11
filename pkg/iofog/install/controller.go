@@ -186,19 +186,19 @@ func WaitForControllerAPI(endpoint string) (err error) {
 	ctrlClient := client.New(endpoint)
 
 	connected := false
-	iter := 0
+	seconds := 0
 	for !connected {
 		// Time out
-		if iter > 60 {
+		if seconds > 60 {
 			err = util.NewInternalError("Timed out waiting for Controller API")
 			return
 		}
 		// Try to create the user
 		if _, err = ctrlClient.GetStatus(); err != nil {
 			// Retry if connection is refused, this is usually only necessary on K8s Controller
-			if strings.Contains(err.Error(), "connection refused") {
+			if strings.Contains(err.Error(), "connection refused") || strings.Contains(err.Error(), "timeout") {
 				time.Sleep(time.Millisecond * 1000)
-				iter = iter + 1
+				seconds = seconds + 1
 				continue
 			}
 			// Return the error otherwise
