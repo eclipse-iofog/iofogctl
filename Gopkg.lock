@@ -126,14 +126,14 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:1d7a6b80f0bc862ce6f3a2edd7fe33402f19e638abd28d3fecd9525008073b25"
+  digest = "1:077a73c6c1c6320e7f309e5097ed4c7879f4e2c453c46db85bbfe09aa560d25b"
   name = "github.com/eclipse-iofog/iofog-operator"
   packages = [
     "pkg/apis",
     "pkg/apis/iofog/v1",
   ]
   pruneopts = "UT"
-  revision = "1b697e71c0df4ec4866dc516884f29dc7e48ef27"
+  revision = "136e255accc07a345ceee5cbc464e16947370765"
 
 [[projects]]
   digest = "1:865079840386857c809b72ce300be7580cb50d3d3129ce11bf9aa6ca2bc1934a"
