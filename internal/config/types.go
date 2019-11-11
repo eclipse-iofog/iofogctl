@@ -48,7 +48,7 @@ type KubeImages struct {
 
 type Kube struct {
 	Config      string     `yaml:"config,omitempty"`
-	StaticIP    string     `yaml:"staticIP,omitempty"`
+	StaticIP    string     `yaml:"staticIp,omitempty"`
 	Replicas    int        `yaml:"replicas,omitempty"`
 	ServiceType string     `yaml:"serviceType,omitempty"`
 	Images      KubeImages `yaml:"images,omitempty"`
