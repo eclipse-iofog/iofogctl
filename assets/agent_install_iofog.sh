@@ -22,7 +22,14 @@ do_check_iofog_on_arm() {
 }
 
 do_install_iofog() {
+	AGENT_CONFIG_FOLDER=/etc/iofog-agent
+	SAVED_AGENT_CONFIG_FOLDER=/tmp/agent-config-save
 	echo "# Installing ioFog agent..."
+
+	# Save iofog-agent config
+	if [ -d ${AGENT_CONFIG_FOLDER} ]; then
+		cp -r ${AGENT_CONFIG_FOLDER} ${SAVED_AGENT_CONFIG_FOLDER}/
+	fi
 
 	prefix=$([ -z "$token" ] && echo "" || echo "$token:@")
 
@@ -42,6 +49,11 @@ do_install_iofog() {
 	esac
 
 	do_check_iofog_on_arm
+
+	# Restore iofog-agent config
+	if [ -d ${SAVED_AGENT_CONFIG_FOLDER} ]; then
+		mv ${SAVED_AGENT_CONFIG_FOLDER} ${AGENT_CONFIG_FOLDER}/
+	fi
 }
 
 agent_version="$1"
