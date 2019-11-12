@@ -73,6 +73,12 @@ deploy_controller() {
 		npmrc default
 	fi
 
+	# Save DB
+	if [ -f "$INSTALL_DIR/controller/lib/node_modules/iofogcontroller/package.json" ]; then
+		# If iofog-controller is not running, it will fail to stop - ignore that failure.
+		node $INSTALL_DIR/controller/lib/node_modules/iofogcontroller/scripts/scripts-api.js preuninstall > /dev/null 2>&1 || true
+	fi
+
 	# Install in temporary location
 	mkdir -p "$TMP_DIR/controller"
 	chmod 0777 "$TMP_DIR/controller"
@@ -86,6 +92,11 @@ deploy_controller() {
 	mkdir -p "$INSTALL_DIR/"
 	rm -rf "$INSTALL_DIR/controller" # Clean possible previous install
 	mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
+
+	# Restore DB
+	if [ -f "$INSTALL_DIR/controller/lib/node_modules/iofogcontroller/package.json" ]; then
+		node $INSTALL_DIR/controller/lib/node_modules/iofogcontroller/scripts/scripts-api.js postinstall > /dev/null 2>&1 || true
+	fi
 
 	# Symbolic links
 	if [ ! -f "/usr/local/bin/iofog-controller" ]; then
