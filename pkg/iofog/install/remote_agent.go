@@ -73,7 +73,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 			msg: "Installing Docker on Agent " + agent.name,
 		},
 		{
-			cmd: "/tmp/agent_install_iofog.sh " + installArgs,
+			cmd: "sudo -S /tmp/agent_install_iofog.sh " + installArgs,
 			msg: "Installing ioFog daemon on Agent " + agent.name,
 		},
 		{
