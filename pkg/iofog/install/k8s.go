@@ -32,6 +32,8 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	kogclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	b64 "encoding/base64"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -233,10 +235,19 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 			},
 		}
 	}
+
+	// Encode credentials
+	encodedUser := iofogv1.IofogUser{
+		Email:    b64.StdEncoding.EncodeToString([]byte(user.Email)),
+		Password: b64.StdEncoding.EncodeToString([]byte(user.Password)),
+		Name:     user.Name,
+		Surname:  user.Surname,
+	}
+
 	// Set specification
 	kog.Spec = iofogv1.KogSpec{
 		ControlPlane: iofogv1.ControlPlane{
-			IofogUser:              iofogv1.IofogUser(user),
+			IofogUser:              encodedUser,
 			ControllerReplicaCount: int32(replicas),
 			ControllerImage:        k8s.ms["controller"].containers[0].image,
 			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
