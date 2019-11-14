@@ -35,11 +35,12 @@ type ControllerOptions struct {
 }
 
 type database struct {
-	provider string
-	host     string
-	user     string
-	password string
-	port     int
+	databaseName string
+	provider     string
+	host         string
+	user         string
+	password     string
+	port         int
 }
 
 type Controller struct {
@@ -60,13 +61,20 @@ func NewController(options *ControllerOptions) *Controller {
 	}
 }
 
-func (ctrl *Controller) SetControllerExternalDatabase(host, user, password string, port int) {
+func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, provider, databaseName string, port int) {
+	if provider == "" {
+		provider = "postgres"
+	}
+	if databaseName == "" {
+		databaseName = "iofogcontroller"
+	}
 	ctrl.db = database{
-		provider: "postgres",
-		host:     host,
-		user:     user,
-		password: password,
-		port:     port,
+		databaseName: databaseName,
+		provider:     provider,
+		host:         host,
+		user:         user,
+		password:     password,
+		port:         port,
 	}
 }
 
@@ -116,7 +124,7 @@ func (ctrl *Controller) Install() (err error) {
 	dbArgs := ""
 	if ctrl.db.host != "" {
 		db := ctrl.db
-		dbArgs = fmt.Sprintf(" %s %s %s %s %d", db.provider, db.host, db.user, db.password, db.port)
+		dbArgs = fmt.Sprintf(" %s %s %s %s %d %s", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
 	}
 	cmds := []command{
 		{

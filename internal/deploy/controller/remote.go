@@ -53,7 +53,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	// Set database configuration
 	if exe.controlPlane.Database.Host != "" {
 		db := exe.controlPlane.Database
-		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Port)
+		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Provider, db.DatabaseName, db.Port)
 	}
 
 	// Install Controller

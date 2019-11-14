@@ -123,6 +123,7 @@ export DB_HOST="$5"
 export DB_USER="$6"
 export DB_PASSWORD="$7"
 export DB_PORT="$8"
+export DB_NAME="$9"
 
 install_deps
 deploy_controller
