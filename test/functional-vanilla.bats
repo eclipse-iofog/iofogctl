@@ -155,6 +155,17 @@ spec:
   checkApplicationNegative "$NS2"
 }
 
+
+@test "Deploy again to check it doesn't lose database" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
+  checkController
+  checkConnector
+  initAgentsFile
+  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  checkAgents
+  checkApplication
+}
+
 # Delete all does not delete application
 @test "Delete application" {
   test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
