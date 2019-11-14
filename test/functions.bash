@@ -494,4 +494,5 @@ function checkLegacyController() {
 
 function checkLegacyAgent() {
   [[ ! -z $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'RUNNING') ]]
+  [[ "ok" == $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'Connection to Controller' | awk '{print $5}') ]]
 }
