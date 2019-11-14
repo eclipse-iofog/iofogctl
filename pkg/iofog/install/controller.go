@@ -51,6 +51,9 @@ type Controller struct {
 func NewController(options *ControllerOptions) *Controller {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
 	ssh.SetPort(options.Port)
+	if options.Version == "" {
+		options.Version = util.GetControllerTag()
+	}
 	return &Controller{
 		ControllerOptions: options,
 		ssh:               ssh,

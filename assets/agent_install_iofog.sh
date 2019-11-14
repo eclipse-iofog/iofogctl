@@ -28,7 +28,9 @@ do_install_iofog() {
 
 	# Save iofog-agent config
 	if [ -d ${AGENT_CONFIG_FOLDER} ]; then
-		cp -r ${AGENT_CONFIG_FOLDER} ${SAVED_AGENT_CONFIG_FOLDER}/
+		sudo rm -rf ${SAVED_AGENT_CONFIG_FOLDER}
+		sudo mkdir -p ${SAVED_AGENT_CONFIG_FOLDER}
+		sudo cp -r ${AGENT_CONFIG_FOLDER}/* ${SAVED_AGENT_CONFIG_FOLDER}/
 	fi
 
 	prefix=$([ -z "$token" ] && echo "" || echo "$token:@")
@@ -52,7 +54,8 @@ do_install_iofog() {
 
 	# Restore iofog-agent config
 	if [ -d ${SAVED_AGENT_CONFIG_FOLDER} ]; then
-		mv ${SAVED_AGENT_CONFIG_FOLDER} ${AGENT_CONFIG_FOLDER}/
+		sudo mv ${SAVED_AGENT_CONFIG_FOLDER}/* ${AGENT_CONFIG_FOLDER}/
+		sudo rmdir ${SAVED_AGENT_CONFIG_FOLDER}
 	fi
 }
 

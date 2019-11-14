@@ -31,6 +31,9 @@ type Connector struct {
 func NewConnector(options *ConnectorOptions) *Connector {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
 	ssh.SetPort(options.Port)
+	if options.Version == "" {
+		options.Version = util.GetConnectorTag()
+	}
 	return &Connector{
 		ConnectorOptions: options,
 		ssh:              ssh,
