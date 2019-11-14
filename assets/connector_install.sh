@@ -4,6 +4,8 @@ set -e
 
 INSTALL_DIR="/opt/iofog"
 TMP_DIR="/tmp/iofog"
+CONNECTOR_CONFIG_FOLDER=/etc/iofog-connector
+SAVED_CONNECTOR_CONFIG_FOLDER=/tmp/connector-config-save
 
 config_connector() {
 	# Move binaries into $INSTALL_DIR/connector
@@ -23,6 +25,8 @@ config_connector() {
 		sudo ln -fFs "$CONNECTOR_DIR/iofog-connector.jar" /usr/bin/iofog-connector.jar
 	fi
 
+	sudo mkdir -p /etc/iofog-connector
+	sudo chmod 0775 /etc/iofog-connector
 	echo '{
 		"ports": [
 			"6000-6050"
@@ -34,7 +38,12 @@ config_connector() {
 		"dev": true
 	}' | sudo tee /etc/iofog-connector/iofog-connector.conf
 
-	sudo chmod 0775 /etc/iofog-connector
+	# Restore iofog-connector config
+	if [ -d ${SAVED_CONNECTOR_CONFIG_FOLDER} ]; then
+		sudo mv ${SAVED_CONNECTOR_CONFIG_FOLDER}/* ${CONNECTOR_CONFIG_FOLDER}/
+		sudo rmdir ${SAVED_CONNECTOR_CONFIG_FOLDER}
+	fi
+
 }
 
 get_distro() {
@@ -45,6 +54,13 @@ get_distro() {
 }
 
 deploy_connector() {
+	# Save iofog-connector config
+	if [ -d ${CONNECTOR_CONFIG_FOLDER} ]; then
+		sudo rm -rf ${SAVED_CONNECTOR_CONFIG_FOLDER}
+		sudo mkdir -p ${SAVED_CONNECTOR_CONFIG_FOLDER}
+		sudo cp -r ${CONNECTOR_CONFIG_FOLDER}/* ${SAVED_CONNECTOR_CONFIG_FOLDER}/
+	fi
+
 	# Install if does not exist 
 	if [ ! -z $(command -v apt-get) ]; then
 		# Debian/Ubuntu
@@ -58,7 +74,7 @@ deploy_connector() {
 		sudo apt-get -y update
 		sudo apt-get -y install openjdk-11-jre
 		curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | sudo bash
-		sudo apt-get -y install iofog-connector
+		sudo apt-get install -y --allow-downgrades iofog-connector="$version"
 		config_connector
 		sudo service iofog-connector start
 	elif [ ! -z $(command -v yum) ]; then
@@ -70,7 +86,7 @@ deploy_connector() {
 		su -c "yum update -y"
 		su -c "yum install java-1.8.0-openjdk -y"
 		curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | sudo bash
-		sudo yum install iofog-connector -y
+		sudo yum install -y iofog-connector-"$version"-1.noarch
 		config_connector
 		sudo systemctl start iofog-connector
 	else
