@@ -365,7 +365,6 @@ stages:
         echo $package
         declare -a FEDORA_VERS=("23" "24")
         declare -a REDHAT_VERS=("6" "7")
-        declare -a CENTOS_VERS=("7" "8")
         for fed in ${FEDORA_VERS[@]}
         do
             package_cloud yank iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud || true
@@ -375,11 +374,6 @@ stages:
         do
             package_cloud yank iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud || true
             package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
-        done
-        for cent in ${CENTOS_VERS[@]}
-        do
-            package_cloud yank iofog/iofogctl-snapshots/centos/${cent} $package --config=$(Agent.TempDirectory)/package_cloud || true
-            package_cloud push iofog/iofogctl-snapshots/centos/${cent} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish RPM to package-cloud'
     - template: templates/publish-steps.yaml
