@@ -16,6 +16,8 @@ package install
 import (
 	"fmt"
 
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
@@ -49,7 +51,10 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uui
 	ctrlContainerConfig := NewLocalControllerConfig(ctrl.Container.Image, Credentials{})
 
 	// Use the container name as host
-	controllerEndpoint := fmt.Sprintf("%s:%s", ctrlContainerConfig.ContainerName, ctrlContainerConfig.Ports[0].Host)
+	controllerEndpoint := ctrl.Endpoint
+	if util.IsLocalHost(ctrl.Host) {
+		controllerEndpoint = fmt.Sprintf("%s:%s", ctrlContainerConfig.ContainerName, ctrlContainerConfig.Ports[0].Host)
+	}
 
 	// Instantiate provisioning commands
 	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
