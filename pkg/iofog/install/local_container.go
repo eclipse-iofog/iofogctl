@@ -118,8 +118,9 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
 			NetworkMode:   "bridge",
-			Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
-			Credentials:   credentials,
+			// Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
+			Links:       []string{},
+			Credentials: credentials,
 		},
 		Name: name,
 	}
