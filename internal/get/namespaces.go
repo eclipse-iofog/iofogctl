@@ -31,7 +31,15 @@ func (exe *namespaceExecutor) GetName() string {
 }
 
 func (exe *namespaceExecutor) Execute() error {
-	namespaces := config.GetNamespaces()
+	namespacesNames := config.GetNamespaces()
+	var namespaces []config.Namespace
+	for _, n := range namespacesNames {
+		ns, err := config.GetNamespace(n)
+		if err != nil {
+			return err
+		}
+		namespaces = append(namespaces, ns)
+	}
 
 	// Generate table and headers
 	table := make([][]string, len(namespaces)+1)

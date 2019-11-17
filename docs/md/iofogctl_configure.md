@@ -1,10 +1,10 @@
 ## iofogctl configure
 
-Configure SSH details for an existing resource
+Configure iofogctl or SSH details an existing resource
 
 ### Synopsis
 
-Configure SSH details for an existing resource.
+Configure iofogctl or SSH details for an existing resource
 
 Note that you cannot (and shouldn't need to) configure the host value of Agents.
 
@@ -15,6 +15,7 @@ iofogctl configure resource NAME [flags]
 ### Examples
 
 ```
+iofogctl configure default-namespace NAME
 iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure connector NAME --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure controller NAME --kube KUBECONFIG
@@ -26,7 +27,7 @@ iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port
 iofogctl configure connectors --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 
-Valid resources are: controller, connector, agent, all, agents, controllers, connectors
+Valid resources are: controller, connector, agent, all, agents, controllers, connectors, default-namespace
 
 ```
 
@@ -46,7 +47,7 @@ Valid resources are: controller, connector, agent, all, agents, controllers, con
 ```
       --config string      CLI configuration file (default is ~/.iofog/config.yaml)
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -n, --namespace string   Namespace to execute respective command within
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 

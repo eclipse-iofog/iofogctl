@@ -29,11 +29,9 @@ func newDeleteCatalogItemCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of connector
 			name := args[0]
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
 
 			// Get an executor for the command
-			exe, err := delete.NewExecutor(namespace, name)
+			exe, err := delete.NewExecutor("", name)
 			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)

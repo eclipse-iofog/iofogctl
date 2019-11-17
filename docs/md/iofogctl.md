@@ -16,13 +16,13 @@ iofogctl [flags]
       --config string      CLI configuration file (default is ~/.iofog/config.yaml)
   -h, --help               help for iofogctl
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -n, --namespace string   Namespace to execute respective command within
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 
 ### SEE ALSO
 
-* [iofogctl configure](iofogctl_configure.md)	 - Configure SSH details for an existing resource
+* [iofogctl configure](iofogctl_configure.md)	 - Configure iofogctl or SSH details an existing resource
 * [iofogctl connect](iofogctl_connect.md)	 - Connect to an existing ioFog cluster
 * [iofogctl create](iofogctl_create.md)	 - Create a resource
 * [iofogctl delete](iofogctl_delete.md)	 - Delete an existing ioFog resource

@@ -68,7 +68,7 @@ deploy -f platform.yaml
 ```
       --config string      CLI configuration file (default is ~/.iofog/config.yaml)
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -n, --namespace string   Namespace to execute respective command within
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 

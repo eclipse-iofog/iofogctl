@@ -485,14 +485,17 @@ function checkAgentListFromController() {
 }
 
 function checkLegacyConnector() {
-  [[ ! -z $(iofogctl -v -n "$NS" legacy connector $NAME status | grep 'is up and running') ]]
+  NS_CHECK=${1:-$NS}
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy connector $NAME status | grep 'is up and running') ]]
 }
 
 function checkLegacyController() {
-  [[ ! -z $(iofogctl -v -n "$NS" legacy controller $NAME status | grep 'ioFogController') ]]
+  NS_CHECK=${1:-$NS}
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy controller $NAME status | grep 'ioFogController') ]]
 }
 
 function checkLegacyAgent() {
-  [[ ! -z $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'RUNNING') ]]
-  [[ "ok" == $(iofogctl -v -n "$NS" legacy agent $1 status | grep 'Connection to Controller' | awk '{print $5}') ]]
+  NS_CHECK=${2:-$NS}
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'RUNNING') ]]
+  [[ "ok" == $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'Connection to Controller' | awk '{print $5}') ]]
 }

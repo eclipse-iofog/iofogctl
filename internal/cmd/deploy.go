@@ -66,16 +66,11 @@ spec:
     keyFile: ~/.ssh/id_rsa
 ` + "\n```\n" + `The complete description of yaml file definition can be found at iofog.org`,
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			// Get namespace
-			opt.Namespace, err = cmd.Flags().GetString("namespace")
-			util.Check(err)
-
 			// Execute command
-			err = deploy.Execute(opt)
+			err := deploy.Execute(opt)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deployed resources to namespace " + opt.Namespace)
+			util.PrintSuccess("Successfully deployed resources")
 		},
 	}
 

@@ -32,9 +32,6 @@ func newStartApplicationCommand() *cobra.Command {
 			if len(args) == 0 {
 				util.Check(util.NewInputError("Must specify an application to start"))
 			}
-			// Get namespace
-			opt.Namespace, err = cmd.Flags().GetString("namespace")
-			util.Check(err)
 			opt.Name = args[0]
 
 			exe := startapplication.NewExecutor(opt)

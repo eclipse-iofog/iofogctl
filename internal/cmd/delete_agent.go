@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	delete "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -35,14 +36,12 @@ The Agent stack will not be uninstalled from the host.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent
 			name := args[0]
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
 
 			// Run the command
-			err = delete.Execute(namespace, name)
+			err := delete.Execute("", name)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
+			util.PrintSuccess("Successfully deleted " + config.GetCurrentNamespace().Name + "/" + name)
 		},
 	}
 

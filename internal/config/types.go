@@ -159,7 +159,9 @@ type Namespace struct {
 
 // configuration contains the unmarshalled configuration file
 type configuration struct {
-	Namespaces []Namespace `yaml:"namespaces,omitempty"`
+	DefaultNamespace string   `yaml:"defaultNamespace"`
+	CurrentNamespace string   `yaml:"-"`
+	Namespaces       []string `yaml:"namespaces,omitempty"`
 }
 
 // HeaderMetadata contains k8s metadata
