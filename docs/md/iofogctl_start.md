@@ -21,7 +21,6 @@ iofogctl start application meerkat
 ### Options inherited from parent commands
 
 ```
-      --config string      CLI configuration folder (default is ~/.iofog/)
       --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within
   -v, --verbose            Toggle for displaying verbose output of iofogctl

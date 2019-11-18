@@ -301,8 +301,7 @@ stages:
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |
-        echo "iofogctl update iofogctl" > /tmp/iofogctl_postinstall.sh
-        fpm -f -s dir -t deb -n iofogctl -v $(version) --after-install /tmp/iofogctl_postinstall.sh --after-upgrade /tmp/iofogctl_postinstall.sh /usr/local/bin/iofogctl=/usr/local/bin/ /tmp/iofogctl_postinstall.sh=/tmp/
+        fpm -f -s dir -t deb -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
         package=$(ls | grep *.deb)
         echo $package
         cp $package $(Build.ArtifactStagingDirectory)
@@ -339,8 +338,7 @@ stages:
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |
-        echo "iofogctl update iofogctl" > /tmp/iofogctl_postinstall.sh
-        fpm -f -s dir -t rpm -n iofogctl -v $(version) --after-install /tmp/iofogctl_postinstall.sh --after-upgrade /tmp/iofogctl_postinstall.sh /usr/local/bin/iofogctl=/usr/local/bin/ /tmp/iofogctl_postinstall.sh=/tmp/
+        fpm -f -s dir -t rpm -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
         package=$(ls | grep *.rpm)
         echo $package
         cp $package $(Build.ArtifactStagingDirectory)

@@ -158,7 +158,7 @@ type Namespace struct {
 }
 
 // Configuration contains the unmarshalled configuration file
-type Configuration struct {
+type configuration struct {
 	DefaultNamespace string   `yaml:"defaultNamespace"`
 	CurrentNamespace string   `yaml:"-"`
 	Namespaces       []string `yaml:"namespaces,omitempty"`

@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	conf               Configuration // struct that file is unmarshalled into
+	conf               configuration // struct that file is unmarshalled into
 	configFolder       string        // config directory
 	configFilename     string        // config file name
 	namespaceDirectory string        // Path of namespace directory
@@ -39,34 +39,73 @@ const (
 	defaultDirname   = ".iofog/"
 	namespaceDirname = "namespaces/"
 	defaultFilename  = "config.yaml"
-	// DefaultConfigPath is used if user does not specify a config file path
-	DefaultConfigPath = "~/" + defaultDirname
 )
 
-// Init initializes config, namespace and unmarshalls the files
-func Init(dirPath, namespace string) {
-	namespaces = make(map[string]*Namespace)
+func _updateConfig() error {
 
-	// Format file path
-	dirPath, err := util.FormatPath(dirPath)
+	// Previous config structure
+	type OldConfig struct {
+		Namespaces []Namespace `yaml:"namespaces"`
+	}
+
+	// Get config files
+	configFileName := path.Join(configFolder, "config.yaml")
+	configSaveFileName := path.Join(configFolder, "config.yaml.save")
+
+	// Create namespaces folder
+	namespaceDirectory := path.Join(configFolder, "namespaces")
+	err := os.MkdirAll(namespaceDirectory, 0755)
 	util.Check(err)
 
-	if dirPath == "" {
-		// Find home directory.
-		home, err := homedir.Dir()
-		util.Check(err)
-		configFolder = path.Join(home, defaultDirname)
-	} else {
-		fi, err := os.Stat(dirPath)
-		util.Check(err)
-		if fi.IsDir() {
-			// it's a directory
-			configFolder = dirPath
-		} else {
-			// it's not a directory
-			util.Check(util.NewInputError(fmt.Sprintf("The specified config folder [%s] is not a valid folder", dirPath)))
+	// Read previous config
+	r, err := ioutil.ReadFile(configFileName)
+	util.Check(err)
+
+	oldConfig := OldConfig{}
+	newConfig := configuration{DefaultNamespace: "default"}
+	err = yaml.UnmarshalStrict(r, &oldConfig)
+	if err != nil {
+		if err2 := yaml.UnmarshalStrict(r, &newConfig); err2 != nil {
+			util.Check(err)
 		}
+		return nil
 	}
+
+	// Map old config to new confi file system
+	for _, ns := range oldConfig.Namespaces {
+		// Add namespace to list
+		newConfig.Namespaces = append(newConfig.Namespaces, ns.Name)
+
+		// Write namespace config file
+		bytes, err := yaml.Marshal(ns)
+		util.Check(err)
+		configFile := path.Join(namespaceDirectory, ns.Name+".yaml")
+		err = ioutil.WriteFile(configFile, bytes, 0644)
+		util.Check(err)
+	}
+
+	// Write old config save file
+	err = ioutil.WriteFile(configSaveFileName, r, 0644)
+	util.Check(err)
+
+	// Write new config file
+	bytes, err := yaml.Marshal(newConfig)
+	util.Check(err)
+	err = ioutil.WriteFile(configFileName, bytes, 0644)
+	util.Check(err)
+
+	util.PrintInfo(fmt.Sprintf("Your config file has successfully been updated, the previous config file has been saved under %s", configSaveFileName))
+	return nil
+}
+
+// Init initializes config, namespace and unmarshalls the files
+func Init(namespace string) {
+	namespaces = make(map[string]*Namespace)
+
+	// Find home directory.
+	home, err := homedir.Dir()
+	util.Check(err)
+	configFolder = path.Join(home, defaultDirname)
 
 	// Set default filename if necessary
 	filename := path.Join(configFolder, defaultFilename)
@@ -88,9 +127,11 @@ func Init(dirPath, namespace string) {
 	err = util.UnmarshalYAML(configFilename, &conf)
 	// Warn user about possible update
 	if err != nil {
-		util.PrintInfo(fmt.Sprintf("It seems like your iofogctl configuration file %s is out-of-date\nTo update, please run iofogctl update\n", configFilename))
+		err = _updateConfig()
+		util.Check(err)
+		err = util.UnmarshalYAML(configFilename, &conf)
+		util.Check(err)
 	}
-	util.Check(err)
 
 	// Check namespace dir exists
 	if namespace == "" {
