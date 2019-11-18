@@ -40,5 +40,4 @@ steps:
     sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
     cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
     echo $(ssh.user.pub) > ~/id_rsa.pub
-  workingDirectory: '$(modulePath)'
   displayName: 'Configure VM Tests'

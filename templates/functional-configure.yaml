@@ -4,7 +4,6 @@ steps:
     sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
     sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
     cp test/env.sh test/conf
-  workingDirectory: '$(modulePath)'
   displayName: 'Configure Tests'
 - script: |
     git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
@@ -13,5 +12,4 @@ steps:
   displayName: 'Bootstrap for Tests'
 - script: |
     test/run.bash smoke
-  workingDirectory: '$(modulePath)'
   displayName: 'Run Smoke Tests'

@@ -14,10 +14,9 @@ trigger:
 variables:
   build: $(Build.BuildId)
   jobuuid: $(Build.BuildId)$(Agent.Id)
-  GOROOT: '/usr/local/go1.12' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  GOROOT: '/usr/local/go1.12'
+  GOPATH: '/tmp/go'
+  GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
@@ -44,20 +43,18 @@ stages:
     - script: |
         . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
         make build
-      workingDirectory: '$(modulePath)'
       displayName: 'Build Linux version'
     - task: PublishBuildArtifacts@1
       inputs:
-        pathtoPublish: '$(modulePath)/bin'
+        pathtoPublish: './bin'
         artifactName: iofogctl-linux
     - script: |
         . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
         GOOS=darwin make build
-      workingDirectory: '$(modulePath)'
       displayName: 'Build OSX Binary'
     - task: PublishBuildArtifacts@1
       inputs:
-        pathtoPublish: '$(modulePath)/bin'
+        pathtoPublish: './bin'
         artifactName: iofogctl-osx
     
 - stage: Test
@@ -145,23 +142,19 @@ stages:
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
         sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
-      workingDirectory: '$(modulePath)'
       displayName: 'Configure Local Tests'
     - template: templates/functional-configure.yaml
     - script: |
         set -o pipefail
         test/run.bash functional-local | tee test/conf/results-functional-local.tap
-      workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
         tap-junit -i test/conf/results-functional-local.tap -o test/conf -s Local -n results-functional-local.xml || true
-      workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
     - template: templates/functional-post-test.yaml
     - script: |
         docker system prune -af
-      workingDirectory: '$(modulePath)'
       condition: always()
       displayName: 'Clean local docker'
   - job: K8s
@@ -189,16 +182,13 @@ stages:
     - script: |
         set -o pipefail
         test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
-      workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
         tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml || true
-      workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
     - script: |
           test/clean.bash $(jobuuid)
-      workingDirectory: '$(modulePath)'
       displayName: 'Clean K8s Cluster'
       condition: always()
     - template: templates/functional-post-test.yaml
@@ -232,22 +222,18 @@ stages:
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(enterprise_image)\"|g" test/env.sh
-      workingDirectory: '$(modulePath)'
       displayName: 'Set up Postgres on K8s cluster'
     - template: templates/functional-configure.yaml
     - script: |
         set -o pipefail
         test/run.bash functional-ha | tee test/conf/results-functional-ha.tap
-      workingDirectory: '$(modulePath)'
       displayName: 'Run Functional Tests'
     - script: |
         tap-junit -i test/conf/results-functional-ha.tap -o test/conf -s HA -n results-functional-ha.xml || true
-      workingDirectory: '$(modulePath)'
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
     - script: |
           test/clean.bash $(jobuuid)
-      workingDirectory: '$(modulePath)'
       displayName: 'Clean K8s Cluster'
       condition: always()
     - template: templates/functional-post-test.yaml
@@ -270,7 +256,6 @@ stages:
         mkdir bin
         cp $(System.DefaultWorkingDirectory)/iofogctl-osx/iofogctl bin/
       displayName: 'Download OSX Binary'
-      workingDirectory: '$(modulePath)'
     - template: templates/version-steps.yaml
     - template: templates/ssh-steps.yaml
     - script: |
@@ -298,7 +283,6 @@ stages:
         git add $brew_file
         git commit -m "Publish develop version $(version)"
         git push origin master
-      workingDirectory: '$(modulePath)'
       displayName: 'Build and publish OSX binary'
     - template: templates/publish-steps.yaml
   - job: Debian

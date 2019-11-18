@@ -2,9 +2,6 @@ steps:
 - script: |
     mkdir -p '$(GOBIN)'
     mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    mv !(gopath) '$(modulePath)'
     echo '##vso[task.prependpath]$(GOBIN)'
     echo '##vso[task.prependpath]$(GOROOT)/bin'
   displayName: 'Set up the Go workspace'
@@ -16,14 +13,10 @@ steps:
   displayName: 'Install Golang'
 - script: |
     ./script/check_fmt.sh
-  workingDirectory: '$(modulePath)'
   displayName: 'Check Source Format'
 - script: |
     script/bootstrap.sh
-    make dep
-  workingDirectory: '$(modulePath)'
   displayName: 'Bootstrap'
 - script: |
     make test
-  workingDirectory: '$(modulePath)'
   displayName: 'Run Unit Tests'

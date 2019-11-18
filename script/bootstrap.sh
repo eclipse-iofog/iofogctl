@@ -36,16 +36,16 @@ if ! checkForInstallation "go"; then
     exit 1
 fi
 
-# Is dep installed?
-if ! checkForInstallation "dep"; then
-    echoInfo " Attempting to install 'go dep'"
-    go get -u github.com/golang/dep/cmd/dep
-fi
-
 # Is go-junit-report installed?
 if ! checkForInstallation "go-junit-report"; then
     echoInfo " Attempting to install 'go-junit-report'"
-    go get -u github.com/jstemmer/go-junit-report
+    go install github.com/jstemmer/go-junit-report
+fi
+
+# Is rice installed?
+if [ -z $(command -v rice) ]; then
+    echo " Attempting to install 'rice'"
+    go install github.com/GeertJohan/go.rice/rice
 fi
 
 # Is bats installed?

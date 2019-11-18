@@ -12,4 +12,3 @@ steps:
     echo "##vso[task.setvariable variable=version]$VERS"
     echo $(version)
   displayName: 'Set version variable'
-  workingDirectory: '$(modulePath)'

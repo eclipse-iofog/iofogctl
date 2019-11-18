@@ -27,7 +27,7 @@ GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
-all: init dep build install ## Get deps, build, and install binary
+all: init build install ## Get deps, build, and install binary
 
 .PHONY: clean
 clean: ## Clean the working area and the project
@@ -37,11 +37,6 @@ clean: ## Clean the working area and the project
 .PHONY: init
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
-
-.PHONY: dep
-dep: ## Install dependencies
-	@go get github.com/GeertJohan/go.rice/rice
-	@dep ensure -v -vendor-only
 
 .PHONY: build
 build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)

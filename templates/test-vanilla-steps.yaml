@@ -44,11 +44,9 @@ steps:
 - script: |
     set -o pipefail
     test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
-  workingDirectory: '$(modulePath)'
   displayName: 'Run Functional Tests'
 - script: |
     tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml || true
-  workingDirectory: '$(modulePath)'
   displayName: 'Convert test output from TAP to JUnit'
   condition: succeededOrFailed()
 - template: functional-post-test.yaml

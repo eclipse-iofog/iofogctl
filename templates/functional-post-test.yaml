@@ -6,7 +6,7 @@ steps:
   inputs:
     testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
     testResultsFiles: 'results-*.xml' 
-    searchFolder: '$(modulePath)/test/conf' # Optional
+    searchFolder: './test/conf' # Optional
     #mergeTestResults: false # Optional
     #failTaskOnFailedTests: false # Optional
     #testRunTitle: # Optional
