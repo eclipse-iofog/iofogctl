@@ -39,12 +39,8 @@ iofogctl get controllers` + fmt.Sprintf("\n\nValid resources are: %s\n", strings
 			// Get resource type arg
 			resource := args[0]
 
-			// Get namespace option
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
-
 			// Get executor for get command
-			exe, err := get.NewExecutor(resource, namespace)
+			exe, err := get.NewExecutor(resource, "")
 			util.Check(err)
 
 			// Execute the get command

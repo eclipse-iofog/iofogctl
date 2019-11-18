@@ -37,7 +37,7 @@ The namespace must not have any resources within it.`,
 			err := delete.Execute(name, force)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + name)
+			util.PrintSuccess("Successfully deleted namespace " + name)
 		},
 	}
 

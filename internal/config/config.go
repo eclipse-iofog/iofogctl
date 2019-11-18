@@ -14,8 +14,10 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -24,166 +26,242 @@ import (
 )
 
 var (
-	conf           configuration // struct that file is unmarshalled into
-	configFilename string        // Name of file
+	conf               Configuration // struct that file is unmarshalled into
+	configFolder       string        // config directory
+	configFilename     string        // config file name
+	namespaceDirectory string        // Path of namespace directory
+	namespaces         map[string]*Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
 	mux = &sync.Mutex{}
 )
 
 const (
-	defaultDirname  = ".iofog/"
-	defaultFilename = "config.yaml"
+	defaultDirname   = ".iofog/"
+	namespaceDirname = "namespaces/"
+	defaultFilename  = "config.yaml"
 	// DefaultConfigPath is used if user does not specify a config file path
-	DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+	DefaultConfigPath = "~/" + defaultDirname
 )
 
-// Init initializes config and unmarshalls the file
-func Init(filename string) {
+// Init initializes config, namespace and unmarshalls the files
+func Init(dirPath, namespace string) {
+	namespaces = make(map[string]*Namespace)
+
 	// Format file path
-	filename, err := util.FormatPath(filename)
+	dirPath, err := util.FormatPath(dirPath)
 	util.Check(err)
 
-	// Set default filename if necessary
-	var homeDirname string
-	if filename == "" {
+	if dirPath == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.Check(err)
-		homeDirname = home + "/" + defaultDirname
-		filename = homeDirname + defaultFilename
+		configFolder = path.Join(home, defaultDirname)
+	} else {
+		fi, err := os.Stat(dirPath)
+		util.Check(err)
+		if fi.IsDir() {
+			// it's a directory
+			configFolder = dirPath
+		} else {
+			// it's not a directory
+			util.Check(util.NewInputError(fmt.Sprintf("The specified config folder [%s] is not a valid folder", dirPath)))
+		}
 	}
+
+	// Set default filename if necessary
+	filename := path.Join(configFolder, defaultFilename)
 	configFilename = filename
+	namespaceDirectory = path.Join(configFolder, namespaceDirname)
 
 	// Check file exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(homeDirname, 0755)
+		err = os.MkdirAll(configFolder, 0755)
 		util.Check(err)
 
 		// Create default file
-		err = AddNamespace("default", util.NowUTC())
-		util.Check(err)
-		err = Flush()
+		conf.DefaultNamespace = "default"
+		err = FlushConfig()
 		util.Check(err)
 	}
 
-	// Unmarshall the file
+	// Unmarshall the config file
 	err = util.UnmarshalYAML(configFilename, &conf)
+	// Warn user about possible update
+	if err != nil {
+		util.PrintInfo(fmt.Sprintf("It seems like your iofogctl configuration file %s is out-of-date\nTo update, please run iofogctl update\n", configFilename))
+	}
 	util.Check(err)
+
+	// Check namespace dir exists
+	if namespace == "" {
+		namespace = conf.DefaultNamespace
+	}
+	conf.CurrentNamespace = namespace
+	namespaceFilename := getNamespaceFile(namespace)
+	if _, err := os.Stat(namespaceFilename); os.IsNotExist(err) {
+		err = os.MkdirAll(namespaceDirectory, 0755)
+		util.Check(err)
+
+		// Create default file
+		if namespace == "default" {
+			err = AddNamespace(namespace, util.NowUTC())
+			util.Check(err)
+		}
+	}
+}
+
+func SetDefaultNamespace(name string) (err error) {
+	if name == conf.DefaultNamespace {
+		return
+	}
+	// Check exists
+	for _, n := range conf.Namespaces {
+		if n == name {
+			conf.CurrentNamespace = name
+			conf.DefaultNamespace = name
+			// Unmarshall the namespace file
+			namespaces[name] = &Namespace{}
+			err = util.UnmarshalYAML(getNamespaceFile(name), namespaces[name])
+			return
+		}
+	}
+	return util.NewNotFoundError(name)
 }
 
 // GetNamespaces returns all namespaces in config
-func GetNamespaces() (namespaces []Namespace) {
+func GetNamespaces() (namespaces []string) {
 	return conf.Namespaces
 }
 
-// GetAgents returns all agents within a namespace
+func getNamespace(name string) (*Namespace, error) {
+	if name == "" {
+		name = conf.CurrentNamespace
+	}
+	namespace, ok := namespaces[name]
+	if !ok {
+
+		namespaces[name] = &Namespace{}
+		if err := util.UnmarshalYAML(getNamespaceFile(name), namespaces[name]); err != nil {
+			delete(namespaces, name)
+			return nil, err
+		}
+		return namespaces[name], nil
+	}
+	return namespace, nil
+}
+
+// GetAgents returns all agents within the namespace
 func GetAgents(namespace string) ([]Agent, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.Agents, nil
-		}
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return nil, err
 	}
-	return nil, util.NewNotFoundError(namespace)
+	return ns.Agents, nil
 }
 
-// GetControllers returns all controllers within a namespace
+// GetControllers returns all controllers within the namespace
 func GetControllers(namespace string) ([]Controller, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.ControlPlane.Controllers, nil
-		}
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return nil, err
 	}
-	return nil, util.NewNotFoundError(namespace)
+	return ns.ControlPlane.Controllers, nil
 }
 
-// GetConnectors returns all controllers within a namespace
+// GetConnectors returns all controllers within the namespace
 func GetConnectors(namespace string) ([]Connector, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.Connectors, nil
-		}
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return nil, err
 	}
-	return nil, util.NewNotFoundError(namespace)
+	return ns.Connectors, nil
 }
 
-// GetNamespace returns a single namespace
-func GetNamespace(name string) (namespace Namespace, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == name {
-			namespace = ns
-			return
-		}
+// GetNamespace returns the namespace
+func GetNamespace(namespace string) (Namespace, error) {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return Namespace{}, err
 	}
-	err = util.NewNotFoundError(name)
-	return
+	return *ns, nil
+}
+
+// GetCurrentNamespace return the current namespace
+func GetCurrentNamespace() Namespace {
+	ns, _ := getNamespace(conf.CurrentNamespace)
+	return *ns
 }
 
 // GetControlPlane returns a control plane within a namespace
-func GetControlPlane(namespace string) (controlplane ControlPlane, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			controlplane = ns.ControlPlane
+func GetControlPlane(namespace string) (ControlPlane, error) {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return ControlPlane{}, err
+	}
+	return ns.ControlPlane, nil
+}
+
+// GetController returns a single controller within the current
+func GetController(namespace, name string) (controller Controller, err error) {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return
+	}
+	for _, ctrl := range ns.ControlPlane.Controllers {
+		if ctrl.Name == name {
+			controller = ctrl
 			return
 		}
 	}
-	err = util.NewNotFoundError(namespace + " Control Plane")
-	return
-}
 
-// GetController returns a single controller within a namespace
-func GetController(namespace, name string) (controller Controller, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, ctrl := range ns.ControlPlane.Controllers {
-				if ctrl.Name == name {
-					controller = ctrl
-					return
-				}
-			}
-		}
-	}
 	err = util.NewNotFoundError(namespace + "/" + name)
 	return
 }
 
 // GetConnector returns a single connector within a namespace
 func GetConnector(namespace, name string) (connector Connector, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, cnct := range ns.Connectors {
-				if cnct.Name == name {
-					connector = cnct
-					return
-				}
-			}
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return
+	}
+	for _, cnct := range ns.Connectors {
+		if cnct.Name == name {
+			connector = cnct
+			return
 		}
 	}
+
 	err = util.NewNotFoundError(namespace + "/" + name)
 	return
 }
 
 // GetAgent returns a single agent within a namespace
 func GetAgent(namespace, name string) (agent Agent, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, ag := range ns.Agents {
-				if ag.Name == name {
-					agent = ag
-					return
-				}
-			}
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return
+	}
+	for _, ag := range ns.Agents {
+		if ag.Name == name {
+			agent = ag
+			return
 		}
 	}
+
 	err = util.NewNotFoundError(namespace + "/" + name)
 	return
 }
 
 // AddNamespace adds a new namespace to the config
 func AddNamespace(name, created string) error {
+	if name == "" {
+		name = conf.CurrentNamespace
+	}
 	// Check collision
-	_, err := GetNamespace(name)
-	if err == nil {
-		return util.NewConflictError(name)
+	for _, n := range conf.Namespaces {
+		if n == name {
+			return util.NewConflictError(name)
+		}
 	}
 
 	newNamespace := Namespace{
@@ -191,8 +269,25 @@ func AddNamespace(name, created string) error {
 		Created: created,
 	}
 	mux.Lock()
-	conf.Namespaces = append(conf.Namespaces, newNamespace)
+	conf.Namespaces = append(conf.Namespaces, name)
+	err := FlushConfig()
 	mux.Unlock()
+	if err != nil {
+		return err
+	}
+
+	// Write namespace file
+	// Marshal the runtime data
+	marshal, err := yaml.Marshal(&newNamespace)
+	if err != nil {
+		return err
+	}
+	// Overwrite the file
+	err = ioutil.WriteFile(getNamespaceFile(name), marshal, 0644)
+	if err != nil {
+		return err
+	}
+	namespaces[name] = &newNamespace
 	return nil
 }
 
@@ -210,11 +305,11 @@ func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
 
 // Overwrites or creates new controller to the namespace
 func UpdateController(namespace string, controller Controller) error {
+	// Update existing controller if exists
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
 	}
-	// Update existing controller if exists
 	for idx := range ns.ControlPlane.Controllers {
 		if ns.ControlPlane.Controllers[idx].Name == controller.Name {
 			mux.Lock()
@@ -224,9 +319,7 @@ func UpdateController(namespace string, controller Controller) error {
 		}
 	}
 	// Add new controller
-	AddController(namespace, controller)
-
-	return nil
+	return AddController(namespace, controller)
 }
 
 // Overwrites or creates new connector to the namespace
@@ -245,9 +338,7 @@ func UpdateConnector(namespace string, connector Connector) error {
 		}
 	}
 	// Add new connector
-	AddConnector(namespace, connector)
-
-	return nil
+	return AddConnector(namespace, connector)
 }
 
 // Overwrites or creates new agent to the namespace
@@ -266,21 +357,18 @@ func UpdateAgent(namespace string, agent Agent) error {
 		}
 	}
 	// Add new agent
-	AddAgent(namespace, agent)
-
-	return nil
+	return AddAgent(namespace, agent)
 }
 
-// AddController adds a new controller to the namespace
+// AddController adds a new controller to the current namespace
 func AddController(namespace string, controller Controller) error {
-	_, err := GetController(namespace, controller.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + controller.Name)
-	}
-
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
+	}
+	_, err = GetController(namespace, controller.Name)
+	if err == nil {
+		return util.NewConflictError(namespace + "/" + controller.Name)
 	}
 
 	// Append the controller
@@ -293,14 +381,13 @@ func AddController(namespace string, controller Controller) error {
 
 // AddConnector adds a new connector to the namespace
 func AddConnector(namespace string, connector Connector) error {
-	_, err := GetConnector(namespace, connector.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + connector.Name)
-	}
-
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
+	}
+	_, err = GetConnector(namespace, connector.Name)
+	if err == nil {
+		return util.NewConflictError(namespace + "/" + connector.Name)
 	}
 
 	// Append the connector
@@ -313,14 +400,13 @@ func AddConnector(namespace string, connector Connector) error {
 
 // AddAgent adds a new agent to the namespace
 func AddAgent(namespace string, agent Agent) error {
-	_, err := GetAgent(namespace, agent.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + agent.Name)
-	}
-
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
+	}
+	_, err = GetAgent(namespace, agent.Name)
+	if err == nil {
+		return util.NewConflictError(namespace + "/" + agent.Name)
 	}
 
 	// Append the controller
@@ -331,18 +417,29 @@ func AddAgent(namespace string, agent Agent) error {
 	return nil
 }
 
+// getNamespaceFile helper function that returns the full path to a namespace file
+func getNamespaceFile(name string) string {
+	return path.Join(namespaceDirectory, name+".yaml")
+}
+
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
+	if name == "" {
+		name = conf.CurrentNamespace
+	}
 	for idx := range conf.Namespaces {
-		if conf.Namespaces[idx].Name == name {
+		if conf.Namespaces[idx] == name {
 			mux.Lock()
 			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
+			delete(namespaces, name)
+			// Remove namespace file
+			err := os.Remove(getNamespaceFile(name))
 			mux.Unlock()
-			return nil
+			return err
 		}
 	}
 
-	return nil
+	return util.NewNotFoundError("Could not find namespace " + name)
 }
 
 func DeleteControlPlane(namespace string) error {
@@ -362,7 +459,6 @@ func DeleteController(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-
 	for idx := range ns.ControlPlane.Controllers {
 		if ns.ControlPlane.Controllers[idx].Name == name {
 			mux.Lock()
@@ -372,7 +468,7 @@ func DeleteController(namespace, name string) error {
 		}
 	}
 
-	return util.NewNotFoundError(namespace + "/" + name)
+	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
 // DeleteConnector deletes a connector from a namespace
@@ -381,7 +477,6 @@ func DeleteConnector(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-
 	for idx := range ns.Connectors {
 		if ns.Connectors[idx].Name == name {
 			mux.Lock()
@@ -391,7 +486,7 @@ func DeleteConnector(namespace, name string) error {
 		}
 	}
 
-	return util.NewNotFoundError(namespace + "/" + name)
+	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
 // DeleteAgent deletes an agent from a namespace
@@ -400,7 +495,6 @@ func DeleteAgent(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-
 	for idx := range ns.Agents {
 		if ns.Agents[idx].Name == name {
 			mux.Lock()
@@ -410,21 +504,11 @@ func DeleteAgent(namespace, name string) error {
 		}
 	}
 
-	return util.NewNotFoundError(namespace + "/" + name)
+	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
-// getNamespace is a helper function to find a namespace and reference it directly
-func getNamespace(name string) (*Namespace, error) {
-	for idx := range conf.Namespaces {
-		if conf.Namespaces[idx].Name == name {
-			return &conf.Namespaces[idx], nil
-		}
-	}
-	return nil, util.NewNotFoundError(name)
-}
-
-// Flush will write over the config file based on the runtime data of all namespaces
-func Flush() (err error) {
+// FlushConfig will write over the config file based on the runtime data of all namespaces
+func FlushConfig() (err error) {
 	// Marshal the runtime data
 	marshal, err := yaml.Marshal(&conf)
 	if err != nil {
@@ -434,6 +518,23 @@ func Flush() (err error) {
 	err = ioutil.WriteFile(configFilename, marshal, 0644)
 	if err != nil {
 		return
+	}
+	return
+}
+
+// Flush will write over the namespace file based on the runtime data
+func Flush() (err error) {
+	for _, ns := range namespaces {
+		// Marshal the runtime data
+		marshal, err := yaml.Marshal(ns)
+		if err != nil {
+			return err
+		}
+		// Overwrite the file
+		err = ioutil.WriteFile(getNamespaceFile(ns.Name), marshal, 0644)
+		if err != nil {
+			return err
+		}
 	}
 	return
 }

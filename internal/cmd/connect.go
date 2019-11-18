@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/connect"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -37,17 +38,11 @@ See iofog.org for the YAML format.`,
 iofogctl connect --kube FILE --name NAME --email EMAIL --pass PASSWORD
 iofogctl connect --endpoint ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 		Run: func(cmd *cobra.Command, args []string) {
-
-			var err error
-			// Get namespace
-			opt.Namespace, err = cmd.Flags().GetString("namespace")
-			util.Check(err)
-
 			// Execute command
-			err = connect.Execute(opt)
+			err := connect.Execute(opt)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully connected resources to namespace " + opt.Namespace)
+			util.PrintSuccess("Successfully connected resources to namespace " + config.GetCurrentNamespace().Name)
 		},
 	}
 	// Register flags

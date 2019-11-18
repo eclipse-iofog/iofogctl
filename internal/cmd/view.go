@@ -30,11 +30,8 @@ func newViewCommand() *cobra.Command {
 		Use:   "view",
 		Short: "Open ECN Viewer",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get namespace
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
 			// Get Control Plane
-			controlPlane, err := config.GetControlPlane(namespace)
+			controlPlane, err := config.GetControlPlane("")
 			if err != nil || len(controlPlane.Controllers) == 0 {
 				util.PrintError("You must deploy a Controller to a namespace to see an ECN Viewer")
 				os.Exit(1)

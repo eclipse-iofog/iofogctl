@@ -33,10 +33,11 @@ func (exe *allExecutor) GetName() string {
 
 func (exe *allExecutor) Execute() error {
 	// Check namespace exists
-	if _, err := config.GetNamespace(exe.namespace); err != nil {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
 		return err
 	}
-	printNamespace(exe.namespace)
+	printNamespace(ns.Name)
 
 	// Print controllers
 	if err := generateControllerOutput(exe.namespace); err != nil {

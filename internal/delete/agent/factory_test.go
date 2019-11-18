@@ -14,18 +14,24 @@
 package deleteagent
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"testing"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
+func init() {
+	config.Init("", "")
+}
+
+var ns = "test_delete_agent"
+
 func TestCreateNamespace(t *testing.T) {
-	if err := config.AddNamespace("default", ""); err != nil {
+	if err := config.AddNamespace(ns, ""); err != nil {
 		t.Errorf("Error when creating default namespace: %s", err.Error())
 	}
 }
 
 func TestLocal(t *testing.T) {
-	ns := "default"
 	agent := config.Agent{
 		Name: "test_local",
 		Host: "localhost",
@@ -39,7 +45,6 @@ func TestLocal(t *testing.T) {
 }
 
 func TestRemote(t *testing.T) {
-	ns := "default"
 	agent := config.Agent{
 		Name: "test_remote",
 		Host: "123.123.123.123",
@@ -58,7 +63,6 @@ func TestRemote(t *testing.T) {
 }
 
 func TestNonExistentAgent(t *testing.T) {
-	ns := "default"
 	agentName := "non_existent"
 	if _, err := NewExecutor(ns, agentName); err == nil {
 		t.Error("Expected error with non existent Agent")
@@ -70,5 +74,11 @@ func TestNonExistentNamespace(t *testing.T) {
 	agentName := "non_existent"
 	if _, err := NewExecutor(ns, agentName); err == nil {
 		t.Error("Expected error with non existent namespace")
+	}
+}
+
+func TestDeleteNS(t *testing.T) {
+	if err := config.DeleteNamespace(ns); err != nil {
+		t.Errorf("Error when creating default namespace: %s", err.Error())
 	}
 }

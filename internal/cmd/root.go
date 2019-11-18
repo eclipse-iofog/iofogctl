@@ -43,6 +43,11 @@ func NewRootCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use: "iofogctl",
 		//Short: "ioFog Unified Command Line Interface",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if cmd.Use != "iofogctl" {
+				config.Init(configFolder, namespace)
+			}
+		},
 		PreRun: func(cmd *cobra.Command, args []string) {
 			printHeader()
 		},
@@ -59,13 +64,14 @@ func NewRootCommand() *cobra.Command {
 	cobra.OnInitialize(initialize)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
+	cmd.PersistentFlags().StringVar(&configFolder, "config", "", "CLI configuration folder (default is "+config.DefaultConfigPath+")")
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
 	cmd.PersistentFlags().BoolVar(&httpVerbose, "http-verbose", false, "Toggle for displaying verbose output of API client")
-	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
+	cmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Namespace to execute respective command within")
 
 	// Register all commands
 	cmd.AddCommand(
+		newUpdateCommand(),
 		newConnectCommand(),
 		newConfigureCommand(),
 		newDisconnectCommand(),
@@ -87,8 +93,11 @@ func NewRootCommand() *cobra.Command {
 	return cmd
 }
 
-// Config file set by --config persistent flag
-var configFilename string
+// Namespace set by -n / --namespace
+var namespace string
+
+// Config folder set by --config persistent flag
+var configFolder string
 
 // Toggle set by --verbose persistent flag
 var verbose bool
@@ -98,7 +107,6 @@ var httpVerbose bool
 
 // Callback for cobra on initialization
 func initialize() {
-	config.Init(configFilename)
 	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
 	util.SpinEnable(!verbose && !httpVerbose)

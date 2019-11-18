@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	delete "github.com/eclipse-iofog/iofogctl/internal/delete/all"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -30,13 +31,11 @@ Tears down all components of an Edge Compute Network.
 If you don't want to tear down the deployments but would like to free up the namespace, use the disconnect command instead.`,
 		Example: `iofogctl delete all -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
 			// Execute command
-			err = delete.Execute(namespace)
+			err := delete.Execute("")
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
+			util.PrintSuccess("Successfully deleted all resources in namespace " + config.GetCurrentNamespace().Name)
 		},
 	}
 

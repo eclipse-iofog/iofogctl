@@ -24,17 +24,18 @@ import (
 
 func newConfigureCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"controller", "connector", "agent", "all", "agents", "controllers", "connectors"}
+	var validResources = []string{"controller", "connector", "agent", "all", "agents", "controllers", "connectors", "default-namespace"}
 	// Instantiate options
 	var opt configure.Options
 
 	cmd := &cobra.Command{
 		Use:   "configure resource NAME",
-		Short: "Configure SSH details for an existing resource",
-		Long: `Configure SSH details for an existing resource.
+		Short: "Configure iofogctl or SSH details an existing resource",
+		Long: `Configure iofogctl or SSH details for an existing resource
 
 Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
-		Example: `iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
+		Example: `iofogctl configure default-namespace NAME
+iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure connector NAME --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure controller NAME --kube KUBECONFIG
 iofogctl configure connector NAME --kube KUBECONFIG

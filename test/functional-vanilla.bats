@@ -12,6 +12,10 @@ USER_EMAIL="user@domain.com"
   test iofogctl create namespace "$NS"
 }
 
+@test "Set default namespace" {
+  test iofogctl configure default-namespace "$NS"
+}
+
 @test "Deploy vanilla Controller" {
   initVanillaController
   echo "---
@@ -48,28 +52,28 @@ spec:
   package:
     version: $VANILLA_VERSION" > test/conf/vanilla.yaml
 
-  test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
+  test iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
   checkConnector
 }
 
 @test "Controller legacy commands after vanilla deploy" {
-  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
+  test iofogctl -v legacy controller "$NAME" iofog list
   checkLegacyController
 }
 
 @test "Connector legacy commands after deploy" {
-  test iofogctl -v -n "$NS" legacy connector "$NAME" status
+  test iofogctl -v legacy connector "$NAME" status
   checkLegacyConnector
 }
 
 @test "Get Controller logs after vanilla deploy" {
-  test iofogctl -v -n "$NS" logs controller "$NAME"
+  test iofogctl -v logs controller "$NAME"
 }
 
 @test "Deploy Agents against vanilla Controller" {
   initAgentsFile
-  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  test iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -77,19 +81,19 @@ spec:
   initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
+    test iofogctl -v legacy agent "$AGENT_NAME" status
     checkLegacyAgent "$AGENT_NAME"
   done
 }
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
+  test iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
 }
 
 @test "Deploy application and test deploy idempotence" {
-  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
+  test iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
 }
 
@@ -117,9 +121,9 @@ spec:
   initVanillaController
   CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
   test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkController
-  checkConnector
-  checkAgents
+  checkController "$NS2"
+  checkConnector "$NS2"
+  checkAgents "$NS2"
 }
 
 @test "Configure Controller and Connector" {
@@ -128,8 +132,8 @@ spec:
     test iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
   done
   test iofogctl -v -n "$NS2" logs controller "$NAME"
-  checkLegacyController
-  checkLegacyConnector
+  checkLegacyController "$NS2"
+  checkLegacyConnector "$NS2"
 }
 
 @test "Configure Agents" {
@@ -143,7 +147,7 @@ spec:
     echo "========> Config.yaml"
     cat ~/.iofog/config.yaml
     test iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
-    checkLegacyAgent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME" "$NS2"
   done
 }
 
@@ -157,23 +161,23 @@ spec:
 
 
 @test "Deploy again to check it doesn't lose database" {
-  test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
+  test iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
   checkConnector
   initAgentsFile
-  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  test iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   checkApplication
 }
 
 # Delete all does not delete application
 @test "Delete application" {
-  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
+  test iofogctl -v delete application "$APPLICATION_NAME"
   checkApplicationNegative
 }
 
 @test "Delete all" {
-  test iofogctl -v -n "$NS" delete all
+  test iofogctl -v delete all
   checkControllerNegative
   checkConnectorNegative
   checkAgentsNegative

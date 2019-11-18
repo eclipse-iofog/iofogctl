@@ -14,43 +14,74 @@
 package config
 
 import (
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"io/ioutil"
+	"os"
+	"path"
 	"strconv"
 	"testing"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
-var testData = []byte(`
+var configData = []byte(`
+defaultNamespace: default
 namespaces:
-- name: first
-  controllers:
-  - name: controller0
-    user: root0
-  agents:
-  - name: agent0
-    user: root0
-  - name: agent1
-    user: root1
-  - name: agent2
-    user: root2
-- name: second
-  controllers:
-  - name: controller1
-    user: root1
-  agents:
-  - name: agent1
-    user: root1
-  - name: agent2
-    user: root2
+- default
+- first
+- second
+`)
+
+var defaultData = []byte(`name: default
+`)
+
+var firstData = []byte(`name: first
+controllers:
+- name: controller0
+  user: root0
+agents:
+- name: agent0
+  user: root0
+- name: agent1
+  user: root1
+- name: agent2
+  user: root2
+`)
+
+var secondData = []byte(`name: second
+controllers:
+- name: controller1
+  user: root1
+agents:
+- name: agent1
+  user: root1
+- name: agent2
+  user: root2
 `)
 
 func init() {
-	testConfigFilename := "/tmp/cli.yml"
-	err := ioutil.WriteFile(testConfigFilename, testData, 0644)
+	testConfigFolder := "/tmp/"
+	testConfigFilename := "/tmp/config.yaml"
+	if err := os.MkdirAll(path.Join(testConfigFolder, "namespaces"), 0755); err != nil {
+		panic(err)
+	}
+	err := ioutil.WriteFile(testConfigFilename, configData, 0644)
 	if err != nil {
 		panic(err)
 	}
-	Init(testConfigFilename)
+	err = ioutil.WriteFile(path.Join(testConfigFolder, "namespaces", "first.yaml"), firstData, 0644)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(path.Join(testConfigFolder, "namespaces", "second.yaml"), secondData, 0644)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(path.Join(testConfigFolder, "namespaces", "default.yaml"), defaultData, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	Init(testConfigFolder, "")
 }
 
 func TestDelete(t *testing.T) {
@@ -60,22 +91,22 @@ func TestDelete(t *testing.T) {
 func TestReadingNamespaces(t *testing.T) {
 	// Test all namespace queries
 	namespaces := GetNamespaces()
-	if len(namespaces) != 2 {
+	if len(namespaces) != 3 {
 		t.Errorf("Incorrect number of namespaces: %d", len(namespaces))
 	}
-	expectedNamespaceNames := [2]string{"first", "second"}
+	expectedNamespaceNames := [3]string{"default", "first", "second"}
 	for idx, nsName := range expectedNamespaceNames {
-		if namespaces[idx].Name != nsName {
-			t.Errorf("Namespaces %d incorrect. Expected: %s, Found: %s", idx, namespaces[idx].Name, nsName)
+		if namespaces[idx] != nsName {
+			t.Errorf("Namespaces %d incorrect. Expected: %s, Found: %s", idx, namespaces[idx], nsName)
 		}
 
 		// Test single namespace queries
 		singleNamespace, err := GetNamespace(nsName)
 		if err != nil {
-			t.Errorf("Error getting namespace. Error: %s", err.Error())
+			t.Errorf("[%s] Error getting namespace. Error: %s", nsName, err.Error())
 		}
 		if singleNamespace.Name != nsName {
-			t.Errorf("Error getting namespace. Expected: %s, Found: %s", nsName, singleNamespace.Name)
+			t.Errorf("[%v] Error getting namespace. Expected: %s, Found: %s", singleNamespace, nsName, singleNamespace.Name)
 		}
 	}
 
@@ -89,7 +120,7 @@ func TestReadingNamespaces(t *testing.T) {
 func TestReadingControllers(t *testing.T) {
 	for nsIdx, ns := range GetNamespaces() {
 		// Test bulk Controller queries
-		ctrls, err := GetControllers(ns.Name)
+		ctrls, err := GetControllers(ns)
 		if err != nil {
 			t.Errorf("Error: %s", err.Error())
 		}
@@ -105,7 +136,7 @@ func TestReadingControllers(t *testing.T) {
 			}
 
 			// Test single Controller queries
-			singleCtrl, err := GetController(ns.Name, expectedName)
+			singleCtrl, err := GetController(ns, expectedName)
 			if err != nil {
 				t.Errorf("Error getting single Controller: %s", err.Error())
 			}
@@ -122,7 +153,7 @@ func TestReadingControllers(t *testing.T) {
 func TesReadingtAgents(t *testing.T) {
 	for nsIdx, ns := range GetNamespaces() {
 		// Test bulk Agent queries
-		agents, err := GetAgents(ns.Name)
+		agents, err := GetAgents(ns)
 		if err != nil {
 			t.Errorf("Error: %s", err.Error())
 		}
@@ -138,7 +169,7 @@ func TesReadingtAgents(t *testing.T) {
 			}
 
 			// Test single Agent queries
-			singleAgent, err := GetAgent(ns.Name, expectedName)
+			singleAgent, err := GetAgent(ns, expectedName)
 			if err != nil {
 				t.Errorf("Error getting single Agent: %s", err.Error())
 			}
