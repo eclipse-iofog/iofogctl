@@ -420,6 +420,9 @@ func getNamespaceFile(name string) string {
 
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
+	if name == "" {
+		name = conf.CurrentNamespace
+	}
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx] == name {
 			mux.Lock()
@@ -432,7 +435,7 @@ func DeleteNamespace(name string) error {
 		}
 	}
 
-	return nil
+	return util.NewNotFoundError("Could not find namespace " + name)
 }
 
 func DeleteControlPlane(namespace string) error {
