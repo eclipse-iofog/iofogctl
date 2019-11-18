@@ -28,6 +28,9 @@ func newKubernetesExecutor(ctrlPlane config.ControlPlane, namespace string) *kub
 		ctrlPlane: ctrlPlane,
 		namespace: namespace,
 	}
+	if namespace == "" {
+		k.namespace = config.GetCurrentNamespace().Name
+	}
 	return k
 }
 

@@ -15,6 +15,7 @@ package logs
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -26,6 +27,9 @@ type controllerExecutor struct {
 
 func newControllerExecutor(namespace, name string) *controllerExecutor {
 	exe := &controllerExecutor{}
+	if namespace == "" {
+		namespace = config.GetCurrentNamespace().Name
+	}
 	exe.namespace = namespace
 	exe.name = name
 	return exe
@@ -49,7 +53,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	// K8s
 	if ctrl.Kube.Config != "" {
-		out, err := util.Exec("KUBECONFIG="+ctrl.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", "iofog")
+		out, err := util.Exec("KUBECONFIG="+ctrl.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", exe.namespace)
 		if err != nil {
 			return err
 		}
