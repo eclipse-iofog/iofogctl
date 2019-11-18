@@ -43,6 +43,11 @@ func NewRootCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use: "iofogctl",
 		//Short: "ioFog Unified Command Line Interface",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if cmd.Use != "update" {
+				config.Init(configFolder, namespace)
+			}
+		},
 		PreRun: func(cmd *cobra.Command, args []string) {
 			printHeader()
 		},
@@ -66,6 +71,7 @@ func NewRootCommand() *cobra.Command {
 
 	// Register all commands
 	cmd.AddCommand(
+		newUpdateCommand(),
 		newConnectCommand(),
 		newConfigureCommand(),
 		newDisconnectCommand(),
@@ -101,7 +107,6 @@ var httpVerbose bool
 
 // Callback for cobra on initialization
 func initialize() {
-	config.Init(configFolder, namespace)
 	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
 	util.SpinEnable(!verbose && !httpVerbose)

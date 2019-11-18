@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	conf               configuration // struct that file is unmarshalled into
+	conf               Configuration // struct that file is unmarshalled into
 	configFolder       string        // config directory
 	configFilename     string        // config file name
 	namespaceDirectory string        // Path of namespace directory
@@ -86,6 +86,10 @@ func Init(dirPath, namespace string) {
 
 	// Unmarshall the config file
 	err = util.UnmarshalYAML(configFilename, &conf)
+	// Warn user about possible update
+	if err != nil {
+		util.PrintInfo(fmt.Sprintf("It seems like your iofogctl configuration file %s is out-of-date\nTo update, please run iofogctl update\n", configFilename))
+	}
 	util.Check(err)
 
 	// Check namespace dir exists
