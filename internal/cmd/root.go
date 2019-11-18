@@ -44,7 +44,7 @@ func NewRootCommand() *cobra.Command {
 		Use: "iofogctl",
 		//Short: "ioFog Unified Command Line Interface",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			if cmd.Use != "update" {
+			if cmd.Use != "iofogctl" {
 				config.Init(configFolder, namespace)
 			}
 		},
