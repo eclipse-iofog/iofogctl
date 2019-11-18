@@ -14,8 +14,10 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -25,7 +27,8 @@ import (
 
 var (
 	conf               configuration // struct that file is unmarshalled into
-	configFilename     string        // Name of config file
+	configFolder       string        // config directory
+	configFilename     string        // config file name
 	namespaceDirectory string        // Path of namespace directory
 	namespaces         map[string]*Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
@@ -37,32 +40,42 @@ const (
 	namespaceDirname = "namespaces/"
 	defaultFilename  = "config.yaml"
 	// DefaultConfigPath is used if user does not specify a config file path
-	DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+	DefaultConfigPath = "~/" + defaultDirname
 )
 
 // Init initializes config, namespace and unmarshalls the files
-func Init(filename, namespace string) {
+func Init(dirPath, namespace string) {
 	namespaces = make(map[string]*Namespace)
 
 	// Format file path
-	filename, err := util.FormatPath(filename)
+	dirPath, err := util.FormatPath(dirPath)
 	util.Check(err)
 
-	// Find home directory.
-	home, err := homedir.Dir()
-	util.Check(err)
-	homeDirname := home + "/" + defaultDirname
+	if dirPath == "" {
+		// Find home directory.
+		home, err := homedir.Dir()
+		util.Check(err)
+		configFolder = path.Join(home, defaultDirname)
+	} else {
+		fi, err := os.Stat(dirPath)
+		util.Check(err)
+		if fi.IsDir() {
+			// it's a directory
+			configFolder = dirPath
+		} else {
+			// it's not a directory
+			util.Check(util.NewInputError(fmt.Sprintf("The specified config folder [%s] is not a valid folder", dirPath)))
+		}
+	}
 
 	// Set default filename if necessary
-	if filename == "" {
-		filename = homeDirname + defaultFilename
-	}
+	filename := path.Join(configFolder, defaultFilename)
 	configFilename = filename
-	namespaceDirectory = homeDirname + namespaceDirname
+	namespaceDirectory = path.Join(configFolder, namespaceDirname)
 
 	// Check file exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(homeDirname, 0755)
+		err = os.MkdirAll(configFolder, 0755)
 		util.Check(err)
 
 		// Create default file
@@ -122,8 +135,10 @@ func getNamespace(name string) (*Namespace, error) {
 	}
 	namespace, ok := namespaces[name]
 	if !ok {
+
 		namespaces[name] = &Namespace{}
 		if err := util.UnmarshalYAML(getNamespaceFile(name), namespaces[name]); err != nil {
+			delete(namespaces, name)
 			return nil, err
 		}
 		return namespaces[name], nil
@@ -399,7 +414,7 @@ func AddAgent(namespace string, agent Agent) error {
 
 // getNamespaceFile helper function that returns the full path to a namespace file
 func getNamespaceFile(name string) string {
-	return namespaceDirectory + name + ".yaml"
+	return path.Join(namespaceDirectory, name+".yaml")
 }
 
 // DeleteNamespace removes a namespace including all the resources within it

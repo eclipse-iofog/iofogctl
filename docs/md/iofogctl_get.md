@@ -32,7 +32,7 @@ Valid resources are: all, namespaces, controllers, connectors, agents, applicati
 ### Options inherited from parent commands
 
 ```
-      --config string      CLI configuration file (default is ~/.iofog/config.yaml)
+      --config string      CLI configuration folder (default is ~/.iofog/)
       --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within
   -v, --verbose            Toggle for displaying verbose output of iofogctl

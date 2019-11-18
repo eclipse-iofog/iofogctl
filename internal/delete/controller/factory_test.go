@@ -14,18 +14,24 @@
 package deletecontroller
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"testing"
+
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
+var ns = "test_delete_controller"
+
+func init() {
+	config.Init("", "")
+}
+
 func TestCreateNamespace(t *testing.T) {
-	if err := config.AddNamespace("default", ""); err != nil {
+	if err := config.AddNamespace(ns, ""); err != nil {
 		t.Errorf("Error when creating default namespace: %s", err.Error())
 	}
 }
 
 func TestLocal(t *testing.T) {
-	ns := "default"
 	ctrl := config.Controller{
 		Name: "test_local",
 		Host: "localhost",
@@ -39,7 +45,6 @@ func TestLocal(t *testing.T) {
 }
 
 func TestRemote(t *testing.T) {
-	ns := "default"
 	ctrl := config.Controller{
 		Name: "test_remote",
 		Kube: config.Kube{
@@ -55,7 +60,6 @@ func TestRemote(t *testing.T) {
 }
 
 func TestNonExistentController(t *testing.T) {
-	ns := "default"
 	ctrlName := "non_existent"
 	if _, err := NewExecutor(ns, ctrlName); err == nil {
 		t.Error("Expected error with non existent Controller")

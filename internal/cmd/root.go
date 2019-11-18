@@ -59,7 +59,7 @@ func NewRootCommand() *cobra.Command {
 	cobra.OnInitialize(initialize)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
+	cmd.PersistentFlags().StringVar(&configFolder, "config", "", "CLI configuration folder (default is "+config.DefaultConfigPath+")")
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
 	cmd.PersistentFlags().BoolVar(&httpVerbose, "http-verbose", false, "Toggle for displaying verbose output of API client")
 	cmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Namespace to execute respective command within")
@@ -90,8 +90,8 @@ func NewRootCommand() *cobra.Command {
 // Namespace set by -n / --namespace
 var namespace string
 
-// Config file set by --config persistent flag
-var configFilename string
+// Config folder set by --config persistent flag
+var configFolder string
 
 // Toggle set by --verbose persistent flag
 var verbose bool
@@ -101,7 +101,7 @@ var httpVerbose bool
 
 // Callback for cobra on initialization
 func initialize() {
-	config.Init(configFilename, namespace)
+	config.Init(configFolder, namespace)
 	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
 	util.SpinEnable(!verbose && !httpVerbose)
