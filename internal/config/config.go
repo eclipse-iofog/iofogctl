@@ -184,7 +184,8 @@ func GetNamespace(namespace string) (Namespace, error) {
 
 // GetCurrentNamespace return the current namespace
 func GetCurrentNamespace() Namespace {
-	return *namespaces[conf.CurrentNamespace]
+	ns, _ := getNamespace(conf.CurrentNamespace)
+	return *ns
 }
 
 // GetControlPlane returns a control plane within a namespace

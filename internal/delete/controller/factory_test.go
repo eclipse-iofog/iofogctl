@@ -73,3 +73,9 @@ func TestNonExistentNamespace(t *testing.T) {
 		t.Error("Expected error with non existent namespace")
 	}
 }
+
+func TestDeleteNS(t *testing.T) {
+	if err := config.DeleteNamespace(ns); err != nil {
+		t.Errorf("Error when creating default namespace: %s", err.Error())
+	}
+}
