@@ -36,6 +36,14 @@ if ! checkForInstallation "go"; then
     exit 1
 fi
 
+# Is mercurial installed?
+echo " Attempting to install 'mercurial'"
+if [ "$(uname -s)" = "Darwin" ]; then
+    brew install mercurial
+else
+    sudo apt -y install mercurial
+fi
+
 # Is go-junit-report installed?
 if ! checkForInstallation "go-junit-report"; then
     echoInfo " Attempting to install 'go-junit-report'"
