@@ -37,11 +37,13 @@ if ! checkForInstallation "go"; then
 fi
 
 # Is mercurial installed?
-echo " Attempting to install 'mercurial'"
-if [ "$(uname -s)" = "Darwin" ]; then
-    brew install mercurial
-else
-    sudo apt -y install mercurial
+if [ -z $(command -v hg) ]; then
+    echo " Attempting to install 'mercurial'"
+    if [ "$(uname -s)" = "Darwin" ]; then
+        brew install mercurial
+    else
+        sudo apt install mercurial
+    fi
 fi
 
 # Is go-junit-report installed?
