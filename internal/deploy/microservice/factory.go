@@ -69,7 +69,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
 	if err != nil {
 		return
-	}
+	} 
 
 	return remoteExecutor{
 		controller: apps.IofogController{
