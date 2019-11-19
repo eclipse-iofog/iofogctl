@@ -176,9 +176,6 @@ func SetDefaultNamespace(name string) (err error) {
 		if n == name {
 			conf.CurrentNamespace = name
 			conf.DefaultNamespace = name
-			// Unmarshall the namespace file
-			namespaces[name] = &Namespace{}
-			err = util.UnmarshalYAML(getNamespaceFile(name), namespaces[name])
 			return
 		}
 	}
