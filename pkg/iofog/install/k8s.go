@@ -237,17 +237,12 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 	}
 
 	// Encode credentials
-	encodedUser := iofogv1.IofogUser{
-		Email:    b64.StdEncoding.EncodeToString([]byte(user.Email)),
-		Password: b64.StdEncoding.EncodeToString([]byte(user.Password)),
-		Name:     user.Name,
-		Surname:  user.Surname,
-	}
+	user.Password = b64.StdEncoding.EncodeToString([]byte(user.Password))
 
 	// Set specification
 	kog.Spec = iofogv1.KogSpec{
 		ControlPlane: iofogv1.ControlPlane{
-			IofogUser:              encodedUser,
+			IofogUser:              iofogv1.IofogUser(user),
 			ControllerReplicaCount: int32(replicas),
 			ControllerImage:        k8s.ms["controller"].containers[0].image,
 			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
