@@ -62,6 +62,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
+	// Check Name is lowercase
+	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
+		return nil, err
+	}
+
 	if len(opt.Name) > 0 {
 		microservice.Name = opt.Name
 	}
@@ -69,7 +74,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
 	if err != nil {
 		return
-	} 
+	}
 
 	return remoteExecutor{
 		controller: apps.IofogController{
