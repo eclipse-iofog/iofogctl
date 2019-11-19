@@ -167,11 +167,11 @@ type configuration struct {
 }
 
 type iofogctlConfig struct {
-	Header
+	Header `yaml:",inline"`
 }
 
 type iofogctlNamespace struct {
-	Header
+	Header `yaml:",inline"`
 }
 
 // HeaderMetadata contains k8s metadata

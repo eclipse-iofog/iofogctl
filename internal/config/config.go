@@ -42,7 +42,7 @@ const (
 	CurrentConfigVersion = "iofogctl/v1"
 )
 
-func _updateConfigToK8sStyle() error {
+func updateConfigToK8sStyle() error {
 	// Previous config structure
 	type OldConfig struct {
 		Namespaces []Namespace `yaml:"namespaces"`
@@ -100,13 +100,24 @@ func _updateConfigToK8sStyle() error {
 }
 
 // Init initializes config, namespace and unmarshalls the files
-func Init(namespace string) {
+func Init(namespace, configFolder string) {
 	namespaces = make(map[string]*Namespace)
 
-	// Find home directory.
-	home, err := homedir.Dir()
+	configFolder, err := util.FormatPath(configFolder)
 	util.Check(err)
-	configFolder = path.Join(home, defaultDirname)
+
+	if configFolder == "" {
+		// Find home directory.
+		home, err := homedir.Dir()
+		util.Check(err)
+		configFolder = path.Join(home, defaultDirname)
+	} else {
+		dirInfo, err := os.Stat(configFolder)
+		util.Check(err)
+		if dirInfo.IsDir() == false {
+			util.Check(util.NewInputError(fmt.Sprintf("The config folder %s is not a valid directory", configFolder)))
+		}
+	}
 
 	// Set default filename if necessary
 	filename := path.Join(configFolder, defaultFilename)
@@ -129,7 +140,7 @@ func Init(namespace string) {
 	err = util.UnmarshalYAML(configFilename, &confHeader)
 	// Warn user about possible update
 	if err != nil {
-		err = _updateConfigToK8sStyle()
+		err = updateConfigToK8sStyle()
 		util.Check(err)
 		err = util.UnmarshalYAML(configFilename, &confHeader)
 		util.Check(err)

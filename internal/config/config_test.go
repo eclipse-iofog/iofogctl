@@ -23,39 +23,64 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
-var configData = []byte(`
-defaultNamespace: default
-namespaces:
-- default
-- first
-- second
+var configData = []byte(`kind: IofogctlConfig
+apiVersion: iofogctl/v1
+spec:
+  defaultNamespace: default
+  namespaces:
+  - first
+  - second
+  - default
 `)
 
-var defaultData = []byte(`name: default
+var defaultData = []byte(`kind: IofogctlNamespace
+apiVersion: iofogctl/v1
+metadata:
+  name: default
+spec:
+  name: default`)
+
+var firstData = []byte(`kind: IofogctlNamespace
+apiVersion: iofogctl/v1
+metadata:
+  name: first
+spec:
+  name: first
+  controlPlane:
+    controllers:
+    - name: controller0
+      ssh:
+        user: root0
+  agents:
+  - name: agent0
+    ssh:
+      user: root0
+  - name: agent1
+    ssh:
+      user: root1
+  - name: agent2
+    ssh:
+      user: root2
 `)
 
-var firstData = []byte(`name: first
-controllers:
-- name: controller0
-  user: root0
-agents:
-- name: agent0
-  user: root0
-- name: agent1
-  user: root1
-- name: agent2
-  user: root2
-`)
-
-var secondData = []byte(`name: second
-controllers:
-- name: controller1
-  user: root1
-agents:
-- name: agent1
-  user: root1
-- name: agent2
-  user: root2
+var secondData = []byte(`kind: IofogctlNamespace
+apiVersion: iofogctl/v1
+metadata:
+  name: second
+spec:
+  name: second
+  controlPlane:
+    controllers:
+    - name: controller1
+      ssh:
+        user: root1
+  agents:
+  - name: agent1
+    ssh:
+      user: root1
+  - name: agent2
+    ssh:
+      user: root2
 `)
 
 func init() {
@@ -81,7 +106,7 @@ func init() {
 		panic(err)
 	}
 
-	Init("")
+	Init("", testConfigFolder)
 }
 
 func TestDelete(t *testing.T) {
@@ -94,7 +119,7 @@ func TestReadingNamespaces(t *testing.T) {
 	if len(namespaces) != 3 {
 		t.Errorf("Incorrect number of namespaces: %d", len(namespaces))
 	}
-	expectedNamespaceNames := [3]string{"default", "first", "second"}
+	expectedNamespaceNames := [3]string{"first", "second", "default"}
 	for idx, nsName := range expectedNamespaceNames {
 		if namespaces[idx] != nsName {
 			t.Errorf("Namespaces %d incorrect. Expected: %s, Found: %s", idx, namespaces[idx], nsName)

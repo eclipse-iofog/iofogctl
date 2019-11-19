@@ -97,7 +97,7 @@ var httpVerbose bool
 
 // Callback for cobra on initialization
 func initialize() {
-	config.Init(namespace)
+	config.Init(namespace, "")
 	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
 	util.SpinEnable(!verbose && !httpVerbose)
