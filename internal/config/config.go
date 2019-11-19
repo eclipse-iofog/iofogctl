@@ -338,7 +338,7 @@ func AddNamespace(name, created string) error {
 
 	// Write namespace file
 	// Marshal the runtime data
-	marshal, err := yaml.Marshal(&newNamespace)
+	marshal, err := getNamespaceYAMLFile(&newNamespace)
 	if err != nil {
 		return err
 	}
