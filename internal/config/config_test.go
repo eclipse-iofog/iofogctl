@@ -81,7 +81,7 @@ func init() {
 		panic(err)
 	}
 
-	Init(testConfigFolder, "")
+	Init("")
 }
 
 func TestDelete(t *testing.T) {

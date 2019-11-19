@@ -20,8 +20,10 @@ import (
 
 // iofogctl specific Kinds
 const (
-	AgentConfigKind apps.Kind = "AgentConfig"
-	CatalogItemKind apps.Kind = "CatalogItem"
+	AgentConfigKind       apps.Kind = "AgentConfig"
+	CatalogItemKind       apps.Kind = "CatalogItem"
+	IofogctlConfigKind    apps.Kind = "IofogctlConfig"
+	IofogctlNamespaceKind apps.Kind = "IofogctlNamespace"
 )
 
 type Container struct {
@@ -162,6 +164,14 @@ type configuration struct {
 	DefaultNamespace string   `yaml:"defaultNamespace"`
 	CurrentNamespace string   `yaml:"-"`
 	Namespaces       []string `yaml:"namespaces,omitempty"`
+}
+
+type iofogctlConfig struct {
+	Header
+}
+
+type iofogctlNamespace struct {
+	Header
 }
 
 // HeaderMetadata contains k8s metadata

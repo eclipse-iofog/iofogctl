@@ -26,7 +26,7 @@ func UnmarshalYAML(filename string, object interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = yaml.Unmarshal(yamlFile, object)
+	err = yaml.UnmarshalStrict(yamlFile, object)
 	if err != nil {
 		return err
 	}

@@ -26,23 +26,23 @@ import (
 )
 
 var (
-	conf               configuration // struct that file is unmarshalled into
-	configFolder       string        // config directory
-	configFilename     string        // config file name
-	namespaceDirectory string        // Path of namespace directory
+	conf               configuration
+	configFolder       string // config directory
+	configFilename     string // config file name
+	namespaceDirectory string // Path of namespace directory
 	namespaces         map[string]*Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
 	mux = &sync.Mutex{}
 )
 
 const (
-	defaultDirname   = ".iofog/"
-	namespaceDirname = "namespaces/"
-	defaultFilename  = "config.yaml"
+	defaultDirname       = ".iofog/"
+	namespaceDirname     = "namespaces/"
+	defaultFilename      = "config.yaml"
+	CurrentConfigVersion = "iofogctl/v1"
 )
 
-func _updateConfig() error {
-
+func _updateConfigToK8sStyle() error {
 	// Previous config structure
 	type OldConfig struct {
 		Namespaces []Namespace `yaml:"namespaces"`
@@ -63,9 +63,10 @@ func _updateConfig() error {
 
 	oldConfig := OldConfig{}
 	newConfig := configuration{DefaultNamespace: "default"}
+	configHeader := iofogctlConfig{}
 	err = yaml.UnmarshalStrict(r, &oldConfig)
 	if err != nil {
-		if err2 := yaml.UnmarshalStrict(r, &newConfig); err2 != nil {
+		if err2 := yaml.UnmarshalStrict(r, &configHeader); err2 != nil {
 			util.Check(err)
 		}
 		return nil
@@ -77,9 +78,9 @@ func _updateConfig() error {
 		newConfig.Namespaces = append(newConfig.Namespaces, ns.Name)
 
 		// Write namespace config file
-		bytes, err := yaml.Marshal(ns)
+		bytes, err := getNamespaceYAMLFile(&ns)
 		util.Check(err)
-		configFile := path.Join(namespaceDirectory, ns.Name+".yaml")
+		configFile := getNamespaceFile(ns.Name)
 		err = ioutil.WriteFile(configFile, bytes, 0644)
 		util.Check(err)
 	}
@@ -89,7 +90,7 @@ func _updateConfig() error {
 	util.Check(err)
 
 	// Write new config file
-	bytes, err := yaml.Marshal(newConfig)
+	bytes, err := getConfigYAMLFile(newConfig)
 	util.Check(err)
 	err = ioutil.WriteFile(configFileName, bytes, 0644)
 	util.Check(err)
@@ -124,14 +125,18 @@ func Init(namespace string) {
 	}
 
 	// Unmarshall the config file
-	err = util.UnmarshalYAML(configFilename, &conf)
+	confHeader := iofogctlConfig{}
+	err = util.UnmarshalYAML(configFilename, &confHeader)
 	// Warn user about possible update
 	if err != nil {
-		err = _updateConfig()
+		err = _updateConfigToK8sStyle()
 		util.Check(err)
-		err = util.UnmarshalYAML(configFilename, &conf)
+		err = util.UnmarshalYAML(configFilename, &confHeader)
 		util.Check(err)
 	}
+
+	conf, err = getConfigFromHeader(confHeader)
+	util.Check(err)
 
 	// Check namespace dir exists
 	if namespace == "" {
@@ -180,12 +185,15 @@ func getNamespace(name string) (*Namespace, error) {
 	}
 	namespace, ok := namespaces[name]
 	if !ok {
-
-		namespaces[name] = &Namespace{}
-		if err := util.UnmarshalYAML(getNamespaceFile(name), namespaces[name]); err != nil {
-			delete(namespaces, name)
+		namespaceHeader := iofogctlNamespace{}
+		if err := util.UnmarshalYAML(getNamespaceFile(name), &namespaceHeader); err != nil {
 			return nil, err
 		}
+		ns, err := getNamespaceFromHeader(namespaceHeader)
+		if err != nil {
+			return nil, err
+		}
+		namespaces[name] = &ns
 		return namespaces[name], nil
 	}
 	return namespace, nil
@@ -551,7 +559,7 @@ func DeleteAgent(namespace, name string) error {
 // FlushConfig will write over the config file based on the runtime data of all namespaces
 func FlushConfig() (err error) {
 	// Marshal the runtime data
-	marshal, err := yaml.Marshal(&conf)
+	marshal, err := getConfigYAMLFile(conf)
 	if err != nil {
 		return
 	}
@@ -563,11 +571,93 @@ func FlushConfig() (err error) {
 	return
 }
 
+func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
+	if header.APIVersion != CurrentConfigVersion {
+		return c, util.NewInputError("Invalid iofogctl config version")
+	}
+	switch header.APIVersion {
+	case CurrentConfigVersion:
+		{
+			// All good
+			break
+		}
+	// Example for further maintenance
+	// case PreviousConfigVersion {
+	// 	updateFromPreviousVersion()
+	// 	break
+	// }
+	default:
+		return c, util.NewInputError("Invalid iofogctl config version")
+	}
+	bytes, err := yaml.Marshal(header.Spec)
+	if err != nil {
+		return
+	}
+	if err = yaml.UnmarshalStrict(bytes, &c); err != nil {
+		return
+	}
+	return
+}
+
+func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
+	if header.Kind != IofogctlNamespaceKind {
+		return n, util.NewInputError("Invalid namespace kind")
+	}
+	switch header.APIVersion {
+	case CurrentConfigVersion:
+		{
+			// All good
+			break
+		}
+	// Example for further maintenance
+	// case PreviousConfigVersion {
+	// 	updateFromPreviousVersion()
+	// 	break
+	// }
+	default:
+		return n, util.NewInputError("Invalid iofogctl config version")
+	}
+	bytes, err := yaml.Marshal(header.Spec)
+	if err != nil {
+		return
+	}
+	if err = yaml.UnmarshalStrict(bytes, &n); err != nil {
+		return
+	}
+	return
+}
+
+func getConfigYAMLFile(conf configuration) ([]byte, error) {
+	confHeader := iofogctlConfig{
+		Header: Header{
+			Kind:       IofogctlConfigKind,
+			APIVersion: CurrentConfigVersion,
+			Spec:       conf,
+		},
+	}
+
+	return yaml.Marshal(confHeader)
+}
+
+func getNamespaceYAMLFile(ns *Namespace) ([]byte, error) {
+	namespaceHeader := iofogctlNamespace{
+		Header{
+			Kind:       IofogctlNamespaceKind,
+			APIVersion: CurrentConfigVersion,
+			Metadata: HeaderMetadata{
+				Name: ns.Name,
+			},
+			Spec: ns,
+		},
+	}
+	return yaml.Marshal(namespaceHeader)
+}
+
 // Flush will write over the namespace file based on the runtime data
 func Flush() (err error) {
 	for _, ns := range namespaces {
 		// Marshal the runtime data
-		marshal, err := yaml.Marshal(ns)
+		marshal, err := getNamespaceYAMLFile(ns)
 		if err != nil {
 			return err
 		}

@@ -22,7 +22,7 @@ import (
 var ns = "test_delete_controller"
 
 func init() {
-	config.Init("", "")
+	config.Init("")
 }
 
 func TestCreateNamespace(t *testing.T) {

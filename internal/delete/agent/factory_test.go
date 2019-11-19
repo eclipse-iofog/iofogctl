@@ -20,7 +20,7 @@ import (
 )
 
 func init() {
-	config.Init("", "")
+	config.Init("")
 }
 
 var ns = "test_delete_agent"
