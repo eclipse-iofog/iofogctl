@@ -33,7 +33,7 @@ export KEY_FILE="~/.ssh/id_rsa"
 export CONTROLLER_IMAGE="iofog/controller:1.3.0"
 export CONNECTOR_IMAGE="iofog/connector:1.3.0"
 export OPERATOR_IMAGE="iofog/iofog-operator:1.3.0"
-export KUBELET_IMAGE="iofog/iofog-kubelet:1.3.0
+export KUBELET_IMAGE="iofog/iofog-kubelet:1.3.0"
 
 # Controller version for vanilla deploys
 export VANILLA_VERSION="latest"
