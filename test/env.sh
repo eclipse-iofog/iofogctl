@@ -26,11 +26,11 @@ export KUBE_CONFIG="~/.kube/config"
 export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster
-#export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:1.3.0"
+#export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:1.3.1"
 #export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:1.3.0"
 #export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:1.3.0"
 #export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:1.3.0"
-export CONTROLLER_IMAGE="iofog/controller:1.3.0"
+export CONTROLLER_IMAGE="iofog/controller:1.3.1"
 export CONNECTOR_IMAGE="iofog/connector:1.3.0"
 export OPERATOR_IMAGE="iofog/iofog-operator:1.3.0"
 export KUBELET_IMAGE="iofog/iofog-kubelet:1.3.0"
