@@ -122,7 +122,7 @@
   ]
   pruneopts = "UT"
   revision = "30b1afb80e9928b840672d4b8877c947736479f6"
-  version = "v1.3.0-rc2"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:077a73c6c1c6320e7f309e5097ed4c7879f4e2c453c46db85bbfe09aa560d25b"
@@ -132,8 +132,8 @@
     "pkg/apis/iofog/v1",
   ]
   pruneopts = "UT"
-  revision = "0a551b3092f0139583b30e73b16f5e7fcce3bfe1"
-  version = "v1.3.0-rc2"
+  revision = "ca9e38faf3c16f83705617fcb9678d4388a9e81e"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:865079840386857c809b72ce300be7580cb50d3d3129ce11bf9aa6ca2bc1934a"

@@ -30,11 +30,11 @@
 
 [[override]]
   name = "github.com/eclipse-iofog/iofog-operator"
-  version = "=v1.3.0-rc2"
+  version = "=v1.3.0"
 
 [[constraint]]
   name = "github.com/eclipse-iofog/iofog-go-sdk"
-  version = "=v1.3.0-rc2"
+  version = "=v1.3.0"
 
 [[constraint]]
   name = "github.com/mitchellh/go-homedir"
