@@ -15,10 +15,11 @@ package deletemicroservice
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	delete "github.com/eclipse-iofog/iofogctl/internal/delete/all"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(name string) error {
+func Execute(name string, force bool) error {
 	// Disallow deletion of default
 	if name == "default" {
 		return util.NewInputError("Cannot delete default namespace")
@@ -32,10 +33,18 @@ func Execute(name string) error {
 
 	// Check resources exist
 	hasAgents := len(ns.Agents) > 0
-	hasControllers := len(ns.Controllers) > 0
-	hasMicroservices := len(ns.Microservices) > 0
-	if hasAgents || hasControllers || hasMicroservices {
-		return util.NewInputError("Namespace " + name + " not empty")
+	hasControllers := len(ns.ControlPlane.Controllers) > 0
+
+	// Force must be specified
+	if !force && (hasAgents || hasControllers) {
+		return util.NewInputError("Namespace " + name + " not empty. You must force the deletion if the namespace is not empty")
+	}
+
+	// Handle delete all
+	if force && (hasAgents || hasControllers) {
+		if err = delete.Execute(name); err != nil {
+			return err
+		}
 	}
 
 	// Delete namespace

@@ -18,15 +18,15 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"strings"
 )
 
 type microservice struct {
-	name       string
-	IP         string
-	ports      []int
-	replicas   int32
-	containers []container
+	name        string
+	IP          string
+	ports       []int32
+	serviceType string
+	replicas    int32
+	containers  []container
 }
 
 type container struct {
@@ -40,18 +40,15 @@ type container struct {
 	ports           []v1.ContainerPort
 }
 
-// Transform iofogctl version into tag for images. Ignore patch version
-var majorMinorPatch = strings.Split(util.Before(util.GetVersion().VersionNumber, "-"), ".")
-var tag = majorMinorPatch[0] + "." + majorMinorPatch[1] + ".0"
-
 var controllerMicroservice = microservice{
-	name:     "controller",
-	ports:    []int{iofog.ControllerPort},
-	replicas: 1,
+	name:        "controller",
+	ports:       []int32{iofog.ControllerPort, 80},
+	replicas:    1,
+	serviceType: "LoadBalancer",
 	containers: []container{
 		{
 			name:            "controller",
-			image:           "iofog/controller:" + "1.2.1", // TODO: (Serge) Replace 1.2.1 with tag var after 1.2.x
+			image:           "iofog/controller:" + util.GetControllerTag(),
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{
@@ -70,7 +67,7 @@ var controllerMicroservice = microservice{
 
 var connectorMicroservice = microservice{
 	name: "connector",
-	ports: []int{
+	ports: []int32{
 		iofog.ConnectorPort,
 		6000, 6001, 6002, 6003, 6004, 6005, 6006, 6007, 6008, 6009,
 		6010, 6011, 6012, 6013, 6014, 6015, 6016, 6017, 6018, 6019,
@@ -79,11 +76,12 @@ var connectorMicroservice = microservice{
 		6040, 6041, 6042, 6043, 6044, 6045, 6046, 6047, 6048, 6049,
 		6050,
 	},
-	replicas: 1,
+	replicas:    1,
+	serviceType: "LoadBalancer",
 	containers: []container{
 		{
 			name:            "connector",
-			image:           "iofog/connector:" + tag,
+			image:           "iofog/connector:" + util.GetConnectorTag(),
 			imagePullPolicy: "Always",
 		},
 	},
@@ -95,20 +93,20 @@ var schedulerMicroservice = microservice{
 	containers: []container{
 		{
 			name:            "scheduler",
-			image:           "iofog/iofog-scheduler:" + tag,
+			image:           "iofog/iofog-scheduler:" + util.GetSchedulerTag(),
 			imagePullPolicy: "Always",
 		},
 	},
 }
 
 var operatorMicroservice = microservice{
-	name:     "operator",
-	ports:    []int{60000},
+	name:     "iofog-operator",
+	ports:    []int32{60000},
 	replicas: 1,
 	containers: []container{
 		{
-			name:            "operator",
-			image:           "iofog/iofog-operator:" + tag,
+			name:            "iofog-operator",
+			image:           "iofog/iofog-operator:" + util.GetOperatorTag(),
 			imagePullPolicy: "Always",
 			readinessProbe: &v1.Probe{
 				Handler: v1.Handler{
@@ -142,7 +140,7 @@ var operatorMicroservice = microservice{
 				},
 				{
 					Name:  "OPERATOR_NAME",
-					Value: "operator",
+					Value: "iofog-operator",
 				},
 			},
 			ports: []v1.ContainerPort{
@@ -160,12 +158,12 @@ var operatorMicroservice = microservice{
 
 var kubeletMicroservice = microservice{
 	name:     "kubelet",
-	ports:    []int{60000},
+	ports:    []int32{60000},
 	replicas: 1,
 	containers: []container{
 		{
 			name:            "kubelet",
-			image:           "iofog/iofog-kubelet:" + tag,
+			image:           "iofog/iofog-kubelet:" + util.GetKubeletTag(),
 			imagePullPolicy: "Always",
 			args: []string{
 				"--namespace",

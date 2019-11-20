@@ -14,77 +14,77 @@
 package deploycontroller
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
+type facadeExecutor struct {
+	exe        execute.Executor
+	controller *config.Controller
+	namespace  string
 }
 
-type Options struct {
-	Name              string
-	Namespace         string
-	User              string
-	Host              string
-	Port              int
-	KeyFile           string
-	Local             bool
-	KubeConfig        string
-	KubeControllerIP  string
-	ImagesFile        string
-	Images            map[string]string
-	IofogUser         config.IofogUser
-	Version           string
-	PackageCloudToken string
+func (facade facadeExecutor) Execute() (err error) {
+	util.SpinStart(fmt.Sprintf("Deploying controller %s", facade.GetName()))
+	if err = facade.exe.Execute(); err != nil {
+		return
+	}
+	if err = config.UpdateController(facade.namespace, *facade.controller); err != nil {
+		return
+	}
+	return config.Flush()
 }
 
-func NewExecutor(opt *Options) (Executor, error) {
-	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
+func (facade facadeExecutor) GetName() string {
+	return facade.exe.GetName()
+}
+
+func newFacadeExecutor(exe execute.Executor, namespace string, controller *config.Controller) execute.Executor {
+	return facadeExecutor{
+		exe:        exe,
+		namespace:  namespace,
+		controller: controller,
+	}
+}
+
+func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(ctrl.Name); err != nil {
 		return nil, err
 	}
 
-	// Check there is only a single unique controller in the namespace
-	if len(ns.Controllers) > 0 {
-		existingName := ns.Controllers[0].Name
-		if existingName != opt.Name {
-			return nil, util.NewInputError("Controller " + existingName + " already exists in namespace " + opt.Namespace + "\nDelete the existing Controller before making a new one")
-		}
+	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
+		return nil, util.NewError("Cannot deploy Controller because ioFog user is not specified")
 	}
-
 	// Local executor
-	if opt.Local == true {
+	if util.IsLocalHost(ctrl.Host) {
 		// Check the namespace does not contain a Controller yet
-		nbControllers := len(ns.Controllers)
-		if nbControllers > 0 {
-			return nil, util.NewInputError("This namespace already contains a Controller. Please remove it before deploying a new one.")
+		nbControllers := len(controlPlane.Controllers)
+		if nbControllers != 1 {
+			return nil, util.NewInputError("Cannot deploy more than a single Controller locally")
 		}
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}
-		return newLocalExecutor(opt, cli), nil
+		exe, err := newLocalExecutor(namespace, ctrl, controlPlane, cli)
+		if err != nil {
+			return nil, err
+		}
+		return newFacadeExecutor(exe, namespace, ctrl), nil
 	}
 
 	// Kubernetes executor
-	if opt.KubeConfig != "" {
-		// If image file specified, read it
-		if opt.ImagesFile != "" {
-			opt.Images = make(map[string]string)
-			err := util.UnmarshalYAML(opt.ImagesFile, opt.Images)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return newKubernetesExecutor(opt), nil
+	if ctrl.Kube.Config != "" {
+		return newFacadeExecutor(newKubernetesExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
 	}
 
 	// Default executor
-	if opt.Host == "" || opt.KeyFile == "" || opt.User == "" {
+	if ctrl.Host == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	return newRemoteExecutor(opt), nil
+	return newFacadeExecutor(newRemoteExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
 }

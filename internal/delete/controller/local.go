@@ -15,17 +15,17 @@ package deletecontroller
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
 	namespace             string
 	name                  string
 	client                *install.LocalContainer
-	localControllerConfig *install.LocalControllerConfig
+	localControllerConfig *install.LocalContainerConfig
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
@@ -33,26 +33,26 @@ func newLocalExecutor(namespace, name string, client *install.LocalContainer) *l
 		namespace:             namespace,
 		name:                  name,
 		client:                client,
-		localControllerConfig: install.NewLocalControllerConfig(name, make(map[string]string)),
+		localControllerConfig: install.NewLocalControllerConfig("", install.Credentials{}),
 	}
 	return exe
 }
 
+func (exe *localExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *localExecutor) Execute() error {
-	defer util.SpinStop()
-	// Clean controller and connector containers
-	for _, containerConfig := range exe.localControllerConfig.ContainerMap {
-		util.SpinStart("Cleaning container " + containerConfig.ContainerName)
-		if errClean := exe.client.CleanContainer(containerConfig.ContainerName); errClean != nil {
-			fmt.Printf("Could not clean Controller container: %v", errClean)
-		}
+	// Get container config
+	// Clean container
+	if errClean := exe.client.CleanContainer(exe.localControllerConfig.ContainerName); errClean != nil {
+		util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", errClean))
 	}
 
-	// Update configuration
-	err := config.DeleteController(exe.namespace, exe.name)
-	if err != nil {
+	// Update config
+	if err := config.DeleteController(exe.namespace, exe.name); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }

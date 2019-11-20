@@ -15,58 +15,45 @@ package deployagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
-	opt  *Options
-	uuid string
+	namespace string
+	agent     *config.Agent
+	uuid      string
 }
 
-func newRemoteExecutor(opt *Options) *remoteExecutor {
+func newRemoteExecutor(namespace string, agent *config.Agent) *remoteExecutor {
 	exe := &remoteExecutor{}
-	exe.opt = opt
+	exe.namespace = namespace
+	exe.agent = agent
 
 	return exe
+}
+
+func (exe *remoteExecutor) GetName() string {
+	return exe.agent.Name
 }
 
 //
 // Install iofog-agent stack on an agent host
 //
-func (exe *remoteExecutor) Execute() error {
-
-	configEntry, err := DeployAgent(exe.opt)
-	if err != nil {
-		return err
-	}
-
-	if err = config.UpdateAgent(exe.opt.Namespace, configEntry); err != nil {
-		return err
-	}
-
-	return config.Flush()
-}
-
-func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
-	// Get Controllers from namespace
-	controllers, err := config.GetControllers(opt.Namespace)
-
-	// Do we actually have any controllers?
-	if err != nil {
+func (exe *remoteExecutor) Execute() (err error) {
+	// Get Control Plane
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return
 	}
 
-	// Did we have more than one controller?
-	if len(controllers) != 1 {
-		err = util.NewInternalError("Only support 1 controller per namespace")
-		return
-	}
-
 	// Connect to agent via SSH
-	agent := install.NewRemoteAgent(opt.User, opt.Host, opt.Port, opt.KeyFile, opt.Name)
+	agent := install.NewRemoteAgent(exe.agent.SSH.User, exe.agent.Host, exe.agent.SSH.Port, exe.agent.SSH.KeyFile, exe.agent.Name)
+
+	// Set version
+	agent.SetVersion(exe.agent.Package.Version)
+	agent.SetRepository(exe.agent.Package.Repo, exe.agent.Package.Token)
 
 	// Try the install
 	err = agent.Bootstrap()
@@ -74,28 +61,15 @@ func DeployAgent(opt *Options) (configEntry config.Agent, err error) {
 		return
 	}
 
-	// Create our user object
-	user := client.User{
-		Name:     controllers[0].IofogUser.Name,
-		Surname:  controllers[0].IofogUser.Surname,
-		Email:    controllers[0].IofogUser.Email,
-		Password: controllers[0].IofogUser.Password,
-	}
-
 	// Configure the agent with Controller details
-	uuid, err := agent.Configure(&controllers[0], user)
+	uuid, err := agent.Configure(controlPlane, install.IofogUser(controlPlane.IofogUser))
 	if err != nil {
 		return
 	}
 
-	configEntry = config.Agent{
-		Name:    opt.Name,
-		User:    opt.User,
-		Host:    opt.Host,
-		Port:    opt.Port,
-		KeyFile: opt.KeyFile,
-		UUID:    uuid,
-		Created: util.NowUTC(),
-	}
+	// Return the Agent through pointer
+	exe.agent.UUID = uuid
+	exe.agent.Created = util.NowUTC()
+
 	return
 }

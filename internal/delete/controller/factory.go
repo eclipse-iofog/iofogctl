@@ -15,15 +15,12 @@ package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(namespace, name string) (Executor, error) {
+func NewExecutor(namespace, name string) (execute.Executor, error) {
 	// Get controller from config
 	ctrl, err := config.GetController(namespace, name)
 	if err != nil {
@@ -40,13 +37,14 @@ func NewExecutor(namespace, name string) (Executor, error) {
 	}
 
 	// Kubernetes executor
-	if ctrl.KubeConfig != "" {
+	if ctrl.Kube.Config != "" {
 		return newKubernetesExecutor(namespace, name), nil
 	}
 
-	// Default executor
-	if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
-		util.Check(util.NewError("Cannot execute delete command because Kube Config and SSH details for this Controller are not available"))
+	// Can't kill Controller without configuration
+	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
+		return nil, util.NewNoConfigError("Controller")
 	}
+	// Default executor
 	return newRemoteExecutor(namespace, name), nil
 }

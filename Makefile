@@ -5,11 +5,16 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
-VERSION ?= $(shell git tag | tail -1 | sed "s|v||g")-dev
+MAJOR ?= 0
+MINOR ?= 0
+PATCH ?= 0
+SUFFIX ?= -dev
+VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+LDFLAGS += -X $(PREFIX).controllerTag=1.3.1 -X $(PREFIX).connectorTag=1.3.0 -X $(PREFIX).kubeletTag=1.3.0 -X $(PREFIX).operatorTag=1.3.0 -X $(PREFIX).agentTag=1.3.0 -X $(PREFIX).schedulerTag=0.0.0
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -40,7 +45,7 @@ dep: ## Install dependencies
 
 .PHONY: build
 build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
-build: ## Build the binary
+build: fmt ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
 endif

@@ -16,27 +16,66 @@ package deployapplication
 import (
 	"fmt"
 
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
-type Executor interface {
-	Execute() error
+type Options struct {
+	Namespace string
+	Yaml      []byte
+	Name      string
 }
 
-func NewExecutor(namespace string, opt *config.Application) (Executor, error) {
+type remoteExecutor struct {
+	application apps.Application
+	controller  apps.IofogController
+}
+
+func (exe remoteExecutor) GetName() string {
+	return exe.application.Name
+}
+
+func (exe remoteExecutor) Execute() error {
+	util.SpinStart(fmt.Sprintf("Deploying application %s", exe.GetName()))
+	return apps.DeployApplication(exe.controller, exe.application)
+}
+
+func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Check the namespace exists
-	ns, err := config.GetNamespace(namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
-		return nil, err
+		return exe, err
 	}
 
 	// Check Controller exists
-	nbControllers := len(ns.Controllers)
-	if nbControllers != 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", nbControllers)
-		return nil, util.NewInputError(errMessage)
+	if len(ns.ControlPlane.Controllers) == 0 {
+		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
-	return newRemoteExecutor(namespace, opt), nil
+	// Unmarshal file
+	application := apps.Application{}
+	if err = yaml.UnmarshalStrict(opt.Yaml, &application); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+
+	if len(opt.Name) > 0 {
+		application.Name = opt.Name
+	}
+
+	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
+
+	return remoteExecutor{
+		controller: apps.IofogController{
+			Endpoint: endpoint,
+			Email:    ns.ControlPlane.IofogUser.Email,
+			Password: ns.ControlPlane.IofogUser.Password,
+		},
+		application: application}, nil
 }

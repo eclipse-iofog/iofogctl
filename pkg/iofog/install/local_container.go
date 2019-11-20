@@ -14,10 +14,12 @@
 package install
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -26,8 +28,8 @@ import (
 	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -37,9 +39,21 @@ type LocalContainer struct {
 	client *client.Client
 }
 
+// ExecResult contains the output of a command ran into docker exec
+type ExecResult struct {
+	StdOut   string
+	StdErr   string
+	ExitCode int
+}
+
 type port struct {
 	Host      string
 	Container *LocalContainerPort
+}
+
+type Credentials struct {
+	User     string
+	Password string
 }
 
 type LocalContainerConfig struct {
@@ -52,10 +66,10 @@ type LocalContainerConfig struct {
 	Binds         []string
 	NetworkMode   string
 	Links         []string
+	Credentials   Credentials
 }
 
 type LocalControllerConfig struct {
-	Name         string
 	ContainerMap map[string]*LocalContainerConfig
 }
 
@@ -64,13 +78,22 @@ type LocalContainerPort struct {
 	Port     string
 }
 
-type LocalUserConfig struct {
-	config.IofogUser
-}
-
 type LocalAgentConfig struct {
 	LocalContainerConfig
 	Name string
+}
+
+func GetLocalContainerName(t string) string {
+	names := map[string]string{
+		"controller": sanitizeContainerName("iofog-controller"),
+		"connector":  sanitizeContainerName("iofog-connector"),
+		"agent":      sanitizeContainerName("iofog-agent"),
+	}
+	name, ok := names[t]
+	if ok == false {
+		return ""
+	}
+	return name
 }
 
 func sanitizeContainerName(name string) string {
@@ -79,9 +102,9 @@ func sanitizeContainerName(name string) string {
 }
 
 // NewAgentConfig generates a static agent config
-func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig) *LocalAgentConfig {
+func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig, credentials Credentials) *LocalAgentConfig {
 	if image == "" {
-		image = "docker.io/iofog/agent:latest"
+		image = "docker.io/iofog/agent:" + util.GetAgentTag()
 	}
 	return &LocalAgentConfig{
 		LocalContainerConfig: LocalContainerConfig{
@@ -90,52 +113,55 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 				{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
 				{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
 			},
-			ContainerName: sanitizeContainerName(fmt.Sprintf("iofog-agent-%s", name)),
+			ContainerName: GetLocalContainerName("agent"),
 			Image:         image,
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
 			NetworkMode:   "bridge",
-			Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
+			// Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
+			Links:       []string{},
+			Credentials: credentials,
 		},
 		Name: name,
 	}
 }
 
-// NewLocalControllerConfig generats a static controller config
-func NewLocalControllerConfig(name string, images map[string]string) *LocalControllerConfig {
-	controllerImg, exists := images["controller"]
-	if !exists {
-		controllerImg = "docker.io/iofog/controller:latest"
-	}
-	containerMap := make(map[string]*LocalContainerConfig)
-	containerMap["controller"] = &LocalContainerConfig{
-		Host:          "0.0.0.0",
-		Ports:         []port{{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}}},
-		ContainerName: sanitizeContainerName("iofog-controller-" + name),
-		Image:         controllerImg,
-		Privileged:    false,
-		Binds:         []string{},
-		NetworkMode:   "bridge",
+// NewLocalConnectorConfig generates a static connector config
+func NewLocalConnectorConfig(image string, credentials Credentials) *LocalContainerConfig {
+	if image == "" {
+		image = "docker.io/iofog/connector:" + util.GetConnectorTag()
 	}
 
-	connectorImg, exists := images["connector"]
-	if !exists {
-		connectorImg = "docker.io/iofog/connector:latest"
-	}
-
-	containerMap["connector"] = &LocalContainerConfig{
+	return &LocalContainerConfig{
 		Host:          "0.0.0.0",
 		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
-		ContainerName: sanitizeContainerName("iofog-connector-" + name),
-		Image:         connectorImg,
+		ContainerName: GetLocalContainerName("connector"),
+		Image:         image,
 		Privileged:    false,
 		Binds:         []string{},
 		NetworkMode:   "bridge",
+		Credentials:   credentials,
 	}
 
-	return &LocalControllerConfig{
-		Name:         name,
-		ContainerMap: containerMap,
+}
+
+// NewLocalControllerConfig generats a static controller config
+func NewLocalControllerConfig(image string, credentials Credentials) *LocalContainerConfig {
+	if image == "" {
+		image = "docker.io/iofog/controller:" + util.GetControllerTag()
+	}
+	return &LocalContainerConfig{
+		Host: "0.0.0.0",
+		Ports: []port{
+			{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}},
+			{Host: iofog.ControllerHostECNViewerPortString, Container: &LocalContainerPort{Port: iofog.DefaultHTTPPortString, Protocol: "tcp"}},
+		},
+		ContainerName: GetLocalContainerName("controller"),
+		Image:         image,
+		Privileged:    false,
+		Binds:         []string{},
+		NetworkMode:   "bridge",
+		Credentials:   credentials,
 	}
 }
 
@@ -150,7 +176,7 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 	}, nil
 }
 
-func (lc *LocalContainer) getContainerByName(name string) (types.Container, error) {
+func (lc *LocalContainer) GetContainerByName(name string) (types.Container, error) {
 	ctx := context.Background()
 	// List containers
 	containers, err := lc.client.ContainerList(ctx, types.ContainerListOptions{})
@@ -173,7 +199,7 @@ func (lc *LocalContainer) getContainerByName(name string) (types.Container, erro
 func (lc *LocalContainer) CleanContainer(name string) error {
 	ctx := context.Background()
 
-	container, err := lc.getContainerByName(name)
+	container, err := lc.GetContainerByName(name)
 	if err != nil {
 		return err
 	}
@@ -184,9 +210,9 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 	return lc.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
 }
 
-func (lc *LocalContainer) getPullOptions(image string) (ret types.ImagePullOptions) {
-	dockerUser := ""
-	dockerPwd := ""
+func (lc *LocalContainer) getPullOptions(config *LocalContainerConfig) (ret types.ImagePullOptions) {
+	dockerUser := config.Credentials.User
+	dockerPwd := config.Credentials.Password
 
 	if dockerUser != "" {
 		authConfig := types.AuthConfig{
@@ -266,7 +292,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	}
 
 	// Pull image
-	_, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig.Image))
+	reader, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig))
 	imageTag := getImageTag(containerConfig.Image)
 	if err != nil {
 		fmt.Printf("Could not pull image: %v, listing local images...\n", err)
@@ -292,6 +318,11 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 			return "", err
 		}
 	} else {
+		defer reader.Close()
+		_, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return "", err
+		}
 		// Wait for image to be discoverable by docker daemon
 		err = lc.waitForImage(imageTag, 0)
 		if err != nil {
@@ -356,12 +387,12 @@ func (lc *LocalContainer) WaitForCommand(condition *regexp.Regexp, command strin
 	return util.NewInternalError("Timed out waiting for container")
 }
 
-func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
+func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (execResult ExecResult, err error) {
 	ctx := context.Background()
 
-	container, err := lc.getContainerByName(name)
+	container, err := lc.GetContainerByName(name)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Create command to execute inside container
@@ -371,16 +402,58 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (err error) {
 
 	execID, err := lc.client.ContainerExecCreate(ctx, container.ID, execConfig)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Attach command to container
 	res, err := lc.client.ContainerExecAttach(ctx, execID.ID, execStartCheck)
 	if err != nil {
-		return err
+		return
 	}
 	defer res.Close()
 
+	// read the output
+	var outBuf, errBuf bytes.Buffer
+	outputDone := make(chan error)
+
+	go func() {
+		// StdCopy demultiplexes the stream into two buffers
+		_, err = stdcopy.StdCopy(&outBuf, &errBuf, res.Reader)
+		outputDone <- err
+	}()
+
+	select {
+	case err := <-outputDone:
+		if err != nil {
+			return execResult, err
+		}
+		break
+
+	case <-ctx.Done():
+		return execResult, ctx.Err()
+	}
+
+	stdout, err := ioutil.ReadAll(&outBuf)
+	if err != nil {
+		return execResult, err
+	}
+	stderr, err := ioutil.ReadAll(&errBuf)
+	if err != nil {
+		return execResult, err
+	}
+
+	inspect, err := lc.client.ContainerExecInspect(ctx, execID.ID)
+	if err != nil {
+		return execResult, err
+	}
+
+	execResult.ExitCode = inspect.ExitCode
+	execResult.StdOut = string(stdout)
+	execResult.StdErr = string(stderr)
+
 	// Run command
-	return lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck)
+	if err = lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck); err != nil {
+		return
+	}
+	return
 }

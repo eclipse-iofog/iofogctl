@@ -19,6 +19,12 @@ var (
 	platform      = "undefined"
 	commit        = "undefined"
 	date          = "undefined"
+	controllerTag = "undefined"
+	connectorTag  = "undefined"
+	kubeletTag    = "undefined"
+	operatorTag   = "undefined"
+	schedulerTag  = "undefined"
+	agentTag      = "undefined"
 )
 
 type Version struct {
@@ -35,4 +41,28 @@ func GetVersion() Version {
 		Commit:        commit,
 		Date:          date,
 	}
+}
+
+func GetControllerTag() string {
+	return controllerTag
+}
+
+func GetConnectorTag() string {
+	return connectorTag
+}
+
+func GetKubeletTag() string {
+	return kubeletTag
+}
+
+func GetOperatorTag() string {
+	return operatorTag
+}
+
+func GetSchedulerTag() string {
+	return schedulerTag
+}
+
+func GetAgentTag() string {
+	return agentTag
 }

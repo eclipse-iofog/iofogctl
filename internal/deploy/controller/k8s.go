@@ -15,55 +15,56 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type kubernetesExecutor struct {
-	opt *Options
+	namespace    string
+	ctrl         *config.Controller
+	controlPlane config.ControlPlane
 }
 
-func newKubernetesExecutor(opt *Options) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *kubernetesExecutor {
 	k := &kubernetesExecutor{}
-	k.opt = opt
+	k.namespace = namespace
+	k.ctrl = ctrl
+	k.controlPlane = controlPlane
 	return k
 }
 
+func (exe *kubernetesExecutor) GetName() string {
+	return exe.ctrl.Name
+}
+
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Get Kubernetes cluster
-	k8s, err := install.NewKubernetes(exe.opt.KubeConfig, exe.opt.Namespace)
+	// Get Kubernetes installer
+	installer, err := install.NewKubernetes(exe.ctrl.Kube.Config, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	if err = k8s.SetImages(exe.opt.Images); err != nil {
-		return err
-	}
-	k8s.SetControllerIP(exe.opt.KubeControllerIP)
-
-	// Update configuration before we try to deploy in case of failure
-	configEntry, err := prepareUserAndSaveConfig(exe.opt)
-	if err != nil {
+	installer.SetKubeletImage(exe.ctrl.Kube.Images.Kubelet)
+	installer.SetOperatorImage(exe.ctrl.Kube.Images.Operator)
+	installer.SetControllerImage(exe.ctrl.Container.Image)
+	installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
+	if err = installer.SetControllerServiceType(exe.ctrl.Kube.ServiceType); err != nil {
 		return
 	}
 
+	replicas := 1
+	if exe.ctrl.Kube.Replicas != 0 {
+		replicas = exe.ctrl.Kube.Replicas
+	}
 	// Create controller on cluster
-	endpoint, err := k8s.CreateController(client.User{
-		Name:     configEntry.IofogUser.Name,
-		Surname:  configEntry.IofogUser.Surname,
-		Email:    configEntry.IofogUser.Email,
-		Password: configEntry.IofogUser.Password,
-	})
-	if err != nil {
+	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {
 		return
 	}
 
-	// Update configuration
-	configEntry.Endpoint = endpoint
-	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
+	// Update controller (its a pointer, this is returned to caller)
+	if exe.ctrl.Endpoint, err = installer.GetControllerEndpoint(); err != nil {
 		return
 	}
 
-	return config.Flush()
+	return
 }

@@ -14,10 +14,10 @@
 package describe
 
 import (
-	"fmt"
-
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -37,41 +37,50 @@ func newMicroserviceExecutor(namespace, name, filename string) *microserviceExec
 	return a
 }
 
-func (exe *microserviceExecutor) init(controller *config.Controller) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+func (exe *microserviceExecutor) init() (err error) {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
 		return
 	}
 	exe.msvc, err = exe.client.GetMicroserviceByName(exe.name)
 	return
 }
 
+func (exe *microserviceExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *microserviceExecutor) Execute() error {
-	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
-	if err != nil {
-		return err
-	}
-	if len(controllers) != 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", len(controllers))
-		return util.NewInputError(errMessage)
-	}
 	// Fetch data
-	if err = exe.init(&controllers[0]); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 
-	yamlMsvc, err := MapClientMicroserviceToConfigMicroservice(exe.msvc, exe.client)
+	if util.IsSystemMsvc(*(exe.msvc)) {
+		return nil
+	}
+
+	yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(exe.msvc, exe.client)
 	if err != nil {
 		return err
+	}
+
+	header := config.Header{
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       apps.MicroserviceKind,
+		Metadata: config.HeaderMetadata{
+			Namespace: exe.namespace,
+			Name:      exe.name,
+		},
+		Spec: yamlMsvc,
 	}
 
 	if exe.filename == "" {
-		if err = util.Print(yamlMsvc); err != nil {
+		if err = util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(yamlMsvc, exe.filename); err != nil {
+		if err = util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

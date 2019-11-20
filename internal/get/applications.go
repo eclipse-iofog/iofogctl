@@ -16,8 +16,8 @@ package get
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -35,31 +35,25 @@ func newApplicationExecutor(namespace string) *applicationExecutor {
 	return c
 }
 
+func (exe *applicationExecutor) GetName() string {
+	return ""
+}
+
 func (exe *applicationExecutor) Execute() error {
-	// Get controller config details
-	controllers, err := config.GetControllers(exe.namespace)
-	if err != nil {
-		return err
-	}
-	if len(controllers) == 0 {
-		// Generate empty output
-		return exe.generateApplicationOutput()
-	}
-	if len(controllers) > 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", len(controllers))
-		return util.NewInputError(errMessage)
-	}
 	// Fetch data
-	if err = exe.init(&controllers[0]); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 	return exe.generateApplicationOutput()
 }
 
-func (exe *applicationExecutor) init(controller *config.Controller) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
-		return
+func (exe *applicationExecutor) init() (err error) {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
+		if err.Error() == "This control plane does not have controller" {
+			return nil
+		}
+		return err
 	}
 	flows, err := exe.client.GetAllFlows()
 	if err != nil {
@@ -71,7 +65,14 @@ func (exe *applicationExecutor) init(controller *config.Controller) (err error) 
 		if err != nil {
 			return err
 		}
-		exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], listMsvcs.Microservices...)
+
+		// Filter System microservices
+		for _, ms := range listMsvcs.Microservices {
+			if util.IsSystemMsvc(ms) {
+				continue
+			}
+			exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], ms)
+		}
 	}
 	return
 }
@@ -84,9 +85,9 @@ func (exe *applicationExecutor) generateApplicationOutput() error {
 
 	// Populate rows
 	for idx, flow := range exe.flows {
-		status := "Inactive"
+		status := "INACTIVE"
 		if flow.IsActivated == true {
-			status = "Running"
+			status = "RUNNING"
 		}
 		msvcs := ""
 		first := true

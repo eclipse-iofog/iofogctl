@@ -15,15 +15,12 @@ package deleteagent
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(namespace, name string) (Executor, error) {
+func NewExecutor(namespace, name string) (execute.Executor, error) {
 	// Check the agent exists
 	agent, err := config.GetAgent(namespace, name)
 	if err != nil {

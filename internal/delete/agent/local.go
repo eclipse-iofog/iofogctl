@@ -15,41 +15,89 @@ package deleteagent
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type localExecutor struct {
 	namespace        string
+	name             string
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
 
 func newLocalExecutor(namespace, name string, client *install.LocalContainer) *localExecutor {
-	ctrlConfig, _ := install.NewLocalControllerConfig("", make(map[string]string)).ContainerMap["controller"]
+	// Empty string for default image
+	ctrlConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	exe := &localExecutor{
 		namespace:        namespace,
+		name:             name,
 		client:           client,
-		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig),
+		localAgentConfig: install.NewLocalAgentConfig(name, "", ctrlConfig, install.Credentials{}),
 	}
 	return exe
 }
 
-func (exe *localExecutor) Execute() error {
-	defer util.SpinStop()
-	// Clean all agent containers
-	util.SpinStart("Cleaning Agent container")
-	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
-		fmt.Printf("Could not clean Agent container: %v", errClean)
-	}
+func (exe *localExecutor) GetName() string {
+	return exe.name
+}
 
-	// Update configuration
-	err := config.DeleteAgent(exe.namespace, exe.localAgentConfig.Name)
+func (exe *localExecutor) Execute() error {
+	iofogClient, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	return config.Flush()
+	// Get agent UUID
+	agentList, err := iofogClient.ListAgents()
+	if err != nil {
+		return err
+	}
+	var agentUUID string
+	for _, agent := range agentList.Agents {
+		if agent.Name == exe.name {
+			agentUUID = agent.UUID
+			break
+		}
+	}
+
+	// Get list of microservices
+	microservicesList, err := iofogClient.GetAllMicroservices()
+	if err != nil {
+		return err
+	}
+
+	// Clean agent container
+	if errClean := exe.client.CleanContainer(exe.localAgentConfig.ContainerName); errClean != nil {
+		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
+	}
+
+	// Clean microservices
+	for _, msvc := range microservicesList.Microservices {
+		if agentUUID == msvc.AgentUUID {
+			if errClean := exe.client.CleanContainer(fmt.Sprintf("iofog_%s", msvc.UUID)); errClean != nil {
+				util.PrintNotify(fmt.Sprintf("Could not clean Microservice container: %v", errClean))
+			}
+		}
+	}
+
+	// Perform deletion of Agent through Controller
+	if err = iofogClient.DeleteAgent(agentUUID); err != nil {
+		if !strings.Contains(err.Error(), "NotFoundError") {
+			return err
+		}
+	}
+
+	// Update config
+	if err := config.DeleteAgent(exe.namespace, exe.name); err != nil {
+		return err
+	}
+
+	return nil
 }

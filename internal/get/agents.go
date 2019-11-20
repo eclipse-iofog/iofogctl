@@ -16,8 +16,8 @@ package get
 import (
 	"time"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -29,6 +29,10 @@ func newAgentExecutor(namespace string) *agentExecutor {
 	a := &agentExecutor{}
 	a.namespace = namespace
 	return a
+}
+
+func (exe *agentExecutor) GetName() string {
+	return ""
 }
 
 func (exe *agentExecutor) Execute() error {
@@ -45,9 +49,6 @@ func generateAgentOutput(namespace string) error {
 	if err != nil {
 		return err
 	}
-	if len(ns.Controllers) > 1 {
-		return util.NewInternalError("Expected 0 or 1 controller in namespace " + namespace)
-	}
 
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
@@ -59,16 +60,13 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Connect to Controller if it is ready
-	if len(ns.Controllers) > 0 && ns.Controllers[0].Endpoint != "" {
+	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if err == nil {
 		// Instantiate client
-		ctrl := client.New(ns.Controllers[0].Endpoint)
-		loginRequest := client.LoginRequest{
-			Email:    ns.Controllers[0].IofogUser.Email,
-			Password: ns.Controllers[0].IofogUser.Password,
-		}
 		// Log into Controller
-		if err := ctrl.Login(loginRequest); err != nil {
-			return tabulate(agentsToPrint)
+		ctrl, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+		if err != nil {
+			return tabulateAgents(agentsToPrint)
 		}
 
 		// Get Agents from Controller
@@ -99,10 +97,10 @@ func generateAgentOutput(namespace string) error {
 		}
 	}
 
-	return tabulate(agentsToPrint)
+	return tabulateAgents(agentsToPrint)
 }
 
-func tabulate(agentInfos map[string]client.AgentInfo) error {
+func tabulateAgents(agentInfos map[string]client.AgentInfo) error {
 	// Generate table and headers
 	table := make([][]string, len(agentInfos)+1)
 	headers := []string{

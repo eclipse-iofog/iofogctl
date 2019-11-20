@@ -11,11 +11,12 @@
  *
  */
 
-package deployapplication
+package deleteapplication
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -26,34 +27,25 @@ type Executor struct {
 	flow      *client.FlowInfo
 }
 
-func NewExecutor(namespace, name string) *Executor {
+func NewExecutor(namespace, name string) (execute.Executor, error) {
 	exe := &Executor{
 		namespace: namespace,
 		name:      name,
 	}
 
-	return exe
+	return exe, nil
+}
+
+// GetName returns application name
+func (exe *Executor) GetName() string {
+	return exe.name
 }
 
 // Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() (err error) {
-	// Get Controllers from namespace
-	controllers, err := config.GetControllers(exe.namespace)
-
-	// Do we actually have any controllers?
-	if err != nil {
-		util.PrintError("No controller found in this namespace")
-		return
-	}
-
-	// Did we have more than one controller?
-	if len(controllers) != 1 {
-		err = util.NewInternalError("Only support 1 controller per namespace")
-		return
-	}
-
+	util.SpinStart("Deleting Application")
 	// Init remote resources
-	if err = exe.init(&controllers[0]); err != nil {
+	if err = exe.init(); err != nil {
 		return
 	}
 
@@ -65,9 +57,9 @@ func (exe *Executor) Execute() (err error) {
 	return nil
 }
 
-func (exe *Executor) init(controller *config.Controller) (err error) {
-	exe.client = client.New(controller.Endpoint)
-	if err = exe.client.Login(client.LoginRequest{Email: controller.IofogUser.Email, Password: controller.IofogUser.Password}); err != nil {
+func (exe *Executor) init() (err error) {
+	exe.client, err = internal.NewControllerClient(exe.namespace)
+	if err != nil {
 		return
 	}
 	flow, err := exe.client.GetFlowByName(exe.name)

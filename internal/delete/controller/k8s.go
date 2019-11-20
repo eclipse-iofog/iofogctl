@@ -30,6 +30,10 @@ func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
 	return exe
 }
 
+func (exe *kubernetesExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *kubernetesExecutor) Execute() error {
 	// Find the requested controller
 	ctrl, err := config.GetController(exe.namespace, exe.name)
@@ -38,7 +42,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Instantiate Kubernetes object
-	k8s, err := install.NewKubernetes(ctrl.KubeConfig, exe.namespace)
+	k8s, err := install.NewKubernetes(ctrl.Kube.Config, exe.namespace)
 
 	// Delete Controller on cluster
 	err = k8s.DeleteController()
@@ -46,11 +50,10 @@ func (exe *kubernetesExecutor) Execute() error {
 		return err
 	}
 
-	// Update configuration
-	err = config.DeleteController(exe.namespace, exe.name)
-	if err != nil {
+	// Update config
+	if err = config.DeleteController(exe.namespace, exe.name); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }

@@ -15,6 +15,7 @@ package util
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -111,17 +112,21 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Run the command
 	err = session.Run(cmd)
 	if err != nil {
-		logFile := "/tmp/iofog.log"
-		errorSuffix := "stdout has been appended to " + logFile
-		if err = ioutil.WriteFile(logFile, stdout.Bytes(), 0644); err != nil {
-			errorSuffix = "Failed to append stdout to log file"
-		}
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(stderr)
-		err = NewInternalError("Error during SSH session\nstderr: " + buf.String() + errorSuffix)
+		stderrBuf := new(bytes.Buffer)
+		stderrBuf.ReadFrom(stderr)
+		err = format(err, &stdout, stderrBuf)
 		return
 	}
 	return
+}
+
+func format(err error, stdout, stderr *bytes.Buffer) error {
+	if err == nil || stdout == nil || stderr == nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("Error during SSH session\nstderr:\n%s\nstdout:\n%s", stderr.String(), stdout.String())
+	return errors.New(msg)
 }
 
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {
@@ -178,15 +183,9 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			}
 		}
 		if err != nil {
-			errMsg := err.Error()
-			logFile := "/tmp/iofog.log"
-			errorSuffix := "stdout has been appended to " + logFile
-			if err = ioutil.WriteFile(logFile, stdoutBuffer.Bytes(), 0644); err != nil {
-				errorSuffix = "Failed to append stdout to log file"
-			}
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(stderr)
-			err = NewInternalError(fmt.Sprintf("Error during SSH session: %s\nstderr: %s%s", errMsg, buf.String(), errorSuffix))
+			stderrBuf := new(bytes.Buffer)
+			stderrBuf.ReadFrom(stderr)
+			err = format(err, &stdoutBuffer, stderrBuf)
 			return
 		}
 		if condition.MatchString(stdoutBuffer.String()) {

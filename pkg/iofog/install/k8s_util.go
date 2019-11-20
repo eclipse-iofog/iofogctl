@@ -46,7 +46,7 @@ func newService(namespace string, ms *microservice) *v1.Service {
 		svcPort := v1.ServicePort{
 			Name:       ms.name + strconv.Itoa(idx),
 			Port:       int32(port),
-			TargetPort: intstr.FromInt(port),
+			TargetPort: intstr.FromInt(int(port)),
 			Protocol:   v1.Protocol("TCP"),
 		}
 		svc.Spec.Ports = append(svc.Spec.Ports, svcPort)
@@ -108,10 +108,14 @@ func newServiceAccount(namespace string, ms *microservice) *v1.ServiceAccount {
 	}
 }
 
+func getClusterRoleBindingName(namespace, resourceName string) string {
+	return namespace + "-" + resourceName
+}
+
 func newClusterRoleBinding(namespace string, ms *microservice) *rbacv1.ClusterRoleBinding {
 	return &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ms.name,
+			Name: getClusterRoleBindingName(namespace, ms.name),
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -211,7 +215,7 @@ func newRole(namespace string, ms *microservice) *rbacv1.Role {
 			},
 			{
 				APIGroups: []string{
-					"k8s.iofog.org",
+					"iofog.org",
 				},
 				Resources: []string{
 					"*",
@@ -224,29 +228,45 @@ func newRole(namespace string, ms *microservice) *rbacv1.Role {
 	}
 }
 
-func newCustomResourceDefinition(name string) *extsv1.CustomResourceDefinition {
-	labelSelectorPath := ".status.labelSelector"
+func newKogCRD() *extsv1.CustomResourceDefinition {
 	return &extsv1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name: "kogs.iofog.org",
 		},
 		Spec: extsv1.CustomResourceDefinitionSpec{
-			Group: "k8s.iofog.org",
+			Group: "iofog.org",
 			Names: extsv1.CustomResourceDefinitionNames{
-				Kind:     "IOFog",
-				ListKind: "IOFogList",
-				Plural:   "iofogs",
-				Singular: "iofog",
+				Kind:     "Kog",
+				ListKind: "KogList",
+				Plural:   "kogs",
+				Singular: "kog",
 			},
 			Scope:   extsv1.ResourceScope("Namespaced"),
-			Version: "v1alpha1",
+			Version: "v1",
 			Subresources: &extsv1.CustomResourceSubresources{
 				Status: &extsv1.CustomResourceSubresourceStatus{},
-				Scale: &extsv1.CustomResourceSubresourceScale{
-					SpecReplicasPath:   ".spec.replicas",
-					StatusReplicasPath: ".status.replicas",
-					LabelSelectorPath:  &labelSelectorPath,
-				},
+			},
+		},
+	}
+}
+
+func newAppCRD() *extsv1.CustomResourceDefinition {
+	return &extsv1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "apps.iofog.org",
+		},
+		Spec: extsv1.CustomResourceDefinitionSpec{
+			Group: "iofog.org",
+			Names: extsv1.CustomResourceDefinitionNames{
+				Kind:     "Application",
+				ListKind: "ApplicationList",
+				Plural:   "apps",
+				Singular: "app",
+			},
+			Scope:   extsv1.ResourceScope("Namespaced"),
+			Version: "v1",
+			Subresources: &extsv1.CustomResourceSubresources{
+				Status: &extsv1.CustomResourceSubresourceStatus{},
 			},
 		},
 	}

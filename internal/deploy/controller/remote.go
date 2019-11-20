@@ -16,58 +16,52 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type remoteExecutor struct {
-	opt *Options
+	namespace    string
+	ctrl         *config.Controller
+	controlPlane config.ControlPlane
 }
 
-func newRemoteExecutor(opt *Options) *remoteExecutor {
+func newRemoteExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
 	d := &remoteExecutor{}
-	d.opt = opt
+	d.namespace = namespace
+	d.ctrl = ctrl
+	d.controlPlane = controlPlane
 	return d
+}
+
+func (exe *remoteExecutor) GetName() string {
+	return exe.ctrl.Name
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
-		User:              exe.opt.User,
-		Host:              exe.opt.Host,
-		Port:              exe.opt.Port,
-		PrivKeyFilename:   exe.opt.KeyFile,
-		Version:           exe.opt.Version,
-		PackageCloudToken: exe.opt.PackageCloudToken,
+		User:            exe.ctrl.SSH.User,
+		Host:            exe.ctrl.Host,
+		Port:            exe.ctrl.SSH.Port,
+		PrivKeyFilename: exe.ctrl.SSH.KeyFile,
+		Version:         exe.ctrl.Package.Version,
+		Repo:            exe.ctrl.Package.Repo,
+		Token:           exe.ctrl.Package.Token,
 	}
 	installer := install.NewController(controllerOptions)
 
-	// Update configuration before we try to deploy in case of failure
-	configEntry, err := prepareUserAndSaveConfig(exe.opt)
-	if err != nil {
-		return
+	// Set database configuration
+	if exe.controlPlane.Database.Host != "" {
+		db := exe.controlPlane.Database
+		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Provider, db.DatabaseName, db.Port)
 	}
 
-	// Install Controller and Connector
+	// Install Controller
 	if err = installer.Install(); err != nil {
 		return
 	}
+	// Update controller (its a pointer, this is returned to caller)
+	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
 
-	// Configure Controller and Connector
-	if err = installer.Configure(client.User{
-		Name:     configEntry.IofogUser.Name,
-		Surname:  configEntry.IofogUser.Surname,
-		Email:    configEntry.IofogUser.Email,
-		Password: configEntry.IofogUser.Password,
-	}); err != nil {
-		return
-	}
-
-	// Update configuration
-	configEntry.Endpoint = exe.opt.Host + ":" + iofog.ControllerPortString
-	if err = config.UpdateController(exe.opt.Namespace, configEntry); err != nil {
-		return
-	}
-
-	return config.Flush()
+	return
 }

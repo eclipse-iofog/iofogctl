@@ -21,47 +21,42 @@ import (
 
 func newConnectCommand() *cobra.Command {
 	//Instantiate options
-	opt := &connect.Options{}
+	opt := connect.Options{}
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:   "connect CONTROLLERNAME",
+		Use:   "connect",
 		Short: "Connect to an existing ioFog cluster",
 		Long: `Connect to an existing ioFog cluster.
 
 This command must be executed within an empty or non-existent namespace.
-All resources provisioned with the corresponding Controller will become visible under the namespace.`,
-		Example: `iofogctl connect CONTROLLERNAME --controller 123.321.123.22 --email EMAIL --pass PASSWORD
-iofogctl connect CONTROLLERNAME --kube-config ~/.kube/conf --email EMAIL --pass PASSWORD`,
-		Args: cobra.ExactValidArgs(1),
+All resources provisioned with the corresponding Controller will become visible under the namespace.
+All ssh access will be configured as provided in the config file.
+See iofog.org for the YAML format.`,
+		Example: `iofogctl connect -f platform.yaml
+iofogctl connect --kube FILE --name NAME --email EMAIL --pass PASSWORD
+iofogctl connect --endpoint ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get resource name
-			opt.Name = args[0]
 
-			// Get namespace option
 			var err error
+			// Get namespace
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Format any file paths
-			opt.KubeFile, err = util.FormatPath(opt.KubeFile)
+			// Execute command
+			err = connect.Execute(opt)
 			util.Check(err)
 
-			// Get executor for get command
-			exe, err := connect.NewExecutor(opt)
-			util.Check(err)
-
-			// Execute the get command
-			err = exe.Execute()
-			util.Check(err)
-
-			util.PrintSuccess("Successfully connected to " + opt.Namespace + "/" + opt.Name)
+			util.PrintSuccess("Successfully connected resources to namespace " + opt.Namespace)
 		},
 	}
-	cmd.Flags().StringVar(&opt.Endpoint, "controller", "", "Host and (optionally) port of the Controller you are connecting to")
-	cmd.Flags().StringVar(&opt.KubeFile, "kube-config", "", "Filename of Kubernetes cluster config file")
-	cmd.Flags().StringVar(&opt.Email, "email", "", "Email address of user registered against Controller")
-	cmd.Flags().StringVar(&opt.Password, "pass", "", "Password of user registered against Controller")
+	// Register flags
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVar(&opt.ControllerName, "name", "", "Name you would like to assign to Controller")
+	cmd.Flags().StringVar(&opt.ControllerEndpoint, "endpoint", "", "IP or IP:PORT of existing Controller")
+	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Kubernetes config file. Typically ~/.kube/config")
+	cmd.Flags().StringVar(&opt.IofogUserEmail, "email", "", "ioFog user email address")
+	cmd.Flags().StringVar(&opt.IofogUserPass, "pass", "", "ioFog user password")
 	cmd.Flags().BoolVar(&opt.OverwriteNamespace, "force", false, "Overwrite existing namespace")
 
 	return cmd

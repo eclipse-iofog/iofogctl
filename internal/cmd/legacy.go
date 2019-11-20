@@ -15,6 +15,9 @@ package cmd
 
 import (
 	"fmt"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -22,13 +25,63 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
-	"strings"
 )
+
+func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string) {
+	kubeConfig, err := util.FormatPath(kubeConfig)
+	util.Check(err)
+	// Connect to cluster
+	//Execute
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
+	util.Check(err)
+	// Instantiate Kubernetes client
+	clientset, err := kubernetes.NewForConfig(config)
+	util.Check(err)
+	podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: podSelector})
+	if err != nil {
+		return
+	}
+	podName := podList.Items[0].Name
+	kubeArgs := []string{"exec", podName, "-n", namespace, "--"}
+	kubeArgs = append(kubeArgs, cliCmd...)
+	kubeArgs = append(kubeArgs, cmd...)
+	out, err := util.Exec("KUBECONFIG="+kubeConfig, "kubectl", kubeArgs...)
+	util.Check(err)
+	fmt.Print(out.String())
+}
+
+func localExecute(container string, localCLI, localCmd []string) {
+	// Execute command
+	localContainerClient, err := install.NewLocalContainerClient()
+	util.Check(err)
+	cmd := append(localCLI, localCmd...)
+	result, err := localContainerClient.ExecuteCmd(container, cmd)
+	util.Check(err)
+	fmt.Print(result.StdOut)
+	if len(result.StdErr) > 0 {
+		util.PrintError(result.StdErr)
+	}
+}
+
+func remoteExec(user, host, keyFile string, port int, cliCmd string, cmd []string) {
+	ssh := util.NewSecureShellClient(user, host, keyFile)
+	ssh.SetPort(port)
+	util.Check(ssh.Connect())
+	defer ssh.Disconnect()
+
+	sshCmd := cliCmd
+	for _, arg := range cmd {
+		sshCmd = sshCmd + " " + arg
+	}
+	logs, err := ssh.Run(sshCmd)
+	util.Check(err)
+	fmt.Print(logs.String())
+}
 
 // NOTE: (Serge) This code will be discarded eventually. Keeping it one file.
 func newLegacyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "legacy resource RESOURCE COMMAND ARGS...",
+		Use:   "legacy resource NAME COMMAND ARGS...",
 		Short: "Execute commands using legacy CLI",
 		Long:  `Execute commands using legacy CLI`,
 		Example: `iofogctl get all
@@ -50,87 +103,47 @@ iofogctl legacy agent NAME status`,
 			case "controller":
 				// Get config
 				ctrl, err := config.GetController(namespace, name)
-				if ctrl.KubeConfig != "" {
-					util.Check(err)
-					ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
-					util.Check(err)
-					// Connect to cluster
-					//Execute
-					config, err := clientcmd.BuildConfigFromFlags("", ctrl.KubeConfig)
-					util.Check(err)
-					// Instantiate Kubernetes client
-					clientset, err := kubernetes.NewForConfig(config)
-					util.Check(err)
-					podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=controller"})
-					if err != nil {
-						return
-					}
-					podName := podList.Items[0].Name
-					kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-controller"}
-					kubeArgs = append(kubeArgs, args[2:]...)
-					out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
-					util.Check(err)
-					fmt.Print(out.String())
+				util.Check(err)
+				cliCommand := []string{"iofog-controller"}
+				if ctrl.Kube.Config != "" {
+					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
+				} else if util.IsLocalHost(ctrl.Host) {
+					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
 				} else {
-					if ctrl.Host == "" || ctrl.User == "" || ctrl.KeyFile == "" || ctrl.Port == 0 {
-						util.Check(util.NewError("Cannot execute legacy command because SSH details for this Controller are not available"))
+					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
+						util.Check(util.NewNoConfigError("Controller"))
 					}
-					sshClient := util.NewSecureShellClient(ctrl.User, ctrl.Host, ctrl.KeyFile)
-					util.Check(sshClient.Connect())
-					defer sshClient.Disconnect()
-
-					sshCmd := "iofog-controller"
-					for _, arg := range args[2:] {
-						sshCmd = sshCmd + " " + arg
-					}
-					logs, err := sshClient.Run(sshCmd)
-					util.Check(err)
-					fmt.Print(logs.String())
+					remoteExec(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile, ctrl.SSH.Port, "sudo iofog-controller", args[2:])
 				}
 			case "agent":
 				// Get config
 				agent, err := config.GetAgent(namespace, name)
 				util.Check(err)
-				// SSH connect
-				if agent.Host == "" || agent.User == "" || agent.KeyFile == "" || agent.Port == 0 {
-					util.Check(util.NewError("Cannot execute legacy command because SSH details for this Agent are not available"))
+				if util.IsLocalHost(agent.Host) {
+					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
+					return
+				} else {
+					// SSH connect
+					if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
+						util.Check(util.NewNoConfigError("Agent"))
+					}
+					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
 				}
-				ssh := util.NewSecureShellClient(agent.User, agent.Host, agent.KeyFile)
-				util.Check(ssh.Connect())
-				// Execute
-				args[0] = "sudo"
-				args[1] = "iofog-agent"
-				command := strings.Join(args, " ")
-				out, err := ssh.Run(command)
-				util.Check(err)
-
-				fmt.Print(out.String())
 			case "connector":
 				// Get config
-				ctrl, err := config.GetController(namespace, name)
+				connector, err := config.GetConnector(namespace, name)
 				util.Check(err)
-				if ctrl.KubeConfig == "" {
-					util.Check(util.NewError("Cannot execute legacy command because Kube config file is not available"))
+				cliCommand := []string{"sudo", "iofog-connector"}
+				if connector.Kube.Config != "" {
+					k8sExecute(connector.Kube.Config, namespace, "name=connector-"+name, cliCommand, args[2:])
+				} else if util.IsLocalHost(connector.Host) {
+					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
+				} else {
+					if connector.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "" || connector.SSH.Port == 0 {
+						util.Check(util.NewNoConfigError("Connector"))
+					}
+					remoteExec(connector.SSH.User, connector.Host, connector.SSH.KeyFile, connector.SSH.Port, "sudo iofog-connector", args[2:])
 				}
-				ctrl.KubeConfig, err = util.FormatPath(ctrl.KubeConfig)
-				util.Check(err)
-				// Connect to cluster
-				//Execute
-				config, err := clientcmd.BuildConfigFromFlags("", ctrl.KubeConfig)
-				util.Check(err)
-				// Instantiate Kubernetes client
-				clientset, err := kubernetes.NewForConfig(config)
-				util.Check(err)
-				podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: "name=connector"})
-				if err != nil {
-					return
-				}
-				podName := podList.Items[0].Name
-				kubeArgs := []string{"exec", podName, "-n", namespace, "--", "iofog-connector"}
-				kubeArgs = append(kubeArgs, args[2:]...)
-				out, err := util.Exec("KUBECONFIG="+ctrl.KubeConfig, "kubectl", kubeArgs...)
-				util.Check(err)
-				fmt.Print(out.String())
 			default:
 				util.Check(util.NewInputError("Unknown legacy CLI " + resource))
 			}

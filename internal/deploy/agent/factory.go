@@ -17,55 +17,72 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
+type facadeExecutor struct {
+	exe       execute.Executor
+	agent     *config.Agent
+	namespace string
 }
 
-type Options struct {
-	Namespace string
-	Name      string
-	User      string
-	Host      string
-	Port      int
-	KeyFile   string
-	Local     bool
-	Image     string
-}
-
-func NewExecutor(opt *Options) (Executor, error) {
+func (facade facadeExecutor) Execute() (err error) {
 	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(facade.namespace)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Check Controller exists
-	nbControllers := len(ns.Controllers)
-	if nbControllers != 1 {
-		errMessage := fmt.Sprintf("This namespace contains %d Controller(s), you must have one, and only one.", nbControllers)
-		return nil, util.NewInputError(errMessage)
+	if len(ns.ControlPlane.Controllers) == 0 {
+		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
+	}
+
+	util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
+	if err = facade.exe.Execute(); err != nil {
+		return
+	}
+	if err = config.UpdateAgent(facade.namespace, *facade.agent); err != nil {
+		return
+	}
+	return config.Flush()
+}
+
+func (facade facadeExecutor) GetName() string {
+	return facade.exe.GetName()
+}
+
+func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Agent) execute.Executor {
+	return facadeExecutor{
+		exe:       exe,
+		namespace: namespace,
+		agent:     agent,
+	}
+}
+
+func newExecutor(namespace string, agent *config.Agent) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
+		return nil, err
 	}
 
 	// Local executor
-	if opt.Local == true {
+	if util.IsLocalHost(agent.Host) {
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}
-		exe, err := newLocalExecutor(opt, cli)
+		exe, err := newLocalExecutor(namespace, agent, cli)
 		if err != nil {
 			return nil, err
 		}
-		return exe, nil
+		return newFacadeExecutor(exe, namespace, agent), nil
 	}
 
 	// Default executor
-	if opt.Host == "" || opt.KeyFile == "" || opt.User == "" {
+	if agent.Host == "" || agent.SSH.KeyFile == "" || agent.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-	return newRemoteExecutor(opt), nil
+	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent), nil
 }

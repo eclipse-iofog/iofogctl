@@ -14,14 +14,11 @@
 package get
 
 import (
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Executor interface {
-	Execute() error
-}
-
-func NewExecutor(resourceType, namespace string) (Executor, error) {
+func NewExecutor(resourceType, namespace string) (execute.Executor, error) {
 
 	switch resourceType {
 	case "namespaces":
@@ -30,12 +27,16 @@ func NewExecutor(resourceType, namespace string) (Executor, error) {
 		return newAllExecutor(namespace), nil
 	case "controllers":
 		return newControllerExecutor(namespace), nil
+	case "connectors":
+		return newConnectorExecutor(namespace), nil
 	case "agents":
 		return newAgentExecutor(namespace), nil
 	case "microservices":
 		return newMicroserviceExecutor(namespace), nil
 	case "applications":
 		return newApplicationExecutor(namespace), nil
+	case "catalog":
+		return newCatalogExecutor(namespace), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

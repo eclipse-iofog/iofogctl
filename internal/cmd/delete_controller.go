@@ -21,11 +21,9 @@ import (
 
 func newDeleteControllerCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "controller NAME",
-		Short: "Delete a Controller",
-		Long: `Delete a Controller.
-
-On a Kubernetes deployment, all resources under iofog namespace will be deleted.`,
+		Use:     "controller NAME",
+		Short:   "Delete a Controller",
+		Long:    `Delete a Controller.`,
 		Example: `iofogctl delete controller NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -35,11 +33,7 @@ On a Kubernetes deployment, all resources under iofog namespace will be deleted.
 			util.Check(err)
 
 			// Get an executor for the command
-			exe, err := delete.NewExecutor(namespace, name)
-			util.Check(err)
-
-			// Run the command
-			err = exe.Execute()
+			err = delete.Execute(namespace, name)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)

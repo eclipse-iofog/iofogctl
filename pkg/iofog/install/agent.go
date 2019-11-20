@@ -14,14 +14,14 @@
 package install
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 )
 
 type Agent interface {
 	Bootstrap() error
-	getProvisionKey(string, client.User) (string, string, error)
-	Configure(*config.Controller, client.User) (string, error)
+	getProvisionKey(string, IofogUser) (string, string, error)
+	Configure(*config.Controller, IofogUser) (string, error)
 }
 
 // defaultAgent implements commong behavior
@@ -30,11 +30,12 @@ type defaultAgent struct {
 	namespace string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user client.User) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
 	// Connect to controller
 	ctrl := client.New(controllerEndpoint)
 
 	// Log in
+	verbose("Accessing Controller to generate Provisioning Key")
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,

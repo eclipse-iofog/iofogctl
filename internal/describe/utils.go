@@ -14,31 +14,53 @@
 package describe
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
-func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *config.Microservice, err error) {
+func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *apps.Microservice, err error) {
 	agent, err := clt.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
 		return
 	}
-	catalogItem, err := clt.GetCatalogItem(msvc.CatalogItemID)
+	var catalogItem *client.CatalogItemInfo
+	if msvc.CatalogItemID != 0 {
+		catalogItem, err = clt.GetCatalogItem(msvc.CatalogItemID)
+		if err != nil {
+			if httpErr, ok := err.(*client.HTTPError); ok && httpErr.Code == 404 {
+				catalogItem = nil
+			} else {
+				return nil, err
+			}
+		}
+	}
+	application, err := clt.GetFlowByID(msvc.FlowID)
 	if err != nil {
 		return
 	}
+
+	routes := []string{}
+
+	for _, msvcUUID := range msvc.Routes {
+		destMsvc, err := clt.GetMicroserviceByID(msvcUUID)
+		if err != nil {
+			return nil, err
+		}
+		routes = append(routes, destMsvc.Name)
+	}
+
 	jsonConfig := make(map[string]interface{})
-	if err = json.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
+	if err = jsoniter.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
 		return
 	}
-	result = new(config.Microservice)
+	result = new(apps.Microservice)
 	result.UUID = msvc.UUID
 	result.Name = msvc.Name
-	result.Agent = config.MicroserviceAgent{
+	result.Agent = apps.MicroserviceAgent{
 		Name: agent.Name,
-		Config: client.AgentConfiguration{
+		Config: apps.AgentConfiguration{
 			DockerURL:                 &agent.DockerURL,
 			DiskLimit:                 &agent.DiskLimit,
 			DiskDirectory:             &agent.DiskDirectory,
@@ -55,24 +77,77 @@ func MapClientMicroserviceToConfigMicroservice(msvc *client.MicroserviceInfo, cl
 			AbstractedHardwareEnabled: &agent.AbstractedHardwareEnabled,
 		},
 	}
-	images := config.MicroserviceImages{
-		CatalogID: catalogItem.ID,
-		Registry:  catalogItem.RegistryID,
+	var armImage, x86Image string
+	var msvcImages []client.CatalogImage
+	if catalogItem != nil {
+		msvcImages = catalogItem.Images
+	} else {
+		msvcImages = msvc.Images
 	}
-	for _, img := range catalogItem.Images {
+	for _, image := range msvcImages {
+		switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
+		case "x86":
+			x86Image = image.ContainerImage
+			break
+		case "arm":
+			armImage = image.ContainerImage
+			break
+		default:
+			break
+		}
+	}
+	var registryID int
+	var imgArray []client.CatalogImage
+	if catalogItem != nil {
+		registryID = catalogItem.RegistryID
+		imgArray = catalogItem.Images
+	} else {
+		registryID = msvc.RegistryID
+		imgArray = msvc.Images
+	}
+	images := apps.MicroserviceImages{
+		CatalogID: msvc.CatalogItemID,
+		X86:       x86Image,
+		ARM:       armImage,
+		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
+	}
+	for _, img := range imgArray {
 		if img.AgentTypeID == 1 {
 			images.X86 = img.ContainerImage
 		} else if img.AgentTypeID == 2 {
 			images.ARM = img.ContainerImage
 		}
 	}
-	result.Images = images
+	volumes := mapVolumes(msvc.Volumes)
+	envs := mapEnvs(msvc.Env)
+	result.Images = &images
 	result.Config = jsonConfig
 	result.RootHostAccess = msvc.RootHostAccess
-	result.Ports = msvc.Ports
-	result.Volumes = msvc.Volumes
-	result.Routes = msvc.Routes
-	result.Env = msvc.Env
-	result.Flow = &msvc.FlowID
+	result.Ports = mapPorts(msvc.Ports)
+	result.Volumes = &volumes
+	result.Env = &envs
+	result.Routes = routes
+	result.Flow = &application.Name
+	return
+}
+
+func mapPorts(in []client.MicroservicePortMapping) (out []apps.MicroservicePortMapping) {
+	for _, port := range in {
+		out = append(out, apps.MicroservicePortMapping(port))
+	}
+	return
+}
+
+func mapVolumes(in []client.MicroserviceVolumeMapping) (out []apps.MicroserviceVolumeMapping) {
+	for _, vol := range in {
+		out = append(out, apps.MicroserviceVolumeMapping(vol))
+	}
+	return
+}
+
+func mapEnvs(in []client.MicroserviceEnvironment) (out []apps.MicroserviceEnvironment) {
+	for _, env := range in {
+		out = append(out, apps.MicroserviceEnvironment(env))
+	}
 	return
 }

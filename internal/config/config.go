@@ -16,23 +16,26 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
 )
 
-// struct that file is unmarshalled into
-var conf configuration
+var (
+	conf           configuration // struct that file is unmarshalled into
+	configFilename string        // Name of file
+	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
+	mux = &sync.Mutex{}
+)
 
-// Name of file
-var configFilename string
-
-const defaultDirname = ".iofog/"
-const defaultFilename = "config.yaml"
-
-// DefaultConfigPath is used if user does not specify a config file path
-const DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+const (
+	defaultDirname  = ".iofog/"
+	defaultFilename = "config.yaml"
+	// DefaultConfigPath is used if user does not specify a config file path
+	DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+)
 
 // Init initializes config and unmarshalls the file
 func Init(filename string) {
@@ -57,13 +60,9 @@ func Init(filename string) {
 		util.Check(err)
 
 		// Create default file
-		defaultData := []byte(`namespaces:
-- name: default
-  controllers: []
-  agents: []
-  microservices: []
-  created: ` + util.NowUTC())
-		err := ioutil.WriteFile(configFilename, defaultData, 0644)
+		err = AddNamespace("default", util.NowUTC())
+		util.Check(err)
+		err = Flush()
 		util.Check(err)
 	}
 
@@ -91,17 +90,17 @@ func GetAgents(namespace string) ([]Agent, error) {
 func GetControllers(namespace string) ([]Controller, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			return ns.Controllers, nil
+			return ns.ControlPlane.Controllers, nil
 		}
 	}
 	return nil, util.NewNotFoundError(namespace)
 }
 
-// GetMicroservices returns all microservices within a namespace
-func GetMicroservices(namespace string) ([]Microservice, error) {
+// GetConnectors returns all controllers within a namespace
+func GetConnectors(namespace string) ([]Connector, error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			return ns.Microservices, nil
+			return ns.Connectors, nil
 		}
 	}
 	return nil, util.NewNotFoundError(namespace)
@@ -119,13 +118,41 @@ func GetNamespace(name string) (namespace Namespace, err error) {
 	return
 }
 
+// GetControlPlane returns a control plane within a namespace
+func GetControlPlane(namespace string) (controlplane ControlPlane, err error) {
+	for _, ns := range conf.Namespaces {
+		if ns.Name == namespace {
+			controlplane = ns.ControlPlane
+			return
+		}
+	}
+	err = util.NewNotFoundError(namespace + " Control Plane")
+	return
+}
+
 // GetController returns a single controller within a namespace
 func GetController(namespace, name string) (controller Controller, err error) {
 	for _, ns := range conf.Namespaces {
 		if ns.Name == namespace {
-			for _, ctrl := range ns.Controllers {
+			for _, ctrl := range ns.ControlPlane.Controllers {
 				if ctrl.Name == name {
 					controller = ctrl
+					return
+				}
+			}
+		}
+	}
+	err = util.NewNotFoundError(namespace + "/" + name)
+	return
+}
+
+// GetConnector returns a single connector within a namespace
+func GetConnector(namespace, name string) (connector Connector, err error) {
+	for _, ns := range conf.Namespaces {
+		if ns.Name == namespace {
+			for _, cnct := range ns.Connectors {
+				if cnct.Name == name {
+					connector = cnct
 					return
 				}
 			}
@@ -151,22 +178,6 @@ func GetAgent(namespace, name string) (agent Agent, err error) {
 	return
 }
 
-// GetMicroservice returns a single microservice within a namespace
-func GetMicroservice(namespace, name string) (microservice Microservice, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, ms := range ns.Microservices {
-				if ms.Name == name {
-					microservice = ms
-					return
-				}
-			}
-		}
-	}
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
-}
-
 // AddNamespace adds a new namespace to the config
 func AddNamespace(name, created string) error {
 	// Check collision
@@ -179,7 +190,21 @@ func AddNamespace(name, created string) error {
 		Name:    name,
 		Created: created,
 	}
+	mux.Lock()
 	conf.Namespaces = append(conf.Namespaces, newNamespace)
+	mux.Unlock()
+	return nil
+}
+
+// UpdateConnector overwrites Control Plane in the namespace
+func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	mux.Lock()
+	ns.ControlPlane = controlPlane
+	mux.Unlock()
 	return nil
 }
 
@@ -190,14 +215,37 @@ func UpdateController(namespace string, controller Controller) error {
 		return err
 	}
 	// Update existing controller if exists
-	for idx := range ns.Controllers {
-		if ns.Controllers[idx].Name == controller.Name {
-			ns.Controllers[idx] = controller
+	for idx := range ns.ControlPlane.Controllers {
+		if ns.ControlPlane.Controllers[idx].Name == controller.Name {
+			mux.Lock()
+			ns.ControlPlane.Controllers[idx] = controller
+			mux.Unlock()
 			return nil
 		}
 	}
 	// Add new controller
 	AddController(namespace, controller)
+
+	return nil
+}
+
+// Overwrites or creates new connector to the namespace
+func UpdateConnector(namespace string, connector Connector) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	// Update existing connector if exists
+	for idx := range ns.Connectors {
+		if ns.Connectors[idx].Name == connector.Name {
+			mux.Lock()
+			ns.Connectors[idx] = connector
+			mux.Unlock()
+			return nil
+		}
+	}
+	// Add new connector
+	AddConnector(namespace, connector)
 
 	return nil
 }
@@ -211,7 +259,9 @@ func UpdateAgent(namespace string, agent Agent) error {
 	// Update existing agent if exists
 	for idx := range ns.Agents {
 		if ns.Agents[idx].Name == agent.Name {
+			mux.Lock()
 			ns.Agents[idx] = agent
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -234,7 +284,29 @@ func AddController(namespace string, controller Controller) error {
 	}
 
 	// Append the controller
-	ns.Controllers = append(ns.Controllers, controller)
+	mux.Lock()
+	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
+	mux.Unlock()
+
+	return nil
+}
+
+// AddConnector adds a new connector to the namespace
+func AddConnector(namespace string, connector Connector) error {
+	_, err := GetConnector(namespace, connector.Name)
+	if err == nil {
+		return util.NewConflictError(namespace + "/" + connector.Name)
+	}
+
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+
+	// Append the connector
+	mux.Lock()
+	ns.Connectors = append(ns.Connectors, connector)
+	mux.Unlock()
 
 	return nil
 }
@@ -252,25 +324,9 @@ func AddAgent(namespace string, agent Agent) error {
 	}
 
 	// Append the controller
+	mux.Lock()
 	ns.Agents = append(ns.Agents, agent)
-
-	return nil
-}
-
-// AddMicroservice adds a new microservice to the namespace
-func AddMicroservice(namespace string, microservice Microservice) error {
-	_, err := GetMicroservice(namespace, microservice.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + microservice.Name)
-	}
-
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	// Append the controller
-	ns.Microservices = append(ns.Microservices, microservice)
+	mux.Unlock()
 
 	return nil
 }
@@ -279,11 +335,24 @@ func AddMicroservice(namespace string, microservice Microservice) error {
 func DeleteNamespace(name string) error {
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx].Name == name {
+			mux.Lock()
 			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
 
+	return nil
+}
+
+func DeleteControlPlane(namespace string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	mux.Lock()
+	ns.ControlPlane = ControlPlane{}
+	mux.Unlock()
 	return nil
 }
 
@@ -294,9 +363,30 @@ func DeleteController(namespace, name string) error {
 		return err
 	}
 
-	for idx := range ns.Controllers {
-		if ns.Controllers[idx].Name == name {
-			ns.Controllers = append(ns.Controllers[:idx], ns.Controllers[idx+1:]...)
+	for idx := range ns.ControlPlane.Controllers {
+		if ns.ControlPlane.Controllers[idx].Name == name {
+			mux.Lock()
+			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
+			mux.Unlock()
+			return nil
+		}
+	}
+
+	return util.NewNotFoundError(namespace + "/" + name)
+}
+
+// DeleteConnector deletes a connector from a namespace
+func DeleteConnector(namespace, name string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+
+	for idx := range ns.Connectors {
+		if ns.Connectors[idx].Name == name {
+			mux.Lock()
+			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}
@@ -313,24 +403,9 @@ func DeleteAgent(namespace, name string) error {
 
 	for idx := range ns.Agents {
 		if ns.Agents[idx].Name == name {
+			mux.Lock()
 			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(namespace + "/" + name)
-}
-
-// DeleteMicroservice deletes a microservice from a namespace
-func DeleteMicroservice(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	for idx := range ns.Microservices {
-		if ns.Microservices[idx].Name == name {
-			ns.Microservices = append(ns.Microservices[:idx], ns.Microservices[idx+1:]...)
+			mux.Unlock()
 			return nil
 		}
 	}

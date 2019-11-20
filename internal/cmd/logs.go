@@ -25,17 +25,13 @@ func newLogsCommand() *cobra.Command {
 		Short: "Get log contents of deployed resource",
 		Long:  `Get log contents of deployed resource`,
 		Example: `iofogctl logs controller NAME
-iofogctl logs agent NAME`,
+iofogctl logs agent NAME
+iofogctl logs microservice NAME`,
 		Args: cobra.ExactValidArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get Resource type and name
 			resource := args[0]
 			name := args[1]
-
-			// Validate first argument
-			if _, exists := resources[resource]; !exists {
-				util.Check(util.NewNotFoundError(resource))
-			}
 
 			// Get namespace option
 			namespace, err := cmd.Flags().GetString("namespace")
@@ -52,12 +48,4 @@ iofogctl logs agent NAME`,
 	}
 
 	return cmd
-}
-
-// Values accepted in resource type argument
-var resources = map[string]bool{
-	"controller":   true,
-	"agent":        true,
-	"microservice": true,
-	"application":  true,
 }

@@ -13,9 +13,18 @@
 
 package iofog
 
+import "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+
+// String and numeric values of TCP ports used accross ioFog
 const (
-	ControllerPort       = 51121
-	ControllerPortString = "51121"
+	ControllerPort       = client.ControllerPort
+	ControllerPortString = client.ControllerPortString
+
+	ControllerHostECNViewerPort       = 8008
+	ControllerHostECNViewerPortString = "8008"
+
+	DefaultHTTPPort       = 80
+	DefaultHTTPPortString = "80"
 
 	ConnectorPort       = 8080
 	ConnectorPortString = "8080"

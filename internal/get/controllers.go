@@ -14,8 +14,8 @@
 package get
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"time"
 )
@@ -28,6 +28,10 @@ func newControllerExecutor(namespace string) *controllerExecutor {
 	c := &controllerExecutor{}
 	c.namespace = namespace
 	return c
+}
+
+func (exe *controllerExecutor) GetName() string {
+	return ""
 }
 
 func (exe *controllerExecutor) Execute() error {
@@ -44,14 +48,7 @@ func generateControllerOutput(namespace string) error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{
-		"CONTROLLER",
-		"STATUS",
-		"AGE",
-		"UPTIME",
-		"IP",
-		"PORT",
-	}
+	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "IP", "PORT"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows

@@ -11,28 +11,50 @@
  *
  */
 
-package deletemicroservice
+package deletecatalogitem
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type microservice struct {
+type Executor struct {
+	namespace string
+	name      string
 }
 
-func New() *microservice {
-	c := &microservice{}
-	return c
+func NewExecutor(namespace, name string) (execute.Executor, error) {
+	exe := &Executor{
+		namespace: namespace,
+		name:      name,
+	}
+
+	return exe, nil
 }
 
-func (ctrl *microservice) Execute(namespace, name string) error {
-	// TODO (Serge) Execute back-end logic
+// GetName returns application name
+func (exe *Executor) GetName() string {
+	return exe.name
+}
 
-	// Update configuration
-	err := config.DeleteMicroservice(namespace, name)
+// Execute deletes application by deleting its associated flow
+func (exe *Executor) Execute() (err error) {
+	util.SpinStart("Deleting Microservice")
+	// Init remote resources
+	clt, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	return config.Flush()
+	item, err := clt.GetMicroserviceByName(exe.name)
+	if err != nil {
+		return err
+	}
+
+	if err = clt.DeleteMicroservice(item.UUID); err != nil {
+		return err
+	}
+
+	return nil
 }

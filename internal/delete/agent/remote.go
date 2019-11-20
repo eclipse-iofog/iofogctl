@@ -15,11 +15,12 @@ package deleteagent
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"strings"
 )
 
 type remoteExecutor struct {
@@ -34,34 +35,20 @@ func newRemoteExecutor(namespace, name string) *remoteExecutor {
 	return exe
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *remoteExecutor) Execute() error {
 	// Check the agent exists
 	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}
-	// Get Controller for the namespace
-	ctrlConfigs, err := config.GetControllers(exe.namespace)
-	if err != nil {
-		return err
-	}
 
+	ctrl, err := internal.NewControllerClient(exe.namespace)
 	// If controller exists, deprovision the agent
-	if len(ctrlConfigs) > 0 {
-		// Get Controller endpoint and connect to Controller
-		endpoint := ctrlConfigs[0].Endpoint
-		ctrl := client.New(endpoint)
-
-		// Log into Controller
-		userConfig := ctrlConfigs[0].IofogUser
-		user := client.LoginRequest{
-			Email:    userConfig.Email,
-			Password: userConfig.Password,
-		}
-		if err := ctrl.Login(user); err != nil {
-			return err
-		}
-
+	if err == nil {
 		// Perform deletion of Agent through Controller
 		if err = ctrl.DeleteAgent(agent.UUID); err != nil {
 			if !strings.Contains(err.Error(), "NotFoundError") {
@@ -71,19 +58,19 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Stop the Agent process on remote server
-	if agent.Host == "" || agent.User == "" || agent.KeyFile == "" || agent.Port == 0 {
-		util.PrintNotify("Cannot stop Agent process on remote server because SSH details for server are not available")
+	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
+		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
 	} else {
-		sshAgent := install.NewRemoteAgent(agent.User, agent.Host, agent.Port, agent.KeyFile, agent.Name)
+		sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name)
 		if err = sshAgent.Stop(); err != nil {
-			util.PrintNotify(fmt.Sprintf("Failed to stop Agent process on remote server: %s", err.Error()))
+			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
 		}
 	}
 
-	// Update configuration
+	// Update config
 	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }

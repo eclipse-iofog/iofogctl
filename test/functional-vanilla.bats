@@ -3,14 +3,10 @@
 . test/functions.bash
 . test/functional.vars.bash
 
-NS=$(echo "$NAMESPACE""-vanilla")
-
-# TODO: Enable this when a release of Controller is usable here (version needs to be specified for dev package)
-#@test "Deploy vanilla Controller" {
-#  initVanillaController
-#  test iofogctl -q -n "$NS" deploy controller "$NAME" --user "$VANILLA_USER" --host "$VANILLA_HOST" --key-file "$KEY_FILE" --port "$VANILLA_PORT"
-#  checkController
-#}
+NS="$NAMESPACE"
+NS2="$NS"_2
+USER_PW="S5gYVgLEZV"
+USER_EMAIL="user@domain.com"
 
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
@@ -18,67 +14,173 @@ NS=$(echo "$NAMESPACE""-vanilla")
 
 @test "Deploy vanilla Controller" {
   initVanillaController
-  echo "controllers:
-- name: $NAME
-  user: $VANILLA_USER
-  host: $VANILLA_HOST
-  port: $VANILLA_PORT
-  keyfile: $KEY_FILE
-  version: $VANILLA_VERSION
-  packagecloudtoken: $PACKAGE_CLOUD_TOKEN
-  iofoguser:
+  echo "---
+apiVersion: iofog.org/v1
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  controllers:
+  - name: $NAME
+    host: $VANILLA_HOST
+    ssh:
+      user: $VANILLA_USER
+      port: $VANILLA_PORT
+      keyFile: $KEY_FILE
+    package:
+      version: $VANILLA_VERSION
+  iofogUser:
     name: Testing
     surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV" > test/conf/vanilla.yaml
+    email: $USER_EMAIL
+    password: $USER_PW
+---
+apiVersion: iofog.org/v1
+kind: Connector
+metadata:
+  name: $NAME
+spec:
+  host: $VANILLA_HOST
+  ssh:
+    user: $VANILLA_USER
+    port: $VANILLA_PORT
+    keyFile: $KEY_FILE
+  package:
+    version: $VANILLA_VERSION" > test/conf/vanilla.yaml
 
-  test iofogctl -q -n "$NS" deploy -f test/conf/vanilla.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
   checkController
+  checkConnector
 }
 
 @test "Controller legacy commands after vanilla deploy" {
-  test iofogctl -q -n "$NS" legacy controller "$NAME" iofog list
+  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
+  checkLegacyController
+}
+
+@test "Connector legacy commands after deploy" {
+  test iofogctl -v -n "$NS" legacy connector "$NAME" status
+  checkLegacyConnector
 }
 
 @test "Get Controller logs after vanilla deploy" {
-  test iofogctl -q -n "$NS" logs controller "$NAME"
+  test iofogctl -v -n "$NS" logs controller "$NAME"
 }
 
 @test "Deploy Agents against vanilla Controller" {
   initAgentsFile
-  test iofogctl -q -n "$NS" deploy -f test/conf/agents.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
+}
+
+@test "Agent legacy commands" {
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
+    checkLegacyAgent "$AGENT_NAME"
+  done
 }
 
 @test "Deploy application" {
   initApplicationFiles
-  test iofogctl -q -n "$NS" deploy application -f test/conf/application.yaml
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
 }
 
-@test "Delete application" {
-  test iofogctl -q -n "$NS" delete application "$APPLICATION_NAME"
-  checkApplicationNegative
+@test "Deploy application and test deploy idempotence" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
+  checkApplication
 }
 
-@test "Deploy application from root file" {
-  test iofogctl -q -n "$NS" deploy -f test/conf/root_application.yaml
+@test "Connect in another namespace using file" {
+  test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
+  checkController "$NS2"
+  checkConnector "$NS2"
+  checkAgents "$NS2"
+  checkApplication "$NS2"
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" legacy agent "$AGENT_NAME" status
+  done
+}
+
+@test "Disconnect other namespace" {
+  test iofogctl -v -n "$NS2" disconnect
+  checkControllerNegative "$NS2"
+  checkConnectorNegative "$NS2"
+  checkAgentsNegative "$NS2"
+  checkApplicationNegative "$NS2"
+}
+
+@test "Connect in other namespace using flags" {
+  initVanillaController
+  CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
+  test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
+  checkController
+  checkConnector
+  checkAgents
+}
+
+@test "Configure Controller and Connector" {
+  initVanillaController
+  for resource in controller connector; do
+    test iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+  done
+  test iofogctl -v -n "$NS2" logs controller "$NAME"
+  checkLegacyController
+  checkLegacyConnector
+}
+
+@test "Configure Agents" {
+  initAgents
+  echo "========> Config.yaml before configure"
+  cat ~/.iofog/config.yaml
+  test iofogctl -v -n "$NS2" configure agents --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" configure agent "$AGENT_NAME" --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
+    echo "========> Config.yaml"
+    cat ~/.iofog/config.yaml
+    test iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME"
+  done
+}
+
+@test "Disconnect other namespace again" {
+  test iofogctl -v -n "$NS2" disconnect
+  checkControllerNegative "$NS2"
+  checkConnectorNegative "$NS2"
+  checkAgentsNegative "$NS2"
+  checkApplicationNegative "$NS2"
+}
+
+
+@test "Deploy again to check it doesn't lose database" {
+  test iofogctl -v -n "$NS" deploy -f test/conf/vanilla.yaml
+  checkController
+  checkConnector
+  initAgentsFile
+  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  checkAgents
   checkApplication
 }
 
 # Delete all does not delete application
 @test "Delete application" {
-  test iofogctl -q -n "$NS" delete application "$APPLICATION_NAME"
+  test iofogctl -v -n "$NS" delete application "$APPLICATION_NAME"
   checkApplicationNegative
 }
 
 @test "Delete all" {
-  test iofogctl -q -n "$NS" delete all
+  test iofogctl -v -n "$NS" delete all
   checkControllerNegative
+  checkConnectorNegative
   checkAgentsNegative
 }
 
-@test "Delete namespace" {
+@test "Delete namespaces" {
   test iofogctl delete namespace "$NS"
+  test iofogctl delete namespace "$NS2"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
 }

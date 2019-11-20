@@ -8,11 +8,11 @@ fi
 NAMESPACE="$1"
 echo "Cleaning namespace $NAMESPACE"
 
-iofogctl delete all -n "$NAMESPACE"
+iofogctl delete all -n "$NAMESPACE" -v
+kubectl delete kogs/iokog -n "$NAMESPACE"
 kubectl delete all --all -n "$NAMESPACE"
-kubectl delete clusterrolebindings kubelet
-kubectl delete crd iofogs.k8s.iofog.org
 kubectl delete ns "$NAMESPACE"
-iofogctl delete namespace "$NAMESPACE"
+iofogctl disconnect -n "$NAMESPACE" -v
+iofogctl delete namespace "$NAMESPACE" -v
 
 exit 0

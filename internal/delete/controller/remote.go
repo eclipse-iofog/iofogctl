@@ -30,6 +30,10 @@ func newRemoteExecutor(namespace, name string) *remoteExecutor {
 	return exe
 }
 
+func (exe *remoteExecutor) GetName() string {
+	return exe.name
+}
+
 func (exe *remoteExecutor) Execute() error {
 	// Get controller from config
 	ctrl, err := config.GetController(exe.namespace, exe.name)
@@ -39,23 +43,22 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Instantiate installer
 	controllerOptions := &install.ControllerOptions{
-		User:            ctrl.User,
+		User:            ctrl.SSH.User,
 		Host:            ctrl.Host,
-		Port:            ctrl.Port,
-		PrivKeyFilename: ctrl.KeyFile,
+		Port:            ctrl.SSH.Port,
+		PrivKeyFilename: ctrl.SSH.KeyFile,
 	}
 	installer := install.NewController(controllerOptions)
 
-	// Stop Controller and Connector
+	// Stop Controller
 	if err = installer.Stop(); err != nil {
 		return err
 	}
 
-	// Update configuration
-	err = config.DeleteController(exe.namespace, exe.name)
-	if err != nil {
+	// Update config
+	if err = config.DeleteController(exe.namespace, exe.name); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	return nil
 }

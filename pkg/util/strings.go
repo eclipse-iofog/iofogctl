@@ -14,8 +14,10 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -48,7 +50,18 @@ func Before(input string, substr string) string {
 func After(input string, substr string) string {
 	pos := strings.Index(input, substr)
 	if pos == -1 || pos >= len(input)-1 {
-		return input
+		return ""
 	}
 	return input[pos+1:]
+}
+
+func IsLowerAlphanumeric(input string) error {
+	if len(input) <= 2 {
+		return NewInputError(fmt.Sprintf("Resource [%s]: Invalid name. Names must be atleast 3 characters in length.", input))
+	}
+	regex := regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
+	if !regex.MatchString(input) {
+		return NewInputError(fmt.Sprintf("Resource [%s]: Invalid name. Names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character", input))
+	}
+	return nil
 }
