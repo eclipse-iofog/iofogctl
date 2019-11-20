@@ -71,6 +71,10 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		microservice.Name = opt.Name
 	}
 
+	if microservice.Images.Registry == "" {
+		microservice.Images.Registry = "remote"
+	}
+
 	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
 	if err != nil {
 		return

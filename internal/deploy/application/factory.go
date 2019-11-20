@@ -66,6 +66,13 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		application.Name = opt.Name
 	}
 
+	// Update default msvc values
+	for idx := range application.Microservices {
+		if application.Microservices[idx].Images.Registry == "" {
+			application.Microservices[idx].Images.Registry = "remote"
+		}
+	}
+
 	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
 	if err != nil {
 		return

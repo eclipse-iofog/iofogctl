@@ -197,6 +197,9 @@ func getNamespace(name string) (*Namespace, error) {
 	if !ok {
 		namespaceHeader := iofogctlNamespace{}
 		if err := util.UnmarshalYAML(getNamespaceFile(name), &namespaceHeader); err != nil {
+			if os.IsNotExist(err) {
+				return nil, util.NewNotFoundError(name)
+			}
 			return nil, err
 		}
 		ns, err := getNamespaceFromHeader(namespaceHeader)

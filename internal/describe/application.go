@@ -114,6 +114,10 @@ func (exe *applicationExecutor) Execute() error {
 		Spec: application,
 	}
 
+	if exe.namespace == "" {
+		header.Metadata.Namespace = config.GetCurrentNamespace().Name
+	}
+
 	if exe.filename == "" {
 		if err := util.Print(header); err != nil {
 			return err

@@ -52,6 +52,10 @@ func (exe *controlPlaneExecutor) Execute() error {
 		Spec: controlPlane,
 	}
 
+	if exe.namespace == "" {
+		header.Metadata.Namespace = config.GetCurrentNamespace().Name
+	}
+
 	if exe.filename == "" {
 		if err = util.Print(header); err != nil {
 			return err
