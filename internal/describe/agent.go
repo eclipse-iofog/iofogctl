@@ -56,6 +56,10 @@ func (exe *agentExecutor) Execute() error {
 		Spec: agent,
 	}
 
+	if exe.namespace == "" {
+		header.Metadata.Namespace = config.GetCurrentNamespace().Name
+	}
+
 	if exe.filename == "" {
 		if err = util.Print(header); err != nil {
 			return err

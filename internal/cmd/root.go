@@ -81,6 +81,7 @@ func NewRootCommand() *cobra.Command {
 		newViewCommand(),
 		newStartCommand(),
 		newStopCommand(),
+		newMoveCommand(),
 	)
 
 	return cmd

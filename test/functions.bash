@@ -499,3 +499,9 @@ function checkLegacyAgent() {
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'RUNNING') ]]
   [[ "ok" == $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'Connection to Controller' | awk '{print $5}') ]]
 }
+
+function checkMovedMicroservice() {
+  MSVC=$1
+  NEW_AGENT=$2
+  [[ ! -z $(iofogctl -v get microservices | grep $MSVC | grep $NEW_AGENT) ]]
+}
