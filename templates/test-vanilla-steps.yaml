@@ -1,12 +1,11 @@
 steps:
-- template: workdir-steps.yaml
 - task: DownloadBuildArtifacts@0
   displayName: 'Download Build Artifacts'
   inputs:
-    artifactName: iofogctl-linux
+    artifactName: linux
     downloadPath: $(System.DefaultWorkingDirectory)
 - script: |
-    sudo cp $(System.DefaultWorkingDirectory)/iofogctl-linux/iofogctl /usr/local/bin/
+    sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
     sudo chmod 0755 /usr/local/bin/iofogctl
 - template: postinstall-steps.yaml
 - template: ssh-steps.yaml
