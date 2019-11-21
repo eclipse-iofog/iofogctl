@@ -19,9 +19,9 @@ import (
 
 func newMoveCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "get RESOURCE",
-		Short:   "Get information of existing resources",
-		Long:    `Get information of existing resources.`,
+		Use:     "move",
+		Short:   "Move an existing resources inside the current ECN",
+		Long:    `Move an existing resources inside the current ECN`,
 		Example: `iofogctl move microservice NAME AGENT_NAME`,
 	}
 

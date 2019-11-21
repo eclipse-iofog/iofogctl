@@ -130,6 +130,27 @@ spec:
   checkAgents
 }
 
+@test "Set default namespace" {
+  test iofogctl -v configure default-namespace "$NS"
+}
+
+@test "Deploy application" {
+  initApplicationFiles
+  test iofogctl -v deploy -f test/conf/application.yaml
+  checkApplication
+}
+
+@test "Move microservice to another agent" {
+  test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
+  checkMovedMicroservice $MSVC2_NAME ${NAME}-1
+}
+
+# Delete all does not delete application
+@test "Delete application" {
+  test iofogctl -v delete application "$APPLICATION_NAME"
+  checkApplicationNegative
+}
+
 @test "Deploy Agents for idempotence" {
   initAgentsFile
   test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml

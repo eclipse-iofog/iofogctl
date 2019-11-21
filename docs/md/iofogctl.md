@@ -31,6 +31,7 @@ iofogctl [flags]
 * [iofogctl get](iofogctl_get.md)	 - Get information of existing resources
 * [iofogctl legacy](iofogctl_legacy.md)	 - Execute commands using legacy CLI
 * [iofogctl logs](iofogctl_logs.md)	 - Get log contents of deployed resource
+* [iofogctl move](iofogctl_move.md)	 - Move an existing resources inside the current ECN
 * [iofogctl start](iofogctl_start.md)	 - Starts a resource
 * [iofogctl stop](iofogctl_stop.md)	 - Stops a resource
 * [iofogctl version](iofogctl_version.md)	 - Get CLI application version
