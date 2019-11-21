@@ -176,6 +176,29 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 	}, nil
 }
 
+// GetLogsByName returns the logs of the container specified by name
+func (lc *LocalContainer) GetLogsByName(name string) (stdout, stderr string, err error) {
+	ctx := context.Background()
+	r, err := lc.client.ContainerLogs(ctx, name, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	defer r.Close()
+	if err != nil {
+		return
+	}
+
+	stdoutBuf := new(bytes.Buffer)
+	stderrBuf := new(bytes.Buffer)
+
+	_, err = stdcopy.StdCopy(stdoutBuf, stderrBuf, r)
+	if err != nil {
+		return
+	}
+
+	stdout = stdoutBuf.String()
+	stderr = stderrBuf.String()
+
+	return
+}
+
 func (lc *LocalContainer) GetContainerByName(name string) (types.Container, error) {
 	ctx := context.Background()
 	// List containers

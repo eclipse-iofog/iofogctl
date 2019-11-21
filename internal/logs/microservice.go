@@ -18,8 +18,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -41,9 +43,26 @@ func (ms *remoteMicroserviceExecutor) GetName() string {
 
 func (ms *remoteMicroserviceExecutor) Execute() error {
 	// Get image name of the microservice and details of the Agent its deployed on
-	agent, image, err := getAgentAndImage(ms.namespace, ms.name)
+	agent, agentInfo, msvc, err := getAgentAndMicroservice(ms.namespace, ms.name)
 	if err != nil {
 		return err
+	}
+
+	// Local
+	if util.IsLocalHost(agent.Host) {
+		lc, err := install.NewLocalContainerClient()
+		if err != nil {
+			return err
+		}
+		containerName := "iofog_" + msvc.UUID
+		stdout, stderr, err := lc.GetLogsByName(containerName)
+		if err != nil {
+			return err
+		}
+
+		printContainerLogs(stdout, stderr)
+
+		return nil
 	}
 
 	// Verify we can SSH into the Agent
@@ -58,6 +77,12 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 	}
 
 	// Notify the user of the containers that are up
+	var image string
+	for _, img := range msvc.Images {
+		if img.AgentTypeID == agentInfo.FogType {
+			image = img.ContainerImage
+		}
+	}
 	out, err := ms.runDockerCommand(fmt.Sprintf("docker ps | grep %s", image), ssh)
 	if err != nil {
 		return err
@@ -106,30 +131,32 @@ func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.Sec
 	return
 }
 
-func getAgentAndImage(namespace, msvcName string) (agent config.Agent, image string, err error) {
+func getAgentAndMicroservice(namespace, msvcName string) (agent config.Agent, agentInfo client.AgentInfo, msvc client.MicroserviceInfo, err error) {
 	ctrlClient, err := internal.NewControllerClient(namespace)
 	if err != nil {
 		return
 	}
 
 	// Get microservice details from Controller
-	msvc, err := ctrlClient.GetMicroserviceByName(msvcName)
+	msvcPtr, err := ctrlClient.GetMicroserviceByName(msvcName)
 	if err != nil {
 		return
 	}
+
+	msvc = *msvcPtr
 
 	// Images must exist
 	if len(msvc.Images) == 0 {
 		err = util.NewError("Microservice " + msvcName + " does not have any images")
 		return
 	}
-	image = msvc.Images[0].ContainerImage
 
 	// Get Agent running the microservice
 	agentResponse, err := ctrlClient.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
 		return
 	}
+	agentInfo = *agentResponse
 	agent, err = config.GetAgent(namespace, agentResponse.Name)
 	if err != nil {
 		return

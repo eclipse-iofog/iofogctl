@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -41,6 +42,23 @@ func (exe *agentExecutor) Execute() error {
 	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {
 		return err
+	}
+
+	// Local
+	if util.IsLocalHost(agent.Host) {
+		lc, err := install.NewLocalContainerClient()
+		if err != nil {
+			return err
+		}
+		containerName := install.GetLocalContainerName("agent")
+		stdout, stderr, err := lc.GetLogsByName(containerName)
+		if err != nil {
+			return err
+		}
+
+		printContainerLogs(stdout, stderr)
+
+		return nil
 	}
 
 	// Establish SSH connection
