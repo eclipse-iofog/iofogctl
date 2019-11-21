@@ -100,10 +100,11 @@ func updateConfigToK8sStyle() error {
 }
 
 // Init initializes config, namespace and unmarshalls the files
-func Init(namespace, configFolder string) {
+func Init(namespace, configFolderArg string) {
 	namespaces = make(map[string]*Namespace)
 
-	configFolder, err := util.FormatPath(configFolder)
+	var err error
+	configFolder, err = util.FormatPath(configFolderArg)
 	util.Check(err)
 
 	if configFolder == "" {
@@ -140,8 +141,9 @@ func Init(namespace, configFolder string) {
 	err = util.UnmarshalYAML(configFilename, &confHeader)
 	// Warn user about possible update
 	if err != nil {
-		err = updateConfigToK8sStyle()
-		util.Check(err)
+		if err = updateConfigToK8sStyle(); err != nil {
+			util.Check(util.NewInternalError(fmt.Sprintf("Failed to update iofogctl configuration. Error: %v", err)))
+		}
 		err = util.UnmarshalYAML(configFilename, &confHeader)
 		util.Check(err)
 	}
