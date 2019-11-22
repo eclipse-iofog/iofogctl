@@ -180,10 +180,10 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 func (lc *LocalContainer) GetLogsByName(name string) (stdout, stderr string, err error) {
 	ctx := context.Background()
 	r, err := lc.client.ContainerLogs(ctx, name, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-	defer r.Close()
 	if err != nil {
 		return
 	}
+	defer r.Close()
 
 	stdoutBuf := new(bytes.Buffer)
 	stderrBuf := new(bytes.Buffer)

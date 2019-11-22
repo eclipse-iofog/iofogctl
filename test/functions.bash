@@ -505,3 +505,17 @@ function checkMovedMicroservice() {
   NEW_AGENT=$2
   [[ ! -z $(iofogctl -v get microservices | grep $MSVC | grep $NEW_AGENT) ]]
 }
+
+function waitForMsvc() {
+  ITER=0
+  MS=$1
+  while [ -z $(iofogctl get microservices | grep $MS | grep "RUNNING") ] ; do
+      ITER=$((ITER+1))
+      # Allow for 180 sec so that the agent can pull the image
+      if [ "$ITER" -gt 300 ]; then
+          echo "Timed out. Waited ${ITER} seconds for ${MS} to be RUNNING"
+          exit 1
+      fi
+      sleep 1
+  done
+}

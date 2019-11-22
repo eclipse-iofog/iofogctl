@@ -48,6 +48,10 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		return err
 	}
 
+	if msvc.Status.Status != "RUNNING" {
+		return util.NewError("The microservice is not currently running")
+	}
+
 	// Local
 	if util.IsLocalHost(agent.Host) {
 		lc, err := install.NewLocalContainerClient()
