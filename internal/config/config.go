@@ -504,6 +504,29 @@ func DeleteNamespace(name string) error {
 	return util.NewNotFoundError("Could not find namespace " + name)
 }
 
+// RenameNamespace renames a namespace
+func RenameNamespace(name, newName string) error {
+	if name == "" {
+		name = conf.CurrentNamespace
+	}
+	if name == conf.DefaultNamespace {
+		util.PrintError("Cannot rename default namespaces, please choose a different namespace to rename")
+		return util.NewInputError("Cannot find valid namespace with name: " + name)
+	}
+	for idx := range conf.Namespaces {
+		if conf.Namespaces[idx] == name {
+			mux.Lock()
+			defer mux.Unlock()
+			// Rename namespace file
+			conf.Namespaces[idx] = newName
+			err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName))
+			return err
+		}
+	}
+
+	return util.NewNotFoundError("Could not find namespace " + name)
+}
+
 func DeleteControlPlane(namespace string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
