@@ -16,7 +16,7 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20191117221727-97277d47e500
+	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20191203205738-0142e4755416
 	github.com/eclipse-iofog/iofog-operator v0.0.0-20191117223400-e0d2d4ac3fcc
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0

@@ -151,6 +151,37 @@ spec:
   done
 }
 
+@test "Rename Agents" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" rename agent "$AGENT_NAME" "$AGENT_NAME-newname"
+    checkRenamedResource agents "$AGENT_NAME" "$AGENT_NAME-newname" "$NS2"
+    test iofogctl -v -n "${NS2}" rename agent "${AGENT_NAME}-newname" "${AGENT_NAME}"
+    checkRenamedResource agents "$AGENT_NAME-newname" "$AGENT_NAME" "$NS2"
+  done
+}
+
+@test "Rename Controller" {
+  test iofogctl -v -n "$NS2" rename controller "$NAME" "$NAME-newname"
+  checkRenamedResource controllers "$NAME" "$NAME-newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename controller "${NAME}-newname" "${NAME}"
+  checkRenamedResource controllers "$NAME-newname" "$NAME" "$NS2"
+}
+
+@test "Rename Connector" {
+  test iofogctl -v -n "$NS2" rename connector "$NAME" "$NAME-newname"
+  checkRenamedResource connectors "$NAME" "$NAME-newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename connector "$NAME-newname" "$NAME"
+  checkRenamedResource connectors "$NAME-newname" "$NAME" "$NS2"
+}
+
+@test "Rename Namespace" {
+  test iofogctl -v -n "$NS2" rename namespace "${NS2}" "${NS2}-newname"
+  checkRenamedNamespace "${NS2}" "${NS2}-newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename namespace "${NS2}-newname" "${NS2}"
+  checkRenamedNamespace "${NS2}-newname" "${NS2}" "$NS2"
+}
+
 @test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
@@ -168,6 +199,13 @@ spec:
   test iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   checkApplication
+}
+
+@test "Rename Application" {
+  test iofogctl -v -n "$NS2" rename application "${APPLICATION_NAME}" "${APPLICATION_NAME}-newname"
+  checkRenamedResource applications "${APPLICATION_NAME}" "${APPLICATION_NAME}-newname" "$NS2"
+  test iofogctl -v -m "$NS2" rename application "${APPLICATION_NAME}-newname" "${APPLICATION_NAME}"
+  checkRenamedResource applications "${APPLICATION_NAME}-newname" "${APPLICATION_NAME}" "$NS2"
 }
 
 # Delete all does not delete application
