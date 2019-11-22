@@ -1,4 +1,4 @@
-# ioFog Unified CLI
+![iofogctl-logo](iofogctl-logo.png?raw=true "iofogctl logo")
 
 `iofogctl` is a CLI for the installation, configuration, and operation of ioFog Edge Compute Networks (ECNs).
 It can be used to remotely manage multiple ECNs from a single host. It is built for an
