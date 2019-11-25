@@ -1,3 +1,10 @@
+parameters:
+  id: ''
+  distro: ''
+  repo: ''
+  agent_count: 1
+  controller_count: 1
+
 steps:
 - task: DownloadBuildArtifacts@0
   displayName: 'Download Build Artifacts'
@@ -10,36 +17,17 @@ steps:
 - template: postinstall-steps.yaml
 - template: ssh-steps.yaml
 - template: functional-init-vm-steps.yaml
-- template: functional-configure.yaml
+  parameters:
+    id: ${{ parameters.id }}
+    distro: ${{ parameters.distro }}
+    repo: ${{ parameters.repo }}
+    agent_count: ${{ parameters.agent_count }}
+    controller_count: ${{ parameters.controller_count }}
+- template: configure-remote-tests.yaml
+- template: install-test-deps.yaml
 - script: |
-    echo $(Agent.TempDirectory)/id_rsa > /tmp/id_rsa
-    chmod 400 /tmp/id_rsa
-    cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/id_rsa'
-    for agent in $(agent_vm_list); do
-      echo "Waiting for VM $agent"
-      iter=0
-      while ! $cssh $agent -- echo "SSH success" && [ $iter -lt 15 ]; do
-        iter=$((iter+1))
-        sleep 5
-      done
-      if [ ! $iter -lt 15 ]; then
-        echo "Timed out waiting for $agent"
-        exit 1
-      fi
-    done
-    if [ $(controller_count) -gt 0 ]; then
-      echo "Waiting for VM $(controller_vm)"
-      iter=0
-      while ! $cssh $(controller_vm) -- echo "SSH success" && [ $iter -lt 15 ]; do
-        iter=$((iter+1))
-        sleep 5
-      done
-      if [ ! $iter -lt 15 ]; then
-        echo "Timed out waiting for $(controller_vm)"
-        exit 1
-      fi
-    fi
-  displayName: 'Wait for VM SSH access'
+    test/run.bash smoke
+  displayName: 'Run Smoke Tests'
 - script: |
     set -o pipefail
     test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
@@ -50,3 +38,7 @@ steps:
   condition: succeededOrFailed()
 - template: functional-post-test.yaml
 - template: functional-clean-vm.yaml
+  parameters:
+    id: $(jobuuid)
+    agent_count: 2
+    controller_count: 0

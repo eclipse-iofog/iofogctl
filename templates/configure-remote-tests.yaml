@@ -1,0 +1,21 @@
+parameters:
+  windows: 'false'
+
+steps:
+- bash: |
+    sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(agent_vm_list)\"|g" test/env.sh
+    sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(controller_vm)\"|g" test/env.sh
+    sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
+    sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
+    keyFilePath="$(Agent.TempDirectory)/id_rsa"
+    if [[ ${{ parameters.windows }} == "true" ]]; then
+      keyFilePath=$(wslpath "${keyFilePath}")
+    fi
+    cat $keyFilePath > ~/id_rsa
+    echo $(ssh.user.pub) > ~/id_rsa.pub
+    NS=$(jobuuid)
+    sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
+    sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
+    cp test/env.sh test/conf
+    cat test/conf/env.sh
+  displayName: 'Configure Remote Tests'

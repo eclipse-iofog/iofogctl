@@ -1,27 +1,67 @@
+parameters:
+  id: ''
+  distro: ''
+  repo: ''
+  agent_count: 1
+  controller_count: 1
+  windows: 'false'
+
 steps:
 - template: init-gcloud-steps.yaml
-- script: |
+  parameters:
+    windows: ${{ parameters.windows }}
+- bash: |
+    id=${{ parameters.id }}
+    distro=${{ parameters.distro }}
+    repo=${{ parameters.repo }}
+    agent_count=${{ parameters.agent_count }}
+    controller_count=${{ parameters.controller_count }}
     agent_list=""
-    for idx in $(seq 1 $(agent_count)); do
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$(distro) --image-project=$(repo) --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
-      vm_host=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
+    for idx in $(seq 1 $agent_count); do
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$id-$idx
+      vm_host=$(gcloud compute instances list | grep iofogctl-ci-$id-$idx | awk '{print $5}')
       agent_list="$(gcp.vm.user)@$vm_host $agent_list"
     done
     agent_list=$(echo "$agent_list" | awk '{$1=$1;print}')
     echo "##vso[task.setvariable variable=agent_vm_list]$agent_list"
-    if [ $(controller_count) -gt 0 ]; then
-      count=$(agent_count)
-      idx=$((count+1))
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$(distro) --image-project=$(repo) --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
-      vm_host=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
+    if [ $controller_count -gt 0 ]; then
+      idx=$((agent_count+1))
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$id-$idx
+      vm_host=$(gcloud compute instances list | grep iofogctl-ci-$id-$idx | awk '{print $5}')
       echo "##vso[task.setvariable variable=controller_vm]$(gcp.vm.user)@$vm_host"
     fi
   displayName: 'Deploy Test VMs'
-- script: |
-    sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(agent_vm_list)\"|g" test/env.sh
-    sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(controller_vm)\"|g" test/env.sh
-    sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
-    sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
-    cat $(Agent.TempDirectory)/id_rsa > ~/id_rsa
-    echo $(ssh.user.pub) > ~/id_rsa.pub
-  displayName: 'Configure VM Tests'
+- bash: |
+    controller_count=${{ parameters.controller_count }}
+    keyFilePath="$(Agent.TempDirectory)/id_rsa"
+    if [[ ${{ parameters.windows }} == "true" ]]; then
+      keyFilePath=$(wslpath "${keyFilePath}")
+    fi
+    cat $keyFilePath > /tmp/id_rsa
+    chmod 400 /tmp/id_rsa
+    cssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/id_rsa'
+    for agent in $(agent_vm_list); do
+      echo "Waiting for VM $agent"
+      iter=0
+      while ! $cssh $agent -- echo "SSH success" && [ $iter -lt 15 ]; do
+        iter=$((iter+1))
+        sleep 5
+      done
+      if [ ! $iter -lt 15 ]; then
+        echo "Timed out waiting for $agent"
+        exit 1
+      fi
+    done
+    if [ $controller_count -gt 0 ]; then
+      echo "Waiting for VM $(controller_vm)"
+      iter=0
+      while ! $cssh $(controller_vm) -- echo "SSH success" && [ $iter -lt 15 ]; do
+        iter=$((iter+1))
+        sleep 5
+      done
+      if [ ! $iter -lt 15 ]; then
+        echo "Timed out waiting for $(controller_vm)"
+        exit 1
+      fi
+    fi
+  displayName: 'Wait for VM SSH access'
