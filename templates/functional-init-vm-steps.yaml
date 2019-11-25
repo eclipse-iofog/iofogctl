@@ -1,23 +1,9 @@
 steps:
-- task: DownloadSecureFile@1
-  displayName: 'Download secure file'
-  inputs:
-    secureFile: 'azure-gcp.json'
-- bash: |
-    CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-    sudo apt-get update && sudo apt-get install google-cloud-sdk
-    gcloud --quiet auth activate-service-account --key-file=$(Agent.TempDirectory)/azure-gcp.json
-    gcloud --quiet config set project $(gcp.project.name)
-    gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
-  displayName: 'set up gcloud'
+- template: init-gcloud-steps.yaml
 - script: |
     agent_list=""
     for idx in $(seq 1 $(agent_count)); do
-      distro=$(agent_distro)
-      repo=$([[ $distro == *"debian"* ]] && echo "debian-cloud" || echo "ubuntu-os-cloud")
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$(distro) --image-project=$(repo) --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
       vm_host=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
       agent_list="$(gcp.vm.user)@$vm_host $agent_list"
     done
@@ -26,9 +12,7 @@ steps:
     if [ $(controller_count) -gt 0 ]; then
       count=$(agent_count)
       idx=$((count+1))
-      distro=$(controller_distro)
-      repo=$([[ $distro == *"debian"* ]] && echo "debian-cloud" || echo "ubuntu-os-cloud")
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$(jobuuid)-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$(distro) --image-project=$(repo) --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$(jobuuid)-$idx
       vm_host=$(gcloud compute instances list | grep iofogctl-ci-$(jobuuid)-$idx | awk '{print $5}')
       echo "##vso[task.setvariable variable=controller_vm]$(gcp.vm.user)@$vm_host"
     fi
