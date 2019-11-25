@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -47,8 +48,20 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Local
-	if ctrl.Host == "localhost" {
-		return util.NewInternalError("Not Implemented")
+	if util.IsLocalHost(ctrl.Host) {
+		lc, err := install.NewLocalContainerClient()
+		if err != nil {
+			return err
+		}
+		containerName := install.GetLocalContainerName("controller")
+		stdout, stderr, err := lc.GetLogsByName(containerName)
+		if err != nil {
+			return err
+		}
+
+		printContainerLogs(stdout, stderr)
+
+		return nil
 	}
 
 	// K8s

@@ -62,15 +62,17 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uui
 		{"iofog-agent", "config", "-idc", "off"},
 		{"iofog-agent", "config", "-a", controllerBaseURL},
 		{"iofog-agent", "provision", key},
+		{"iofog-agent", "config", "-sf", "10", "-cf", "10"},
 	}
-
-	// TODO: Verify provisioning succeeded
 
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
+		result, err := agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
+		if result.ExitCode != 0 {
+			return "", util.NewError(fmt.Sprintf("Command: %v failed with exit code %d\nStdout: %s\n Stderr: %s\n", cmd, result.ExitCode, result.StdOut, result.StdErr))
+		}
 		if err != nil {
-			return
+			return "", err
 		}
 	}
 

@@ -84,6 +84,11 @@ NS="$NAMESPACE"
   checkApplication
 }
 
+@test "Get local logs" {
+  [[ ! -z $(iofogctl -v -n "$NS" logs controller $NAME) ]]
+  [[ ! -z $(iofogctl -v -n "$NS" logs agent ${NAME}-0) ]]
+}
+
 @test "Delete all using file" {
   initAllLocalDeleteFile
   test iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml
