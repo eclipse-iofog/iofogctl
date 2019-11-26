@@ -83,16 +83,10 @@ func (exe *localExecutor) deployContainers() error {
 	// Wait for public API
 	util.SpinStart("Waiting for Connector API")
 	if err := exe.client.WaitForCommand(
-		regexp.MustCompile("\"status\":\"running\""),
-		"curl",
-		"--request",
-		"POST",
-		"--url",
-		fmt.Sprintf("http://%s:%s/api/v2/status", exe.localConnectorConfig.Host, exe.localConnectorConfig.Ports[0].Host),
-		"--header",
-		"'Content-Type: application/x-www-form-urlencoded'",
-		"--data",
-		"mappingid=all",
+		install.GetLocalContainerName("connector"),
+		regexp.MustCompile("iofog-connector is up and running."),
+		"iofog-connector",
+		"status",
 	); err != nil {
 		return err
 	}
