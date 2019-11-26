@@ -19,7 +19,6 @@ import (
 	"regexp"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -63,9 +62,30 @@ func (exe *localExecutor) cleanContainers() {
 	}
 }
 
+func getController(namespace string) (ctrl config.Controller, err error) {
+	controllers, err := config.GetControllers(namespace)
+	if err != nil {
+		fmt.Print("You must deploy a Controller to a namespace before deploying any Connector")
+		return
+	}
+	if len(controllers) != 1 {
+		return ctrl, util.NewInternalError("Only support 1 controller per namespace")
+	}
+	return controllers[0], nil
+}
+
 func (exe *localExecutor) deployContainers() error {
 	// Deploy connector image
 	util.SpinStart("Deploying Connector")
+
+	controller, err := getController(exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	if util.IsLocalHost(controller.Host) == false {
+		return util.NewInputError("Cannot deploy a local connector with a remote controller")
+	}
 
 	// If container already exists, clean it
 	connectorContainerName := exe.localConnectorConfig.ContainerName
@@ -92,11 +112,10 @@ func (exe *localExecutor) deployContainers() error {
 	}
 
 	// Provision the Connector with Controller
-	IP, err := exe.client.GetContainerIP(install.GetLocalContainerName("controller"))
+	controllerEndpoint, err := exe.client.GetLocalControllerEndpoint()
 	if err != nil {
 		return err
 	}
-	controllerEndpoint := fmt.Sprintf("%s:%s", IP, iofog.ControllerPortString)
 	ctrlClient := client.New(controllerEndpoint)
 	loginRequest := client.LoginRequest{
 		Email:    exe.iofogUser.Email,
