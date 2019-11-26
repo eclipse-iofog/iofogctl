@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -103,7 +104,7 @@ func (exe *localExecutor) deployContainers() error {
 	// Wait for public API
 	util.SpinStart("Waiting for Connector API")
 	if err := exe.client.WaitForCommand(
-		install.GetLocalContainerName("connector"),
+		exe.localConnectorConfig.ContainerName,
 		regexp.MustCompile("iofog-connector is up and running."),
 		"iofog-connector",
 		"status",
@@ -111,8 +112,10 @@ func (exe *localExecutor) deployContainers() error {
 		return err
 	}
 
-	// Provision the Connector with Controller
-	controllerEndpoint, err := exe.client.GetLocalControllerEndpoint()
+	// Use localhost and port forwarding
+	controllerEndpoint := fmt.Sprintf("localhost:%s", iofog.ControllerPortString)
+	connectorContainerIP, err := exe.client.GetContainerIP(exe.localConnectorConfig.ContainerName)
+	exe.localConnectorConfig.Host = connectorContainerIP
 	if err != nil {
 		return err
 	}

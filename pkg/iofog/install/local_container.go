@@ -404,17 +404,11 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	return container.ID, err
 }
 
+// Returns endpoint to reach controller container from within another container
 func (lc *LocalContainer) GetLocalControllerEndpoint() (controllerEndpoint string, err error) {
-	var host string
-	// https://docs.docker.com/docker-for-windows/networking/ - Per-container IP addressing is not possible
-	if runtime.GOOS == "windows" {
-		// Use the host IP and port forwarding to reach other container
-		host = "host.docker.internal"
-	} else {
-		host, err = lc.GetContainerIP(GetLocalContainerName("controller"))
-		if err != nil {
-			return controllerEndpoint, err
-		}
+	host, err := lc.GetContainerIP(GetLocalContainerName("controller"))
+	if err != nil {
+		return controllerEndpoint, err
 	}
 	controllerEndpoint = fmt.Sprintf("%s:%s", host, iofog.ControllerPortString)
 	return
