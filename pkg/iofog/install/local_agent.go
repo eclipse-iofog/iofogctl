@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -49,11 +48,10 @@ func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uui
 
 	controllerEndpoint := ctrl.Endpoint
 	if util.IsLocalHost(ctrl.Host) {
-		IP, err := agent.client.GetContainerIP(GetLocalContainerName("controller"))
+		controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
 		if err != nil {
 			return uuid, err
 		}
-		controllerEndpoint = fmt.Sprintf("%s:%s", IP, iofog.ControllerPortString)
 	}
 
 	// Instantiate provisioning commands
