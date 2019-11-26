@@ -65,7 +65,6 @@ type LocalContainerConfig struct {
 	Privileged    bool
 	Binds         []string
 	NetworkMode   string
-	Links         []string
 	Credentials   Credentials
 }
 
@@ -127,9 +126,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
 			NetworkMode:   "bridge",
-			// Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
-			Links:       []string{},
-			Credentials: credentials,
+			Credentials:   credentials,
 		},
 		Name: name,
 	}
@@ -297,7 +294,6 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		Privileged:   containerConfig.Privileged,
 		Binds:        containerConfig.Binds,
 		NetworkMode:  dockerContainer.NetworkMode(containerConfig.NetworkMode),
-		Links:        containerConfig.Links,
 	}
 
 	// Pull image
@@ -340,27 +336,27 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	}
 
 	// Create network if it does not exists
-	networkName := "local-iofog-network"
-	networks, err := lc.client.NetworkList(ctx, types.NetworkListOptions{})
-	networkID := ""
-	for i := range networks {
-		if networks[i].Name == networkName {
-			networkID = networks[i].ID
-			break
-		}
-	}
+	// networkName := "local-iofog-network"
+	// networks, err := lc.client.NetworkList(ctx, types.NetworkListOptions{})
+	// networkID := ""
+	// for i := range networks {
+	// 	if networks[i].Name == networkName {
+	// 		networkID = networks[i].ID
+	// 		break
+	// 	}
+	// }
 
-	if networkID == "" {
-		networkResponse, err := lc.client.NetworkCreate(ctx, networkName, types.NetworkCreate{
-			Driver:         "bridge",
-			CheckDuplicate: true,
-		})
-		if err != nil {
-			fmt.Printf("Failed to create network: %v\n", err)
-			return "", err
-		}
-		networkID = networkResponse.ID
-	}
+	// if networkID == "" {
+	// 	networkResponse, err := lc.client.NetworkCreate(ctx, networkName, types.NetworkCreate{
+	// 		Driver:         "bridge",
+	// 		CheckDuplicate: true,
+	// 	})
+	// 	if err != nil {
+	// 		fmt.Printf("Failed to create network: %v\n", err)
+	// 		return "", err
+	// 	}
+	// 	networkID = networkResponse.ID
+	// }
 
 	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, containerConfig.ContainerName)
 	if err != nil {
@@ -369,11 +365,11 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	}
 
 	// Connect to network
-	err = lc.client.NetworkConnect(ctx, networkID, container.ID, nil)
-	if err != nil {
-		fmt.Printf("Failed to connect container to network: %v\n", err)
-		return "", err
-	}
+	// err = lc.client.NetworkConnect(ctx, networkID, container.ID, nil)
+	// if err != nil {
+	// 	fmt.Printf("Failed to connect container to network: %v\n", err)
+	// 	return "", err
+	// }
 
 	// Start container
 	err = lc.client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
@@ -383,6 +379,20 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	}
 
 	return container.ID, err
+}
+
+func (lc *LocalContainer) GetContainerIP(name string) (IP string, err error) {
+	container, err := lc.GetContainerByName(name)
+	if err != nil {
+		return
+	}
+
+	network, found := container.NetworkSettings.Networks[container.HostConfig.NetworkMode]
+	if found == false {
+		return "", util.NewNotFoundError(fmt.Sprintf("Container %s : Could not find network setting for network %s", name, container.HostConfig.NetworkMode))
+	}
+
+	return network.IPAddress, nil
 }
 
 func (lc *LocalContainer) WaitForCommand(containerName string, condition *regexp.Regexp, command ...string) error {
