@@ -92,7 +92,12 @@ func (exe *localExecutor) deployContainers() error {
 	}
 
 	// Provision the Connector with Controller
-	ctrlClient := client.New("localhost:" + iofog.ControllerPortString)
+	IP, err := exe.client.GetContainerIP(install.GetLocalContainerName("controller"))
+	if err != nil {
+		return err
+	}
+	controllerEndpoint := fmt.Sprintf("%s:%s", IP, iofog.ControllerPortString)
+	ctrlClient := client.New(controllerEndpoint)
 	loginRequest := client.LoginRequest{
 		Email:    exe.iofogUser.Email,
 		Password: exe.iofogUser.Password,
