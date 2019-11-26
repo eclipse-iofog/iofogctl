@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -106,6 +106,15 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 	if image == "" {
 		image = "docker.io/iofog/agent:" + util.GetAgentTag()
 	}
+
+	var bindings []string
+
+	if runtime.GOOS == "windows" {
+		bindings = append(bindings, "//var/run/docker.sock:/var/run/docker.sock:rw")
+	} else {
+		bindings = append(bindings, "/var/run/docker.sock:/var/run/docker.sock:rw")
+	}
+
 	return &LocalAgentConfig{
 		LocalContainerConfig: LocalContainerConfig{
 			Host: "0.0.0.0",
@@ -376,10 +385,13 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	return container.ID, err
 }
 
-func (lc *LocalContainer) WaitForCommand(condition *regexp.Regexp, command string, args ...string) error {
+func (lc *LocalContainer) WaitForCommand(containerName string, condition *regexp.Regexp, command ...string) error {
 	for iteration := 0; iteration < 30; iteration++ {
-		output, _ := exec.Command(command, args...).Output()
-		if condition.MatchString(string(output)) {
+		output, err := lc.ExecuteCmd(containerName, command)
+		if err != nil {
+			verbose(fmt.Sprintf("Container command %v failed with error %v\n", command, err.Error()))
+		}
+		if condition.MatchString(output.StdOut) {
 			return nil
 		}
 		time.Sleep(2 * time.Second)
