@@ -43,13 +43,19 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
+	// Get IP
+	IP, err := exe.client.GetContainerIP(exe.localConnectorConfig.ContainerName)
+	if err != nil {
+		return err
+	}
+
 	// Clean container
 	if errClean := exe.client.CleanContainer(exe.localConnectorConfig.ContainerName); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Connector container: %v", errClean))
 	}
 
 	// Clear Connector from Controller
-	if err := deleteConnectorFromController(exe.namespace, exe.localConnectorConfig.Host); err != nil {
+	if err := deleteConnectorFromController(exe.namespace, IP); err != nil {
 		return err
 	}
 
