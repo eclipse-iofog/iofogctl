@@ -77,12 +77,11 @@ func (exe *localExecutor) deployContainers() error {
 	// Wait for public API
 	util.SpinStart("Waiting for Controller API")
 	if err = exe.client.WaitForCommand(
-		regexp.MustCompile("\"status\":\"online\""),
-		"curl",
-		"--request",
-		"GET",
-		"--url",
-		fmt.Sprintf("http://%s:%s/api/v3/status", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host),
+		install.GetLocalContainerName("controller"),
+		regexp.MustCompile("\"status\":[ |\t]*\"online\""),
+		"iofog-controller",
+		"controller",
+		"status",
 	); err != nil {
 		return err
 	}

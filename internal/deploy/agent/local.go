@@ -109,12 +109,10 @@ func (exe *localExecutor) Execute() error {
 	// Wait for agent
 	util.SpinStart("Waiting for Agent")
 	if err = exe.client.WaitForCommand(
-		regexp.MustCompile("401 Unauthorized"),
-		"curl",
-		"--request",
-		"GET",
-		"--url",
-		fmt.Sprintf("http://%s:%s/v2/status", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host),
+		install.GetLocalContainerName("agent"),
+		regexp.MustCompile("ioFog daemon[ |\t]*: RUNNING"),
+		"iofog-agent",
+		"status",
 	); err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))
