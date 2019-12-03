@@ -63,9 +63,30 @@ func (exe *localExecutor) cleanContainers() {
 	}
 }
 
+func getController(namespace string) (ctrl config.Controller, err error) {
+	controllers, err := config.GetControllers(namespace)
+	if err != nil {
+		fmt.Print("You must deploy a Controller to a namespace before deploying any Connector")
+		return
+	}
+	if len(controllers) != 1 {
+		return ctrl, util.NewInternalError("Only support 1 Controller per namespace for local deployment")
+	}
+	return controllers[0], nil
+}
+
 func (exe *localExecutor) deployContainers() error {
 	// Deploy connector image
 	util.SpinStart("Deploying Connector")
+
+	controller, err := getController(exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	if util.IsLocalHost(controller.Host) == false {
+		return util.NewInputError("Cannot deploy a local Connector with a remote Controller")
+	}
 
 	// If container already exists, clean it
 	connectorContainerName := exe.localConnectorConfig.ContainerName
@@ -83,22 +104,22 @@ func (exe *localExecutor) deployContainers() error {
 	// Wait for public API
 	util.SpinStart("Waiting for Connector API")
 	if err := exe.client.WaitForCommand(
-		regexp.MustCompile("\"status\":\"running\""),
-		"curl",
-		"--request",
-		"POST",
-		"--url",
-		fmt.Sprintf("http://%s:%s/api/v2/status", exe.localConnectorConfig.Host, exe.localConnectorConfig.Ports[0].Host),
-		"--header",
-		"'Content-Type: application/x-www-form-urlencoded'",
-		"--data",
-		"mappingid=all",
+		exe.localConnectorConfig.ContainerName,
+		regexp.MustCompile("iofog-connector is up and running."),
+		"iofog-connector",
+		"status",
 	); err != nil {
 		return err
 	}
 
-	// Provision the Connector with Controller
-	ctrlClient := client.New("localhost:" + iofog.ControllerPortString)
+	// Use localhost and port forwarding
+	controllerEndpoint := fmt.Sprintf("localhost:%s", iofog.ControllerPortString)
+	connectorContainerIP, err := exe.client.GetContainerIP(exe.localConnectorConfig.ContainerName)
+	exe.localConnectorConfig.Host = connectorContainerIP
+	if err != nil {
+		return err
+	}
+	ctrlClient := client.New(controllerEndpoint)
 	loginRequest := client.LoginRequest{
 		Email:    exe.iofogUser.Email,
 		Password: exe.iofogUser.Password,
@@ -140,7 +161,7 @@ func (exe *localExecutor) Execute() error {
 	// Update Connector (return through pointer)
 	connectorContainerConfig := exe.localConnectorConfig
 	exe.cnct.Endpoint = fmt.Sprintf("%s:%s", connectorContainerConfig.Host, connectorContainerConfig.Ports[0].Host)
-	exe.cnct.Host = connectorContainerConfig.Host
+	exe.cnct.Host = "localhost"
 	exe.cnct.SSH.User = currUser.Username
 	exe.cnct.Created = util.NowUTC()
 

@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -65,7 +65,6 @@ type LocalContainerConfig struct {
 	Privileged    bool
 	Binds         []string
 	NetworkMode   string
-	Links         []string
 	Credentials   Credentials
 }
 
@@ -106,6 +105,15 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 	if image == "" {
 		image = "docker.io/iofog/agent:" + util.GetAgentTag()
 	}
+
+	var bindings []string
+
+	if runtime.GOOS == "windows" {
+		bindings = append(bindings, "//var/run/docker.sock:/var/run/docker.sock:rw")
+	} else {
+		bindings = append(bindings, "/var/run/docker.sock:/var/run/docker.sock:rw")
+	}
+
 	return &LocalAgentConfig{
 		LocalContainerConfig: LocalContainerConfig{
 			Host: "0.0.0.0",
@@ -118,9 +126,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
 			NetworkMode:   "bridge",
-			// Links:         []string{fmt.Sprintf("%s:%s", ctrlConfig.ContainerName, ctrlConfig.ContainerName)},
-			Links:       []string{},
-			Credentials: credentials,
+			Credentials:   credentials,
 		},
 		Name: name,
 	}
@@ -288,7 +294,6 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		Privileged:   containerConfig.Privileged,
 		Binds:        containerConfig.Binds,
 		NetworkMode:  dockerContainer.NetworkMode(containerConfig.NetworkMode),
-		Links:        containerConfig.Links,
 	}
 
 	// Pull image
@@ -330,39 +335,9 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		}
 	}
 
-	// Create network if it does not exists
-	networkName := "local-iofog-network"
-	networks, err := lc.client.NetworkList(ctx, types.NetworkListOptions{})
-	networkID := ""
-	for i := range networks {
-		if networks[i].Name == networkName {
-			networkID = networks[i].ID
-			break
-		}
-	}
-
-	if networkID == "" {
-		networkResponse, err := lc.client.NetworkCreate(ctx, networkName, types.NetworkCreate{
-			Driver:         "bridge",
-			CheckDuplicate: true,
-		})
-		if err != nil {
-			fmt.Printf("Failed to create network: %v\n", err)
-			return "", err
-		}
-		networkID = networkResponse.ID
-	}
-
 	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, containerConfig.ContainerName)
 	if err != nil {
 		fmt.Printf("Failed to create container: %v\n", err)
-		return "", err
-	}
-
-	// Connect to network
-	err = lc.client.NetworkConnect(ctx, networkID, container.ID, nil)
-	if err != nil {
-		fmt.Printf("Failed to connect container to network: %v\n", err)
 		return "", err
 	}
 
@@ -376,10 +351,37 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	return container.ID, err
 }
 
-func (lc *LocalContainer) WaitForCommand(condition *regexp.Regexp, command string, args ...string) error {
+// Returns endpoint to reach controller container from within another container
+func (lc *LocalContainer) GetLocalControllerEndpoint() (controllerEndpoint string, err error) {
+	host, err := lc.GetContainerIP(GetLocalContainerName("controller"))
+	if err != nil {
+		return controllerEndpoint, err
+	}
+	controllerEndpoint = fmt.Sprintf("%s:%s", host, iofog.ControllerPortString)
+	return
+}
+
+func (lc *LocalContainer) GetContainerIP(name string) (IP string, err error) {
+	container, err := lc.GetContainerByName(name)
+	if err != nil {
+		return
+	}
+
+	network, found := container.NetworkSettings.Networks[container.HostConfig.NetworkMode]
+	if found == false {
+		return "", util.NewNotFoundError(fmt.Sprintf("Container %s : Could not find network setting for network %s", name, container.HostConfig.NetworkMode))
+	}
+
+	return network.IPAddress, nil
+}
+
+func (lc *LocalContainer) WaitForCommand(containerName string, condition *regexp.Regexp, command ...string) error {
 	for iteration := 0; iteration < 30; iteration++ {
-		output, _ := exec.Command(command, args...).Output()
-		if condition.MatchString(string(output)) {
+		output, err := lc.ExecuteCmd(containerName, command)
+		if err != nil {
+			verbose(fmt.Sprintf("Container command %v failed with error %v\n", command, err.Error()))
+		}
+		if condition.MatchString(output.StdOut) {
 			return nil
 		}
 		time.Sleep(2 * time.Second)
