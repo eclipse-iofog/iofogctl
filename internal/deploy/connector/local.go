@@ -70,7 +70,7 @@ func getController(namespace string) (ctrl config.Controller, err error) {
 		return
 	}
 	if len(controllers) != 1 {
-		return ctrl, util.NewInternalError("Only support 1 controller per namespace")
+		return ctrl, util.NewInternalError("Only support 1 Controller per namespace for local deployment")
 	}
 	return controllers[0], nil
 }
@@ -85,7 +85,7 @@ func (exe *localExecutor) deployContainers() error {
 	}
 
 	if util.IsLocalHost(controller.Host) == false {
-		return util.NewInputError("Cannot deploy a local connector with a remote controller")
+		return util.NewInputError("Cannot deploy a local Connector with a remote Controller")
 	}
 
 	// If container already exists, clean it
