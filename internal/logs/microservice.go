@@ -76,6 +76,7 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 
 	// SSH into the Agent and get the logs
 	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	ssh.SetPort(agent.SSH.Port)
 	if err = ssh.Connect(); err != nil {
 		return err
 	}

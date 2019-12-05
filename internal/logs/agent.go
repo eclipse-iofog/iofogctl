@@ -66,6 +66,7 @@ func (exe *agentExecutor) Execute() error {
 		util.Check(util.NewNoConfigError("Agent"))
 	}
 	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	ssh.SetPort(agent.SSH.Port)
 	err = ssh.Connect()
 	if err != nil {
 		return err

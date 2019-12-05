@@ -80,7 +80,6 @@ func (exe *controllerExecutor) Execute() error {
 	}
 	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
 	ssh.SetPort(ctrl.SSH.Port)
-
 	if err = ssh.Connect(); err != nil {
 		return err
 	}
