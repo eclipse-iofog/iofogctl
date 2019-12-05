@@ -510,8 +510,17 @@ function checkRenamedResource() {
   RSRC=$1
   OLDNAME=$2
   NEWNAME=$3
-  [[ -z $(iofogctl -v get ${RSRC} | grep ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -v get ${RSRC} | grep ${NEWNAME}) ]]
+  NAMESPACE=$4
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep ${NEWNAME}) ]]
+}
+
+function checkRenamedApplication() {
+  OLDNAME=$1
+  NEWNAME=$2
+  NAMESPACE=$3
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get all | grep ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get all | grep ${NEWNAME}) ]]
 }
 
 function waitForMsvc() {
