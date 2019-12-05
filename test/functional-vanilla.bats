@@ -152,10 +152,9 @@ spec:
 }
 
 @test "Rename Agents" {
-  initAgents
-  test iofogctl -v -n "${NS2}" rename agent "${AGENT_NAME}" "${NAME}-newname";
+  test iofogctl -v -n "${NS2}" rename agent "${AGENT_NAME}" "${AGENT_NAME}-newname";
   checkRenamedResource agents "$AGENT_NAME" "$AGENT_NAME-newname" "$NS2"
-  test iofogctl -v -n "${NS2}" rename agent "${AGENT_NAME}-newname" "${NAME}-0";
+  test iofogctl -v -n "${NS2}" rename agent "${AGENT_NAME}-newname" "${AGENT_NAME}";
   checkRenamedResource agents "$AGENT_NAME-newname" "$AGENT_NAME" "$NS2"
 }
 

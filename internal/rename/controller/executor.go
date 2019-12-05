@@ -31,6 +31,9 @@ func Execute(namespace, name, newName string) error {
 	if err = config.UpdateController(namespace, ctrl); err != nil {
 		return err
 	}
+	if err = config.DeleteController(namespace, name); err != nil {
+		return err
+	}
 	config.Flush()
 	return nil
 }

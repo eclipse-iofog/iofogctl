@@ -520,6 +520,7 @@ func RenameNamespace(name, newName string) error {
 			// Rename namespace file
 			conf.Namespaces[idx] = newName
 			err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName))
+			FlushConfig()
 			return err
 		}
 	}
