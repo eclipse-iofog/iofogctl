@@ -506,6 +506,14 @@ function checkMovedMicroservice() {
   [[ ! -z $(iofogctl -v get microservices | grep $MSVC | grep $NEW_AGENT) ]]
 }
 
+function checkRenamedResource() {
+  RSRC=$1
+  OLDNAME=$2
+  NEWNAME=$3
+  [[ -z $(iofogctl -v get ${RSRC} | grep ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -v get ${RSRC} | grep ${NEWNAME}) ]]
+}
+
 function waitForMsvc() {
   ITER=0
   MS=$1
