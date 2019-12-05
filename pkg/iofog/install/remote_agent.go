@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -98,12 +97,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUser) (uuid string, err error) {
-	controllerEndpoint, err := ctrlPlane.GetControllerEndpoint()
-	if err != nil {
-		return
-	}
-
+func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
 	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
 		return

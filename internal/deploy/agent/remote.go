@@ -62,7 +62,12 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Configure the agent with Controller details
-	uuid, err := agent.Configure(controlPlane, install.IofogUser(controlPlane.IofogUser))
+	controllerEndpoint, err := controlPlane.GetControllerEndpoint()
+	if err != nil {
+		util.PrintError("Failed to retrieve Controller endpoint!")
+		return
+	}
+	uuid, err := agent.Configure(controllerEndpoint, install.IofogUser(controlPlane.IofogUser))
 	if err != nil {
 		return
 	}
