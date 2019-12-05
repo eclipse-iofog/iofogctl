@@ -26,13 +26,10 @@ type kubernetesExecutor struct {
 }
 
 func newKubernetesExecutor(namespace string, cnct *config.Connector) *kubernetesExecutor {
-	k := &kubernetesExecutor{}
-	if namespace == "" {
-		namespace = config.GetCurrentNamespace().Name
+	return &kubernetesExecutor{
+		namespace: namespace,
+		cnct:      cnct,
 	}
-	k.namespace = namespace
-	k.cnct = cnct
-	return k
 }
 
 func (exe *kubernetesExecutor) GetName() string {

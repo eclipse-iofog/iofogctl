@@ -38,9 +38,11 @@ iofogctl get controllers` + fmt.Sprintf("\n\nValid resources are: %s\n", strings
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg
 			resource := args[0]
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			// Get executor for get command
-			exe, err := get.NewExecutor(resource, "")
+			exe, err := get.NewExecutor(resource, namespace)
 			util.Check(err)
 
 			// Execute the get command

@@ -14,7 +14,6 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/delete"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -30,11 +29,14 @@ func newDeleteCommand() *cobra.Command {
 		Short:   "Delete an existing ioFog resource",
 		Long:    `Delete an existing ioFog resource.`,
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
+			util.Check(err)
 			// Execute command
-			err := delete.Execute(opt)
+			err = delete.Execute(opt)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted resources from namespace " + config.GetCurrentNamespace().Name)
+			util.PrintSuccess("Successfully deleted resources from namespace " + opt.Namespace)
 		},
 	}
 

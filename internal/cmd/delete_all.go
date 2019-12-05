@@ -14,7 +14,6 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	delete "github.com/eclipse-iofog/iofogctl/internal/delete/all"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -32,10 +31,12 @@ If you don't want to tear down the deployments but would like to free up the nam
 		Example: `iofogctl delete all -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Execute command
-			err := delete.Execute("")
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
+			err = delete.Execute(namespace)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted all resources in namespace " + config.GetCurrentNamespace().Name)
+			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
 		},
 	}
 

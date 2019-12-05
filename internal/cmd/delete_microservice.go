@@ -29,10 +29,12 @@ func newDeleteMicroserviceCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of connector
 			name := args[0]
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			// Get an executor for the command
-			exe, _ := delete.NewExecutor("", name)
-			err := exe.Execute()
+			exe, _ := delete.NewExecutor(namespace, name)
+			err = exe.Execute()
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted microservice " + name)

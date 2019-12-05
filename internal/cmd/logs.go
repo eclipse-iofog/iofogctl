@@ -32,9 +32,11 @@ iofogctl logs microservice NAME`,
 			// Get Resource type and name
 			resource := args[0]
 			name := args[1]
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			// Instantiate logs executor
-			exe, err := logs.NewExecutor(resource, "", name)
+			exe, err := logs.NewExecutor(resource, namespace, name)
 			util.Check(err)
 
 			// Run the logs command

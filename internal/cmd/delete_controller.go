@@ -14,7 +14,6 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	delete "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -30,12 +29,14 @@ func newDeleteControllerCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of controller
 			name := args[0]
-
-			// Get an executor for the command
-			err := delete.Execute("", name)
+			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + config.GetCurrentNamespace().Name + "/" + name)
+			// Get an executor for the command
+			err = delete.Execute(namespace, name)
+			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

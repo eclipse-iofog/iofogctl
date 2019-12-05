@@ -106,7 +106,7 @@ func init() {
 		panic(err)
 	}
 
-	Init("", testConfigFolder)
+	Init(testConfigFolder)
 }
 
 func TestDelete(t *testing.T) {

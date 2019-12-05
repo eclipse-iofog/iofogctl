@@ -75,10 +75,6 @@ func (exe *microserviceExecutor) Execute() error {
 		Spec: yamlMsvc,
 	}
 
-	if exe.namespace == "" {
-		header.Metadata.Namespace = config.GetCurrentNamespace().Name
-	}
-
 	if exe.filename == "" {
 		if err = util.Print(header); err != nil {
 			return err

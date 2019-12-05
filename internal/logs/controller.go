@@ -27,13 +27,10 @@ type controllerExecutor struct {
 }
 
 func newControllerExecutor(namespace, name string) *controllerExecutor {
-	exe := &controllerExecutor{}
-	if namespace == "" {
-		namespace = config.GetCurrentNamespace().Name
+	return &controllerExecutor{
+		namespace: namespace,
+		name:      name,
 	}
-	exe.namespace = namespace
-	exe.name = name
-	return exe
 }
 
 func (ctrl *controllerExecutor) GetName() string {

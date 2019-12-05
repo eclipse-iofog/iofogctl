@@ -30,9 +30,11 @@ func newMoveMicroserviceCommand() *cobra.Command {
 			// Get name and namespace of connector
 			name := args[0]
 			agent := args[1]
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			// Get an executor for the command
-			err := move.Execute("", name, agent)
+			err = move.Execute(namespace, name, agent)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully moved microservice " + name + " to agent " + agent)

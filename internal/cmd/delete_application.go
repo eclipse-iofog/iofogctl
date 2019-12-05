@@ -14,7 +14,6 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	delete "github.com/eclipse-iofog/iofogctl/internal/delete/application"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -30,12 +29,14 @@ func newDeleteApplicationCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get microservice name
 			name := args[0]
-
-			// Execute command
-			err := delete.Execute("", name)
+			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + config.GetCurrentNamespace().Name + "/" + name)
+			// Execute command
+			err = delete.Execute(namespace, name)
+			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

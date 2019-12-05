@@ -94,15 +94,18 @@ iofogctl legacy agent NAME status`,
 			resource := args[0]
 			// Get resource name
 			name := args[1]
+			// Get namespace
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			switch resource {
 			case "controller":
 				// Get config
-				ctrl, err := config.GetController("", name)
+				ctrl, err := config.GetController(namespace, name)
 				util.Check(err)
 				cliCommand := []string{"iofog-controller"}
 				if ctrl.Kube.Config != "" {
-					k8sExecute(ctrl.Kube.Config, config.GetCurrentNamespace().Name, "name=controller", cliCommand, args[2:])
+					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
 				} else if util.IsLocalHost(ctrl.Host) {
 					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
 				} else {
@@ -113,7 +116,7 @@ iofogctl legacy agent NAME status`,
 				}
 			case "agent":
 				// Get config
-				agent, err := config.GetAgent("", name)
+				agent, err := config.GetAgent(namespace, name)
 				util.Check(err)
 				if util.IsLocalHost(agent.Host) {
 					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
@@ -127,11 +130,11 @@ iofogctl legacy agent NAME status`,
 				}
 			case "connector":
 				// Get config
-				connector, err := config.GetConnector("", name)
+				connector, err := config.GetConnector(namespace, name)
 				util.Check(err)
 				cliCommand := []string{"sudo", "iofog-connector"}
 				if connector.Kube.Config != "" {
-					k8sExecute(connector.Kube.Config, config.GetCurrentNamespace().Name, "name=connector-"+name, cliCommand, args[2:])
+					k8sExecute(connector.Kube.Config, namespace, "name=connector-"+name, cliCommand, args[2:])
 				} else if util.IsLocalHost(connector.Host) {
 					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
 				} else {

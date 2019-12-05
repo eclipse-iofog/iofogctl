@@ -34,8 +34,12 @@ This will not teardown any components of the cluster. If you would like to tear 
 This will leave the corresponding namespace empty.`,
 		Example: `iofogctl disconnect -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
+			util.Check(err)
+
 			// Execute the get command
-			err := disconnect.Execute(opt)
+			err = disconnect.Execute(opt)
 			util.Check(err)
 		},
 	}

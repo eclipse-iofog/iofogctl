@@ -33,6 +33,8 @@ func newStopApplicationCommand() *cobra.Command {
 				util.Check(util.NewInputError("Must specify an application to start"))
 			}
 			opt.Name = args[0]
+			opt.Namespace, err = cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			exe := stopapplication.NewExecutor(opt)
 

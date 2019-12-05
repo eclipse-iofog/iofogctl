@@ -14,6 +14,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -100,7 +101,7 @@ func updateConfigToK8sStyle() error {
 }
 
 // Init initializes config, namespace and unmarshalls the files
-func Init(namespace, configFolderArg string) {
+func Init(configFolderArg string) {
 	namespaces = make(map[string]*Namespace)
 
 	var err error
@@ -125,12 +126,12 @@ func Init(namespace, configFolderArg string) {
 	configFilename = filename
 	namespaceDirectory = path.Join(configFolder, namespaceDirname)
 
-	// Check file exists
+	// Check config file already exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
 		err = os.MkdirAll(configFolder, 0755)
 		util.Check(err)
 
-		// Create default file
+		// Create default config file
 		conf.DefaultNamespace = "default"
 		err = FlushConfig()
 		util.Check(err)
@@ -152,19 +153,14 @@ func Init(namespace, configFolderArg string) {
 	util.Check(err)
 
 	// Check namespace dir exists
-	if namespace == "" {
-		namespace = conf.DefaultNamespace
-	}
-	conf.CurrentNamespace = namespace
-	namespaceFilename := getNamespaceFile(namespace)
+	namespaceFilename := getNamespaceFile("default")
 	if _, err := os.Stat(namespaceFilename); os.IsNotExist(err) {
 		err = os.MkdirAll(namespaceDirectory, 0755)
 		util.Check(err)
 
-		// Create default file
-		if namespace == "default" {
-			err = AddNamespace(namespace, util.NowUTC())
-			util.Check(err)
+		// Create default namespace file
+		if err = AddNamespace("default", util.NowUTC()); err != nil {
+			util.Check(errors.New("Could not initialize default namespace configuration"))
 		}
 	}
 }
@@ -176,7 +172,6 @@ func SetDefaultNamespace(name string) (err error) {
 	// Check exists
 	for _, n := range conf.Namespaces {
 		if n == name {
-			conf.CurrentNamespace = name
 			conf.DefaultNamespace = name
 			return
 		}
@@ -189,10 +184,11 @@ func GetNamespaces() (namespaces []string) {
 	return conf.Namespaces
 }
 
+func GetDefaultNamespaceName() string {
+	return conf.DefaultNamespace
+}
+
 func getNamespace(name string) (*Namespace, error) {
-	if name == "" {
-		name = conf.CurrentNamespace
-	}
 	namespace, ok := namespaces[name]
 	if !ok {
 		namespaceHeader := iofogctlNamespace{}
@@ -246,12 +242,6 @@ func GetNamespace(namespace string) (Namespace, error) {
 		return Namespace{}, err
 	}
 	return *ns, nil
-}
-
-// GetCurrentNamespace return the current namespace
-func GetCurrentNamespace() Namespace {
-	ns, _ := getNamespace(conf.CurrentNamespace)
-	return *ns
 }
 
 // GetControlPlane returns a control plane within a namespace
@@ -316,9 +306,6 @@ func GetAgent(namespace, name string) (agent Agent, err error) {
 
 // AddNamespace adds a new namespace to the config
 func AddNamespace(name, created string) error {
-	if name == "" {
-		name = conf.CurrentNamespace
-	}
 	// Check collision
 	for _, n := range conf.Namespaces {
 		if n == name {
@@ -486,18 +473,27 @@ func getNamespaceFile(name string) string {
 
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
-	if name == "" {
-		name = conf.CurrentNamespace
+	if name == "default" {
+		return util.NewInputError("Cannot delete namespace named \"default\"")
+	}
+
+	// Reset default namespace if required
+	if name == conf.DefaultNamespace {
+		if err := SetDefaultNamespace("default"); err != nil {
+			return errors.New("Failed to delete namespace " + name + " which is configured as default")
+		}
 	}
 	for idx := range conf.Namespaces {
 		if conf.Namespaces[idx] == name {
 			mux.Lock()
+			defer mux.Unlock()
 			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
 			delete(namespaces, name)
 			// Remove namespace file
-			err := os.Remove(getNamespaceFile(name))
-			mux.Unlock()
-			return err
+			if err := os.Remove(getNamespaceFile(name)); err != nil {
+				return err
+			}
+			return FlushConfig()
 		}
 	}
 

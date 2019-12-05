@@ -44,12 +44,14 @@ iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\
 			}
 			// Get resource type and name
 			resource := args[0]
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 			name := ""
 			if len(args) > 1 {
 				name = args[1]
 			}
 			// Get executor for describe command
-			exe, err := describe.NewExecutor(resource, "", name, filename)
+			exe, err := describe.NewExecutor(resource, namespace, name, filename)
 			util.Check(err)
 
 			// Execute the command

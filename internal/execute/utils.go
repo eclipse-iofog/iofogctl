@@ -28,9 +28,6 @@ import (
 
 func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (exe Executor, err error) {
 	// Check namespace exists
-	if namespace == "" {
-		namespace = config.GetCurrentNamespace().Name
-	}
 	if len(header.Metadata.Namespace) > 0 {
 		namespace = header.Metadata.Namespace
 	}

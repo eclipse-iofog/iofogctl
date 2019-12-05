@@ -22,7 +22,7 @@ import (
 func Execute(name string, force bool) error {
 	// Disallow deletion of default
 	if name == "default" {
-		return util.NewInputError("Cannot delete default namespace")
+		return util.NewInputError("Cannot delete namespace named \"default\"")
 	}
 
 	// Get config
@@ -48,8 +48,7 @@ func Execute(name string, force bool) error {
 	}
 
 	// Delete namespace
-	err = config.DeleteNamespace(name)
-	if err != nil {
+	if err = config.DeleteNamespace(name); err != nil {
 		return err
 	}
 
