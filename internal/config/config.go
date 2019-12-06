@@ -498,9 +498,6 @@ func DeleteNamespace(name string) error {
 
 // RenameNamespace renames a namespace
 func RenameNamespace(name, newName string) error {
-	if name == "default" {
-		return util.NewInputError("Cannot rename namespace named \"default\"")
-	}
 
 	if name == conf.DefaultNamespace {
 		util.PrintError("Cannot rename default namespaces, please choose a different namespace to rename")
@@ -509,10 +506,14 @@ func RenameNamespace(name, newName string) error {
 	for idx, ns := range conf.Namespaces {
 		if ns == name {
 			mux.Lock()
-			defer mux.Unlock()
+			namespace, err := getNamespace(name)
+			if err != nil {
+				return err
+			}
+			namespace.Name = newName
 			// Rename namespace file
 			conf.Namespaces[idx] = newName
-			err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName))
+			err = os.Rename(getNamespaceFile(name), getNamespaceFile(newName))
 			if err != nil {
 				return err
 			}
@@ -520,6 +521,7 @@ func RenameNamespace(name, newName string) error {
 			if err != nil {
 				return err
 			}
+			mux.Unlock()
 			return Flush()
 		}
 	}
