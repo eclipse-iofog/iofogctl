@@ -203,7 +203,7 @@ spec:
 
 @test "Rename Application" {
   test iofogctl -v rename application "$APPLICATION_NAME" "newname"
-  sleep 5
+  sleep 25
   checkRenamedResource applications "$APPLICATION_NAME" "newname" "default"
   export APPLICATION_NAME="newname"
 }
