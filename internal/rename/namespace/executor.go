@@ -24,10 +24,6 @@ func Execute(name, newName string) error {
 		return util.NewError("Cannot rename default or nonexistant namespaces")
 	}
 
-	if _, err := config.GetNamespace(name); err != nil {
-		return err
-	}
-
 	util.SpinStart(fmt.Sprintf("Renaming Namespace %s", name))
 
 	if err := config.RenameNamespace(name, newName); err != nil {
