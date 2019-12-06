@@ -154,32 +154,32 @@ spec:
 @test "Rename Agents" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    test iofogctl -v -n "$NS2" rename agent "$AGENT_NAME" "$AGENT_NAME-newname"
-    checkRenamedResource agents "$AGENT_NAME" "$AGENT_NAME-newname" "$NS2"
-    test iofogctl -v -n "${NS2}" rename agent "${AGENT_NAME}-newname" "${AGENT_NAME}"
-    checkRenamedResource agents "$AGENT_NAME-newname" "$AGENT_NAME" "$NS2"
+    test iofogctl -v -n "$NS2" rename agent "$AGENT_NAME" "newname"
+    checkRenamedResource agents "$AGENT_NAME" "newname" "$NS2"
+    test iofogctl -v -n "${NS2}" rename agent "newname" "${AGENT_NAME}"
+    checkRenamedResource agents "newname" "$AGENT_NAME" "$NS2"
   done
 }
 
 @test "Rename Controller" {
-  test iofogctl -v -n "$NS2" rename controller "$NAME" "$NAME-newname"
-  checkRenamedResource controllers "$NAME" "$NAME-newname" "$NS2"
-  test iofogctl -v -n "$NS2" rename controller "${NAME}-newname" "${NAME}"
-  checkRenamedResource controllers "$NAME-newname" "$NAME" "$NS2"
+  test iofogctl -v -n "$NS2" rename controller "$NAME" "newname"
+  checkRenamedResource controllers "$NAME" "newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename controller "newname" "${NAME}"
+  checkRenamedResource controllers "newname" "$NAME" "$NS2"
 }
 
 @test "Rename Connector" {
-  test iofogctl -v -n "$NS2" rename connector "$NAME" "$NAME-newname"
-  checkRenamedResource connectors "$NAME" "$NAME-newname" "$NS2"
-  test iofogctl -v -n "$NS2" rename connector "$NAME-newname" "$NAME"
-  checkRenamedResource connectors "$NAME-newname" "$NAME" "$NS2"
+  test iofogctl -v -n "$NS2" rename connector "$NAME" "newname"
+  checkRenamedResource connectors "$NAME" "newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename connector "newname" "$NAME"
+  checkRenamedResource connectors "newname" "$NAME" "$NS2"
 }
 
 @test "Rename Namespace" {
-  test iofogctl -v -n "$NS2" rename namespace "${NS2}" "${NS2}-newname"
-  checkRenamedNamespace "${NS2}" "${NS2}-newname" "$NS2"
-  test iofogctl -v -n "$NS2" rename namespace "${NS2}-newname" "${NS2}"
-  checkRenamedNamespace "${NS2}-newname" "${NS2}" "$NS2"
+  test iofogctl -v -n "$NS2" rename namespace "${NS2}" "newname"
+  checkRenamedNamespace "newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename namespace "newname" "${NS2}"
+  checkRenamedNamespace "$NS2" "newname"
 }
 
 @test "Disconnect other namespace again" {
@@ -202,10 +202,10 @@ spec:
 }
 
 @test "Rename Application" {
-  test iofogctl -v -n "$NS2" rename application "${APPLICATION_NAME}" "${APPLICATION_NAME}-newname"
-  checkRenamedResource applications "${APPLICATION_NAME}" "${APPLICATION_NAME}-newname" "$NS2"
-  test iofogctl -v -m "$NS2" rename application "${APPLICATION_NAME}-newname" "${APPLICATION_NAME}"
-  checkRenamedResource applications "${APPLICATION_NAME}-newname" "${APPLICATION_NAME}" "$NS2"
+  test iofogctl -v -n "$NS2" rename application "$APPLICATION_NAME" "newname"
+  checkRenamedResource applications "$APPLICATION_NAME" "newname" "$NS2"
+  test iofogctl -v -m "$NS2" rename application "newname" "$APPLICATION_NAME"
+  checkRenamedResource applications "newname" "$APPLICATION_NAME" "$NS2"
 }
 
 # Delete all does not delete application

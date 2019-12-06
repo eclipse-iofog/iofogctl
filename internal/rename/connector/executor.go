@@ -56,10 +56,20 @@ func Execute(namespace, name, newName string) error {
 	if err != nil {
 		return err
 	}
+	cnct.Name = newName
+	err = config.AddConnector(namespace, cnct)
+	if err != nil {
+		return err
+	}
 	err = clt.DeleteConnector(name)
 	if err != nil {
 		return err
 	}
+	err = config.DeleteConnector(namespace, name)
+	if err != nil {
+		return err
+	}
 	config.Flush()
+	config.FlushConfig()
 	return nil
 }
