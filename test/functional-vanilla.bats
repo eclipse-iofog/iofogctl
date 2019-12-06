@@ -204,8 +204,7 @@ spec:
 @test "Rename Application" {
   test iofogctl -v rename application "$APPLICATION_NAME" "newname"
   checkRenamedResource applications "$APPLICATION_NAME" "newname" "default"
-  test iofogctl -v rename application "newname" "$APPLICATION_NAME"
-  checkRenamedResource applications "newname" "$APPLICATION_NAME" "default"
+  export APPLICATION_NAME="newname"
 }
 
 # Delete all does not delete application
