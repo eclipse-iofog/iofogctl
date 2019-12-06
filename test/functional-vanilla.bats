@@ -202,10 +202,10 @@ spec:
 }
 
 @test "Rename Application" {
-  test iofogctl -v -n "$NS2" rename application "$APPLICATION_NAME" "newname"
-  checkRenamedResource applications "$APPLICATION_NAME" "newname" "$NS2"
-  test iofogctl -v -m "$NS2" rename application "newname" "$APPLICATION_NAME"
-  checkRenamedResource applications "newname" "$APPLICATION_NAME" "$NS2"
+  test iofogctl -v rename application "$APPLICATION_NAME" "newname"
+  checkRenamedResource applications "$APPLICATION_NAME" "newname"
+  test iofogctl -v rename application "newname" "$APPLICATION_NAME"
+  checkRenamedResource applications "newname" "$APPLICATION_NAME"
 }
 
 # Delete all does not delete application
