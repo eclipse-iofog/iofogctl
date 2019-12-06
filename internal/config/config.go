@@ -499,7 +499,7 @@ func DeleteNamespace(name string) error {
 // RenameNamespace renames a namespace
 func RenameNamespace(name, newName string) error {
 	if name == "default" {
-		return util.NewInputError("Cannot delete namespace named \"default\"")
+		return util.NewInputError("Cannot rename namespace named \"default\"")
 	}
 
 	if name == conf.DefaultNamespace {
@@ -517,11 +517,28 @@ func RenameNamespace(name, newName string) error {
 				return err
 			}
 			err = FlushConfig()
-			return err
+			if err != nil {
+				return err
+			}
+			return Flush()
 		}
 	}
 
 	return util.NewNotFoundError("Could not find namespace " + name)
+}
+
+func ClearNamespace(namespace string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	mux.Lock()
+	defer mux.Unlock()
+	ns.ControlPlane = ControlPlane{}
+	ns.Connectors = []Connector{}
+	ns.Agents = []Agent{}
+	FlushConfig()
+	return nil
 }
 
 func DeleteControlPlane(namespace string) error {

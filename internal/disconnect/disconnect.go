@@ -28,6 +28,11 @@ func Execute(opt *Options) error {
 		return err
 	}
 
+	if ns.Name == config.GetDefaultNamespaceName() {
+		config.ClearNamespace(ns.Name)
+		return config.Flush()
+	}
+
 	// Wipe the namespace
 	err = config.DeleteNamespace(opt.Namespace)
 	if err != nil {
