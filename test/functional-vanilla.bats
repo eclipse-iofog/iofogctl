@@ -182,6 +182,14 @@ spec:
   checkRenamedNamespace "newname" "$NS2"
 }
 
+@test "Rename Application" {
+  test iofogctl -v rename application "$APPLICATION_NAME" "application-name"
+  checkRenamedResource applications "$APPLICATION_NAME" "application-name" "default"
+  test iofogctl -v rename application "application-name" "$APPLICATION_NAME"
+  checkRenamedResource applications "application-name" "$APPLICATION_NAME" "default"
+}
+
+
 @test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
@@ -199,13 +207,6 @@ spec:
   test iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   checkApplication
-}
-
-@test "Rename Application" {
-  test iofogctl -v rename application "$APPLICATION_NAME" "application-name"
-  checkRenamedResource applications "$APPLICATION_NAME" "application-name" "default"
-  test iofogctl -v rename application "application-name" "$APPLICATION_NAME"
-  checkRenamedResource applications "application-name" "$APPLICATION_NAME" "default"
 }
 
 # Delete all does not delete application

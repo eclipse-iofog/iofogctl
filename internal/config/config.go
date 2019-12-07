@@ -539,8 +539,7 @@ func ClearNamespace(namespace string) error {
 	ns.ControlPlane = ControlPlane{}
 	ns.Connectors = []Connector{}
 	ns.Agents = []Agent{}
-	FlushConfig()
-	return nil
+	return FlushConfig()
 }
 
 func DeleteControlPlane(namespace string) error {
