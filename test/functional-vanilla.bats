@@ -202,10 +202,10 @@ spec:
 }
 
 @test "Rename Application" {
-  test iofogctl -v rename application "$APPLICATION_NAME" "newname"
-  sleep 25
-  checkRenamedResource applications "$APPLICATION_NAME" "newname" "default"
-  export APPLICATION_NAME="newname"
+  test iofogctl -v rename application "$MICROSERVICE_NAME" "application-name"
+  checkRenamedResource applications "$MICROSERVICE_NAME" "application-name" "default"
+  test iofogctl -v rename application "application-name" "$MICROSERVICE_NAME"
+  checkRenamedResource applications "application-name" "$MICROSERVICE_NAME" "default"
 }
 
 # Delete all does not delete application
