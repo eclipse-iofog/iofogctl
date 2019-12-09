@@ -19,6 +19,7 @@ import (
 	"path"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
@@ -27,10 +28,6 @@ var configData = []byte(`kind: IofogctlConfig
 apiVersion: iofogctl/v1
 spec:
   defaultNamespace: default
-  namespaces:
-  - first
-  - second
-  - default
 `)
 
 var defaultData = []byte(`kind: IofogctlNamespace
@@ -86,6 +83,7 @@ spec:
 func init() {
 	testConfigFolder := "/tmp/"
 	testConfigFilename := "/tmp/config.yaml"
+	os.RemoveAll("/tmp/namespaces")
 	if err := os.MkdirAll(path.Join(testConfigFolder, "namespaces"), 0755); err != nil {
 		panic(err)
 	}
@@ -97,10 +95,14 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	time.Sleep(time.Second)
+
 	err = ioutil.WriteFile(path.Join(testConfigFolder, "namespaces", "second.yaml"), secondData, 0644)
 	if err != nil {
 		panic(err)
 	}
+	time.Sleep(time.Second)
+
 	err = ioutil.WriteFile(path.Join(testConfigFolder, "namespaces", "default.yaml"), defaultData, 0644)
 	if err != nil {
 		panic(err)
