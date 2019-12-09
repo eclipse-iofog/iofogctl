@@ -515,6 +515,14 @@ function checkRenamedResource() {
   [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${NEWNAME}) ]]
 }
 
+function checkRenamedApplication() {
+  OLDNAME=$1
+  NEWNAME=$2
+  NAMESPACE=$3
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' |grep -w ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep -w ${NEWNAME}) ]]
+}
+
 function checkRenamedNamespace() {
   OLDNAME=$1
   NEWNAME=$2
