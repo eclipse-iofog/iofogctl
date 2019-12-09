@@ -20,14 +20,14 @@ iofogctl connect [flags]
 ```
 iofogctl connect -f platform.yaml
 iofogctl connect --kube FILE --name NAME --email EMAIL --pass PASSWORD
-iofogctl connect --endpoint ENDPOINT --name NAME --email EMAIL --pass PASSWORD
+iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 ```
 
 ### Options
 
 ```
       --email string      ioFog user email address
-      --endpoint string   IP or IP:PORT of existing Controller
+      --ecn-addr string   IP or IP:PORT of existing Controller
   -f, --file string       YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
       --force             Overwrite existing namespace
   -h, --help              help for connect
