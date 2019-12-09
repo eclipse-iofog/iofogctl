@@ -184,9 +184,8 @@ spec:
 
 @test "Rename Application" {
   test iofogctl -v rename application "$APPLICATION_NAME" "application-name"
-  checkRenamedApplication "$APPLICATION_NAME" "application-name" "default"
   test iofogctl -v rename application "application-name" "$APPLICATION_NAME"
-  checkRenamedApplication "application-name" "$APPLICATION_NAME" "default"
+  iofogctl get all
 }
 
 
