@@ -176,9 +176,9 @@ spec:
 }
 
 @test "Rename Namespace" {
-  test iofogctl -v rename namespace "${NS2}" "newname" &&
+  test iofogctl -v rename namespace "$NS2" "newname"
   checkRenamedNamespace "$NS2" "newname"
-  test iofogctl -v rename namespace "newname" "${NS2}" &&
+  test iofogctl -v rename namespace "newname" "$NS2"
   checkRenamedNamespace "newname" "$NS2"
 }
 
