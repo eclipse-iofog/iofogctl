@@ -511,15 +511,15 @@ function checkRenamedResource() {
   OLDNAME=$2
   NEWNAME=$3
   NAMESPACE=$4
-  [[ -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep ${NEWNAME}) ]]
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${NEWNAME}) ]]
 }
 
 function checkRenamedNamespace() {
   OLDNAME=$1
   NEWNAME=$2
-  [[ -z $(iofogctl -v get namespaces | grep ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -v get namespaces | grep ${NEWNAME}) ]]
+  [[ -z $(iofogctl -v get namespaces | grep -w ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -v get namespaces | grep -w ${NEWNAME}) ]]
 }
 
 function waitForMsvc() {
