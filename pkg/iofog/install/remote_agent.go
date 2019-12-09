@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -111,6 +112,10 @@ func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUse
 	}
 
 	// Instantiate commands
+	hasPortSuffix := regexp.MustCompile(":[0-9]+$")
+	if !hasPortSuffix.MatchString(controllerEndpoint) {
+		controllerEndpoint = controllerEndpoint + ":" + client.ControllerPortString
+	}
 	controllerBaseURL := fmt.Sprintf("%s/api/v3", controllerEndpoint)
 	hasHTTPPrefix := regexp.MustCompile("^http(s?)://")
 	if !hasHTTPPrefix.MatchString(controllerBaseURL) {
