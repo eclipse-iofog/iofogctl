@@ -503,16 +503,16 @@ func RenameNamespace(name, newName string) error {
 		util.PrintError("Cannot rename default namespaces, please choose a different namespace to rename")
 		return util.NewInputError("Cannot find valid namespace with name: " + name)
 	}
-	for idx, ns := range conf.Namespaces {
-		if ns == name {
+	for _, ns := range namespaces {
+		if ns.Name == name {
 			mux.Lock()
 			namespace, err := getNamespace(name)
 			if err != nil {
 				return err
 			}
 			namespace.Name = newName
+			ns.Name = newName
 			// Rename namespace file
-			conf.Namespaces[idx] = newName
 			err = os.Rename(getNamespaceFile(name), getNamespaceFile(newName))
 			if err != nil {
 				return err
