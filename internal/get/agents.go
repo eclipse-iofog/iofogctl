@@ -108,7 +108,7 @@ func tabulateAgents(agentInfos map[string]client.AgentInfo) error {
 		"STATUS",
 		"AGE",
 		"UPTIME",
-		"IP",
+		"ADDR",
 		"VERSION",
 	}
 	table[0] = append(table[0], headers...)

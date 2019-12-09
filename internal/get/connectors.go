@@ -94,7 +94,7 @@ func tabulateConnectors(connectors []config.Connector) error {
 		"STATUS",
 		"AGE",
 		"UPTIME",
-		"IP",
+		"ADDR",
 		"PORT",
 	}
 	table[0] = append(table[0], headers...)
@@ -105,13 +105,14 @@ func tabulateConnectors(connectors []config.Connector) error {
 		// TODO: Get uptime
 		// if UUID is empty, we assume the connector is not provided
 		age, _ := util.ElapsedUTC(connector.Created, util.NowUTC())
+		endpoint, port := getEndpointAndPort(connector.Endpoint, "8080")
 		row := []string{
 			connector.Name,
 			"online",
 			age,
 			age,
-			util.Before(connector.Endpoint, ":"),
-			util.After(connector.Endpoint, ":"),
+			endpoint,
+			port,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 		idx = idx + 1
