@@ -14,10 +14,11 @@
 package get
 
 import (
+	"time"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	"time"
 )
 
 type controllerExecutor struct {
@@ -48,7 +49,7 @@ func generateControllerOutput(namespace string) error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "IP", "PORT"}
+	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "ADDR", "PORT"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -70,13 +71,14 @@ func generateControllerOutput(namespace string) error {
 		if ctrlConfig.Created != "" {
 			age, _ = util.ElapsedUTC(ctrlConfig.Created, util.NowUTC())
 		}
+		endpoint, port := getEndpointAndPort(ctrlConfig.Endpoint, client.ControllerPortString)
 		row := []string{
 			ctrlConfig.Name,
 			status,
 			age,
 			uptime,
-			util.Before(ctrlConfig.Endpoint, ":"),
-			util.After(ctrlConfig.Endpoint, ":"),
+			endpoint,
+			port,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
