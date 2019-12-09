@@ -15,6 +15,7 @@ package install
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -111,6 +112,10 @@ func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUse
 
 	// Instantiate commands
 	controllerBaseURL := fmt.Sprintf("%s/api/v3", controllerEndpoint)
+	hasHTTPPrefix := regexp.MustCompile("^http(s?)://")
+	if !hasHTTPPrefix.MatchString(controllerBaseURL) {
+		controllerBaseURL = "http://" + controllerBaseURL
+	}
 	cmds := []command{
 		{
 			cmd: "sudo iofog-agent config -a " + controllerBaseURL,
