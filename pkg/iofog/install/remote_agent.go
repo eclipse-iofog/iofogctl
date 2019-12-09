@@ -14,9 +14,11 @@
 package install
 
 import (
-	"fmt"
+	"net"
+	"net/url"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -109,8 +111,26 @@ func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUse
 		return
 	}
 
+	// Generate controller endpoint
+	u, err := url.Parse(controllerEndpoint)
+	if err != nil || u.Host == "" {
+		u, err = url.Parse("//" + controllerEndpoint) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
+		if err != nil {
+			return "", err
+		}
+	}
+	if u.Scheme == "" {
+		u.Scheme = "http"
+	}
+	_, _, err = net.SplitHostPort(u.Host) // Returns error if port is not specified
+	if err != nil {
+		u.Host = u.Host + ":" + client.ControllerPortString
+	}
+	u.Path = "api/v3"
+	u.RawQuery = ""
+	u.Fragment = ""
+	controllerBaseURL := u.String()
 	// Instantiate commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
 	cmds := []command{
 		{
 			cmd: "sudo iofog-agent config -a " + controllerBaseURL,
