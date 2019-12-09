@@ -26,8 +26,8 @@ iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 ### Options
 
 ```
+      --ecn-addr string   URL of Edge Compute Network to connect to
       --email string      ioFog user email address
-      --ecn-addr string   IP or IP:PORT of existing Controller
   -f, --file string       YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
       --force             Overwrite existing namespace
   -h, --help              help for connect
@@ -40,7 +40,7 @@ iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 
 ```
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -n, --namespace string   Namespace to execute respective command within (default "ecn")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 

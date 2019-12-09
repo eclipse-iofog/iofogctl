@@ -15,7 +15,7 @@ iofogctl [flags]
 ```
   -h, --help               help for iofogctl
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -n, --namespace string   Namespace to execute respective command within (default "ecn")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 

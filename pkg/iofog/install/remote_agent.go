@@ -104,7 +104,7 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 	}
 
 	// Instantiate commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
+	controllerBaseURL := fmt.Sprintf("%s/api/v3", controllerEndpoint)
 	cmds := []command{
 		{
 			cmd: "sudo iofog-agent config -a " + controllerBaseURL,
