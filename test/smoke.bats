@@ -6,47 +6,47 @@
   test iofogctl --help
 }
 
-@test "Help w/o flag" {
+@test "Help w/o Flag" {
   test iofogctl help
 }
 
-@test "create Help" {
+@test "Create Help" {
   test iofogctl create --help
 }
 
-@test "delete Help" {
+@test "Delete Help" {
   test iofogctl delete --help
 }
 
-@test "deploy Help" {
+@test "Deploy Help" {
   test iofogctl deploy --help
 }
 
-@test "describe Help" {
+@test "Describe Help" {
   test iofogctl describe --help
 }
 
-@test "connect Help" {
+@test "Connect Help" {
   test iofogctl connect --help
 }
 
-@test "disconnect Help" {
+@test "Disconnect Help" {
   test iofogctl disconnect --help
 }
 
-@test "legacy Help" {
+@test "Legacy Help" {
   test iofogctl legacy --help
 }
 
-@test "logs Help" {
+@test "Logs Help" {
   test iofogctl logs --help
 }
 
-@test "get Help" {
+@test "Get Help" {
   test iofogctl get --help
 }
 
-@test "version" {
+@test "Version" {
   test iofogctl version
 }
 
@@ -66,14 +66,25 @@
   test iofogctl get agents
 }
 
-#@test "Get Microservices" {
-#  test iofogctl get microservices
-#}
+@test "Get Microservices" {
+  test iofogctl get microservices
+}
 
-@test "create namespace" {
+@test "Get Applications" {
+  test iofogctl get applications
+}
+
+@test "Create Namespace" {
   test iofogctl create namespace smoketestsnamespace1234
 }
 
-@test "delete namespace" {
+@test "Set Default Namespace" {
+  test iofogctl configure default-namespace smoketestsnamespace1234
+  test iofogctl get all
+}
+
+@test "Delete Namespace" {
   test iofogctl delete namespace smoketestsnamespace1234
+  test iofogctl get all
+  test iofogctl get namespaces
 }
