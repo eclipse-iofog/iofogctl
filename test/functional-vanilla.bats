@@ -120,7 +120,7 @@ spec:
 @test "Connect in other namespace using flags" {
   initVanillaController
   CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
-  test iofogctl -v -n "$NS2" connect --name "$NAME" --ecn-addr "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
+  test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController "$NS2"
   checkConnector "$NS2"
   checkAgents "$NS2"
@@ -176,16 +176,17 @@ spec:
 }
 
 @test "Rename Namespace" {
-  test iofogctl -v rename namespace "$NS2" "newname"
+  test iofogctl -v rename namespace "${NS2}" "newname"
   checkRenamedNamespace "$NS2" "newname"
-  test iofogctl -v rename namespace "newname" "$NS2"
+  test iofogctl -v rename namespace "newname" "${NS2}"
   checkRenamedNamespace "newname" "$NS2"
 }
 
 @test "Rename Application" {
   test iofogctl -v rename application "$APPLICATION_NAME" "application-name"
+  checkRenamedApplication "$APPLICATION_NAME" "application-name" "default"
   test iofogctl -v rename application "application-name" "$APPLICATION_NAME"
-  iofogctl get all
+  checkRenamedApplication "application-name" "$APPLICATION_NAME" "default"
 }
 
 
