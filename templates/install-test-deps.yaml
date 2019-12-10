@@ -1,0 +1,5 @@
+steps:
+- bash: |
+    git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
+    sudo npm i -g tap-junit
+  displayName: 'Install Test Deps'

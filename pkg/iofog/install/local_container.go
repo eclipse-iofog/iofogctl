@@ -177,6 +177,9 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err = client.FromEnv(cli); err != nil {
+		return nil, err
+	}
 	return &LocalContainer{
 		client: cli,
 	}, nil

@@ -24,74 +24,347 @@ variables:
   connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
-  agent_count:
-  controller_count:
-  distro:
-  repo:
   agent_vm_list:
   controller_vm:
+  windows_ssh_key_path: 'C:/Users/$(azure.windows.user)/.ssh'
+  ssh_key_file: 'id_rsa'
+  windows_kube_config_path: 'C:/Users/$(azure.windows.user)/.kube/config'
 
 stages:
+
 - stage: Build
   jobs:
+
   - template: templates/build-job.yaml
     parameters:
       os: linux
+
   - template: templates/build-job.yaml
     parameters:
       os: darwin
+
   - template: templates/build-job.yaml
     parameters:
       os: windows
     
 - stage: Test
   jobs:
+
+  - job: Windows_K8s
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    pool: 'Azure Windows'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: windows
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - bash: |
+        dir=$(wslpath "C:\Users\$(azure.windows.user)\AppData\Local\Microsoft\WindowsApps")
+        echo moving
+        mv windows/iofogctl $dir/
+
+        echo chmodding
+        chmod +x $dir/iofogctl
+
+        echo version
+        $dir/iofogctl version
+        iofogctl version
+      displayName: 'Prepare iofogctl binary'
+    - bash: |
+        tempBashPath=$(wslpath "$(Agent.TempDirectory)")
+        cd $tempBashPath
+        git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && ./install.sh /usr
+        bats --version
+      displayName: 'Install Bats'
+    - bash: |
+        for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
+        for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
+        for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+      displayName: 'Format test files'
+    - template: templates/ssh-steps.yaml
+    - template: templates/functional-init-vm-steps.yaml
+      parameters:
+        id: wink8s$(build)
+        distro: $(gcp.vm.distro.stretch)
+        repo: $(gcp.vm.repo.debian)
+        agent_count: 2
+        controller_count: 0
+        windows: 'true'
+    - template: templates/configure-remote-tests.yaml
+      parameters:
+        windows: 'true'
+    - task: DownloadSecureFile@1
+      displayName: 'Download SSH keys to'
+      name: 'gcp_iofogctl_rsa'
+      inputs:
+        secureFile: 'gcp_iofogctl_rsa'
+    - bash: |
+        destFolder=$(wslpath "$(windows_ssh_key_path)")
+        echo "SSH downloaded at $(gcp_iofogctl_rsa.secureFilePath)"
+        echo "Converting windows path to bash path"
+        bashPath=$(wslpath "$(gcp_iofogctl_rsa.secureFilePath)")
+        echo "Bash path = $bashPath"
+        ls $bashPath
+        mkdir -p $destFolder
+        cp $bashPath $destFolder/$(ssh_key_file)
+        echo "Copied SSH fey from $bashPath to $destFolder"
+        chmod 0700 $destFolder
+        chmod 0600 $destFolder/$(ssh_key_file)
+        ls -la $destFolder
+      displayName: Prepare SSH key
+    - bash: |
+        sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
+        sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"$(windows_kube_config_path)\"|g" test/conf/env.sh
+        cat test/conf/env.sh
+      displayName: 'Prepare Test Config'
+    - bash: |
+        kubePath=$(wslpath "C:\Users\$(azure.windows.user)\.kube\config")
+        export KUBECONFIG="$kubePath"
+        gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
+        gcloudPath="C:\\\Program Files (x86)\\\Google\\\Cloud SDK\\\google-cloud-sdk\\\bin\\\gcloud"
+        sed -i "s|cmd-path:.*|cmd-path: $gcloudPath|g" $kubePath
+      displayName: 'Connect to cluster'
+    - bash: |
+        set -o pipefail
+        test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
+      displayName: 'Run Functional Tests'
+    - bash: |
+        tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml || true
+      displayName: 'Convert test output from TAP to JUnit'
+      condition: succeededOrFailed()
+    - bash: |
+          test/clean.bash $(jobuuid)
+      displayName: 'Clean K8s Cluster'
+      condition: always()
+    - template: templates/functional-post-test.yaml
+    - template: templates/functional-clean-vm.yaml
+      parameters:
+        id: wink8s$(build)
+        agent_count: 2
+        controller_count: 0
+
+  - job: Windows_Vanilla
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    pool: 'Azure Windows'
+    steps:
+    - template: templates/ssh-steps.yaml
+    - template: templates/functional-init-vm-steps.yaml
+      parameters:
+        id: win$(build)
+        distro: $(gcp.vm.distro.stretch)
+        repo: $(gcp.vm.repo.debian)
+        agent_count: 1
+        controller_count: 1
+        windows: "true"
+    - template: templates/configure-remote-tests.yaml
+      parameters:
+        windows: 'true'
+    - task: DownloadSecureFile@1
+      displayName: 'Download SSH keys to'
+      name: 'gcp_iofogctl_rsa'
+      inputs:
+        secureFile: 'gcp_iofogctl_rsa'
+    - bash: |
+        destFolder=$(wslpath "$(windows_ssh_key_path)")
+        echo "SSH downloaded at $(gcp_iofogctl_rsa.secureFilePath)"
+        echo "Converting windows path to bash path"
+        bashPath=$(wslpath "$(gcp_iofogctl_rsa.secureFilePath)")
+        echo "Bash path = $bashPath"
+        ls $bashPath
+        mkdir -p $destFolder
+        cp $bashPath $destFolder/$(ssh_key_file)
+        echo "Copied SSH fey from $bashPath to $destFolder"
+        chmod 0700 $destFolder
+        chmod 0600 $destFolder/$(ssh_key_file)
+        ls -la $destFolder
+      displayName: Prepare SSH key
+    - bash: |
+        sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
+        cat test/conf/env.sh
+      displayName: 'Prepare Test Config'
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: windows
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - bash: |
+        dir=$(wslpath "C:\Users\$(azure.windows.user)\AppData\Local\Microsoft\WindowsApps")
+        echo moving
+        mv windows/iofogctl $dir/
+
+        echo chmodding
+        chmod +x $dir/iofogctl
+
+        echo version
+        $dir/iofogctl version
+        iofogctl version
+      displayName: 'Prepare iofogctl binary'
+    - bash: |
+        tempBashPath=$(wslpath "$(Agent.TempDirectory)")
+        cd $tempBashPath
+        git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && ./install.sh /usr
+        bats --version
+      displayName: 'Install Bats'
+    - bash: |
+        for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
+        for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
+        for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+      displayName: 'Format test files'
+    - bash: |
+        test/run.bash smoke
+      displayName: 'Run Smoke Tests'
+    - bash: |
+        test/run.bash functional-vanilla
+      displayName: 'Run Functional Tests'
+    - template: templates/functional-clean-vm.yaml
+      parameters:
+        id: win$(build)
+        agent_count: 1
+        controller_count: 1
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      condition: always()
+      displayName: 'Clean up Windows env'
+
+  - job: Windows_Local
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    pool: 'Azure Windows'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: windows
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - bash: |
+        dir=/mnt/c/Users/$(azure.windows.user)/AppData/Local/Microsoft/WindowsApps/
+        echo moving
+        mv windows/iofogctl $dir
+
+        echo chmodding
+        chmod +x $dir/iofogctl
+
+        echo version
+        $dir/iofogctl version
+        iofogctl version
+      displayName: 'Prepare iofogctl binary'
+    - bash: |
+        if [[ -z $(which docker) ]]; then
+          apt-get update -y
+          apt-get install -y \
+          apt-transport-https \
+          ca-certificates \
+          curl \
+          software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          add-apt-repository \
+          "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) \
+          stable"
+          apt-get update -y
+          apt-get install -y docker-ce
+          usermod -aG docker $USER
+        fi
+      displayName: Install docker if necessary
+    - template: templates/init-gcloud-steps.yaml
+      parameters:
+        windows: "true"
+    - bash: |
+        if [[ -z $(echo $DOCKER_HOST) ]]; then
+          export DOCKER_HOST="tcp://localhost:2375"
+        fi
+        gcloud --quiet auth configure-docker
+        echo "$DOCKER_HOST"
+        docker info
+        docker "pull" "$(controller_image)"
+        docker "pull" "$(agent_image)"
+        docker "pull" "$(connector_image)"
+      displayName: 'Pull develop gcr docker image'
+      failOnStderr: false
+    - bash: |
+        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
+        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
+        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+        NS=$(jobuuid)
+        sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
+        sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
+        cp test/env.sh test/conf
+      displayName: 'Configure Local Tests'
+    - template: templates/configure-remote-tests.yaml
+    - bash: |
+        tempBashPath=$(wslpath "$(Agent.TempDirectory)")
+        cd $tempBashPath
+        git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && ./install.sh /usr
+        bats --version
+      displayName: 'Install Bats'
+    - bash: |
+        for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
+        for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
+        for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+      displayName: 'Format test files'
+    - bash: |
+        if [[ -z $(echo $DOCKER_HOST) ]]; then
+          export DOCKER_HOST="tcp://localhost:2375"
+        fi
+        set -o pipefail
+        echo "$DOCKER_HOST"
+        docker images
+        test/run.bash functional-local | tee test/conf/results-functional-local.tap
+      displayName: 'Run Functional Tests'
+    - script: |
+        docker "system" "prune" "-af"
+        RD /S /Q "C:\Users\$(azure.windows.user)\.iofog\"
+      condition: always()
+      displayName: 'Clean local environment'
+    
   - job: Vanilla_Xenial
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - script: |
-        echo "##vso[task.setvariable variable=distro]$(gcp.vm.distro.xenial)"
-        echo "##vso[task.setvariable variable=repo]$(gcp.vm.repo.ubuntu)"
-        echo "##vso[task.setvariable variable=agent_count]1"
-        echo "##vso[task.setvariable variable=controller_count]1"
-      displayName: 'Set VM variables'
     - template: templates/test-vanilla-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.xenial)
+        repo: $(gcp.vm.repo.ubuntu)
+        agent_count: 1
+        controller_count: 1
+
   - job: Vanilla_Bionic
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - script: |
-        echo "##vso[task.setvariable variable=distro]$(gcp.vm.distro.bionic)"
-        echo "##vso[task.setvariable variable=repo]$(gcp.vm.repo.ubuntu)"
-        echo "##vso[task.setvariable variable=agent_count]1"
-        echo "##vso[task.setvariable variable=controller_count]1"
-      displayName: 'Set VM variables'
-    - script: |
-      displayName: 'Set VM Distros'
     - template: templates/test-vanilla-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.bionic)
+        repo: $(gcp.vm.repo.ubuntu)
+        agent_count: 1
+        controller_count: 1
+
   - job: Vanilla_Buster
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - script: |
-        echo "##vso[task.setvariable variable=distro]$(gcp.vm.distro.buster)"
-        echo "##vso[task.setvariable variable=repo]$(gcp.vm.repo.debian)"
-        echo "##vso[task.setvariable variable=agent_count]1"
-        echo "##vso[task.setvariable variable=controller_count]1"
-      displayName: 'Set VM variables'
     - template: templates/test-vanilla-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.buster)
+        repo: $(gcp.vm.repo.debian)
+        agent_count: 1
+        controller_count: 1
+
   - job: Vanilla_Stretch
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - script: |
-        echo "##vso[task.setvariable variable=distro]$(gcp.vm.distro.stretch)"
-        echo "##vso[task.setvariable variable=repo]$(gcp.vm.repo.debian)"
-        echo "##vso[task.setvariable variable=agent_count]1"
-        echo "##vso[task.setvariable variable=controller_count]1"
-      displayName: 'Set VM variables'
     - template: templates/test-vanilla-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.stretch)
+        repo: $(gcp.vm.repo.debian)
+        agent_count: 1
+        controller_count: 1
+
   - job: Local
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -109,15 +382,23 @@ stages:
         artifactName: linux
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
+        sudo cp linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - script: |
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
         sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+        NS=$(jobuuid)
+        sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
+        sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
+        cp test/env.sh test/conf
       displayName: 'Configure Local Tests'
-    - template: templates/functional-configure.yaml
+    - template: templates/configure-remote-tests.yaml
+    - template: templates/install-test-deps.yaml
+    - script: |
+        test/run.bash smoke
+      displayName: 'Run Smoke Tests'
     - script: |
         set -o pipefail
         test/run.bash functional-local | tee test/conf/results-functional-local.tap
@@ -131,6 +412,7 @@ stages:
         docker system prune -af
       condition: always()
       displayName: 'Clean local docker'
+
   - job: K8s
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -141,21 +423,22 @@ stages:
         artifactName: linux
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
+        sudo cp linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - script: |
-        echo "##vso[task.setvariable variable=distro]$(gcp.vm.distro.stretch)"
-        echo "##vso[task.setvariable variable=repo]$(gcp.vm.repo.debian)"
-        echo "##vso[task.setvariable variable=agent_count]2"
-        echo "##vso[task.setvariable variable=controller_count]0"
-      displayName: 'Set VM variables'
     - template: templates/functional-init-vm-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.stretch)
+        repo: $(gcp.vm.repo.debian)
+        agent_count: 2
+        controller_count: 0
     - script: |
         gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
       displayName: 'Connect to cluster'
-    - template: templates/functional-configure.yaml
+    - template: templates/configure-remote-tests.yaml
+    - template: templates/install-test-deps.yaml
     - script: |
         set -o pipefail
         test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
@@ -170,6 +453,11 @@ stages:
       condition: always()
     - template: templates/functional-post-test.yaml
     - template: templates/functional-clean-vm.yaml
+      parameters:
+        id: $(jobuuid)
+        agent_count: 2
+        controller_count: 0
+
   - job: HA
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -180,17 +468,17 @@ stages:
         artifactName: linux
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
+        sudo cp linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
     - template: templates/ssh-steps.yaml
-    - script: |
-        echo "##vso[task.setvariable variable=distro]$(gcp.vm.distro.buster)"
-        echo "##vso[task.setvariable variable=repo]$(gcp.vm.repo.debian)"
-        echo "##vso[task.setvariable variable=agent_count]2"
-        echo "##vso[task.setvariable variable=controller_count]0"
-      displayName: 'Set VM variables'
     - template: templates/functional-init-vm-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.buster)
+        repo: $(gcp.vm.repo.debian)
+        agent_count: 2
+        controller_count: 0
     - script: |
         gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
       displayName: 'Connect to cluster'
@@ -203,7 +491,8 @@ stages:
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(enterprise_image)\"|g" test/env.sh
       displayName: 'Set up Postgres on K8s cluster'
-    - template: templates/functional-configure.yaml
+    - template: templates/configure-remote-tests.yaml
+    - template: templates/install-test-deps.yaml
     - script: |
         set -o pipefail
         test/run.bash functional-ha | tee test/conf/results-functional-ha.tap
@@ -218,10 +507,15 @@ stages:
       condition: always()
     - template: templates/functional-post-test.yaml
     - template: templates/functional-clean-vm.yaml
+      parameters:
+        id: $(jobuuid)
+        agent_count: 2
+        controller_count: 0
 
 - stage: Publish
   condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
+
   - job: OSX
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -262,6 +556,7 @@ stages:
         git commit -m "Publish develop version $(version)"
         git push origin master
       displayName: 'Build and publish OSX binary'
+
   - job: Debian
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -272,7 +567,7 @@ stages:
         artifactName: linux
         downloadPath: $(System.DefaultWorkingDirectory)
     - script: |
-        sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
+        sudo cp linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
@@ -299,6 +594,7 @@ stages:
             package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish deb to package-cloud'
+
   - job: RPM
     pool:
       vmImage: 'Ubuntu-16.04'
@@ -308,7 +604,7 @@ stages:
       inputs:
         artifactName: linux
         downloadPath: $(System.DefaultWorkingDirectory)
-    - script: sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
+    - script: sudo cp linux/iofogctl /usr/local/bin/
     - template: templates/version-steps.yaml
     - template: templates/publish-deps.yaml
     - script: |
@@ -334,6 +630,7 @@ stages:
             package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
         done
       displayName: 'Publish RPM to package-cloud'
+
   - job: Windows
     pool:
       vmImage: 'Ubuntu-16.04'
