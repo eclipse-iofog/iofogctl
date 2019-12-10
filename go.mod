@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.39.0
-	git.apache.org/thrift.git v0.13.0
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Microsoft/go-winio v0.4.12
 	github.com/NYTimes/gziphandler v1.0.1 // indirect
@@ -67,6 +66,7 @@ require (
 
 // Pinned to kubernetes-1.13.4
 replace (
+	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1
 	github.com/sirupsen/logrus => github.com/sirupsen/logrus v1.0.1
 	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
