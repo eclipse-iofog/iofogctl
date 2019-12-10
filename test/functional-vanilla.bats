@@ -120,7 +120,7 @@ spec:
 @test "Connect in other namespace using flags" {
   initVanillaController
   CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
-  test iofogctl -v -n "$NS2" connect --name "$NAME" --endpoint "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
+  test iofogctl -v -n "$NS2" connect --name "$NAME" --ecn-addr "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController "$NS2"
   checkConnector "$NS2"
   checkAgents "$NS2"
