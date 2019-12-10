@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.39.0
+	git.apache.org/thrift.git v0.13.0
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Microsoft/go-winio v0.4.12
 	github.com/NYTimes/gziphandler v1.0.1 // indirect
