@@ -42,7 +42,7 @@ do_install_deps() {
 	esac
 
 	local iter=0
-	while [ ! $($sh_c "$installer update") ] && [ "$iter" -lt 6 ]; do
+	while ! $sh_c "$installer update" && [ "$iter" -lt 6 ]; do
 		sleep 5
 		iter=$((iter+1))
 	done
