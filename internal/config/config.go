@@ -481,7 +481,9 @@ func DeleteNamespace(name string) error {
 
 	// Reset default namespace if required
 	if name == conf.DefaultNamespace {
-		if err := SetDefaultNamespace("default"); err != nil {
+		err1 := SetDefaultNamespace("default")
+		err2 := FlushConfig()
+		if err1 != nil || err2 != nil {
 			return errors.New("Failed to delete namespace " + name + " which is configured as default")
 		}
 	}
