@@ -525,8 +525,8 @@ function checkRenamedApplication() {
   echo "Should not be empty - iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${NEWNAME}"
   bash -x -c "iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${NEWNAME}"
 
-  [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print \$1}' | grep ${NEWNAME}) ]]
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print $1}' | grep ${NEWNAME}) ]]
 }
 
 function checkRenamedNamespace() {
