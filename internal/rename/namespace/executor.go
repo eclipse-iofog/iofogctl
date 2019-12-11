@@ -11,37 +11,24 @@
  *
  */
 
-package disconnect
+package namespace
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Options struct {
-	Namespace string
-}
+func Execute(name, newName string) error {
+	if name == "" || name == "default" {
+		return util.NewError("Cannot rename default or nonexistant namespaces")
+	}
 
-func Execute(opt *Options) error {
-	// Check namespace
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
+	util.SpinStart(fmt.Sprintf("Renaming Namespace %s", name))
+
+	if err := config.RenameNamespace(name, newName); err != nil {
 		return err
 	}
+	return nil
 
-	if ns.Name == config.GetDefaultNamespaceName() {
-		config.ClearNamespace(ns.Name)
-		return config.Flush()
-	}
-
-	// Wipe the namespace
-	err = config.DeleteNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
-	err = config.AddNamespace(opt.Namespace, ns.Created)
-	if err != nil {
-		return err
-	}
-
-	return config.Flush()
 }

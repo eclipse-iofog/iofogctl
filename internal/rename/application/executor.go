@@ -11,37 +11,38 @@
  *
  */
 
-package disconnect
+package application
 
 import (
+	"fmt"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Options struct {
-	Namespace string
-}
+func Execute(namespace, name, newName string) error {
+	util.SpinStart(fmt.Sprintf("Renaming Application %s", name))
 
-func Execute(opt *Options) error {
-	// Check namespace
-	ns, err := config.GetNamespace(opt.Namespace)
+	// Init remote resources
+	clt, err := internal.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}
 
-	if ns.Name == config.GetDefaultNamespaceName() {
-		config.ClearNamespace(ns.Name)
-		return config.Flush()
-	}
-
-	// Wipe the namespace
-	err = config.DeleteNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
-	err = config.AddNamespace(opt.Namespace, ns.Created)
+	flow, err := clt.GetFlowByName(name)
 	if err != nil {
 		return err
 	}
 
-	return config.Flush()
+	flow.Name = newName
+	_, err = clt.UpdateFlow(&client.FlowUpdateRequest{
+		ID:   flow.ID,
+		Name: &newName,
+	})
+	if err != nil {
+		return err
+	}
+	config.Flush()
+	return nil
 }

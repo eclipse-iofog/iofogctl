@@ -506,6 +506,31 @@ function checkMovedMicroservice() {
   [[ ! -z $(iofogctl -v get microservices | grep $MSVC | grep $NEW_AGENT) ]]
 }
 
+function checkRenamedResource() {
+  RSRC=$1
+  OLDNAME=$2
+  NEWNAME=$3
+  NAMESPACE=$4
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${NEWNAME}) ]]
+}
+
+function checkRenamedApplication() {
+  OLDNAME=$1
+  NEWNAME=$2
+  NAMESPACE=$3
+
+  [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print $1}' | grep ${NEWNAME}) ]]
+}
+
+function checkRenamedNamespace() {
+  OLDNAME=$1
+  NEWNAME=$2
+  [[ -z $(iofogctl -v get namespaces | grep -w ${OLDNAME}) ]]
+  [[ ! -z $(iofogctl -v get namespaces | grep -w ${NEWNAME}) ]]
+}
+
 function waitForMsvc() {
   ITER=0
   MS=$1

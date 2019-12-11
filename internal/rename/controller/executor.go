@@ -11,37 +11,29 @@
  *
  */
 
-package disconnect
+package controller
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type Options struct {
-	Namespace string
-}
-
-func Execute(opt *Options) error {
-	// Check namespace
-	ns, err := config.GetNamespace(opt.Namespace)
+func Execute(namespace, name, newName string) error {
+	// Check that Controller exists in current namespace
+	ctrl, err := config.GetController(namespace, name)
 	if err != nil {
 		return err
 	}
 
-	if ns.Name == config.GetDefaultNamespaceName() {
-		config.ClearNamespace(ns.Name)
-		return config.Flush()
-	}
-
-	// Wipe the namespace
-	err = config.DeleteNamespace(opt.Namespace)
-	if err != nil {
+	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
+	ctrl.Name = newName
+	if err = config.UpdateController(namespace, ctrl); err != nil {
 		return err
 	}
-	err = config.AddNamespace(opt.Namespace, ns.Created)
-	if err != nil {
+	if err = config.DeleteController(namespace, name); err != nil {
 		return err
 	}
-
-	return config.Flush()
+	config.Flush()
+	return nil
 }

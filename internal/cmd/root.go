@@ -82,6 +82,7 @@ func NewRootCommand() *cobra.Command {
 		newStartCommand(),
 		newStopCommand(),
 		newMoveCommand(),
+		newRenameCommand(),
 	)
 
 	return cmd

@@ -147,6 +147,46 @@ spec:
   done
 }
 
+@test "Rename Agents" {
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    test iofogctl -v -n "$NS2" rename agent "$AGENT_NAME" "newname"
+    checkRenamedResource agents "$AGENT_NAME" "newname" "$NS2"
+    test iofogctl -v -n "${NS2}" rename agent "newname" "${AGENT_NAME}"
+    checkRenamedResource agents "newname" "$AGENT_NAME" "$NS2"
+  done
+}
+
+@test "Rename Controller" {
+  test iofogctl -v -n "$NS2" rename controller "$NAME" "newname"
+  checkRenamedResource controllers "$NAME" "newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename controller "newname" "${NAME}"
+  checkRenamedResource controllers "newname" "$NAME" "$NS2"
+}
+
+@test "Rename Connector" {
+  test iofogctl -v -n "$NS2" rename connector "$NAME" "newname"
+  checkRenamedResource connectors "$NAME" "newname" "$NS2"
+  test iofogctl -v -n "$NS2" rename connector "newname" "$NAME"
+  checkRenamedResource connectors "newname" "$NAME" "$NS2"
+}
+
+@test "Rename Namespace" {
+  test iofogctl -v rename namespace "${NS2}" "newname"
+  checkRenamedNamespace "$NS2" "newname"
+  test iofogctl -v rename namespace "newname" "${NS2}"
+  checkRenamedNamespace "newname" "$NS2"
+}
+
+@test "Rename Application" {
+  test iofogctl -v rename application "$APPLICATION_NAME" "application-name"
+  iofogctl get all
+  checkRenamedApplication "$APPLICATION_NAME" "application-name" "$NS"
+  test iofogctl -v rename application "application-name" "$APPLICATION_NAME"
+  checkRenamedApplication "application-name" "$APPLICATION_NAME" "$NS"
+}
+
+
 @test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
