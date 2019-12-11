@@ -516,6 +516,7 @@ function checkRenamedResource() {
 }
 
 function checkRenamedApplication() {
+  set -x
   OLDNAME=$1
   NEWNAME=$2
   NAMESPACE=$3
@@ -524,6 +525,7 @@ function checkRenamedApplication() {
 
   echo "Should not be empty - iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${NEWNAME}"
   iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${NEWNAME}
+
   [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${OLDNAME}) ]]
   [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print $1}' | grep ${NEWNAME}) ]]
 }
