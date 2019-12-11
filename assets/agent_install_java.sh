@@ -16,7 +16,7 @@ do_install_java() {
 			is_arm="-arm"
 		fi
 		cd /opt/
-		$sh_c 'wget -q --no-check-certificate '"http://www.edgeworx.io/downloads/jdk/jdk-8u211$is_arm-$os_arch.tar.gz"''
+		$sh_c 'wget --no-check-certificate '"https://storage.googleapis.com/edgeworx/downloads/jdk/jdk-8u211$is_arm-$os_arch.tar.gz"''
 		$sh_c "tar xzf jdk-8u211$is_arm-$os_arch.tar.gz"
 		cd /opt/jdk1.8.0_211/	
 		case "$lsb_dist" in
