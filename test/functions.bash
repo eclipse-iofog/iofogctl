@@ -520,10 +520,10 @@ function checkRenamedApplication() {
   NEWNAME=$2
   NAMESPACE=$3
   echo "Should be empty - iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${OLDNAME}:"
-  iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${OLDNAME}
-
+  bash -x -c "iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${OLDNAME}"
+  
   echo "Should not be empty - iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${NEWNAME}"
-  iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${NEWNAME}
+  bash -x -c "iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${NEWNAME}"
 
   [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print \$1}' | grep ${OLDNAME}) ]]
   [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print \$1}' | grep ${NEWNAME}) ]]
