@@ -49,13 +49,13 @@ fi
 # Is go-junit-report installed?
 if ! checkForInstallation "go-junit-report"; then
     echoInfo " Attempting to install 'go-junit-report'"
-    go install github.com/jstemmer/go-junit-report
+    go install -mod=vendor github.com/jstemmer/go-junit-report
 fi
 
 # Is rice installed?
 if [ -z $(command -v rice) ]; then
     echo " Attempting to install 'rice'"
-    go install github.com/GeertJohan/go.rice/rice
+    go install -mod=vendor github.com/GeertJohan/go.rice/rice
 fi
 
 # Is bats installed?
