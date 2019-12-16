@@ -15,7 +15,7 @@ package install
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,8 +23,8 @@ import (
 	"strconv"
 )
 
-func newService(namespace string, ms *microservice) *v1.Service {
-	svc := &v1.Service{
+func newService(namespace string, ms *microservice) *corev1.Service {
+	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
 			Namespace: namespace,
@@ -32,9 +32,9 @@ func newService(namespace string, ms *microservice) *v1.Service {
 				"name": ms.name,
 			},
 		},
-		Spec: v1.ServiceSpec{
-			Type:                  "LoadBalancer",
-			ExternalTrafficPolicy: "Local",
+		Spec: corev1.ServiceSpec{
+			Type:                  corev1.ServiceTypeLoadBalancer,
+			ExternalTrafficPolicy: corev1.ServiceExternalTrafficPolicyTypeLocal,
 			LoadBalancerIP:        ms.IP,
 			Selector: map[string]string{
 				"name": ms.name,
@@ -43,11 +43,11 @@ func newService(namespace string, ms *microservice) *v1.Service {
 	}
 	// Add ports
 	for idx, port := range ms.ports {
-		svcPort := v1.ServicePort{
+		svcPort := corev1.ServicePort{
 			Name:       ms.name + strconv.Itoa(idx),
 			Port:       int32(port),
 			TargetPort: intstr.FromInt(int(port)),
-			Protocol:   v1.Protocol("TCP"),
+			Protocol:   corev1.Protocol("TCP"),
 		}
 		svc.Spec.Ports = append(svc.Spec.Ports, svcPort)
 	}
@@ -70,13 +70,13 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 					"name": ms.name,
 				},
 			},
-			Template: v1.PodTemplateSpec{
+			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"name": ms.name,
 					},
 				},
-				Spec: v1.PodSpec{
+				Spec: corev1.PodSpec{
 					ServiceAccountName: ms.name,
 				},
 			},
@@ -84,10 +84,10 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 	}
 	containers := &dep.Spec.Template.Spec.Containers
 	for _, msCont := range ms.containers {
-		cont := v1.Container{
+		cont := corev1.Container{
 			Name:            msCont.name,
 			Image:           msCont.image,
-			ImagePullPolicy: v1.PullPolicy(msCont.imagePullPolicy),
+			ImagePullPolicy: corev1.PullPolicy(msCont.imagePullPolicy),
 			Args:            msCont.args,
 			ReadinessProbe:  msCont.readinessProbe,
 			Ports:           msCont.ports,
@@ -99,8 +99,8 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 	return dep
 }
 
-func newServiceAccount(namespace string, ms *microservice) *v1.ServiceAccount {
-	return &v1.ServiceAccount{
+func newServiceAccount(namespace string, ms *microservice) *corev1.ServiceAccount {
+	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
 			Namespace: namespace,
@@ -158,73 +158,7 @@ func newRole(namespace string, ms *microservice) *rbacv1.Role {
 			Name:      ms.name,
 			Namespace: namespace,
 		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"pods",
-					"services",
-					"endpoints",
-					"persistentvolumeclaims",
-					"events",
-					"configmaps",
-					"secrets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"namespaces",
-				},
-				Verbs: []string{
-					"get",
-				},
-			},
-			{
-				APIGroups: []string{
-					"apps",
-				},
-				Resources: []string{
-					"deployments",
-					"daemonsets",
-					"replicas",
-					"statefulsets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"monitoring.coreos.com",
-				},
-				Resources: []string{
-					"servicemonitors",
-				},
-				Verbs: []string{
-					"get",
-					"create",
-				},
-			},
-			{
-				APIGroups: []string{
-					"iofog.org",
-				},
-				Resources: []string{
-					"*",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-		},
+		Rules: ms.rbacRules,
 	}
 }
 
