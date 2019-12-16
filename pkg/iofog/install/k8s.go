@@ -20,7 +20,7 @@ import (
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
 	iofogv1 "github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,12 +65,12 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		return nil, err
 	}
 
-	microservices := make(map[string]*microservice, 0)
-	microservices["controller"] = &controllerMicroservice
-	microservices["connector"] = &connectorMicroservice
-	microservices["operator"] = &operatorMicroservice
-	//microservices["scheduler"] = &schedulerMicroservice
-	microservices["kubelet"] = &kubeletMicroservice
+	microservices := map[string]*microservice{
+		controller: newControllerMicroservice(),
+		connector:  newConnectorMicroservice(),
+		operator:   newOperatorMicroservice(),
+		kubelet:    newKubeletMicroservice(),
+	}
 
 	return &Kubernetes{
 		config:          config,
@@ -84,25 +84,25 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 
 func (k8s *Kubernetes) SetKubeletImage(image string) {
 	if image != "" {
-		k8s.ms["kubelet"].containers[0].image = image
+		k8s.ms[kubelet].containers[0].image = image
 	}
 }
 
 func (k8s *Kubernetes) SetOperatorImage(image string) {
 	if image != "" {
-		k8s.ms["operator"].containers[0].image = image
+		k8s.ms[operator].containers[0].image = image
 	}
 }
 
 func (k8s *Kubernetes) SetConnectorImage(image string) {
 	if image != "" {
-		k8s.ms["connector"].containers[0].image = image
+		k8s.ms[connector].containers[0].image = image
 	}
 }
 
 func (k8s *Kubernetes) SetControllerImage(image string) {
 	if image != "" {
-		k8s.ms["controller"].containers[0].image = image
+		k8s.ms[controller].containers[0].image = image
 	}
 }
 
@@ -198,7 +198,7 @@ func (k8s *Kubernetes) enableKogClient() (err error) {
 func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Database) error {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
-	ns := &v1.Namespace{
+	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: k8s.ns,
 		},
@@ -245,11 +245,11 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		ControlPlane: iofogv1.ControlPlane{
 			IofogUser:              iofogv1.IofogUser(user),
 			ControllerReplicaCount: int32(replicas),
-			ControllerImage:        k8s.ms["controller"].containers[0].image,
-			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
+			ControllerImage:        k8s.ms[controller].containers[0].image,
+			KubeletImage:           k8s.ms[kubelet].containers[0].image,
 			Database:               iofogv1.Database(db),
-			ServiceType:            k8s.ms["controller"].serviceType,
-			LoadBalancerIP:         k8s.ms["controller"].IP,
+			ServiceType:            k8s.ms[controller].serviceType,
+			LoadBalancerIP:         k8s.ms[controller].IP,
 		},
 		Connectors: iofogv1.Connectors{
 			Instances: []iofogv1.Connector{},
@@ -274,10 +274,24 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 
 func (k8s *Kubernetes) deleteOperator() (err error) {
 	// Resource name for deletions
-	name := k8s.ms["operator"].name
+	name := k8s.ms[operator].name
 
 	// Service Account
 	if err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			return
+		}
+	}
+
+	// Role
+	if err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			return
+		}
+	}
+
+	// Role Binding
+	if err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return
 		}
@@ -302,15 +316,31 @@ func (k8s *Kubernetes) deleteOperator() (err error) {
 
 func (k8s *Kubernetes) createOperator() (err error) {
 	// Service Account
-	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
+	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms[operator])
 	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
 	}
 
+	// Role
+	role := newRole(k8s.ns, k8s.ms[operator])
+	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(role); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return
+		}
+	}
+
+	// Role Binding
+	rb := newRoleBinding(k8s.ns, k8s.ms[operator])
+	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(rb); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return
+		}
+	}
+
 	// Cluster Role Binding
-	crb := newClusterRoleBinding(k8s.ns, k8s.ms["operator"])
+	crb := newClusterRoleBinding(k8s.ns, k8s.ms[operator])
 	if _, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(crb); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
@@ -318,13 +348,13 @@ func (k8s *Kubernetes) createOperator() (err error) {
 	}
 
 	// Deployment
-	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
+	opDep := newDeployment(k8s.ns, k8s.ms[operator])
 	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
 		// Redeploy the operator
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms[operator].name, &metav1.DeleteOptions{}); err != nil {
 			return
 		}
 		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
@@ -419,7 +449,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 
 	// Wait for Services to have IPs allocated
 	for event := range watch.ResultChan() {
-		svc, ok := event.Object.(*v1.Service)
+		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
 			err = util.NewInternalError("Failed to wait for services in namespace: " + k8s.ns)
 			return
@@ -431,7 +461,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 		}
 
 		switch svc.Spec.Type {
-		case "LoadBalancer":
+		case corev1.ServiceTypeLoadBalancer:
 			// Load balancer must be ready
 			if len(svc.Status.LoadBalancer.Ingress) == 0 {
 				continue
@@ -439,9 +469,9 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 			nodePort = targetPort
 			ip = svc.Status.LoadBalancer.Ingress[0].IP
 
-		case "NodePort":
+		case corev1.ServiceTypeNodePort:
 			// Get a list of K8s nodes and return one of their external IPs
-			var nodeList *v1.NodeList
+			var nodeList *corev1.NodeList
 			nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
 			if err == nil {
 				if len(nodeList.Items) == 0 {
@@ -450,7 +480,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 					// Return external IP of any of the nodes in the cluster
 					for _, node := range nodeList.Items {
 						for _, addrs := range node.Status.Addresses {
-							if addrs.Type == v1.NodeExternalIP {
+							if addrs.Type == corev1.NodeExternalIP {
 								ip = addrs.Address
 								break
 							}
@@ -460,7 +490,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
 						for _, node := range nodeList.Items {
 							for _, addrs := range node.Status.Addresses {
-								if addrs.Type == v1.NodeInternalIP {
+								if addrs.Type == corev1.NodeInternalIP {
 									ip = addrs.Address
 									break
 								}
@@ -485,7 +515,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 				}
 			}
 
-		case "ClusterIP":
+		case corev1.ServiceTypeClusterIP:
 			// Note: ClusterIPs are internal to K8s cluster only
 		}
 
@@ -500,7 +530,9 @@ func (k8s *Kubernetes) setServiceType(msvc, svcType string) (err error) {
 	if svcType == "" {
 		return nil
 	}
-	if svcType != "LoadBalancer" && svcType != "NodePort" && svcType != "ClusterIP" {
+
+	coreSvcType := corev1.ServiceType(svcType)
+	if coreSvcType != corev1.ServiceTypeLoadBalancer && coreSvcType != corev1.ServiceTypeNodePort && coreSvcType != corev1.ServiceTypeClusterIP {
 		err = util.NewInputError("Tried to set K8s Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
 	}
 	k8s.ms[msvc].serviceType = svcType
@@ -517,7 +549,7 @@ func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {
 	if ip != "" {
-		k8s.ms["controller"].IP = ip
+		k8s.ms[controller].IP = ip
 	}
 }
 
@@ -536,7 +568,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 		return err
 	}
 	for _, svc := range svcList.Items {
-		if svc.Name == k8s.ms["controller"].name {
+		if svc.Name == k8s.ms[controller].name {
 			return nil
 		}
 	}
@@ -544,7 +576,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 }
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
-	ms := k8s.ms["controller"]
+	ms := k8s.ms[controller]
 	ip, port, err := k8s.waitForService(ms.name, ms.ports[0])
 	if err != nil {
 		return
