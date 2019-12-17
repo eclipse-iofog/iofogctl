@@ -148,6 +148,10 @@ func (agent *RemoteAgent) Stop() (err error) {
 	// Prepare commands
 	cmds := []command{
 		{
+			cmd: "sudo iofog-agent deprovision",
+			msg: "Deprovisioning Agent " + agent.name,
+		},
+		{
 			cmd: "sudo -S service iofog-agent stop",
 			msg: "Stopping Agent " + agent.name,
 		},
