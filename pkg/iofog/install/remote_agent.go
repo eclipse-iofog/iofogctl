@@ -66,6 +66,10 @@ func (agent *RemoteAgent) Bootstrap() error {
 	installArgs := agent.version + " " + agent.repo + " " + agent.token
 	cmds := []command{
 		{
+			cmd: "/tmp/check_prereqs.sh ",
+			msg: "Checking prerequisites on Agent " + agent.name,
+		},
+		{
 			cmd: "/tmp/agent_install_java.sh ",
 			msg: "Installing Java on Agent " + agent.name,
 		},
@@ -193,6 +197,7 @@ func (agent RemoteAgent) copyScriptsToAgent() error {
 
 	// Declare scripts to copy
 	scripts := []string{
+		"check_prereqs.sh",
 		"agent_init.sh",
 		"agent_install_java.sh",
 		"agent_install_docker.sh",
