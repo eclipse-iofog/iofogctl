@@ -50,14 +50,21 @@ func (cnct *Connector) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	verbose("Copying install files to server")
-	installConnectorScript := util.GetStaticFile("connector_install.sh")
-	reader := strings.NewReader(installConnectorScript)
-	if err := cnct.ssh.CopyTo(reader, "/tmp/", "connector_install.sh", "0775", len(installConnectorScript)); err != nil {
-		return err
+	scripts := []string{
+		"check_prereqs.sh",
+		"connector_install.sh",
+	}
+	for _, script := range scripts {
+		file := util.GetStaticFile(script)
+		reader := strings.NewReader(file)
+		if err := cnct.ssh.CopyTo(reader, "/tmp/", script, "0775", len(file)); err != nil {
+			return err
+		}
 	}
 
 	// Define commands
 	cmds := []string{
+		"/tmp/check_prereqs.sh",
 		fmt.Sprintf("/tmp/connector_install.sh %s %s %s", cnct.Version, cnct.Repo, cnct.Token),
 	}
 

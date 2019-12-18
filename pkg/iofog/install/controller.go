@@ -98,11 +98,15 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	verbose("Copying install files to server")
-	if err = ctrl.CopyScript("", "controller_install_node.sh"); err != nil {
-		return err
+	scripts := []string{
+		"check_prereqs.sh",
+		"controller_install_node.sh",
+		"controller_install_iofog.sh",
 	}
-	if err = ctrl.CopyScript("", "controller_install_iofog.sh"); err != nil {
-		return err
+	for _, script := range scripts {
+		if err = ctrl.CopyScript("", script); err != nil {
+			return err
+		}
 	}
 
 	// Copy service scripts to remote host
@@ -110,14 +114,15 @@ func (ctrl *Controller) Install() (err error) {
 	if _, err = ctrl.ssh.Run("mkdir -p /tmp/iofog-controller-service"); err != nil {
 		return err
 	}
-	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.initctl"); err != nil {
-		return err
+	scripts = []string{
+		"iofog-controller.initctl",
+		"iofog-controller.systemd",
+		"iofog-controller.update-rc",
 	}
-	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.systemd"); err != nil {
-		return err
-	}
-	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.update-rc"); err != nil {
-		return err
+	for _, script := range scripts {
+		if err = ctrl.CopyScript("iofog-controller-service/", script); err != nil {
+			return err
+		}
 	}
 
 	// Define commands
@@ -127,6 +132,10 @@ func (ctrl *Controller) Install() (err error) {
 		dbArgs = fmt.Sprintf(" %s %s %s %s %d %s", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
 	}
 	cmds := []command{
+		{
+			cmd: "/tmp/check_prereqs.sh",
+			msg: "Checking prerequisites on Controller " + ctrl.Host,
+		},
 		{
 			cmd: "sudo /tmp/controller_install_node.sh",
 			msg: "Installing Node.js on Controller " + ctrl.Host,
