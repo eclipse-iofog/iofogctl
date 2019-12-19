@@ -544,3 +544,17 @@ function waitForMsvc() {
       sleep 1
   done
 }
+
+function checkVanillaResourceDeleted() {
+  USER=$1
+  HOST=$2
+  PORT=$3
+  KEY_FILE=$4
+  RESOURCE=$5
+
+  [[ -z $(ssh -oStrictHostKeyChecking=no $USER@$HOST:$PORT -i $KEY_FILE sudo which ${RESOURCE}) ]]
+}
+
+function checkLocalResourcesDeleted() {
+  [[ -z $(docker ps -aq) ]]
+}

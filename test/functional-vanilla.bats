@@ -214,6 +214,15 @@ spec:
 
 @test "Delete all" {
   test iofogctl -v delete all
+  initVanillaController
+  checkVanillaResourceDeleted $VANILLA_USER $VANILLA_HOST $VANILLA_PORT $KEY_FILE "iofog-controller"
+  checkVanillaResourceDeleted $VANILLA_USER $VANILLA_HOST $VANILLA_PORT $KEY_FILE "iofog-connector"
+ 
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    checkVanillaResourceDeleted ${USERS[$IDX]} ${HOSTS[$IDX]} ${PORTS[$IDX]} $KEY_FILE "iofog-agent"
+  done
+
   checkControllerNegative
   checkConnectorNegative
   checkAgentsNegative
