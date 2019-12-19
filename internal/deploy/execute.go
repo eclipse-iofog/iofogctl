@@ -47,39 +47,39 @@ type Options struct {
 	InputFile string
 }
 
-func deployCatalogItem(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deploycatalogitem.NewExecutor(deploycatalogitem.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployCatalogItem(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploycatalogitem.NewExecutor(deploycatalogitem.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployApplication(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deployapplication.NewExecutor(deployapplication.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployApplication(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployapplication.NewExecutor(deployapplication.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployMicroservice(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deploymicroservice.NewExecutor(deploymicroservice.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployMicroservice(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploymicroservice.NewExecutor(deploymicroservice.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployControlPlane(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deploycontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploycontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployAgent(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deployagent.NewExecutor(deployagent.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployagent.NewExecutor(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployAgentConfig(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployConnector(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deployconnector.NewExecutor(deployconnector.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployConnector(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployconnector.NewExecutor(deployconnector.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployController(namespace, name string, yaml []byte) (exe execute.Executor, err error) {
-	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: namespace, Yaml: yaml, Name: name})
+func deployController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
+var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
 	apps.ApplicationKind:   deployApplication,
 	config.CatalogItemKind: deployCatalogItem,
 	apps.MicroserviceKind:  deployMicroservice,

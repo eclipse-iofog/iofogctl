@@ -44,11 +44,19 @@ var kindOrder = []apps.Kind{
 	apps.AgentKind,
 }
 
-var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
-	apps.ControlPlaneKind: connectcontrolplane.NewExecutor,
-	apps.AgentKind:        connectagent.NewExecutor,
-	apps.ConnectorKind:    connectconnector.NewExecutor,
-	apps.ControllerKind:   connectcontroller.NewExecutor,
+var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+	},
+	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+	},
+	apps.ConnectorKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectconnector.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+	},
+	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+	},
 }
 
 func Execute(opt Options) error {

@@ -38,7 +38,7 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 //
-// Install iofog-agent stack on an agent host
+// Deploy iofog-agent stack on an agent host
 //
 func (exe *remoteExecutor) Execute() (err error) {
 	// Get Control Plane
@@ -55,7 +55,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	agent.SetVersion(exe.agent.Package.Version)
 	agent.SetRepository(exe.agent.Package.Repo, exe.agent.Package.Token)
 
-	// Try the install
+	// Try the deploy
 	err = agent.Bootstrap()
 	if err != nil {
 		return

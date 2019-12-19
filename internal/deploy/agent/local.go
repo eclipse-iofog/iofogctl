@@ -19,7 +19,7 @@ import (
 	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	install "github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 

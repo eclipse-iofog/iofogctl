@@ -227,6 +227,11 @@ func (lc *LocalContainer) GetContainerByName(name string) (types.Container, erro
 	return types.Container{}, util.NewInputError(fmt.Sprintf("Could not find container %s", name))
 }
 
+func (lc *LocalContainer) ListContainers() ([]types.Container, error) {
+	ctx := context.Background()
+	return lc.client.ContainerList(ctx, types.ContainerListOptions{})
+}
+
 // CleanContainer stops and remove a container based on a container name
 func (lc *LocalContainer) CleanContainer(name string) error {
 	ctx := context.Background()
@@ -240,6 +245,16 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 
 	// Force remove container
 	return lc.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
+}
+
+func (lc *LocalContainer) CleanContainerByID(id string) error {
+	ctx := context.Background()
+
+	// Stop container if running (ignore error if there is no running container)
+	lc.client.ContainerStop(ctx, id, nil)
+
+	// Force remove container
+	return lc.client.ContainerRemove(ctx, id, types.ContainerRemoveOptions{Force: true})
 }
 
 func (lc *LocalContainer) getPullOptions(config *LocalContainerConfig) (ret types.ImagePullOptions) {

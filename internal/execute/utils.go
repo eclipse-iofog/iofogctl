@@ -26,7 +26,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (exe Executor, err error) {
+func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
 	// Check namespace exists
 	if len(header.Metadata.Namespace) > 0 {
 		namespace = header.Metadata.Namespace
@@ -51,10 +51,22 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[a
 		return nil, nil
 	}
 
-	return createExecutorFunc(namespace, header.Metadata.Name, subYamlBytes)
+	return createExecutorFunc(KindHandlerOpt{
+		Kind:      header.Kind,
+		Namespace: namespace,
+		Name:      header.Metadata.Name,
+		YAML:      subYamlBytes,
+	})
 }
 
-func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (executorsMap map[apps.Kind][]Executor, err error) {
+type KindHandlerOpt struct {
+	Kind      apps.Kind
+	Namespace string
+	Name      string
+	YAML      []byte
+}
+
+func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kind]func(KindHandlerOpt) (Executor, error)) (executorsMap map[apps.Kind][]Executor, err error) {
 	yamlFile, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		return

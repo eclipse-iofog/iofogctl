@@ -18,23 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
-type kubernetesExecutor struct {
-	namespace string
-	name      string
-}
-
-func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
-	return &kubernetesExecutor{
-		namespace: namespace,
-		name:      name,
-	}
-}
-
-func (exe *kubernetesExecutor) GetName() string {
-	return exe.name
-}
-
-func (exe *kubernetesExecutor) Execute() error {
+func (exe executor) k8sRemove() error {
 	// Find the requested controller
 	cnct, err := config.GetConnector(exe.namespace, exe.name)
 	if err != nil {
@@ -50,11 +34,6 @@ func (exe *kubernetesExecutor) Execute() error {
 	// Delete Connector on cluster
 	err = k8s.DeleteConnector(exe.name)
 	if err != nil {
-		return err
-	}
-
-	// Update config
-	if err = config.DeleteConnector(exe.namespace, exe.name); err != nil {
 		return err
 	}
 

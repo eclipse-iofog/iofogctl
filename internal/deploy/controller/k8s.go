@@ -37,7 +37,7 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Get Kubernetes installer
+	// Get Kubernetes deployer
 	installer, err := install.NewKubernetes(exe.ctrl.Kube.Config, exe.namespace)
 	if err != nil {
 		return

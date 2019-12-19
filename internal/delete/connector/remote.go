@@ -20,23 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type remoteExecutor struct {
-	namespace string
-	name      string
-}
-
-func newRemoteExecutor(namespace, name string) *remoteExecutor {
-	exe := &remoteExecutor{}
-	exe.namespace = namespace
-	exe.name = name
-	return exe
-}
-
-func (exe *remoteExecutor) GetName() string {
-	return exe.name
-}
-
-func (exe *remoteExecutor) Execute() error {
+func (exe executor) remoteRemove() error {
 	// Get controller from config
 	cnct, err := config.GetConnector(exe.namespace, exe.name)
 	if err != nil {
@@ -55,14 +39,9 @@ func (exe *remoteExecutor) Execute() error {
 		})
 
 		// Stop Connector
-		if err = installer.Stop(); err != nil {
-			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Connector %s. %s", cnct.Name, err.Error()))
+		if err = installer.Uninstall(); err != nil {
+			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Connector %s. Error: %s", cnct.Name, err.Error()))
 		}
-	}
-
-	// Clear Connector from Controller
-	if err = deleteConnectorFromController(exe.namespace, cnct.Host); err != nil {
-		return err
 	}
 
 	// Update config
