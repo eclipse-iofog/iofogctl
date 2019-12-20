@@ -163,7 +163,7 @@ func (agent *RemoteAgent) Stop() (err error) {
 
 	// Execute commands on remote server
 	if err = agent.run(cmds); err != nil {
-		return
+		return err
 	}
 
 	return
@@ -180,7 +180,7 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 	for _, cmd := range cmds {
 		verbose(cmd.msg)
 		if _, err = agent.ssh.Run(cmd.cmd); err != nil {
-			return
+			return err
 		}
 	}
 
