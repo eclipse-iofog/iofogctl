@@ -97,6 +97,8 @@ iofogctl legacy agent NAME status`,
 			// Get namespace
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
 
 			switch resource {
 			case "controller":
@@ -116,7 +118,13 @@ iofogctl legacy agent NAME status`,
 				}
 			case "agent":
 				// Get config
-				agent, err := config.GetAgent(namespace, name)
+				var agent config.Agent
+				var err error
+				if useDetached {
+					agent, err = config.GetDetachedAgent(name)
+				} else {
+					agent, err = config.GetAgent(namespace, name)
+				}
 				util.Check(err)
 				if util.IsLocalHost(agent.Host) {
 					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
@@ -130,7 +138,13 @@ iofogctl legacy agent NAME status`,
 				}
 			case "connector":
 				// Get config
-				connector, err := config.GetConnector(namespace, name)
+				var connector config.Connector
+				var err error
+				if useDetached {
+					connector, err = config.GetDetachedConnector(name)
+				} else {
+					connector, err = config.GetConnector(namespace, name)
+				}
 				util.Check(err)
 				cliCommand := []string{"sudo", "iofog-connector"}
 				if connector.Kube.Config != "" {

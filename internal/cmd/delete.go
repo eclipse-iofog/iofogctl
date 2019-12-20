@@ -32,6 +32,8 @@ func newDeleteCommand() *cobra.Command {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+			opt.Soft, err = cmd.Flags().GetBool("soft")
+			util.Check(err)
 			// Execute command
 			err = delete.Execute(opt)
 			util.Check(err)
@@ -54,6 +56,7 @@ func newDeleteCommand() *cobra.Command {
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.PersistentFlags().Bool("soft", false, "Don't delete ioFog Stack from remote host")
 
 	return cmd
 }

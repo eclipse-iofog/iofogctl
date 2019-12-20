@@ -23,14 +23,18 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(namespace, name, newName string) error {
+func Execute(namespace, name, newName string, useDetached bool) error {
+	util.SpinStart(fmt.Sprintf("Renaming Agent %s", name))
+
+	if useDetached {
+		return config.RenameDetachedAgent(name, newName)
+	}
+
 	// Get config
 	agent, err := config.GetAgent(namespace, name)
 	if err != nil {
 		return err
 	}
-
-	util.SpinStart(fmt.Sprintf("Renaming Agent %s", name))
 
 	// Init remote resources
 	clt, err := internal.NewControllerClient(namespace)

@@ -31,6 +31,7 @@ import (
 type Options struct {
 	Namespace string
 	InputFile string
+	Soft      bool
 }
 
 var kindOrder = []apps.Kind{
@@ -51,16 +52,16 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
 	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name)
+		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
 	},
 	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(opt.Namespace, opt.Name)
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	apps.ConnectorKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteconnector.NewExecutor(opt.Namespace, opt.Name)
+		return deleteconnector.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)

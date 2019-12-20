@@ -63,7 +63,16 @@ func (exe *multipleExecutor) Execute() (err error) {
 }
 
 func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	agents, err := config.GetAgents(exe.opt.Namespace)
+	var agents []config.Agent
+	var err error
+	if exe.opt.UseDetached {
+		agentsMap := config.GetDetachedResources().Agents
+		for _, agent := range agentsMap {
+			agents = append(agents, agent)
+		}
+	} else {
+		agents, err = config.GetAgents(exe.opt.Namespace)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +100,16 @@ func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor
 }
 
 func (exe *multipleExecutor) AddConnectorExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	connectors, err := config.GetConnectors(exe.opt.Namespace)
+	var connectors []config.Agent
+	var err error
+	if exe.opt.UseDetached {
+		connectorsMap := config.GetDetachedResources().Agents
+		for _, connector := range connectorsMap {
+			connectors = append(connectors, connector)
+		}
+	} else {
+		connectors, err = config.GetAgents(exe.opt.Namespace)
+	}
 	if err != nil {
 		return nil, err
 	}

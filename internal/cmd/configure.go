@@ -66,6 +66,8 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			// Get namespace option
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+			opt.UseDetached, err = cmd.Flags().GetBool("detached")
+			util.Check(err)
 
 			// Get executor for configure command
 			exe, err := configure.NewExecutor(opt)
@@ -74,6 +76,8 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			// Execute the command
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess(fmt.Sprintf("Succesfully configured %s %s\n", opt.ResourceType, opt.Name))
 		},
 	}
 	cmd.Flags().StringVar(&opt.Host, "host", "", "Hostname of remote host")

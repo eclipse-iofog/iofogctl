@@ -22,16 +22,18 @@ import (
 )
 
 type agentExecutor struct {
-	namespace string
-	name      string
-	filename  string
+	namespace   string
+	name        string
+	filename    string
+	useDetached bool
 }
 
-func newAgentExecutor(namespace, name, filename string) *agentExecutor {
+func newAgentExecutor(namespace, name, filename string, useDetached bool) *agentExecutor {
 	a := &agentExecutor{}
 	a.namespace = namespace
 	a.name = name
 	a.filename = filename
+	a.useDetached = useDetached
 	return a
 }
 
@@ -39,9 +41,13 @@ func (exe *agentExecutor) GetName() string {
 	return exe.name
 }
 
-func (exe *agentExecutor) Execute() error {
-	// Get config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+func (exe *agentExecutor) Execute() (err error) {
+	var agent config.Agent
+	if exe.useDetached {
+		agent, err = config.GetDetachedAgent(exe.name)
+	} else {
+		agent, err = config.GetAgent(exe.namespace, exe.name)
+	}
 	if err != nil {
 		return err
 	}

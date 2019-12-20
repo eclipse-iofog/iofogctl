@@ -148,6 +148,23 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 	return
 }
 
+func (agent *RemoteAgent) Deprovision() (err error) {
+	// Prepare commands
+	cmds := []command{
+		{
+			cmd: "sudo iofog-agent deprovision",
+			msg: "Deprovisioning Agent " + agent.name,
+		},
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
+	}
+
+	return
+}
+
 func (agent *RemoteAgent) Stop() (err error) {
 	// Prepare commands
 	cmds := []command{

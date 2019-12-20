@@ -21,16 +21,18 @@ import (
 )
 
 type connectorExecutor struct {
-	namespace string
-	name      string
-	filename  string
+	namespace   string
+	name        string
+	filename    string
+	useDetached bool
 }
 
-func newConnectorExecutor(namespace, name, filename string) *connectorExecutor {
+func newConnectorExecutor(namespace, name, filename string, useDetached bool) *connectorExecutor {
 	c := &connectorExecutor{}
 	c.namespace = namespace
 	c.name = name
 	c.filename = filename
+	c.useDetached = useDetached
 	return c
 }
 
@@ -38,8 +40,13 @@ func (exe *connectorExecutor) GetName() string {
 	return exe.name
 }
 
-func (exe *connectorExecutor) Execute() error {
-	connector, err := config.GetConnector(exe.namespace, exe.name)
+func (exe *connectorExecutor) Execute() (err error) {
+	var connector config.Connector
+	if exe.useDetached {
+		connector, err = config.GetDetachedConnector(exe.name)
+	} else {
+		connector, err = config.GetConnector(exe.namespace, exe.name)
+	}
 	if err != nil {
 		return err
 	}

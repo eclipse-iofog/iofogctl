@@ -27,6 +27,7 @@ type Options struct {
 	KeyFile      string
 	User         string
 	Port         int
+	UseDetached  bool
 }
 
 var multipleResources = map[string]bool{

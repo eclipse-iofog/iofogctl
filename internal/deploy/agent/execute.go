@@ -39,5 +39,5 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	return newExecutor(opt.Namespace, &agent)
+	return NewDeployExecutor(opt.Namespace, &agent)
 }

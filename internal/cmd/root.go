@@ -62,6 +62,7 @@ func NewRootCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
 	cmd.PersistentFlags().BoolVar(&httpVerbose, "http-verbose", false, "Toggle for displaying verbose output of API client")
 	cmd.PersistentFlags().StringP("namespace", "n", config.GetDefaultNamespaceName(), "Namespace to execute respective command within")
+	cmd.PersistentFlags().Bool("detached", false, "Use/Show detached resources")
 
 	// Register all commands
 	cmd.AddCommand(
@@ -70,6 +71,8 @@ func NewRootCommand() *cobra.Command {
 		newDisconnectCommand(),
 		newDeployCommand(),
 		newDeleteCommand(),
+		newDetachCommand(),
+		newAttachCommand(),
 		newCreateCommand(),
 		newGetCommand(),
 		newDescribeCommand(),

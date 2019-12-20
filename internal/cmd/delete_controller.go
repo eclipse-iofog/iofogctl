@@ -31,9 +31,11 @@ func newDeleteControllerCommand() *cobra.Command {
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
+			soft, err := cmd.Flags().GetBool("soft")
+			util.Check(err)
 
 			// Get an executor for the command
-			exe, err := delete.NewExecutor(namespace, name)
+			exe, err := delete.NewExecutor(namespace, name, soft)
 			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)

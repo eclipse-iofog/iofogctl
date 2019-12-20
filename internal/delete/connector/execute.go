@@ -23,12 +23,14 @@ import (
 )
 
 type executor struct {
-	name      string
-	namespace string
+	name        string
+	namespace   string
+	useDetached bool
+	soft        bool
 }
 
-func NewExecutor(namespace, name string) (execute.Executor, error) {
-	return executor{name: name, namespace: namespace}, nil
+func NewExecutor(namespace, name string, useDetached, soft bool) (execute.Executor, error) {
+	return executor{name: name, namespace: namespace, useDetached: useDetached, soft: soft}, nil
 }
 
 func (exe executor) GetName() string {
@@ -36,17 +38,19 @@ func (exe executor) GetName() string {
 }
 
 func (exe executor) Execute() error {
-	// Try to delete connector from Controller database
-	ctrlClient, err := internal.NewControllerClient(exe.namespace)
-	if err == nil {
-		connectors, err := ctrlClient.ListConnectors()
-		if err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not delete connector %s from the Controller. Error: %s\n", exe.name, err.Error()))
-		} else {
-			for _, connector := range connectors.Connectors {
-				if connector.Name == exe.name {
-					if err = ctrlClient.DeleteConnector(connector.IP); err != nil {
-						util.PrintInfo(fmt.Sprintf("Could not delete connector %s from the Controller. Error: %s\n", exe.name, err.Error()))
+	if !exe.useDetached {
+		// Try to delete connector from Controller database
+		ctrlClient, err := internal.NewControllerClient(exe.namespace)
+		if err == nil {
+			connectors, err := ctrlClient.ListConnectors()
+			if err != nil {
+				util.PrintInfo(fmt.Sprintf("Could not delete connector %s from the Controller. Error: %s\n", exe.name, err.Error()))
+			} else {
+				for _, connector := range connectors.Connectors {
+					if connector.Name == exe.name {
+						if err = ctrlClient.DeleteConnector(connector.IP); err != nil {
+							util.PrintInfo(fmt.Sprintf("Could not delete connector %s from the Controller. Error: %s\n", exe.name, err.Error()))
+						}
 					}
 				}
 			}
@@ -54,25 +58,37 @@ func (exe executor) Execute() error {
 	}
 
 	// Try to remove iofog-connector
-	connector, err := config.GetConnector(exe.namespace, exe.name)
+	var connector config.Connector
+	var err error
+	if exe.useDetached {
+		connector, err = config.GetDetachedConnector(exe.name)
+	} else {
+		connector, err = config.GetConnector(exe.namespace, exe.name)
+	}
 	if err == nil {
-		if util.IsLocalHost(connector.Host) {
-			if err = exe.localRemove(); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove iofog-connector container. Error: %s\n", err.Error()))
-			}
-		} else if connector.Kube.Config != "" {
-			if err = exe.k8sRemove(); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove iofog-connector from Kubernetes. Error: %s\n", err.Error()))
-			}
-		} else {
-			if err = exe.remoteRemove(); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove iofog-connector from the host %s. Error: %s\n", connector.Host, err.Error()))
+		// Don't delete stack if soft delete
+		if !exe.soft {
+			if util.IsLocalHost(connector.Host) {
+				if err = exe.localRemove(); err != nil {
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-connector container. Error: %s\n", err.Error()))
+				}
+			} else if connector.Kube.Config != "" {
+				if err = exe.k8sRemove(); err != nil {
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-connector from Kubernetes. Error: %s\n", err.Error()))
+				}
+			} else {
+				if err = exe.remoteRemove(); err != nil {
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-connector from the host %s. Error: %s\n", connector.Host, err.Error()))
+				}
 			}
 		}
 
 		// Update config
+		if exe.useDetached {
+			return config.DeleteDetachedConnector(exe.name)
+		}
 		if err = config.DeleteConnector(exe.namespace, exe.name); err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from iofogctl config. Error: %s\n", err.Error()))
+			util.PrintInfo(fmt.Sprintf("Could not remove Connector from iofogctl config. Error: %s\n", err.Error()))
 		} else {
 			defer config.Flush()
 		}

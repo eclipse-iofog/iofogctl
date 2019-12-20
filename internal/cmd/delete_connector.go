@@ -31,9 +31,13 @@ func newDeleteConnectorCommand() *cobra.Command {
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
+			soft, err := cmd.Flags().GetBool("soft")
+			util.Check(err)
 
 			// Get an executor for the command
-			exe, _ := delete.NewExecutor(namespace, name)
+			exe, _ := delete.NewExecutor(namespace, name, useDetached, soft)
 			err = exe.Execute()
 			util.Check(err)
 

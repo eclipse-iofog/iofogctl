@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/get"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
@@ -40,9 +41,15 @@ iofogctl get controllers` + fmt.Sprintf("\n\nValid resources are: %s\n", strings
 			resource := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
+			showDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
+
+			if showDetached && namespace != config.GetDefaultNamespaceName() {
+				util.PrintNotify("You are requesting detached resources, namespace will be ignored.")
+			}
 
 			// Get executor for get command
-			exe, err := get.NewExecutor(resource, namespace)
+			exe, err := get.NewExecutor(resource, namespace, showDetached)
 			util.Check(err)
 
 			// Execute the get command

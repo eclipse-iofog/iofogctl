@@ -25,12 +25,14 @@ type Executor struct {
 	name      string
 }
 
-func NewExecutor(namespace, name string) (execute.Executor, error) {
+func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 	exe := &Executor{
 		namespace: namespace,
 		name:      name,
 	}
-
+	if soft {
+		return nil, util.NewInputError("Cannot soft delete a ControlPlane")
+	}
 	return exe, nil
 }
 
@@ -49,7 +51,7 @@ func (exe *Executor) Execute() (err error) {
 
 	var executors []execute.Executor
 	for _, controller := range controlPlane.Controllers {
-		exe, err := deletecontroller.NewExecutor(exe.namespace, controller.Name)
+		exe, err := deletecontroller.NewExecutor(exe.namespace, controller.Name, false)
 		if err != nil {
 			return err
 		}

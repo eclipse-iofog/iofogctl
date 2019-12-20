@@ -20,12 +20,14 @@ import (
 )
 
 type connectorExecutor struct {
-	namespace string
+	namespace    string
+	showDetached bool
 }
 
-func newConnectorExecutor(namespace string) *connectorExecutor {
+func newConnectorExecutor(namespace string, showDetached bool) *connectorExecutor {
 	a := &connectorExecutor{}
 	a.namespace = namespace
+	a.showDetached = showDetached
 	return a
 }
 
@@ -34,11 +36,27 @@ func (exe *connectorExecutor) GetName() string {
 }
 
 func (exe *connectorExecutor) Execute() error {
+	if exe.showDetached {
+		printDetached()
+		if err := generateDetachedConnectorOutput(); err != nil {
+			return err
+		}
+		return nil
+	}
 	printNamespace(exe.namespace)
 	if err := generateConnectorOutput(exe.namespace); err != nil {
 		return err
 	}
 	return config.Flush()
+}
+
+func generateDetachedConnectorOutput() error {
+	detachedResources := config.GetDetachedResources()
+	connectors := []config.Connector{}
+	for _, connector := range detachedResources.Connectors {
+		connectors = append(connectors, connector)
+	}
+	return tabulateConnectors(connectors)
 }
 
 func generateConnectorOutput(namespace string) error {

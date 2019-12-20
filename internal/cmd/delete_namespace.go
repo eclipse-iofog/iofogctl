@@ -34,7 +34,9 @@ The namespace must not have any resources within it.`,
 			name := args[0]
 
 			// Execute command
-			err := delete.Execute(name, force)
+			soft, err := cmd.Flags().GetBool("soft")
+			util.Check(err)
+			err = delete.Execute(name, force, soft)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted namespace " + name)

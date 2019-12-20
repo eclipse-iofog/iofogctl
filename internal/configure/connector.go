@@ -19,24 +19,26 @@ import (
 )
 
 type connectorExecutor struct {
-	namespace  string
-	name       string
-	kubeConfig string
-	host       string
-	keyFile    string
-	user       string
-	port       int
+	namespace   string
+	name        string
+	kubeConfig  string
+	host        string
+	keyFile     string
+	user        string
+	port        int
+	useDetached bool
 }
 
 func newConnectorExecutor(opt Options) *connectorExecutor {
 	return &connectorExecutor{
-		namespace:  opt.Namespace,
-		name:       opt.Name,
-		kubeConfig: opt.KubeConfig,
-		host:       opt.Host,
-		keyFile:    opt.KeyFile,
-		user:       opt.User,
-		port:       opt.Port,
+		namespace:   opt.Namespace,
+		name:        opt.Name,
+		kubeConfig:  opt.KubeConfig,
+		host:        opt.Host,
+		keyFile:     opt.KeyFile,
+		user:        opt.User,
+		port:        opt.Port,
+		useDetached: opt.UseDetached,
 	}
 }
 
@@ -45,8 +47,13 @@ func (exe *connectorExecutor) GetName() string {
 }
 
 func (exe *connectorExecutor) Execute() error {
-	// Get config
-	connector, err := config.GetConnector(exe.namespace, exe.name)
+	var connector config.Connector
+	var err error
+	if exe.useDetached {
+		connector, err = config.GetDetachedConnector(exe.name)
+	} else {
+		connector, err = config.GetConnector(exe.namespace, exe.name)
+	}
 	if err != nil {
 		return err
 	}
@@ -89,6 +96,9 @@ func (exe *connectorExecutor) Execute() error {
 	}
 
 	// Save config
+	if exe.useDetached {
+		return config.UpdateDetachedConnector(connector)
+	}
 	if err = config.UpdateConnector(exe.namespace, connector); err != nil {
 		return err
 	}
