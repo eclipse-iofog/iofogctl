@@ -46,16 +46,6 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	// Stop the Agent process on remote server
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
-	} else {
-		sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name)
-		if err = sshAgent.Stop(); err != nil {
-			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
-		}
-	}
-
 	ctrl, err := internal.NewControllerClient(exe.namespace)
 	// If controller exists, deprovision the agent
 	if err == nil {
@@ -64,6 +54,16 @@ func (exe *remoteExecutor) Execute() error {
 			if !strings.Contains(err.Error(), "NotFoundError") {
 				return err
 			}
+		}
+	}
+
+	// Stop the Agent process on remote server
+	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
+		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
+	} else {
+		sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name)
+		if err = sshAgent.Stop(); err != nil {
+			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
 		}
 	}
 
