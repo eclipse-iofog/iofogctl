@@ -21,6 +21,7 @@ deploy -f platform.yaml
 ```
   -f, --file string   YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
   -h, --help          help for delete
+      --soft          Don't delete ioFog stack from remote hosts
 ```
 
 ### Options inherited from parent commands
