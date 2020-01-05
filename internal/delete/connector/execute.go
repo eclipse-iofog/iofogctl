@@ -88,12 +88,11 @@ func (exe executor) Execute() error {
 			return config.DeleteDetachedConnector(exe.name)
 		}
 		if err = config.DeleteConnector(exe.namespace, exe.name); err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not remove Connector from iofogctl config. Error: %s\n", err.Error()))
-		} else {
-			defer config.Flush()
+			return err
 		}
+		defer config.Flush()
 	} else {
-		util.PrintInfo(fmt.Sprintf("Could not find iofog-connector in iofogctl configuration. Error: %s\n", err.Error()))
+		return util.NewError(fmt.Sprintf("Could not find Connector in iofogctl config. Please run `iofogctl -n %s get connectors` to update your config. Error: %s\n", exe.namespace, err.Error()))
 	}
 	return nil
 }

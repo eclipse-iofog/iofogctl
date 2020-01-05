@@ -20,6 +20,7 @@ import (
 )
 
 func newDeleteControllerCommand() *cobra.Command {
+	var soft bool
 	cmd := &cobra.Command{
 		Use:     "controller NAME",
 		Short:   "Delete a Controller",
@@ -30,8 +31,6 @@ func newDeleteControllerCommand() *cobra.Command {
 			// Get name and namespace of controller
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
-			soft, err := cmd.Flags().GetBool("soft")
 			util.Check(err)
 
 			// Get an executor for the command
@@ -44,5 +43,6 @@ func newDeleteControllerCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete iofog-controller from remote host")
 	return cmd
 }

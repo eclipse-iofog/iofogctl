@@ -71,7 +71,7 @@ func (exe executor) Execute() error {
 			defer config.Flush()
 		}
 	} else {
-		util.PrintInfo(fmt.Sprintf("Could not find iofog-agent in iofogctl config. Error: %s\n", err.Error()))
+		return util.NewError(fmt.Sprintf("Could not find Agent in iofogctl config. Please run `iofogctl -n %s get agents` to update your config. Error: %s\n", exe.namespace, err.Error()))
 	}
 
 	if !exe.useDetached {

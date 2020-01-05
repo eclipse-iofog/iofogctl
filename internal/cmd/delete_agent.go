@@ -20,6 +20,7 @@ import (
 )
 
 func newDeleteAgentCommand() *cobra.Command {
+	var soft bool
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
 		Short: "Delete an Agent",
@@ -27,7 +28,7 @@ func newDeleteAgentCommand() *cobra.Command {
 
 The Agent will be deleted from the Controller within the namespace.
 The Agent stack will be uninstalled from the host.
-If you wish to not remove the Agetn stack from the host, please use iofogctl detach agent`,
+If you wish to not remove the Agent stack from the host, please use iofogctl detach agent`,
 		Example: `iofogctl delete agent NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -36,8 +37,6 @@ If you wish to not remove the Agetn stack from the host, please use iofogctl det
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 			useDetached, err := cmd.Flags().GetBool("detached")
-			util.Check(err)
-			soft, err := cmd.Flags().GetBool("soft")
 			util.Check(err)
 
 			// Run the command
@@ -48,6 +47,8 @@ If you wish to not remove the Agetn stack from the host, please use iofogctl det
 			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
+
+	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete iofog-agent from remote host")
 
 	return cmd
 }

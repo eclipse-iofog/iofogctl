@@ -20,6 +20,7 @@ import (
 )
 
 func newDeleteConnectorCommand() *cobra.Command {
+	var soft bool
 	cmd := &cobra.Command{
 		Use:     "connector NAME",
 		Short:   "Delete a Connector",
@@ -33,8 +34,6 @@ func newDeleteConnectorCommand() *cobra.Command {
 			util.Check(err)
 			useDetached, err := cmd.Flags().GetBool("detached")
 			util.Check(err)
-			soft, err := cmd.Flags().GetBool("soft")
-			util.Check(err)
 
 			// Get an executor for the command
 			exe, _ := delete.NewExecutor(namespace, name, useDetached, soft)
@@ -45,5 +44,6 @@ func newDeleteConnectorCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete iofog-connector from remote host")
 	return cmd
 }
