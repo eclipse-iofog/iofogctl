@@ -51,7 +51,7 @@ stages:
   jobs:
 
   - job: Windows_K8s
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
     - task: DownloadBuildArtifacts@0
@@ -78,9 +78,11 @@ stages:
         bats --version
       displayName: 'Install Bats'
     - bash: |
-        for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
-        for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
-        for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+        for suffix in bash sh bats; do
+          for file in $(find ./test -name "*.$suffix"); do
+            dos2unix -o $file
+          done
+        done
       displayName: 'Format test files'
     - template: templates/ssh-steps.yaml
     - template: templates/functional-init-vm-steps.yaml
@@ -145,7 +147,7 @@ stages:
         controller_count: 0
 
   - job: Windows_Vanilla
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
     - template: templates/ssh-steps.yaml
@@ -228,7 +230,7 @@ stages:
       displayName: 'Clean up Windows env'
 
   - job: Windows_Local
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
     - task: DownloadBuildArtifacts@0
@@ -318,6 +320,7 @@ stages:
       displayName: 'Clean local environment'
     
   - job: Vanilla_Xenial
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
@@ -354,6 +357,7 @@ stages:
         controller_count: 1
 
   - job: Vanilla_Stretch
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
@@ -513,7 +517,7 @@ stages:
         controller_count: 0
 
 - stage: Publish
-  condition: or(and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/release/')), and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
 
   - job: OSX
