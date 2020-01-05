@@ -23,6 +23,7 @@ iofogctl delete namespace NAME
 ```
       --force   Force deletion of all resources within the namespace
   -h, --help    help for namespace
+      --soft    Don't delete ioFog stack from remote hosts
 ```
 
 ### Options inherited from parent commands

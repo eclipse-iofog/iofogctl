@@ -440,13 +440,13 @@ function checkDetachedAgent() {
   # Check agent is accessible using ssh, and is not provisioned
   [[ "not" == $(iofogctl -v legacy agent $AGENT_NAME status --detached | grep 'Connection to Controller' | awk '{print $5}') ]]
   # Check agent is listed in detached resources
-  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents --detached | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents --detached | grep "$AGENT_NAME" | awk 'FNR == 4 {print $1}') ]]
 }
 
 function checkDetachedAgentNegative() {
   AGENT_NAME=$1
   # Check agent is not listed in detached resources
-  [[ "$AGENT_NAME" != $(iofogctl -v get agents --detached | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ "$AGENT_NAME" != $(iofogctl -v get agents --detached | grep "$AGENT_NAME" | awk 'FNR == 4 {print $1}') ]]
 }
 
 function checkAgentNegative() {
