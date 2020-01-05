@@ -86,6 +86,31 @@ spec:
   done
 }
 
+@test "Detach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v detach agent "$AGENT_NAME"
+  checkAgentNegative "$AGENT_NAME"
+  checkDetachedAgent "$AGENT_NAME"
+}
+
+@test "Update detached agent name" {
+  local AGENT_NAME="${NAME}-0"
+  local NEW_AGENT_NAME="${NAME}-renamed"
+  test iofogctl -v rename agent "$AGENT_NAME" "$NEW_AGENT_NAME" --detached
+  checkDetachedAgentNegative "$AGENT_NAME"
+  checkDetachedAgent "$NEW_AGENT_NAME"
+  test iofogctl -v rename agent "$NEW_AGENT_NAME" "$AGENT_NAME" --detached
+  checkDetachedAgentNegative "$NEW_AGENT_NAME"
+  checkDetachedAgent "$AGENT_NAME"
+}
+
+@test "Attach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v attach agent "$AGENT_NAME"
+  checkAgent "$AGENT_NAME"
+  checkDetachedAgentNegative "$AGENT_NAME"
+}
+
 @test "Deploy application" {
   initApplicationFiles
   test iofogctl -v deploy -f test/conf/application.yaml

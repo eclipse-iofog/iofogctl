@@ -176,6 +176,20 @@ spec:
   done
 }
 
+@test "Detach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v detach agent "$AGENT_NAME"
+  checkAgentNegative "$AGENT_NAME"
+  checkDetachedAgent "$AGENT_NAME"
+}
+
+@test "Attach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v attach agent "$AGENT_NAME"
+  checkAgent "$AGENT_NAME"
+  checkDetachedAgentNegative "$AGENT_NAME"
+}
+
 @test "Delete Agents" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
