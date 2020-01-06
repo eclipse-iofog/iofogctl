@@ -39,7 +39,7 @@ func TestLocal(t *testing.T) {
 	if err := config.AddController(ns, ctrl); err != nil {
 		t.Errorf("Error when testing local and creating Controller in default namespace: %s", err.Error())
 	}
-	if _, err := NewExecutor(ns, ctrl.Name); err != nil {
+	if _, err := NewExecutor(ns, ctrl.Name, false); err != nil {
 		t.Errorf("Error when testing local and using existing namespace default: %s", err.Error())
 	}
 }
@@ -54,14 +54,14 @@ func TestRemote(t *testing.T) {
 	if err := config.AddController(ns, ctrl); err != nil {
 		t.Errorf("Error when testing remote creating Controller in default namespace: %s", err.Error())
 	}
-	if _, err := NewExecutor(ns, ctrl.Name); err != nil {
+	if _, err := NewExecutor(ns, ctrl.Name, false); err != nil {
 		t.Errorf("Error when testing remote and using existing namespace default: %s", err.Error())
 	}
 }
 
 func TestNonExistentController(t *testing.T) {
 	ctrlName := "non_existent"
-	if _, err := NewExecutor(ns, ctrlName); err == nil {
+	if _, err := NewExecutor(ns, ctrlName, false); err == nil {
 		t.Error("Expected error with non existent Controller")
 	}
 }
@@ -69,7 +69,7 @@ func TestNonExistentController(t *testing.T) {
 func TestNonExistentNamespace(t *testing.T) {
 	ns := "non_existent"
 	ctrlName := "non_existent"
-	if _, err := NewExecutor(ns, ctrlName); err == nil {
+	if _, err := NewExecutor(ns, ctrlName, false); err == nil {
 		t.Error("Expected error with non existent namespace")
 	}
 }

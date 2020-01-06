@@ -428,9 +428,25 @@ function checkApplicationNegative() {
 
 function checkAgent() {
   NS_CHECK=${2:-$NS}
+  OPTIONS=$3
   AGENT_NAME=$1
-  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" | grep "name: $AGENT_NAME") ]]
+  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents $OPTIONS | grep "$AGENT_NAME" | awk '{print $1}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" $OPTIONS | grep "name: $AGENT_NAME") ]]
+}
+
+function checkDetachedAgent() {
+  AGENT_NAME=$1
+  NS_CHECK=${2:-$NS}
+  # Check agent is accessible using ssh, and is not provisioned
+  [[ "not" == $(iofogctl -v legacy agent $AGENT_NAME status --detached | grep 'Connection to Controller' | awk '{print $5}') ]]
+  # Check agent is listed in detached resources
+  [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents --detached | grep "$AGENT_NAME" | awk '{print $1}') ]]
+}
+
+function checkDetachedAgentNegative() {
+  AGENT_NAME=$1
+  # Check agent is not listed in detached resources
+  [[ "$AGENT_NAME" != $(iofogctl -v get agents --detached | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgentNegative() {
@@ -543,4 +559,18 @@ function waitForMsvc() {
       fi
       sleep 1
   done
+}
+
+function checkVanillaResourceDeleted() {
+  USER=$1
+  HOST=$2
+  PORT=$3
+  KEY_FILE=$4
+  RESOURCE=$5
+
+  [[ -z $(ssh -oStrictHostKeyChecking=no $USER@$HOST:$PORT -i $KEY_FILE sudo which ${RESOURCE}) ]]
+}
+
+function checkLocalResourcesDeleted() {
+  [[ -z $(docker ps -aq) ]]
 }

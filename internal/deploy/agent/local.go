@@ -19,7 +19,7 @@ import (
 	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	install "github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -56,7 +56,7 @@ func newLocalExecutor(namespace string, agent *config.Agent, client *install.Loc
 	}, nil
 }
 
-func (exe *localExecutor) provisionAgent() (string, error) {
+func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
 	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
@@ -122,7 +122,7 @@ func (exe *localExecutor) Execute() error {
 
 	// Provision agent
 	util.SpinStart("Provisioning Agent")
-	uuid, err := exe.provisionAgent()
+	uuid, err := exe.ProvisionAgent()
 	if err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))

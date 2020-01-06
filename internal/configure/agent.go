@@ -19,22 +19,24 @@ import (
 )
 
 type agentExecutor struct {
-	namespace string
-	name      string
-	keyFile   string
-	user      string
-	port      int
-	host      string
+	namespace   string
+	name        string
+	keyFile     string
+	user        string
+	port        int
+	host        string
+	useDetached bool
 }
 
 func newAgentExecutor(opt Options) *agentExecutor {
 	return &agentExecutor{
-		namespace: opt.Namespace,
-		name:      opt.Name,
-		keyFile:   opt.KeyFile,
-		user:      opt.User,
-		port:      opt.Port,
-		host:      opt.Host,
+		namespace:   opt.Namespace,
+		name:        opt.Name,
+		keyFile:     opt.KeyFile,
+		user:        opt.User,
+		port:        opt.Port,
+		host:        opt.Host,
+		useDetached: opt.UseDetached,
 	}
 }
 
@@ -47,8 +49,14 @@ func (exe *agentExecutor) Execute() error {
 		return util.NewInputError("Cannot change host address of Agents")
 	}
 
-	// Get config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	var agent config.Agent
+	var err error
+	if exe.useDetached {
+		agent, err = config.GetDetachedAgent(exe.name)
+	} else {
+		agent, err = config.GetAgent(exe.namespace, exe.name)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -70,6 +78,9 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Save config
+	if exe.useDetached {
+		return config.UpdateDetachedAgent(agent)
+	}
 	if err = config.UpdateAgent(exe.namespace, agent); err != nil {
 		return err
 	}

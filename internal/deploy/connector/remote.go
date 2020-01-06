@@ -50,7 +50,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 	exe.iofogUser = controlPlane.IofogUser
 
-	// Instantiate installer
+	// Instantiate deployer
 	connectorOptions := &install.ConnectorOptions{
 		Name:               exe.cnct.Name,
 		User:               exe.cnct.SSH.User,
@@ -65,7 +65,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 	installer := install.NewConnector(connectorOptions)
 
-	// Install Connector
+	// Deploy Connector
 	if err = installer.Install(); err != nil {
 		return
 	}

@@ -11,31 +11,28 @@
  *
  */
 
-package deleteagent
+package detachagent
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace, name string) (execute.Executor, error) {
-	// Check the agent exists
-	agent, err := config.GetAgent(namespace, name)
+func (exe executor) localDeprovision() error {
+
+	containerClient, err := install.NewLocalContainerClient()
 	if err != nil {
-		return nil, err
-	}
-
-	// Local executor
-	if util.IsLocalHost(agent.Host) {
-		cli, err := install.NewLocalContainerClient()
-		if err != nil {
-			return nil, err
+		util.PrintNotify(fmt.Sprintf("Could not deprovision local iofog-agent container. Error: %s\n", err.Error()))
+	} else {
+		if _, err = containerClient.ExecuteCmd(install.GetLocalContainerName("agent"), []string{
+			"sudo",
+			"iofog-agent",
+			"deprovision",
+		}); err != nil {
+			util.PrintNotify(fmt.Sprintf("Could not deprovision local iofog-agent container. Error: %s\n", err.Error()))
 		}
-		return newLocalExecutor(namespace, name, cli), nil
 	}
-
-	// Default executor
-	return newRemoteExecutor(namespace, name), nil
+	return nil
 }

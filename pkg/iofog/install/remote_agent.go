@@ -58,7 +58,7 @@ func (agent *RemoteAgent) SetRepository(repo, token string) {
 
 func (agent *RemoteAgent) Bootstrap() error {
 	// Prepare Agent for bootstrap
-	if err := agent.copyScriptsToAgent(); err != nil {
+	if err := agent.copyInstallScriptsToAgent(); err != nil {
 		return err
 	}
 
@@ -148,6 +148,23 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 	return
 }
 
+func (agent *RemoteAgent) Deprovision() (err error) {
+	// Prepare commands
+	cmds := []command{
+		{
+			cmd: "sudo iofog-agent deprovision",
+			msg: "Deprovisioning Agent " + agent.name,
+		},
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
+	}
+
+	return
+}
+
 func (agent *RemoteAgent) Stop() (err error) {
 	// Prepare commands
 	cmds := []command{
@@ -164,6 +181,37 @@ func (agent *RemoteAgent) Stop() (err error) {
 	// Execute commands on remote server
 	if err = agent.run(cmds); err != nil {
 		return err
+	}
+
+	return
+}
+
+func (agent *RemoteAgent) Uninstall() (err error) {
+	// Prepare Agent for removal
+	if err := agent.copyUninstallScriptsToAgent(); err != nil {
+		return err
+	}
+	// Stop iofog-agent properly
+	if err = agent.Stop(); err != nil {
+		return
+	}
+
+	// Prepare commands
+	cmds := []command{
+		// TODO: Implement purge on agent
+		// {
+		// 	cmd: "sudo iofog-agent purge",
+		// 	msg: "Deprovisioning Agent " + agent.name,
+		// },
+		{
+			cmd: "/tmp/agent_uninstall_iofog.sh ",
+			msg: "Removing iofog-agent software " + agent.name,
+		},
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return
 	}
 
 	return
@@ -187,14 +235,8 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 	return
 }
 
-func (agent RemoteAgent) copyScriptsToAgent() error {
+func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 	verbose("Copying install scripts to Agent " + agent.name)
-	// Establish SSH to agent
-	if err := agent.ssh.Connect(); err != nil {
-		return err
-	}
-	defer agent.ssh.Disconnect()
-
 	// Declare scripts to copy
 	scripts := []string{
 		"check_prereqs.sh",
@@ -204,6 +246,26 @@ func (agent RemoteAgent) copyScriptsToAgent() error {
 		"agent_install_iofog.sh",
 		"agent_wait.sh",
 	}
+	return agent.copyScriptsToAgent(scripts)
+}
+
+func (agent RemoteAgent) copyUninstallScriptsToAgent() error {
+	verbose("Copying uninstall scripts to Agent " + agent.name)
+	// Declare scripts to copy
+	scripts := []string{
+		"agent_init.sh",
+		"agent_uninstall_iofog.sh",
+	}
+	return agent.copyScriptsToAgent(scripts)
+}
+
+func (agent RemoteAgent) copyScriptsToAgent(scripts []string) error {
+	// Establish SSH to agent
+	if err := agent.ssh.Connect(); err != nil {
+		return err
+	}
+	defer agent.ssh.Disconnect()
+
 	// Copy scripts to remote host
 	for _, script := range scripts {
 		staticFile := util.GetStaticFile(script)

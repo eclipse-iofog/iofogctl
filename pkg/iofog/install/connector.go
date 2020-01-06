@@ -40,6 +40,49 @@ func NewConnector(options *ConnectorOptions) *Connector {
 	}
 }
 
+func (cnct *Connector) Uninstall() (err error) {
+	// Stop connector gracefully
+	if err = cnct.Stop(); err != nil {
+		return err
+	}
+
+	// Connect to server
+	verbose("Connecting to server")
+	if err = cnct.ssh.Connect(); err != nil {
+		return
+	}
+	defer cnct.ssh.Disconnect()
+
+	// Copy uninstallation scripts to remote host
+	verbose("Copying install files to server")
+	scripts := []string{
+		"connector_uninstall.sh",
+	}
+	for _, script := range scripts {
+		file := util.GetStaticFile(script)
+		reader := strings.NewReader(file)
+		if err := cnct.ssh.CopyTo(reader, "/tmp/", script, "0775", len(file)); err != nil {
+			return err
+		}
+	}
+
+	// Define commands
+	cmds := []string{
+		"/tmp/connector_uninstall.sh",
+	}
+
+	// Execute commands
+	for _, cmd := range cmds {
+		verbose("Running command: " + cmd)
+		_, err = cnct.ssh.Run(cmd)
+		if err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
 func (cnct *Connector) Install() (err error) {
 	// Connect to server
 	verbose("Connecting to server")

@@ -50,8 +50,8 @@ func (exe *remoteExecutor) Execute() error {
 	}
 	installer := install.NewController(controllerOptions)
 
-	// Stop Controller
-	if err = installer.Stop(); err != nil {
+	// Uninstall Controller
+	if err = installer.Uninstall(); err != nil {
 		return err
 	}
 

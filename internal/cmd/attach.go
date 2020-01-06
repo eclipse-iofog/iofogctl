@@ -11,24 +11,25 @@
  *
  */
 
-package deleteconnector
+package cmd
 
 import (
-	"strings"
-
-	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/spf13/cobra"
 )
 
-func deleteConnectorFromController(namespace, connectorIP string) error {
-	ctrlClient, err := internal.NewControllerClient(namespace)
-	if err != nil {
-		return err
-	}
-	if err = ctrlClient.DeleteConnector(connectorIP); err != nil {
-		if !strings.Contains(err.Error(), "NotFoundError") {
-			return err
-		}
+func newAttachCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "attach",
+		Example: `attach`,
+		Short:   "Attach an existing ioFog resource to an ECN",
+		Long:    `Attach an existing ioFog resource to an ECN.`,
 	}
 
-	return nil
+	// Add subcommands
+	cmd.AddCommand(
+		newAttachConnectorCommand(),
+		newAttachAgentCommand(),
+	)
+
+	return cmd
 }

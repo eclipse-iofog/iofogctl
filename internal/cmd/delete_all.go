@@ -20,6 +20,7 @@ import (
 )
 
 func newDeleteAllCommand() *cobra.Command {
+	var soft bool
 	cmd := &cobra.Command{
 		Use:   "all",
 		Short: "Delete all resources within a namespace",
@@ -33,12 +34,15 @@ If you don't want to tear down the deployments but would like to free up the nam
 			// Execute command
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			err = delete.Execute(namespace)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
+			err = delete.Execute(namespace, useDetached, soft)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
 		},
 	}
 
+	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete ioFog stack from remote hosts")
 	return cmd
 }

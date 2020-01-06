@@ -14,16 +14,19 @@
 package get
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
 type allExecutor struct {
-	namespace string
+	namespace    string
+	showDetached bool
 }
 
-func newAllExecutor(namespace string) *allExecutor {
+func newAllExecutor(namespace string, showDetached bool) *allExecutor {
 	exe := &allExecutor{}
 	exe.namespace = namespace
+	exe.showDetached = showDetached
 	return exe
 }
 
@@ -36,6 +39,20 @@ func (exe *allExecutor) Execute() error {
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
+	}
+
+	if exe.showDetached {
+		printDetached()
+		// Print agents
+		if err := generateDetachedAgentOutput(); err != nil {
+			return err
+		}
+
+		// Print connectors
+		if err := generateDetachedConnectorOutput(); err != nil {
+			return err
+		}
+		return nil
 	}
 	printNamespace(ns.Name)
 
@@ -65,4 +82,8 @@ func (exe *allExecutor) Execute() error {
 	}
 
 	return config.Flush()
+}
+
+func printDetached() {
+	fmt.Printf("DETACHED RESOURCES\n\n")
 }

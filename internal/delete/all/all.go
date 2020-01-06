@@ -23,7 +23,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(namespace string) error {
+func Execute(namespace string, useDetached, soft bool) error {
 	// Make sure to update config despite failure
 	defer config.Flush()
 
@@ -39,7 +39,7 @@ func Execute(namespace string) error {
 
 		var executors []execute.Executor
 		for _, agent := range ns.Agents {
-			exe, err := deleteagent.NewExecutor(namespace, agent.Name)
+			exe, err := deleteagent.NewExecutor(namespace, agent.Name, useDetached, soft)
 			if err != nil {
 				return err
 			}
@@ -50,26 +50,28 @@ func Execute(namespace string) error {
 		}
 	}
 
-	// Delete routes (which would prevent connector from being deleted)
-	if len(ns.ControlPlane.Controllers) > 0 {
-		// Get list of microservices from backend
-		endpoint, _ := ns.ControlPlane.GetControllerEndpoint()
-		clt, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
-		if err != nil {
-			return err
-		}
-		msvcs, err := clt.GetAllMicroservices()
-		if err != nil {
-			return err
-		}
-		// Delete routes
-		if len(msvcs.Microservices) > 0 {
-			util.SpinStart("Deleting Routes")
+	if !useDetached {
+		// Delete routes (which would prevent connector from being deleted)
+		if len(ns.ControlPlane.Controllers) > 0 {
+			// Get list of microservices from backend
+			endpoint, _ := ns.ControlPlane.GetControllerEndpoint()
+			clt, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+			if err != nil {
+				return err
+			}
+			msvcs, err := clt.GetAllMicroservices()
+			if err != nil {
+				return err
+			}
+			// Delete routes
+			if len(msvcs.Microservices) > 0 {
+				util.SpinStart("Deleting Routes")
 
-			for _, msvc := range msvcs.Microservices {
-				for _, destUUID := range msvc.Routes {
-					if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
-						return err
+				for _, msvc := range msvcs.Microservices {
+					for _, destUUID := range msvc.Routes {
+						if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -82,7 +84,7 @@ func Execute(namespace string) error {
 
 		var executors []execute.Executor
 		for _, cnct := range ns.Connectors {
-			exe, err := deleteconnector.NewExecutor(namespace, cnct.Name)
+			exe, err := deleteconnector.NewExecutor(namespace, cnct.Name, useDetached, soft)
 			if err != nil {
 				return err
 			}
@@ -101,14 +103,16 @@ func Execute(namespace string) error {
 		}
 	}
 
-	// Delete Controllers
-	util.SpinStart("Deleting ControlPlane")
-	exe, err := deletecontrolplane.NewExecutor(namespace, "controlplane")
-	if err != nil {
-		return err
-	}
-	if err = exe.Execute(); err != nil {
-		return err
+	if !useDetached {
+		// Delete Controllers
+		util.SpinStart("Deleting ControlPlane")
+		exe, err := deletecontrolplane.NewExecutor(namespace, "controlplane", soft)
+		if err != nil {
+			return err
+		}
+		if err = exe.Execute(); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -31,6 +31,7 @@ import (
 type Options struct {
 	Namespace string
 	InputFile string
+	Soft      bool
 }
 
 var kindOrder = []apps.Kind{
@@ -43,27 +44,27 @@ var kindOrder = []apps.Kind{
 	apps.ControlPlaneKind,
 }
 
-var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
-	apps.ApplicationKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deleteapplication.NewExecutor(namespace, name)
+var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	apps.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteapplication.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.MicroserviceKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletemicroservice.NewExecutor(namespace, name)
+	apps.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.ControlPlaneKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(namespace, name)
+	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	apps.AgentKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(namespace, name)
+	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	apps.ConnectorKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deleteconnector.NewExecutor(namespace, name)
+	apps.ConnectorKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteconnector.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	apps.ControllerKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(namespace, name)
+	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	config.CatalogItemKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletecatalogitem.NewExecutor(namespace, name)
+	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
 	},
 }
 

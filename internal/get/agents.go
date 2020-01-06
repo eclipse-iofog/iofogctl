@@ -22,12 +22,14 @@ import (
 )
 
 type agentExecutor struct {
-	namespace string
+	namespace    string
+	showDetached bool
 }
 
-func newAgentExecutor(namespace string) *agentExecutor {
+func newAgentExecutor(namespace string, showDetached bool) *agentExecutor {
 	a := &agentExecutor{}
 	a.namespace = namespace
+	a.showDetached = showDetached
 	return a
 }
 
@@ -36,11 +38,31 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
+	if exe.showDetached {
+		printDetached()
+		if err := generateDetachedAgentOutput(); err != nil {
+			return err
+		}
+		return nil
+	}
 	printNamespace(exe.namespace)
 	if err := generateAgentOutput(exe.namespace); err != nil {
 		return err
 	}
 	return config.Flush()
+}
+
+func generateDetachedAgentOutput() error {
+	detachedResources := config.GetDetachedResources()
+	// Make an index of agents the client knows about and pre-process any info
+	agentsToPrint := make(map[string]client.AgentInfo)
+	for _, agent := range detachedResources.Agents {
+		agentsToPrint[agent.Name] = client.AgentInfo{
+			Name:              agent.Name,
+			IPAddressExternal: agent.Host,
+		}
+	}
+	return tabulateAgents(agentsToPrint)
 }
 
 func generateAgentOutput(namespace string) error {
@@ -115,11 +137,11 @@ func tabulateAgents(agentInfos map[string]client.AgentInfo) error {
 	// Populate rows
 	idx := 0
 	for _, agent := range agentInfos {
-		// if UUID is empty, we assume the agent is not provided
+		// if UUID is empty, we assume the agent is not provisioned
 		if agent.UUID == "" {
 			row := []string{
 				agent.Name,
-				"offline",
+				"not provisioned",
 				"-",
 				"-",
 				agent.IPAddressExternal,

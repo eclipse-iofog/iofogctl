@@ -21,14 +21,17 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(namespace, name, newName string) error {
+func Execute(namespace, name, newName string, useDetached bool) error {
+	util.SpinStart(fmt.Sprintf("Renaming Connector %s", name))
+
+	if useDetached {
+		return config.RenameDetachedAgent(name, newName)
+	}
 	// Check that Connector exists in current namespace
 	_, err := config.GetConnector(namespace, name)
 	if err != nil {
 		return err
 	}
-
-	util.SpinStart(fmt.Sprintf("Renaming Connector %s", name))
 
 	// Do a shallow rename of controller
 	ns, err := config.GetNamespace(namespace)

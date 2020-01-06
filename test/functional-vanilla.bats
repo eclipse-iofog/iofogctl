@@ -86,6 +86,31 @@ spec:
   done
 }
 
+@test "Detach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v detach agent "$AGENT_NAME"
+  checkAgentNegative "$AGENT_NAME"
+  checkDetachedAgent "$AGENT_NAME"
+}
+
+@test "Update detached agent name" {
+  local OLD_NAME="${NAME}-0"
+  local NEW_NAME="${NAME}-renamed"
+  test iofogctl -v rename agent "$OLD_NAME" "$NEW_NAME" --detached
+  checkDetachedAgentNegative "$OLD_NAME"
+  checkDetachedAgent "$NEW_NAME"
+  test iofogctl -v rename agent "$NEW_NAME" "$OLD_NAME" --detached
+  checkDetachedAgentNegative "$NEW_NAME"
+  checkDetachedAgent "$OLD_NAME"
+}
+
+@test "Attach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v attach agent "$AGENT_NAME"
+  checkAgent "$AGENT_NAME"
+  checkDetachedAgentNegative "$AGENT_NAME"
+}
+
 @test "Deploy application" {
   initApplicationFiles
   test iofogctl -v deploy -f test/conf/application.yaml
@@ -214,6 +239,15 @@ spec:
 
 @test "Delete all" {
   test iofogctl -v delete all
+  initVanillaController
+  checkVanillaResourceDeleted $VANILLA_USER $VANILLA_HOST $VANILLA_PORT $KEY_FILE "iofog-controller"
+  checkVanillaResourceDeleted $VANILLA_USER $VANILLA_HOST $VANILLA_PORT $KEY_FILE "iofog-connector"
+ 
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    checkVanillaResourceDeleted ${USERS[$IDX]} ${HOSTS[$IDX]} ${PORTS[$IDX]} $KEY_FILE "iofog-agent"
+  done
+
   checkControllerNegative
   checkConnectorNegative
   checkAgentsNegative

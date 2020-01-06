@@ -54,6 +54,15 @@ func (facade facadeExecutor) GetName() string {
 	return facade.exe.GetName()
 }
 
+func (facade facadeExecutor) ProvisionAgent() (string, error) {
+	// Required for attach
+	provisionExecutor, ok := facade.exe.(execute.ProvisioningExecutor)
+	if !ok {
+		return "", util.NewInternalError("Facade executor: Could not convert executor")
+	}
+	return provisionExecutor.ProvisionAgent()
+}
+
 func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Agent) execute.Executor {
 	return facadeExecutor{
 		exe:       exe,
@@ -62,7 +71,7 @@ func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Age
 	}
 }
 
-func newExecutor(namespace string, agent *config.Agent) (execute.Executor, error) {
+func NewDeployExecutor(namespace string, agent *config.Agent) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
 		return nil, err
 	}
@@ -82,7 +91,7 @@ func newExecutor(namespace string, agent *config.Agent) (execute.Executor, error
 
 	// Default executor
 	if agent.Host == "" || agent.SSH.KeyFile == "" || agent.SSH.User == "" {
-		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
+		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment or provisioning")
 	}
 	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent), nil
 }

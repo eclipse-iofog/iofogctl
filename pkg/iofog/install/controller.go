@@ -88,6 +88,48 @@ func (ctrl *Controller) CopyScript(path string, name string) (err error) {
 	return nil
 }
 
+func (ctrl *Controller) Uninstall() (err error) {
+	// Stop controller gracefully
+	if err = ctrl.Stop(); err != nil {
+		return err
+	}
+
+	// Connect to server
+	verbose("Connecting to server")
+	if err = ctrl.ssh.Connect(); err != nil {
+		return
+	}
+	defer ctrl.ssh.Disconnect()
+
+	// Copy uninstallation scripts to remote host
+	verbose("Copying install files to server")
+	scripts := []string{
+		"controller_uninstall_iofog.sh",
+	}
+	for _, script := range scripts {
+		if err = ctrl.CopyScript("", script); err != nil {
+			return err
+		}
+	}
+
+	cmds := []command{
+		{
+			cmd: "sudo /tmp/controller_uninstall_iofog.sh",
+			msg: "Uninstalling controller on host " + ctrl.Host,
+		},
+	}
+
+	// Execute commands
+	for _, cmd := range cmds {
+		verbose(cmd.msg)
+		_, err = ctrl.ssh.Run(cmd.cmd)
+		if err != nil {
+			return
+		}
+	}
+	return nil
+}
+
 func (ctrl *Controller) Install() (err error) {
 	// Connect to server
 	verbose("Connecting to server")

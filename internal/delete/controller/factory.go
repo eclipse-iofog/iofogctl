@@ -20,7 +20,11 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace, name string) (execute.Executor, error) {
+func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
+	if soft {
+		return nil, util.NewInputError("Cannot soft delete a Controller")
+	}
+
 	// Get controller from config
 	ctrl, err := config.GetController(namespace, name)
 	if err != nil {

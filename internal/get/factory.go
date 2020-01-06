@@ -18,19 +18,19 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(resourceType, namespace string) (execute.Executor, error) {
+func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Executor, error) {
 
 	switch resourceType {
 	case "namespaces":
 		return newNamespaceExecutor(), nil
 	case "all":
-		return newAllExecutor(namespace), nil
+		return newAllExecutor(namespace, showDetached), nil
 	case "controllers":
 		return newControllerExecutor(namespace), nil
 	case "connectors":
-		return newConnectorExecutor(namespace), nil
+		return newConnectorExecutor(namespace, showDetached), nil
 	case "agents":
-		return newAgentExecutor(namespace), nil
+		return newAgentExecutor(namespace, showDetached), nil
 	case "microservices":
 		return newMicroserviceExecutor(namespace), nil
 	case "applications":

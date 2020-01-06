@@ -570,8 +570,8 @@ func DeleteConnector(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	for idx := range ns.Connectors {
-		if ns.Connectors[idx].Name == name {
+	for idx, connector := range ns.Connectors {
+		if connector.Name == name {
 			mux.Lock()
 			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
 			mux.Unlock()
@@ -639,6 +639,12 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	}
 	if err = yaml.UnmarshalStrict(bytes, &c); err != nil {
 		return
+	}
+	if c.DetachedResources.Connectors == nil {
+		c.DetachedResources.Connectors = make(map[string]Connector)
+	}
+	if c.DetachedResources.Agents == nil {
+		c.DetachedResources.Agents = make(map[string]Agent)
 	}
 	return
 }
@@ -722,4 +728,151 @@ func NewRandomUser() IofogUser {
 		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
 		Password: util.RandomString(10, util.AlphaNum),
 	}
+}
+
+func GetDetachedAgent(name string) (Agent, error) {
+	if agent, found := conf.DetachedResources.Agents[name]; found {
+		return agent, nil
+	}
+
+	return Agent{}, util.NewNotFoundError(name)
+}
+
+func GetDetachedConnector(name string) (Connector, error) {
+	if connector, found := conf.DetachedResources.Connectors[name]; found {
+		return connector, nil
+	}
+
+	return Connector{}, util.NewNotFoundError(name)
+}
+
+func AttachConnector(namespace, name string) error {
+	connector, err := GetDetachedConnector(name)
+	if err != nil {
+		return err
+	}
+	delete(conf.DetachedResources.Connectors, name)
+	if err = FlushConfig(); err != nil {
+		return err
+	}
+	return UpdateConnector(namespace, connector)
+}
+
+func AttachAgent(namespace, name, UUID string) error {
+	agent, err := GetDetachedAgent(name)
+	if err != nil {
+		return err
+	}
+	delete(conf.DetachedResources.Agents, name)
+	if err = FlushConfig(); err != nil {
+		return err
+	}
+	agent.UUID = UUID
+	return UpdateAgent(namespace, agent)
+}
+
+func DetachConnector(namespace, name string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	for idx := range ns.Connectors {
+		if ns.Connectors[idx].Name == name {
+			mux.Lock()
+			detachedConnector := ns.Connectors[idx]
+			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
+			conf.DetachedResources.Connectors[detachedConnector.Name] = detachedConnector
+			mux.Unlock()
+			return FlushConfig()
+		}
+	}
+
+	return util.NewNotFoundError(ns.Name + "/" + name)
+}
+
+func DetachAgent(namespace, name string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	for idx := range ns.Agents {
+		if ns.Agents[idx].Name == name {
+			mux.Lock()
+			detachedAgent := ns.Agents[idx]
+			detachedAgent.UUID = ""
+			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
+			conf.DetachedResources.Agents[detachedAgent.Name] = detachedAgent
+			mux.Unlock()
+			return FlushConfig()
+		}
+	}
+
+	return util.NewNotFoundError(ns.Name + "/" + name)
+}
+
+func GetDetachedResources() DetachedResources {
+	return conf.DetachedResources
+}
+
+func RenameDetachedAgent(oldName, newName string) error {
+	agent, err := GetDetachedAgent(oldName)
+	if err != nil {
+		return err
+	}
+	agent.Name = newName
+	delete(conf.DetachedResources.Agents, oldName)
+	conf.DetachedResources.Agents[newName] = agent
+	return FlushConfig()
+}
+
+func RenameDetachedConnector(oldName, newName string) error {
+	connector, err := GetDetachedConnector(oldName)
+	if err != nil {
+		return err
+	}
+	connector.Name = newName
+	delete(conf.DetachedResources.Connectors, oldName)
+	conf.DetachedResources.Connectors[newName] = connector
+	return FlushConfig()
+}
+
+func DeleteDetachedResources() error {
+	conf.DetachedResources = DetachedResources{
+		Agents:     make(map[string]Agent),
+		Connectors: make(map[string]Connector),
+	}
+
+	return FlushConfig()
+}
+
+func DeleteDetachedAgent(name string) error {
+	if _, err := GetDetachedAgent(name); err != nil {
+		return err
+	}
+	delete(conf.DetachedResources.Agents, name)
+	return FlushConfig()
+}
+
+func DeleteDetachedConnector(name string) error {
+	if _, err := GetDetachedConnector(name); err != nil {
+		return err
+	}
+	delete(conf.DetachedResources.Connectors, name)
+	return FlushConfig()
+}
+
+func UpdateDetachedAgent(agent Agent) error {
+	if _, err := GetDetachedAgent(agent.Name); err != nil {
+		return err
+	}
+	conf.DetachedResources.Agents[agent.Name] = agent
+	return FlushConfig()
+}
+
+func UpdateDetachedConnector(connector Connector) error {
+	if _, err := GetDetachedConnector(connector.Name); err != nil {
+		return err
+	}
+	conf.DetachedResources.Connectors[connector.Name] = connector
+	return FlushConfig()
 }

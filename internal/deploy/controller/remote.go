@@ -38,7 +38,7 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
-	// Instantiate installer
+	// Instantiate deployer
 	controllerOptions := &install.ControllerOptions{
 		User:            exe.ctrl.SSH.User,
 		Host:            exe.ctrl.Host,
@@ -48,16 +48,16 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Repo:            exe.ctrl.Package.Repo,
 		Token:           exe.ctrl.Package.Token,
 	}
-	installer := install.NewController(controllerOptions)
+	deployer := install.NewController(controllerOptions)
 
 	// Set database configuration
 	if exe.controlPlane.Database.Host != "" {
 		db := exe.controlPlane.Database
-		installer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Provider, db.DatabaseName, db.Port)
+		deployer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Provider, db.DatabaseName, db.Port)
 	}
 
-	// Install Controller
-	if err = installer.Install(); err != nil {
+	// Deploy Controller
+	if err = deployer.Install(); err != nil {
 		return
 	}
 	// Update controller (its a pointer, this is returned to caller)

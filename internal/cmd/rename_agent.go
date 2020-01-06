@@ -32,9 +32,11 @@ func newRenameAgentCommand() *cobra.Command {
 			newName := args[1]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
 
 			// Get an executor for the command
-			err = rename.Execute(namespace, name, newName)
+			err = rename.Execute(namespace, name, newName, useDetached)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully renamed agent " + name + " to " + newName)

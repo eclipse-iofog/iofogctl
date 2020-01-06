@@ -37,8 +37,25 @@ func (exe *remoteExecutor) GetName() string {
 	return exe.agent.Name
 }
 
+func (exe *remoteExecutor) ProvisionAgent() (string, error) {
+	// Get agent
+	agent := install.NewRemoteAgent(exe.agent.SSH.User, exe.agent.Host, exe.agent.SSH.Port, exe.agent.SSH.KeyFile, exe.agent.Name)
+
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil {
+		return "", err
+	}
+	controllerEndpoint, err := controlPlane.GetControllerEndpoint()
+	if err != nil {
+		return "", util.NewError("Failed to retrieve Controller endpoint!")
+	}
+
+	// Configure the agent with Controller details
+	return agent.Configure(controllerEndpoint, install.IofogUser(controlPlane.IofogUser))
+}
+
 //
-// Install iofog-agent stack on an agent host
+// Deploy iofog-agent stack on an agent host
 //
 func (exe *remoteExecutor) Execute() (err error) {
 	// Get Control Plane
@@ -55,25 +72,19 @@ func (exe *remoteExecutor) Execute() (err error) {
 	agent.SetVersion(exe.agent.Package.Version)
 	agent.SetRepository(exe.agent.Package.Repo, exe.agent.Package.Token)
 
-	// Try the install
+	// Try the deploy
 	err = agent.Bootstrap()
 	if err != nil {
 		return
 	}
 
-	// Configure the agent with Controller details
-	controllerEndpoint, err := controlPlane.GetControllerEndpoint()
+	UUID, err := exe.ProvisionAgent()
 	if err != nil {
-		util.PrintError("Failed to retrieve Controller endpoint!")
-		return
-	}
-	uuid, err := agent.Configure(controllerEndpoint, install.IofogUser(controlPlane.IofogUser))
-	if err != nil {
-		return
+		return err
 	}
 
 	// Return the Agent through pointer
-	exe.agent.UUID = uuid
+	exe.agent.UUID = UUID
 	exe.agent.Created = util.NowUTC()
 
 	return
