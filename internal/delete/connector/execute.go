@@ -48,8 +48,8 @@ func (exe executor) Execute() error {
 			} else {
 				for _, connector := range connectors.Connectors {
 					if connector.Name == exe.name {
-						if err = ctrlClient.DeleteConnector(connector.IP); err != nil {
-							util.PrintInfo(fmt.Sprintf("Could not delete connector %s, IP %s from the Controller. Error: %s\n", exe.name, connector.IP, err.Error()))
+						if err = ctrlClient.DeleteConnector(connector.Name); err != nil {
+							util.PrintInfo(fmt.Sprintf("Could not delete connector %s, from the Controller. Error: %s\n", connector.Name, err.Error()))
 						}
 					}
 				}
