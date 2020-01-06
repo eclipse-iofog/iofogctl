@@ -85,7 +85,7 @@ func (exe executor) Execute() error {
 	}
 
 	if exe.opt.UseDetached {
-		if err = config.AttachAgent(exe.opt.Namespace, exe.opt.Name); err != nil {
+		if err = config.AttachAgent(exe.opt.Namespace, exe.opt.Name, UUID); err != nil {
 			return err
 		}
 	} else {

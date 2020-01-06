@@ -758,7 +758,7 @@ func AttachConnector(namespace, name string) error {
 	return UpdateConnector(namespace, connector)
 }
 
-func AttachAgent(namespace, name string) error {
+func AttachAgent(namespace, name, UUID string) error {
 	agent, err := GetDetachedAgent(name)
 	if err != nil {
 		return err
@@ -767,6 +767,7 @@ func AttachAgent(namespace, name string) error {
 	if err = FlushConfig(); err != nil {
 		return err
 	}
+	agent.UUID = UUID
 	return UpdateAgent(namespace, agent)
 }
 
