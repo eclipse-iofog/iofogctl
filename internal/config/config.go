@@ -570,15 +570,11 @@ func DeleteConnector(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Connectors: %v\n", ns.Connectors)
-
 	for idx, connector := range ns.Connectors {
-		fmt.Printf("Connector: %v\n", connector)
 		if connector.Name == name {
 			mux.Lock()
 			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
 			mux.Unlock()
-			fmt.Printf("Deleted Connector: %v\n", connector)
 			return nil
 		}
 	}

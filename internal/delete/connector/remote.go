@@ -44,10 +44,5 @@ func (exe executor) remoteRemove() error {
 		}
 	}
 
-	// Update config
-	if err := config.DeleteConnector(exe.namespace, exe.name); err != nil {
-		return err
-	}
-
 	return nil
 }
