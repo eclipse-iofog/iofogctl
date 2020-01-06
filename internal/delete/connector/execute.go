@@ -44,12 +44,12 @@ func (exe executor) Execute() error {
 		if err == nil {
 			connectors, err := ctrlClient.ListConnectors()
 			if err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not delete connector %s from the Controller. Error: %s\n", exe.name, err.Error()))
+				util.PrintInfo(fmt.Sprintf("Could not list connectors %s from the Controller. Error: %s\n", exe.name, err.Error()))
 			} else {
 				for _, connector := range connectors.Connectors {
 					if connector.Name == exe.name {
 						if err = ctrlClient.DeleteConnector(connector.IP); err != nil {
-							util.PrintInfo(fmt.Sprintf("Could not delete connector %s from the Controller. Error: %s\n", exe.name, err.Error()))
+							util.PrintInfo(fmt.Sprintf("Could not delete connector %s, IP %s from the Controller. Error: %s\n", exe.name, connector.IP, err.Error()))
 						}
 					}
 				}
