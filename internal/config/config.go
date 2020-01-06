@@ -570,8 +570,8 @@ func DeleteConnector(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	for idx := range ns.Connectors {
-		if ns.Connectors[idx].Name == name {
+	for idx, connector := range ns.Connectors {
+		if connector.Name == name {
 			mux.Lock()
 			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
 			mux.Unlock()
