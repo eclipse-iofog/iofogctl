@@ -264,6 +264,11 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
 
+	var cmdPointer *[]string
+	if exe.msvc.Commands != nil {
+		cmdPointer = &exe.msvc.Commands
+	}
+
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
@@ -275,7 +280,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
 		Routes:         exe.routes,
-		Commands:       &exe.msvc.Commands,
+		Commands:       cmdPointer,
 		Images:         images,
 		Rebuild:        exe.msvc.Rebuild,
 	})
