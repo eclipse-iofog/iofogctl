@@ -31,7 +31,7 @@ all: init build install ## Get deps, build, and install binary
 
 .PHONY: clean
 clean: ## Clean the working area and the project
-	rm -rf $(BUILD_DIR)/ vendor/
+	rm -rf $(BUILD_DIR)/
 	rm -rf $(REPORTS_DIR)
 
 .PHONY: init
