@@ -38,6 +38,13 @@ clean: ## Clean the working area and the project
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
 
+.PHONY: vendor
+vendor: ## Vendor all deps
+	@go mod vendor
+	@for dep in GeertJohan akavel jessevdk jstemmer nkovacs valyala; do \
+		git checkout -- vendor/github.com/$$dep; \
+	done
+
 .PHONY: build
 build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: fmt ## Build the binary
