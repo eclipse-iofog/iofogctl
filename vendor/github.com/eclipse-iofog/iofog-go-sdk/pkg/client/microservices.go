@@ -61,6 +61,9 @@ func (clt *Client) CreateMicroservice(request MicroserviceCreateRequest) (*Micro
 	if request.Routes == nil {
 		request.Routes = []string{}
 	}
+	if request.Commands == nil {
+		request.Commands = []string{}
+	}
 
 	// Make request
 	body, err := clt.doRequest("POST", "/microservices", request)

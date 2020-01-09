@@ -87,6 +87,7 @@ type Microservice struct {
 	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
 	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
 	Routes         []string                     `yaml:"routes,omitempty" json:"routes,omitempty"`
+	Commands       []string                     `yaml:"cmd,omitempty" json:"cmd,omitempty"`
 	Flow           *string                      `yaml:"application,omitempty" json:"application,omitempty"`
 	Created        string                       `yaml:"created,omitempty" json:"created,omitempty"`
 	Rebuild        bool                         `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
