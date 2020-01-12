@@ -122,10 +122,11 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	envs := mapEnvs(msvc.Env)
 	result.Images = &images
 	result.Config = jsonConfig
-	result.RootHostAccess = msvc.RootHostAccess
-	result.Ports = mapPorts(msvc.Ports)
-	result.Volumes = &volumes
-	result.Env = &envs
+	result.Container.RootHostAccess = msvc.RootHostAccess
+	result.Container.Commands = msvc.Commands
+	result.Container.Ports = mapPorts(msvc.Ports)
+	result.Container.Volumes = &volumes
+	result.Container.Env = &envs
 	result.Routes = routes
 	result.Flow = &application.Name
 	return

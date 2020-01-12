@@ -74,23 +74,29 @@ type MicroserviceAgent struct {
 	Config AgentConfiguration `yaml:"config" json:"config"`
 }
 
+// MicroserviceContainer contains information for configuring a microservice container
+// +k8s:deepcopy-gen=true
+type MicroserviceContainer struct {
+	Commands       []string                     `yaml:"cmd,omitempty" json:"cmd,omitempty"`
+	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
+	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
+	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
+}
+
 // Microservice contains information for configuring a microservice
 // +k8s:deepcopy-gen=true
 type Microservice struct {
-	UUID           string                       `yaml:"uuid" json:"uuid"`
-	Name           string                       `yaml:"name" json:"name"`
-	Agent          MicroserviceAgent            `yaml:"agent" json:"agent"`
-	Images         *MicroserviceImages          `yaml:"images,omitempty" json:"images,omitempty"`
-	Config         NestedMap                    `yaml:"config" json:"config"`
-	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
-	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
-	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
-	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
-	Routes         []string                     `yaml:"routes,omitempty" json:"routes,omitempty"`
-	Commands       []string                     `yaml:"cmd,omitempty" json:"cmd,omitempty"`
-	Flow           *string                      `yaml:"application,omitempty" json:"application,omitempty"`
-	Created        string                       `yaml:"created,omitempty" json:"created,omitempty"`
-	Rebuild        bool                         `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
+	UUID      string                `yaml:"uuid" json:"uuid"`
+	Name      string                `yaml:"name" json:"name"`
+	Agent     MicroserviceAgent     `yaml:"agent" json:"agent"`
+	Images    *MicroserviceImages   `yaml:"images,omitempty" json:"images,omitempty"`
+	Container MicroserviceContainer `yaml:"container,omitempty" json:"container,omitempty"`
+	Config    NestedMap             `yaml:"config" json:"config"`
+	Routes    []string              `yaml:"routes,omitempty" json:"routes,omitempty"`
+	Flow      *string               `yaml:"application,omitempty" json:"application,omitempty"`
+	Created   string                `yaml:"created,omitempty" json:"created,omitempty"`
+	Rebuild   bool                  `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
 }
 
 type NestedMap map[string]interface{}
