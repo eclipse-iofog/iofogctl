@@ -35,18 +35,19 @@ spec:
     arm: edgeworx/healthcare-heart-rate:test-arm
     x86: edgeworx/healthcare-heart-rate:test
     registry: remote # public docker
-  rootHostAccess: false
+  container:
+    rootHostAccess: false
+    volumes:
+      - hostDestination: /tmp/microservice
+        containerDestination: /tmp
+        accessMode: rw
+    ports:
+      - internal: 443
+        external: 5005
+    env:
+      - key: TEST
+        value: 42
   application: ${APPLICATION_NAME}
-  volumes:
-    - hostDestination: /tmp/microservice
-      containerDestination: /tmp
-      accessMode: rw
-  ports:
-    - internal: 443
-      external: 5005
-  env:
-    - key: TEST
-      value: 42
   routes:
     - ${MSVC1_NAME}
     - ${MSVC2_NAME}
@@ -71,22 +72,23 @@ spec:
     arm: edgeworx/healthcare-heart-rate:test-arm
     x86: edgeworx/healthcare-heart-rate:test
     registry: remote # public docker
-  rootHostAccess: false
+  container:
+    rootHostAccess: false
+    volumes:
+      - hostDestination: /tmp/updatedmicroservice
+        containerDestination: /tmp
+        accessMode: rw
+    ports:
+      - internal: 443
+        external: 5443
+      - internal: 80
+        external: 5080
+    env:
+      - key: TEST
+        value: 75
+      - key: TEST_2
+        value: 42
   application: ${APPLICATION_NAME}
-  volumes:
-    - hostDestination: /tmp/updatedmicroservice
-      containerDestination: /tmp
-      accessMode: rw
-  ports:
-    - internal: 443
-      external: 5443
-    - internal: 80
-      external: 5080
-  env:
-    - key: TEST
-      value: 75
-    - key: TEST_2
-      value: 42
   routes:
     - ${MSVC1_NAME}
   config:
@@ -109,12 +111,13 @@ function initApplicationFiles() {
         arm: edgeworx/healthcare-heart-rate:arm-v1
         x86: edgeworx/healthcare-heart-rate:x86-v1
         registry: remote # public docker
-      rootHostAccess: false
-      volumes:
-        - hostDestination: /tmp/msvc
-          containerDestination: /tmp
-          accessMode: z
-      ports: []
+      container:
+        rootHostAccess: false
+        volumes:
+          - hostDestination: /tmp/msvc
+            containerDestination: /tmp
+            accessMode: z
+        ports: []
       config:
         test_mode: true
         data_label: 'Anonymous_Person'
@@ -126,16 +129,17 @@ function initApplicationFiles() {
         arm: edgeworx/healthcare-heart-rate-ui:arm
         x86: edgeworx/healthcare-heart-rate-ui:x86
         registry: remote
-      rootHostAccess: false
-      ports:
-        # The ui will be listening on port 80 (internal).
-        - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
-          internal: 80 # The ui is listening on port 80. Do not edit this.
-          publicMode: false # Do not edit this.
-      volumes: []
-      env:
-        - key: BASE_URL
-          value: http://localhost:8080/data"
+      container:
+        rootHostAccess: false
+        ports:
+          # The ui will be listening on port 80 (internal).
+          - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
+            internal: 80 # The ui is listening on port 80. Do not edit this.
+            publicMode: false # Do not edit this.
+        volumes: []
+        env:
+          - key: BASE_URL
+            value: http://localhost:8080/data"
   ROUTES="
     routes:
     # Use this section to configure route between microservices
