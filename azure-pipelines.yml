@@ -314,10 +314,17 @@ stages:
         test/run.bash functional-local | tee test/conf/results-functional-local.tap
       displayName: 'Run Functional Tests'
     - script: |
-        docker "system" "prune" "-af"
         RD /S /Q "C:\Users\$(azure.windows.user)\.iofog\"
       condition: always()
-      displayName: 'Clean local environment'
+      displayName: 'Clean local .iofog environment'
+    - bash: |
+        if [[ -z $(echo $DOCKER_HOST) ]]; then
+          export DOCKER_HOST="tcp://localhost:2375"
+        fi
+        docker rm -f $(docker ps -aq)
+        docker "system" "prune" "-af"
+      condition: always()
+      displayName: 'Clean local docker environment'
     
   - job: Vanilla_Xenial
     condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
