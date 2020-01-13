@@ -449,7 +449,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 					// Return external IP of any of the nodes in the cluster
 					for _, node := range nodeList.Items {
 						for _, addrs := range node.Status.Addresses {
-							if addrs.Type == "ExternalIP" {
+							if addrs.Type == v1.NodeExternalIP {
 								ip = addrs.Address
 								break
 							}
@@ -459,7 +459,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
 						for _, node := range nodeList.Items {
 							for _, addrs := range node.Status.Addresses {
-								if addrs.Type == "InternalIP" {
+								if addrs.Type == v1.NodeInternalIP {
 									ip = addrs.Address
 									break
 								}
