@@ -35,7 +35,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	ctrl := client.New(controllerEndpoint)
 
 	// Log in
-	verbose("Accessing Controller to generate Provisioning Key")
+	Verbose("Accessing Controller to generate Provisioning Key")
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,

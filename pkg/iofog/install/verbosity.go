@@ -24,7 +24,7 @@ func SetVerbosity(verbose bool) {
 	isVerbose = verbose
 }
 
-func verbose(msg string) {
+func Verbose(msg string) {
 	if isVerbose {
 		fmt.Println(msg)
 	}

@@ -47,14 +47,14 @@ func (cnct *Connector) Uninstall() (err error) {
 	}
 
 	// Connect to server
-	verbose("Connecting to server")
+	Verbose("Connecting to server")
 	if err = cnct.ssh.Connect(); err != nil {
 		return
 	}
 	defer cnct.ssh.Disconnect()
 
 	// Copy uninstallation scripts to remote host
-	verbose("Copying install files to server")
+	Verbose("Copying install files to server")
 	scripts := []string{
 		"connector_uninstall.sh",
 	}
@@ -73,7 +73,7 @@ func (cnct *Connector) Uninstall() (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose("Running command: " + cmd)
+		Verbose("Running command: " + cmd)
 		_, err = cnct.ssh.Run(cmd)
 		if err != nil {
 			return
@@ -85,14 +85,14 @@ func (cnct *Connector) Uninstall() (err error) {
 
 func (cnct *Connector) Install() (err error) {
 	// Connect to server
-	verbose("Connecting to server")
+	Verbose("Connecting to server")
 	if err = cnct.ssh.Connect(); err != nil {
 		return
 	}
 	defer cnct.ssh.Disconnect()
 
 	// Copy installation scripts to remote host
-	verbose("Copying install files to server")
+	Verbose("Copying install files to server")
 	scripts := []string{
 		"check_prereqs.sh",
 		"connector_install.sh",
@@ -113,7 +113,7 @@ func (cnct *Connector) Install() (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose("Running command: " + cmd)
+		Verbose("Running command: " + cmd)
 		_, err = cnct.ssh.Run(cmd)
 		if err != nil {
 			return
@@ -125,7 +125,7 @@ func (cnct *Connector) Install() (err error) {
 		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 	}
 	// Wait for Connector
-	verbose("Waiting for Connector")
+	Verbose("Waiting for Connector")
 	if err = cnct.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"running\""),
 		fmt.Sprintf("curl --request POST --url http://localhost:%s/api/v2/status --header 'Content-Type: application/x-www-form-urlencoded' --data mappingid=all", iofog.ConnectorPortString),
@@ -135,7 +135,7 @@ func (cnct *Connector) Install() (err error) {
 	}
 
 	// Provision the Connector with Controller
-	verbose("Provisioning Connector")
+	Verbose("Provisioning Connector")
 	ctrlClient := client.New(cnct.ControllerEndpoint)
 	loginRequest := client.LoginRequest{
 		Email:    cnct.IofogUser.Email,

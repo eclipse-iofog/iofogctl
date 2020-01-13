@@ -95,14 +95,14 @@ func (ctrl *Controller) Uninstall() (err error) {
 	}
 
 	// Connect to server
-	verbose("Connecting to server")
+	Verbose("Connecting to server")
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
 	defer ctrl.ssh.Disconnect()
 
 	// Copy uninstallation scripts to remote host
-	verbose("Copying install files to server")
+	Verbose("Copying install files to server")
 	scripts := []string{
 		"controller_uninstall_iofog.sh",
 	}
@@ -121,7 +121,7 @@ func (ctrl *Controller) Uninstall() (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose(cmd.msg)
+		Verbose(cmd.msg)
 		_, err = ctrl.ssh.Run(cmd.cmd)
 		if err != nil {
 			return
@@ -132,14 +132,14 @@ func (ctrl *Controller) Uninstall() (err error) {
 
 func (ctrl *Controller) Install() (err error) {
 	// Connect to server
-	verbose("Connecting to server")
+	Verbose("Connecting to server")
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
 	defer ctrl.ssh.Disconnect()
 
 	// Copy installation scripts to remote host
-	verbose("Copying install files to server")
+	Verbose("Copying install files to server")
 	scripts := []string{
 		"check_prereqs.sh",
 		"controller_install_node.sh",
@@ -152,7 +152,7 @@ func (ctrl *Controller) Install() (err error) {
 	}
 
 	// Copy service scripts to remote host
-	verbose("Copying service files to server")
+	Verbose("Copying service files to server")
 	if _, err = ctrl.ssh.Run("mkdir -p /tmp/iofog-controller-service"); err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose(cmd.msg)
+		Verbose(cmd.msg)
 		_, err = ctrl.ssh.Run(cmd.cmd)
 		if err != nil {
 			return
@@ -202,7 +202,7 @@ func (ctrl *Controller) Install() (err error) {
 		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 	}
 	// Wait for Controller
-	verbose("Waiting for Controller " + ctrl.Host)
+	Verbose("Waiting for Controller " + ctrl.Host)
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),

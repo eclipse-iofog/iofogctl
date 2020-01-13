@@ -196,7 +196,7 @@ func (k8s *Kubernetes) enableKogClient() (err error) {
 // CreateController on cluster
 func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Database) error {
 	// Create namespace if required
-	verbose("Creating namespace " + k8s.ns)
+	Verbose("Creating namespace " + k8s.ns)
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: k8s.ns,
@@ -209,13 +209,13 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 	}
 
 	// Set up CRDs if required
-	verbose("Enabling CRDs")
+	Verbose("Enabling CRDs")
 	if err := k8s.enableCustomResources(); err != nil {
 		return err
 	}
 
 	// Check if kog exists
-	verbose("Finding existing Kog")
+	Verbose("Finding existing Kog")
 	kogKey := kogclient.ObjectKey{
 		Name:      k8s.kogInstanceName,
 		Namespace: k8s.ns,
@@ -257,12 +257,12 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 
 	// Create or update Kog
 	if found {
-		verbose("Updating existing Kog")
+		Verbose("Updating existing Kog")
 		if err := k8s.kogClient.Update(context.Background(), &kog); err != nil {
 			return err
 		}
 	} else {
-		verbose("Deploying new Kog")
+		Verbose("Deploying new Kog")
 		if err := k8s.kogClient.Create(context.Background(), &kog); err != nil {
 			return err
 		}
@@ -456,7 +456,18 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 						}
 					}
 					if ip == "" {
-						err = util.NewError("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name)
+						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
+						for _, node := range nodeList.Items {
+							for _, addrs := range node.Status.Addresses {
+								if addrs.Type == "InternalIP" {
+									ip = addrs.Address
+									break
+								}
+							}
+						}
+						if ip == "" {
+							err = util.NewError("Could not get an external or internal IP address of any Kubernetes nodes for NodePort service " + name)
+						}
 					}
 				}
 			}

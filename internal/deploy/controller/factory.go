@@ -33,6 +33,7 @@ func (facade facadeExecutor) Execute() (err error) {
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
+	install.Verbose(fmt.Sprintf("Controller is running at %s", facade.controller.Endpoint))
 	if err = config.UpdateController(facade.namespace, *facade.controller); err != nil {
 		return
 	}

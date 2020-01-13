@@ -226,7 +226,7 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose(cmd.msg)
+		Verbose(cmd.msg)
 		if _, err = agent.ssh.Run(cmd.cmd); err != nil {
 			return err
 		}
@@ -236,7 +236,7 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 }
 
 func (agent RemoteAgent) copyInstallScriptsToAgent() error {
-	verbose("Copying install scripts to Agent " + agent.name)
+	Verbose("Copying install scripts to Agent " + agent.name)
 	// Declare scripts to copy
 	scripts := []string{
 		"check_prereqs.sh",
@@ -250,7 +250,7 @@ func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 }
 
 func (agent RemoteAgent) copyUninstallScriptsToAgent() error {
-	verbose("Copying uninstall scripts to Agent " + agent.name)
+	Verbose("Copying uninstall scripts to Agent " + agent.name)
 	// Declare scripts to copy
 	scripts := []string{
 		"agent_init.sh",

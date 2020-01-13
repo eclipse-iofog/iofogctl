@@ -450,7 +450,7 @@ func (lc *LocalContainer) WaitForCommand(containerName string, condition *regexp
 	for iteration := 0; iteration < 30; iteration++ {
 		output, err := lc.ExecuteCmd(containerName, command)
 		if err != nil {
-			verbose(fmt.Sprintf("Container command %v failed with error %v\n", command, err.Error()))
+			Verbose(fmt.Sprintf("Container command %v failed with error %v\n", command, err.Error()))
 		}
 		if condition.MatchString(output.StdOut) {
 			return nil
