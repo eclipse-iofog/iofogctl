@@ -77,7 +77,7 @@ type MicroserviceAgent struct {
 // MicroserviceContainer contains information for configuring a microservice container
 // +k8s:deepcopy-gen=true
 type MicroserviceContainer struct {
-	Commands       []string                     `yaml:"cmd,omitempty" json:"cmd,omitempty"`
+	Commands       []string                     `yaml:"commands,omitempty" json:"commands,omitempty"`
 	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
 	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
 	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
