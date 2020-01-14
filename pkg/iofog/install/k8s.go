@@ -143,6 +143,7 @@ func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) 
 		})
 	}
 	existingKog.Spec.Connectors.Image = k8s.ms["connector"].containers[0].image
+	existingKog.Spec.Connectors.ServiceType = k8s.ms["connector"].serviceType
 
 	err = k8s.kogClient.Update(context.Background(), existingKog)
 	if err != nil {
@@ -495,15 +496,23 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 	return
 }
 
-func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
+func (k8s *Kubernetes) setServiceType(msvc, svcType string) (err error) {
 	if svcType == "" {
 		return nil
 	}
 	if svcType != "LoadBalancer" && svcType != "NodePort" && svcType != "ClusterIP" {
-		err = util.NewInputError("Tried to set K8s Controller Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
+		err = util.NewInputError("Tried to set K8s Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
 	}
-	k8s.ms["controller"].serviceType = svcType
+	k8s.ms[msvc].serviceType = svcType
 	return
+}
+
+func (k8s *Kubernetes) SetConnectorServiceType(svcType string) (err error) {
+	return k8s.setServiceType("connector", svcType)
+}
+
+func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
+	return k8s.setServiceType("controller", svcType)
 }
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {

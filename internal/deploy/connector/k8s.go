@@ -53,6 +53,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 
 	// Configure deploy
 	installer.SetConnectorImage(exe.cnct.Container.Image)
+	installer.SetConnectorServiceType(exe.cnct.Kube.ServiceType)
 
 	// Create connector on cluster
 	if err = installer.CreateConnector(exe.cnct.Name, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
