@@ -26,6 +26,7 @@ import (
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
+	deployregistry "github.com/eclipse-iofog/iofogctl/internal/deploy/registry"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -37,6 +38,7 @@ var kindOrder = []apps.Kind{
 	// apps.ConnectorKind,
 	apps.AgentKind,
 	config.AgentConfigKind,
+	config.RegistryKind,
 	config.CatalogItemKind,
 	apps.ApplicationKind,
 	apps.MicroserviceKind,
@@ -79,6 +81,10 @@ func deployController(opt execute.KindHandlerOpt) (exe execute.Executor, err err
 	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
+func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployregistry.NewExecutor(deployregistry.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
 	apps.ApplicationKind:   deployApplication,
 	config.CatalogItemKind: deployCatalogItem,
@@ -88,6 +94,7 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	config.AgentConfigKind: deployAgentConfig,
 	apps.ConnectorKind:     deployConnector,
 	apps.ControllerKind:    deployController,
+	config.RegistryKind:    deployRegistry,
 }
 
 // Execute deploy from yaml file

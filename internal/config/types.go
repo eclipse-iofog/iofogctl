@@ -24,6 +24,7 @@ const (
 	CatalogItemKind       apps.Kind = "CatalogItem"
 	IofogctlConfigKind    apps.Kind = "IofogctlConfig"
 	IofogctlNamespaceKind apps.Kind = "IofogctlNamespace"
+	RegistryKind          apps.Kind = "Registry"
 )
 
 type Container struct {
@@ -114,6 +115,17 @@ type Controller struct {
 	Created   string    `yaml:"created,omitempty"`
 	Package   Package   `yaml:"package,omitempty"`
 	Container Container `yaml:"container,omitempty"`
+}
+
+type Registry struct {
+	URL          *string `yaml:"url"`
+	Private      *bool   `yaml:"private"`
+	Username     *string `yaml:"username"`
+	Password     *string `yaml:"password"`
+	Email        *string `yaml:"email"`
+	RequiresCert *bool   `yaml:"requireCert"`
+	Certificate  *string `yaml:"certificate,omitempty"`
+	ID           int     `yaml:"id"`
 }
 
 // AgentConfiguration contains configuration information for a deployed agent

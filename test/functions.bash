@@ -591,3 +591,50 @@ function checkVanillaResourceDeleted() {
 function checkLocalResourcesDeleted() {
   [[ -z $(docker ps -aq) ]]
 }
+
+function initGCRRegistryFile() {
+  echo "---
+kind: Registry
+apiVersion: iofog.org/v1
+spec:
+  url: gcr.io
+  email: alex@edgeworx.io
+  username: _json_key
+  password: my_fake_password
+  private: true
+  " > test/conf/gcr.yaml
+}
+
+function initUpdatedGCRRegistryFile() {
+  echo "---
+kind: Registry
+apiVersion: iofog.org/v1
+spec:
+  id: 3
+  url: https://gcr.io
+  email: alex@edgeworx.io
+  username: _json_key
+  password: my_fake_password
+  private: true
+  " > test/conf/gcr.yaml
+}
+
+function checkGCRRegistry() {
+  iofogctl get -n "$NS" registries
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}'
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}'
+  [[ "3" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
+  [[ "gcr.io" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}') ]]
+}
+
+function checkUpdatedGCRRegistry() {
+  iofogctl get -n "$NS" registries
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}'
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}'
+  [[ "3" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
+  [[ "https://gcr.io" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}') ]]
+}
+
+function checkGCRRegistryNegative() {
+  [[ -z $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
+}

@@ -25,6 +25,7 @@ import (
 	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
 	deletemicroservice "github.com/eclipse-iofog/iofogctl/internal/delete/microservice"
+	deleteregistry "github.com/eclipse-iofog/iofogctl/internal/delete/registry"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 )
 
@@ -38,6 +39,7 @@ var kindOrder = []apps.Kind{
 	config.CatalogItemKind,
 	apps.MicroserviceKind,
 	apps.ApplicationKind,
+	config.RegistryKind,
 	apps.AgentKind,
 	apps.ConnectorKind,
 	apps.ControllerKind,
@@ -65,6 +67,9 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
+	},
+	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
 	},
 }
 
