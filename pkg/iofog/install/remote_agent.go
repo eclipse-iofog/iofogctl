@@ -186,6 +186,23 @@ func (agent *RemoteAgent) Stop() (err error) {
 	return
 }
 
+func (agent *RemoteAgent) Prune() (err error) {
+	// Prepare commands
+	cmds := []command{
+		{
+			cmd: "sudo -S service iofog-agent prune",
+			msg: "Pruning Agent " + agent.name,
+		},
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return err
+	}
+
+	return
+}
+
 func (agent *RemoteAgent) Uninstall() (err error) {
 	// Prepare Agent for removal
 	if err := agent.copyUninstallScriptsToAgent(); err != nil {

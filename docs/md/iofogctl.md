@@ -35,6 +35,7 @@ iofogctl [flags]
 * [iofogctl legacy](iofogctl_legacy.md)	 - Execute commands using legacy CLI
 * [iofogctl logs](iofogctl_logs.md)	 - Get log contents of deployed resource
 * [iofogctl move](iofogctl_move.md)	 - Move an existing resources inside the current ECN
+* [iofogctl prune](iofogctl_prune.md)	 - Prune docker images on iofog Agent on existing ECN
 * [iofogctl rename](iofogctl_rename.md)	 - Rename the iofog resources that are currently deployed
 * [iofogctl start](iofogctl_start.md)	 - Starts a resource
 * [iofogctl stop](iofogctl_stop.md)	 - Stops a resource
