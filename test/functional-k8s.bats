@@ -140,6 +140,20 @@ spec:
   checkApplication
 }
 
+@test "Test External Ports on Cluster" {
+  # Wait for k8s service
+  ITER
+  EXT_IP=""
+  while [ -z $EXT_IP ]; do
+      test [[ "$ITER" -gt 12 ]]
+      sleep 10
+      EXT_IP=$(kubectl get svc ${MSVC2_NAME}-http-proxy --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}")
+      ITER=$((ITER+1))
+  done
+  # Hit the endpoint
+  test curl http://${EXT_IP}:5000
+}
+
 @test "Move microservice to another agent" {
   test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
   checkMovedMicroservice $MSVC2_NAME ${NAME}-1
