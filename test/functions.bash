@@ -607,21 +607,21 @@ spec:
 }
 
 function checkGCRRegistry() {
-  iofogctl get registries
-  iofogctl get registries | grep gcr.io | awk '{print $1}'
-  iofogctl get registries | grep gcr.io | awk '{print $2}'
-  [[ "3" == $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
-  [[ "gcr.io" == $(iofogctl get registries | grep gcr.io | awk '{print $2}') ]]
+  iofogctl get -n "$NS" registries
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}'
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}'
+  [[ "3" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
+  [[ "gcr.io" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}') ]]
 }
 
 function checkUpdatedGCRRegistry() {
-  iofogctl get registries
-  iofogctl get registries | grep gcr.io | awk '{print $1}'
-  iofogctl get registries | grep gcr.io | awk '{print $2}'
-  [[ "3" == $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
-  [[ "https://gcr.io" == $(iofogctl get registries | grep gcr.io | awk '{print $2}') ]]
+  iofogctl get -n "$NS" registries
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}'
+  iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}'
+  [[ "3" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
+  [[ "https://gcr.io" == $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $2}') ]]
 }
 
 function checkGCRRegistryNegative() {
-  [[ -z $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
+  [[ -z $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
 }
