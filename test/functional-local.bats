@@ -89,6 +89,17 @@ NS="$NAMESPACE"
   [[ ! -z $(iofogctl -v -n "$NS" logs agent ${NAME}-0) ]]
 }
 
+@test "Deploy registry" {
+  initGCRRegistryFile
+  test iofogctl -v -n "$NS" deploy -f test/conf/gcr.yaml
+  checkGCRRegistry
+  initUpdatedGCRRegistryFile
+  test iofogctl -v -n "$NS" deploy -f test/conf/gcr.yaml
+  checkUpdatedGCRRegistry
+  test iofogctl -v -n "$NS" delete registry 3
+  checkGCRRegistryNegative
+}
+
 @test "Delete all using file" {
   initAllLocalDeleteFile
   test iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml

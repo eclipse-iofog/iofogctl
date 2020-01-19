@@ -30,6 +30,8 @@ func NewExecutor(resourceType, namespace, name, filename string, useDetached boo
 		return newConnectorExecutor(namespace, name, filename, useDetached), nil
 	case "agent":
 		return newAgentExecutor(namespace, name, filename, useDetached), nil
+	case "registry":
+		return newRegistryExecutor(namespace, name, filename, useDetached)
 	case "agent-config":
 		return newAgentConfigExecutor(namespace, name, filename), nil
 	case "microservice":
