@@ -32,7 +32,9 @@ spec:
       port: $VANILLA_PORT
       keyFile: $KEY_FILE
     package:
-      version: $VANILLA_VERSION
+      repo: $CONTROLLER_REPO
+      version: $CONTROLLER_VANILLA_VERSION
+      token: $CONTROLLER_PACKAGE_CLOUD_TOKEN
   iofogUser:
     name: Testing
     surname: Functional
@@ -84,6 +86,16 @@ spec:
     test iofogctl -v legacy agent "$AGENT_NAME" status
     checkLegacyAgent "$AGENT_NAME"
   done
+}
+
+@test "Prune Agent" {
+  initVanillaController
+  initAgents
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v prune agent "$AGENT_NAME"
+  local CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
+  echo "$CONTROLLER_ENDPOINT"
+  checkAgentPruneController "$CONTROLLER_ENDPOINT" "$KEY_FILE"
 }
 
 @test "Detach agent" {
