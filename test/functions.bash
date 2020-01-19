@@ -607,13 +607,17 @@ spec:
 }
 
 function checkGCRRegistry() {
-  [[ ! -z $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
+  iofogctl get registries
+  iofogctl get registries | grep gcr.io | awk '{print $1}'
+  iofogctl get registries | grep gcr.io | awk '{print $2}'
   [[ "3" == $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
   [[ "gcr.io" == $(iofogctl get registries | grep gcr.io | awk '{print $2}') ]]
 }
 
 function checkUpdatedGCRRegistry() {
-  [[ ! -z $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
+  iofogctl get registries
+  iofogctl get registries | grep gcr.io | awk '{print $1}'
+  iofogctl get registries | grep gcr.io | awk '{print $2}'
   [[ "3" == $(iofogctl get registries | grep gcr.io | awk '{print $1}') ]]
   [[ "https://gcr.io" == $(iofogctl get registries | grep gcr.io | awk '{print $2}') ]]
 }
