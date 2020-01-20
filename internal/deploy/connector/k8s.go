@@ -15,8 +15,6 @@ package deployconnector
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type kubernetesExecutor struct {
@@ -37,36 +35,37 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
-		util.PrintError("You must deploy a Controller to a namespace before deploying any Connector")
-		return err
-	}
-	exe.controlPlane = controlPlane
+	return nil
+	//// Get Control Plane
+	//controlPlane, err := config.GetControlPlane(exe.namespace)
+	//if err != nil || len(controlPlane.Controllers) == 0 {
+	//util.PrintError("You must deploy a Controller to a namespace before deploying any Connector")
+	//return err
+	//}
+	//exe.controlPlane = controlPlane
 
-	// Get Kubernetes installer
-	installer, err := install.NewKubernetes(exe.cnct.Kube.Config, exe.namespace)
-	if err != nil {
-		return
-	}
+	//// Get Kubernetes installer
+	//installer, err := install.NewKubernetes(exe.cnct.Kube.Config, exe.namespace)
+	//if err != nil {
+	//return
+	//}
 
-	// Configure deploy
-	installer.SetConnectorImage(exe.cnct.Container.Image)
-	installer.SetConnectorServiceType(exe.cnct.Kube.ServiceType)
+	//// Configure deploy
+	//installer.SetConnectorImage(exe.cnct.Container.Image)
+	//installer.SetConnectorServiceType(exe.cnct.Kube.ServiceType)
 
-	// Create connector on cluster
-	if err = installer.CreateConnector(exe.cnct.Name, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
-		return
-	}
+	//// Create connector on cluster
+	//if err = installer.CreateConnector(exe.cnct.Name, install.IofogUser(exe.controlPlane.IofogUser)); err != nil {
+	//return
+	//}
 
-	// Update connector (its a pointer, this is returned to caller)
-	endpoint, err := installer.GetConnectorEndpoint(exe.cnct.Name)
-	if err != nil {
-		return
-	}
-	exe.cnct.Endpoint = endpoint
-	exe.cnct.Created = util.NowUTC()
+	//// Update connector (its a pointer, this is returned to caller)
+	//endpoint, err := installer.GetConnectorEndpoint(exe.cnct.Name)
+	//if err != nil {
+	//return
+	//}
+	//exe.cnct.Endpoint = endpoint
+	//exe.cnct.Created = util.NowUTC()
 
-	return
+	//return
 }

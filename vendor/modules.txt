@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.39.0
+# cloud.google.com/go v0.45.1
 cloud.google.com/go/compute/metadata
 # github.com/GeertJohan/go.rice v1.0.0
 github.com/GeertJohan/go.rice
@@ -44,7 +44,7 @@ github.com/docker/go-units
 # github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200122011309-405294edb54f
 github.com/eclipse-iofog/iofog-go-sdk/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/pkg/apps
-# github.com/eclipse-iofog/iofog-operator v0.0.0-20200114204855-ba7f788e03c7
+# github.com/eclipse-iofog/iofog-operator v0.0.0-20200120002402-d5538acdb4b2
 github.com/eclipse-iofog/iofog-operator/pkg/apis
 github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1
 # github.com/fatih/color v1.7.0
@@ -62,7 +62,7 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/google/btree
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.2.0
+# github.com/googleapis/gnostic v0.3.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -100,12 +100,12 @@ github.com/pkg/errors
 github.com/russross/blackfriday
 # github.com/sirupsen/logrus v1.4.1 => github.com/sirupsen/logrus v1.0.1
 github.com/sirupsen/logrus
-# github.com/spf13/cobra v0.0.4
+# github.com/spf13/cobra v0.0.5
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
+# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/curve25519
@@ -123,7 +123,7 @@ golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
 golang.org/x/net/internal/socks
-# golang.org/x/oauth2 v0.0.0-20190523182746-aaccbc9213b0
+# golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
@@ -140,7 +140,7 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/transform
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
-# google.golang.org/appengine v1.6.0
+# google.golang.org/appengine v1.6.1
 google.golang.org/appengine
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal
@@ -151,7 +151,7 @@ google.golang.org/appengine/internal/base
 google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
+# google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.22.1
 google.golang.org/grpc/codes
@@ -299,7 +299,7 @@ k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
 k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/restmapper
-# k8s.io/klog v0.3.1
+# k8s.io/klog v0.4.0
 k8s.io/klog
 # sigs.k8s.io/controller-runtime v0.1.10
 sigs.k8s.io/controller-runtime/pkg/client
