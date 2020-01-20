@@ -32,7 +32,7 @@ func NewConnector(options *ConnectorOptions) *Connector {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
 	ssh.SetPort(options.Port)
 	if options.Version == "" || options.Version == "latest" {
-		options.Version = util.GetConnectorTag()
+		//options.Version = util.GetConnectorTag()
 	}
 	return &Connector{
 		ConnectorOptions: options,

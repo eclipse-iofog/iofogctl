@@ -44,8 +44,9 @@ type SSH struct {
 }
 
 type KubeImages struct {
-	Operator string `yaml:"operator,omitempty"`
-	Kubelet  string `yaml:"kubelet,omitempty"`
+	Operator    string `yaml:"operator,omitempty"`
+	Kubelet     string `yaml:"kubelet,omitempty"`
+	PortManager string `yaml:"portManager,omitempty"`
 }
 
 type Kube struct {

@@ -135,7 +135,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 // NewLocalConnectorConfig generates a static connector config
 func NewLocalConnectorConfig(image string, credentials Credentials) *LocalContainerConfig {
 	if image == "" {
-		image = "docker.io/iofog/connector:" + util.GetConnectorTag()
+		image = "docker.io/iofog/connector:latest" // + util.GetConnectorTag()
 	}
 
 	return &LocalContainerConfig{

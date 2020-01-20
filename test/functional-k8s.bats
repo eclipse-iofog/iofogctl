@@ -8,6 +8,7 @@
 # KEY_FILE
 # PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
+# PORT_MANAGER_IMAGE
 # CONNECTOR_IMAGE
 # SCHEDULER_IMAGE
 # OPERATOR_IMAGE
@@ -45,6 +46,7 @@ spec:
       config: $KUBE_CONFIG
       images:
         operator: $OPERATOR_IMAGE
+        portManager: $PORT_MANAGER
         kubelet: $KUBELET_IMAGE
 ---
 apiVersion: iofog.org/v1
@@ -234,6 +236,7 @@ spec:
       config: $KUBE_CONFIG
       images:
         operator: $OPERATOR_IMAGE
+        portManager: $PORT_MANAGER
         kubelet: $KUBELET_IMAGE
 ---
 apiVersion: iofog.org/v1
