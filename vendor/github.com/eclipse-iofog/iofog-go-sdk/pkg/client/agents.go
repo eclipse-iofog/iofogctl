@@ -151,3 +151,9 @@ func (clt *Client) GetAgentByName(name string) (_ *AgentInfo, err error) {
 	}
 	return nil, NewNotFoundError(fmt.Sprintf("Could not find agent: %s", name))
 }
+
+// PruneAgent prunes an ioFog Agent using Controller REST API
+func (clt *Client) PruneAgent(UUID string) (err error) {
+	_, err = clt.doRequest("POST", fmt.Sprintf("/iofog/%s/prune", UUID), nil)
+	return
+}
