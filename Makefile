@@ -81,3 +81,7 @@ help: ## Get help output
 # Variable outputting/exporting rules
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
+
+update-go-sdk:
+	go get github.com/eclipse-iofog/iofog-go-sdk@develop
+	make vendor
