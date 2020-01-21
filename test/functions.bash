@@ -565,6 +565,19 @@ function waitForMsvc() {
   done
 }
 
+function waitForSvc() {
+  SVC="$1"
+  ITER=0
+  EXT_IP=""
+  while [ -z $EXT_IP ]; do
+      test [[ "$ITER" -gt 12 ]]
+      sleep 10
+      EXT_IP=$(kubectl get svc $SVC --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}")
+      ITER=$((ITER+1))
+  done
+  echo $ITER
+}
+
 function checkVanillaResourceDeleted() {
   USER=$1
   HOST=$2

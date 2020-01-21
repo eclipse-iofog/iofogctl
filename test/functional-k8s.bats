@@ -144,16 +144,23 @@ spec:
 
 @test "Test External Ports on Cluster" {
   # Wait for k8s service
-  ITER
-  EXT_IP=""
-  while [ -z $EXT_IP ]; do
-      test [[ "$ITER" -gt 12 ]]
-      sleep 10
-      EXT_IP=$(kubectl get svc ${MSVC2_NAME}-http-proxy --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}")
-      ITER=$((ITER+1))
-  done
+  EXT_IP=$(waitForSvc http-proxy)
   # Hit the endpoint
   test curl http://${EXT_IP}:5000
+}
+
+@test "Change Microservice Ports" {
+  EXT_IP=$(waitForSvc http-proxy)
+  # Change port
+  sed -i '' "s/external: 5000/external: 6000/g" test/conf/application.yaml
+  # Wait for changes
+  sleep 10
+  # Check port updated
+  test kubectl describe svc http-proxy | grep 6000/TCP
+  test ! kubectl describe svc http-proxy | grep 5000/TCP
+  # Check service was not deleted
+  NEW_IP=$(waitForSvc http-proxy)
+  [[ $EXT_IP == $NEW_IP ]]
 }
 
 @test "Move microservice to another agent" {
