@@ -16,13 +16,12 @@ package deployagentconfig
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-
 	"github.com/eclipse-iofog/iofogctl/internal"
 	"gopkg.in/yaml.v2"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -32,10 +31,18 @@ type Options struct {
 	Name      string
 }
 
+type AgentConfigExecutor interface {
+	GetConfiguration() config.AgentConfiguration
+}
+
 type remoteExecutor struct {
 	name        string
 	agentConfig config.AgentConfiguration
 	namespace   string
+}
+
+func (exe remoteExecutor) GetConfiguration() config.AgentConfiguration {
+	return exe.agentConfig
 }
 
 func (exe remoteExecutor) GetName() string {
@@ -56,47 +63,10 @@ func (exe remoteExecutor) Execute() error {
 		return err
 	}
 
-	fogType, found := config.FogTypeStringMap[exe.agentConfig.FogType]
-	if !found {
-		fogType = 0
-	}
-
-	updateAgentConfigRequest := client.AgentUpdateRequest{
-		UUID:               agent.UUID,
-		Location:           exe.agentConfig.Location,
-		Latitude:           exe.agentConfig.Latitude,
-		Longitude:          exe.agentConfig.Longitude,
-		Description:        exe.agentConfig.Description,
-		FogType:            fogType,
-		Name:               exe.agentConfig.Name,
-		AgentConfiguration: exe.agentConfig.AgentConfiguration,
-	}
-
-	if _, err = clt.UpdateAgent(&updateAgentConfigRequest); err != nil {
-		return err
-	}
-	return nil
+	return install.UpdateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
-	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return exe, err
-	}
-
-	// Check Agent exists
-	found := false
-	for idx := range ns.Agents {
-		if ns.Agents[idx].Name == opt.Name {
-			found = true
-			break
-		}
-	}
-	if found == false {
-		return exe, util.NewInputError(fmt.Sprintf("Could not find agent %s in the current namespace\n", opt.Name))
-	}
-
 	// Unmarshal file
 	agentConfig := config.AgentConfiguration{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &agentConfig); err != nil {

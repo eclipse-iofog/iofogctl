@@ -36,7 +36,7 @@ var kindOrder = []apps.Kind{
 	// apps.ControlPlaneKind,
 	// apps.ControllerKind,
 	// apps.ConnectorKind,
-	apps.AgentKind,
+	// apps.AgentKind,
 	config.AgentConfigKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
@@ -125,7 +125,33 @@ func Execute(opt *Options) (err error) {
 		}
 	}
 
-	// Agents, AgentConfig, CatalogItem, Application, Microservice
+	// Agents can be deployed with an AgentConfig
+	for _, agentGenericExecutor := range executorsMap[apps.AgentKind] {
+		agentName := agentGenericExecutor.GetName()
+		for i, agentConfigGenericExecutor := range executorsMap[config.AgentConfigKind] {
+			// If agent config is provided alonside agent
+			if agentName == agentConfigGenericExecutor.GetName() {
+				// Get more specialised interfaces
+				agentConfigExecutor, configOk := agentConfigGenericExecutor.(deployagentconfig.AgentConfigExecutor)
+				agentExecutor, agentOk := agentGenericExecutor.(deployagent.AgentExecutor)
+				if !configOk || !agentOk {
+					return util.NewInternalError("Agent executor: Could not convert executor")
+				}
+				// Update agent executor to deploy with config
+				agentConfig := agentConfigExecutor.GetConfiguration()
+				agentExecutor.SetAgentConfig(&agentConfig)
+				// Remove agent config executor from list
+				executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind][:i], executorsMap[config.AgentConfigKind][i+1:]...)
+				break
+			}
+		}
+		if err = agentGenericExecutor.Execute(); err != nil {
+			util.PrintNotify("Error from " + agentName + ": " + err.Error())
+			return util.NewError("Failed to deploy")
+		}
+	}
+
+	// AgentConfig (left overs after agent), CatalogItem, Application, Microservice
 	for idx := range kindOrder {
 		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); err != nil {
 			return
