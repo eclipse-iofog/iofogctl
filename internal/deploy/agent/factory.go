@@ -23,9 +23,19 @@ import (
 )
 
 type facadeExecutor struct {
-	exe       execute.Executor
-	agent     *config.Agent
-	namespace string
+	exe         AgentExecutor
+	agent       *config.Agent
+	agentConfig *config.AgentConfiguration
+	namespace   string
+}
+
+type AgentExecutor interface {
+	execute.Executor
+	SetAgentConfig(*config.AgentConfiguration)
+}
+
+func (facade facadeExecutor) SetAgentConfig(config *config.AgentConfiguration) {
+	facade.exe.SetAgentConfig(config)
 }
 
 func (facade facadeExecutor) Execute() (err error) {
@@ -63,7 +73,7 @@ func (facade facadeExecutor) ProvisionAgent() (string, error) {
 	return provisionExecutor.ProvisionAgent()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Agent) execute.Executor {
+func newFacadeExecutor(exe AgentExecutor, namespace string, agent *config.Agent) execute.Executor {
 	return facadeExecutor{
 		exe:       exe,
 		namespace: namespace,

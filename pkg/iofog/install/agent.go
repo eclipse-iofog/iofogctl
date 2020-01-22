@@ -26,8 +26,36 @@ type Agent interface {
 
 // defaultAgent implements commong behavior
 type defaultAgent struct {
-	name      string
-	namespace string
+	name        string
+	namespace   string
+	agentConfig *config.AgentConfiguration
+}
+
+func getAgentUpdateRequestFromAgentConfig(agentConfig config.AgentConfiguration) (request client.AgentUpdateRequest) {
+	fogType, found := config.FogTypeStringMap[agentConfig.FogType]
+	if !found {
+		fogType = 0
+	}
+	request.Location = agentConfig.Location
+	request.Latitude = agentConfig.Latitude
+	request.Longitude = agentConfig.Longitude
+	request.Description = agentConfig.Description
+	request.Name = agentConfig.Name
+	request.FogType = fogType
+	request.AgentConfiguration = agentConfig.AgentConfiguration
+	return
+}
+
+func UpdateAgentConfiguration(agentConfig *config.AgentConfiguration, uuid string, clt *client.Client) (err error) {
+	if agentConfig != nil {
+		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(*agentConfig)
+		updateAgentConfigRequest.UUID = uuid
+
+		if _, err = clt.UpdateAgent(&updateAgentConfigRequest); err != nil {
+			return
+		}
+	}
+	return nil
 }
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
@@ -58,9 +86,13 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 
 	// Create agent if necessary
 	if uuid == "" {
+		var updateAgentRequest client.AgentUpdateRequest
+		if agent.agentConfig != nil {
+			updateAgentRequest = getAgentUpdateRequestFromAgentConfig(*agent.agentConfig)
+		}
+		updateAgentRequest.Name = agent.name
 		createRequest := client.CreateAgentRequest{
-			Name:    agent.name,
-			FogType: 0,
+			AgentUpdateRequest: updateAgentRequest,
 		}
 		var createResponse client.CreateAgentResponse
 		createResponse, err = ctrl.CreateAgent(createRequest)

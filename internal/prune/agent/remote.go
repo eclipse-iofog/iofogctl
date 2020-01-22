@@ -25,7 +25,7 @@ func (exe executor) remoteAgentPrune(agent config.Agent) error {
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 		util.PrintNotify("Could not prune agent " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
 	} else {
-		sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name)
+		sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name, nil)
 		if err := sshAgent.Prune(); err != nil {
 			util.PrintNotify(fmt.Sprintf("Could not prune agent %s. %s", agent.Name, err.Error()))
 		}

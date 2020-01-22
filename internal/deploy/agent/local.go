@@ -26,8 +26,13 @@ import (
 type localExecutor struct {
 	namespace        string
 	agent            *config.Agent
+	agentConfig      *config.AgentConfiguration
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
+}
+
+func (exe *localExecutor) SetAgentConfig(config *config.AgentConfiguration) {
+	exe.agentConfig = config
 }
 
 func getController(namespace string) (*config.Controller, error) {
@@ -58,7 +63,7 @@ func newLocalExecutor(namespace string, agent *config.Agent, client *install.Loc
 
 func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
-	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
+	agent := install.NewLocalAgent(exe.agentConfig, exe.localAgentConfig, exe.client)
 
 	// Get Controller details
 	controller, err := getController(exe.namespace)
