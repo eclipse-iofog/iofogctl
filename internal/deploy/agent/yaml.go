@@ -14,7 +14,10 @@
 package deployagent
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -44,6 +47,9 @@ func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
 func Validate(agent config.Agent) error {
 	if agent.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Agents")
+	}
+	if agent.Name == iofog.VanillaRouterAgentName {
+		return util.NewInputError(fmt.Sprintf("%s is a reserved name and cannot be used for an Agent", iofog.VanillaRouterAgentName))
 	}
 	if (agent.Host != "localhost" && agent.Host != "127.0.0.1") && (agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "") {
 		return util.NewInputError("For Agents you must specify non-empty values for host, user, and keyfile")

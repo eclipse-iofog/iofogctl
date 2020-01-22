@@ -15,6 +15,7 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
@@ -62,6 +63,22 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 	// Update controller (its a pointer, this is returned to caller)
 	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
+
+	// Deploy system agent to host internal router
+	install.Verbose("Deploying system agent")
+	agentConfig := config.Agent{
+		Name: iofog.VanillaRouterAgentName,
+		Host: exe.ctrl.Host,
+		SSH:  exe.ctrl.SSH,
+	}
+	agentDeployExecutor, err := deployagent.NewDeployExecutor(exe.namespace, &agentConfig)
+	if err != nil {
+		return err
+	}
+
+	if err = agentDeployExecutor.Execute(); err != nil {
+		return err
+	}
 
 	return
 }
