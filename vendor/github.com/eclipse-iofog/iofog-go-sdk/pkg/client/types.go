@@ -19,6 +19,7 @@ type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	IsActivated bool   `json:"isActivated"`
+	IsSystem    bool   `json:"isSystem"`
 	UserID      int    `json:"userId"`
 	ID          int    `json:"id"`
 }
@@ -36,6 +37,7 @@ type FlowUpdateRequest struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
 	IsActivated *bool   `json:"isActivated,omitempty"`
+	IsSystem    *bool   `json:"isSystem,omitempty"`
 	ID          int     `json:"-"`
 }
 
@@ -325,6 +327,7 @@ type AgentConfiguration struct {
 	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
 	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
 	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
+	IsSystem                  *bool    `json:"isSystem,omitempty" yaml:"isSystem"`
 }
 
 type AgentUpdateRequest struct {

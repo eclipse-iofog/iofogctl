@@ -14,10 +14,12 @@
 package deploycontroller
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -71,7 +73,20 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Host: exe.ctrl.Host,
 		SSH:  exe.ctrl.SSH,
 	}
-	agentDeployExecutor, err := deployagent.NewDeployExecutor(exe.namespace, &agentConfig)
+	agentDeployGenericExecutor, err := deployagent.NewDeployExecutor(exe.namespace, &agentConfig)
+	// Convert executor to be able to setConfig
+	agentDeployExecutor, ok := agentDeployGenericExecutor.(deployagent.AgentExecutor)
+	if !ok {
+		return util.NewInternalError("Could not convert executor")
+	}
+	// Configure agent to be system agent
+	isSystem := true
+	deployAgentConfig := config.AgentConfiguration{
+		AgentConfiguration: client.AgentConfiguration{
+			IsSystem: &isSystem,
+		},
+	}
+	agentDeployExecutor.SetAgentConfig(&deployAgentConfig)
 	if err != nil {
 		return err
 	}
