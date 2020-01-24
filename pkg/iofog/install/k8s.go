@@ -103,6 +103,12 @@ func (k8s *Kubernetes) SetPortManagerImage(image string) {
 	}
 }
 
+func (k8s *Kubernetes) SetProxyImage(image string) {
+	if image != "" {
+		k8s.controlPlane.ProxyImage = image
+	}
+}
+
 func (k8s *Kubernetes) SetControllerImage(image string) {
 	if image != "" {
 		k8s.controlPlane.ControllerImage = image
@@ -198,17 +204,11 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 
 	// Set specification
 	kog.Spec = iofogv1.KogSpec{
-		ControlPlane: iofogv1.ControlPlane{
-			ControllerReplicaCount: int32(replicas),
-			Database:               iofogv1.Database(db),
-			IofogUser:              iofogv1.IofogUser(user),
-			ServiceType:            k8s.controlPlane.ServiceType,
-			KubeletImage:           k8s.controlPlane.KubeletImage,
-			LoadBalancerIP:         k8s.controlPlane.LoadBalancerIP,
-			ControllerImage:        k8s.controlPlane.ControllerImage,
-			PortManagerImage:       k8s.controlPlane.PortManagerImage,
-		},
+		ControlPlane: *k8s.controlPlane,
 	}
+	kog.Spec.ControlPlane.ControllerReplicaCount = int32(replicas)
+	kog.Spec.ControlPlane.Database = iofogv1.Database(db)
+	kog.Spec.ControlPlane.IofogUser = iofogv1.IofogUser(user)
 
 	// Create or update Kog
 	if found {

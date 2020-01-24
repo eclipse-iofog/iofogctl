@@ -154,6 +154,8 @@ github.com/eclipse-iofog/iofog-operator v0.0.0-20200120000420-88fa7f0114b7 h1:NX
 github.com/eclipse-iofog/iofog-operator v0.0.0-20200120000420-88fa7f0114b7/go.mod h1:FdKCXwPcTS56R/0Rr6lpKOJg+QbofPgIiqePsc3D1j0=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20200120002402-d5538acdb4b2 h1:pzMzTgw8OJLhQ60Bo+zKVTHYDzZCyh7z8z7+PXmYI9E=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20200120002402-d5538acdb4b2/go.mod h1:FdKCXwPcTS56R/0Rr6lpKOJg+QbofPgIiqePsc3D1j0=
+github.com/eclipse-iofog/iofog-operator v0.0.0-20200124015154-02442892e22d h1:c/9WVXvn/4y7zc3069aZiagVuaihUaLjzaVur6MNFoY=
+github.com/eclipse-iofog/iofog-operator v0.0.0-20200124015154-02442892e22d/go.mod h1:FdKCXwPcTS56R/0Rr6lpKOJg+QbofPgIiqePsc3D1j0=
 github.com/eclipse-iofog/iofog-operator v1.2.0 h1:whh832bxDs9oU/V4BS6uK1ZLYLHMoVazK0k9YgrQTYk=
 github.com/eclipse-iofog/iofog-operator v1.2.0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=

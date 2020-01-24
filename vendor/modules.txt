@@ -44,7 +44,7 @@ github.com/docker/go-units
 # github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200121202839-188c758749f6
 github.com/eclipse-iofog/iofog-go-sdk/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/pkg/apps
-# github.com/eclipse-iofog/iofog-operator v0.0.0-20200120002402-d5538acdb4b2
+# github.com/eclipse-iofog/iofog-operator v0.0.0-20200124015154-02442892e22d
 github.com/eclipse-iofog/iofog-operator/pkg/apis
 github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1
 # github.com/fatih/color v1.7.0
