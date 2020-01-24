@@ -327,7 +327,7 @@ type AgentConfiguration struct {
 	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
 	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
 	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
-	IsSystem                  *bool    `json:"isSystem,omitempty" yaml:"isSystem"`
+	IsSystem                  *bool    `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
 }
 
 type AgentUpdateRequest struct {

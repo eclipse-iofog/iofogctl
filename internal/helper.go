@@ -48,3 +48,7 @@ func ValidateHeader(header config.Header) error {
 	}
 	return nil
 }
+
+func IsSystemAgent(agentConfig config.AgentConfiguration) bool {
+	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
+}
