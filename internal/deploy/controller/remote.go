@@ -28,6 +28,18 @@ type remoteExecutor struct {
 	controlPlane config.ControlPlane
 }
 
+func makeIntPtr(value int) *int {
+	return &value
+}
+
+func makeStrPtr(value string) *string {
+	return &value
+}
+
+func makeBoolPtr(value bool) *bool {
+	return &value
+}
+
 func newRemoteExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
 	d := &remoteExecutor{}
 	d.namespace = namespace
@@ -79,11 +91,18 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if !ok {
 		return util.NewInternalError("Could not convert executor")
 	}
-	// Configure agent to be system agent
-	isSystem := true
+	// Configure agent to be system agent with default router
+	RouterConfig := client.RouterConfig{
+		RouterMode:      makeStrPtr("interior"),
+		MessagingPort:   makeIntPtr(5672),
+		EdgeRouterPort:  makeIntPtr(56721),
+		InterRouterPort: makeIntPtr(56722),
+	}
 	deployAgentConfig := config.AgentConfiguration{
 		AgentConfiguration: client.AgentConfiguration{
-			IsSystem: &isSystem,
+			IsSystem:     makeBoolPtr(true),
+			Host:         &exe.ctrl.Host,
+			RouterConfig: &RouterConfig,
 		},
 	}
 	agentDeployExecutor.SetAgentConfig(&deployAgentConfig)
