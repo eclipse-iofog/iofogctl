@@ -6,6 +6,9 @@ steps:
     sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(agent_vm_list)\"|g" test/env.sh
     sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(controller_vm)\"|g" test/env.sh
     sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"~/.kube/config\"|g" test/env.sh
+    sed -i "s|CONTROLLER_REPO=.*|CONTROLLER_REPO=\"$(controller_vanilla_repo)\"|g" test/env.sh
+    sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_vanilla_version)\"|g" test/env.sh
+    sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(controller_package_cloud_token)\"|g" test/env.sh
     sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
     keyFilePath="$(Agent.TempDirectory)/id_rsa"
     if [[ ${{ parameters.windows }} == "true" ]]; then

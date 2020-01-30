@@ -504,6 +504,18 @@ function checkAgentListFromController() {
   done
 }
 
+function checkAgentPruneController(){
+  local API_ENDPOINT="$1"
+  local KEY_FILE="$2"
+  local AGENT_TOKEN=$(ssh -oStrictHostKeyChecking=no -i $KEY_FILE ${USERS[0]}@${HOSTS[0]}  cat /etc/iofog-agent/config.xml  | grep 'access_token' | tr -d '<' | tr -d '/' | tr -d '>' | awk -F 'access_token' '{print $2}')
+  local CHANGES=$(curl --request GET \
+--url $API_ENDPOINT/api/v3/agent/config/changes \
+--header "Authorization: $AGENT_TOKEN" \
+--header 'Content-Type: application/json')
+  local PRUNE=$(echo $CHANGES | jq -r .prune)
+  [[ "true" == "$PRUNE" ]]
+}
+
 function checkLegacyConnector() {
   NS_CHECK=${1:-$NS}
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy connector $NAME status | grep 'is up and running') ]]
