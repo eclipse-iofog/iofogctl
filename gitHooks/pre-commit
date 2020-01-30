@@ -14,5 +14,6 @@ make fmt
 echo "Generating docs..."
 make build
 ./bin/iofogctl documentation md -o ./docs/
+find ./docs/md -type f | xargs sed -i '' 's/.*Auto generated.*//g'
 echo "Adding docs to the commit..."
 git add ./docs/
