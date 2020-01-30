@@ -103,7 +103,11 @@ spec:
   local AGENT_NAME="${NAME}-0"
   test iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
   local CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  checkAgentPruneController "$CONTROLLER_ENDPOINT" "$KEY_FILE"
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
 }
 
 @test "Disconnect from cluster" {
