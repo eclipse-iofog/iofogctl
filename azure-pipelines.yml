@@ -129,6 +129,8 @@ stages:
       displayName: 'Connect to cluster'
     - bash: |
         set -o pipefail
+        export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
+        echo $WSL_KEY_FILE
         test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
       displayName: 'Run Functional Tests'
     - bash: |
@@ -217,6 +219,8 @@ stages:
         test/run.bash smoke
       displayName: 'Run Smoke Tests'
     - bash: |
+        export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
+        echo $WSL_KEY_FILE
         test/run.bash functional-vanilla
       displayName: 'Run Functional Tests'
     - template: templates/functional-clean-vm.yaml
@@ -311,6 +315,8 @@ stages:
         set -o pipefail
         echo "$DOCKER_HOST"
         docker images
+        export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
+        echo $WSL_KEY_FILE
         test/run.bash functional-local | tee test/conf/results-functional-local.tap
       displayName: 'Run Functional Tests'
     - script: |

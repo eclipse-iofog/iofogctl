@@ -95,7 +95,11 @@ spec:
   test iofogctl -v prune agent "$AGENT_NAME"
   local CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
   echo "$CONTROLLER_ENDPOINT"
-  checkAgentPruneController "$CONTROLLER_ENDPOINT" "$KEY_FILE"
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
 }
 
 @test "Detach agent" {
