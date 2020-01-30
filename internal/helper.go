@@ -52,3 +52,15 @@ func ValidateHeader(header config.Header) error {
 func IsSystemAgent(agentConfig config.AgentConfiguration) bool {
 	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
 }
+
+func MakeIntPtr(value int) *int {
+	return &value
+}
+
+func MakeStrPtr(value string) *string {
+	return &value
+}
+
+func MakeBoolPtr(value bool) *bool {
+	return &value
+}

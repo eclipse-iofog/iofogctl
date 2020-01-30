@@ -14,30 +14,15 @@
 package deploycontroller
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
 	namespace    string
 	ctrl         *config.Controller
 	controlPlane config.ControlPlane
-}
-
-func makeIntPtr(value int) *int {
-	return &value
-}
-
-func makeStrPtr(value string) *string {
-	return &value
-}
-
-func makeBoolPtr(value bool) *bool {
-	return &value
 }
 
 func newRemoteExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
@@ -77,42 +62,6 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 	// Update controller (its a pointer, this is returned to caller)
 	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
-
-	// Deploy system agent to host internal router
-	install.Verbose("Deploying system agent")
-	agentConfig := config.Agent{
-		Name: iofog.VanillaRouterAgentName,
-		Host: exe.ctrl.Host,
-		SSH:  exe.ctrl.SSH,
-	}
-	agentDeployGenericExecutor, err := deployagent.NewDeployExecutor(exe.namespace, &agentConfig)
-	// Convert executor to be able to setConfig
-	agentDeployExecutor, ok := agentDeployGenericExecutor.(deployagent.AgentExecutor)
-	if !ok {
-		return util.NewInternalError("Could not convert executor")
-	}
-	// Configure agent to be system agent with default router
-	RouterConfig := client.RouterConfig{
-		RouterMode:      makeStrPtr("interior"),
-		MessagingPort:   makeIntPtr(5672),
-		EdgeRouterPort:  makeIntPtr(56721),
-		InterRouterPort: makeIntPtr(56722),
-	}
-	deployAgentConfig := config.AgentConfiguration{
-		AgentConfiguration: client.AgentConfiguration{
-			IsSystem:     makeBoolPtr(true),
-			Host:         &exe.ctrl.Host,
-			RouterConfig: &RouterConfig,
-		},
-	}
-	agentDeployExecutor.SetAgentConfig(&deployAgentConfig)
-	if err != nil {
-		return err
-	}
-
-	if err = agentDeployExecutor.Execute(); err != nil {
-		return err
-	}
 
 	return
 }
