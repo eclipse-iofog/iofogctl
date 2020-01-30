@@ -16,6 +16,7 @@ package deployagent
 import (
 	"fmt"
 
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
@@ -50,12 +51,18 @@ func (facade facadeExecutor) Execute() (err error) {
 		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
 	}
 
+	isSystemAgent := facade.agentConfig != nil && internal.IsSystemAgent(*facade.agentConfig)
+
 	util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
+
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
-	if err = config.UpdateAgent(facade.namespace, *facade.agent); err != nil {
-		return
+	// Don't add system agent to the namespace config file
+	if !isSystemAgent {
+		if err = config.UpdateAgent(facade.namespace, *facade.agent); err != nil {
+			return
+		}
 	}
 	return config.Flush()
 }

@@ -19,6 +19,7 @@ type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	IsActivated bool   `json:"isActivated"`
+	IsSystem    bool   `json:"isSystem"`
 	UserID      int    `json:"userId"`
 	ID          int    `json:"id"`
 }
@@ -36,6 +37,7 @@ type FlowUpdateRequest struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
 	IsActivated *bool   `json:"isActivated,omitempty"`
+	IsSystem    *bool   `json:"isSystem,omitempty"`
 	ID          int     `json:"-"`
 }
 
@@ -310,21 +312,32 @@ type AgentInfo struct {
 	FogType                   int     `json:"fogTypeId" yaml:"fogTypeId"`
 }
 
+type RouterConfig struct {
+	RouterMode      *string `json:"routerMode, omitempty" yaml:"routerMode,omitempty"`
+	MessagingPort   *int    `json:"messagingPort, omitempty" yaml:"messagingPort,omitempty"`
+	EdgeRouterPort  *int    `json:"edgeRouterPort, omitempty" yaml:"edgeRouterPort,omitempty"`
+	InterRouterPort *int    `json:"interRouterPort, omitempty" yaml:"interRouterPort,omitempty"`
+}
+
 type AgentConfiguration struct {
-	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
-	DiskLimit                 *int64   `json:"diskLimit,omitempty" yaml:"diskLimit"`
-	DiskDirectory             *string  `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
-	MemoryLimit               *int64   `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
-	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
-	LogLimit                  *int64   `json:"logLimit,omitempty" yaml:"logLimit"`
-	LogDirectory              *string  `json:"logDirectory,omitempty" yaml:"logDirectory"`
-	LogFileCount              *int64   `json:"logFileCount,omitempty" yaml:"logFileCount"`
-	StatusFrequency           *float64 `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
-	ChangeFrequency           *float64 `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
-	DeviceScanFrequency       *float64 `json:"deviceScanFrequency,omitempty" yaml:"deviceScanFrequency"`
-	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
-	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
-	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
+	DockerURL                 *string   `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
+	DiskLimit                 *int64    `json:"diskLimit,omitempty" yaml:"diskLimit"`
+	DiskDirectory             *string   `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
+	MemoryLimit               *int64    `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
+	CPULimit                  *int64    `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
+	LogLimit                  *int64    `json:"logLimit,omitempty" yaml:"logLimit"`
+	LogDirectory              *string   `json:"logDirectory,omitempty" yaml:"logDirectory"`
+	LogFileCount              *int64    `json:"logFileCount,omitempty" yaml:"logFileCount"`
+	StatusFrequency           *float64  `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
+	ChangeFrequency           *float64  `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
+	DeviceScanFrequency       *float64  `json:"deviceScanFrequency,omitempty" yaml:"deviceScanFrequency"`
+	BluetoothEnabled          *bool     `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
+	WatchdogEnabled           *bool     `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
+	AbstractedHardwareEnabled *bool     `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
+	IsSystem                  *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
+	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
+	RouterConfig
 }
 
 type AgentUpdateRequest struct {
