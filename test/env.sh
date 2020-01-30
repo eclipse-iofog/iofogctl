@@ -8,11 +8,8 @@ export AGENT_LIST="user@host user2@host2"
 # Single user@host
 export VANILLA_CONTROLLER="user@host"
 
-# Token to access develop versions of Controller
-export PACKAGE_CLOUD_TOKEN="3b4ee4b0aac01b954034e1e1c628fcbe7113b299c9934424"
-
 ######################################################################
-
+export VANILLA_VERSION="latest"
 
 ######## These variables can be left with their defaults if necessary
 
@@ -34,7 +31,10 @@ export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys
-export VANILLA_VERSION="latest"
+export CONTROLLER_VANILLA_VERSION="latest"
+export CONTROLLER_REPO=""
+# Token to access develop versions of Controller
+export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 ######################################################################
 
@@ -55,7 +55,9 @@ echo "----- CONFIG -----"
 echo ""
 echo "${!AGENT_LIST*}: " "$AGENT_LIST"
 echo "${!VANILLA_CONTROLLER*}: " "$VANILLA_CONTROLLER"
-echo "${!PACKAGE_CLOUD_TOKEN*}: " "$PACKAGE_CLOUD_TOKEN"
+echo "${!CONTROLLER_VANILLA_VERSION*}: " "$CONTROLLER_VANILLA_VERSION"
+echo "${!CONTROLLER_REPO*}: " "$CONTROLLER_REPO"
+echo "${!CONTROLLER_PACKAGE_CLOUD_TOKEN*}: " "$CONTROLLER_PACKAGE_CLOUD_TOKEN"
 echo "${!NAMESPACE*}: " "$NAMESPACE"
 echo "${!KUBE_CONFIG*}: " "$KUBE_CONFIG"
 echo "${!KEY_FILE*}: " "$KEY_FILE"

@@ -57,6 +57,7 @@ do_install_iofog() {
 		sudo mv ${SAVED_AGENT_CONFIG_FOLDER}/* ${AGENT_CONFIG_FOLDER}/
 		sudo rmdir ${SAVED_AGENT_CONFIG_FOLDER}
 	fi
+	sudo chmod 775 ${AGENT_CONFIG_FOLDER}
 }
 
 agent_version="$1"

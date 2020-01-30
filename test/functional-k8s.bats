@@ -100,6 +100,14 @@ spec:
   done
 }
 
+@test "Prune Agent" {
+  initAgents
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
+  local CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  checkAgentPruneController "$CONTROLLER_ENDPOINT" "$KEY_FILE"
+}
+
 @test "Disconnect from cluster" {
   initAgents
   test iofogctl -v -n "$NS" disconnect
