@@ -313,10 +313,10 @@ type AgentInfo struct {
 }
 
 type RouterConfig struct {
-	RouterMode      *string `json:"routerMode, omitempty" yaml:"routerMode,omitempty"`
-	MessagingPort   *int    `json:"messagingPort, omitempty" yaml:"messagingPort,omitempty"`
-	EdgeRouterPort  *int    `json:"edgeRouterPort, omitempty" yaml:"edgeRouterPort,omitempty"`
-	InterRouterPort *int    `json:"interRouterPort, omitempty" yaml:"interRouterPort,omitempty"`
+	RouterMode      *string `json:"routerMode,omitempty" yaml:"routerMode,omitempty"`
+	MessagingPort   *int    `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
+	EdgeRouterPort  *int    `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
+	InterRouterPort *int    `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
 }
 
 type AgentConfiguration struct {
@@ -337,7 +337,7 @@ type AgentConfiguration struct {
 	IsSystem                  *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
-	RouterConfig
+	RouterConfig              `json:",omitempty yaml:",inline,omitempty""`
 }
 
 type AgentUpdateRequest struct {
@@ -370,4 +370,9 @@ type ConnectorInfo struct {
 
 type ConnectorInfoList struct {
 	Connectors []ConnectorInfo `json:"connectors"`
+}
+
+type Router struct {
+	RouterConfig
+	Host string `json:"host"`
 }
