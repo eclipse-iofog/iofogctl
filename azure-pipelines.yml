@@ -51,7 +51,6 @@ stages:
   jobs:
 
   - job: Windows_K8s
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
     - task: DownloadBuildArtifacts@0
@@ -116,6 +115,9 @@ stages:
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
+        sudo apt-get install -y jq
+      displayName: 'Install jq'
+    - bash: |
         sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
         sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"$(windows_kube_config_path)\"|g" test/conf/env.sh
         cat test/conf/env.sh
@@ -149,7 +151,6 @@ stages:
         controller_count: 0
 
   - job: Windows_Vanilla
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
     - template: templates/ssh-steps.yaml
@@ -178,7 +179,7 @@ stages:
         ls $bashPath
         mkdir -p $destFolder
         cp $bashPath $destFolder/$(ssh_key_file)
-        echo "Copied SSH fey from $bashPath to $destFolder"
+        echo "Copied SSH key from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
         ls -la $destFolder
@@ -210,6 +211,9 @@ stages:
         git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && ./install.sh /usr
         bats --version
       displayName: 'Install Bats'
+    - bash: |
+        sudo apt-get install -y jq
+      displayName: 'Install jq'
     - bash: |
         for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
         for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
