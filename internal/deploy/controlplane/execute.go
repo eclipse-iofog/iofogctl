@@ -64,6 +64,7 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 		InterRouterPort: internal.MakeIntPtr(56722),
 	}
 	deployAgentConfig := config.AgentConfiguration{
+		Name: iofog.VanillaRouterAgentName,
 		AgentConfiguration: client.AgentConfiguration{
 			IsSystem:     internal.MakeBoolPtr(true),
 			Host:         &ctrl.Host,

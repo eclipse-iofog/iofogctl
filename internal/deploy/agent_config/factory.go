@@ -63,6 +63,12 @@ func (exe remoteExecutor) Execute() error {
 		return err
 	}
 
+	// Process needs to be done at execute time because agent might have been created during deploy
+	exe.agentConfig, err = ProcessAgentNames(exe.agentConfig, clt)
+	if err != nil {
+		return err
+	}
+
 	return install.UpdateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
 }
 
@@ -71,6 +77,14 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	agentConfig := config.AgentConfiguration{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &agentConfig); err != nil {
 		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+
+	if len(agentConfig.Name) == 0 {
+		agentConfig.Name = opt.Name
+	}
+
+	if err = Validate(agentConfig); err != nil {
 		return
 	}
 

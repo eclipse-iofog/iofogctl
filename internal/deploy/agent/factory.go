@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -52,6 +53,19 @@ func (facade facadeExecutor) Execute() (err error) {
 	}
 
 	isSystemAgent := facade.agentConfig != nil && internal.IsSystemAgent(*facade.agentConfig)
+
+	// If config, validate config
+	if facade.agentConfig != nil {
+		clt, e := internal.NewControllerClient(facade.namespace)
+		if e != nil {
+			return e
+		}
+		agentConfig, e := deployagentconfig.ProcessAgentNames(*facade.agentConfig, clt)
+		if e != nil {
+			return e
+		}
+		facade.SetAgentConfig(&agentConfig)
+	}
 
 	util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
 

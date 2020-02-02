@@ -336,8 +336,9 @@ type AgentConfiguration struct {
 	AbstractedHardwareEnabled *bool     `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
 	IsSystem                  *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
-	RouterConfig              `json:",omitempty yaml:",inline,omitempty""`
+	RouterConfig              `json:",omitempty" yaml:",omitempty"`
 }
 
 type AgentUpdateRequest struct {
