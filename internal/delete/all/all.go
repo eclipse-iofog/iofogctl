@@ -17,7 +17,6 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
-	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -51,7 +50,7 @@ func Execute(namespace string, useDetached, soft bool) error {
 	}
 
 	if !useDetached {
-		// Delete routes (which would prevent connector from being deleted)
+		// Delete routes
 		if len(ns.ControlPlane.Controllers) > 0 {
 			// Get list of microservices from backend
 			endpoint, _ := ns.ControlPlane.GetControllerEndpoint()
@@ -75,31 +74,6 @@ func Execute(namespace string, useDetached, soft bool) error {
 					}
 				}
 			}
-		}
-	}
-
-	// Delete Connectors
-	if len(ns.Connectors) > 0 {
-		util.SpinStart("Deleting Connectors")
-
-		var executors []execute.Executor
-		for _, cnct := range ns.Connectors {
-			exe, err := deleteconnector.NewExecutor(namespace, cnct.Name, useDetached, soft)
-			if err != nil {
-				return err
-			}
-			// TODO: Replace serial execution when CRD updated
-			// Kubernetes Connectors cannot run in parallel
-			if cnct.Kube.Config != "" {
-				if err = exe.Execute(); err != nil {
-					return err
-				}
-			} else {
-				executors = append(executors, exe)
-			}
-		}
-		if err := runExecutors(executors); err != nil {
-			return err
 		}
 	}
 

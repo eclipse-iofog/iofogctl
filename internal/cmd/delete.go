@@ -45,7 +45,6 @@ func newDeleteCommand() *cobra.Command {
 	cmd.AddCommand(
 		newDeleteNamespaceCommand(),
 		newDeleteControllerCommand(),
-		newDeleteConnectorCommand(),
 		newDeleteAgentCommand(),
 		newDeleteAllCommand(),
 		newDeleteApplicationCommand(),

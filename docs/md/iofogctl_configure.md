@@ -17,17 +17,14 @@ iofogctl configure resource NAME [flags]
 ```
 iofogctl configure default-namespace NAME
 iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure connector NAME --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure controller NAME --kube KUBECONFIG
-iofogctl configure connector NAME --kube KUBECONFIG
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
 iofogctl configure all --user USER --key KEYFILE --port PORTNUM
 iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure connectors --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 
-Valid resources are: controller, connector, agent, all, agents, controllers, connectors, default-namespace
+Valid resources are: controller, agent, all, agents, controllers, default-namespace
 
 ```
 

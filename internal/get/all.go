@@ -48,21 +48,12 @@ func (exe *allExecutor) Execute() error {
 			return err
 		}
 
-		// Print connectors
-		if err := generateDetachedConnectorOutput(); err != nil {
-			return err
-		}
 		return nil
 	}
 	printNamespace(ns.Name)
 
 	// Print controllers
 	if err := generateControllerOutput(exe.namespace); err != nil {
-		return err
-	}
-
-	// Print connectors
-	if err := generateConnectorOutput(exe.namespace); err != nil {
 		return err
 	}
 

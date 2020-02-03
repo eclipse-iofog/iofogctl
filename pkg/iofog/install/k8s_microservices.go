@@ -24,7 +24,6 @@ const (
 	kubelet    = "kubelet"
 	operator   = "operator"
 	controller = "controller"
-	connector  = "connector"
 )
 
 type microservice struct {

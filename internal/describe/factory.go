@@ -26,8 +26,6 @@ func NewExecutor(resourceType, namespace, name, filename string, useDetached boo
 		return newControlPlaneExecutor(namespace, filename), nil
 	case "controller":
 		return newControllerExecutor(namespace, name, filename), nil
-	case "connector":
-		return newConnectorExecutor(namespace, name, filename, useDetached), nil
 	case "agent":
 		return newAgentExecutor(namespace, name, filename, useDetached), nil
 	case "registry":

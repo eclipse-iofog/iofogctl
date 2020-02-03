@@ -27,7 +27,6 @@ func newDetachCommand() *cobra.Command {
 
 	// Add subcommands
 	cmd.AddCommand(
-		newDetachConnectorCommand(),
 		newDetachAgentCommand(),
 	)
 

@@ -33,7 +33,6 @@ type Options struct {
 var multipleResources = map[string]bool{
 	"all":         true,
 	"controllers": true,
-	"connectors":  true,
 	"agents":      true,
 }
 
@@ -43,8 +42,6 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 		return newDefaultNamespaceExecutor(opt), nil
 	case "controller":
 		return newControllerExecutor(opt), nil
-	case "connector":
-		return newConnectorExecutor(opt), nil
 	case "agent":
 		return newAgentExecutor(opt), nil
 	default:

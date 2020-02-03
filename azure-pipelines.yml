@@ -21,7 +21,6 @@ variables:
   branch: $(Build.SourceBranchName)
   controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:latest'
-  connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   version:
   agent_vm_list:
@@ -288,12 +287,10 @@ stages:
         docker info
         docker "pull" "$(controller_image)"
         docker "pull" "$(agent_image)"
-        docker "pull" "$(connector_image)"
       displayName: 'Pull develop gcr docker image'
       failOnStderr: false
     - bash: |
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
-        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
         NS=$(jobuuid)
         sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
@@ -396,7 +393,6 @@ stages:
         gcloud --quiet auth configure-docker
         docker pull $(controller_image)
         docker pull $(agent_image)
-        docker pull $(connector_image)
       displayName: 'Pull develop gcr docker image'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
@@ -409,7 +405,6 @@ stages:
     - template: templates/postinstall-steps.yaml
     - script: |
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
-        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
         NS=$(jobuuid)
         sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh

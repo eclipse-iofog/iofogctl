@@ -9,7 +9,6 @@
 # AGENT_PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
 # PORT_MANAGER_IMAGE
-# CONNECTOR_IMAGE
 # SCHEDULER_IMAGE
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
@@ -26,7 +25,7 @@ USER_EMAIL="user@domain.com"
   test iofogctl create namespace "$NS"
 }
 
-@test "Deploy Control Plane and Connector" {
+@test "Deploy Control Plane" {
   echo "---
 apiVersion: iofog.org/v1
 kind: ControlPlane
@@ -47,21 +46,10 @@ spec:
       images:
         operator: $OPERATOR_IMAGE
         portManager: $PORT_MANAGER
-        kubelet: $KUBELET_IMAGE
----
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $NAME
-spec:
-  container:
-    image: $CONNECTOR_IMAGE
-  kube:
-    config: $KUBE_CONFIG" > test/conf/k8s.yaml
+        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
-  checkConnector
 }
 
 @test "Get endpoint" {
@@ -111,7 +99,6 @@ spec:
   initAgents
   test iofogctl -v -n "$NS" disconnect
   checkControllerNegative
-  checkConnectorNegative
   checkAgentsNegative
 }
 
@@ -119,7 +106,6 @@ spec:
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   test iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
   checkController
-  checkConnector
   checkAgents
 }
 
@@ -127,7 +113,6 @@ spec:
   initAgents
   test iofogctl -v -n "$NS" disconnect
   checkControllerNegative
-  checkConnectorNegative
   checkAgentsNegative
 }
 
@@ -135,7 +120,6 @@ spec:
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   test iofogctl -v -n "$NS" connect --name "$NAME" --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
-  checkConnector
   checkAgents
 }
 
@@ -219,11 +203,12 @@ spec:
   checkAgents
 }
 
-@test "Configure Controller and Connector" {
-  for resource in controller connector; do
+@test "Configure Controller" {
+  for resource in controller; do
     test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube "$KUBE_CONFIG"
   done
   test iofogctl -v -n "$NS" logs controller "$NAME"
+  checkLegacyController
 }
 
 @test "Configure Agents" {
@@ -260,7 +245,7 @@ spec:
   sleep 30 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
 }
 
-@test "Deploy Controller and Connector for idempotence" {
+@test "Deploy Controller for idempotence" {
   echo "---
 apiVersion: iofog.org/v1
 kind: ControlPlane
@@ -281,17 +266,7 @@ spec:
       images:
         operator: $OPERATOR_IMAGE
         portManager: $PORT_MANAGER
-        kubelet: $KUBELET_IMAGE
----
-apiVersion: iofog.org/v1
-kind: Connector 
-metadata:
-  name: $NAME
-spec:
-  container:
-    image: $CONNECTOR_IMAGE
-  kube:
-    config: $KUBE_CONFIG" > test/conf/k8s.yaml
+        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -300,7 +275,6 @@ spec:
 @test "Delete all" {
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
-  checkConnectorNegative
   checkAgentsNegative
 }
 

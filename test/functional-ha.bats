@@ -72,33 +72,6 @@ spec:
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
-@test "Deploy Connectors" {
-  local CNCT_A="connector-a"
-  local CNCT_B="connector-b"
-  echo "---
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $CNCT_A
-spec:
-  container:
-    image: $CONNECTOR_IMAGE
-  kube:
-    config: $KUBE_CONFIG
----
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $CNCT_B
-spec:
-  container:
-    image: $CONNECTOR_IMAGE
-  kube:
-    config: $KUBE_CONFIG" > test/conf/cncts.yaml
-  test iofogctl -v -n "$NS" deploy -f test/conf/cncts.yaml
-  checkConnectors "$CNCT_A" "$CNCT_B"
-}
-
 @test "Deploy Agents" {
   initAgentsFile
   test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
@@ -149,7 +122,6 @@ spec:
 @test "Delete all" {
   test iofogctl -v -n "$NS" delete all
   checkControllerNegative
-  checkConnectorNegative
   checkAgentsNegative
 }
 

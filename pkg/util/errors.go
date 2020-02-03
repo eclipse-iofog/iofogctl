@@ -149,7 +149,7 @@ type NoConfigError struct {
 func NewNoConfigError(resource string) *NoConfigError {
 	res := strings.ToLower(resource)
 	var kubeText string
-	if res == "connector" || res == "controller" {
+	if res == "controller" {
 		kubeText = "Kube Config and "
 	}
 	message := fmt.Sprintf("Cannot perform command because %sSSH details for this %s are not available. Use the configure command to add required details.", kubeText, res)

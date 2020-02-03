@@ -72,11 +72,6 @@ spec:
   checkLegacyController
 }
 
-@test "Connector legacy commands after deploy" {
-  test iofogctl -v legacy connector "$NAME" status
-  checkLegacyConnector
-}
-
 @test "Get Controller logs after vanilla deploy" {
   test iofogctl -v logs controller "$NAME"
 }
@@ -177,7 +172,7 @@ spec:
 
 @test "Configure Controller and Connector" {
   initVanillaController
-  for resource in controller connector; do
+  for resource in controller; do
     test iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
   done
   test iofogctl -v -n "$NS2" logs controller "$NAME"
@@ -211,13 +206,6 @@ spec:
   checkRenamedResource controllers "$NAME" "newname" "$NS2"
   test iofogctl -v -n "$NS2" rename controller "newname" "${NAME}"
   checkRenamedResource controllers "newname" "$NAME" "$NS2"
-}
-
-@test "Rename Connector" {
-  test iofogctl -v -n "$NS2" rename connector "$NAME" "newname"
-  checkRenamedResource connectors "$NAME" "newname" "$NS2"
-  test iofogctl -v -n "$NS2" rename connector "newname" "$NAME"
-  checkRenamedResource connectors "newname" "$NAME" "$NS2"
 }
 
 @test "Rename Namespace" {
@@ -265,7 +253,6 @@ spec:
   test iofogctl -v delete all
   initVanillaController
   checkVanillaResourceDeleted $VANILLA_USER $VANILLA_HOST $VANILLA_PORT $KEY_FILE "iofog-controller"
-  checkVanillaResourceDeleted $VANILLA_USER $VANILLA_HOST $VANILLA_PORT $KEY_FILE "iofog-connector"
  
   initAgents
   for IDX in "${!AGENTS[@]}"; do

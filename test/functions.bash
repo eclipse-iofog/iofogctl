@@ -183,16 +183,7 @@ spec:
   - name: $NAME
     host: 127.0.0.1
     container:
-      image: ${CONTROLLER_IMAGE}
----
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $NAME
-spec:
-  host: localhost
-  container:
-    image: ${CONNECTOR_IMAGE}" > test/conf/local.yaml
+      image: ${CONTROLLER_IMAGE}> test/conf/local.yaml
 }
 
 function initAgentsFile() {
@@ -254,28 +245,9 @@ function checkController() {
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "name: $NAME") ]]
 }
 
-function checkConnector() {
-  NS_CHECK=${1:-$NS}
-  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$NAME" | grep "name: $NAME") ]]
-}
-
-function checkConnectors() {
-  NS_CHECK=$NS
-  for CNCT in "$@"; do
-    [[ "$CNCT" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$CNCT" | awk '{print $1}') ]]
-    [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$CNCT" | grep "name: $CNCT") ]]
-  done
-}
-
 function checkControllerNegative() {
   NS_CHECK=${1:-$NS}
   [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
-}
-
-function checkConnectorNegative() {
-  NS_CHECK=${1:-$NS}
-  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkMicroservice() {
@@ -518,11 +490,6 @@ function checkAgentPruneController(){
 --header 'Content-Type: application/json')
   local PRUNE=$(echo $CHANGES | jq -r .prune)
   [[ "true" == "$PRUNE" ]]
-}
-
-function checkLegacyConnector() {
-  NS_CHECK=${1:-$NS}
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy connector $NAME status | grep 'is up and running') ]]
 }
 
 function checkLegacyController() {

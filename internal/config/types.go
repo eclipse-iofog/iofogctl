@@ -94,17 +94,6 @@ type ControlPlane struct {
 	Controllers  []Controller `yaml:"controllers,omitempty"`
 }
 
-type Connector struct {
-	Name      string    `yaml:"name,omitempty"`
-	Host      string    `yaml:"host,omitempty"`
-	SSH       SSH       `yaml:"ssh,omitempty"`
-	Kube      Kube      `yaml:"kube,omitempty"`
-	Created   string    `yaml:"created,omitempty"`
-	Endpoint  string    `yaml:"endpoint,omitempty"`
-	Package   Package   `yaml:"package,omitempty"`
-	Container Container `yaml:"container,omitempty"`
-}
-
 // Controller contains information for configuring a controller
 type Controller struct {
 	Name      string    `yaml:"name,omitempty"`
@@ -168,14 +157,12 @@ type Agent struct {
 type Namespace struct {
 	Name         string       `yaml:"name,omitempty"`
 	ControlPlane ControlPlane `yaml:"controlPlane,omitempty"`
-	Connectors   []Connector  `yaml:"connectors,omitempty"`
 	Agents       []Agent      `yaml:"agents,omitempty"`
 	Created      string       `yaml:"created,omitempty"`
 }
 
 type DetachedResources struct {
-	Connectors map[string]Connector `yaml:"connectors,omitempty"`
-	Agents     map[string]Agent     `yaml:"agents,omitempty"`
+	Agents map[string]Agent `yaml:"agents,omitempty"`
 }
 
 // Configuration contains the unmarshalled configuration file

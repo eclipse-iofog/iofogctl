@@ -59,7 +59,7 @@ func generateCatalogOutput(namespace string) error {
 		// Log into Controller
 		ctrlClient, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
 		if err != nil {
-			return tabulateConnectors(ns.Connectors)
+			return tabulateCatalogItems(items)
 		}
 
 		// Get catalog from Controller

@@ -40,7 +40,6 @@ deploy -f platform.yaml
 * [iofogctl delete all](iofogctl_delete_all.md)	 - Delete all resources within a namespace
 * [iofogctl delete application](iofogctl_delete_application.md)	 - Delete an application
 * [iofogctl delete catalogitem](iofogctl_delete_catalogitem.md)	 - Delete a Catalog item
-* [iofogctl delete connector](iofogctl_delete_connector.md)	 - Delete a Connector
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace

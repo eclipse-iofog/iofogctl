@@ -24,7 +24,7 @@ import (
 )
 
 func newGetCommand() *cobra.Command {
-	validResources := []string{"all", "namespaces", "controllers", "connectors", "agents", "applications", "microservices", "catalog", "registries"}
+	validResources := []string{"all", "namespaces", "controllers", "agents", "applications", "microservices", "catalog", "registries"}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",

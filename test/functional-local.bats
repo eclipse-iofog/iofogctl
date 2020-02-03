@@ -21,11 +21,6 @@ NS="$NAMESPACE"
   checkLegacyController
 }
 
-@test "Connector legacy commands after deploy" {
-  test iofogctl -v -n "$NS" legacy connector "$NAME" status
-  checkLegacyConnector
-}
-
 @test "Deploy Agents against local Controller" {
   initLocalAgentFile
   test iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml

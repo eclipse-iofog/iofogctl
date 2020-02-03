@@ -22,7 +22,6 @@ import (
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
 	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
 	deploycatalogitem "github.com/eclipse-iofog/iofogctl/internal/deploy/catalog_item"
-	deployconnector "github.com/eclipse-iofog/iofogctl/internal/deploy/connector"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
@@ -32,10 +31,9 @@ import (
 )
 
 var kindOrder = []apps.Kind{
-	// Connector cannot be ran in parallel.
+	// Deploy Agents after Control Plane
 	// apps.ControlPlaneKind,
 	// apps.ControllerKind,
-	// apps.ConnectorKind,
 	// apps.AgentKind,
 	config.AgentConfigKind,
 	config.RegistryKind,
@@ -73,10 +71,6 @@ func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err er
 	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployConnector(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployconnector.NewExecutor(deployconnector.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
-}
-
 func deployController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
@@ -92,7 +86,6 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	apps.ControlPlaneKind:  deployControlPlane,
 	apps.AgentKind:         deployAgent,
 	config.AgentConfigKind: deployAgentConfig,
-	apps.ConnectorKind:     deployConnector,
 	apps.ControllerKind:    deployController,
 	config.RegistryKind:    deployRegistry,
 }
@@ -105,7 +98,6 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Connector cannot be deployed in parallel
 
 	// Controlplane
 	if err = execute.RunExecutors(executorsMap[apps.ControlPlaneKind], "deploy control plane"); err != nil {
@@ -115,14 +107,6 @@ func Execute(opt *Options) (err error) {
 	// Controller
 	if err = execute.RunExecutors(executorsMap[apps.ControllerKind], "deploy controller"); err != nil {
 		return
-	}
-
-	// Connector
-	for idx := range executorsMap[apps.ConnectorKind] {
-		if err = executorsMap[apps.ConnectorKind][idx].Execute(); err != nil {
-			util.PrintNotify("Error from " + executorsMap[apps.ConnectorKind][idx].GetName() + ": " + err.Error())
-			return util.NewError("Failed to deploy")
-		}
 	}
 
 	// Agents can be deployed with an AgentConfig
