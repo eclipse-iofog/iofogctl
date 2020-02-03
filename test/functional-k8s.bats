@@ -149,7 +149,7 @@ spec:
   checkApplication
 }
 
-@test "Test External Ports on Cluster" {
+@test "Test Public Ports on Cluster" {
   # Wait for k8s service
   EXT_IP=$(waitForSvc http-proxy)
   # Hit the endpoint
@@ -157,17 +157,49 @@ spec:
 }
 
 @test "Change Microservice Ports" {
+  initApplicationFiles
   EXT_IP=$(waitForSvc http-proxy)
   # Change port
   sed -i '' "s/external: 5000/external: 6000/g" test/conf/application.yaml
-  # Wait for changes
-  sleep 10
-  # Check port updated
+  test iofogctl -v deploy -f test/conf/application.yaml
+  # Wait for port to update to 6000
+  PORT=0
+  SECS=0
+  while [ $SECS -lt 30 && $PORT != 6000 ]; do
+    PORT=$(kubectl describe svc http-proxy | grep 6000/TCP)
+    SECS=$((SECS+1))
+    sleep 1
+  done
+  # Check what happened in the loop above
+  [ $SECS -lt 30 ]
   test kubectl describe svc http-proxy | grep 6000/TCP
-  test ! kubectl describe svc http-proxy | grep 5000/TCP
+
   # Check service was not deleted
   NEW_IP=$(waitForSvc http-proxy)
   [[ $EXT_IP == $NEW_IP ]]
+}
+
+@test "Delete Public Port" {
+  initApplicationFiles
+  # Remove port info from the file
+  sed -i '' "s/ports://g" test/conf/application.yaml
+  sed -i '' "s/external://g" test/conf/application.yaml
+  sed -i '' "s/internal://g" test/conf/application.yaml
+  sed -i '' "s/publicMode://g" test/conf/application.yaml
+
+  # Update application
+  test iofogctl -v deploy -f test/conf/application.yaml
+
+  # Wait for port to be deleted
+  EXIT_CODE=0
+  SECS=0
+  while [ $SECS -lt 30 && $EXIT_CODE -eq 0 ]; do
+    EXIT_CODE=$(kubectl describe svc http-proxy | grep 6000/TCP)
+    SECS=$((SECS+1))
+    sleep 1
+  done
+  # Check what happened in the loop above
+  [ $SECS -lt 30 ]
 }
 
 @test "Move microservice to another agent" {
