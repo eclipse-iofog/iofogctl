@@ -27,6 +27,7 @@ import (
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/internal/deploy/registry"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -112,13 +113,19 @@ func Execute(opt *Options) (err error) {
 	// Agents can be deployed with an AgentConfig
 	for _, agentGenericExecutor := range executorsMap[apps.AgentKind] {
 		agentName := agentGenericExecutor.GetName()
+		agentExecutor, agentOk := agentGenericExecutor.(deployagent.AgentExecutor)
+		if !agentOk {
+			return util.NewInternalError("Agent executor: Could not convert executor")
+		}
+		install.Verbose(fmt.Sprintf("Looking for agent config for agent %s", agentName))
 		for i, agentConfigGenericExecutor := range executorsMap[config.AgentConfigKind] {
 			// If agent config is provided alonside agent
+			install.Verbose(fmt.Sprintf("Looking for agent config for agent %s - got agent config: %s", agentName, agentConfigGenericExecutor.GetName()))
 			if agentName == agentConfigGenericExecutor.GetName() {
+				install.Verbose(fmt.Sprintf("Found agent config!"))
 				// Get more specialised interfaces
 				agentConfigExecutor, configOk := agentConfigGenericExecutor.(deployagentconfig.AgentConfigExecutor)
-				agentExecutor, agentOk := agentGenericExecutor.(deployagent.AgentExecutor)
-				if !configOk || !agentOk {
+				if !configOk {
 					return util.NewInternalError("Agent executor: Could not convert executor")
 				}
 				// Update agent executor to deploy with config
@@ -129,7 +136,7 @@ func Execute(opt *Options) (err error) {
 				break
 			}
 		}
-		if err = agentGenericExecutor.Execute(); err != nil {
+		if err = agentExecutor.Execute(); err != nil {
 			util.PrintNotify("Error from " + agentName + ": " + err.Error())
 			return util.NewError("Failed to deploy")
 		}

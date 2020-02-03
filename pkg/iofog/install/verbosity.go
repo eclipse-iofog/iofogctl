@@ -20,6 +20,10 @@ import (
 // Toggle HTTP output
 var isVerbose bool
 
+func IsVerbose() bool {
+	return isVerbose
+}
+
 func SetVerbosity(verbose bool) {
 	isVerbose = verbose
 }

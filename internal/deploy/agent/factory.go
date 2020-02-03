@@ -36,11 +36,12 @@ type AgentExecutor interface {
 	SetAgentConfig(*config.AgentConfiguration)
 }
 
-func (facade facadeExecutor) SetAgentConfig(config *config.AgentConfiguration) {
+func (facade *facadeExecutor) SetAgentConfig(config *config.AgentConfiguration) {
+	facade.agentConfig = config
 	facade.exe.SetAgentConfig(config)
 }
 
-func (facade facadeExecutor) Execute() (err error) {
+func (facade *facadeExecutor) Execute() (err error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(facade.namespace)
 	if err != nil {
@@ -60,14 +61,16 @@ func (facade facadeExecutor) Execute() (err error) {
 		if e != nil {
 			return e
 		}
-		agentConfig, e := deployagentconfig.ProcessAgentNames(*facade.agentConfig, clt)
+		agentConfig, e := deployagentconfig.Process(*facade.agentConfig, facade.agent.Host, clt)
 		if e != nil {
 			return e
 		}
 		facade.SetAgentConfig(&agentConfig)
 	}
 
-	util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
+	if !isSystemAgent || install.IsVerbose() {
+		util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
+	}
 
 	if err = facade.exe.Execute(); err != nil {
 		return
@@ -81,11 +84,11 @@ func (facade facadeExecutor) Execute() (err error) {
 	return config.Flush()
 }
 
-func (facade facadeExecutor) GetName() string {
+func (facade *facadeExecutor) GetName() string {
 	return facade.exe.GetName()
 }
 
-func (facade facadeExecutor) ProvisionAgent() (string, error) {
+func (facade *facadeExecutor) ProvisionAgent() (string, error) {
 	// Required for attach
 	provisionExecutor, ok := facade.exe.(execute.ProvisioningExecutor)
 	if !ok {
@@ -95,7 +98,7 @@ func (facade facadeExecutor) ProvisionAgent() (string, error) {
 }
 
 func newFacadeExecutor(exe AgentExecutor, namespace string, agent *config.Agent) execute.Executor {
-	return facadeExecutor{
+	return &facadeExecutor{
 		exe:       exe,
 		namespace: namespace,
 		agent:     agent,

@@ -64,7 +64,7 @@ func (exe remoteExecutor) Execute() error {
 	}
 
 	// Process needs to be done at execute time because agent might have been created during deploy
-	exe.agentConfig, err = ProcessAgentNames(exe.agentConfig, clt)
+	exe.agentConfig, err = Process(exe.agentConfig, agent.IPAddress, clt)
 	if err != nil {
 		return err
 	}

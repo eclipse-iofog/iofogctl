@@ -30,25 +30,28 @@ const (
 	NoneRouter     RouterMode = "none"
 )
 
-func Validate(config config.AgentConfiguration) error {
-	var routerMode RouterMode
+func getRouterMode(config config.AgentConfiguration) RouterMode {
 	if config.RouterConfig.RouterMode != nil {
-		routerMode = RouterMode(*config.RouterConfig.RouterMode)
+		return RouterMode(*config.RouterConfig.RouterMode)
 	} else {
-		routerMode = EdgeRouter
+		return EdgeRouter
 	}
+}
+
+func Validate(config config.AgentConfiguration) error {
+	routerMode := getRouterMode(config)
 
 	if routerMode != EdgeRouter && routerMode != InteriorRouter && routerMode != NoneRouter {
 		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. RouterMode has to be one of edge, interior, none. Default is: edge", config.Name))
 	}
 	if routerMode != NoneRouter && config.NetworkRouter != nil {
-		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a network if routerMode is different from none. Default router mode is edge", config.Name))
+		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a network if routerMode is different from none. Current router mode is: %s", config.Name, routerMode))
 	}
 	if routerMode == NoneRouter && config.UpstreamRouters != nil && len(*config.UpstreamRouters) > 0 {
 		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a upstreamRouters if routerMode is none", config.Name))
 	}
-	if routerMode != InteriorRouter && config.RouterConfig.EdgeRouterPort != nil || config.RouterConfig.InterRouterPort != nil {
-		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a edgeRouterPort of InterRouterPort if routerMode is different from interior. Default router mode is edge", config.Name))
+	if routerMode != InteriorRouter && (config.RouterConfig.EdgeRouterPort != nil || config.RouterConfig.InterRouterPort != nil) {
+		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a edgeRouterPort or InterRouterPort if routerMode is different from interior. Current router mode is: %s", config.Name, routerMode))
 	}
 
 	return nil
@@ -66,7 +69,9 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 	return "", util.NewNotFoundError(fmt.Sprintf("Could not find router: %s\n", name))
 }
 
-func ProcessAgentNames(config config.AgentConfiguration, clt *client.Client) (config.AgentConfiguration, error) {
+// Process update the config to translate agent names into uuids, and sets the host value if needed
+func Process(config config.AgentConfiguration, host string, clt *client.Client) (config.AgentConfiguration, error) {
+	routerMode := getRouterMode(config)
 	agentList, err := clt.ListAgents()
 	if err != nil {
 		return config, err
@@ -91,5 +96,10 @@ func ProcessAgentNames(config config.AgentConfiguration, clt *client.Client) (co
 		}
 		config.NetworkRouter = &uuid
 	}
+
+	if routerMode != NoneRouter && config.Host == nil {
+		config.Host = &host
+	}
+
 	return config, nil
 }

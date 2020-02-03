@@ -76,8 +76,13 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 		return err
 	}
 
+	// If there already is a system fog, ignore error
 	if err = agentDeployExecutor.Execute(); err != nil {
-		return err
+		if strings.Contains(err.Error(), "There already is a system fog") {
+			util.PrintNotify(fmt.Sprintf("Using existing default router"))
+		} else {
+			return err
+		}
 	}
 	return nil
 }

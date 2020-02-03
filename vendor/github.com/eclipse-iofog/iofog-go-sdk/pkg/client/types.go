@@ -263,53 +263,59 @@ type GetAgentProvisionKeyResponse struct {
 }
 
 type AgentInfo struct {
-	UUID                      string  `json:"uuid" yaml:"uuid"`
-	Name                      string  `json:"name" yaml:"name"`
-	Location                  string  `json:"location" yaml:"location"`
-	Latitude                  float64 `json:"latitude" yaml:"latitude"`
-	Longitude                 float64 `json:"longitude" yaml:"longitude"`
-	Description               string  `json:"description" yaml:"description"`
-	DockerURL                 string  `json:"dockerUrl" yaml:"dockerUrl"`
-	DiskLimit                 int64   `json:"diskLimit" yaml:"diskLimit"`
-	DiskDirectory             string  `json:"diskDirectory" yaml:"diskDirectory"`
-	MemoryLimit               int64   `json:"memoryLimit" yaml:"memoryLimit"`
-	CPULimit                  int64   `json:"cpuLimit" yaml:"cpuLimit"`
-	LogLimit                  int64   `json:"logLimit" yaml:"logLimit"`
-	LogDirectory              string  `json:"logDirectory" yaml:"logDirectory"`
-	LogFileCount              int64   `json:"logFileCount" yaml:"logFileCount"`
-	StatusFrequency           float64 `json:"statusFrequency" yaml:"statusFrequency"`
-	ChangeFrequency           float64 `json:"changeFrequency" yaml:"changeFrequency"`
-	DeviceScanFrequency       float64 `json:"deviceScanFrequency" yaml:"deviceScanFrequency"`
-	BluetoothEnabled          bool    `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
-	WatchdogEnabled           bool    `json:"watchdogEnabled" yaml:"watchdogEnabled"`
-	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
-	CreatedTimeRFC3339        string  `json:"created_at" yaml:"created"`
-	UpdatedTimeRFC3339        string  `json:"updated_at" yaml:"updated"`
-	LastActive                int64   `json:"lastActive" yaml:"lastActive"`
-	DaemonStatus              string  `json:"daemonStatus" yaml:"daemonStatus"`
-	UptimeMs                  int64   `json:"daemonOperatingDuration" yaml:"uptime"`
-	MemoryUsage               float64 `json:"memoryUsage" yaml:"memoryUsage"`
-	DiskUsage                 float64 `json:"diskUsage" yaml:"diskUsage"`
-	CPUUsage                  float64 `json:"cpuUsage" yaml:"cpuUsage"`
-	MemoryViolation           string  `json:"memoryViolation" yaml:"memoryViolation"`
-	DiskViolation             string  `json:"diskViolation" yaml:"diskViolation"`
-	CPUViolation              string  `json:"cpuViolation" yaml:"cpuViolation"`
-	MicroserviceStatus        string  `json:"microserviceStatus" yaml:"microserviceStatus"`
-	RepositoryCount           int64   `json:"repositoryCount" yaml:"repositoryCount"`
-	RepositoryStatus          string  `json:"repositoryStatus" yaml:"repositoryStatus"`
-	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yaml:"lastStatusTime"`
-	IPAddress                 string  `json:"ipAddress" yaml:"ipAddress"`
-	IPAddressExternal         string  `json:"ipAddressExternal" yaml:"ipAddressExternal"`
-	ProcessedMessaged         int64   `json:"processedMessages" yaml:"ProcessedMessages"`
-	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yaml:"microserviceMessageCount"`
-	MessageSpeed              float64 `json:"messageSpeed" yaml:"messageSpeed"`
-	LastCommandTimeMsUTC      int64   `json:"lastCommandTime" yaml:"lastCommandTime"`
-	NetworkInterface          string  `json:"networkInterface" yaml:"networkInterface"`
-	Version                   string  `json:"version" yaml:"version"`
-	IsReadyToUpgrade          bool    `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
-	IsReadyToRollback         bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
-	Tunnel                    string  `json:"tunnel" yaml:"tunnel"`
-	FogType                   int     `json:"fogTypeId" yaml:"fogTypeId"`
+	UUID                      string    `json:"uuid" yaml:"uuid"`
+	Name                      string    `json:"name" yaml:"name"`
+	Location                  string    `json:"location" yaml:"location"`
+	Latitude                  float64   `json:"latitude" yaml:"latitude"`
+	Longitude                 float64   `json:"longitude" yaml:"longitude"`
+	Description               string    `json:"description" yaml:"description"`
+	DockerURL                 string    `json:"dockerUrl" yaml:"dockerUrl"`
+	DiskLimit                 int64     `json:"diskLimit" yaml:"diskLimit"`
+	DiskDirectory             string    `json:"diskDirectory" yaml:"diskDirectory"`
+	MemoryLimit               int64     `json:"memoryLimit" yaml:"memoryLimit"`
+	CPULimit                  int64     `json:"cpuLimit" yaml:"cpuLimit"`
+	LogLimit                  int64     `json:"logLimit" yaml:"logLimit"`
+	LogDirectory              string    `json:"logDirectory" yaml:"logDirectory"`
+	LogFileCount              int64     `json:"logFileCount" yaml:"logFileCount"`
+	StatusFrequency           float64   `json:"statusFrequency" yaml:"statusFrequency"`
+	ChangeFrequency           float64   `json:"changeFrequency" yaml:"changeFrequency"`
+	DeviceScanFrequency       float64   `json:"deviceScanFrequency" yaml:"deviceScanFrequency"`
+	BluetoothEnabled          bool      `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
+	WatchdogEnabled           bool      `json:"watchdogEnabled" yaml:"watchdogEnabled"`
+	AbstractedHardwareEnabled bool      `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
+	CreatedTimeRFC3339        string    `json:"created_at" yaml:"created"`
+	UpdatedTimeRFC3339        string    `json:"updated_at" yaml:"updated"`
+	LastActive                int64     `json:"lastActive" yaml:"lastActive"`
+	DaemonStatus              string    `json:"daemonStatus" yaml:"daemonStatus"`
+	UptimeMs                  int64     `json:"daemonOperatingDuration" yaml:"uptime"`
+	MemoryUsage               float64   `json:"memoryUsage" yaml:"memoryUsage"`
+	DiskUsage                 float64   `json:"diskUsage" yaml:"diskUsage"`
+	CPUUsage                  float64   `json:"cpuUsage" yaml:"cpuUsage"`
+	MemoryViolation           string    `json:"memoryViolation" yaml:"memoryViolation"`
+	DiskViolation             string    `json:"diskViolation" yaml:"diskViolation"`
+	CPUViolation              string    `json:"cpuViolation" yaml:"cpuViolation"`
+	MicroserviceStatus        string    `json:"microserviceStatus" yaml:"microserviceStatus"`
+	RepositoryCount           int64     `json:"repositoryCount" yaml:"repositoryCount"`
+	RepositoryStatus          string    `json:"repositoryStatus" yaml:"repositoryStatus"`
+	LastStatusTimeMsUTC       int64     `json:"lastStatusTime" yaml:"lastStatusTime"`
+	IPAddress                 string    `json:"ipAddress" yaml:"ipAddress"`
+	IPAddressExternal         string    `json:"ipAddressExternal" yaml:"ipAddressExternal"`
+	ProcessedMessaged         int64     `json:"processedMessages" yaml:"ProcessedMessages"`
+	MicroserviceMessageCount  int64     `json:"microserviceMessageCounts" yaml:"microserviceMessageCount"`
+	MessageSpeed              float64   `json:"messageSpeed" yaml:"messageSpeed"`
+	LastCommandTimeMsUTC      int64     `json:"lastCommandTime" yaml:"lastCommandTime"`
+	NetworkInterface          string    `json:"networkInterface" yaml:"networkInterface"`
+	Version                   string    `json:"version" yaml:"version"`
+	IsReadyToUpgrade          bool      `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
+	IsReadyToRollback         bool      `json:"isReadyToRollback" yaml:"isReadyToRollback"`
+	Tunnel                    string    `json:"tunnel" yaml:"tunnel"`
+	FogType                   int       `json:"fogTypeId" yaml:"fogTypeId"`
+	RouterMode                string    `json:"routerMode" yaml:"routerMode"`
+	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
+	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	MessagingPort             *int      `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
+	EdgeRouterPort            *int      `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
+	InterRouterPort           *int      `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
 }
 
 type RouterConfig struct {
@@ -338,7 +344,7 @@ type AgentConfiguration struct {
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
-	RouterConfig              `json:",omitempty" yaml:",omitempty"`
+	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
 }
 
 type AgentUpdateRequest struct {
