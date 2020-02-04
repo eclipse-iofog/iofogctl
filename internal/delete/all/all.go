@@ -14,7 +14,7 @@
 package deleteall
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
@@ -53,8 +53,7 @@ func Execute(namespace string, useDetached, soft bool) error {
 		// Delete routes
 		if len(ns.ControlPlane.Controllers) > 0 {
 			// Get list of microservices from backend
-			endpoint, _ := ns.ControlPlane.GetControllerEndpoint()
-			clt, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
+			clt, err := internal.NewControllerClient(namespace)
 			if err != nil {
 				return err
 			}

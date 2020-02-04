@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -82,41 +83,38 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Connect to Controller if it is ready
-	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
-	if err == nil {
-		// Instantiate client
-		// Log into Controller
-		ctrl, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
-		if err != nil {
-			return tabulateAgents(agentsToPrint)
-		}
+	// Instantiate client
+	// Log into Controller
+	ctrl, err := internal.NewControllerClient(namespace)
+	if err != nil {
+		return tabulateAgents(agentsToPrint)
+	}
 
-		// Get Agents from Controller
-		listAgentsResponse, err := ctrl.ListAgents()
-		if err != nil {
-			return err
-		}
+	// Get Agents from Controller
+	listAgentsResponse, err := ctrl.ListAgents()
+	if err != nil {
+		return err
+	}
 
-		// Process Agents
-		for _, remoteAgent := range listAgentsResponse.Agents {
-			// Server may have agents that the client is not aware of, update config if so
-			if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
-				newAgentConf := config.Agent{
-					Name: remoteAgent.Name,
-					UUID: remoteAgent.UUID,
-					Host: remoteAgent.IPAddressExternal,
-				}
-				config.AddAgent(namespace, newAgentConf)
+	// Process Agents
+	for _, remoteAgent := range listAgentsResponse.Agents {
+		// Server may have agents that the client is not aware of, update config if so
+		if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
+			newAgentConf := config.Agent{
+				Name: remoteAgent.Name,
+				UUID: remoteAgent.UUID,
+				Host: remoteAgent.IPAddressExternal,
 			}
-
-			// Use the pre-processed default info if necessary
-			if remoteAgent.IPAddressExternal == "0.0.0.0" {
-				remoteAgent.IPAddressExternal = agentsToPrint[remoteAgent.Name].IPAddressExternal
-			}
-
-			// Add details for output
-			agentsToPrint[remoteAgent.Name] = remoteAgent
+			config.AddAgent(namespace, newAgentConf)
 		}
+
+		// Use the pre-processed default info if necessary
+		if remoteAgent.IPAddressExternal == "0.0.0.0" {
+			remoteAgent.IPAddressExternal = agentsToPrint[remoteAgent.Name].IPAddressExternal
+		}
+
+		// Add details for output
+		agentsToPrint[remoteAgent.Name] = remoteAgent
 	}
 
 	return tabulateAgents(agentsToPrint)

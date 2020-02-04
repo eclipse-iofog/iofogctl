@@ -18,7 +18,7 @@ import (
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal"
 )
 
 type catalogExecutor struct {
@@ -44,50 +44,41 @@ func (exe *catalogExecutor) GetName() string {
 }
 
 func generateCatalogOutput(namespace string) error {
-	// Get Config
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
 	var items []apps.CatalogItem
 
 	// Connect to Controller if it is ready
-	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
-	if err == nil {
-		// Instantiate client
-		// Log into Controller
-		ctrlClient, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
-		if err != nil {
-			return tabulateCatalogItems(items)
-		}
+	// Instantiate client
+	// Log into Controller
+	ctrlClient, err := internal.NewControllerClient(namespace)
+	if err != nil {
+		return tabulateCatalogItems(items)
+	}
 
-		// Get catalog from Controller
-		listCatalogResponse, err := ctrlClient.GetCatalog()
-		if err != nil {
-			return err
+	// Get catalog from Controller
+	listCatalogResponse, err := ctrlClient.GetCatalog()
+	if err != nil {
+		return err
+	}
+	for _, item := range listCatalogResponse.CatalogItems {
+		catalogItem := apps.CatalogItem{
+			ID:          item.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			Registry:    client.RegistryTypeIDRegistryTypeDict[item.RegistryID],
 		}
-		for _, item := range listCatalogResponse.CatalogItems {
-			catalogItem := apps.CatalogItem{
-				ID:          item.ID,
-				Name:        item.Name,
-				Description: item.Description,
-				Registry:    client.RegistryTypeIDRegistryTypeDict[item.RegistryID],
+		for _, image := range item.Images {
+			switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
+			case "x86":
+				catalogItem.X86 = image.ContainerImage
+				break
+			case "arm":
+				catalogItem.ARM = image.ContainerImage
+				break
+			default:
+				break
 			}
-			for _, image := range item.Images {
-				switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
-				case "x86":
-					catalogItem.X86 = image.ContainerImage
-					break
-				case "arm":
-					catalogItem.ARM = image.ContainerImage
-					break
-				default:
-					break
-				}
-			}
-			items = append(items, catalogItem)
 		}
+		items = append(items, catalogItem)
 	}
 
 	return tabulateCatalogItems(items)

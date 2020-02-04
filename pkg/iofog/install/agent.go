@@ -15,6 +15,7 @@ package install
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
@@ -84,7 +85,10 @@ func UpdateAgentConfiguration(agentConfig *config.AgentConfiguration, uuid strin
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
 	// Connect to controller
-	ctrl := client.New(controllerEndpoint)
+	ctrl, err := internal.NewControllerClient(agent.namespace)
+	if err != nil {
+		return "", "", nil
+	}
 
 	// Log in
 	Verbose("Accessing Controller to generate Provisioning Key")

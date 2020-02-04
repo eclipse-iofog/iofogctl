@@ -21,6 +21,8 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+var clientByNamespace map[string]*client.Client = make(map[string]*client.Client)
+
 // NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
 func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	// Get Control Plane
@@ -32,7 +34,17 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return client.NewAndLogin(endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+
+	// If we are already authenticated, use existing client
+	clt, ok := clientByNamespace[namespace]
+	if !ok {
+		clt, err = client.NewAndLogin(endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+		if err != nil {
+			return
+		}
+		clientByNamespace[namespace] = clt
+	}
+	return
 }
 
 const APIVersionGroup = "iofog.org"
