@@ -56,6 +56,7 @@ func (exe *remoteExecutor) Execute() error {
 			agent.SSH.Port,
 			agent.SSH.KeyFile,
 			agent.Name,
+			agent.UUID,
 			nil)
 		if err = sshAgent.Stop(); err != nil {
 			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))

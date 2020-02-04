@@ -354,7 +354,7 @@ type AgentUpdateRequest struct {
 	Latitude    float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude   float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description string  `json:"description,omitempty" yaml:"description"`
-	FogType     int64   `json:"fogType" yaml:"agentType"`
+	FogType     *int64  `json:"fogType,omitempty" yaml:"agentType"`
 	AgentConfiguration
 }
 

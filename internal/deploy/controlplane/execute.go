@@ -21,6 +21,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
@@ -49,12 +50,11 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 		Name: iofog.VanillaRouterAgentName,
 		Host: ctrl.Host,
 		SSH:  ctrl.SSH,
-	}
-	agentDeployGenericExecutor, err := deployagent.NewDeployExecutor(namespace, &agentConfig)
-	// Convert executor to be able to setConfig
-	agentDeployExecutor, ok := agentDeployGenericExecutor.(deployagent.AgentExecutor)
-	if !ok {
-		return util.NewInternalError("Could not convert executor")
+		Package: config.Package{
+			Version: "2.0.0-rc1-b6797",
+			Repo:    "iofog/iofog-agent-snapshots",
+			Token:   "4d92b64818ae03d4a6b3f164406e44f65b49a9aa82124c17",
+		},
 	}
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
@@ -71,20 +71,21 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 			RouterConfig: RouterConfig,
 		},
 	}
-	agentDeployExecutor.SetAgentConfig(&deployAgentConfig)
-	if err != nil {
-		return err
-	}
 
+	// Get Agentconfig executor
+	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace)
 	// If there already is a system fog, ignore error
-	if err = agentDeployExecutor.Execute(); err != nil {
+	if err = deployAgentConfigExecutor.Execute(); err != nil {
 		if strings.Contains(err.Error(), "There already is a system fog") {
 			util.PrintNotify(fmt.Sprintf("Using existing default router"))
 		} else {
 			return err
 		}
 	}
-	return nil
+
+	agentConfig.UUID = deployAgentConfigExecutor.GetAgentUUID()
+	agentDeployExecutor, err := deployagent.NewDeployExecutor(namespace, &agentConfig, true)
+	return agentDeployExecutor.Execute()
 }
 
 func (exe controlPlaneExecutor) postDeploy() (err error) {

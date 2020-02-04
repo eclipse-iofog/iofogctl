@@ -21,6 +21,7 @@ type Options struct {
 	Namespace string
 	Name      string
 	Yaml      []byte
+	IsSystem  bool
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -39,5 +40,5 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	return NewDeployExecutor(opt.Namespace, &agent)
+	return NewDeployExecutor(opt.Namespace, &agent, opt.IsSystem)
 }

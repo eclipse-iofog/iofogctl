@@ -124,7 +124,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		Latitude:    getAgentResponse.Latitude,
 		Longitude:   getAgentResponse.Longitude,
 		Description: getAgentResponse.Description,
-		FogType:     fogType,
+		FogType:     &fogType,
 		AgentConfiguration: client.AgentConfiguration{
 			DockerURL:                 &getAgentResponse.DockerURL,
 			DiskLimit:                 &getAgentResponse.DiskLimit,

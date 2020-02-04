@@ -124,7 +124,7 @@ type AgentConfiguration struct {
 	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description               string  `json:"description,omitempty" yaml:"description"`
-	FogType                   string  `json:"fogType,omitempty" yaml:"agentType"`
+	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
 }
 

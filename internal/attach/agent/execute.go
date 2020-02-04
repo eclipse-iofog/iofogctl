@@ -65,7 +65,7 @@ func (exe executor) Execute() error {
 		return err
 	}
 
-	executor, err := deploy.NewDeployExecutor(exe.opt.Namespace, &agent)
+	executor, err := deploy.NewDeployExecutor(exe.opt.Namespace, &agent, false)
 	if err != nil {
 		return err
 	}

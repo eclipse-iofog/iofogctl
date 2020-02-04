@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
@@ -27,7 +28,6 @@ import (
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/internal/deploy/registry"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -36,7 +36,7 @@ var kindOrder = []apps.Kind{
 	// apps.ControlPlaneKind,
 	// apps.ControllerKind,
 	// apps.AgentKind,
-	config.AgentConfigKind,
+	// config.AgentConfigKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
 	apps.ApplicationKind,
@@ -98,6 +98,40 @@ func Execute(opt *Options) (err error) {
 		return err
 	}
 
+	// Create any AgentConfig executor missing
+	// Each Agent requires a corresponding Agent Config to be created with Controller
+	for _, agentGenericExecutor := range executorsMap[apps.AgentKind] {
+		agentExecutor, ok := agentGenericExecutor.(deployagent.AgentDeployExecutor)
+		if !ok {
+			return util.NewInternalError("Could not convert agent deploy executor\n")
+		}
+		found := false
+		host := agentExecutor.GetHost()
+		for _, configGenericExecutor := range executorsMap[config.AgentConfigKind] {
+			configExecutor, ok := configGenericExecutor.(deployagentconfig.AgentConfigExecutor)
+			if !ok {
+				return util.NewInternalError("Could not convert agent config executor\n")
+			}
+			if agentExecutor.GetName() == configExecutor.GetName() {
+				found = true
+				configExecutor.SetHost(host)
+				break
+			}
+		}
+		if !found {
+			executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
+				agentExecutor.GetName(),
+				config.AgentConfiguration{
+					Name: agentExecutor.GetName(),
+					AgentConfiguration: client.AgentConfiguration{
+						Host: &host,
+					},
+				},
+				opt.Namespace,
+			))
+		}
+	}
+
 	// Execute in parallel by priority order
 
 	// Controlplane
@@ -110,39 +144,19 @@ func Execute(opt *Options) (err error) {
 		return
 	}
 
-	// Agents can be deployed with an AgentConfig
-	for _, agentGenericExecutor := range executorsMap[apps.AgentKind] {
-		agentName := agentGenericExecutor.GetName()
-		agentExecutor, agentOk := agentGenericExecutor.(deployagent.AgentExecutor)
-		if !agentOk {
-			return util.NewInternalError("Agent executor: Could not convert executor")
-		}
-		install.Verbose(fmt.Sprintf("Looking for agent config for agent %s", agentName))
-		for i, agentConfigGenericExecutor := range executorsMap[config.AgentConfigKind] {
-			// If agent config is provided alonside agent
-			install.Verbose(fmt.Sprintf("Looking for agent config for agent %s - got agent config: %s", agentName, agentConfigGenericExecutor.GetName()))
-			if agentName == agentConfigGenericExecutor.GetName() {
-				install.Verbose(fmt.Sprintf("Found agent config!"))
-				// Get more specialised interfaces
-				agentConfigExecutor, configOk := agentConfigGenericExecutor.(deployagentconfig.AgentConfigExecutor)
-				if !configOk {
-					return util.NewInternalError("Agent executor: Could not convert executor")
-				}
-				// Update agent executor to deploy with config
-				agentConfig := agentConfigExecutor.GetConfiguration()
-				agentExecutor.SetAgentConfig(&agentConfig)
-				// Remove agent config executor from list
-				executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind][:i], executorsMap[config.AgentConfigKind][i+1:]...)
-				break
-			}
-		}
-		if err = agentExecutor.Execute(); err != nil {
-			util.PrintNotify("Error from " + agentName + ": " + err.Error())
-			return util.NewError("Failed to deploy")
+	// Agent config are the representation of agents in Controller. They need to be deployed sequentially because of router dependencies
+	for idx := range executorsMap[config.AgentConfigKind] {
+		if err = executorsMap[config.AgentConfigKind][idx].Execute(); err != nil {
+			return err
 		}
 	}
 
-	// AgentConfig (left overs after agent), CatalogItem, Application, Microservice
+	// Agents are the actual remote host installation, they can be installed in parallel
+	if err = execute.RunExecutors(executorsMap[apps.AgentKind], "deploy agent"); err != nil {
+		return
+	}
+
+	// CatalogItem, Application, Microservice
 	for idx := range kindOrder {
 		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); err != nil {
 			return

@@ -50,6 +50,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 		exe.agent.SSH.Port,
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
+		exe.agent.UUID,
 		exe.agentConfig)
 
 	controlPlane, err := config.GetControlPlane(exe.namespace)
@@ -83,6 +84,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		exe.agent.SSH.Port,
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
+		exe.agent.UUID,
 		exe.agentConfig)
 
 	// Set version

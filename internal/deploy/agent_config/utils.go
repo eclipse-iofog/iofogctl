@@ -70,11 +70,20 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 }
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
-func Process(config config.AgentConfiguration, host string, clt *client.Client) (config.AgentConfiguration, error) {
+func Process(config config.AgentConfiguration, name string, clt *client.Client) (config.AgentConfiguration, error) {
 	routerMode := getRouterMode(config)
 	agentList, err := clt.ListAgents()
 	if err != nil {
 		return config, err
+	}
+
+	// Try to find current agent based on name
+	var agent *client.AgentInfo
+	for idx := range agentList.Agents {
+		if name == agentList.Agents[idx].Name {
+			agent = &agentList.Agents[idx]
+			break
+		}
 	}
 
 	if config.UpstreamRouters != nil {
@@ -98,7 +107,10 @@ func Process(config config.AgentConfiguration, host string, clt *client.Client) 
 	}
 
 	if routerMode != NoneRouter && config.Host == nil {
-		config.Host = &host
+		if agent == nil {
+			return config, util.NewInputError(fmt.Sprintf("Could not infere agent host for agent %s. Host is required because router mode is %s", name, routerMode))
+		}
+		config.Host = &agent.IPAddressExternal
 	}
 
 	return config, nil
