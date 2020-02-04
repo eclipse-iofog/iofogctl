@@ -68,11 +68,6 @@ spec:
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
-@test "Controller legacy commands after deploy" {
-  test iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
-  checkLegacyController
-}
-
 @test "Get Controller logs on K8s after deploy" {
   test iofogctl -v -n "$NS" logs controller "$NAME"
 }
@@ -174,8 +169,6 @@ spec:
     test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube "$KUBE_CONFIG"
   done
   test iofogctl -v -n "$NS" logs controller "$NAME"
-  checkLegacyController
-  checkLegacyConnector
 }
 
 @test "Configure Agents" {
