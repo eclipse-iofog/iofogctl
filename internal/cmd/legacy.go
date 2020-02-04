@@ -45,9 +45,11 @@ func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string)
 	kubeArgs := []string{"exec", podName, "-n", namespace, "--"}
 	kubeArgs = append(kubeArgs, cliCmd...)
 	kubeArgs = append(kubeArgs, cmd...)
-	out, err := util.Exec("KUBECONFIG="+kubeConfig, "kubectl", kubeArgs...)
-	util.Check(err)
-	fmt.Print(out.String())
+	kubectlCmd := "kubectl"
+	for _, kArg := range kubeArgs {
+		kubectlCmd = kubectlCmd + " " + kArg
+	}
+	util.PrintNotify("Cannot use legacy command against a Kubernetes Controller. Use the following command instead: \n\n  " + kubectlCmd)
 }
 
 func localExecute(container string, localCLI, localCmd []string) {
