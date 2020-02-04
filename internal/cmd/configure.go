@@ -77,7 +77,7 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully configured %s %s\n", opt.ResourceType, opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Succesfully configured %s %s", opt.ResourceType, opt.Name))
 		},
 	}
 	cmd.Flags().StringVar(&opt.Host, "host", "", "Hostname of remote host")

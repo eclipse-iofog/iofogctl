@@ -15,7 +15,6 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type defaultNamespaceExecutor struct {
@@ -40,6 +39,5 @@ func (exe *defaultNamespaceExecutor) Execute() error {
 		return err
 	}
 
-	util.PrintSuccess("Successfully set default namespace to " + exe.name)
 	return nil
 }
