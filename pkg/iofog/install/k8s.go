@@ -78,6 +78,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		controlPlane: &iofogv1.ControlPlane{
 			ControllerImage:  "gcr.io/focal-freedom-236620/controller:" + util.GetControllerTag(),
 			PortManagerImage: "gcr.io/focal-freedom-236620/port-manager:" + util.GetPortManagerTag(),
+			ProxyImage:       "quay.io/skupper/icproxy",
 			KubeletImage:     "gcr.io/focal-freedom-236620/kubelet:" + util.GetKubeletTag(),
 			ServiceType:      string(corev1.ServiceTypeLoadBalancer),
 		},
