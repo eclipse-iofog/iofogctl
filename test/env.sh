@@ -23,10 +23,11 @@ export KUBE_CONFIG="~/.kube/config"
 export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster or local deploy
-export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:develop"
-export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:develop"
+export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:skupper"
+export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:skupper"
 export PORT_MANAGER_IMAGE="gcr.io/focal-freedom-236620/port-manager:develop"
-export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
+export PROXY_IMAGE="quay.io/skupper/icproxy"
+export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:skupper"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys
