@@ -14,13 +14,13 @@
 package connectcontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
 func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 	// Connect to Controller
-	ctrl, err := internal.NewControllerClient(namespace)
+	ctrl, err := client.NewAndLogin(endpoint, ctrlPlane.IofogUser.Email, ctrlPlane.IofogUser.Password)
 	if err != nil {
 		return err
 	}

@@ -183,7 +183,7 @@ spec:
   - name: $NAME
     host: 127.0.0.1
     container:
-      image: ${CONTROLLER_IMAGE}> test/conf/local.yaml
+      image: ${CONTROLLER_IMAGE}"> test/conf/local.yaml
 }
 
 function initAgentsFile() {
