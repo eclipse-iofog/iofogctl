@@ -297,7 +297,8 @@ stages:
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
         NS=$(jobuuid)
         sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-        sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
+        sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
+        sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
         cp test/env.sh test/conf
       displayName: 'Configure Local Tests'
     - template: templates/configure-remote-tests.yaml
@@ -412,7 +413,8 @@ stages:
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
         NS=$(jobuuid)
         sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-        sed -i "s|PACKAGE_CLOUD_TOKEN=.*|PACKAGE_CLOUD_TOKEN=\"$(pkg.token)\"|g" test/env.sh
+        sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
+        sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
         cp test/env.sh test/conf
       displayName: 'Configure Local Tests'
     - template: templates/configure-remote-tests.yaml
