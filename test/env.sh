@@ -31,11 +31,16 @@ export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys
-export CONTROLLER_VANILLA_VERSION="latest"
-export CONTROLLER_REPO=""
+export CONTROLLER_VANILLA_VERSION="0.0.0-dev"
+export CONTROLLER_REPO="iofog/iofog-controller-snapshots"
 # Token to access develop versions of Controller
 export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
+# Agent version for vanilla deploys
+export AGENT_VANILLA_VERSION="0.0.0-dev"
+export AGENT_REPO="iofog/iofog-agent-snapshots"
+# Token to access develop versions of Agent
+export AGENT_PACKAGE_CLOUD_TOKEN=""
 ######################################################################
 
 ######## These are necessary for HA tests
@@ -55,9 +60,12 @@ echo "----- CONFIG -----"
 echo ""
 echo "${!AGENT_LIST*}: " "$AGENT_LIST"
 echo "${!VANILLA_CONTROLLER*}: " "$VANILLA_CONTROLLER"
+echo "${!CONTROLLER_PACKAGE_CLOUD_TOKEN*}: " "$CONTROLLER_PACKAGE_CLOUD_TOKEN"
 echo "${!CONTROLLER_VANILLA_VERSION*}: " "$CONTROLLER_VANILLA_VERSION"
 echo "${!CONTROLLER_REPO*}: " "$CONTROLLER_REPO"
-echo "${!CONTROLLER_PACKAGE_CLOUD_TOKEN*}: " "$CONTROLLER_PACKAGE_CLOUD_TOKEN"
+echo "${!AGENT_VANILLA_VERSION*}: " "$AGENT_VANILLA_VERSION"
+echo "${!AGENT_REPO*}: " "$AGENT_REPO"
+echo "${!AGENT_PACKAGE_CLOUD_TOKEN*}: " "$AGENT_PACKAGE_CLOUD_TOKEN"
 echo "${!NAMESPACE*}: " "$NAMESPACE"
 echo "${!KUBE_CONFIG*}: " "$KUBE_CONFIG"
 echo "${!KEY_FILE*}: " "$KEY_FILE"

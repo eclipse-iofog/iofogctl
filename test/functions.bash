@@ -210,7 +210,11 @@ spec:
   host: ${HOSTS[$IDX]}
   ssh:
     user: ${USERS[$IDX]}
-    keyFile: $KEY_FILE" >> test/conf/agents.yaml
+    keyFile: $KEY_FILE
+  package:
+    repo: $AGENT_REPO
+    version: $AGENT_VANILLA_VERSION
+    token: $AGENT_PACKAGE_CLOUD_TOKEN" >> test/conf/agents.yaml
 
   echo "====> Agent File:"
   cat test/conf/agents.yaml
