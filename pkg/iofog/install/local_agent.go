@@ -28,9 +28,9 @@ type LocalAgent struct {
 	agentConfig      *config.AgentConfiguration
 }
 
-func NewLocalAgent(agentConfig *config.AgentConfiguration, localAgentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
+func NewLocalAgent(agentConfig *config.AgentConfiguration, localAgentConfig *LocalAgentConfig, client *LocalContainer, namespace string) *LocalAgent {
 	return &LocalAgent{
-		defaultAgent:     defaultAgent{name: localAgentConfig.Name, agentConfig: agentConfig},
+		defaultAgent:     defaultAgent{name: localAgentConfig.Name, agentConfig: agentConfig, namespace: namespace},
 		localAgentConfig: localAgentConfig,
 		client:           client,
 	}

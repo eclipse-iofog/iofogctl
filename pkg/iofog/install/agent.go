@@ -87,11 +87,11 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	// Connect to controller
 	ctrl, err := internal.NewControllerClient(agent.namespace)
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 
 	// Log in
-	Verbose("Accessing Controller to generate Provisioning Key")
+	Verbose("Accessing Controller to generate Provisioning Key 2")
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,

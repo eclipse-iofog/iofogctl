@@ -16,6 +16,8 @@ package deploy
 import (
 	"fmt"
 
+	"github.com/twmb/algoimpl/go/graph"
+
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -145,8 +147,69 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Agent config are the representation of agents in Controller. They need to be deployed sequentially because of router dependencies
+	// First create the acyclic graph of dependencies
+	g := graph.New(graph.Directed)
+	nodeMap := make(map[string]graph.Node, 0)
+
 	for idx := range executorsMap[config.AgentConfigKind] {
-		if err = executorsMap[config.AgentConfigKind][idx].Execute(); err != nil {
+		// Create node
+		nodeMap[executorsMap[config.AgentConfigKind][idx].GetName()] = g.MakeNode()
+		// Make node value to be executor
+		*nodeMap[executorsMap[config.AgentConfigKind][idx].GetName()].Value = executorsMap[config.AgentConfigKind][idx]
+	}
+
+	// Create connections
+	for _, node := range nodeMap {
+		// Get a more specific executor allowing retrieval of upstream agents
+		agentConfigExecutor, ok := (*node.Value).(deployagentconfig.AgentConfigExecutor)
+		if !ok {
+			return util.NewInternalError("Could not convert node to agent config executor")
+		}
+
+		// Set dependencies for agent config topological sort
+		dependencies := []string{}
+		configuration := agentConfigExecutor.GetConfiguration()
+		if configuration.UpstreamRouters != nil {
+			dependencies = append(dependencies, *configuration.UpstreamRouters...)
+		}
+		if configuration.NetworkRouter != nil {
+			dependencies = append(dependencies, *configuration.NetworkRouter)
+		}
+
+		for _, dep := range dependencies {
+			destNode, found := nodeMap[dep]
+			if !found {
+				// This means agent is not getting deployed with this file, so it must already exist on Controller
+				// Create empty executor
+				destNode = g.MakeNode()
+				*destNode.Value = execute.NewEmptyExecutor(dep)
+			}
+			g.MakeEdge(destNode, node)
+		}
+
+	}
+
+	// Detect if there is any cyclic graph
+	cyclicGraphs := g.StronglyConnectedComponents()
+	for _, cyclicGraph := range cyclicGraphs {
+		if len(cyclicGraph) > 1 {
+			cyclicAgentsNames := []string{}
+			for _, node := range cyclicGraph {
+				executor := (*node.Value).(execute.Executor)
+				cyclicAgentsNames = append(cyclicAgentsNames, executor.GetName())
+			}
+			return util.NewInputError(fmt.Sprintf("Cyclic dependencies between agent configurations: %v\n", cyclicAgentsNames))
+		}
+	}
+
+	// Sort and execute
+	sortedExecutors := g.TopologicalSort()
+	for i := range sortedExecutors {
+		executor, ok := (*sortedExecutors[i].Value).(execute.Executor)
+		if !ok {
+			return util.NewInternalError("Failed to convert node to executor")
+		}
+		if err = executor.Execute(); err != nil {
 			return err
 		}
 	}

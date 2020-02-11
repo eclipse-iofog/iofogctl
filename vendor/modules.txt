@@ -105,6 +105,9 @@ github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
+# github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
+github.com/twmb/algoimpl/go/graph
+github.com/twmb/algoimpl/go/graph/lite
 # golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/terminal

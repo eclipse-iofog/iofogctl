@@ -67,7 +67,8 @@ func (exe *remoteExecutor) Execute() error {
 		ctrl.SSH.KeyFile,
 		iofog.VanillaRouterAgentName,
 		"",
-		nil)
+		nil,
+		exe.namespace)
 	if err = sshAgent.Uninstall(); err != nil {
 		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
 	}

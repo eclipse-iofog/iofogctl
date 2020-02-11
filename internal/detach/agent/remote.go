@@ -32,7 +32,8 @@ func (exe executor) remoteDeprovision(agent config.Agent) error {
 			agent.SSH.KeyFile,
 			agent.Name,
 			agent.UUID,
-			nil)
+			nil,
+			exe.namespace)
 		if err := sshAgent.Deprovision(); err != nil {
 			util.PrintNotify(fmt.Sprintf("Failed to deprovision daemon on Agent %s. %s", agent.Name, err.Error()))
 		}
