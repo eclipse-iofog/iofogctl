@@ -16,6 +16,7 @@ package apps
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	jsoniter "github.com/json-iterator/go"
@@ -156,6 +157,28 @@ func (exe *microserviceExecutor) init() (err error) {
 }
 
 func (exe *microserviceExecutor) validate() error {
+	// Validate ports
+	for idx, port := range exe.msvc.Container.Ports {
+		isPublic := port.Public != nil
+		if !isPublic && port.Host != nil {
+			return NewInputError("Cannot specify a port host without specifying a public port number")
+		}
+		if port.Protocol != nil {
+			*exe.msvc.Container.Ports[idx].Protocol = strings.ToLower(*exe.msvc.Container.Ports[idx].Protocol)
+			protocol := *exe.msvc.Container.Ports[idx].Protocol
+			if protocol != "tcp" && protocol != "http" {
+				return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
+			}
+		}
+		if port.Host != nil {
+			agent, found := exe.agentsByName[*port.Host]
+			if !found {
+				return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", *port.Host))
+			}
+			*exe.msvc.Container.Ports[idx].Host = agent.UUID
+		}
+	}
+
 	// Validate routes
 	routes, err := validateRoutes(exe.msvc.Routes, exe.microserviceByName)
 	if err != nil {

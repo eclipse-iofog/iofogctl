@@ -129,9 +129,11 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int  `json:"internal"`
-	External   int  `json:"external"`
-	PublicMode bool `json:"publicMode"`
+	Internal int     `json:"internal"`
+	External int     `json:"external"`
+	Public   *int    `json:"public,omitempty"`
+	Host     *string `json:"host,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
 }
 
 type MicroserviceVolumeMapping struct {
@@ -366,17 +368,6 @@ type AgentListFilter struct {
 	Key       string `json:"key"`
 	Value     string `json:"value"`
 	Condition string `json:"condition"`
-}
-
-type ConnectorInfo struct {
-	IP      string `json:"publicIp"`
-	Name    string `json:"name"`
-	Domain  string `json:"domain"`
-	DevMode bool   `json:"devMode"`
-}
-
-type ConnectorInfoList struct {
-	Connectors []ConnectorInfo `json:"connectors"`
 }
 
 type Router struct {
