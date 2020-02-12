@@ -31,13 +31,13 @@ export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:skupper"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys
-export CONTROLLER_VANILLA_VERSION="0.0.0-dev"
+export CONTROLLER_VANILLA_VERSION="2.0.0-skupper"
 export CONTROLLER_REPO="iofog/iofog-controller-snapshots"
 # Token to access develop versions of Controller
 export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 # Agent version for vanilla deploys
-export AGENT_VANILLA_VERSION="0.0.0-dev"
+export AGENT_VANILLA_VERSION="2.0.0-rc1-b6797"
 export AGENT_REPO="iofog/iofog-agent-snapshots"
 # Token to access develop versions of Agent
 export AGENT_PACKAGE_CLOUD_TOKEN=""
