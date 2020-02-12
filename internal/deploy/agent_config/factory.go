@@ -37,6 +37,7 @@ type AgentConfigExecutor interface {
 	GetAgentUUID() string
 	SetHost(string)
 	GetConfiguration() config.AgentConfiguration
+	GetNamespace() string
 }
 
 type remoteExecutor struct {
@@ -52,6 +53,10 @@ func NewRemoteExecutor(name string, config config.AgentConfiguration, namespace 
 		agentConfig: config,
 		namespace:   namespace,
 	}
+}
+
+func (exe *remoteExecutor) GetNamespace() string {
+	return exe.namespace
 }
 
 func (exe *remoteExecutor) GetConfiguration() config.AgentConfiguration {
