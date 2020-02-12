@@ -56,14 +56,14 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 
 	// Map port host to agent name
 	for idx, port := range msvc.Ports {
-		if port.Host != nil {
-			if *port.Host != iofog.VanillaRouterAgentName {
-				hostAgent, err := clt.GetAgentByID(*port.Host)
+		if port.Host != "" {
+			if port.Host != iofog.VanillaRouterAgentName {
+				hostAgent, err := clt.GetAgentByID(port.Host)
 				if err != nil && !strings.Contains(err.Error(), "") {
 					return nil, err
 				}
 				name := hostAgent.Name
-				msvc.Ports[idx].Host = &name
+				msvc.Ports[idx].Host = name
 			}
 		}
 	}

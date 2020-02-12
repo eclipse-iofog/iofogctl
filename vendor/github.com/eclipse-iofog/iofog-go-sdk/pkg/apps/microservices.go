@@ -159,24 +159,24 @@ func (exe *microserviceExecutor) init() (err error) {
 func (exe *microserviceExecutor) validate() error {
 	// Validate ports
 	for idx, port := range exe.msvc.Container.Ports {
-		isPublic := port.Public != nil
-		if !isPublic && port.Host != nil {
+		isPublic := port.Public != 0
+		if !isPublic && port.Host != "" {
 			return NewInputError("Cannot specify a port host without specifying a public port number")
 		}
-		if port.Protocol != nil {
-			*exe.msvc.Container.Ports[idx].Protocol = strings.ToLower(*exe.msvc.Container.Ports[idx].Protocol)
-			protocol := *exe.msvc.Container.Ports[idx].Protocol
+		if port.Protocol != "" {
+			exe.msvc.Container.Ports[idx].Protocol = strings.ToLower(exe.msvc.Container.Ports[idx].Protocol)
+			protocol := exe.msvc.Container.Ports[idx].Protocol
 			if protocol != "tcp" && protocol != "http" {
 				return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
 			}
 		}
-		if port.Host != nil {
-			if *port.Host != client.DefaultRouterName {
-				agent, found := exe.agentsByName[*port.Host]
+		if port.Host != "" {
+			if port.Host != client.DefaultRouterName {
+				agent, found := exe.agentsByName[port.Host]
 				if !found {
-					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", *port.Host))
+					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", port.Host))
 				}
-				*exe.msvc.Container.Ports[idx].Host = agent.UUID
+				exe.msvc.Container.Ports[idx].Host = agent.UUID
 			}
 		}
 	}

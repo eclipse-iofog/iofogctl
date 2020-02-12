@@ -121,11 +121,11 @@ func deepCopyNestedMap(src NestedMap, dest NestedMap) {
 
 // +k8s:deepcopy-gen=true
 type MicroservicePortMapping struct {
-	Internal int     `yaml:"internal" json:"internal"`
-	External int     `yaml:"external" json:"external"`
-	Public   *int    `yaml:"public" json:"public"`
-	Host     *string `yaml:"host" json:"host"`
-	Protocol *string `yaml:"protocol" json:"protocol"`
+	Internal int    `yaml:"internal" json:"internal"`
+	External int    `yaml:"external" json:"external"`
+	Public   int    `yaml:"public" json:"public"`
+	Host     string `yaml:"host" json:"host"`
+	Protocol string `yaml:"protocol" json:"protocol"`
 }
 
 // +k8s:deepcopy-gen=true
