@@ -131,7 +131,7 @@ type CatalogListResponse struct {
 type MicroservicePortMapping struct {
 	Internal int     `json:"internal"`
 	External int     `json:"external"`
-	Public   *int    `json:"public,omitempty"`
+	Public   *int    `json:"publicPort,omitempty"`
 	Host     *string `json:"host,omitempty"`
 	Protocol *string `json:"protocol,omitempty"`
 }
