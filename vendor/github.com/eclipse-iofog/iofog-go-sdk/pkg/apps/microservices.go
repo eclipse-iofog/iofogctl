@@ -171,11 +171,13 @@ func (exe *microserviceExecutor) validate() error {
 			}
 		}
 		if port.Host != nil {
-			agent, found := exe.agentsByName[*port.Host]
-			if !found {
-				return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", *port.Host))
+			if *port.Host != client.DefaultRouterName {
+				agent, found := exe.agentsByName[*port.Host]
+				if !found {
+					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", *port.Host))
+				}
+				*exe.msvc.Container.Ports[idx].Host = agent.UUID
 			}
-			*exe.msvc.Container.Ports[idx].Host = agent.UUID
 		}
 	}
 

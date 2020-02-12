@@ -29,6 +29,7 @@ import (
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/internal/deploy/registry"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/twmb/algoimpl/go/graph"
 )
@@ -197,7 +198,7 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 			agentByUUID[listAgentReponse.Agents[idx].UUID] = &listAgentReponse.Agents[idx]
 		}
 		// Add default router
-		agentByName["default-router"] = &client.AgentInfo{Name: "default-router"}
+		agentByName[iofog.VanillaRouterAgentName] = &client.AgentInfo{Name: iofog.VanillaRouterAgentName}
 
 		// Agent config are the representation of agents in Controller. They need to be deployed sequentially because of router dependencies
 		// First create the acyclic graph of dependencies

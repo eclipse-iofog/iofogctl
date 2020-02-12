@@ -14,7 +14,7 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200212210737-2e9c3739c4af
+	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200212215648-fb72f3f98cef
 	github.com/eclipse-iofog/iofog-operator v0.0.0-20200124015154-02442892e22d
 	github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
