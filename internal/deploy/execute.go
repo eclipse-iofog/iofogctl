@@ -258,31 +258,32 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 
 func makeEdges(g *graph.Graph, node graph.Node, nodeMap, agentNodeMap map[string]graph.Node, agentByName, agentByUUID map[string]*client.AgentInfo, dependencies []string) (err error) {
 	for _, dep := range dependencies {
-		destNode, found := nodeMap[dep]
+		dependsOnNode, found := nodeMap[dep]
 		if !found {
 			// This means agent is not getting deployed with this file, so it must already exist on Controller
 			agent, found := agentByName[dep]
 			if !found {
 				return util.NewNotFoundError(fmt.Sprintf("Could not find agent %s while establishing agent dependency graph\n", dep))
 			}
-			destNode, found = agentNodeMap[dep]
+			dependsOnNode, found = agentNodeMap[dep]
 			if !found {
 				// Create empty executor
-				destNode = g.MakeNode()
+				dependsOnNode = g.MakeNode()
 				emptyExecutor := execute.NewEmptyExecutor(dep)
-				*destNode.Value = emptyExecutor
+				*dependsOnNode.Value = emptyExecutor
 				// Add to agentNodeMap to avoid duplicating nodes
-				agentNodeMap[dep] = destNode
+				agentNodeMap[dep] = dependsOnNode
 			}
 			if agent != nil {
 				// Fill dependency graph with agents on Controller
 				uuidDependencies := getDependencies(agent.UpstreamRouters, agent.NetworkRouter)
-				if err = makeEdges(g, destNode, nodeMap, agentNodeMap, agentByName, agentByUUID, mapUUIDsToNames(uuidDependencies, agentByUUID)); err != nil {
+				if err = makeEdges(g, dependsOnNode, nodeMap, agentNodeMap, agentByName, agentByUUID, mapUUIDsToNames(uuidDependencies, agentByUUID)); err != nil {
 					return err
 				}
 			}
 		}
-		g.MakeEdge(destNode, node)
+		// Edge from x -> y means that x needs to complete before y
+		g.MakeEdge(dependsOnNode, node)
 	}
 	return nil
 }
