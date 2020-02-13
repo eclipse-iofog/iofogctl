@@ -133,9 +133,9 @@ function initApplicationFiles() {
         rootHostAccess: false
         ports:
           # The ui will be listening on port 80 (internal).
-          - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
-            internal: 80 # The ui is listening on port 80. Do not edit this.
-            publicMode: true
+          - external: 5000
+            internal: 80
+            public: 5000
         volumes: []
         env:
           - key: BASE_URL
