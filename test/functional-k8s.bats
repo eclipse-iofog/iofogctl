@@ -45,7 +45,7 @@ spec:
       config: $KUBE_CONFIG
       images:
         operator: $OPERATOR_IMAGE
-        portManager: $PORT_MANAGER
+        portManager: $PORT_MANAGER_IMAGE
         kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
