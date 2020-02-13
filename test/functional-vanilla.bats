@@ -39,20 +39,7 @@ spec:
     name: Testing
     surname: Functional
     email: $USER_EMAIL
-    password: $USER_PW
----
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $NAME
-spec:
-  host: $VANILLA_HOST
-  ssh:
-    user: $VANILLA_USER
-    port: $VANILLA_PORT
-    keyFile: $KEY_FILE
-  package:
-    version: $VANILLA_VERSION" > test/conf/vanilla.yaml
+    password: $USER_PW" > test/conf/vanilla.yaml
 
   test iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
