@@ -46,6 +46,7 @@ spec:
       images:
         operator: $OPERATOR_IMAGE
         portManager: $PORT_MANAGER_IMAGE
+        proxy: $PROXY_IMAGE
         kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
@@ -266,6 +267,7 @@ spec:
       images:
         operator: $OPERATOR_IMAGE
         portManager: $PORT_MANAGER
+        proxy: $PROXY_IMAGE
         kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
