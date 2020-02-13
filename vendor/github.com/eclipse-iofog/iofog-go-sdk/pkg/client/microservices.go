@@ -149,7 +149,8 @@ func samePortMapping(currentMapping, newMapping MicroservicePortMapping) bool {
 	return (currentMapping.Internal == newMapping.Internal &&
 		currentMapping.Public == newMapping.Public &&
 		currentMapping.Protocol == newMapping.Protocol &&
-		currentMapping.External == newMapping.External)
+		currentMapping.External == newMapping.External &&
+		currentMapping.Host == newMapping.Host)
 }
 
 func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []MicroservicePortMapping) (err error) {

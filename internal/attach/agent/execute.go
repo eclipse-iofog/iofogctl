@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
 )
 
 type Options struct {
@@ -62,6 +63,12 @@ func (exe executor) Execute() error {
 	}
 
 	if err != nil {
+		return err
+	}
+
+	// Create fog
+	configExecutor := deployagentconfig.NewRemoteExecutor(exe.opt.Name, config.AgentConfiguration{Name: exe.opt.Name}, exe.opt.Namespace)
+	if err = configExecutor.Execute(); err != nil {
 		return err
 	}
 
