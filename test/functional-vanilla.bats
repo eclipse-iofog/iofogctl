@@ -56,7 +56,6 @@ spec:
 
   test iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
-  checkConnector
 }
 
 @test "Controller host VM should have a system agent running on it with qrrouter microservice" {
@@ -144,7 +143,6 @@ spec:
 @test "Connect in another namespace using file" {
   test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
   checkController "$NS2"
-  checkConnector "$NS2"
   checkAgents "$NS2"
   checkApplication "$NS2"
   for IDX in "${!AGENTS[@]}"; do
@@ -156,7 +154,6 @@ spec:
 @test "Disconnect other namespace" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
-  checkConnectorNegative "$NS2"
   checkAgentsNegative "$NS2"
   checkApplicationNegative "$NS2"
 }
@@ -166,7 +163,6 @@ spec:
   CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
   test iofogctl -v -n "$NS2" connect --name "$NAME" --ecn-addr "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController "$NS2"
-  checkConnector "$NS2"
   checkAgents "$NS2"
 }
 
@@ -227,7 +223,6 @@ spec:
 @test "Disconnect other namespace again" {
   test iofogctl -v -n "$NS2" disconnect
   checkControllerNegative "$NS2"
-  checkConnectorNegative "$NS2"
   checkAgentsNegative "$NS2"
   checkApplicationNegative "$NS2"
 }
@@ -236,7 +231,6 @@ spec:
 @test "Deploy again to check it doesn't lose database" {
   test iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
-  checkConnector
   initAgentsFile
   test iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
@@ -260,7 +254,6 @@ spec:
   done
 
   checkControllerNegative
-  checkConnectorNegative
   checkAgentsNegative
 }
 

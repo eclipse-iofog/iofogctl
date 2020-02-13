@@ -13,7 +13,6 @@ NS="$NAMESPACE"
   initLocalControllerFile
   test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
   checkController
-  checkConnector
 }
 
 @test "Controller legacy commands after deploy" {
@@ -36,7 +35,6 @@ NS="$NAMESPACE"
   initLocalControllerFile
   test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
   checkController
-  checkConnector
 }
 
 @test "Deploy Agents against local Controller again for indempotence" {
@@ -101,7 +99,6 @@ NS="$NAMESPACE"
   checkLocalResourcesDeleted
   checkApplicationNegative
   checkControllerNegative
-  checkConnectorNegative
   checkAgentNegative "${NAME}-0"
 }
 
