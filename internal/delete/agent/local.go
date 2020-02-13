@@ -28,10 +28,13 @@ func (exe executor) deleteLocalContainer() error {
 		return err
 	}
 
-	// Clean agent container
-	if errClean := client.CleanContainer(install.GetLocalContainerName("agent")); errClean != nil {
+	// Clean agent containers (normal and system)
+	if errClean := client.CleanContainer(install.GetLocalContainerName("agent", false)); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
 	}
+	// if errClean := client.CleanContainer(install.GetLocalContainerName("agent", true)); errClean != nil {
+	// 	util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
+	// }
 
 	// Clean microservices
 	containers, err := client.ListContainers()

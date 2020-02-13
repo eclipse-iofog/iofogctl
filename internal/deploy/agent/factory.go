@@ -100,7 +100,7 @@ func NewDeployExecutor(namespace string, agent *config.Agent, isSystem bool) (ex
 		if err != nil {
 			return nil, err
 		}
-		exe, err := newLocalExecutor(namespace, agent, cli)
+		exe, err := newLocalExecutor(namespace, agent, cli, isSystem)
 		if err != nil {
 			return nil, err
 		}

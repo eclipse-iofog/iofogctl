@@ -26,7 +26,7 @@ func (exe executor) localAgentPrune() error {
 	if err != nil {
 		return err
 	}
-	if _, err = containerClient.ExecuteCmd(install.GetLocalContainerName("agent"), []string{
+	if _, err = containerClient.ExecuteCmd(install.GetLocalContainerName("agent", false), []string{
 		"sudo",
 		"iofog-agent",
 		"prune",

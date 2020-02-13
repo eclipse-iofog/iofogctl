@@ -77,7 +77,7 @@ func (exe *localExecutor) deployContainers() error {
 	// Wait for public API
 	util.SpinStart("Waiting for Controller API")
 	if err = exe.client.WaitForCommand(
-		install.GetLocalContainerName("controller"),
+		install.GetLocalContainerName("controller", false),
 		regexp.MustCompile("\"status\":[ |\t]*\"online\""),
 		"iofog-controller",
 		"controller",

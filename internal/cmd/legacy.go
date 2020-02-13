@@ -110,7 +110,7 @@ iofogctl legacy agent NAME status`,
 				if ctrl.Kube.Config != "" {
 					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
 				} else if util.IsLocalHost(ctrl.Host) {
-					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
+					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				} else {
 					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 						util.Check(util.NewNoConfigError("Controller"))
@@ -128,7 +128,7 @@ iofogctl legacy agent NAME status`,
 				}
 				util.Check(err)
 				if util.IsLocalHost(agent.Host) {
-					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
+					localExecute(install.GetLocalContainerName("agent", false), []string{"iofog-agent"}, args[2:])
 					return
 				} else {
 					// SSH connect

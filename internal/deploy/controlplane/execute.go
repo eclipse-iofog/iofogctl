@@ -46,7 +46,7 @@ type controlPlaneExecutor struct {
 func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
-	agentConfig := config.Agent{
+	agent := config.Agent{
 		Name: iofog.VanillaRouterAgentName,
 		Host: ctrl.Host,
 		SSH:  ctrl.SSH,
@@ -82,10 +82,15 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 			return err
 		}
 	}
-
-	agentConfig.UUID = deployAgentConfigExecutor.GetAgentUUID()
-	agentDeployExecutor, err := deployagent.NewDeployExecutor(namespace, &agentConfig, true)
-	return agentDeployExecutor.Execute()
+	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
+	if !util.IsLocalHost(ctrl.Host) {
+		agentDeployExecutor, err := deployagent.NewDeployExecutor(namespace, &agent, true)
+		if err != nil {
+			return err
+		}
+		return agentDeployExecutor.Execute()
+	}
+	return nil
 }
 
 func (exe controlPlaneExecutor) postDeploy() (err error) {
@@ -96,7 +101,7 @@ func (exe controlPlaneExecutor) postDeploy() (err error) {
 	}
 	for _, ctrl := range controllers {
 		// If Vanilla controller
-		if !util.IsLocalHost(ctrl.Host) && ctrl.Kube.Config == "" {
+		if ctrl.Kube.Config == "" {
 			if err = deploySystemAgent(exe.namespace, ctrl); err != nil {
 				return
 			}
