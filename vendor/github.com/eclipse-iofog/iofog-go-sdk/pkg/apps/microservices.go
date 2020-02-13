@@ -16,7 +16,6 @@ package apps
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	jsoniter "github.com/json-iterator/go"
@@ -157,30 +156,6 @@ func (exe *microserviceExecutor) init() (err error) {
 }
 
 func (exe *microserviceExecutor) validate() error {
-	// Validate ports
-	for idx, port := range exe.msvc.Container.Ports {
-		isPublic := port.Public != 0
-		if !isPublic && port.Host != "" {
-			return NewInputError("Cannot specify a port host without specifying a public port number")
-		}
-		if port.Protocol != "" {
-			exe.msvc.Container.Ports[idx].Protocol = strings.ToLower(exe.msvc.Container.Ports[idx].Protocol)
-			protocol := exe.msvc.Container.Ports[idx].Protocol
-			if protocol != "tcp" && protocol != "http" {
-				return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
-			}
-		}
-		if port.Host != "" {
-			if port.Host != client.DefaultRouterName {
-				agent, found := exe.agentsByName[port.Host]
-				if !found {
-					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", port.Host))
-				}
-				exe.msvc.Container.Ports[idx].Host = agent.UUID
-			}
-		}
-	}
-
 	// Validate routes
 	routes, err := validateRoutes(exe.msvc.Routes, exe.microserviceByName)
 	if err != nil {
@@ -190,7 +165,7 @@ func (exe *microserviceExecutor) validate() error {
 	exe.routes = routes
 
 	// Validate microservice
-	if err := validateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	if err := validateMicroservice(&exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
 	}
 

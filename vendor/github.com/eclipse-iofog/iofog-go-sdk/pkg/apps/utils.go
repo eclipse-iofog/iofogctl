@@ -16,11 +16,36 @@ package apps
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
-func validateMicroservice(msvc Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
+func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
+	// Validate ports and update host
+	for idx, port := range msvc.Container.Ports {
+		isPublic := port.Public != 0
+		if !isPublic && port.Host != "" {
+			return NewInputError("Cannot specify a port host without specifying a public port number")
+		}
+		if port.Protocol != "" {
+			msvc.Container.Ports[idx].Protocol = strings.ToLower(msvc.Container.Ports[idx].Protocol)
+			protocol := msvc.Container.Ports[idx].Protocol
+			if protocol != "tcp" && protocol != "http" {
+				return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
+			}
+		}
+		if port.Host != "" {
+			if port.Host != client.DefaultRouterName {
+				agent, found := agentsByName[port.Host]
+				if !found {
+					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", port.Host))
+				}
+				msvc.Container.Ports[idx].Host = agent.UUID
+			}
+		}
+	}
+
 	// Validate microservice
 	if _, foundAgent := agentsByName[msvc.Agent.Name]; !foundAgent {
 		return NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))

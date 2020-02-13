@@ -140,8 +140,8 @@ func (exe *applicationExecutor) validate() (err error) {
 	}
 
 	// Validate microservice
-	for _, msvc := range exe.app.Microservices {
-		if err = validateMicroservice(msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	for idx := range exe.app.Microservices {
+		if err = validateMicroservice(&exe.app.Microservices[idx], exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 			return
 		}
 	}
