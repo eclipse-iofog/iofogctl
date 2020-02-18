@@ -21,9 +21,9 @@ var (
 	date           = "undefined"
 	controllerTag  = "undefined"
 	kubeletTag     = "undefined"
+	proxyTag       = "undefined"
 	operatorTag    = "undefined"
 	portManagerTag = "undefined"
-	schedulerTag   = "undefined"
 	agentTag       = "undefined"
 )
 
@@ -45,7 +45,7 @@ func GetVersion() Version {
 
 func GetControllerTag() string  { return controllerTag }
 func GetKubeletTag() string     { return kubeletTag }
+func GetProxyTag() string       { return proxyTag }
 func GetOperatorTag() string    { return operatorTag }
 func GetPortManagerTag() string { return portManagerTag }
-func GetSchedulerTag() string   { return schedulerTag }
 func GetAgentTag() string       { return agentTag }

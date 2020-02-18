@@ -39,6 +39,7 @@ import (
 
 const (
 	kogInstanceName = "iokog"
+	dockerRepo      = "iofog"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -76,10 +77,10 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		extsClientset: extsClientset,
 		ns:            namespace,
 		controlPlane: &iofogv1.ControlPlane{
-			ControllerImage:  "gcr.io/focal-freedom-236620/controller:" + util.GetControllerTag(),
-			PortManagerImage: "gcr.io/focal-freedom-236620/port-manager:" + util.GetPortManagerTag(),
-			ProxyImage:       "quay.io/skupper/icproxy",
-			KubeletImage:     "gcr.io/focal-freedom-236620/kubelet:" + util.GetKubeletTag(),
+			ControllerImage:  dockerRepo + "/controller:" + util.GetControllerTag(),
+			PortManagerImage: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
+			ProxyImage:       dockerRepo + "/proxy:" + util.GetProxyTag(),
+			KubeletImage:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
 			ServiceType:      string(corev1.ServiceTypeLoadBalancer),
 		},
 		operator: newOperatorMicroservice(),

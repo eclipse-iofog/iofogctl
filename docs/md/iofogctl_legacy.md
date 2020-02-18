@@ -29,7 +29,7 @@ iofogctl legacy agent NAME status
 ```
       --detached           Use/Show detached resources
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "default")
+  -n, --namespace string   Namespace to execute respective command within (default "skupper")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 
