@@ -159,8 +159,6 @@ spec:
     test iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
   done
   test iofogctl -v -n "$NS2" logs controller "$NAME"
-  checkLegacyController "$NS2"
-  checkLegacyConnector "$NS2"
 }
 
 @test "Configure Agents" {
