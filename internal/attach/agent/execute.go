@@ -14,6 +14,7 @@
 package attachagent
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -67,7 +68,14 @@ func (exe executor) Execute() error {
 	}
 
 	// Create fog
-	configExecutor := deployagentconfig.NewRemoteExecutor(exe.opt.Name, config.AgentConfiguration{Name: exe.opt.Name}, exe.opt.Namespace)
+	configExecutor := deployagentconfig.NewRemoteExecutor(
+		exe.opt.Name,
+		config.AgentConfiguration{
+			Name: exe.opt.Name,
+			AgentConfiguration: client.AgentConfiguration{
+				Host: &agent.Host,
+			},
+		}, exe.opt.Namespace)
 	if err = configExecutor.Execute(); err != nil {
 		return err
 	}
