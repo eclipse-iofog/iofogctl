@@ -211,7 +211,6 @@ spec:
     test iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube "$KUBE_CONFIG"
   done
   test iofogctl -v -n "$NS" logs controller "$NAME"
-  checkLegacyController
 }
 
 @test "Configure Agents" {
