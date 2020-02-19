@@ -45,12 +45,13 @@ spec:
   checkController
 }
 
-@test "Controller host VM should have a system agent running on it with qrrouter microservice" {
+@test "Check Controller host has a system Agent running on it with qrouter microservice" {
+  initVanillaController
   SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $VANILLA_USER@$VANILLA_HOST"
-  [[ "ok" == $($SSH_COMMAND "sudo iofog-agent status" | grep 'Controller' | awk '{print $5}') ]]
-  [[ "RUNNING" == $($SSH_COMMAND  "sudo iofog-agent status" | grep 'daemon' | awk '{print $4}') ]]
-  [[ "http://${VANILLA_HOST}/api/v3/" == $($SSH_COMMAND  "sudo iofog-agent info" | grep 'Controller' | awk '{print $4}') ]]
-  [[ "\"quay.io/interconnectedcloud/qdrouterd:latest\"" == $($SSH_COMMAND "sudo cat /etc/iofog-agent/microservices.json" | jq '.data[0].imageId') ]]
+  [[ "ok" == $($SSH_COMMAND -- sudo iofog-agent status | grep 'Controller' | awk '{print $5}') ]]
+  [[ "RUNNING" == $($SSH_COMMAND --  sudo iofog-agent status | grep 'daemon' | awk '{print $4}') ]]
+  [[ "http://${VANILLA_HOST}/api/v3/" == $($SSH_COMMAND -- sudo iofog-agent info | grep 'Controller' | awk '{print $4}') ]]
+  [[ "\"quay.io/interconnectedcloud/qdrouterd:latest\"" == $($SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId') ]]
 }
 
 @test "Controller legacy commands after vanilla deploy" {
