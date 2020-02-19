@@ -147,7 +147,7 @@ spec:
   initApplicationFiles
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Change port
-  sed -i '' "s/public: 5000/public: 6000/g" test/conf/application.yaml
+  sed -i.bak  "s/public: 5000/public: 6000/g" test/conf/application.yaml
   test iofogctl -v deploy -f test/conf/application.yaml
   # Wait for port to update to 6000
   PORT=0
@@ -169,10 +169,10 @@ spec:
 @test "Delete Public Port" {
   initApplicationFiles
   # Remove port info from the file
-  sed -i '' "s/.*ports:.*//g" test/conf/application.yaml
-  sed -i '' "s/.*external:.*//g" test/conf/application.yaml
-  sed -i '' "s/.*internal:.*//g" test/conf/application.yaml
-  sed -i '' "s/.*public:.*//g" test/conf/application.yaml
+  sed -i.bak "s/.*ports:.*//g" test/conf/application.yaml
+  sed -i.bak "s/.*external:.*//g" test/conf/application.yaml
+  sed -i.bak "s/.*internal:.*//g" test/conf/application.yaml
+  sed -i.bak "s/.*public:.*//g" test/conf/application.yaml
 
   # Update application
   test iofogctl -v deploy -f test/conf/application.yaml
