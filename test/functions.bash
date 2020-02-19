@@ -537,10 +537,11 @@ function checkRenamedNamespace() {
 function waitForMsvc() {
   ITER=0
   MS=$1
-  while [ -z $(iofogctl get microservices | grep $MS | grep "RUNNING") ] ; do
+  NS=$2
+  while [ -z $(iofogctl -n $NS get microservices | grep $MS | grep "RUNNING") ] ; do
       ITER=$((ITER+1))
       # Allow for 180 sec so that the agent can pull the image
-      if [ "$ITER" -gt 300 ]; then
+      if [ "$ITER" -gt 180 ]; then
           echo "Timed out. Waited ${ITER} seconds for ${MS} to be RUNNING"
           exit 1
       fi
@@ -549,16 +550,18 @@ function waitForMsvc() {
 }
 
 function waitForSvc() {
-  SVC="$1"
+  NS="$1"
+  SVC="$2"
   ITER=0
   EXT_IP=""
   while [ -z $EXT_IP ]; do
-      test [[ "$ITER" -gt 12 ]]
-      sleep 10
-      EXT_IP=$(kubectl get svc $SVC --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}")
+      sleep 3
+      [[ "$ITER" -gt 12 ]]
+      EXT_IP=$(kubectl get svc $SVC --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}" -n $NS)
       ITER=$((ITER+1))
   done
-  echo $ITER
+  # Return via stdout
+  echo "$EXT_IP"
 }
 
 function checkVanillaResourceDeleted() {

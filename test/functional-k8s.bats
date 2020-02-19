@@ -132,35 +132,37 @@ spec:
   initApplicationFiles
   test iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
+  waitForMsvc func-app-server "$NS"
+  waitForMsvc func-app-ui "$NS"
 }
 
 @test "Test Public Ports on Cluster" {
   # Wait for k8s service
-  EXT_IP=$(waitForSvc http-proxy)
+  EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
   test curl http://${EXT_IP}:5000
 }
 
 @test "Change Microservice Ports" {
   initApplicationFiles
-  EXT_IP=$(waitForSvc http-proxy)
+  EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Change port
-  sed -i '' "s/external: 5000/external: 6000/g" test/conf/application.yaml
+  sed -i '' "s/public: 5000/public: 6000/g" test/conf/application.yaml
   test iofogctl -v deploy -f test/conf/application.yaml
   # Wait for port to update to 6000
   PORT=0
   SECS=0
   while [ $SECS -lt 30 && $PORT != 6000 ]; do
-    PORT=$(kubectl describe svc http-proxy | grep 6000/TCP)
+    PORT=$(kubectl describe svc http-proxy -n "$NS" | grep 6000/TCP)
     SECS=$((SECS+1))
     sleep 1
   done
   # Check what happened in the loop above
   [ $SECS -lt 30 ]
-  test kubectl describe svc http-proxy | grep 6000/TCP
+  test kubectl describe svc http-proxy -n "$NS" | grep 6000/TCP
 
-  # Check service was not deleted
-  NEW_IP=$(waitForSvc http-proxy)
+  # Check service was not deleted NB: this might be a timing problem, svc could be deleted b/c port is not PATCH to Controller API
+  NEW_IP=$(waitForSvc "$NS" http-proxy)
   [[ $EXT_IP == $NEW_IP ]]
 }
 
