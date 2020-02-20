@@ -183,6 +183,17 @@ func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []
 	return
 }
 
+func (clt *Client) GetAllMicroservicePublicPorts() (response []MicroservicePublicPort, err error) {
+	body, err := clt.doRequest("GET", "/microservices/public-ports", nil)
+	if err != nil {
+		return
+	}
+
+	response = make([]MicroservicePublicPort, 0)
+	err = json.Unmarshal(body, &response)
+	return
+}
+
 func mapFromArray(arr []string) map[string]bool {
 	result := make(map[string]bool)
 	for _, str := range arr {

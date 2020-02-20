@@ -207,13 +207,13 @@ type MicroserviceUpdateRequest struct {
 	FlowID            *int                         `json:"flowId,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
-	RegistryID        *int                         `json:"registryId"`
+	RegistryID        *int                         `json:"registryId,omitempty"`
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Commands          *[]string                    `json:"cmd,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
-	Images            []CatalogImage               `json:"images"`
+	Images            []CatalogImage               `json:"images,omitempty"`
 	Rebuild           bool                         `json:"rebuild"`
 }
 
@@ -227,6 +227,17 @@ type MicroserviceListResponse struct {
 
 type MicroservicePortMappingListResponse struct {
 	PortMappings []MicroservicePortMapping `json:"ports"`
+}
+
+type MicroservicePublicPort struct {
+	MicroserviceUUID string     `json:"microserviceUuid"`
+	PublicPort       PublicPort `json:"publicPort"`
+}
+
+type PublicPort struct {
+	Protocol string `json:"protocol"`
+	Queue    string `json:"queueName"`
+	Port     int    `json:"publicPort"`
 }
 
 // Users

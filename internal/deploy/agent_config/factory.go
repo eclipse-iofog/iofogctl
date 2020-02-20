@@ -76,9 +76,6 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() error {
-	fmt.Printf("Attaching agent config: %v\n", exe.agentConfig)
-	fmt.Printf("Host: %s\n", *exe.agentConfig.Host)
-
 	isSystem := internal.IsSystemAgent(exe.agentConfig)
 	if !isSystem || install.IsVerbose() {
 		util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
