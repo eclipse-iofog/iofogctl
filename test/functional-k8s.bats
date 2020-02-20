@@ -137,7 +137,23 @@ spec:
   waitForMsvc func-app-ui "$NS"
 }
 
-@test "Test Public Ports on Cluster" {
+@test "Test Public Ports w/ Microservices on same Agent" {
+  # Wait for k8s service
+  EXT_IP=$(waitForSvc "$NS" http-proxy)
+  # Hit the endpoint
+  COUNT=$(curl http://${EXT_IP}:5000/api/raw | jq '. | length')
+  [ $COUNT -gt 0 ]
+}
+
+@test "Move microservice to another agent" {
+  test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
+  checkMovedMicroservice $MSVC2_NAME ${NAME}-1
+  # Avoid checking RUNNING state of msvc on first agent
+  waitForMsvc "$MSVC2_NAME" "$NS" "DELETING"
+  waitForMsvc "$MSVC2_NAME" "$NS"
+}
+
+@test "Test Public Ports w/ Microservice on different Agents" {
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
@@ -189,11 +205,6 @@ spec:
   done
   # Check what happened in the loop above
   [ $SECS -lt 30 ]
-}
-
-@test "Move microservice to another agent" {
-  test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
-  checkMovedMicroservice $MSVC2_NAME ${NAME}-1
 }
 
 # Delete all does not delete application
