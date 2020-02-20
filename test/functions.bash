@@ -577,6 +577,7 @@ function checkVanillaResourceDeleted() {
 }
 
 function checkLocalResourcesDeleted() {
+  docker ps -aq
   [[ -z $(docker ps -aq) ]]
 }
 
