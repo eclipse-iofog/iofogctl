@@ -19,9 +19,12 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:skupper'
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:latest'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:skupper'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:skupper'
+  agent_version: '2.0.0-rc1-b6797'
+  controller_version: '2.0.0-skupper'
   version:
   agent_vm_list:
   controller_vm:
@@ -291,7 +294,10 @@ stages:
       failOnStderr: false
     - bash: |
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
+        sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_version)\"|g" test/env.sh
+        sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"$(operator_image)\"|g" test/env.sh
         sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+        sed -i "s|AGENT_VANILLA_VERSION=.*|AGENT_VANILLA_VERSION=\"$(agent_version)\"|g" test/env.sh
         NS=$(jobuuid)
         sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
         sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh

@@ -23,21 +23,21 @@ export KUBE_CONFIG="~/.kube/config"
 export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster or local deploy
-export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:skupper"
-export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:skupper"
+export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:develop"
+export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:develop"
 export PORT_MANAGER_IMAGE="gcr.io/focal-freedom-236620/port-manager:develop"
 export PROXY_IMAGE="iofog/proxy:latest"
-export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:skupper"
+export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
 # Controller version for vanilla deploys
-export CONTROLLER_VANILLA_VERSION="2.0.0-skupper"
+export CONTROLLER_VANILLA_VERSION="0.0.0-dev"
 export CONTROLLER_REPO="iofog/iofog-controller-snapshots"
 # Token to access develop versions of Controller
 export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 # Agent version for vanilla deploys
-export AGENT_VANILLA_VERSION="2.0.0-rc1-b6797"
+export AGENT_VANILLA_VERSION="0.0.0-dev"
 export AGENT_REPO="iofog/iofog-agent-snapshots"
 # Token to access develop versions of Agent
 export AGENT_PACKAGE_CLOUD_TOKEN=""
