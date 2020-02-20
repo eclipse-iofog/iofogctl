@@ -13,6 +13,7 @@ NS="$NAMESPACE"
   initLocalControllerFile
   test iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
   checkController
+  iofogctl -n "$NS" get all
 }
 
 @test "Controller legacy commands after deploy" {
