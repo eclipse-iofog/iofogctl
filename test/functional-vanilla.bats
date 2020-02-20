@@ -50,7 +50,11 @@ spec:
   SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $VANILLA_USER@$VANILLA_HOST"
   [[ "ok" == $($SSH_COMMAND -- sudo iofog-agent status | grep 'Controller' | awk '{print $5}') ]]
   [[ "RUNNING" == $($SSH_COMMAND --  sudo iofog-agent status | grep 'daemon' | awk '{print $4}') ]]
+  $SSH_COMMAND -- sudo iofog-agent info | grep 'Controller' | awk '{print $4}'
+  $SSH_COMMAND -- sudo iofog-agent info | grep 'Controller'
   [[ "http://${VANILLA_HOST}/api/v3/" == $($SSH_COMMAND -- sudo iofog-agent info | grep 'Controller' | awk '{print $4}') ]]
+  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq
+  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId'
   [[ "\"quay.io/interconnectedcloud/qdrouterd:latest\"" == $($SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId') ]]
 }
 
