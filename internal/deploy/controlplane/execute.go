@@ -78,9 +78,9 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 	if err = deployAgentConfigExecutor.Execute(); err != nil {
 		if strings.Contains(err.Error(), "There already is a system fog") {
 			util.PrintNotify(fmt.Sprintf("Using existing default router"))
-		} else {
-			return err
+			return nil
 		}
+		return err
 	}
 	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
 	if !util.IsLocalHost(ctrl.Host) {
