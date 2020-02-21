@@ -484,7 +484,12 @@ function waitForProxyMsvc(){
   local HOST="$1"
   local USER="$2"
   local KEY_FILE="$3"
-  local SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $USER@$HOSTS"
+  local SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $USER@$HOST"
+
+  echo "HOST=$HOST"
+  echo "USER=$USER"
+  echo "KEY_FILE=$KEY_FILE"
+  echo "SSH_COMMAND=$SSH_COMMAND"
 
   while [ -z $($SSH_COMMAND -- docker ps | grep "iofog/proxy:latest") ] ; do
       ITER=$((ITER+1))
