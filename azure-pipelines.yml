@@ -292,18 +292,6 @@ stages:
         docker "pull" "$(agent_image)"
       displayName: 'Pull develop gcr docker image'
       failOnStderr: false
-    - bash: |
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
-        sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_version)\"|g" test/env.sh
-        sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"$(operator_image)\"|g" test/env.sh
-        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
-        sed -i "s|AGENT_VANILLA_VERSION=.*|AGENT_VANILLA_VERSION=\"$(iofog_agent_version)\"|g" test/env.sh
-        NS=$(jobuuid)
-        sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-        sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
-        sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
-        cp test/env.sh test/conf
-      displayName: 'Configure Local Tests'
     - template: templates/configure-remote-tests.yaml
     - bash: |
         tempBashPath=$(wslpath "$(Agent.TempDirectory)")
@@ -409,18 +397,6 @@ stages:
         sudo cp linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
-    - script: |
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
-        sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_version)\"|g" test/env.sh
-        sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"$(operator_image)\"|g" test/env.sh
-        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
-        sed -i "s|AGENT_VANILLA_VERSION=.*|AGENT_VANILLA_VERSION=\"$(iofog_agent_version)\"|g" test/env.sh
-        NS=$(jobuuid)
-        sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-        sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
-        sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
-        cp test/env.sh test/conf
-      displayName: 'Configure Local Tests'
     - template: templates/configure-remote-tests.yaml
     - template: templates/install-test-deps.yaml
     - script: |
