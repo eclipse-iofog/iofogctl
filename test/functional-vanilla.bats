@@ -80,20 +80,20 @@ spec:
   done
 }
 
-@test "Prune Agent" {
-  initVanillaController
-  initAgents
-  local AGENT_NAME="${NAME}-0"
-  test iofogctl -v prune agent "$AGENT_NAME"
-  local CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
-  echo "$CONTROLLER_ENDPOINT"
-  local SSH_KEY_PATH=$KEY_FILE
-  if [[ ! -z $WSL_KEY_FILE ]]; then
-    SSH_KEY_PATH=$WSL_KEY_FILE
-  fi
-  # TODO: Enable check that is not flake
-  #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
-}
+# @test "Prune Agent" {
+#   initVanillaController
+#   initAgents
+#   local AGENT_NAME="${NAME}-0"
+#   test iofogctl -v prune agent "$AGENT_NAME"
+#   local CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
+#   echo "$CONTROLLER_ENDPOINT"
+#   local SSH_KEY_PATH=$KEY_FILE
+#   if [[ ! -z $WSL_KEY_FILE ]]; then
+#     SSH_KEY_PATH=$WSL_KEY_FILE
+#   fi
+#   # TODO: Enable check that is not flake
+#   #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
+# }
 
 @test "Detach agent" {
   local AGENT_NAME="${NAME}-0"
