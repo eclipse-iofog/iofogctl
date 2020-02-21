@@ -140,7 +140,7 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   # Wait for proxy microservice
-  waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   EXT_IP=$VANILLA_HOST
   # Hit the endpoint
   COUNT=$(curl http://${EXT_IP}:5000/api/raw | jq '. | length')
