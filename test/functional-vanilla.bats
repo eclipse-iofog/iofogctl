@@ -131,6 +131,45 @@ spec:
   checkApplication
 }
 
+@test "Test Public Ports w/ Microservices on same Agent" {
+  initVanillaController
+  initAgents
+  # Wait for proxy microservice
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  # Wait for proxy microservice
+  waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  EXT_IP=$VANILLA_HOST
+  # Hit the endpoint
+  COUNT=$(curl http://${EXT_IP}:5000/api/raw | jq '. | length')
+  [ $COUNT -gt 0 ]
+}
+
+@test "Move microservice to another agent" {
+  test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
+  checkMovedMicroservice $MSVC2_NAME ${NAME}-1
+  # Avoid checking RUNNING state of msvc on first agent
+  waitForMsvc "$MSVC2_NAME" "$NS" "DELETING"
+  waitForMsvc "$MSVC2_NAME" "$NS"
+}
+
+@test "Test Public Ports w/ Microservice on different Agents" {
+  initVanillaController
+  initAgents
+  # Wait for proxy microservice
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  EXT_IP=$VANILLA_HOST
+  # Hit the endpoint
+  COUNT=$(curl http://${EXT_IP}:5000/api/raw | jq '. | length')
+  [ $COUNT -gt 0 ]
+}
+
 @test "Connect in another namespace using file" {
   test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
   checkController "$NS2"
