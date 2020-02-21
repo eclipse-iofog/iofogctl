@@ -493,9 +493,11 @@ function waitForProxyMsvc(){
 
   while [ -z $($SSH_COMMAND -- sudo docker ps | grep "iofog/proxy:latest") ] ; do
       $SSH_COMMAND -- sudo docker ps
+      $SSH_COMMAND -- sudo docker images
+      $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json
       ITER=$((ITER+1))
       # Allow for 180 sec so that the agent can pull the image
-      if [ "$ITER" -gt 180 ]; then
+      if [ "$ITER" -gt 240 ]; then
           echo "Timed out. Waited $ITER seconds for proxy to be running"
           exit 1
       fi
