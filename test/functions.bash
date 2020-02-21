@@ -491,7 +491,7 @@ function waitForProxyMsvc(){
   echo "KEY_FILE=$KEY_FILE"
   echo "SSH_COMMAND=$SSH_COMMAND"
 
-  while [ -z $($SSH_COMMAND -- docker ps | grep "iofog/proxy:latest") ] ; do
+  while [ -z $($SSH_COMMAND -- sudo docker ps | grep "iofog/proxy:latest") ] ; do
       ITER=$((ITER+1))
       # Allow for 180 sec so that the agent can pull the image
       if [ "$ITER" -gt 180 ]; then
