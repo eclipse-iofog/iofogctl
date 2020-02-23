@@ -51,7 +51,7 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 		Host: ctrl.Host,
 		SSH:  ctrl.SSH,
 		Package: config.Package{
-			Version: "2.0.0-rc1-b6797",
+			Version: "2.0.0-rc1-b6923",
 			Repo:    "iofog/iofog-agent-snapshots",
 			Token:   "4d92b64818ae03d4a6b3f164406e44f65b49a9aa82124c17",
 		},
