@@ -329,7 +329,6 @@ stages:
       displayName: 'Clean local docker environment'
     
   - job: Vanilla_Xenial
-    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
@@ -366,7 +365,6 @@ stages:
         controller_count: 1
 
   - job: Vanilla_Stretch
-    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
