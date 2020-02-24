@@ -141,7 +141,7 @@ spec:
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
-  COUNT=$(curl --connect-timeout 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
+  COUNT=$(curl --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
 
@@ -158,7 +158,7 @@ spec:
 #  # Wait for k8s service
 #  EXT_IP=$(waitForSvc "$NS" http-proxy)
 #  # Hit the endpoint
-#  COUNT=$(curl --connect-timeout 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
+#  COUNT=$(curl --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
 #  [ $COUNT -gt 0 ]
 #}
 
@@ -258,7 +258,6 @@ spec:
     test iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
   done
   checkAgentsNegative
-  sleep 30 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
 }
 
 @test "Deploy Controller for idempotence" {
