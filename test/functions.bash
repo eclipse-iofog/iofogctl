@@ -492,7 +492,7 @@ function waitForProxyMsvc(){
   echo "SSH_COMMAND=$SSH_COMMAND"
 
   ITER=0
-  while [ -z $($SSH_COMMAND -- sudo docker ps | grep "iofog/proxy:latest") ] ; do
+  while [ -z "$($SSH_COMMAND -- sudo docker ps | grep 'iofog/proxy:latest')" ] ; do
       $SSH_COMMAND -- sudo docker ps
       $SSH_COMMAND -- sudo docker images
       $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json
