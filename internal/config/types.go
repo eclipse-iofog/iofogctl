@@ -96,14 +96,15 @@ type ControlPlane struct {
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name      string    `yaml:"name,omitempty"`
-	Host      string    `yaml:"host,omitempty"`
-	SSH       SSH       `yaml:"ssh,omitempty"`
-	Kube      Kube      `yaml:"kube,omitempty"`
-	Endpoint  string    `yaml:"endpoint,omitempty"`
-	Created   string    `yaml:"created,omitempty"`
-	Package   Package   `yaml:"package,omitempty"`
-	Container Container `yaml:"container,omitempty"`
+	Name        string    `yaml:"name,omitempty"`
+	Host        string    `yaml:"host,omitempty"`
+	SSH         SSH       `yaml:"ssh,omitempty"`
+	Kube        Kube      `yaml:"kube,omitempty"`
+	Endpoint    string    `yaml:"endpoint,omitempty"`
+	Created     string    `yaml:"created,omitempty"`
+	Package     Package   `yaml:"package,omitempty"`
+	SystemAgent Package   `yaml:"systemAgent,omitempty"`
+	Container   Container `yaml:"container,omitempty"`
 }
 
 type Registry struct {

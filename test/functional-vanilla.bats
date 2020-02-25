@@ -35,6 +35,10 @@ spec:
       repo: $CONTROLLER_REPO
       version: $CONTROLLER_VANILLA_VERSION
       token: $CONTROLLER_PACKAGE_CLOUD_TOKEN
+    systemAgent:
+      version: $AGENT_VANILLA_VERSION
+      repo: $AGENT_REPO
+      token: $AGENT_PACKAGE_CLOUD_TOKEN
   iofogUser:
     name: Testing
     surname: Functional

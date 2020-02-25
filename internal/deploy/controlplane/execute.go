@@ -47,14 +47,10 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
 	agent := config.Agent{
-		Name: iofog.VanillaRouterAgentName,
-		Host: ctrl.Host,
-		SSH:  ctrl.SSH,
-		Package: config.Package{
-			Version: "2.0.0-rc1-b6923",
-			Repo:    "iofog/iofog-agent-snapshots",
-			Token:   "4d92b64818ae03d4a6b3f164406e44f65b49a9aa82124c17",
-		},
+		Name:    iofog.VanillaRouterAgentName,
+		Host:    ctrl.Host,
+		SSH:     ctrl.SSH,
+		Package: ctrl.SystemAgent,
 	}
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
