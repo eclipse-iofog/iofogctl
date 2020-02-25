@@ -99,30 +99,30 @@ spec:
   #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
 }
 
-# @test "Detach agent" {
-#   local AGENT_NAME="${NAME}-0"
-#   test iofogctl -v detach agent "$AGENT_NAME"
-#   checkAgentNegative "$AGENT_NAME"
-#   checkDetachedAgent "$AGENT_NAME"
-# }
+@test "Detach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v detach agent "$AGENT_NAME"
+  checkAgentNegative "$AGENT_NAME"
+  checkDetachedAgent "$AGENT_NAME"
+}
 
-# @test "Update detached agent name" {
-#   local OLD_NAME="${NAME}-0"
-#   local NEW_NAME="${NAME}-renamed"
-#   test iofogctl -v rename agent "$OLD_NAME" "$NEW_NAME" --detached
-#   checkDetachedAgentNegative "$OLD_NAME"
-#   checkDetachedAgent "$NEW_NAME"
-#   test iofogctl -v rename agent "$NEW_NAME" "$OLD_NAME" --detached
-#   checkDetachedAgentNegative "$NEW_NAME"
-#   checkDetachedAgent "$OLD_NAME"
-# }
+@test "Update detached agent name" {
+  local OLD_NAME="${NAME}-0"
+  local NEW_NAME="${NAME}-renamed"
+  test iofogctl -v rename agent "$OLD_NAME" "$NEW_NAME" --detached
+  checkDetachedAgentNegative "$OLD_NAME"
+  checkDetachedAgent "$NEW_NAME"
+  test iofogctl -v rename agent "$NEW_NAME" "$OLD_NAME" --detached
+  checkDetachedAgentNegative "$NEW_NAME"
+  checkDetachedAgent "$OLD_NAME"
+}
 
-# @test "Attach agent" {
-#   local AGENT_NAME="${NAME}-0"
-#   test iofogctl -v attach agent "$AGENT_NAME"
-#   checkAgent "$AGENT_NAME"
-#   checkDetachedAgentNegative "$AGENT_NAME"
-# }
+@test "Attach agent" {
+  local AGENT_NAME="${NAME}-0"
+  test iofogctl -v attach agent "$AGENT_NAME"
+  checkAgent "$AGENT_NAME"
+  checkDetachedAgentNegative "$AGENT_NAME"
+}
 
 @test "Deploy application" {
   initApplicationFiles
@@ -161,21 +161,20 @@ spec:
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
-# TODO: Enable when fixed
-#@test "Test Public Ports w/ Microservice on different Agents" {
-#  initVanillaController
-#  initAgents
-#  # Wait for proxy microservice
-#  local SSH_KEY_PATH=$KEY_FILE
-#  if [[ ! -z $WSL_KEY_FILE ]]; then
-#    SSH_KEY_PATH=$WSL_KEY_FILE
-#  fi
-#  waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
-#  EXT_IP=$VANILLA_HOST
-#  # Hit the endpoint
-#  COUNT=$(curl --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
-#  [ $COUNT -gt 0 ]
-#}
+@test "Test Public Ports w/ Microservice on different Agents" {
+  initVanillaController
+  initAgents
+  # Wait for proxy microservice
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  EXT_IP=$VANILLA_HOST
+  # Hit the endpoint
+  COUNT=$(curl --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
+  [ $COUNT -gt 0 ]
+}
 
 @test "Connect in another namespace using file" {
   test iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
