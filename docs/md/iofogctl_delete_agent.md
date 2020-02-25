@@ -32,7 +32,7 @@ iofogctl delete agent NAME
 ```
       --detached           Use/Show detached resources
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "6928137")
+  -n, --namespace string   Namespace to execute respective command within (default "6929137")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 
