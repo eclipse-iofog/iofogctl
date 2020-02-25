@@ -138,6 +138,12 @@ spec:
 }
 
 @test "Test Public Ports w/ Microservices on same Agent" {
+  initAgents
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
