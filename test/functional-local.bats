@@ -47,6 +47,8 @@ NS="$NAMESPACE"
   initApplicationFiles
   test iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
+  waitForMsvc func-app-server "$NS"
+  waitForMsvc func-app-ui "$NS"
 }
 
 @test "Deploy microservice" {
