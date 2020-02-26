@@ -44,7 +44,7 @@ Valid resources are: controller, agent, all, agents, controllers, default-namesp
 ```
       --detached           Use/Show detached resources
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "6929137")
+  -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 

@@ -143,12 +143,13 @@ spec:
   if [[ ! -z $WSL_KEY_FILE ]]; then
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
+  echo ${HOSTS[0]} > /tmp/file.txt
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
-  curl --max-time -s 120 http://${EXT_IP}:5000/api/raw
-  COUNT=$(curl --max-time -s 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
+  curl -s --max-time 120 http://${EXT_IP}:5000/api/raw
+  COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
 
@@ -164,7 +165,7 @@ spec:
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
-  COUNT=$(curl --max-time -s 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
+  COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
 
