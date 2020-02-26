@@ -143,7 +143,6 @@ spec:
   if [[ ! -z $WSL_KEY_FILE ]]; then
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
-  echo ${HOSTS[0]} > /tmp/file.txt
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
@@ -156,8 +155,12 @@ spec:
 @test "Move microservice to another agent" {
   test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
   checkMovedMicroservice $MSVC2_NAME ${NAME}-1
-  # TODO: Avoid checking RUNNING state of msvc on first agent
-  sleep 15
+  initAgents
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
