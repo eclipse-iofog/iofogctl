@@ -208,6 +208,7 @@ type MicroserviceUpdateRequest struct {
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
 	RegistryID        *int                         `json:"registryId,omitempty"`
+	CatalogItemID     int                          `json:"catalogItemId,omitempty"`
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Commands          *[]string                    `json:"cmd,omitempty"`
