@@ -128,6 +128,8 @@ spec:
   initApplicationFiles
   test iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
+  waitForMsvc func-app-server "$NS"
+  waitForMsvc func-app-ui "$NS"
 }
 
 @test "Deploy application and test deploy idempotence" {
@@ -157,7 +159,6 @@ spec:
   test iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
   checkMovedMicroservice $MSVC2_NAME ${NAME}-1
   # Avoid checking RUNNING state of msvc on first agent
-  waitForMsvc "$MSVC2_NAME" "$NS" "DELETING"
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
