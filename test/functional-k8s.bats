@@ -147,6 +147,7 @@ spec:
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
+  curl --max-time -s 120 http://${EXT_IP}:5000/api/raw
   COUNT=$(curl --max-time -s 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
