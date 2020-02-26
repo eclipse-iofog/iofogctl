@@ -98,7 +98,6 @@ NS="$NAMESPACE"
 @test "Delete all using file" {
   initAllLocalDeleteFile
   test iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml
-  checkLocalResourcesDeleted
   checkApplicationNegative
   checkControllerNegative
   checkAgentNegative "${NAME}-0"
