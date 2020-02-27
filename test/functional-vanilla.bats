@@ -162,6 +162,7 @@ spec:
   sleep 60
   EXT_IP=$VANILLA_HOST
   # Hit the endpoint
+  curl -s --max-time 120 http://${EXT_IP}:5000/api/raw # Show the output of curl for debug purposes
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
@@ -184,6 +185,7 @@ spec:
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
   EXT_IP=$VANILLA_HOST
   # Hit the endpoint
+  curl -s --max-time 120 http://${EXT_IP}:5000/api/raw # Show the output of curl for debug purposes
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
