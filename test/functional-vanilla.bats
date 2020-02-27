@@ -162,7 +162,9 @@ spec:
   sleep 60
   EXT_IP=$VANILLA_HOST
   # Hit the endpoint
+  echo "Before curl"
   curl -s --max-time 120 http://${EXT_IP}:5000/api/raw # Show the output of curl for debug purposes
+  echo "After curl"
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
@@ -183,9 +185,13 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  # Wait for public port to be up
+  sleep 60
   EXT_IP=$VANILLA_HOST
   # Hit the endpoint
+  echo "Before curl"
   curl -s --max-time 120 http://${EXT_IP}:5000/api/raw # Show the output of curl for debug purposes
+  echo "After curl"
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
