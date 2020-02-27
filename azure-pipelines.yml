@@ -161,7 +161,7 @@ stages:
         id: win$(build)
         distro: $(gcp.vm.distro.stretch)
         repo: $(gcp.vm.repo.debian)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
         windows: "true"
     - template: templates/configure-remote-tests.yaml
@@ -232,7 +232,7 @@ stages:
     - template: templates/functional-clean-vm.yaml
       parameters:
         id: win$(build)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
     - bash: |
         rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/

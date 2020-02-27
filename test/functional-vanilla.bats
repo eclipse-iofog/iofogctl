@@ -158,6 +158,8 @@ spec:
   fi
   # Wait for proxy microservice
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
+  # Wait for public port to be up
+  sleep 60
   EXT_IP=$VANILLA_HOST
   # Hit the endpoint
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
