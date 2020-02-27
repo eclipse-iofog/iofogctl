@@ -41,7 +41,9 @@ const (
 	defaultDirname       = ".iofog/"
 	namespaceDirname     = "namespaces/"
 	defaultFilename      = "config.yaml"
-	CurrentConfigVersion = "iofogctl/v1"
+	configV2             = "iofogctl/v2"
+	configV1             = "iofogctl/v1"
+	CurrentConfigVersion = configV2
 )
 
 func updateConfigToK8sStyle() error {
@@ -532,10 +534,42 @@ func FlushConfig() (err error) {
 	return
 }
 
-func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
-	if header.APIVersion != CurrentConfigVersion {
-		return c, util.NewInputError("Invalid iofogctl config version")
+func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
+	type v1SpecContent struct {
+		Name         string        `yaml:"name,omitempty"`
+		ControlPlane ControlPlane  `yaml:"controlPlane,omitempty"`
+		Agents       []Agent       `yaml:"agents,omitempty"`
+		Created      string        `yaml:"created,omitempty"`
+		Connectors   []interface{} `yaml:"connectors,omitempty"`
 	}
+	header.APIVersion = configV2
+	bytes, err := yaml.Marshal(header.Spec)
+	v1Spec := v1SpecContent{}
+	if err != nil {
+		return header, err
+	}
+	if err = yaml.UnmarshalStrict(bytes, &v1Spec); err != nil {
+		return header, err
+	}
+
+	v2Spec := Namespace{
+		Name:         v1Spec.Name,
+		ControlPlane: v1Spec.ControlPlane,
+		Agents:       v1Spec.Agents,
+		Created:      v1Spec.Created,
+	}
+
+	header.Spec = v2Spec
+
+	return header, nil
+}
+
+func updateConfigToV2(header iofogctlConfig) (iofogctlConfig, error) {
+	header.APIVersion = configV2
+	return header, nil
+}
+
+func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	switch header.APIVersion {
 	case CurrentConfigVersion:
 		{
@@ -547,6 +581,14 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	// 	updateFromPreviousVersion()
 	// 	break
 	// }
+	case configV1:
+		{
+			headerV2, err := updateConfigToV2(header)
+			if err != nil {
+				return c, err
+			}
+			return getConfigFromHeader(headerV2)
+		}
 	default:
 		return c, util.NewInputError("Invalid iofogctl config version")
 	}
@@ -564,14 +606,19 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 }
 
 func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
-	if header.Kind != IofogctlNamespaceKind {
-		return n, util.NewInputError("Invalid namespace kind")
-	}
 	switch header.APIVersion {
 	case CurrentConfigVersion:
 		{
 			// All good
 			break
+		}
+	case configV1:
+		{
+			headerV2, err := updateNamespaceToV2(header)
+			if err != nil {
+				return n, err
+			}
+			return getNamespaceFromHeader(headerV2)
 		}
 	// Example for further maintenance
 	// case PreviousConfigVersion {
