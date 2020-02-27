@@ -185,6 +185,7 @@ stages:
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
         ls -la $destFolder
+        rm -f $destFolder/known_hosts
       displayName: Prepare SSH key
     - bash: |
         sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
