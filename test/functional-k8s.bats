@@ -171,29 +171,6 @@ spec:
   [ $COUNT -gt 0 ]
 }
 
-@test "Change Microservice Ports" {
-  initApplicationFiles
-  EXT_IP=$(waitForSvc "$NS" http-proxy)
-  # Change port
-  sed -i.bak  "s/public: 5000/public: 6000/g" test/conf/application.yaml
-  test iofogctl -v deploy -f test/conf/application.yaml
-  # Wait for port to update to 6000
-  PORT=""
-  SECS=0
-  MAX=60
-  while [[ $SECS -lt $MAX && ! -z $PORT ]]; do
-    PORT=$(kubectl describe svc http-proxy -n "$NS" | grep 6000/TCP)
-    SECS=$((SECS+1))
-    sleep 1
-  done
-  # Check what happened in the loop above
-  [ $SECS -lt $MAX ]
-
-  # Check service was not deleted NB: this might be a timing problem, svc could be deleted b/c port is not PATCH to Controller API
-  NEW_IP=$(waitForSvc "$NS" http-proxy)
-  [ "$EXT_IP" == "$NEW_IP" ]
-}
-
 @test "Delete Public Port" {
   initApplicationFiles
   # Remove port info from the file
