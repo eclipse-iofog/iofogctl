@@ -16,4 +16,4 @@ steps:
       gcloud compute --project=$(gcp.project.name) instances delete iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --delete-disks=all -q
     fi
   displayName: 'Teardown VMs'
-  condition: always()
+  # condition: always()
