@@ -23,7 +23,7 @@ variables:
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:latest'
   agent_image: 'gcr.io/focal-freedom-236620/agent:skupper'
   operator_image: 'gcr.io/focal-freedom-236620/operator:skupper'
-  iofog_agent_version: '2.0.0-rc1-b6940'
+  iofog_agent_version: '2.0.0-rc1-b6954'
   controller_version: '2.0.0-skupper'
   version:
   agent_vm_list:
