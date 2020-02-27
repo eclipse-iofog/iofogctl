@@ -73,6 +73,15 @@ spec:
   initAgentsFile
   test iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
+  # Wait for router microservice
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  for IDX in "${!AGENTS[@]}"; do
+    # Wait for router microservice
+    waitForSystemMsvc "quay.io/interconnectedcloud/qdrouterd:latest" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
+  done
 }
 
 @test "Agent legacy commands" {
@@ -97,10 +106,6 @@ spec:
   fi
   # TODO: Enable check that is not flake
   #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
-}
-
-@test "Waiting for debug" {
-  sleep 300
 }
 
 @test "Detach agent" {

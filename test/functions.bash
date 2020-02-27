@@ -480,10 +480,11 @@ function checkAgentListFromController() {
   done
 }
 
-function waitForProxyMsvc(){
-  local HOST="$1"
-  local USER="$2"
-  local KEY_FILE="$3"
+function waitForSystemMsvc() {
+  local NAME="$1"
+  local HOST="$2"
+  local USER="$3"
+  local KEY_FILE="$4"
   local SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $USER@$HOST"
 
   echo "HOST=$HOST"
@@ -492,18 +493,22 @@ function waitForProxyMsvc(){
   echo "SSH_COMMAND=$SSH_COMMAND"
 
   ITER=0
-  while [ -z "$($SSH_COMMAND -- sudo docker ps | grep 'iofog/proxy:latest')" ] ; do
+  while [ -z "$($SSH_COMMAND -- sudo docker ps | grep ${NAME})" ] ; do
       $SSH_COMMAND -- sudo docker ps
       $SSH_COMMAND -- sudo docker images
       $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json
       ITER=$((ITER+1))
-      # Allow for 180 sec so that the agent can pull the image
-      if [ "$ITER" -gt 240 ]; then
+      # Allow for 300 sec so that the agent can pull the image
+      if [ "$ITER" -gt 300 ]; then
           echo "Timed out. Waited $ITER seconds for proxy to be running"
           exit 1
       fi
       sleep 1
   done
+}
+
+function waitForProxyMsvc(){
+  waitForSystemMsvc "iofog/proxy:latest" $1 $2 $3
 }
 
 function checkAgentPruneController(){
