@@ -99,6 +99,10 @@ spec:
   #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
 }
 
+@test "Waiting for debug" {
+  sleep 300
+}
+
 @test "Detach agent" {
   local AGENT_NAME="${NAME}-0"
   test iofogctl -v detach agent "$AGENT_NAME"
