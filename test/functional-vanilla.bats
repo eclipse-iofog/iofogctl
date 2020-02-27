@@ -51,7 +51,12 @@ spec:
 
 @test "Check Controller host has a system Agent running on it with qrouter microservice" {
   initVanillaController
-  SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $VANILLA_USER@$VANILLA_HOST"
+
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH $VANILLA_USER@$VANILLA_HOST"
   [[ "ok" == $($SSH_COMMAND -- sudo iofog-agent status | grep 'Controller' | awk '{print $5}') ]]
   [[ "RUNNING" == $($SSH_COMMAND --  sudo iofog-agent status | grep 'daemon' | awk '{print $4}') ]]
   [[ "http://${VANILLA_HOST}:51121/api/v3/" == $($SSH_COMMAND -- sudo iofog-agent info | grep 'Controller' | awk '{print $4}') ]]
