@@ -175,6 +175,8 @@ spec:
 }
 
 @test "Test Public Ports w/ Microservice on different Agents" {
+  # Wait for public port to be up
+  sleep 60
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
