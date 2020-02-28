@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-function test(){
-    eval "$@"
-    [[ $? == 0 ]]
-}
-
 function initVanillaController(){
   VANILLA_USER=$(echo "$VANILLA_CONTROLLER" | sed "s|@.*||g")
   VANILLA_HOST=$(echo "$VANILLA_CONTROLLER" | sed "s|.*@||g")

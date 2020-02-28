@@ -38,6 +38,10 @@ func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) 
 }
 
 func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
+	fmtKubeConfig, err := util.FormatPath(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
 	controlPlane := config.ControlPlane{
 		IofogUser: config.IofogUser{
 			Email:    email,
@@ -48,7 +52,7 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 				Name:     name,
 				Endpoint: formatEndpoint(endpoint),
 				Kube: config.Kube{
-					Config: kubeConfig,
+					Config: fmtKubeConfig,
 				},
 			},
 		},

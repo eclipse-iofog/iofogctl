@@ -53,9 +53,11 @@ stages:
   jobs:
 
   - job: Windows_K8s
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
@@ -115,6 +117,10 @@ stages:
         echo "Copied SSH fey from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
+<<<<<<< HEAD
+=======
+        echo '' > $destFolder/known_hosts
+>>>>>>> temp/skupper
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
@@ -154,9 +160,11 @@ stages:
         controller_count: 0
 
   - job: Windows_Vanilla
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - template: templates/ssh-steps.yaml
     - template: templates/functional-init-vm-steps.yaml
       parameters:
@@ -186,8 +194,8 @@ stages:
         echo "Copied SSH key from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
+        echo '' > $destFolder/known_hosts
         ls -la $destFolder
-        rm -f $destFolder/known_hosts
       displayName: Prepare SSH key
     - bash: |
         sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
@@ -237,15 +245,13 @@ stages:
         id: win$(build)
         agent_count: 2
         controller_count: 1
-    - bash: |
-        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
-      condition: always()
-      displayName: 'Clean up Windows env'
 
   - job: Windows_Local
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
