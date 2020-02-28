@@ -164,7 +164,11 @@ spec:
   # Hit the endpoint
   echo "Before curl"
   curl -s --max-time 120 http://${EXT_IP}:5000/api/raw # Show the output of curl for debug purposes
-  echo "After curl"
+  echo "\nAfter curl"
+  echo "Microservices"
+  SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[0]}@${HOSTS[0]}"
+  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq
+  echo "---" 
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
@@ -191,7 +195,11 @@ spec:
   # Hit the endpoint
   echo "Before curl"
   curl -s --max-time 120 http://${EXT_IP}:5000/api/raw # Show the output of curl for debug purposes
-  echo "After curl"
+  echo "\nAfter curl"
+  echo "Microservices"
+  SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[1]}@${HOSTS[1]}"
+  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq
+  echo "---" 
   COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
   [ $COUNT -gt 0 ]
 }
