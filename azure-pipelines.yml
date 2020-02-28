@@ -117,10 +117,7 @@ stages:
         echo "Copied SSH fey from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
-<<<<<<< HEAD
-=======
         echo '' > $destFolder/known_hosts
->>>>>>> temp/skupper
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
