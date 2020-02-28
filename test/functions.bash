@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
-function test(){
-    eval "$@"
-    if [[ $? != 0 ]]; then
-      echo "BATS COMMAND FAILED: $@"
-      exit 1
-    fi
-}
-
 function initVanillaController(){
   VANILLA_USER=$(echo "$VANILLA_CONTROLLER" | sed "s|@.*||g")
   VANILLA_HOST=$(echo "$VANILLA_CONTROLLER" | sed "s|.*@||g")
