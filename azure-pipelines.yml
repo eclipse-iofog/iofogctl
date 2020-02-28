@@ -117,6 +117,7 @@ stages:
         echo "Copied SSH fey from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
+        echo '' > $destFolder/known_hosts
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
@@ -190,7 +191,7 @@ stages:
         echo "Copied SSH key from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
-        rm -f $destFolder/known_hosts
+        echo '' > $destFolder/known_hosts
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
