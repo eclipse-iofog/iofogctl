@@ -63,7 +63,10 @@ func (exe *agentExecutor) Execute() error {
 
 	// Only updated fields specified
 	if exe.keyFile != "" {
-		agent.SSH.KeyFile = exe.keyFile
+		agent.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
+		if err != nil {
+			return err
+		}
 	}
 	if exe.user != "" {
 		agent.SSH.User = exe.user

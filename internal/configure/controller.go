@@ -71,7 +71,10 @@ func (exe *controllerExecutor) Execute() error {
 		controller.Host = exe.host
 	}
 	if exe.keyFile != "" {
-		controller.SSH.KeyFile = exe.keyFile
+		controller.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
+		if err != nil {
+			return err
+		}
 	}
 	if exe.user != "" {
 		controller.SSH.User = exe.user
@@ -80,7 +83,10 @@ func (exe *controllerExecutor) Execute() error {
 		controller.SSH.Port = exe.port
 	}
 	if exe.kubeConfig != "" {
-		controller.Kube.Config = exe.kubeConfig
+		controller.Kube.Config, err = util.FormatPath(exe.kubeConfig)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Add port if not specified or existing

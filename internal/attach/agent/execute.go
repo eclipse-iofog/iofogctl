@@ -47,6 +47,7 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
+
 	var agent config.Agent
 	var err error
 	if exe.opt.UseDetached {
