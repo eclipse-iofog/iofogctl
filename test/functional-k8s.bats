@@ -129,7 +129,7 @@ spec:
 
 @test "Connect to cluster using flags" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  iofogctl -v -n "$NS" connect --name "$NAME" --kube "/Users/serge/.kube/config" --email "$USER_EMAIL" --pass "$USER_PW"
+  iofogctl -v -n "$NS" connect --name "$NAME" --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkController
   checkAgents
 }
