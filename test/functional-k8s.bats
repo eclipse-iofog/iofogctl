@@ -201,10 +201,6 @@ spec:
   done
   # Check what happened in the loop above
   [ $SECS -lt $MAX ]
-
-  # Check service was not deleted NB: this might be a timing problem, svc could be deleted b/c port is not PATCH to Controller API
-  NEW_IP=$(waitForSvc "$NS" http-proxy)
-  [ "$EXT_IP" == "$NEW_IP" ]
 }
 
 @test "Delete Public Port" {

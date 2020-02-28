@@ -2,7 +2,10 @@
 
 function test(){
     eval "$@"
-    [[ $? == 0 ]]
+    if [[ $? != 0 ]]; then
+      echo "BATS COMMAND FAILED: $@"
+      exit 1
+    fi
 }
 
 function initVanillaController(){
