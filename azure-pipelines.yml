@@ -55,6 +55,9 @@ stages:
   - job: Windows_K8s
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
@@ -155,6 +158,9 @@ stages:
   - job: Windows_Vanilla
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - template: templates/ssh-steps.yaml
     - template: templates/functional-init-vm-steps.yaml
       parameters:
@@ -235,14 +241,13 @@ stages:
         id: win$(build)
         agent_count: 2
         controller_count: 1
-    - bash: |
-        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
-      condition: always()
-      displayName: 'Clean up Windows env'
 
   - job: Windows_Local
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
