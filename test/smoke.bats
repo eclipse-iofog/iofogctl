@@ -3,88 +3,88 @@
 . test/functions.bash
 
 @test "Help" {
-  test iofogctl --help
+  iofogctl --help
 }
 
 @test "Help w/o Flag" {
-  test iofogctl help
+  iofogctl help
 }
 
 @test "Create Help" {
-  test iofogctl create --help
+  iofogctl create --help
 }
 
 @test "Delete Help" {
-  test iofogctl delete --help
+  iofogctl delete --help
 }
 
 @test "Deploy Help" {
-  test iofogctl deploy --help
+  iofogctl deploy --help
 }
 
 @test "Describe Help" {
-  test iofogctl describe --help
+  iofogctl describe --help
 }
 
 @test "Connect Help" {
-  test iofogctl connect --help
+  iofogctl connect --help
 }
 
 @test "Disconnect Help" {
-  test iofogctl disconnect --help
+  iofogctl disconnect --help
 }
 
 @test "Legacy Help" {
-  test iofogctl legacy --help
+  iofogctl legacy --help
 }
 
 @test "Logs Help" {
-  test iofogctl logs --help
+  iofogctl logs --help
 }
 
 @test "Get Help" {
-  test iofogctl get --help
+  iofogctl get --help
 }
 
 @test "Version" {
-  test iofogctl version
+  iofogctl version
 }
 
 @test "Get All" {
-  test iofogctl get all
+  iofogctl get all
 }
 
 @test "Get Namespaces" {
-  test iofogctl get namespaces
+  iofogctl get namespaces
 }
 
 @test "Get Controllers" {
-  test iofogctl get controllers
+  iofogctl get controllers
 }
 
 @test "Get Agents" {
-  test iofogctl get agents
+  iofogctl get agents
 }
 
 @test "Get Microservices" {
-  test iofogctl get microservices
+  iofogctl get microservices
 }
 
 @test "Get Applications" {
-  test iofogctl get applications
+  iofogctl get applications
 }
 
 @test "Create Namespace" {
-  test iofogctl create namespace smoketestsnamespace1234
+  iofogctl create namespace smoketestsnamespace1234
 }
 
 @test "Set Default Namespace" {
-  test iofogctl configure default-namespace smoketestsnamespace1234
-  test iofogctl get all
+  iofogctl configure default-namespace smoketestsnamespace1234
+  iofogctl get all
 }
 
 @test "Delete Namespace" {
-  test iofogctl delete namespace smoketestsnamespace1234
-  test iofogctl get all
-  test iofogctl get namespaces
+  iofogctl delete namespace smoketestsnamespace1234
+  iofogctl get all
+  iofogctl get namespaces
 }
