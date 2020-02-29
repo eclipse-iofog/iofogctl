@@ -500,10 +500,7 @@ function waitForSystemMsvc() {
   echo "SSH_COMMAND=$SSH_COMMAND"
 
   ITER=0
-  while [ -z "$($SSH_COMMAND -- sudo docker ps | grep ${NAME})" ] ; do
-      $SSH_COMMAND -- sudo docker ps
-      $SSH_COMMAND -- sudo docker images
-      $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json
+  while [ -z "$($SSH_COMMAND -- sudo docker ps | grep $NAME)" ] ; do
       ITER=$((ITER+1))
       # Allow for 300 sec so that the agent can pull the image
       if [ "$ITER" -gt 300 ]; then

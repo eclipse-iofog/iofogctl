@@ -425,7 +425,6 @@ stages:
       displayName: 'Clean local docker'
 
   - job: K8s
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
