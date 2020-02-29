@@ -582,12 +582,13 @@ function waitForSvc() {
   SVC="$2"
   ITER=0
   EXT_IP=""
-  while [ -z $EXT_IP ]; do
-      sleep 3
-      [[ "$ITER" -gt 12 ]]
+  while [ -z "$EXT_IP" ] && [ $ITER -lt 60 ]; do
+      sleep 1
       EXT_IP=$(kubectl get svc $SVC --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}" -n $NS)
       ITER=$((ITER+1))
   done
+  # Error if empty
+  [ ! -z "$EXT_IP" ]
   # Return via stdout
   echo "$EXT_IP"
 }
