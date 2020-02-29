@@ -3,6 +3,7 @@
 # Required environment variables
 # NAMESPACE
 # KUBE_CONFIG
+# TEST_KUBE_CONFIG
 # AGENT_LIST
 # VANILLA_CONTROLLER
 # KEY_FILE
@@ -20,6 +21,10 @@
 NS="$NAMESPACE"
 USER_PW="S5gYVgLEZV"
 USER_EMAIL="user@domain.com"
+
+@test "Verify kubectl works" {
+  kctl get ns
+}
 
 @test "Create namespace" {
   iofogctl create namespace "$NS"
@@ -195,7 +200,7 @@ spec:
   SECS=0
   MAX=60
   while [[ $SECS -lt $MAX && ! -z $PORT ]]; do
-    PORT=$(kubectl describe svc http-proxy -n "$NS" | grep 6000/TCP)
+    PORT=$(kctl describe svc http-proxy -n "$NS" | grep 6000/TCP)
     SECS=$((SECS+1))
     sleep 1
   done
@@ -216,10 +221,10 @@ spec:
   iofogctl -v deploy -f test/conf/application.yaml
 
   # Wait for port to be deleted
-  EXIT_CODE=0
+  RET=0
   SECS=0
-  while [ $SECS -lt 30 && $EXIT_CODE -eq 0 ]; do
-    EXIT_CODE=$(kubectl describe svc http-proxy | grep 6000/TCP)
+  while [ $SECS -lt 30 ] && [ -z "$RET" ]; do
+    RET=$(kctl describe svc http-proxy | grep 6000/TCP)
     SECS=$((SECS+1))
     sleep 1
   done

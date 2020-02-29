@@ -27,6 +27,10 @@ NS="$NAMESPACE"
 USER_PW="S5gYVgLEZV"
 USER_EMAIL="user@domain.com"
 
+@test "Verify kubectl works" {
+  kctl get ns
+}
+
 @test "Create namespace" {
   test iofogctl create namespace "$NS"
 }
@@ -91,13 +95,13 @@ spec:
 @test "Delete Controller Instances and List Agents multiple times" {
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  local CTRL_LIST=$(kubectl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
+  local CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
   local SAFE_CTRL=$(echo "$CTRL_LIST" | tail -n 1)
   for IDX in 0 1 2 3 4; do
-    CTRL_LIST=$(kubectl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
+    CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
     while read -r line; do
       if [ "$line" != "$SAFE_CTRL" ]; then
-        kubectl delete pods/"$line" -n "$NS" &
+        kctl delete pods/"$line" -n "$NS" &
       fi
     done <<< "$CTRL_LIST"
     checkAgentListFromController

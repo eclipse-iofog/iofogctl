@@ -18,6 +18,8 @@ export NAMESPACE="testing"
 
 # Kubernetes configuration file required to use kubectl
 export KUBE_CONFIG="~/.kube/config"
+# Kubernetes configuration file used by tests
+export TEST_KUBE_CONFIG="~/.kube/config"
 
 # SSH private key that can be used to log into agents specified by AGENTS variable
 export KEY_FILE="~/.ssh/id_rsa"
@@ -68,6 +70,7 @@ echo "${!AGENT_REPO*}: " "$AGENT_REPO"
 echo "${!AGENT_PACKAGE_CLOUD_TOKEN*}: " "$AGENT_PACKAGE_CLOUD_TOKEN"
 echo "${!NAMESPACE*}: " "$NAMESPACE"
 echo "${!KUBE_CONFIG*}: " "$KUBE_CONFIG"
+echo "${!TEST_KUBE_CONFIG*}: " "$TEST_KUBE_CONFIG"
 echo "${!KEY_FILE*}: " "$KEY_FILE"
 echo "${!CONTROLLER_IMAGE*}: " "$CONTROLLER_IMAGE"
 echo "${!PORT_MANAGER_IMAGE*}: " "$PORT_MANAGER"

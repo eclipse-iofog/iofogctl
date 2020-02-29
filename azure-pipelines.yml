@@ -31,6 +31,7 @@ variables:
   windows_ssh_key_path: 'C:/Users/$(azure.windows.user)/.ssh'
   ssh_key_file: 'id_rsa'
   windows_kube_config_path: 'C:/Users/$(azure.windows.user)/.kube/config'
+  bash_kube_config_path: '/root/.kube/config'
 
 stages:
 
@@ -126,6 +127,7 @@ stages:
     - bash: |
         sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
         sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"$(windows_kube_config_path)\"|g" test/conf/env.sh
+        sed -i "s|TEST_KUBE_CONFIG=.*|TEST_KUBE_CONFIG=\"$(bash_kube_config_path)\"|g" test/conf/env.sh
         cat test/conf/env.sh
       displayName: 'Prepare Test Config'
     - bash: |

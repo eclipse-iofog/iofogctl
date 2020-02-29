@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+function kctl(){
+  KUBECONFIG="$TEST_KUBE_CONFIG" kubectl $@
+}
+
+function print(){
+  echo "# $@                                " >&3
+}
+
+function log(){
+  echo "$@" >> "/tmp/bats_$BATS_TEST_NAME"
+}
+
 function initVanillaController(){
   VANILLA_USER=$(echo "$VANILLA_CONTROLLER" | sed "s|@.*||g")
   VANILLA_HOST=$(echo "$VANILLA_CONTROLLER" | sed "s|.*@||g")
@@ -584,7 +596,7 @@ function waitForSvc() {
   EXT_IP=""
   while [ -z "$EXT_IP" ] && [ $ITER -lt 60 ]; do
       sleep 1
-      EXT_IP=$(kubectl get svc $SVC --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}" -n $NS)
+      EXT_IP=$(kctl get svc -n $NS | grep $SVC | awk '{print $4}')
       ITER=$((ITER+1))
   done
   # Error if empty
