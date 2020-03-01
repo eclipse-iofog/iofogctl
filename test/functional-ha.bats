@@ -32,7 +32,7 @@ USER_EMAIL="user@domain.com"
 }
 
 @test "Create namespace" {
-  test iofogctl create namespace "$NS"
+  iofogctl create namespace "$NS"
 }
 
 @test "Deploy Control Plane" {
@@ -67,7 +67,7 @@ spec:
         proxy: $PROXY_IMAGE
         kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
-  test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 
@@ -79,7 +79,7 @@ spec:
 
 @test "Deploy Agents" {
   initAgentsFile
-  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -110,7 +110,7 @@ spec:
 
 @test "Deploy Agents again" {
   initAgentsFile
-  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -118,18 +118,18 @@ spec:
   initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    test iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
   done
   checkAgentsNegative
 }
 
 @test "Delete all" {
-  test iofogctl -v -n "$NS" delete all
+  iofogctl -v -n "$NS" delete all
   checkControllerNegative
   checkAgentsNegative
 }
 
 @test "Delete namespace" {
-  test iofogctl delete namespace "$NS"
+  iofogctl delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
 }
