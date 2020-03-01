@@ -39,6 +39,6 @@ steps:
 - template: functional-post-test.yaml
 - template: functional-clean-vm.yaml
   parameters:
-    id: $(jobuuid)
+    id: ${{ parameters.id }}
     agent_count: ${{ parameters.agent_count }}
     controller_count: ${{ parameters.controller_count }}
