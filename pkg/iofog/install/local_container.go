@@ -82,15 +82,17 @@ type LocalAgentConfig struct {
 	Name string
 }
 
-func GetLocalContainerName(t string) string {
+func GetLocalContainerName(t string, isSystem bool) string {
 	names := map[string]string{
 		"controller": sanitizeContainerName("iofog-controller"),
-		"connector":  sanitizeContainerName("iofog-connector"),
 		"agent":      sanitizeContainerName("iofog-agent"),
 	}
 	name, ok := names[t]
 	if ok == false {
 		return ""
+	}
+	if isSystem {
+		return name + "-system"
 	}
 	return name
 }
@@ -101,7 +103,7 @@ func sanitizeContainerName(name string) string {
 }
 
 // NewAgentConfig generates a static agent config
-func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig, credentials Credentials) *LocalAgentConfig {
+func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig, credentials Credentials, isSystem bool) *LocalAgentConfig {
 	if image == "" {
 		image = "docker.io/iofog/agent:" + util.GetAgentTag()
 	}
@@ -121,7 +123,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 				{Host: "54321", Container: &LocalContainerPort{Protocol: "tcp", Port: "54321"}},
 				{Host: "8081", Container: &LocalContainerPort{Protocol: "tcp", Port: "22"}},
 			},
-			ContainerName: GetLocalContainerName("agent"),
+			ContainerName: GetLocalContainerName("agent", isSystem),
 			Image:         image,
 			Privileged:    true,
 			Binds:         []string{"/var/run/docker.sock:/var/run/docker.sock:rw"},
@@ -130,25 +132,6 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 		},
 		Name: name,
 	}
-}
-
-// NewLocalConnectorConfig generates a static connector config
-func NewLocalConnectorConfig(image string, credentials Credentials) *LocalContainerConfig {
-	if image == "" {
-		image = "docker.io/iofog/connector:" + util.GetConnectorTag()
-	}
-
-	return &LocalContainerConfig{
-		Host:          "0.0.0.0",
-		Ports:         []port{{Host: iofog.ConnectorPortString, Container: &LocalContainerPort{Port: iofog.ConnectorPortString, Protocol: "tcp"}}},
-		ContainerName: GetLocalContainerName("connector"),
-		Image:         image,
-		Privileged:    false,
-		Binds:         []string{},
-		NetworkMode:   "bridge",
-		Credentials:   credentials,
-	}
-
 }
 
 // NewLocalControllerConfig generats a static controller config
@@ -162,7 +145,7 @@ func NewLocalControllerConfig(image string, credentials Credentials) *LocalConta
 			{Host: iofog.ControllerPortString, Container: &LocalContainerPort{Port: iofog.ControllerPortString, Protocol: "tcp"}},
 			{Host: iofog.ControllerHostECNViewerPortString, Container: &LocalContainerPort{Port: iofog.DefaultHTTPPortString, Protocol: "tcp"}},
 		},
-		ContainerName: GetLocalContainerName("controller"),
+		ContainerName: GetLocalContainerName("controller", false),
 		Image:         image,
 		Privileged:    false,
 		Binds:         []string{},
@@ -424,7 +407,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 
 // Returns endpoint to reach controller container from within another container
 func (lc *LocalContainer) GetLocalControllerEndpoint() (controllerEndpoint string, err error) {
-	host, err := lc.GetContainerIP(GetLocalContainerName("controller"))
+	host, err := lc.GetContainerIP(GetLocalContainerName("controller", false))
 	if err != nil {
 		return controllerEndpoint, err
 	}

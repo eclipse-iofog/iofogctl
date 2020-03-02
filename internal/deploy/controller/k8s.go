@@ -46,6 +46,8 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	// Configure deploy
 	installer.SetKubeletImage(exe.ctrl.Kube.Images.Kubelet)
 	installer.SetOperatorImage(exe.ctrl.Kube.Images.Operator)
+	installer.SetPortManagerImage(exe.ctrl.Kube.Images.PortManager)
+	installer.SetProxyImage(exe.ctrl.Kube.Images.Proxy)
 	installer.SetControllerImage(exe.ctrl.Container.Image)
 	installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
 	if err = installer.SetControllerServiceType(exe.ctrl.Kube.ServiceType); err != nil {

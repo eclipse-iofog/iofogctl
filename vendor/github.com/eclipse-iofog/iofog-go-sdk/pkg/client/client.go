@@ -86,3 +86,7 @@ func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, e
 	// Send request
 	return httpDo(method, requestURL, headers, request)
 }
+
+func (clt *Client) isLoggedIn() bool {
+	return clt.accessToken != ""
+}

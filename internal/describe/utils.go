@@ -14,10 +14,14 @@
 package describe
 
 import (
+	"fmt"
+
 	jsoniter "github.com/json-iterator/go"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *apps.Microservice, err error) {
@@ -49,6 +53,21 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 			return nil, err
 		}
 		routes = append(routes, destMsvc.Name)
+	}
+
+	// Map port host to agent name
+	for idx, port := range msvc.Ports {
+		if port.Host != "" && port.Host != iofog.VanillaRouterAgentName {
+			hostAgent, err := clt.GetAgentByID(port.Host)
+			var name string
+			if err != nil {
+				util.PrintNotify(fmt.Sprintf("Could not find agent with UUID %s\n", port.Host))
+				name = "UNKNOWN_" + port.Host
+			} else {
+				name = hostAgent.Name
+			}
+			msvc.Ports[idx].Host = name
+		}
 	}
 
 	jsonConfig := make(map[string]interface{})

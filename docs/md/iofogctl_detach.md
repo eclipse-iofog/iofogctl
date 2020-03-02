@@ -31,6 +31,5 @@ detach
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl detach agent](iofogctl_detach_agent.md)	 - Detaches an Agent
-* [iofogctl detach connector](iofogctl_detach_connector.md)	 - Detaches a Connector from its ECN
 
 

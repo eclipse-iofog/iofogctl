@@ -14,8 +14,12 @@
 package deletecontroller
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -53,6 +57,20 @@ func (exe *remoteExecutor) Execute() error {
 	// Uninstall Controller
 	if err = installer.Uninstall(); err != nil {
 		return err
+	}
+
+	// Try to remove default router
+	sshAgent := install.NewRemoteAgent(
+		ctrl.SSH.User,
+		ctrl.Host,
+		ctrl.SSH.Port,
+		ctrl.SSH.KeyFile,
+		iofog.VanillaRouterAgentName,
+		"",
+		nil,
+		exe.namespace)
+	if err = sshAgent.Uninstall(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
 	}
 
 	// Update config

@@ -26,6 +26,24 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type emptyExecutor struct {
+	name string
+}
+
+func (exe *emptyExecutor) Execute() error {
+	return nil
+}
+func (exe *emptyExecutor) GetName() string {
+	return exe.name
+}
+
+// NewEmptyExecutor return an executor that does nothing
+func NewEmptyExecutor(name string) Executor {
+	return &emptyExecutor{
+		name: name,
+	}
+}
+
 func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
 	// Check namespace exists
 	if len(header.Metadata.Namespace) > 0 {

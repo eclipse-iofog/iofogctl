@@ -27,8 +27,6 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newAllExecutor(namespace, showDetached), nil
 	case "controllers":
 		return newControllerExecutor(namespace), nil
-	case "connectors":
-		return newConnectorExecutor(namespace, showDetached), nil
 	case "agents":
 		return newAgentExecutor(namespace, showDetached), nil
 	case "microservices":

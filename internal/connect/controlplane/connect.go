@@ -14,42 +14,15 @@
 package connectcontrolplane
 
 import (
-	client "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 )
 
 func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 	// Connect to Controller
-	ctrl := client.New(endpoint)
-
-	// Get sanitized endpoint
-	endpoint = ctrl.GetEndpoint()
-
-	// Login user
-	loginRequest := client.LoginRequest{
-		Email:    ctrlPlane.IofogUser.Email,
-		Password: ctrlPlane.IofogUser.Password,
-	}
-	if err := ctrl.Login(loginRequest); err != nil {
-		return err
-	}
-
-	// Get Connectors
-	listConnectorsResponse, err := ctrl.ListConnectors()
+	ctrl, err := client.NewAndLogin(endpoint, ctrlPlane.IofogUser.Email, ctrlPlane.IofogUser.Password)
 	if err != nil {
 		return err
-	}
-
-	// Update Connectors config
-	for _, connector := range listConnectorsResponse.Connectors {
-		connectorConfig := config.Connector{
-			Name:     connector.Name,
-			Endpoint: connector.IP + ":" + iofog.ConnectorPortString,
-		}
-		if err = config.AddConnector(namespace, connectorConfig); err != nil {
-			return err
-		}
 	}
 
 	// Get Agents

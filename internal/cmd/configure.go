@@ -24,7 +24,7 @@ import (
 
 func newConfigureCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"controller", "connector", "agent", "all", "agents", "controllers", "connectors", "default-namespace"}
+	var validResources = []string{"controller", "agent", "all", "agents", "controllers", "default-namespace"}
 	// Instantiate options
 	var opt configure.Options
 
@@ -36,14 +36,11 @@ func newConfigureCommand() *cobra.Command {
 Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
 		Example: `iofogctl configure default-namespace NAME
 iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure connector NAME --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure controller NAME --kube KUBECONFIG
-iofogctl configure connector NAME --kube KUBECONFIG
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
 iofogctl configure all --user USER --key KEYFILE --port PORTNUM
 iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure connectors --host HOST --user USER --key KEYFILE --port PORTNUM
 iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 ` + fmt.Sprintf("\nValid resources are: %s\n", strings.Join(validResources, ", ")),
 		Args: cobra.RangeArgs(1, 2),
@@ -56,7 +53,7 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			if len(args) > 1 {
 				opt.Name = args[1]
 			} else {
-				if opt.ResourceType != "all" && opt.ResourceType != "controllers" && opt.ResourceType != "connectors" && opt.ResourceType != "agents" {
+				if opt.ResourceType != "all" && opt.ResourceType != "controllers" && opt.ResourceType != "agents" {
 					util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
 				}
 			}

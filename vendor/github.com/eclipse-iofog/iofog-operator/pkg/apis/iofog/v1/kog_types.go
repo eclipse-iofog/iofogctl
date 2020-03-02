@@ -13,17 +13,6 @@ type KogSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	ControlPlane ControlPlane `json:"controlPlane"`
-	Connectors   Connectors   `json:"connectors,omitempty"`
-}
-
-type Connectors struct {
-	Image       string      `json:"image"`
-	ServiceType string      `json:"serviceType"`
-	Instances   []Connector `json:"instances"`
-}
-
-type Connector struct {
-	Name string `json:"name"`
 }
 
 type ControlPlane struct {
@@ -31,6 +20,8 @@ type ControlPlane struct {
 	ControllerReplicaCount int32     `json:"controllerReplicaCount"`
 	Database               Database  `json:"database,omitempty"`
 	ControllerImage        string    `json:"controllerImage"`
+	PortManagerImage       string    `json:"portManagerImage"`
+	ProxyImage             string    `json:"proxyImage"`
 	ImagePullSecret        string    `json:"imagePullSecret,omitempty"`
 	KubeletImage           string    `json:"kubeletImage"`
 	ServiceType            string    `json:"serviceType"`

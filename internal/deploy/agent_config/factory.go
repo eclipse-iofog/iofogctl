@@ -15,6 +15,7 @@ package deployagentconfig
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal"
 	"gopkg.in/yaml.v2"
@@ -32,25 +33,53 @@ type Options struct {
 }
 
 type AgentConfigExecutor interface {
+	execute.Executor
+	GetAgentUUID() string
+	SetHost(string)
 	GetConfiguration() config.AgentConfiguration
+	GetNamespace() string
 }
 
 type remoteExecutor struct {
 	name        string
+	uuid        string
 	agentConfig config.AgentConfiguration
 	namespace   string
 }
 
-func (exe remoteExecutor) GetConfiguration() config.AgentConfiguration {
+func NewRemoteExecutor(name string, config config.AgentConfiguration, namespace string) *remoteExecutor {
+	return &remoteExecutor{
+		name:        name,
+		agentConfig: config,
+		namespace:   namespace,
+	}
+}
+
+func (exe *remoteExecutor) GetNamespace() string {
+	return exe.namespace
+}
+
+func (exe *remoteExecutor) GetConfiguration() config.AgentConfiguration {
 	return exe.agentConfig
 }
 
-func (exe remoteExecutor) GetName() string {
+func (exe *remoteExecutor) SetHost(host string) {
+	exe.agentConfig.Host = &host
+}
+
+func (exe *remoteExecutor) GetAgentUUID() string {
+	return exe.uuid
+}
+
+func (exe *remoteExecutor) GetName() string {
 	return exe.name
 }
 
-func (exe remoteExecutor) Execute() error {
-	util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
+func (exe *remoteExecutor) Execute() error {
+	isSystem := internal.IsSystemAgent(exe.agentConfig)
+	if !isSystem || install.IsVerbose() {
+		util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
+	}
 
 	// Check controller is reachable
 	clt, err := internal.NewControllerClient(exe.namespace)
@@ -58,11 +87,22 @@ func (exe remoteExecutor) Execute() error {
 		return err
 	}
 
-	agent, err := clt.GetAgentByName(exe.name)
+	// Process needs to be done at execute time because agent might have been created during deploy
+	exe.agentConfig, err = Process(exe.agentConfig, exe.name, clt)
 	if err != nil {
 		return err
 	}
 
+	agent, err := clt.GetAgentByName(exe.name)
+	if err != nil {
+		if strings.Contains(err.Error(), "Could not find agent") {
+			uuid, err := install.CreateAgentFromConfiguration(exe.agentConfig, exe.name, clt)
+			exe.uuid = uuid
+			return err
+		}
+		return err
+	}
+	exe.uuid = agent.UUID
 	return install.UpdateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
 }
 
@@ -74,7 +114,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	return remoteExecutor{
+	if len(agentConfig.Name) == 0 {
+		agentConfig.Name = opt.Name
+	}
+
+	if err = Validate(agentConfig); err != nil {
+		return
+	}
+
+	return &remoteExecutor{
 		name:        opt.Name,
 		agentConfig: agentConfig,
 		namespace:   opt.Namespace,

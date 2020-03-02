@@ -15,7 +15,6 @@ iofogctl legacy resource NAME COMMAND ARGS... [flags]
 ```
 iofogctl get all
 iofogctl legacy controller NAME iofog
-iofogctl legacy connector NAME status
 iofogctl legacy agent NAME status
 ```
 

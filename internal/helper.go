@@ -21,6 +21,8 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+var clientByNamespace map[string]*client.Client = make(map[string]*client.Client)
+
 // NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
 func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	// Get Control Plane
@@ -32,7 +34,17 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return client.NewAndLogin(endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+
+	// If we are already authenticated, use existing client
+	clt, ok := clientByNamespace[namespace]
+	if !ok {
+		clt, err = client.NewAndLogin(endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+		if err != nil {
+			return
+		}
+		clientByNamespace[namespace] = clt
+	}
+	return
 }
 
 const APIVersionGroup = "iofog.org"
@@ -47,4 +59,20 @@ func ValidateHeader(header config.Header) error {
 		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
 	return nil
+}
+
+func IsSystemAgent(agentConfig config.AgentConfiguration) bool {
+	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
+}
+
+func MakeIntPtr(value int) *int {
+	return &value
+}
+
+func MakeStrPtr(value string) *string {
+	return &value
+}
+
+func MakeBoolPtr(value bool) *bool {
+	return &value
 }

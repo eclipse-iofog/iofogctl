@@ -19,16 +19,19 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:latest'
-  connector_image: 'gcr.io/focal-freedom-236620/connector:develop'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:skupper'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:skupper'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:skupper'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:skupper'
+  iofog_agent_version: '2.0.0-rc1-b6954'
+  controller_version: '2.0.0-skupper'
   version:
   agent_vm_list:
   controller_vm:
   windows_ssh_key_path: 'C:/Users/$(azure.windows.user)/.ssh'
   ssh_key_file: 'id_rsa'
   windows_kube_config_path: 'C:/Users/$(azure.windows.user)/.kube/config'
+  bash_kube_config_path: '/root/.kube/config'
 
 stages:
 
@@ -53,6 +56,9 @@ stages:
   - job: Windows_K8s
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
@@ -112,6 +118,7 @@ stages:
         echo "Copied SSH fey from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
+        echo '' > $destFolder/known_hosts
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
@@ -120,6 +127,7 @@ stages:
     - bash: |
         sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
         sed -i "s|KUBE_CONFIG=.*|KUBE_CONFIG=\"$(windows_kube_config_path)\"|g" test/conf/env.sh
+        sed -i "s|TEST_KUBE_CONFIG=.*|TEST_KUBE_CONFIG=\"$(bash_kube_config_path)\"|g" test/conf/env.sh
         cat test/conf/env.sh
       displayName: 'Prepare Test Config'
     - bash: |
@@ -153,13 +161,16 @@ stages:
   - job: Windows_Vanilla
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - template: templates/ssh-steps.yaml
     - template: templates/functional-init-vm-steps.yaml
       parameters:
         id: win$(build)
         distro: $(gcp.vm.distro.stretch)
         repo: $(gcp.vm.repo.debian)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
         windows: "true"
     - template: templates/configure-remote-tests.yaml
@@ -182,6 +193,7 @@ stages:
         echo "Copied SSH key from $bashPath to $destFolder"
         chmod 0700 $destFolder
         chmod 0600 $destFolder/$(ssh_key_file)
+        echo '' > $destFolder/known_hosts
         ls -la $destFolder
       displayName: Prepare SSH key
     - bash: |
@@ -230,17 +242,15 @@ stages:
     - template: templates/functional-clean-vm.yaml
       parameters:
         id: win$(build)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
-    - bash: |
-        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
-      condition: always()
-      displayName: 'Clean up Windows env'
 
   - job: Windows_Local
-    condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
     pool: 'Azure Windows'
     steps:
+    - bash: |
+        rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+      displayName: 'Clean up Windows env'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
@@ -288,19 +298,8 @@ stages:
         docker info
         docker "pull" "$(controller_image)"
         docker "pull" "$(agent_image)"
-        docker "pull" "$(connector_image)"
       displayName: 'Pull develop gcr docker image'
       failOnStderr: false
-    - bash: |
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
-        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
-        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
-        NS=$(jobuuid)
-        sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-        sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
-        sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
-        cp test/env.sh test/conf
-      displayName: 'Configure Local Tests'
     - template: templates/configure-remote-tests.yaml
     - bash: |
         tempBashPath=$(wslpath "$(Agent.TempDirectory)")
@@ -347,7 +346,7 @@ stages:
         id: $(jobuuid)
         distro: $(gcp.vm.distro.xenial)
         repo: $(gcp.vm.repo.ubuntu)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
 
   - job: Vanilla_Bionic
@@ -359,7 +358,7 @@ stages:
         id: $(jobuuid)
         distro: $(gcp.vm.distro.bionic)
         repo: $(gcp.vm.repo.ubuntu)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
 
   - job: Vanilla_Buster
@@ -371,7 +370,7 @@ stages:
         id: $(jobuuid)
         distro: $(gcp.vm.distro.buster)
         repo: $(gcp.vm.repo.debian)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
 
   - job: Vanilla_Stretch
@@ -384,7 +383,7 @@ stages:
         id: $(jobuuid)
         distro: $(gcp.vm.distro.stretch)
         repo: $(gcp.vm.repo.debian)
-        agent_count: 1
+        agent_count: 2
         controller_count: 1
 
   - job: Local
@@ -396,7 +395,6 @@ stages:
         gcloud --quiet auth configure-docker
         docker pull $(controller_image)
         docker pull $(agent_image)
-        docker pull $(connector_image)
       displayName: 'Pull develop gcr docker image'
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
@@ -407,16 +405,6 @@ stages:
         sudo cp linux/iofogctl /usr/local/bin/
         sudo chmod 0755 /usr/local/bin/iofogctl
     - template: templates/postinstall-steps.yaml
-    - script: |
-        sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
-        sed -i "s|CONNECTOR_IMAGE=.*|CONNECTOR_IMAGE=\"$(connector_image)\"|g" test/env.sh
-        sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
-        NS=$(jobuuid)
-        sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
-        sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
-        sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
-        cp test/env.sh test/conf
-      displayName: 'Configure Local Tests'
     - template: templates/configure-remote-tests.yaml
     - template: templates/install-test-deps.yaml
     - script: |
@@ -505,6 +493,7 @@ stages:
     - script: |
         gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
       displayName: 'Connect to cluster'
+    - template: templates/configure-remote-tests.yaml
     - script: |
         sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
         sed -i "s|DB_USER=.*|DB_USER=\"$(db.user)\"|g" test/env.sh
@@ -513,8 +502,9 @@ stages:
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(enterprise_image)\"|g" test/env.sh
+        cp test/env.sh test/conf
+        cat test/conf/env.sh
       displayName: 'Set up Postgres on K8s cluster'
-    - template: templates/configure-remote-tests.yaml
     - template: templates/install-test-deps.yaml
     - script: |
         set -o pipefail

@@ -121,9 +121,12 @@ func deepCopyNestedMap(src NestedMap, dest NestedMap) {
 
 // +k8s:deepcopy-gen=true
 type MicroservicePortMapping struct {
-	Internal   int  `yaml:"internal" json:"internal"`
-	External   int  `yaml:"external" json:"external"`
-	PublicMode bool `yaml:"publicMode" json:"publicMode"`
+	Internal   int    `yaml:"internal" json:"internal"`
+	External   int    `yaml:"external" json:"external"`
+	Public     int    `yaml:"public,omitempty" json:"publicPort"`
+	Host       string `yaml:"host,omitempty" json:"host"`
+	Protocol   string `yaml:"protocol,omitempty" json:"protocol"`
+	PublicLink string `yaml:"publicLink,omitempty" json:"publicLink"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -141,20 +144,24 @@ type MicroserviceEnvironment struct {
 
 // +k8s:deepcopy-gen=true
 type AgentConfiguration struct {
-	DockerURL                 *string  `yaml:"dockerUrl,omitempty" json:"dockerUrl,omitempty"`
-	DiskLimit                 *int64   `yaml:"diskLimit,omitempty" json:"diskLimit,omitempty"`
-	DiskDirectory             *string  `yaml:"diskDirectory,omitempty" json:"diskDirectory,omitempty"`
-	MemoryLimit               *int64   `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
-	CPULimit                  *int64   `yaml:"cpuLimit,omitempty" json:"cpuLimit,omitempty"`
-	LogLimit                  *int64   `yaml:"logLimit,omitempty" json:"logLimit,omitempty"`
-	LogDirectory              *string  `yaml:"logDirectory,omitempty" json:"logDirectory,omitempty"`
-	LogFileCount              *int64   `yaml:"logFileCount,omitempty" json:"logFileCount,omitempty"`
-	StatusFrequency           *float64 `yaml:"statusFrequency,omitempty" json:"statusFrequency,omitempty"`
-	ChangeFrequency           *float64 `yaml:"changeFrequency,omitempty" json:"changeFrequency,omitempty"`
-	DeviceScanFrequency       *float64 `yaml:"deviceScanFrequency,omitempty" json:"deviceScanFrequency,omitempty"`
-	BluetoothEnabled          *bool    `yaml:"bluetoothEnabled,omitempty" json:"bluetoothEnabled,omitempty"`
-	WatchdogEnabled           *bool    `yaml:"watchdogEnabled,omitempty" json:"watchdogEnabled,omitempty"`
-	AbstractedHardwareEnabled *bool    `yaml:"abstractedHardwareEnabled,omitempty" json:"abstractedHardwareEnabled,omitempty"`
+	DockerURL                 *string   `yaml:"dockerUrl,omitempty" json:"dockerUrl,omitempty"`
+	DiskLimit                 *int64    `yaml:"diskLimit,omitempty" json:"diskLimit,omitempty"`
+	DiskDirectory             *string   `yaml:"diskDirectory,omitempty" json:"diskDirectory,omitempty"`
+	MemoryLimit               *int64    `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
+	CPULimit                  *int64    `yaml:"cpuLimit,omitempty" json:"cpuLimit,omitempty"`
+	LogLimit                  *int64    `yaml:"logLimit,omitempty" json:"logLimit,omitempty"`
+	LogDirectory              *string   `yaml:"logDirectory,omitempty" json:"logDirectory,omitempty"`
+	LogFileCount              *int64    `yaml:"logFileCount,omitempty" json:"logFileCount,omitempty"`
+	StatusFrequency           *float64  `yaml:"statusFrequency,omitempty" json:"statusFrequency,omitempty"`
+	ChangeFrequency           *float64  `yaml:"changeFrequency,omitempty" json:"changeFrequency,omitempty"`
+	DeviceScanFrequency       *float64  `yaml:"deviceScanFrequency,omitempty" json:"deviceScanFrequency,omitempty"`
+	BluetoothEnabled          *bool     `yaml:"bluetoothEnabled,omitempty" json:"bluetoothEnabled,omitempty"`
+	WatchdogEnabled           *bool     `yaml:"watchdogEnabled,omitempty" json:"watchdogEnabled,omitempty"`
+	AbstractedHardwareEnabled *bool     `yaml:"abstractedHardwareEnabled,omitempty" json:"abstractedHardwareEnabled,omitempty"`
+	RouterMode                *string   `yaml:"routerMode,omitempty" json:"routerMode,omitempty"`           // [edge, interior, none], default: edge
+	RouterPort                *int      `yaml:"routerPort,omitempty" json:"routerPort,omitempty"`           // default: 5672
+	UpstreamRouters           *[]string `yaml:"upstreamRouters,omitempty" json:"upstreamRouters,omitempty"` // ignored if routerMode: none
+	NetworkRouter             *string   `yaml:"networkRouter,omitempty" json:"networkRouter,omitempty"`     // required if routerMone: none
 }
 
 // Microservices is a list of Microservice

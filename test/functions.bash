@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-function test(){
-    eval "$@"
-    [[ $? == 0 ]]
+function kctl(){
+  KUBECONFIG="$TEST_KUBE_CONFIG" kubectl $@
+}
+
+function print(){
+  echo "# $@                                " >&3
+}
+
+function log(){
+  echo "$@" >> "/tmp/bats_$BATS_TEST_NAME"
 }
 
 function initVanillaController(){
@@ -133,9 +140,9 @@ function initApplicationFiles() {
         rootHostAccess: false
         ports:
           # The ui will be listening on port 80 (internal).
-          - external: 5000 # You will be able to access the ui on <AGENT_IP>:5000
-            internal: 80 # The ui is listening on port 80. Do not edit this.
-            publicMode: false # Do not edit this.
+          - external: 5000
+            internal: 80
+            public: 5000
         volumes: []
         env:
           - key: BASE_URL
@@ -183,16 +190,7 @@ spec:
   - name: $NAME
     host: 127.0.0.1
     container:
-      image: ${CONTROLLER_IMAGE}
----
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $NAME
-spec:
-  host: localhost
-  container:
-    image: ${CONNECTOR_IMAGE}" > test/conf/local.yaml
+      image: ${CONTROLLER_IMAGE}"> test/conf/local.yaml
 }
 
 function initAgentsFile() {
@@ -254,28 +252,9 @@ function checkController() {
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "name: $NAME") ]]
 }
 
-function checkConnector() {
-  NS_CHECK=${1:-$NS}
-  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$NAME" | grep "name: $NAME") ]]
-}
-
-function checkConnectors() {
-  NS_CHECK=$NS
-  for CNCT in "$@"; do
-    [[ "$CNCT" == $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$CNCT" | awk '{print $1}') ]]
-    [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe connector "$CNCT" | grep "name: $CNCT") ]]
-  done
-}
-
 function checkControllerNegative() {
   NS_CHECK=${1:-$NS}
   [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
-}
-
-function checkConnectorNegative() {
-  NS_CHECK=${1:-$NS}
-  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get connectors | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkMicroservice() {
@@ -508,21 +487,44 @@ function checkAgentListFromController() {
   done
 }
 
+function waitForSystemMsvc() {
+  local NAME="$1"
+  local HOST="$2"
+  local USER="$3"
+  local KEY_FILE="$4"
+  local SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $KEY_FILE $USER@$HOST"
+
+  echo "HOST=$HOST"
+  echo "USER=$USER"
+  echo "KEY_FILE=$KEY_FILE"
+  echo "SSH_COMMAND=$SSH_COMMAND"
+
+  ITER=0
+  while [ -z "$($SSH_COMMAND -- sudo docker ps | grep $NAME)" ] ; do
+      ITER=$((ITER+1))
+      # Allow for 300 sec so that the agent can pull the image
+      if [ "$ITER" -gt 300 ]; then
+          echo "Timed out. Waited $ITER seconds for proxy to be running"
+          exit 1
+      fi
+      sleep 1
+  done
+}
+
+function waitForProxyMsvc(){
+  waitForSystemMsvc "iofog/proxy:latest" $1 $2 $3
+}
+
 function checkAgentPruneController(){
   local API_ENDPOINT="$1"
   local KEY_FILE="$2"
-  local AGENT_TOKEN=$(ssh -oStrictHostKeyChecking=no -i $KEY_FILE ${USERS[0]}@${HOSTS[0]}  cat /etc/iofog-agent/config.xml  | grep 'access_token' | tr -d '<' | tr -d '/' | tr -d '>' | awk -F 'access_token' '{print $2}')
+  local AGENT_TOKEN=$(ssh -oStrictHostKeyChecking=no -i $KEY_FILE ${USERS[0]}@${HOSTS[0]} -- cat /etc/iofog-agent/config.xml  | grep 'access_token' | tr -d '<' | tr -d '/' | tr -d '>' | awk -F 'access_token' '{print $2}')
   local CHANGES=$(curl --request GET \
 --url $API_ENDPOINT/api/v3/agent/config/changes \
 --header "Authorization: $AGENT_TOKEN" \
 --header 'Content-Type: application/json')
   local PRUNE=$(echo $CHANGES | jq -r .prune)
   [[ "true" == "$PRUNE" ]]
-}
-
-function checkLegacyConnector() {
-  NS_CHECK=${1:-$NS}
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy connector $NAME status | grep 'is up and running') ]]
 }
 
 function checkLegacyController() {
@@ -570,15 +572,34 @@ function checkRenamedNamespace() {
 function waitForMsvc() {
   ITER=0
   MS=$1
-  while [ -z $(iofogctl get microservices | grep $MS | grep "RUNNING") ] ; do
+  NS=$2
+  [ -z $3  ] && STATE="RUNNING" || STATE="$3" && echo $STATE
+
+  while [ -z $(iofogctl -n $NS get microservices | grep $MS | grep "$STATE") ] ; do
       ITER=$((ITER+1))
-      # Allow for 180 sec so that the agent can pull the image
+      # Allow for 300 sec so that the agent can pull the image
       if [ "$ITER" -gt 300 ]; then
-          echo "Timed out. Waited ${ITER} seconds for ${MS} to be RUNNING"
+          echo "Timed out. Waited $ITER seconds for $MS to be $STATE"
           exit 1
       fi
       sleep 1
   done
+}
+
+function waitForSvc() {
+  NS="$1"
+  SVC="$2"
+  ITER=0
+  EXT_IP=""
+  while [ -z "$EXT_IP" ] && [ $ITER -lt 60 ]; do
+      sleep 1
+      EXT_IP=$(kctl get svc -n $NS | grep $SVC | awk '{print $4}')
+      ITER=$((ITER+1))
+  done
+  # Error if empty
+  [ ! -z "$EXT_IP" ]
+  # Return via stdout
+  echo "$EXT_IP"
 }
 
 function checkVanillaResourceDeleted() {
@@ -592,6 +613,7 @@ function checkVanillaResourceDeleted() {
 }
 
 function checkLocalResourcesDeleted() {
+  docker ps -a
   [[ -z $(docker ps -aq) ]]
 }
 

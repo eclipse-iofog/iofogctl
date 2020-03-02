@@ -15,6 +15,7 @@ package install
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
@@ -27,23 +28,47 @@ type Agent interface {
 // defaultAgent implements commong behavior
 type defaultAgent struct {
 	name        string
+	uuid        string
 	namespace   string
 	agentConfig *config.AgentConfiguration
 }
 
 func getAgentUpdateRequestFromAgentConfig(agentConfig config.AgentConfiguration) (request client.AgentUpdateRequest) {
-	fogType, found := config.FogTypeStringMap[agentConfig.FogType]
-	if !found {
-		fogType = 0
+	var fogTypePtr *int64
+	if agentConfig.FogType != nil {
+		fogType, found := config.FogTypeStringMap[*agentConfig.FogType]
+		if !found {
+			fogType = 0
+		}
+		fogTypePtr = &fogType
 	}
 	request.Location = agentConfig.Location
 	request.Latitude = agentConfig.Latitude
 	request.Longitude = agentConfig.Longitude
 	request.Description = agentConfig.Description
 	request.Name = agentConfig.Name
-	request.FogType = fogType
+	request.FogType = fogTypePtr
 	request.AgentConfiguration = agentConfig.AgentConfiguration
 	return
+}
+
+func CreateAgentFromConfiguration(agentConfig config.AgentConfiguration, name string, clt *client.Client) (uuid string, err error) {
+	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig)
+	createAgentRequest := client.CreateAgentRequest{
+		AgentUpdateRequest: updateAgentConfigRequest,
+	}
+	if createAgentRequest.AgentUpdateRequest.Name == "" {
+		createAgentRequest.AgentUpdateRequest.Name = name
+	}
+	if createAgentRequest.AgentUpdateRequest.FogType == nil {
+		fogType := int64(0)
+		createAgentRequest.AgentUpdateRequest.FogType = &fogType
+	}
+	agent, err := clt.CreateAgent(createAgentRequest)
+	if err != nil {
+		return "", err
+	}
+	return agent.UUID, nil
 }
 
 func UpdateAgentConfiguration(agentConfig *config.AgentConfiguration, uuid string, clt *client.Client) (err error) {
@@ -60,7 +85,10 @@ func UpdateAgentConfiguration(agentConfig *config.AgentConfiguration, uuid strin
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
 	// Connect to controller
-	ctrl := client.New(controllerEndpoint)
+	ctrl, err := internal.NewControllerClient(agent.namespace)
+	if err != nil {
+		return "", "", err
+	}
 
 	// Log in
 	Verbose("Accessing Controller to generate Provisioning Key")
@@ -72,34 +100,14 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 		return
 	}
 
-	// If the agent already exists, re-use the UUID
-	agentList, err := ctrl.ListAgents()
-	if err != nil {
-		return
-	}
-	for _, existingAgent := range agentList.Agents {
-		if existingAgent.Name == agent.name {
-			uuid = existingAgent.UUID
-			break
-		}
-	}
-
-	// Create agent if necessary
-	if uuid == "" {
-		var updateAgentRequest client.AgentUpdateRequest
-		if agent.agentConfig != nil {
-			updateAgentRequest = getAgentUpdateRequestFromAgentConfig(*agent.agentConfig)
-		}
-		updateAgentRequest.Name = agent.name
-		createRequest := client.CreateAgentRequest{
-			AgentUpdateRequest: updateAgentRequest,
-		}
-		var createResponse client.CreateAgentResponse
-		createResponse, err = ctrl.CreateAgent(createRequest)
+	if agent.uuid != "" {
+		uuid = agent.uuid
+	} else {
+		existingAgent, err := ctrl.GetAgentByName(agent.name)
 		if err != nil {
-			return
+			return "", "", err
 		}
-		uuid = createResponse.UUID
+		uuid = existingAgent.UUID
 	}
 
 	// Get provisioning key

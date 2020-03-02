@@ -165,7 +165,7 @@ func (exe *microserviceExecutor) validate() error {
 	exe.routes = routes
 
 	// Validate microservice
-	if err := validateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	if err := validateMicroservice(&exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
 	}
 
@@ -272,6 +272,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
+		CatalogItemID:  catalogID,
 		Name:           &exe.msvc.Name,
 		RootHostAccess: &exe.msvc.Container.RootHostAccess,
 		Ports:          mapPorts(exe.msvc.Container.Ports),

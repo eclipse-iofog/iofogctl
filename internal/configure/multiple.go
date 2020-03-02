@@ -45,12 +45,6 @@ func (exe *multipleExecutor) Execute() (err error) {
 			return err
 		}
 	}
-	if exe.opt.ResourceType == "all" || exe.opt.ResourceType == "connectors" {
-		executors, err = exe.AddConnectorExecutors(executors)
-		if err != nil {
-			return err
-		}
-	}
 
 	// Execute
 	for _, executor := range executors {
@@ -94,29 +88,6 @@ func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor
 		opt := exe.opt
 		opt.Name = controller.Name
 		executors = append(executors, newControllerExecutor(opt))
-	}
-
-	return executors, nil
-}
-
-func (exe *multipleExecutor) AddConnectorExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	var connectors []config.Agent
-	var err error
-	if exe.opt.UseDetached {
-		connectorsMap := config.GetDetachedResources().Agents
-		for _, connector := range connectorsMap {
-			connectors = append(connectors, connector)
-		}
-	} else {
-		connectors, err = config.GetAgents(exe.opt.Namespace)
-	}
-	if err != nil {
-		return nil, err
-	}
-	for _, connector := range connectors {
-		opt := exe.opt
-		opt.Name = connector.Name
-		executors = append(executors, newConnectorExecutor(opt))
 	}
 
 	return executors, nil

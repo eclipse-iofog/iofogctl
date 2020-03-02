@@ -77,7 +77,7 @@ func (exe *localExecutor) deployContainers() error {
 	// Wait for public API
 	util.SpinStart("Waiting for Controller API")
 	if err = exe.client.WaitForCommand(
-		install.GetLocalContainerName("controller"),
+		install.GetLocalContainerName("controller", false),
 		regexp.MustCompile("\"status\":[ |\t]*\"online\""),
 		"iofog-controller",
 		"controller",
@@ -94,15 +94,7 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// If container already exists, clean it
-	connectorContainerName := exe.localControllerConfig.ContainerName
-	if _, err := exe.client.GetContainerByName(connectorContainerName); err == nil {
-		if err := exe.client.CleanContainer(connectorContainerName); err != nil {
-			return err
-		}
-	}
-
-	// Deploy Controller and Connector images
+	// Deploy Controller images
 	if err := exe.deployContainers(); err != nil {
 		exe.cleanContainers()
 		return err

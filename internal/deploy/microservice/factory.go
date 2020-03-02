@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -80,11 +81,17 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
+	clt, err := internal.NewControllerClient(opt.Namespace)
+	if err != nil {
+		return
+	}
+
 	return remoteExecutor{
 		controller: apps.IofogController{
 			Endpoint: endpoint,
 			Email:    ns.ControlPlane.IofogUser.Email,
 			Password: ns.ControlPlane.IofogUser.Password,
+			Token:    clt.GetAccessToken(),
 		},
 		microservice: microservice}, nil
 }

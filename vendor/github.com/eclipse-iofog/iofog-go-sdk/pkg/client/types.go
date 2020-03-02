@@ -19,6 +19,7 @@ type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	IsActivated bool   `json:"isActivated"`
+	IsSystem    bool   `json:"isSystem"`
 	UserID      int    `json:"userId"`
 	ID          int    `json:"id"`
 }
@@ -36,6 +37,7 @@ type FlowUpdateRequest struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
 	IsActivated *bool   `json:"isActivated,omitempty"`
+	IsSystem    *bool   `json:"isSystem,omitempty"`
 	ID          int     `json:"-"`
 }
 
@@ -127,9 +129,12 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int  `json:"internal"`
-	External   int  `json:"external"`
-	PublicMode bool `json:"publicMode"`
+	Internal   int    `json:"internal"`
+	External   int    `json:"external"`
+	Public     int    `json:"publicPort,omitempty"`
+	Host       string `json:"host,omitempty"`
+	Protocol   string `json:"protocol,omitempty"`
+	PublicLink string `json:"publicLink,omitempty"`
 }
 
 type MicroserviceVolumeMapping struct {
@@ -202,13 +207,14 @@ type MicroserviceUpdateRequest struct {
 	FlowID            *int                         `json:"flowId,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
-	RegistryID        *int                         `json:"registryId"`
+	RegistryID        *int                         `json:"registryId,omitempty"`
+	CatalogItemID     int                          `json:"catalogItemId,omitempty"`
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Commands          *[]string                    `json:"cmd,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
-	Images            []CatalogImage               `json:"images"`
+	Images            []CatalogImage               `json:"images,omitempty"`
 	Rebuild           bool                         `json:"rebuild"`
 }
 
@@ -222,6 +228,17 @@ type MicroserviceListResponse struct {
 
 type MicroservicePortMappingListResponse struct {
 	PortMappings []MicroservicePortMapping `json:"ports"`
+}
+
+type MicroservicePublicPort struct {
+	MicroserviceUUID string     `json:"microserviceUuid"`
+	PublicPort       PublicPort `json:"publicPort"`
+}
+
+type PublicPort struct {
+	Protocol string `json:"protocol"`
+	Queue    string `json:"queueName"`
+	Port     int    `json:"publicPort"`
 }
 
 // Users
@@ -261,70 +278,88 @@ type GetAgentProvisionKeyResponse struct {
 }
 
 type AgentInfo struct {
-	UUID                      string  `json:"uuid" yaml:"uuid"`
-	Name                      string  `json:"name" yaml:"name"`
-	Location                  string  `json:"location" yaml:"location"`
-	Latitude                  float64 `json:"latitude" yaml:"latitude"`
-	Longitude                 float64 `json:"longitude" yaml:"longitude"`
-	Description               string  `json:"description" yaml:"description"`
-	DockerURL                 string  `json:"dockerUrl" yaml:"dockerUrl"`
-	DiskLimit                 int64   `json:"diskLimit" yaml:"diskLimit"`
-	DiskDirectory             string  `json:"diskDirectory" yaml:"diskDirectory"`
-	MemoryLimit               int64   `json:"memoryLimit" yaml:"memoryLimit"`
-	CPULimit                  int64   `json:"cpuLimit" yaml:"cpuLimit"`
-	LogLimit                  int64   `json:"logLimit" yaml:"logLimit"`
-	LogDirectory              string  `json:"logDirectory" yaml:"logDirectory"`
-	LogFileCount              int64   `json:"logFileCount" yaml:"logFileCount"`
-	StatusFrequency           float64 `json:"statusFrequency" yaml:"statusFrequency"`
-	ChangeFrequency           float64 `json:"changeFrequency" yaml:"changeFrequency"`
-	DeviceScanFrequency       float64 `json:"deviceScanFrequency" yaml:"deviceScanFrequency"`
-	BluetoothEnabled          bool    `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
-	WatchdogEnabled           bool    `json:"watchdogEnabled" yaml:"watchdogEnabled"`
-	AbstractedHardwareEnabled bool    `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
-	CreatedTimeRFC3339        string  `json:"created_at" yaml:"created"`
-	UpdatedTimeRFC3339        string  `json:"updated_at" yaml:"updated"`
-	LastActive                int64   `json:"lastActive" yaml:"lastActive"`
-	DaemonStatus              string  `json:"daemonStatus" yaml:"daemonStatus"`
-	UptimeMs                  int64   `json:"daemonOperatingDuration" yaml:"uptime"`
-	MemoryUsage               float64 `json:"memoryUsage" yaml:"memoryUsage"`
-	DiskUsage                 float64 `json:"diskUsage" yaml:"diskUsage"`
-	CPUUsage                  float64 `json:"cpuUsage" yaml:"cpuUsage"`
-	MemoryViolation           string  `json:"memoryViolation" yaml:"memoryViolation"`
-	DiskViolation             string  `json:"diskViolation" yaml:"diskViolation"`
-	CPUViolation              string  `json:"cpuViolation" yaml:"cpuViolation"`
-	MicroserviceStatus        string  `json:"microserviceStatus" yaml:"microserviceStatus"`
-	RepositoryCount           int64   `json:"repositoryCount" yaml:"repositoryCount"`
-	RepositoryStatus          string  `json:"repositoryStatus" yaml:"repositoryStatus"`
-	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yaml:"lastStatusTime"`
-	IPAddress                 string  `json:"ipAddress" yaml:"ipAddress"`
-	IPAddressExternal         string  `json:"ipAddressExternal" yaml:"ipAddressExternal"`
-	ProcessedMessaged         int64   `json:"processedMessages" yaml:"ProcessedMessages"`
-	MicroserviceMessageCount  int64   `json:"microserviceMessageCounts" yaml:"microserviceMessageCount"`
-	MessageSpeed              float64 `json:"messageSpeed" yaml:"messageSpeed"`
-	LastCommandTimeMsUTC      int64   `json:"lastCommandTime" yaml:"lastCommandTime"`
-	NetworkInterface          string  `json:"networkInterface" yaml:"networkInterface"`
-	Version                   string  `json:"version" yaml:"version"`
-	IsReadyToUpgrade          bool    `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
-	IsReadyToRollback         bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
-	Tunnel                    string  `json:"tunnel" yaml:"tunnel"`
-	FogType                   int     `json:"fogTypeId" yaml:"fogTypeId"`
+	UUID                      string    `json:"uuid" yaml:"uuid"`
+	Name                      string    `json:"name" yaml:"name"`
+	Location                  string    `json:"location" yaml:"location"`
+	Latitude                  float64   `json:"latitude" yaml:"latitude"`
+	Longitude                 float64   `json:"longitude" yaml:"longitude"`
+	Description               string    `json:"description" yaml:"description"`
+	DockerURL                 string    `json:"dockerUrl" yaml:"dockerUrl"`
+	DiskLimit                 int64     `json:"diskLimit" yaml:"diskLimit"`
+	DiskDirectory             string    `json:"diskDirectory" yaml:"diskDirectory"`
+	MemoryLimit               int64     `json:"memoryLimit" yaml:"memoryLimit"`
+	CPULimit                  int64     `json:"cpuLimit" yaml:"cpuLimit"`
+	LogLimit                  int64     `json:"logLimit" yaml:"logLimit"`
+	LogDirectory              string    `json:"logDirectory" yaml:"logDirectory"`
+	LogFileCount              int64     `json:"logFileCount" yaml:"logFileCount"`
+	StatusFrequency           float64   `json:"statusFrequency" yaml:"statusFrequency"`
+	ChangeFrequency           float64   `json:"changeFrequency" yaml:"changeFrequency"`
+	DeviceScanFrequency       float64   `json:"deviceScanFrequency" yaml:"deviceScanFrequency"`
+	BluetoothEnabled          bool      `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
+	WatchdogEnabled           bool      `json:"watchdogEnabled" yaml:"watchdogEnabled"`
+	AbstractedHardwareEnabled bool      `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
+	CreatedTimeRFC3339        string    `json:"created_at" yaml:"created"`
+	UpdatedTimeRFC3339        string    `json:"updated_at" yaml:"updated"`
+	LastActive                int64     `json:"lastActive" yaml:"lastActive"`
+	DaemonStatus              string    `json:"daemonStatus" yaml:"daemonStatus"`
+	UptimeMs                  int64     `json:"daemonOperatingDuration" yaml:"uptime"`
+	MemoryUsage               float64   `json:"memoryUsage" yaml:"memoryUsage"`
+	DiskUsage                 float64   `json:"diskUsage" yaml:"diskUsage"`
+	CPUUsage                  float64   `json:"cpuUsage" yaml:"cpuUsage"`
+	MemoryViolation           string    `json:"memoryViolation" yaml:"memoryViolation"`
+	DiskViolation             string    `json:"diskViolation" yaml:"diskViolation"`
+	CPUViolation              string    `json:"cpuViolation" yaml:"cpuViolation"`
+	MicroserviceStatus        string    `json:"microserviceStatus" yaml:"microserviceStatus"`
+	RepositoryCount           int64     `json:"repositoryCount" yaml:"repositoryCount"`
+	RepositoryStatus          string    `json:"repositoryStatus" yaml:"repositoryStatus"`
+	LastStatusTimeMsUTC       int64     `json:"lastStatusTime" yaml:"lastStatusTime"`
+	IPAddress                 string    `json:"ipAddress" yaml:"ipAddress"`
+	IPAddressExternal         string    `json:"ipAddressExternal" yaml:"ipAddressExternal"`
+	ProcessedMessaged         int64     `json:"processedMessages" yaml:"ProcessedMessages"`
+	MicroserviceMessageCount  int64     `json:"microserviceMessageCounts" yaml:"microserviceMessageCount"`
+	MessageSpeed              float64   `json:"messageSpeed" yaml:"messageSpeed"`
+	LastCommandTimeMsUTC      int64     `json:"lastCommandTime" yaml:"lastCommandTime"`
+	NetworkInterface          string    `json:"networkInterface" yaml:"networkInterface"`
+	Version                   string    `json:"version" yaml:"version"`
+	IsReadyToUpgrade          bool      `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
+	IsReadyToRollback         bool      `json:"isReadyToRollback" yaml:"isReadyToRollback"`
+	Tunnel                    string    `json:"tunnel" yaml:"tunnel"`
+	FogType                   int       `json:"fogTypeId" yaml:"fogTypeId"`
+	RouterMode                string    `json:"routerMode" yaml:"routerMode"`
+	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
+	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	MessagingPort             *int      `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
+	EdgeRouterPort            *int      `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
+	InterRouterPort           *int      `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
+}
+
+type RouterConfig struct {
+	RouterMode      *string `json:"routerMode,omitempty" yaml:"routerMode,omitempty"`
+	MessagingPort   *int    `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
+	EdgeRouterPort  *int    `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
+	InterRouterPort *int    `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
 }
 
 type AgentConfiguration struct {
-	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
-	DiskLimit                 *int64   `json:"diskLimit,omitempty" yaml:"diskLimit"`
-	DiskDirectory             *string  `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
-	MemoryLimit               *int64   `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
-	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
-	LogLimit                  *int64   `json:"logLimit,omitempty" yaml:"logLimit"`
-	LogDirectory              *string  `json:"logDirectory,omitempty" yaml:"logDirectory"`
-	LogFileCount              *int64   `json:"logFileCount,omitempty" yaml:"logFileCount"`
-	StatusFrequency           *float64 `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
-	ChangeFrequency           *float64 `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
-	DeviceScanFrequency       *float64 `json:"deviceScanFrequency,omitempty" yaml:"deviceScanFrequency"`
-	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
-	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
-	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
+	DockerURL                 *string   `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
+	DiskLimit                 *int64    `json:"diskLimit,omitempty" yaml:"diskLimit"`
+	DiskDirectory             *string   `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
+	MemoryLimit               *int64    `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
+	CPULimit                  *int64    `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
+	LogLimit                  *int64    `json:"logLimit,omitempty" yaml:"logLimit"`
+	LogDirectory              *string   `json:"logDirectory,omitempty" yaml:"logDirectory"`
+	LogFileCount              *int64    `json:"logFileCount,omitempty" yaml:"logFileCount"`
+	StatusFrequency           *float64  `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
+	ChangeFrequency           *float64  `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
+	DeviceScanFrequency       *float64  `json:"deviceScanFrequency,omitempty" yaml:"deviceScanFrequency"`
+	BluetoothEnabled          *bool     `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
+	WatchdogEnabled           *bool     `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
+	AbstractedHardwareEnabled *bool     `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
+	IsSystem                  *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
+	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
+	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
+	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
 }
 
 type AgentUpdateRequest struct {
@@ -334,7 +369,7 @@ type AgentUpdateRequest struct {
 	Latitude    float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude   float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description string  `json:"description,omitempty" yaml:"description"`
-	FogType     int64   `json:"fogType" yaml:"agentType"`
+	FogType     *int64  `json:"fogType,omitempty" yaml:"agentType"`
 	AgentConfiguration
 }
 
@@ -348,13 +383,7 @@ type AgentListFilter struct {
 	Condition string `json:"condition"`
 }
 
-type ConnectorInfo struct {
-	IP      string `json:"publicIp"`
-	Name    string `json:"name"`
-	Domain  string `json:"domain"`
-	DevMode bool   `json:"devMode"`
-}
-
-type ConnectorInfoList struct {
-	Connectors []ConnectorInfo `json:"connectors"`
+type Router struct {
+	RouterConfig
+	Host string `json:"host"`
 }

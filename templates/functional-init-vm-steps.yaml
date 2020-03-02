@@ -17,8 +17,23 @@ steps:
     agent_count=${{ parameters.agent_count }}
     controller_count=${{ parameters.controller_count }}
     agent_list=""
+    jobs=0
+
     for idx in $(seq 1 $agent_count); do
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$id-$idx
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$id-$idx &
+      ((jobs++))
+    done
+    if [ $controller_count -gt 0 ]; then
+      idx=$((agent_count+1))
+      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$id-$idx &
+      ((jobs++))
+    fi
+
+    for job in $(seq -s ' ' 1 $jobs); do
+      wait %$job
+    done
+
+    for idx in $(seq 1 $agent_count); do
       vm_host=$(gcloud compute instances list | grep iofogctl-ci-$id-$idx | awk '{print $5}')
       agent_list="$(gcp.vm.user)@$vm_host $agent_list"
     done
@@ -26,7 +41,6 @@ steps:
     echo "##vso[task.setvariable variable=agent_vm_list]$agent_list"
     if [ $controller_count -gt 0 ]; then
       idx=$((agent_count+1))
-      gcloud compute --project=$(gcp.project.name) instances create iofogctl-ci-$id-$idx --zone=$(gcp.vm.zone) --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=$(gcp.svcacc.name) --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image=$distro --image-project=$repo --boot-disk-size=200GB --boot-disk-type=pd-standard --boot-disk-device-name=iofogctl-ci-$id-$idx
       vm_host=$(gcloud compute instances list | grep iofogctl-ci-$id-$idx | awk '{print $5}')
       echo "##vso[task.setvariable variable=controller_vm]$(gcp.vm.user)@$vm_host"
     fi
@@ -44,7 +58,7 @@ steps:
       echo "Waiting for VM $agent"
       iter=0
       while ! $cssh $agent -- echo "SSH success" && [ $iter -lt 15 ]; do
-        iter=$((iter+1))
+        ((iter++))
         sleep 5
       done
       if [ ! $iter -lt 15 ]; then
@@ -56,7 +70,7 @@ steps:
       echo "Waiting for VM $(controller_vm)"
       iter=0
       while ! $cssh $(controller_vm) -- echo "SSH success" && [ $iter -lt 15 ]; do
-        iter=$((iter+1))
+        ((iter++))
         sleep 5
       done
       if [ ! $iter -lt 15 ]; then

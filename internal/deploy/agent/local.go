@@ -24,6 +24,7 @@ import (
 )
 
 type localExecutor struct {
+	isSystem         bool
 	namespace        string
 	agent            *config.Agent
 	agentConfig      *config.AgentConfiguration
@@ -47,10 +48,11 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer, isSystem bool) (*localExecutor, error) {
 	// Get Controller LocalContainerConfig
 	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	return &localExecutor{
+		isSystem:  isSystem,
 		namespace: namespace,
 		agent:     agent,
 		client:    client,
@@ -61,13 +63,14 @@ func newLocalExecutor(namespace string, agent *config.Agent, client *install.Loc
 			install.Credentials{
 				User:     agent.Container.Credentials.User,
 				Password: agent.Container.Credentials.Password,
-			}),
+			},
+			isSystem),
 	}, nil
 }
 
 func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
-	agent := install.NewLocalAgent(exe.agentConfig, exe.localAgentConfig, exe.client)
+	agent := install.NewLocalAgent(exe.agentConfig, exe.localAgentConfig, exe.client, exe.namespace)
 
 	// Get Controller details
 	controller, err := getController(exe.namespace)
@@ -118,7 +121,7 @@ func (exe *localExecutor) Execute() error {
 	// Wait for agent
 	util.SpinStart("Waiting for Agent")
 	if err = exe.client.WaitForCommand(
-		install.GetLocalContainerName("agent"),
+		install.GetLocalContainerName("agent", exe.isSystem),
 		regexp.MustCompile("ioFog daemon[ |\t]*: RUNNING"),
 		"iofog-agent",
 		"status",

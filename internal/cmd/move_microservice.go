@@ -27,7 +27,7 @@ func newMoveMicroserviceCommand() *cobra.Command {
 		Example: `iofogctl move microservice NAME AGENT_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get name and namespace of connector
+			// Get name and namespace
 			name := args[0]
 			agent := args[1]
 			namespace, err := cmd.Flags().GetString("namespace")

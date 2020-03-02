@@ -41,7 +41,9 @@ const (
 	defaultDirname       = ".iofog/"
 	namespaceDirname     = "namespaces/"
 	defaultFilename      = "config.yaml"
-	CurrentConfigVersion = "iofogctl/v1"
+	configV2             = "iofogctl/v2"
+	configV1             = "iofogctl/v1"
+	CurrentConfigVersion = configV2
 )
 
 func updateConfigToK8sStyle() error {
@@ -235,15 +237,6 @@ func GetControllers(namespace string) ([]Controller, error) {
 	return ns.ControlPlane.Controllers, nil
 }
 
-// GetConnectors returns all controllers within the namespace
-func GetConnectors(namespace string) ([]Connector, error) {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return nil, err
-	}
-	return ns.Connectors, nil
-}
-
 // GetNamespace returns the namespace
 func GetNamespace(namespace string) (Namespace, error) {
 	ns, err := getNamespace(namespace)
@@ -271,23 +264,6 @@ func GetController(namespace, name string) (controller Controller, err error) {
 	for _, ctrl := range ns.ControlPlane.Controllers {
 		if ctrl.Name == name {
 			controller = ctrl
-			return
-		}
-	}
-
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
-}
-
-// GetConnector returns a single connector within a namespace
-func GetConnector(namespace, name string) (connector Connector, err error) {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return
-	}
-	for _, cnct := range ns.Connectors {
-		if cnct.Name == name {
-			connector = cnct
 			return
 		}
 	}
@@ -342,7 +318,7 @@ func AddNamespace(name, created string) error {
 	return nil
 }
 
-// UpdateConnector overwrites Control Plane in the namespace
+// UpdateControlPlane overwrites Control Plane in the namespace
 func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
@@ -371,25 +347,6 @@ func UpdateController(namespace string, controller Controller) error {
 	}
 	// Add new controller
 	return AddController(namespace, controller)
-}
-
-// Overwrites or creates new connector to the namespace
-func UpdateConnector(namespace string, connector Connector) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Update existing connector if exists
-	for idx := range ns.Connectors {
-		if ns.Connectors[idx].Name == connector.Name {
-			mux.Lock()
-			ns.Connectors[idx] = connector
-			mux.Unlock()
-			return nil
-		}
-	}
-	// Add new connector
-	return AddConnector(namespace, connector)
 }
 
 // Overwrites or creates new agent to the namespace
@@ -425,25 +382,6 @@ func AddController(namespace string, controller Controller) error {
 	// Append the controller
 	mux.Lock()
 	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
-	mux.Unlock()
-
-	return nil
-}
-
-// AddConnector adds a new connector to the namespace
-func AddConnector(namespace string, connector Connector) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	_, err = GetConnector(namespace, connector.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + connector.Name)
-	}
-
-	// Append the connector
-	mux.Lock()
-	ns.Connectors = append(ns.Connectors, connector)
 	mux.Unlock()
 
 	return nil
@@ -530,7 +468,6 @@ func ClearNamespace(namespace string) error {
 	mux.Lock()
 	defer mux.Unlock()
 	ns.ControlPlane = ControlPlane{}
-	ns.Connectors = []Connector{}
 	ns.Agents = []Agent{}
 	return FlushConfig()
 }
@@ -556,24 +493,6 @@ func DeleteController(namespace, name string) error {
 		if ns.ControlPlane.Controllers[idx].Name == name {
 			mux.Lock()
 			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(ns.Name + "/" + name)
-}
-
-// DeleteConnector deletes a connector from a namespace
-func DeleteConnector(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	for idx, connector := range ns.Connectors {
-		if connector.Name == name {
-			mux.Lock()
-			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
 			mux.Unlock()
 			return nil
 		}
@@ -615,10 +534,42 @@ func FlushConfig() (err error) {
 	return
 }
 
-func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
-	if header.APIVersion != CurrentConfigVersion {
-		return c, util.NewInputError("Invalid iofogctl config version")
+func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
+	type v1SpecContent struct {
+		Name         string        `yaml:"name,omitempty"`
+		ControlPlane ControlPlane  `yaml:"controlPlane,omitempty"`
+		Agents       []Agent       `yaml:"agents,omitempty"`
+		Created      string        `yaml:"created,omitempty"`
+		Connectors   []interface{} `yaml:"connectors,omitempty"`
 	}
+	header.APIVersion = configV2
+	bytes, err := yaml.Marshal(header.Spec)
+	v1Spec := v1SpecContent{}
+	if err != nil {
+		return header, err
+	}
+	if err = yaml.UnmarshalStrict(bytes, &v1Spec); err != nil {
+		return header, err
+	}
+
+	v2Spec := Namespace{
+		Name:         v1Spec.Name,
+		ControlPlane: v1Spec.ControlPlane,
+		Agents:       v1Spec.Agents,
+		Created:      v1Spec.Created,
+	}
+
+	header.Spec = v2Spec
+
+	return header, nil
+}
+
+func updateConfigToV2(header iofogctlConfig) (iofogctlConfig, error) {
+	header.APIVersion = configV2
+	return header, nil
+}
+
+func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	switch header.APIVersion {
 	case CurrentConfigVersion:
 		{
@@ -630,6 +581,14 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	// 	updateFromPreviousVersion()
 	// 	break
 	// }
+	case configV1:
+		{
+			headerV2, err := updateConfigToV2(header)
+			if err != nil {
+				return c, err
+			}
+			return getConfigFromHeader(headerV2)
+		}
 	default:
 		return c, util.NewInputError("Invalid iofogctl config version")
 	}
@@ -640,9 +599,6 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	if err = yaml.UnmarshalStrict(bytes, &c); err != nil {
 		return
 	}
-	if c.DetachedResources.Connectors == nil {
-		c.DetachedResources.Connectors = make(map[string]Connector)
-	}
 	if c.DetachedResources.Agents == nil {
 		c.DetachedResources.Agents = make(map[string]Agent)
 	}
@@ -650,14 +606,19 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 }
 
 func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
-	if header.Kind != IofogctlNamespaceKind {
-		return n, util.NewInputError("Invalid namespace kind")
-	}
 	switch header.APIVersion {
 	case CurrentConfigVersion:
 		{
 			// All good
 			break
+		}
+	case configV1:
+		{
+			headerV2, err := updateNamespaceToV2(header)
+			if err != nil {
+				return n, err
+			}
+			return getNamespaceFromHeader(headerV2)
 		}
 	// Example for further maintenance
 	// case PreviousConfigVersion {
@@ -738,26 +699,6 @@ func GetDetachedAgent(name string) (Agent, error) {
 	return Agent{}, util.NewNotFoundError(name)
 }
 
-func GetDetachedConnector(name string) (Connector, error) {
-	if connector, found := conf.DetachedResources.Connectors[name]; found {
-		return connector, nil
-	}
-
-	return Connector{}, util.NewNotFoundError(name)
-}
-
-func AttachConnector(namespace, name string) error {
-	connector, err := GetDetachedConnector(name)
-	if err != nil {
-		return err
-	}
-	delete(conf.DetachedResources.Connectors, name)
-	if err = FlushConfig(); err != nil {
-		return err
-	}
-	return UpdateConnector(namespace, connector)
-}
-
 func AttachAgent(namespace, name, UUID string) error {
 	agent, err := GetDetachedAgent(name)
 	if err != nil {
@@ -769,25 +710,6 @@ func AttachAgent(namespace, name, UUID string) error {
 	}
 	agent.UUID = UUID
 	return UpdateAgent(namespace, agent)
-}
-
-func DetachConnector(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	for idx := range ns.Connectors {
-		if ns.Connectors[idx].Name == name {
-			mux.Lock()
-			detachedConnector := ns.Connectors[idx]
-			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
-			conf.DetachedResources.Connectors[detachedConnector.Name] = detachedConnector
-			mux.Unlock()
-			return FlushConfig()
-		}
-	}
-
-	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
 func DetachAgent(namespace, name string) error {
@@ -825,21 +747,9 @@ func RenameDetachedAgent(oldName, newName string) error {
 	return FlushConfig()
 }
 
-func RenameDetachedConnector(oldName, newName string) error {
-	connector, err := GetDetachedConnector(oldName)
-	if err != nil {
-		return err
-	}
-	connector.Name = newName
-	delete(conf.DetachedResources.Connectors, oldName)
-	conf.DetachedResources.Connectors[newName] = connector
-	return FlushConfig()
-}
-
 func DeleteDetachedResources() error {
 	conf.DetachedResources = DetachedResources{
-		Agents:     make(map[string]Agent),
-		Connectors: make(map[string]Connector),
+		Agents: make(map[string]Agent),
 	}
 
 	return FlushConfig()
@@ -853,26 +763,10 @@ func DeleteDetachedAgent(name string) error {
 	return FlushConfig()
 }
 
-func DeleteDetachedConnector(name string) error {
-	if _, err := GetDetachedConnector(name); err != nil {
-		return err
-	}
-	delete(conf.DetachedResources.Connectors, name)
-	return FlushConfig()
-}
-
 func UpdateDetachedAgent(agent Agent) error {
 	if _, err := GetDetachedAgent(agent.Name); err != nil {
 		return err
 	}
 	conf.DetachedResources.Agents[agent.Name] = agent
-	return FlushConfig()
-}
-
-func UpdateDetachedConnector(connector Connector) error {
-	if _, err := GetDetachedConnector(connector.Name); err != nil {
-		return err
-	}
-	conf.DetachedResources.Connectors[connector.Name] = connector
 	return FlushConfig()
 }

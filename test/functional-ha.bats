@@ -8,8 +8,8 @@
 # KEY_FILE
 # AGENT_PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
-# CONNECTOR_IMAGE
-# SCHEDULER_IMAGE
+# PORT_MANAGER_IMAGE
+# PROXY_IMAGE
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
 # VANILLA_VERSION
@@ -27,8 +27,12 @@ NS="$NAMESPACE"
 USER_PW="S5gYVgLEZV"
 USER_EMAIL="user@domain.com"
 
+@test "Verify kubectl works" {
+  kctl get ns
+}
+
 @test "Create namespace" {
-  test iofogctl create namespace "$NS"
+  iofogctl create namespace "$NS"
 }
 
 @test "Deploy Control Plane" {
@@ -59,9 +63,11 @@ spec:
       replicas: 2
       images:
         operator: $OPERATOR_IMAGE
+        portManager: $PORT_MANAGER_IMAGE
+        proxy: $PROXY_IMAGE
         kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
-  test iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
 }
 
@@ -71,36 +77,9 @@ spec:
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
 
-@test "Deploy Connectors" {
-  local CNCT_A="connector-a"
-  local CNCT_B="connector-b"
-  echo "---
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $CNCT_A
-spec:
-  container:
-    image: $CONNECTOR_IMAGE
-  kube:
-    config: $KUBE_CONFIG
----
-apiVersion: iofog.org/v1
-kind: Connector
-metadata:
-  name: $CNCT_B
-spec:
-  container:
-    image: $CONNECTOR_IMAGE
-  kube:
-    config: $KUBE_CONFIG" > test/conf/cncts.yaml
-  test iofogctl -v -n "$NS" deploy -f test/conf/cncts.yaml
-  checkConnectors "$CNCT_A" "$CNCT_B"
-}
-
 @test "Deploy Agents" {
   initAgentsFile
-  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -116,13 +95,13 @@ spec:
 @test "Delete Controller Instances and List Agents multiple times" {
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  local CTRL_LIST=$(kubectl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
+  local CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
   local SAFE_CTRL=$(echo "$CTRL_LIST" | tail -n 1)
   for IDX in 0 1 2 3 4; do
-    CTRL_LIST=$(kubectl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
+    CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
     while read -r line; do
       if [ "$line" != "$SAFE_CTRL" ]; then
-        kubectl delete pods/"$line" -n "$NS" &
+        kctl delete pods/"$line" -n "$NS" &
       fi
     done <<< "$CTRL_LIST"
     checkAgentListFromController
@@ -131,7 +110,7 @@ spec:
 
 @test "Deploy Agents again" {
   initAgentsFile
-  test iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }
 
@@ -139,20 +118,18 @@ spec:
   initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
-    test iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
   done
   checkAgentsNegative
-  sleep 30 # Sleep to make sure vKubelet resolves with K8s API Server before we delete all
 }
 
 @test "Delete all" {
-  test iofogctl -v -n "$NS" delete all
+  iofogctl -v -n "$NS" delete all
   checkControllerNegative
-  checkConnectorNegative
   checkAgentsNegative
 }
 
 @test "Delete namespace" {
-  test iofogctl delete namespace "$NS"
+  iofogctl delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
 }

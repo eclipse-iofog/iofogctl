@@ -18,15 +18,17 @@ export NAMESPACE="testing"
 
 # Kubernetes configuration file required to use kubectl
 export KUBE_CONFIG="~/.kube/config"
+# Kubernetes configuration file used by tests
+export TEST_KUBE_CONFIG="~/.kube/config"
 
 # SSH private key that can be used to log into agents specified by AGENTS variable
 export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster or local deploy
 export CONTROLLER_IMAGE="gcr.io/focal-freedom-236620/controller:develop"
-export CONNECTOR_IMAGE="gcr.io/focal-freedom-236620/connector:develop"
 export AGENT_IMAGE="gcr.io/focal-freedom-236620/agent:develop"
-#export SCHEDULER_IMAGE="gcr.io/focal-freedom-236620/scheduler:develop"
+export PORT_MANAGER_IMAGE="gcr.io/focal-freedom-236620/port-manager:develop"
+export PROXY_IMAGE="iofog/proxy:latest"
 export OPERATOR_IMAGE="gcr.io/focal-freedom-236620/operator:develop"
 export KUBELET_IMAGE="gcr.io/focal-freedom-236620/kubelet:develop"
 
@@ -68,11 +70,12 @@ echo "${!AGENT_REPO*}: " "$AGENT_REPO"
 echo "${!AGENT_PACKAGE_CLOUD_TOKEN*}: " "$AGENT_PACKAGE_CLOUD_TOKEN"
 echo "${!NAMESPACE*}: " "$NAMESPACE"
 echo "${!KUBE_CONFIG*}: " "$KUBE_CONFIG"
+echo "${!TEST_KUBE_CONFIG*}: " "$TEST_KUBE_CONFIG"
 echo "${!KEY_FILE*}: " "$KEY_FILE"
 echo "${!CONTROLLER_IMAGE*}: " "$CONTROLLER_IMAGE"
-echo "${!CONNECTOR_IMAGE*}: " "$CONNECTOR_IMAGE"
+echo "${!PORT_MANAGER_IMAGE*}: " "$PORT_MANAGER"
+echo "${!PROXY_IMAGE*}: " "$PROXY_IMAGE"
 echo "${!AGENT_IMAGE*}: " "$AGENT_IMAGE"
-#echo "${!SCHEDULER_IMAGE*}: " "$SCHEDULER_IMAGE"
 echo "${!OPERATOR_IMAGE*}: " "$OPERATOR_IMAGE"
 echo "${!KUBELET_IMAGE*}: " "$KUBELET_IMAGE"
 echo "${!VANILLA_VERSION*}: " "$VANILLA_VERSION"

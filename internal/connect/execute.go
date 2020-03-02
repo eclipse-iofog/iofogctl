@@ -19,7 +19,6 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	connectagent "github.com/eclipse-iofog/iofogctl/internal/connect/agent"
-	connectconnector "github.com/eclipse-iofog/iofogctl/internal/connect/connector"
 	connectcontroller "github.com/eclipse-iofog/iofogctl/internal/connect/controller"
 	connectcontrolplane "github.com/eclipse-iofog/iofogctl/internal/connect/controlplane"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
@@ -40,7 +39,6 @@ type Options struct {
 var kindOrder = []apps.Kind{
 	apps.ControlPlaneKind,
 	apps.ControllerKind,
-	apps.ConnectorKind,
 	apps.AgentKind,
 }
 
@@ -50,9 +48,6 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	},
 	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
-	},
-	apps.ConnectorKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectconnector.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
 	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)

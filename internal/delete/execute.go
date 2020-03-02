@@ -21,7 +21,6 @@ import (
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	deleteapplication "github.com/eclipse-iofog/iofogctl/internal/delete/application"
 	deletecatalogitem "github.com/eclipse-iofog/iofogctl/internal/delete/catalog_item"
-	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
 	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
 	deletemicroservice "github.com/eclipse-iofog/iofogctl/internal/delete/microservice"
@@ -41,7 +40,6 @@ var kindOrder = []apps.Kind{
 	apps.ApplicationKind,
 	config.RegistryKind,
 	apps.AgentKind,
-	apps.ConnectorKind,
 	apps.ControllerKind,
 	apps.ControlPlaneKind,
 }
@@ -58,9 +56,6 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	},
 	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
-	},
-	apps.ConnectorKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteconnector.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
@@ -79,7 +74,7 @@ func Execute(opt *Options) error {
 		return err
 	}
 
-	// Microservice, Application, Agent, Connector, Controller, ControlPlane
+	// Microservice, Application, Agent, Controller, ControlPlane
 	for idx := range kindOrder {
 		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); err != nil {
 			return err

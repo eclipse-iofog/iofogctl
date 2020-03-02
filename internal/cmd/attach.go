@@ -27,7 +27,6 @@ func newAttachCommand() *cobra.Command {
 
 	// Add subcommands
 	cmd.AddCommand(
-		newAttachConnectorCommand(),
 		newAttachAgentCommand(),
 	)
 

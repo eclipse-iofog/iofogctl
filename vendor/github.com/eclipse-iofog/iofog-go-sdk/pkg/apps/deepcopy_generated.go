@@ -93,6 +93,30 @@ func (in *AgentConfiguration) DeepCopyInto(out *AgentConfiguration) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.RouterMode != nil {
+		in, out := &in.RouterMode, &out.RouterMode
+		*out = new(string)
+		**out = **in
+	}
+	if in.RouterPort != nil {
+		in, out := &in.RouterPort, &out.RouterPort
+		*out = new(int)
+		**out = **in
+	}
+	if in.UpstreamRouters != nil {
+		in, out := &in.UpstreamRouters, &out.UpstreamRouters
+		*out = new([]string)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]string, len(*in))
+			copy(*out, *in)
+		}
+	}
+	if in.NetworkRouter != nil {
+		in, out := &in.NetworkRouter, &out.NetworkRouter
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

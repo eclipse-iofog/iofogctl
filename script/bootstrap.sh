@@ -64,6 +64,16 @@ if ! checkForInstallation "bats"; then
     git clone https://github.com/cats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
 fi
 
+# Is jq installed?
+if ! checkForInstallation "jq"; then
+    echoInfo " Attempting to install 'jq'"
+    if [ "$(uname -s)" = "Darwin" ]; then
+        brew install jq
+    else
+        sudo apt install jq
+    fi
+fi
+
 #
 # All our Kubernetes related stuff
 ##
@@ -76,3 +86,5 @@ if ! checkForInstallation "kubectl"; then
 	chmod +x kubectl
 	sudo mv kubectl /usr/local/bin/
 fi
+
+## TODO: gcloud

@@ -17,10 +17,11 @@ import (
 	"context"
 	"fmt"
 
+	ioclient "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
 	iofogv1 "github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,15 +37,20 @@ import (
 	b64 "encoding/base64"
 )
 
+const (
+	kogInstanceName = "iokog"
+	dockerRepo      = "iofog"
+)
+
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
 type Kubernetes struct {
-	config          *restclient.Config
-	kogClient       kogclient.Client
-	clientset       *kubernetes.Clientset
-	extsClientset   *extsclientset.Clientset
-	ns              string
-	ms              map[string]*microservice
-	kogInstanceName string
+	config        *restclient.Config
+	kogClient     kogclient.Client
+	clientset     *kubernetes.Clientset
+	extsClientset *extsclientset.Clientset
+	ns            string
+	operator      *microservice
+	controlPlane  *iofogv1.ControlPlane
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -65,92 +71,50 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		return nil, err
 	}
 
-	microservices := make(map[string]*microservice, 0)
-	microservices["controller"] = &controllerMicroservice
-	microservices["connector"] = &connectorMicroservice
-	microservices["operator"] = &operatorMicroservice
-	//microservices["scheduler"] = &schedulerMicroservice
-	microservices["kubelet"] = &kubeletMicroservice
-
 	return &Kubernetes{
-		config:          config,
-		clientset:       clientset,
-		extsClientset:   extsClientset,
-		ns:              namespace,
-		ms:              microservices,
-		kogInstanceName: "iokog",
+		config:        config,
+		clientset:     clientset,
+		extsClientset: extsClientset,
+		ns:            namespace,
+		controlPlane: &iofogv1.ControlPlane{
+			ControllerImage:  dockerRepo + "/controller:" + util.GetControllerTag(),
+			PortManagerImage: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
+			ProxyImage:       dockerRepo + "/proxy:" + util.GetProxyTag(),
+			KubeletImage:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
+			ServiceType:      string(corev1.ServiceTypeLoadBalancer),
+		},
+		operator: newOperatorMicroservice(),
 	}, nil
 }
 
 func (k8s *Kubernetes) SetKubeletImage(image string) {
 	if image != "" {
-		k8s.ms["kubelet"].containers[0].image = image
+		k8s.controlPlane.KubeletImage = image
 	}
 }
 
 func (k8s *Kubernetes) SetOperatorImage(image string) {
 	if image != "" {
-		k8s.ms["operator"].containers[0].image = image
+		k8s.operator.containers[0].image = image
 	}
 }
 
-func (k8s *Kubernetes) SetConnectorImage(image string) {
+func (k8s *Kubernetes) SetPortManagerImage(image string) {
 	if image != "" {
-		k8s.ms["connector"].containers[0].image = image
+		k8s.controlPlane.PortManagerImage = image
+	}
+}
+
+func (k8s *Kubernetes) SetProxyImage(image string) {
+	if image != "" {
+		k8s.controlPlane.ProxyImage = image
 	}
 }
 
 func (k8s *Kubernetes) SetControllerImage(image string) {
 	if image != "" {
-		k8s.ms["controller"].containers[0].image = image
+		k8s.controlPlane.ControllerImage = image
 	}
-}
-
-// CreateConnector on cluster
-func (k8s *Kubernetes) CreateConnector(name string, user IofogUser) (err error) {
-	if err := k8s.enableKogClient(); err != nil {
-		return err
-	}
-
-	kogList := &iofogv1.KogList{}
-	if err = k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
-		return err
-	}
-	if len(kogList.Items) == 0 {
-		return util.NewError("Could not find existing ioKog on the Kubernetes cluster")
-	}
-	var existingKog *iofogv1.Kog
-	for _, kog := range kogList.Items {
-		if kog.ObjectMeta.Name == k8s.kogInstanceName {
-			existingKog = &kog
-			break
-		}
-	}
-	if existingKog == nil {
-		return util.NewError("Could not find ioKog named " + k8s.kogInstanceName + " in namespace " + k8s.ns)
-	}
-
-	connectorExists := false
-	for _, connector := range existingKog.Spec.Connectors.Instances {
-		if connector.Name == name {
-			connectorExists = true
-			break
-		}
-	}
-	if !connectorExists {
-		existingKog.Spec.Connectors.Instances = append(existingKog.Spec.Connectors.Instances, iofogv1.Connector{
-			Name: name,
-		})
-	}
-	existingKog.Spec.Connectors.Image = k8s.ms["connector"].containers[0].image
-	existingKog.Spec.Connectors.ServiceType = k8s.ms["connector"].serviceType
-
-	err = k8s.kogClient.Update(context.Background(), existingKog)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (k8s *Kubernetes) enableCustomResources() error {
@@ -198,7 +162,7 @@ func (k8s *Kubernetes) enableKogClient() (err error) {
 func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Database) error {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
-	ns := &v1.Namespace{
+	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: k8s.ns,
 		},
@@ -218,7 +182,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 	// Check if kog exists
 	Verbose("Finding existing Kog")
 	kogKey := kogclient.ObjectKey{
-		Name:      k8s.kogInstanceName,
+		Name:      kogInstanceName,
 		Namespace: k8s.ns,
 	}
 	var kog iofogv1.Kog
@@ -231,7 +195,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		found = false
 		kog = iofogv1.Kog{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      k8s.kogInstanceName,
+				Name:      kogInstanceName,
 				Namespace: k8s.ns,
 			},
 		}
@@ -242,19 +206,11 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 
 	// Set specification
 	kog.Spec = iofogv1.KogSpec{
-		ControlPlane: iofogv1.ControlPlane{
-			IofogUser:              iofogv1.IofogUser(user),
-			ControllerReplicaCount: int32(replicas),
-			ControllerImage:        k8s.ms["controller"].containers[0].image,
-			KubeletImage:           k8s.ms["kubelet"].containers[0].image,
-			Database:               iofogv1.Database(db),
-			ServiceType:            k8s.ms["controller"].serviceType,
-			LoadBalancerIP:         k8s.ms["controller"].IP,
-		},
-		Connectors: iofogv1.Connectors{
-			Instances: []iofogv1.Connector{},
-		},
+		ControlPlane: *k8s.controlPlane,
 	}
+	kog.Spec.ControlPlane.ControllerReplicaCount = int32(replicas)
+	kog.Spec.ControlPlane.Database = iofogv1.Database(db)
+	kog.Spec.ControlPlane.IofogUser = iofogv1.IofogUser(user)
 
 	// Create or update Kog
 	if found {
@@ -274,10 +230,24 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 
 func (k8s *Kubernetes) deleteOperator() (err error) {
 	// Resource name for deletions
-	name := k8s.ms["operator"].name
+	name := k8s.operator.name
 
 	// Service Account
 	if err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			return
+		}
+	}
+
+	// Role
+	if err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			return
+		}
+	}
+
+	// Role Binding
+	if err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return
 		}
@@ -302,15 +272,31 @@ func (k8s *Kubernetes) deleteOperator() (err error) {
 
 func (k8s *Kubernetes) createOperator() (err error) {
 	// Service Account
-	opSvcAcc := newServiceAccount(k8s.ns, k8s.ms["operator"])
+	opSvcAcc := newServiceAccount(k8s.ns, k8s.operator)
 	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
 	}
 
+	// Role
+	role := newRole(k8s.ns, k8s.operator)
+	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(role); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return
+		}
+	}
+
+	// Role Binding
+	rb := newRoleBinding(k8s.ns, k8s.operator)
+	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(rb); err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return
+		}
+	}
+
 	// Cluster Role Binding
-	crb := newClusterRoleBinding(k8s.ns, k8s.ms["operator"])
+	crb := newClusterRoleBinding(k8s.ns, k8s.operator)
 	if _, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(crb); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
@@ -318,13 +304,13 @@ func (k8s *Kubernetes) createOperator() (err error) {
 	}
 
 	// Deployment
-	opDep := newDeployment(k8s.ns, k8s.ms["operator"])
+	opDep := newDeployment(k8s.ns, k8s.operator)
 	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
 		// Redeploy the operator
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.ms["operator"].name, &metav1.DeleteOptions{}); err != nil {
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.operator.name, &metav1.DeleteOptions{}); err != nil {
 			return
 		}
 		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
@@ -343,7 +329,7 @@ func (k8s *Kubernetes) DeleteController() error {
 	// Delete Kog
 	kog := &iofogv1.Kog{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      k8s.kogInstanceName,
+			Name:      kogInstanceName,
 			Namespace: k8s.ns,
 		},
 	}
@@ -370,46 +356,6 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) DeleteConnector(name string) error {
-	// Prepare kog client
-	if err := k8s.enableKogClient(); err != nil {
-		return err
-	}
-
-	// Find existing kog
-	kogList := &iofogv1.KogList{}
-	if err := k8s.kogClient.List(context.Background(), kogclient.InNamespace(k8s.ns), kogList); err != nil {
-		return err
-	}
-	if len(kogList.Items) == 0 {
-		return util.NewError("Could not find existing ioKog on the Kubernetes cluster")
-	}
-	var existingKog *iofogv1.Kog
-	for _, kog := range kogList.Items {
-		if kog.ObjectMeta.Name == k8s.kogInstanceName {
-			existingKog = &kog
-			break
-		}
-	}
-	if existingKog == nil {
-		return util.NewError("Could not find ioKog named " + k8s.kogInstanceName + " in namespace " + k8s.ns)
-	}
-
-	// Update existing kog
-	for idx, connector := range existingKog.Spec.Connectors.Instances {
-		if connector.Name == name {
-			instances := existingKog.Spec.Connectors.Instances
-			existingKog.Spec.Connectors.Instances = append(instances[:idx], instances[idx+1:]...)
-			if err := k8s.kogClient.Update(context.Background(), existingKog); err != nil {
-				return err
-			}
-			break
-		}
-	}
-
-	return nil
-}
-
 func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string, nodePort int32, err error) {
 	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(metav1.ListOptions{})
@@ -419,7 +365,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 
 	// Wait for Services to have IPs allocated
 	for event := range watch.ResultChan() {
-		svc, ok := event.Object.(*v1.Service)
+		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
 			err = util.NewInternalError("Failed to wait for services in namespace: " + k8s.ns)
 			return
@@ -431,7 +377,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 		}
 
 		switch svc.Spec.Type {
-		case "LoadBalancer":
+		case corev1.ServiceTypeLoadBalancer:
 			// Load balancer must be ready
 			if len(svc.Status.LoadBalancer.Ingress) == 0 {
 				continue
@@ -439,9 +385,9 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 			nodePort = targetPort
 			ip = svc.Status.LoadBalancer.Ingress[0].IP
 
-		case "NodePort":
+		case corev1.ServiceTypeNodePort:
 			// Get a list of K8s nodes and return one of their external IPs
-			var nodeList *v1.NodeList
+			var nodeList *corev1.NodeList
 			nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
 			if err == nil {
 				if len(nodeList.Items) == 0 {
@@ -450,7 +396,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 					// Return external IP of any of the nodes in the cluster
 					for _, node := range nodeList.Items {
 						for _, addrs := range node.Status.Addresses {
-							if addrs.Type == v1.NodeExternalIP {
+							if addrs.Type == corev1.NodeExternalIP {
 								ip = addrs.Address
 								break
 							}
@@ -460,7 +406,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
 						for _, node := range nodeList.Items {
 							for _, addrs := range node.Status.Addresses {
-								if addrs.Type == v1.NodeInternalIP {
+								if addrs.Type == corev1.NodeInternalIP {
 									ip = addrs.Address
 									break
 								}
@@ -485,7 +431,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 				}
 			}
 
-		case "ClusterIP":
+		case corev1.ServiceTypeClusterIP:
 			// Note: ClusterIPs are internal to K8s cluster only
 		}
 
@@ -496,28 +442,22 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 	return
 }
 
-func (k8s *Kubernetes) setServiceType(msvc, svcType string) (err error) {
+func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
 	if svcType == "" {
 		return nil
 	}
-	if svcType != "LoadBalancer" && svcType != "NodePort" && svcType != "ClusterIP" {
+
+	coreSvcType := corev1.ServiceType(svcType)
+	if coreSvcType != corev1.ServiceTypeLoadBalancer && coreSvcType != corev1.ServiceTypeNodePort && coreSvcType != corev1.ServiceTypeClusterIP {
 		err = util.NewInputError("Tried to set K8s Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
 	}
-	k8s.ms[msvc].serviceType = svcType
+	k8s.controlPlane.ServiceType = svcType
 	return
-}
-
-func (k8s *Kubernetes) SetConnectorServiceType(svcType string) (err error) {
-	return k8s.setServiceType("connector", svcType)
-}
-
-func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
-	return k8s.setServiceType("controller", svcType)
 }
 
 func (k8s *Kubernetes) SetControllerIP(ip string) {
 	if ip != "" {
-		k8s.ms["controller"].IP = ip
+		k8s.controlPlane.LoadBalancerIP = ip
 	}
 }
 
@@ -536,7 +476,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 		return err
 	}
 	for _, svc := range svcList.Items {
-		if svc.Name == k8s.ms["controller"].name {
+		if svc.Name == controller {
 			return nil
 		}
 	}
@@ -544,19 +484,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 }
 
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
-	ms := k8s.ms["controller"]
-	ip, port, err := k8s.waitForService(ms.name, ms.ports[0])
-	if err != nil {
-		return
-	}
-	endpoint = fmt.Sprintf("%s:%d", ip, port)
-	return
-}
-
-func (k8s *Kubernetes) GetConnectorEndpoint(name string) (endpoint string, err error) {
-	ms := k8s.ms["connector"]
-	// TODO: This name formatting is magic that depends on the operator
-	ip, port, err := k8s.waitForService("connector-"+name, ms.ports[0])
+	ip, port, err := k8s.waitForService(controller, ioclient.ControllerPort)
 	if err != nil {
 		return
 	}

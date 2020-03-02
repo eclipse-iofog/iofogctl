@@ -45,8 +45,10 @@ type SSH struct {
 }
 
 type KubeImages struct {
-	Operator string `yaml:"operator,omitempty"`
-	Kubelet  string `yaml:"kubelet,omitempty"`
+	Operator    string `yaml:"operator,omitempty"`
+	Kubelet     string `yaml:"kubelet,omitempty"`
+	PortManager string `yaml:"portManager,omitempty"`
+	Proxy       string `yaml:"proxy,omitempty"`
 }
 
 type Kube struct {
@@ -92,27 +94,17 @@ type ControlPlane struct {
 	Controllers  []Controller `yaml:"controllers,omitempty"`
 }
 
-type Connector struct {
-	Name      string    `yaml:"name,omitempty"`
-	Host      string    `yaml:"host,omitempty"`
-	SSH       SSH       `yaml:"ssh,omitempty"`
-	Kube      Kube      `yaml:"kube,omitempty"`
-	Created   string    `yaml:"created,omitempty"`
-	Endpoint  string    `yaml:"endpoint,omitempty"`
-	Package   Package   `yaml:"package,omitempty"`
-	Container Container `yaml:"container,omitempty"`
-}
-
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name      string    `yaml:"name,omitempty"`
-	Host      string    `yaml:"host,omitempty"`
-	SSH       SSH       `yaml:"ssh,omitempty"`
-	Kube      Kube      `yaml:"kube,omitempty"`
-	Endpoint  string    `yaml:"endpoint,omitempty"`
-	Created   string    `yaml:"created,omitempty"`
-	Package   Package   `yaml:"package,omitempty"`
-	Container Container `yaml:"container,omitempty"`
+	Name        string    `yaml:"name,omitempty"`
+	Host        string    `yaml:"host,omitempty"`
+	SSH         SSH       `yaml:"ssh,omitempty"`
+	Kube        Kube      `yaml:"kube,omitempty"`
+	Endpoint    string    `yaml:"endpoint,omitempty"`
+	Created     string    `yaml:"created,omitempty"`
+	Package     Package   `yaml:"package,omitempty"`
+	SystemAgent Package   `yaml:"systemAgent,omitempty"`
+	Container   Container `yaml:"container,omitempty"`
 }
 
 type Registry struct {
@@ -133,7 +125,7 @@ type AgentConfiguration struct {
 	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description               string  `json:"description,omitempty" yaml:"description"`
-	FogType                   string  `json:"fogType,omitempty" yaml:"agentType"`
+	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
 }
 
@@ -166,14 +158,12 @@ type Agent struct {
 type Namespace struct {
 	Name         string       `yaml:"name,omitempty"`
 	ControlPlane ControlPlane `yaml:"controlPlane,omitempty"`
-	Connectors   []Connector  `yaml:"connectors,omitempty"`
 	Agents       []Agent      `yaml:"agents,omitempty"`
 	Created      string       `yaml:"created,omitempty"`
 }
 
 type DetachedResources struct {
-	Connectors map[string]Connector `yaml:"connectors,omitempty"`
-	Agents     map[string]Agent     `yaml:"agents,omitempty"`
+	Agents map[string]Agent `yaml:"agents,omitempty"`
 }
 
 // Configuration contains the unmarshalled configuration file

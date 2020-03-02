@@ -50,7 +50,7 @@ func (exe *controllerExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		containerName := install.GetLocalContainerName("controller")
+		containerName := install.GetLocalContainerName("controller", false)
 		stdout, stderr, err := lc.GetLogsByName(containerName)
 		if err != nil {
 			return err

@@ -31,6 +31,5 @@ attach
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl attach agent](iofogctl_attach_agent.md)	 - Attaches an Agent to an existing ECN
-* [iofogctl attach connector](iofogctl_attach_connector.md)	 - Attaches an Connector to an existing ECN
 
 

@@ -14,11 +14,13 @@
 package attachagent
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
 )
 
 type Options struct {
@@ -45,6 +47,7 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
+
 	var agent config.Agent
 	var err error
 	if exe.opt.UseDetached {
@@ -65,7 +68,20 @@ func (exe executor) Execute() error {
 		return err
 	}
 
-	executor, err := deploy.NewDeployExecutor(exe.opt.Namespace, &agent)
+	// Create fog
+	configExecutor := deployagentconfig.NewRemoteExecutor(
+		exe.opt.Name,
+		config.AgentConfiguration{
+			Name: exe.opt.Name,
+			AgentConfiguration: client.AgentConfiguration{
+				Host: &agent.Host,
+			},
+		}, exe.opt.Namespace)
+	if err = configExecutor.Execute(); err != nil {
+		return err
+	}
+
+	executor, err := deploy.NewDeployExecutor(exe.opt.Namespace, &agent, false)
 	if err != nil {
 		return err
 	}

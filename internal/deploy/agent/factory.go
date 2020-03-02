@@ -22,23 +22,23 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-type facadeExecutor struct {
-	exe         AgentExecutor
-	agent       *config.Agent
-	agentConfig *config.AgentConfiguration
-	namespace   string
-}
-
-type AgentExecutor interface {
+type AgentDeployExecutor interface {
 	execute.Executor
-	SetAgentConfig(*config.AgentConfiguration)
+	GetHost() string
 }
 
-func (facade facadeExecutor) SetAgentConfig(config *config.AgentConfiguration) {
-	facade.exe.SetAgentConfig(config)
+type facadeExecutor struct {
+	isSystem  bool
+	exe       execute.Executor
+	agent     *config.Agent
+	namespace string
 }
 
-func (facade facadeExecutor) Execute() (err error) {
+func (facade *facadeExecutor) GetHost() string {
+	return facade.agent.Host
+}
+
+func (facade *facadeExecutor) Execute() (err error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(facade.namespace)
 	if err != nil {
@@ -50,21 +50,28 @@ func (facade facadeExecutor) Execute() (err error) {
 		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
 	}
 
-	util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
+	if !facade.isSystem || install.IsVerbose() {
+		util.SpinStart(fmt.Sprintf("Deploying agent %s", facade.GetName()))
+	}
+
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
-	if err = config.UpdateAgent(facade.namespace, *facade.agent); err != nil {
-		return
+
+	// Don't add system agent to the namespace config file
+	if !facade.isSystem {
+		if err = config.UpdateAgent(facade.namespace, *facade.agent); err != nil {
+			return
+		}
 	}
 	return config.Flush()
 }
 
-func (facade facadeExecutor) GetName() string {
+func (facade *facadeExecutor) GetName() string {
 	return facade.exe.GetName()
 }
 
-func (facade facadeExecutor) ProvisionAgent() (string, error) {
+func (facade *facadeExecutor) ProvisionAgent() (string, error) {
 	// Required for attach
 	provisionExecutor, ok := facade.exe.(execute.ProvisioningExecutor)
 	if !ok {
@@ -73,15 +80,16 @@ func (facade facadeExecutor) ProvisionAgent() (string, error) {
 	return provisionExecutor.ProvisionAgent()
 }
 
-func newFacadeExecutor(exe AgentExecutor, namespace string, agent *config.Agent) execute.Executor {
-	return facadeExecutor{
+func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Agent, isSystem bool) execute.Executor {
+	return &facadeExecutor{
 		exe:       exe,
 		namespace: namespace,
+		isSystem:  isSystem,
 		agent:     agent,
 	}
 }
 
-func NewDeployExecutor(namespace string, agent *config.Agent) (execute.Executor, error) {
+func NewDeployExecutor(namespace string, agent *config.Agent, isSystem bool) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
 		return nil, err
 	}
@@ -92,16 +100,16 @@ func NewDeployExecutor(namespace string, agent *config.Agent) (execute.Executor,
 		if err != nil {
 			return nil, err
 		}
-		exe, err := newLocalExecutor(namespace, agent, cli)
+		exe, err := newLocalExecutor(namespace, agent, cli, isSystem)
 		if err != nil {
 			return nil, err
 		}
-		return newFacadeExecutor(exe, namespace, agent), nil
+		return newFacadeExecutor(exe, namespace, agent, isSystem), nil
 	}
 
 	// Default executor
 	if agent.Host == "" || agent.SSH.KeyFile == "" || agent.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment or provisioning")
 	}
-	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent), nil
+	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent, isSystem), nil
 }

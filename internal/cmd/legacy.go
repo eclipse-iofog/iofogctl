@@ -88,7 +88,6 @@ func newLegacyCommand() *cobra.Command {
 		Long:  `Execute commands using legacy CLI`,
 		Example: `iofogctl get all
 iofogctl legacy controller NAME iofog
-iofogctl legacy connector NAME status
 iofogctl legacy agent NAME status`,
 		Args: cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -111,7 +110,7 @@ iofogctl legacy agent NAME status`,
 				if ctrl.Kube.Config != "" {
 					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
 				} else if util.IsLocalHost(ctrl.Host) {
-					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
+					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				} else {
 					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
 						util.Check(util.NewNoConfigError("Controller"))
@@ -129,7 +128,7 @@ iofogctl legacy agent NAME status`,
 				}
 				util.Check(err)
 				if util.IsLocalHost(agent.Host) {
-					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
+					localExecute(install.GetLocalContainerName("agent", false), []string{"iofog-agent"}, args[2:])
 					return
 				} else {
 					// SSH connect
@@ -137,27 +136,6 @@ iofogctl legacy agent NAME status`,
 						util.Check(util.NewNoConfigError("Agent"))
 					}
 					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
-				}
-			case "connector":
-				// Get config
-				var connector config.Connector
-				var err error
-				if useDetached {
-					connector, err = config.GetDetachedConnector(name)
-				} else {
-					connector, err = config.GetConnector(namespace, name)
-				}
-				util.Check(err)
-				cliCommand := []string{"sudo", "iofog-connector"}
-				if connector.Kube.Config != "" {
-					k8sExecute(connector.Kube.Config, namespace, "name=connector-"+name, cliCommand, args[2:])
-				} else if util.IsLocalHost(connector.Host) {
-					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
-				} else {
-					if connector.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "" || connector.SSH.Port == 0 {
-						util.Check(util.NewNoConfigError("Connector"))
-					}
-					remoteExec(connector.SSH.User, connector.Host, connector.SSH.KeyFile, connector.SSH.Port, "sudo iofog-connector", args[2:])
 				}
 			default:
 				util.Check(util.NewInputError("Unknown legacy CLI " + resource))

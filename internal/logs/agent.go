@@ -50,7 +50,7 @@ func (exe *agentExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		containerName := install.GetLocalContainerName("agent")
+		containerName := install.GetLocalContainerName("agent", false)
 		stdout, stderr, err := lc.GetLogsByName(containerName)
 		if err != nil {
 			return err
