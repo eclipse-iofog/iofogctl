@@ -118,13 +118,20 @@ func TestDelete(t *testing.T) {
 func TestReadingNamespaces(t *testing.T) {
 	// Test all namespace queries
 	namespaces := GetNamespaces()
-	if len(namespaces) != 3 {
+	if len(namespaces) != 4 {
 		t.Errorf("Incorrect number of namespaces: %d", len(namespaces))
 	}
-	expectedNamespaceNames := [3]string{"first", "second", "default"}
-	for idx, nsName := range expectedNamespaceNames {
-		if namespaces[idx] != nsName {
-			t.Errorf("Namespaces %d incorrect. Expected: %s, Found: %s", idx, namespaces[idx], nsName)
+	expectedNamespaceNames := []string{"first", "second", "default", "_detached"}
+	for _, nsName := range expectedNamespaceNames {
+		found := false
+
+		for idx := range namespaces {
+			if namespaces[idx] == nsName {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("Could not find expected namespace " + nsName)
 		}
 
 		// Test single namespace queries

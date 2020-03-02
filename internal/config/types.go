@@ -162,14 +162,9 @@ type Namespace struct {
 	Created      string       `yaml:"created,omitempty"`
 }
 
-type DetachedResources struct {
-	Agents map[string]Agent `yaml:"agents,omitempty"`
-}
-
 // Configuration contains the unmarshalled configuration file
 type configuration struct {
-	DefaultNamespace  string            `yaml:"defaultNamespace"`
-	DetachedResources DetachedResources `yaml:"detachedResources,omitempty"`
+	DefaultNamespace string `yaml:"defaultNamespace"`
 }
 
 type iofogctlConfig struct {

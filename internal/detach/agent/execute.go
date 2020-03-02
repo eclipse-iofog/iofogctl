@@ -78,7 +78,9 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 
 	// Try to detach from config
 	// Ignore error, because only error is not found.
-	config.DetachAgent(exe.namespace, exe.name)
+	if err = config.DetachAgent(exe.namespace, exe.name); err != nil {
+		return err
+	}
 
 	return config.Flush()
 }

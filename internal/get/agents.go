@@ -54,10 +54,13 @@ func (exe *agentExecutor) Execute() error {
 }
 
 func generateDetachedAgentOutput() error {
-	detachedResources := config.GetDetachedResources()
+	detachedAgents, err := config.GetDetachedAgents()
+	if err != nil {
+		return err
+	}
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
-	for _, agent := range detachedResources.Agents {
+	for _, agent := range detachedAgents {
 		agentsToPrint[agent.Name] = client.AgentInfo{
 			Name:              agent.Name,
 			IPAddressExternal: agent.Host,
