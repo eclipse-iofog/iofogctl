@@ -37,13 +37,6 @@ kind: ControlPlane
 metadata:
   name: func-controlplane
 spec:
-  database:
-    provider: $DB_PROVIDER
-    user: $DB_USER
-    host: $DB_HOST
-    port: $DB_PORT
-    password: $DB_PW
-    databaseName: $DB_NAME
   iofogUser:
     name: Testing
     surname: Functional
