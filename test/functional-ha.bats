@@ -112,7 +112,18 @@ spec:
   initAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
+  # Wait for router microservice
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  for IDX in "${!AGENTS[@]}"; do
+    # Wait for router microservice
+    waitForSystemMsvc "quay.io/interconnectedcloud/qdrouterd:latest" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
+  done
 }
+
+# LOAD: test/common-k8s.bats
 
 @test "Delete Agents" {
   initAgents

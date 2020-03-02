@@ -3,6 +3,8 @@ reports/*
 
 .idea/
 
+test/tmp.bats
+
 test.txt
 test-report.xml
 
