@@ -83,7 +83,7 @@ spec:
   done
 }
 
-. common-k8s.bats
+. test/common-k8s.bats
 
 @test "Delete Agents" {
   initAgents
