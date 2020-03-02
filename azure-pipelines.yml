@@ -493,6 +493,7 @@ stages:
     - script: |
         gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
       displayName: 'Connect to cluster'
+    - template: templates/configure-remote-tests.yaml
     - script: |
         sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
         sed -i "s|DB_USER=.*|DB_USER=\"$(db.user)\"|g" test/env.sh
@@ -501,8 +502,9 @@ stages:
         sed -i "s|DB_PW=.*|DB_PW=\"$(db.pw)\"|g" test/env.sh
         sed -i "s|DB_NAME=.*|DB_NAME=\"iofog$(jobuuid)\"|g" test/env.sh
         sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(enterprise_image)\"|g" test/env.sh
+        cp test/env.sh test/conf
+        cat test/conf/env.sh
       displayName: 'Set up Postgres on K8s cluster'
-    - template: templates/configure-remote-tests.yaml
     - template: templates/install-test-deps.yaml
     - script: |
         set -o pipefail
