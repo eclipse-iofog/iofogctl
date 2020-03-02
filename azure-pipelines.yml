@@ -511,6 +511,10 @@ stages:
         test/run.bash functional-ha | tee test/conf/results-functional-ha.tap
       displayName: 'Run Functional Tests'
     - script: |
+        set -o pipefail
+        test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
+      displayName: 'Run K8s Functional Tests With PG database'
+    - script: |
         tap-junit -i test/conf/results-functional-ha.tap -o test/conf -s HA -n results-functional-ha.xml || true
       displayName: 'Convert test output from TAP to JUnit'
       condition: succeededOrFailed()
