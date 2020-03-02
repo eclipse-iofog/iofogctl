@@ -94,41 +94,58 @@ spec:
   checkAgentsNegative
 }
 
-@test "Deploy Controller for idempotence" {
-  echo "---
-apiVersion: iofog.org/v1
-kind: ControlPlane
-metadata:
-  name: func-controlplane
-spec:
-  iofogUser:
-    name: Testing
-    surname: Functional
-    email: $USER_EMAIL
-    password: $USER_PW
-  controllers:
-  - name: $NAME
-    container:
-      image: $CONTROLLER_IMAGE
-    kube:
-      config: $KUBE_CONFIG
-      images:
-        operator: $OPERATOR_IMAGE
-        portManager: $PORT_MANAGER
-        proxy: $PROXY_IMAGE
-        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
-
-  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  checkController
-}
-
-@test "Delete all" {
-  iofogctl -v -n "$NS" delete all
-  checkControllerNegative
-  checkAgentsNegative
-}
-
-@test "Delete namespace" {
-  iofogctl delete namespace "$NS"
-  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
-}
+#@test "Attach agent" {
+#  local AGENT_NAME="${NAME}-0"
+#  iofogctl -v attach agent "$AGENT_NAME"
+#  checkAgent "$AGENT_NAME"
+#  checkDetachedAgentNegative "$AGENT_NAME"
+#}
+#
+#@test "Delete Agents" {
+#  initAgents
+#  for IDX in "${!AGENTS[@]}"; do
+#    local AGENT_NAME="${NAME}-${IDX}"
+#    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+#  done
+#  checkAgentsNegative
+#}
+#
+#@test "Deploy Controller for idempotence" {
+#  echo "---
+#apiVersion: iofog.org/v1
+#kind: ControlPlane
+#metadata:
+#  name: func-controlplane
+#spec:
+#  iofogUser:
+#    name: Testing
+#    surname: Functional
+#    email: $USER_EMAIL
+#    password: $USER_PW
+#  controllers:
+#  - name: $NAME
+#    container:
+#      image: $CONTROLLER_IMAGE
+#    kube:
+#      config: $KUBE_CONFIG
+#      images:
+#        operator: $OPERATOR_IMAGE
+#        portManager: $PORT_MANAGER
+#        proxy: $PROXY_IMAGE
+#        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+#
+#  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+#  checkController
+#}
+#
+#@test "Delete all" {
+#  iofogctl -v -n "$NS" delete all
+#  checkControllerNegative
+#  checkAgentsNegative
+#}
+#
+#@test "Delete namespace" {
+#  iofogctl delete namespace "$NS"
+#  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+#}
+#

@@ -14,6 +14,8 @@
 package detachagent
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/internal"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
@@ -35,6 +37,15 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Detaching Agent")
+
+	// Check doesn't already exist with same name
+	if _, err := config.GetDetachedAgent(exe.name); err == nil {
+		msg := `An Agent with the name '%s' is already detached. Rename one of the Agents and try to detach again:
+iofogctl rename agent %s %s-2 -n %s
+iofogctl rename agent %s %s-2 -n %s --detached`
+		return util.NewConflictError(fmt.Sprintf(msg, exe.name, exe.name, exe.name, exe.namespace, exe.name, exe.name, exe.namespace))
+	}
+
 	agent, err := config.GetAgent(exe.namespace, exe.name)
 	if err == nil {
 		// Deprovision agent
