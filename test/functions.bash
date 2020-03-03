@@ -614,7 +614,13 @@ function hitMsvcEndpoint() {
   done
   [ $SUCC -eq 0 ]
 
-  COUNT=$(curl -s --max-time 120 http://${IP}:5000/api/raw | jq '. | length')
+  ITER=0
+  COUNT=0
+  while [ $COUNT -eq 0 ] && [ $ITER -lt 6 ]; do
+    sleep 10
+    COUNT=$(curl -s --max-time 120 http://${IP}:5000/api/raw | jq '. | length')
+    ITER=$((ITER+1))
+  done
   [ $COUNT -gt 0 ]
 }
 
