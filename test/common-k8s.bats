@@ -62,8 +62,8 @@
   initApplicationFiles
   iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
-  waitForMsvc func-app-server "$NS"
-  waitForMsvc func-app-ui "$NS"
+  waitForMsvc "$MSVC1_NAME" "$NS"
+  waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
 @test "Test Public Ports w/ Microservices on same Agent" {

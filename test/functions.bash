@@ -573,10 +573,10 @@ function waitForMsvc() {
   ITER=0
   MS=$1
   NS=$2
-  [ -z $3  ] && STATE="RUNNING" || STATE="$3" && echo $STATE
+  [ -z $3 ] && STATE="RUNNING" || STATE="$3" && echo $STATE
 
-  while [ -z $(iofogctl -n $NS get microservices | grep $MS | grep "$STATE") ] ; do
-      ITER=$((ITER+1))
+  while [ -z "$(iofogctl -n $NS get microservices | grep $MS | grep $STATE)" ] ; do
+      ((ITER++))
       # Allow for 300 sec so that the agent can pull the image
       if [ "$ITER" -gt 300 ]; then
           echo "Timed out. Waited $ITER seconds for $MS to be $STATE"
