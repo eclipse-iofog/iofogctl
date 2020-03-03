@@ -44,6 +44,7 @@ const (
 	configV2             = "iofogctl/v2"
 	configV1             = "iofogctl/v1"
 	CurrentConfigVersion = configV2
+	detachedNamespace    = "_detached"
 )
 
 func updateConfigToK8sStyle() error {
@@ -153,14 +154,17 @@ func Init(configFolderArg string) {
 	util.Check(err)
 
 	// Check namespace dir exists
-	namespaceFilename := getNamespaceFile("default")
-	if _, err := os.Stat(namespaceFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(namespaceDirectory, 0755)
-		util.Check(err)
+	initNamespaces := []string{"default", detachedNamespace}
+	for _, initNamespace := range initNamespaces {
+		nsFile := getNamespaceFile(initNamespace)
+		if _, err := os.Stat(nsFile); os.IsNotExist(err) {
+			err = os.MkdirAll(namespaceDirectory, 0755)
+			util.Check(err)
 
-		// Create default namespace file
-		if err = AddNamespace("default", util.NowUTC()); err != nil {
-			util.Check(errors.New("Could not initialize default namespace configuration"))
+			// Create default namespace file
+			if err = AddNamespace(initNamespace, util.NowUTC()); err != nil {
+				util.Check(errors.New("Could not initialize " + initNamespace + " configuration"))
+			}
 		}
 	}
 }
@@ -599,9 +603,6 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	if err = yaml.UnmarshalStrict(bytes, &c); err != nil {
 		return
 	}
-	if c.DetachedResources.Agents == nil {
-		c.DetachedResources.Agents = make(map[string]Agent)
-	}
 	return
 }
 
@@ -691,12 +692,12 @@ func NewRandomUser() IofogUser {
 	}
 }
 
-func GetDetachedAgent(name string) (Agent, error) {
-	if agent, found := conf.DetachedResources.Agents[name]; found {
-		return agent, nil
-	}
+func GetDetachedAgents() ([]Agent, error) {
+	return GetAgents(detachedNamespace)
+}
 
-	return Agent{}, util.NewNotFoundError(name)
+func GetDetachedAgent(name string) (Agent, error) {
+	return GetAgent(detachedNamespace, name)
 }
 
 func AttachAgent(namespace, name, UUID string) error {
@@ -704,8 +705,7 @@ func AttachAgent(namespace, name, UUID string) error {
 	if err != nil {
 		return err
 	}
-	delete(conf.DetachedResources.Agents, name)
-	if err = FlushConfig(); err != nil {
+	if err := DeleteAgent(detachedNamespace, name); err != nil {
 		return err
 	}
 	agent.UUID = UUID
@@ -713,27 +713,15 @@ func AttachAgent(namespace, name, UUID string) error {
 }
 
 func DetachAgent(namespace, name string) error {
-	ns, err := getNamespace(namespace)
+	agent, err := GetAgent(namespace, name)
 	if err != nil {
 		return err
 	}
-	for idx := range ns.Agents {
-		if ns.Agents[idx].Name == name {
-			mux.Lock()
-			detachedAgent := ns.Agents[idx]
-			detachedAgent.UUID = ""
-			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
-			conf.DetachedResources.Agents[detachedAgent.Name] = detachedAgent
-			mux.Unlock()
-			return FlushConfig()
-		}
+	agent.UUID = ""
+	if err := AddAgent(detachedNamespace, agent); err != nil {
+		return err
 	}
-
-	return util.NewNotFoundError(ns.Name + "/" + name)
-}
-
-func GetDetachedResources() DetachedResources {
-	return conf.DetachedResources
+	return DeleteAgent(namespace, name)
 }
 
 func RenameDetachedAgent(oldName, newName string) error {
@@ -741,32 +729,17 @@ func RenameDetachedAgent(oldName, newName string) error {
 	if err != nil {
 		return err
 	}
-	agent.Name = newName
-	delete(conf.DetachedResources.Agents, oldName)
-	conf.DetachedResources.Agents[newName] = agent
-	return FlushConfig()
-}
-
-func DeleteDetachedResources() error {
-	conf.DetachedResources = DetachedResources{
-		Agents: make(map[string]Agent),
+	if err = DeleteDetachedAgent(oldName); err != nil {
+		return err
 	}
-
-	return FlushConfig()
+	agent.Name = newName
+	return AddAgent(detachedNamespace, agent)
 }
 
 func DeleteDetachedAgent(name string) error {
-	if _, err := GetDetachedAgent(name); err != nil {
-		return err
-	}
-	delete(conf.DetachedResources.Agents, name)
-	return FlushConfig()
+	return DeleteAgent(detachedNamespace, name)
 }
 
 func UpdateDetachedAgent(agent Agent) error {
-	if _, err := GetDetachedAgent(agent.Name); err != nil {
-		return err
-	}
-	conf.DetachedResources.Agents[agent.Name] = agent
-	return FlushConfig()
+	return UpdateAgent(detachedNamespace, agent)
 }

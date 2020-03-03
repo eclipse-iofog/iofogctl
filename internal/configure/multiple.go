@@ -60,10 +60,7 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 	var agents []config.Agent
 	var err error
 	if exe.opt.UseDetached {
-		agentsMap := config.GetDetachedResources().Agents
-		for _, agent := range agentsMap {
-			agents = append(agents, agent)
-		}
+		agents, err = config.GetDetachedAgents()
 	} else {
 		agents, err = config.GetAgents(exe.opt.Namespace)
 	}

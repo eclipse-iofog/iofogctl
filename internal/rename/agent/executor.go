@@ -27,7 +27,10 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 	util.SpinStart(fmt.Sprintf("Renaming Agent %s", name))
 
 	if useDetached {
-		return config.RenameDetachedAgent(name, newName)
+		if err := config.RenameDetachedAgent(name, newName); err != nil {
+			return err
+		}
+		return config.Flush()
 	}
 
 	// Get config
@@ -58,7 +61,6 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 	if err != nil {
 		return err
 	}
-	config.Flush()
 
-	return err
+	return config.Flush()
 }
