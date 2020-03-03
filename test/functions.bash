@@ -602,6 +602,19 @@ function waitForSvc() {
   echo "$EXT_IP"
 }
 
+function hitMsvcEndpoint() {
+  IP="$1"
+  ITER=0
+  COUNT=0
+  while [ $COUNT -eq 0 ] && [ $ITER -lt 6 ]; do
+    sleep 10
+    COUNT=$(curl -s --max-time 120 http://${IP}:5000/api/raw | jq '. | length')
+    ITER=$((ITER+1))
+  done
+  [ $COUNT -gt 0 ]
+  [ $ITER -lt 6 ]
+}
+
 function checkVanillaResourceDeleted() {
   USER=$1
   HOST=$2

@@ -163,12 +163,9 @@ spec:
   fi
   # Wait for proxy microservice
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
-  # Wait for public port to be up
-  sleep 60
-  EXT_IP=$VANILLA_HOST
   # Hit the endpoint
-  COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
-  [ $COUNT -gt 0 ]
+  EXT_IP=$VANILLA_HOST
+  hitMsvcEndpoint "$EXT_IP"
 }
 
 @test "Move microservice to another agent" {
@@ -187,12 +184,9 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
-  # Wait for public port to be up
-  sleep 60
-  EXT_IP=$VANILLA_HOST
   # Hit the endpoint
-  COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
-  [ $COUNT -gt 0 ]
+  EXT_IP=$VANILLA_HOST
+  hitMsvcEndpoint "$EXT_IP"
 }
 
 @test "Connect in another namespace using file" {

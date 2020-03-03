@@ -73,13 +73,10 @@
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
-  # Wait for public port to be up
-  sleep 60
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Hit the endpoint
-  COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
-  [ $COUNT -gt 0 ]
+  hitMsvcEndpoint "$EXT_IP"
 }
 
 @test "Move microservice to another agent" {
@@ -95,13 +92,9 @@
 }
 
 @test "Test Public Ports w/ Microservice on different Agents" {
-  # Wait for public port to be up
-  sleep 60
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
-  # Hit the endpoint
-  COUNT=$(curl -s --max-time 120 http://${EXT_IP}:5000/api/raw | jq '. | length')
-  [ $COUNT -gt 0 ]
+  hitMsvcEndpoint "$EXT_IP"
 }
 
 @test "Change Microservice Ports" {
