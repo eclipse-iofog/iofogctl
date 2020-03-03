@@ -75,9 +75,9 @@ func (exe *applicationExecutor) execute() (err error) {
 
 func (exe *applicationExecutor) init() (err error) {
 	if exe.controller.Token != "" {
-		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
+		exe.client, err = client.NewWithToken(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.NewAndLogin(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return

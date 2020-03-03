@@ -121,7 +121,7 @@ func (exe controlPlaneExecutor) Execute() (err error) {
 		return err
 	}
 	// Create new user
-	exe.ctrlClient = client.New(endpoint)
+	exe.ctrlClient = client.New(client.Options{Endpoint: endpoint})
 	if err = exe.ctrlClient.CreateUser(client.User(exe.controlPlane.IofogUser)); err != nil {
 		// If not error about account existing, fail
 		if !strings.Contains(err.Error(), "already an account associated") {

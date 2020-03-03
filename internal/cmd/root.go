@@ -100,6 +100,11 @@ var httpVerbose bool
 
 // Callback for cobra on initialization
 func initialize() {
+	client.SetGlobalRetries(client.Retries{
+		CustomMessage: map[string]int{
+			"dial tcp": 10,
+		},
+	})
 	client.SetVerbosity(httpVerbose)
 	install.SetVerbosity(verbose)
 	util.SpinEnable(!verbose && !httpVerbose)

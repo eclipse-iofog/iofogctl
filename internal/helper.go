@@ -38,7 +38,7 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	// If we are already authenticated, use existing client
 	clt, ok := clientByNamespace[namespace]
 	if !ok {
-		clt, err = client.NewAndLogin(endpoint, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+		clt, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
 		if err != nil {
 			return
 		}

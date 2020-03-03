@@ -245,7 +245,7 @@ func (ctrl *Controller) Stop() (err error) {
 }
 
 func WaitForControllerAPI(endpoint string) (err error) {
-	ctrlClient := client.New(endpoint)
+	ctrlClient := client.New(client.Options{Endpoint: endpoint})
 
 	seconds := 0
 	for seconds < 60 {

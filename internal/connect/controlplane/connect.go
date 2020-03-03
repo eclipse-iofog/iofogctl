@@ -20,7 +20,7 @@ import (
 
 func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 	// Connect to Controller
-	ctrl, err := client.NewAndLogin(endpoint, ctrlPlane.IofogUser.Email, ctrlPlane.IofogUser.Password)
+	ctrl, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, ctrlPlane.IofogUser.Email, ctrlPlane.IofogUser.Password)
 	if err != nil {
 		return err
 	}

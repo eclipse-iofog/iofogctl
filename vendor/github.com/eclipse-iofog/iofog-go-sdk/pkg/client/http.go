@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func httpDo(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
@@ -54,7 +55,10 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 	}
 
 	// Perform request
-	client := http.Client{}
+	client := &http.Client{
+		Timeout: time.Second * 120,
+	}
+
 	httpResp, err := client.Do(request)
 	if err != nil {
 		return
