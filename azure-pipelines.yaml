@@ -19,12 +19,12 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.0-alpha'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.0-alpha'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.0-alpha'
-  operator_image: 'gcr.io/focal-freedom-236620/operator:2.0.0-alpha'
-  iofog_agent_version: '2.0.0-alpha'
-  controller_version: '2.0.0-alpha'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:develop'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
+  iofog_agent_version: 'develop'
+  controller_version: 'develop'
   version:
   agent_vm_list:
   controller_vm:
