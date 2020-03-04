@@ -618,11 +618,13 @@ function hitMsvcEndpoint() {
   COUNT=0
   while [ $COUNT -eq 0 ] && [ $ITER -lt 12 ]; do
     sleep 10
-    RET=$(curl -s --max-time 120 http://${IP}:5000/api/raw)
+    run RET=$(curl -s --max-time 120 http://${IP}:5000/api/raw)
     echo "$RET"
-    run echo "$RET" | jq '. | length'
     if [ $status -eq 0 ]; then
-      COUNT=$(echo "$RET" | jq '. | length')
+      run echo "$RET" | jq '. | length'
+      if [ $status -eq 0 ]; then
+        COUNT=$(echo "$RET" | jq '. | length')
+      fi
     fi
     ITER=$((ITER+1))
   done
