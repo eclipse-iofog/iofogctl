@@ -1,0 +1,20 @@
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: windows
+      downloadPath: $(System.DefaultWorkingDirectory)
+  - template: init-gcloud-steps.yaml
+  - template: version-steps.yaml
+  - template: ssh-steps.yaml
+  - script: |
+      . version
+      DIR="$(gcp.bucket.win)/$MAJOR.$MINOR"
+      gsutil cp windows/iofogctl gs://$DIR/iofogctl.exe
+      gsutil acl set public-read  gs://$DIR/iofogctl.exe
+    displayName: 'Publish Windows binary'
+ 

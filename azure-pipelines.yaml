@@ -1,0 +1,81 @@
+trigger:
+  tags:
+    include:
+      - v*
+  branches:
+    include:
+      - develop
+      - release/*
+  paths:
+    exclude:
+      - README.md
+      - docs/
+
+variables:
+  build: $(Build.BuildId)
+  jobuuid: $(Build.BuildId)$(Agent.Id)
+  GOROOT: '/usr/local/go1.12'
+  GOPATH: '/tmp/go'
+  GOBIN:  '$(GOPATH)/bin'
+  ref: $(Build.SourceBranch)
+  branch: $(Build.SourceBranchName)
+  controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.0-alpha'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.0-alpha'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.0-alpha'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:2.0.0-alpha'
+  iofog_agent_version: '2.0.0-alpha'
+  controller_version: '2.0.0-alpha'
+  version:
+  agent_vm_list:
+  controller_vm:
+  windows_ssh_key_path: 'C:/Users/$(azure.windows.user)/.ssh'
+  ssh_key_file: 'id_rsa'
+  windows_kube_config_path: 'C:/Users/$(azure.windows.user)/.kube/config'
+  bash_kube_config_path: '/root/.kube/config'
+
+stages:
+
+- stage: Build
+  jobs:
+  - template: templates/build-job.yaml
+    parameters:
+      os: linux
+  - template: templates/build-job.yaml
+    parameters:
+      os: darwin
+  - template: templates/build-job.yaml
+    parameters:
+      os: windows
+    
+- stage: Test
+  jobs:
+  - template: templates/win-k8s-job.yaml
+  - template: templates/win-vanilla-job.yaml
+  - template: templates/win-local-job.yaml
+  - template: templates/local-job.yaml
+  - template: templates/k8s-job.yaml
+  - template: templates/ha-job.yaml
+  - template: templates/vanilla-job.yaml
+    parameters:
+      job_name: Vanilla_Bionic
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.bionic)
+      repo: $(gcp.vm.repo.ubuntu)
+      agent_count: 2
+      controller_count: 1
+  - template: templates/vanilla-job.yaml
+    parameters:
+      job_name: Vanilla_Buster
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.buster)
+      repo: $(gcp.vm.repo.debian)
+      agent_count: 2
+      controller_count: 1
+
+- stage: Publish
+  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+  jobs:
+  - template: templates/publish-osx-job.yaml
+  - template: templates/publish-debian-job.yaml
+  - template: templates/publish-rpm-job.yaml
+  - template: templates/publish-win-job.yaml

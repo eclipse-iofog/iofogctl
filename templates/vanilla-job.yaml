@@ -1,0 +1,20 @@
+parameters:
+  job_name: ''
+  id: ''
+  distro: ''
+  repo: ''
+  agent_count: 1
+  controller_count: 1
+
+jobs:
+- job: ${{ parameters.job_name }}
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+    - template: vanilla-steps.yaml
+      parameters:
+        id: $(jobuuid)
+        distro: $(gcp.vm.distro.xenial)
+        repo: $(gcp.vm.repo.ubuntu)
+        agent_count: 2
+        controller_count: 1
