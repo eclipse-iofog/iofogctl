@@ -23,8 +23,8 @@ variables:
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
-  iofog_agent_version: 'develop'
-  controller_version: 'develop'
+  iofog_agent_version: '0.0.0-dev'
+  controller_version: '0.0.0-dev'
   version:
   agent_vm_list:
   controller_vm:
