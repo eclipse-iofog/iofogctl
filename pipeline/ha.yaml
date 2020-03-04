@@ -38,10 +38,10 @@ jobs:
   - template: steps/install-test-deps.yaml
   - script: |
       set -o pipefail
-      test/run.bash functional-ha | tee test/conf/results-functional-ha.tap
+      test/run.bash ha | tee test/conf/results-ha.tap
     displayName: 'Run Functional Tests'
   - script: |
-      tap-junit -i test/conf/results-functional-ha.tap -o test/conf -s HA -n results-functional-ha.xml || true
+      tap-junit -i test/conf/results-ha.tap -o test/conf -s HA -n results-ha.xml || true
     displayName: 'Convert test output from TAP to JUnit'
     condition: succeededOrFailed()
   - script: |

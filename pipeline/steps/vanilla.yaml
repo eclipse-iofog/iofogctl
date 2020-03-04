@@ -30,10 +30,10 @@ steps:
   displayName: 'Run Smoke Tests'
 - script: |
     set -o pipefail
-    test/run.bash functional-vanilla | tee test/conf/results-functional-vanilla.tap
+    test/run.bash vanilla | tee test/conf/results-vanilla.tap
   displayName: 'Run Functional Tests'
 - script: |
-    tap-junit -i test/conf/results-functional-vanilla.tap -o test/conf -s Vanilla -n results-functional-vanilla.xml || true
+    tap-junit -i test/conf/results-vanilla.tap -o test/conf -s Vanilla -n results-vanilla.xml || true
   displayName: 'Convert test output from TAP to JUnit'
   condition: succeededOrFailed()
 - template: functional-post-test.yaml

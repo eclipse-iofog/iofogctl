@@ -27,8 +27,8 @@ function preprocess() {
 
 # Run tests
 for TEST in "$@"; do
-    TEST_FILE="test/tmp.bats"
-    cp "test/$TEST.bats" $TEST_FILE
+    TEST_FILE="/tmp/tmp.bats"
+    cp "test/bats/$TEST.bats" $TEST_FILE
     preprocess $TEST_FILE
     bats $TEST_FILE
 done

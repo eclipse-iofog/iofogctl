@@ -25,10 +25,10 @@ jobs:
     displayName: 'Run Smoke Tests'
   - script: |
       set -o pipefail
-      test/run.bash functional-local | tee test/conf/results-functional-local.tap
+      test/run.bash local | tee test/conf/results-local.tap
     displayName: 'Run Functional Tests'
   - script: |
-      tap-junit -i test/conf/results-functional-local.tap -o test/conf -s Local -n results-functional-local.xml || true
+      tap-junit -i test/conf/results-local.tap -o test/conf -s Local -n results-local.xml || true
     displayName: 'Convert test output from TAP to JUnit'
     condition: succeededOrFailed()
   - template: steps/functional-post-test.yaml

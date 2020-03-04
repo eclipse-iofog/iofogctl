@@ -75,7 +75,7 @@ jobs:
       docker images
       export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
       echo $WSL_KEY_FILE
-      test/run.bash functional-local | tee test/conf/results-functional-local.tap
+      test/run.bash local | tee test/conf/results-local.tap
     displayName: 'Run Functional Tests'
   - script: |
       RD /S /Q "C:\Users\$(azure.windows.user)\.iofog\"

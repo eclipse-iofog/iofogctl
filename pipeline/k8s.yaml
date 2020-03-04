@@ -27,10 +27,10 @@ jobs:
   - template: steps/install-test-deps.yaml
   - script: |
       set -o pipefail
-      test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
+      test/run.bash k8s | tee test/conf/results-k8s.tap
     displayName: 'Run Functional Tests'
   - script: |
-      tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml || true
+      tap-junit -i test/conf/results-k8s.tap -o test/conf -s K8s -n results-k8s.xml || true
     displayName: 'Convert test output from TAP to JUnit'
     condition: succeededOrFailed()
   - script: |

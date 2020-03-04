@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-. test/functions.bash
-. test/functional.vars.bash
+. test/func/include.bash
 
 NS="$NAMESPACE"
 NS2="$NS"_2
