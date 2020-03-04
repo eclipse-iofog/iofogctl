@@ -95,7 +95,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: test-vanilla-steps.yaml
+  - template: vanilla-steps.yaml
     parameters:
       id: $(jobuuid)
       distro: $(gcp.vm.distro.xenial)
