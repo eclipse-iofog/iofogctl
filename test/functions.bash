@@ -605,22 +605,13 @@ function waitForSvc() {
 function hitMsvcEndpoint() {
   IP="$1"
   ITER=0
-  SUCC=1
-  while [ $SUCC -ne 0 ] && [ $ITER -lt 12 ]; do
-    sleep 10
-    run curl -s --max-time 120 http://${IP}:5000/api/raw
-    SUCC=$status
-    ITER=$((ITER+1))
-  done
-  [ $SUCC -eq 0 ]
-
-  ITER=0
   COUNT=0
   while [ $COUNT -eq 0 ] && [ $ITER -lt 12 ]; do
     sleep 10
-    run RET=$(curl -s --max-time 120 http://${IP}:5000/api/raw)
+    run curl -s --max-time 120 http://${IP}:5000/api/raw > /tmp/curl.txt
+    RET=$(cat /tmp/curl.txt)
     echo "$RET"
-    if [ $status -eq 0 ]; then
+    if [ $status -eq 0 ] && [ ! -z "$RET" ]; then
       run echo "$RET" | jq '. | length'
       if [ $status -eq 0 ]; then
         COUNT=$(echo "$RET" | jq '. | length')
