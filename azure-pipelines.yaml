@@ -19,12 +19,12 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:skupper'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:skupper'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:skupper'
-  operator_image: 'gcr.io/focal-freedom-236620/operator:skupper'
-  iofog_agent_version: '2.0.0-rc1-b6954'
-  controller_version: '2.0.0-skupper'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.0-alpha'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.0-alpha'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.0-alpha'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:2.0.0-alpha'
+  iofog_agent_version: '2.0.0-alpha'
+  controller_version: '2.0.0-alpha'
   version:
   agent_vm_list:
   controller_vm:
