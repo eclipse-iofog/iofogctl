@@ -47,10 +47,18 @@ const (
 	detachedNamespace    = "_detached"
 )
 
+type v1NamespaceSpecContent struct {
+	Name         string        `yaml:"name,omitempty"`
+	ControlPlane ControlPlane  `yaml:"controlPlane,omitempty"`
+	Agents       []Agent       `yaml:"agents,omitempty"`
+	Created      string        `yaml:"created,omitempty"`
+	Connectors   []interface{} `yaml:"connectors,omitempty"`
+}
+
 func updateConfigToK8sStyle() error {
 	// Previous config structure
 	type OldConfig struct {
-		Namespaces []Namespace `yaml:"namespaces"`
+		Namespaces []v1NamespaceSpecContent `yaml:"namespaces"`
 	}
 
 	// Get config files
@@ -80,7 +88,17 @@ func updateConfigToK8sStyle() error {
 	// Map old config to new config file system
 	for _, ns := range oldConfig.Namespaces {
 		// Write namespace config file
-		bytes, err := getNamespaceYAMLFile(&ns)
+		namespaceHeader := iofogctlNamespace{
+			Header{
+				Kind:       IofogctlNamespaceKind,
+				APIVersion: configV1,
+				Metadata: HeaderMetadata{
+					Name: ns.Name,
+				},
+				Spec: ns,
+			},
+		}
+		bytes, err := yaml.Marshal(namespaceHeader)
 		util.Check(err)
 		configFile := getNamespaceFile(ns.Name)
 		err = ioutil.WriteFile(configFile, bytes, 0644)
@@ -539,7 +557,7 @@ func FlushConfig() (err error) {
 }
 
 func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
-	type v1SpecContent struct {
+	type v1NamespaceSpecContent struct {
 		Name         string        `yaml:"name,omitempty"`
 		ControlPlane ControlPlane  `yaml:"controlPlane,omitempty"`
 		Agents       []Agent       `yaml:"agents,omitempty"`
@@ -548,7 +566,7 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 	}
 	header.APIVersion = configV2
 	bytes, err := yaml.Marshal(header.Spec)
-	v1Spec := v1SpecContent{}
+	v1Spec := v1NamespaceSpecContent{}
 	if err != nil {
 		return header, err
 	}
