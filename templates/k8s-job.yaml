@@ -1,0 +1,45 @@
+jobs:
+- job: K8s
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: linux
+      downloadPath: $(System.DefaultWorkingDirectory)
+  - script: |
+      sudo cp linux/iofogctl /usr/local/bin/
+      sudo chmod 0755 /usr/local/bin/iofogctl
+  - template: postinstall-steps.yaml
+  - template: ssh-steps.yaml
+  - template: functional-init-vm-steps.yaml
+    parameters:
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.stretch)
+      repo: $(gcp.vm.repo.debian)
+      agent_count: 2
+      controller_count: 0
+  - script: |
+      gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
+    displayName: 'Connect to cluster'
+  - template: configure-remote-tests.yaml
+  - template: install-test-deps.yaml
+  - script: |
+      set -o pipefail
+      test/run.bash functional-k8s | tee test/conf/results-functional-k8s.tap
+    displayName: 'Run Functional Tests'
+  - script: |
+      tap-junit -i test/conf/results-functional-k8s.tap -o test/conf -s K8s -n results-functional-k8s.xml || true
+    displayName: 'Convert test output from TAP to JUnit'
+    condition: succeededOrFailed()
+  - script: |
+        test/clean.bash $(jobuuid)
+    displayName: 'Clean K8s Cluster'
+    condition: always()
+  - template: functional-post-test.yaml
+  - template: functional-clean-vm.yaml
+    parameters:
+      id: $(jobuuid)
+      agent_count: 2
+      controller_count: 0
