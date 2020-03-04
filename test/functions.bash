@@ -361,6 +361,7 @@ function checkMsvcConfig() {
 
 function checkApplication() {
   NS_CHECK=${1:-$NS}
+  iofogctl -v -n "$NS_CHECK" get applications
   [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
   [[ "$MSVC1_NAME," == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $3}') ]]
