@@ -606,7 +606,7 @@ function hitMsvcEndpoint() {
   IP="$1"
   ITER=0
   SUCC=1
-  while [ $SUCC -ne 0 ] && [ $ITER -lt 6 ]; do
+  while [ $SUCC -ne 0 ] && [ $ITER -lt 12 ]; do
     sleep 10
     run curl -s --max-time 120 http://${IP}:5000/api/raw
     SUCC=$status
@@ -616,11 +616,14 @@ function hitMsvcEndpoint() {
 
   ITER=0
   COUNT=0
-  while [ $COUNT -eq 0 ] && [ $ITER -lt 6 ]; do
+  while [ $COUNT -eq 0 ] && [ $ITER -lt 12 ]; do
     sleep 10
     RET=$(curl -s --max-time 120 http://${IP}:5000/api/raw)
     echo "$RET"
-    COUNT=$(echo "$RET" | jq '. | length')
+    run echo "$RET" | jq '. | length'
+    if [ $status -eq 0 ]; then
+      COUNT=$(echo "$RET" | jq '. | length')
+    fi
     ITER=$((ITER+1))
   done
   [ $COUNT -gt 0 ]
