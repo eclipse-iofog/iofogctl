@@ -11,8 +11,8 @@ jobs:
   - script: |
       sudo cp linux/iofogctl /usr/local/bin/
       sudo chmod 0755 /usr/local/bin/iofogctl
-  - template: version-steps.yaml
-  - template: publish-deps.yaml
+  - template: steps/version.yaml
+  - template: steps/publish-deps.yaml
   - script: |
       fpm -f -s dir -t deb -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
       package=$(ls | grep *.deb)

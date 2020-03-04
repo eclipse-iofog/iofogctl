@@ -8,9 +8,9 @@ jobs:
     inputs:
       artifactName: windows
       downloadPath: $(System.DefaultWorkingDirectory)
-  - template: init-gcloud-steps.yaml
-  - template: version-steps.yaml
-  - template: ssh-steps.yaml
+  - template: steps/init-gcloud-steps.yaml
+  - template: steps/version.yaml
+  - template: steps/init-ssh.yaml
   - script: |
       . version
       DIR="$(gcp.bucket.win)/$MAJOR.$MINOR"

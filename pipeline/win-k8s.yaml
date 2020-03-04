@@ -35,8 +35,8 @@ jobs:
         done
       done
     displayName: 'Format test files'
-  - template: ssh-steps.yaml
-  - template: functional-init-vm-steps.yaml
+  - template: steps/init-ssh.yaml
+  - template: steps/init-vms.yaml
     parameters:
       id: wink8s$(build)
       distro: $(gcp.vm.distro.stretch)
@@ -44,7 +44,7 @@ jobs:
       agent_count: 2
       controller_count: 0
       windows: 'true'
-  - template: configure-remote-tests.yaml
+  - template: steps/configure-remote-tests.yaml
     parameters:
       windows: 'true'
   - task: DownloadSecureFile@1
@@ -97,8 +97,8 @@ jobs:
         test/clean.bash $(jobuuid)
     displayName: 'Clean K8s Cluster'
     condition: always()
-  - template: functional-post-test.yaml
-  - template: functional-clean-vm.yaml
+  - template: steps/functional-post-test.yaml
+  - template: steps/functional-clean-vm.yaml
     parameters:
       id: wink8s$(build)
       agent_count: 2

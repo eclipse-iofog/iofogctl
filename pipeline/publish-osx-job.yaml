@@ -8,9 +8,9 @@ jobs:
     inputs:
       artifactName: darwin
       downloadPath: $(System.DefaultWorkingDirectory)
-  - template: init-gcloud-steps.yaml
-  - template: version-steps.yaml
-  - template: ssh-steps.yaml
+  - template: steps/init-gcloud-steps.yaml
+  - template: steps/version.yaml
+  - template: steps/init-ssh.yaml
   - script: |
       . version
       short_version=$MAJOR.$MINOR
@@ -24,7 +24,7 @@ jobs:
       cd homebrew-iofogctl
       brew_file=iofogctl@$MAJOR.$MINOR.rb
       if [ ! -f $brew_file ]; then
-        cat ../brew.tpl > $brew_file
+        cat ../pipeline/brew.tpl > $brew_file
         sed -i "s/<AT_VERSION>/$MAJOR$MINOR/g" $brew_file
         sed -i "s/<DEV_SHA256>/$checksum/g" $brew_file
         sed -i "s/<URL>/$(gcp.bucket.url)/g" $brew_file

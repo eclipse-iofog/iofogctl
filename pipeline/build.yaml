@@ -6,8 +6,8 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: prebuild-steps.yaml
-  - template: version-steps.yaml
+  - template: steps/prebuild.yaml
+  - template: steps/version.yaml
   - script: |
       . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
       GOARCH=amd64 GOOS=${{ parameters.os }} make build

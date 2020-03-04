@@ -40,7 +40,7 @@ jobs:
         usermod -aG docker $USER
       fi
     displayName: Install docker if necessary
-  - template: init-gcloud-steps.yaml
+  - template: steps/init-gcloud-steps.yaml
     parameters:
       windows: "true"
   - bash: |
@@ -54,7 +54,7 @@ jobs:
       docker "pull" "$(agent_image)"
     displayName: 'Pull develop gcr docker image'
     failOnStderr: false
-  - template: configure-remote-tests.yaml
+  - template: steps/configure-remote-tests.yaml
   - bash: |
       tempBashPath=$(wslpath "$(Agent.TempDirectory)")
       cd $tempBashPath
@@ -95,7 +95,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: vanilla-steps.yaml
+  - template: steps/vanilla.yaml
     parameters:
       id: $(jobuuid)
       distro: $(gcp.vm.distro.xenial)
