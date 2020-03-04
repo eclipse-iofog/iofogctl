@@ -5,8 +5,8 @@ jobs:
   - bash: |
       rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
     displayName: 'Clean up Windows env'
-  - template: ssh-steps.yaml
-  - template: functional-init-vm-steps.yaml
+  - template: steps/init-ssh.yaml
+  - template: steps/init-vms.yaml
     parameters:
       id: win$(build)
       distro: $(gcp.vm.distro.stretch)
@@ -14,7 +14,7 @@ jobs:
       agent_count: 2
       controller_count: 1
       windows: "true"
-  - template: configure-remote-tests.yaml
+  - template: steps/configure-remote-tests.yaml
     parameters:
       windows: 'true'
   - task: DownloadSecureFile@1
@@ -80,7 +80,7 @@ jobs:
       echo $WSL_KEY_FILE
       test/run.bash functional-vanilla
     displayName: 'Run Functional Tests'
-  - template: functional-clean-vm.yaml
+  - template: steps/functional-clean-vm.yaml
     parameters:
       id: win$(build)
       agent_count: 2

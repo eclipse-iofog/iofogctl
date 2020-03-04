@@ -11,9 +11,9 @@ jobs:
   - script: |
       sudo cp linux/iofogctl /usr/local/bin/
       sudo chmod 0755 /usr/local/bin/iofogctl
-  - template: postinstall-steps.yaml
-  - template: ssh-steps.yaml
-  - template: functional-init-vm-steps.yaml
+  - template: steps/postinstall.yaml
+  - template: steps/init-ssh.yaml
+  - template: steps/init-vms.yaml
     parameters:
       id: $(jobuuid)
       distro: $(gcp.vm.distro.buster)
@@ -23,7 +23,7 @@ jobs:
   - script: |
       gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
     displayName: 'Connect to cluster'
-  - template: configure-remote-tests.yaml
+  - template: steps/configure-remote-tests.yaml
   - script: |
       sed -i "s|DB_PROVIDER=.*|DB_PROVIDER=\"postgres\"|g" test/env.sh
       sed -i "s|DB_USER=.*|DB_USER=\"$(db.user)\"|g" test/env.sh
@@ -35,7 +35,7 @@ jobs:
       cp test/env.sh test/conf
       cat test/conf/env.sh
     displayName: 'Set up Postgres on K8s cluster'
-  - template: install-test-deps.yaml
+  - template: steps/install-test-deps.yaml
   - script: |
       set -o pipefail
       test/run.bash functional-ha | tee test/conf/results-functional-ha.tap
@@ -48,8 +48,8 @@ jobs:
         test/clean.bash $(jobuuid)
     displayName: 'Clean K8s Cluster'
     condition: always()
-  - template: functional-post-test.yaml
-  - template: functional-clean-vm.yaml
+  - template: steps/functional-post-test.yaml
+  - template: steps/functional-clean-vm.yaml
     parameters:
       id: $(jobuuid)
       agent_count: 2

@@ -14,9 +14,9 @@ steps:
 - script: |
     sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
     sudo chmod 0755 /usr/local/bin/iofogctl
-- template: postinstall-steps.yaml
-- template: ssh-steps.yaml
-- template: functional-init-vm-steps.yaml
+- template: postinstall.yaml
+- template: init-ssh.yaml
+- template: init-vms.yaml
   parameters:
     id: ${{ parameters.id }}
     distro: ${{ parameters.distro }}

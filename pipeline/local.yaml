@@ -3,7 +3,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: init-gcloud-steps.yaml
+  - template: steps/init-gcloud-steps.yaml
   - script: |
       gcloud --quiet auth configure-docker
       docker pull $(controller_image)
@@ -17,9 +17,9 @@ jobs:
   - script: |
       sudo cp linux/iofogctl /usr/local/bin/
       sudo chmod 0755 /usr/local/bin/iofogctl
-  - template: postinstall-steps.yaml
-  - template: configure-remote-tests.yaml
-  - template: install-test-deps.yaml
+  - template: steps/postinstall.yaml
+  - template: steps/configure-remote-tests.yaml
+  - template: steps/install-test-deps.yaml
   - script: |
       test/run.bash smoke
     displayName: 'Run Smoke Tests'
@@ -31,7 +31,7 @@ jobs:
       tap-junit -i test/conf/results-functional-local.tap -o test/conf -s Local -n results-functional-local.xml || true
     displayName: 'Convert test output from TAP to JUnit'
     condition: succeededOrFailed()
-  - template: functional-post-test.yaml
+  - template: steps/functional-post-test.yaml
   - script: |
       docker system prune -af
     condition: always()

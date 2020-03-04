@@ -37,25 +37,25 @@ stages:
 
 - stage: Build
   jobs:
-  - template: templates/build-job.yaml
+  - template: pipeline/build.yaml
     parameters:
       os: linux
-  - template: templates/build-job.yaml
+  - template: pipeline/build.yaml
     parameters:
       os: darwin
-  - template: templates/build-job.yaml
+  - template: pipeline/build.yaml
     parameters:
       os: windows
     
 - stage: Test
   jobs:
-  - template: templates/win-k8s-job.yaml
-  - template: templates/win-vanilla-job.yaml
-  - template: templates/win-local-job.yaml
-  - template: templates/local-job.yaml
-  - template: templates/k8s-job.yaml
-  - template: templates/ha-job.yaml
-  - template: templates/vanilla-job.yaml
+  - template: pipeline/win-k8s.yaml
+  - template: pipeline/win-vanilla.yaml
+  - template: pipeline/win-local.yaml
+  - template: pipeline/local.yaml
+  - template: pipeline/k8s.yaml
+  - template: pipeline/ha.yaml
+  - template: pipeline/vanilla.yaml
     parameters:
       job_name: Vanilla_Bionic
       id: $(jobuuid)
@@ -63,7 +63,7 @@ stages:
       repo: $(gcp.vm.repo.ubuntu)
       agent_count: 2
       controller_count: 1
-  - template: templates/vanilla-job.yaml
+  - template: pipeline/vanilla.yaml
     parameters:
       job_name: Vanilla_Buster
       id: $(jobuuid)
@@ -75,7 +75,7 @@ stages:
 - stage: Publish
   condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
-  - template: templates/publish-osx-job.yaml
-  - template: templates/publish-debian-job.yaml
-  - template: templates/publish-rpm-job.yaml
-  - template: templates/publish-win-job.yaml
+  - template: pipeline/publish-osx.yaml
+  - template: pipeline/publish-debian.yaml
+  - template: pipeline/publish-rpm.yaml
+  - template: pipeline/publish-win.yaml

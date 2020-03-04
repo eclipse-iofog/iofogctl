@@ -9,8 +9,8 @@ jobs:
       artifactName: linux
       downloadPath: $(System.DefaultWorkingDirectory)
   - script: sudo cp linux/iofogctl /usr/local/bin/
-  - template: version-steps.yaml
-  - template: publish-deps.yaml
+  - template: steps/version.yaml
+  - template: steps/publish-deps.yaml
   - script: |
       fpm -f -s dir -t rpm -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
       package=$(ls | grep *.rpm)
