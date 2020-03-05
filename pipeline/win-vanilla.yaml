@@ -78,7 +78,7 @@ jobs:
   - bash: |
       export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
       echo $WSL_KEY_FILE
-      test/run.bash functional-vanilla
+      test/run.bash vanilla
     displayName: 'Run Functional Tests'
   - template: steps/functional-clean-vm.yaml
     parameters:

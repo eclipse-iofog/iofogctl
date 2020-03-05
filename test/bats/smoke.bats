@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. test/functions.bash
+. test/func/include.bash
 
 @test "Help" {
   iofogctl --help
