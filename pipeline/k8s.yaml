@@ -34,7 +34,7 @@ jobs:
     displayName: 'Convert test output from TAP to JUnit'
     condition: succeededOrFailed()
   - script: |
-        test/clean.bash $(jobuuid)
+        test/clean.bash
     displayName: 'Clean K8s Cluster'
     condition: always()
   - template: steps/functional-post-test.yaml
