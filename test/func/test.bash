@@ -2,6 +2,9 @@
 
 function testDeployVolume(){
   DIR="/tmp/iofogctl_tests"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    DIR=$(wslpath $DIR)
+  fi
   initAgents
   echo "---
 apiVersion: iofog.org/v1
