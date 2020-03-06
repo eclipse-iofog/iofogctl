@@ -35,7 +35,7 @@ type remoteExecutor struct {
 }
 
 func (exe remoteExecutor) GetName() string {
-	return ""
+	return "Deploy Volume " + exe.volume.Destination
 }
 
 func (exe remoteExecutor) Execute() error {
