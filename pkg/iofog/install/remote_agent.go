@@ -32,11 +32,11 @@ type RemoteAgent struct {
 	token   string
 }
 
-func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string, agentConfig *config.AgentConfiguration, namespace string) *RemoteAgent {
+func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string, agentConfig *config.AgentConfiguration) *RemoteAgent {
 	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
 	ssh.SetPort(port)
 	return &RemoteAgent{
-		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID, agentConfig: agentConfig, namespace: namespace},
+		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID, agentConfig: agentConfig},
 		ssh:          ssh,
 		version:      util.GetAgentTag(),
 	}

@@ -51,8 +51,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
 		exe.agent.UUID,
-		exe.agentConfig,
-		exe.namespace)
+		exe.agentConfig)
 
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
@@ -86,8 +85,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
 		exe.agent.UUID,
-		exe.agentConfig,
-		exe.namespace)
+		exe.agentConfig)
 
 	// Set version
 	agent.SetVersion(exe.agent.Package.Version)

@@ -70,7 +70,7 @@ func newLocalExecutor(namespace string, agent *config.Agent, client *install.Loc
 
 func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
-	agent := install.NewLocalAgent(exe.agentConfig, exe.localAgentConfig, exe.client, exe.namespace)
+	agent := install.NewLocalAgent(exe.agentConfig, exe.localAgentConfig, exe.client)
 
 	// Get Controller details
 	controller, err := getController(exe.namespace)
