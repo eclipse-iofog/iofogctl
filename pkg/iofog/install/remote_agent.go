@@ -287,7 +287,7 @@ func (agent RemoteAgent) copyScriptsToAgent(scripts []string) error {
 	for _, script := range scripts {
 		staticFile := util.GetStaticFile(script)
 		reader := strings.NewReader(staticFile)
-		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", len(staticFile)); err != nil {
+		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", int64(len(staticFile))); err != nil {
 			return err
 		}
 	}

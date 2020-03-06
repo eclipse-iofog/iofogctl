@@ -88,6 +88,10 @@ spec:
   done
 }
 
+@test "Deploy Volumes" {
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
