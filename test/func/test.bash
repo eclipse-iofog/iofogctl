@@ -14,11 +14,11 @@ spec:
   - $NAME-0
   - $NAME-1" > test/conf/volume.yaml
 
-  run mkdir $DIR
+  [ ! -d $DIR ] && mkdir $DIR
   for IDX in 1 2 3; do
     echo "test$IDX" > "$DIR/test$IDX"
   done
-  run mkdir $DIR/testdir
+  [ ! -d $DIR/testdir ] && mkdir $DIR/testdir
   for IDX in 1 2 3; do
     echo "test$IDX" > "$DIR/testdir/test$IDX"
   done
