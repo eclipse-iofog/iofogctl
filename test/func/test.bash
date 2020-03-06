@@ -2,16 +2,17 @@
 
 function testDeployVolume(){
   DIR="/tmp/iofogctl_tests"
+  YAML_DIR=$DIR
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    DIR=$(wslpath $DIR)
+    YAML_DIR=$(wslpath $DIR)
   fi
   initAgents
   echo "---
 apiVersion: iofog.org/v1
 kind: Volume
 spec:
-  source: $DIR
-  destination: $DIR
+  source: $YAML_DIR
+  destination: $YAML_DIR
   permissions: 666
   agents:
   - $NAME-0
