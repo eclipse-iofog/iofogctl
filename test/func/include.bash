@@ -5,3 +5,4 @@
 . test/func/check.bash
 . test/func/wait.bash
 . test/func/alias.bash
+. test/func/test.bash

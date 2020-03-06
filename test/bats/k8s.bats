@@ -83,38 +83,55 @@ spec:
 }
 
 @test "Deploy Volumes" {
-  DIR="/tmp/iofogctl_tests"
+  testDeployVolume
+}
+
+# LOAD: test/bats/common-k8s.bats
+
+@test "Delete Agents" {
   initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+  done
+  checkAgentsNegative
+}
+
+@test "Deploy Controller for idempotence" {
   echo "---
 apiVersion: iofog.org/v1
-kind: Volume
+kind: ControlPlane
+metadata:
+  name: func-controlplane
 spec:
-  source: $DIR
-  destination: $DIR
-  permissions: 666
-  agents:
-  - $NAME-0
-  - $NAME-1" > test/conf/volume.yaml
+  iofogUser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $USER_PW
+  controllers:
+  - name: $NAME
+    container:
+      image: $CONTROLLER_IMAGE
+    kube:
+      config: $KUBE_CONFIG
+      images:
+        operator: $OPERATOR_IMAGE
+        portManager: $PORT_MANAGER
+        proxy: $PROXY_IMAGE
+        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
-  run mkdir $DIR
-  for IDX in 1 2 3; do
-    echo "test$IDX" > "$DIR/test$IDX"
-  done
-  run mkdir $DIR/testdir
-  for IDX in 1 2 3; do
-    echo "test$IDX" > "$DIR/testdir/test$IDX"
-  done
-  iofogctl -v -n "$NS" deploy -f test/conf/volume.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+  checkController
+}
 
-  # Check files
-  local SSH_KEY_PATH=$KEY_FILE
-  if [[ ! -z $WSL_KEY_FILE ]]; then
-    SSH_KEY_PATH=$WSL_KEY_FILE
-  fi
-  for IDX in "${!AGENTS[@]}"; do
-    for FILE_IDX in 1 2 3; do
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat /tmp/iofogctl_tests/test$FILE_IDX | grep "test$FILE_IDX"
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat /tmp/iofogctl_tests/testdir/test$FILE_IDX | grep "test$FILE_IDX"
-    done
-  done
+@test "Delete all" {
+  iofogctl -v -n "$NS" delete all
+  checkControllerNegative
+  checkAgentsNegative
+}
+
+@test "Delete namespace" {
+  iofogctl delete namespace "$NS"
+  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
 }
