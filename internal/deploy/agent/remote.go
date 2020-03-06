@@ -20,14 +20,9 @@ import (
 )
 
 type remoteExecutor struct {
-	namespace   string
-	agent       *config.Agent
-	agentConfig *config.AgentConfiguration
-	uuid        string
-}
-
-func (exe *remoteExecutor) SetAgentConfig(config *config.AgentConfiguration) {
-	exe.agentConfig = config
+	namespace string
+	agent     *config.Agent
+	uuid      string
 }
 
 func newRemoteExecutor(namespace string, agent *config.Agent) *remoteExecutor {
@@ -50,8 +45,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 		exe.agent.SSH.Port,
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
-		exe.agent.UUID,
-		exe.agentConfig)
+		exe.agent.UUID)
 
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
@@ -84,8 +78,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		exe.agent.SSH.Port,
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
-		exe.agent.UUID,
-		exe.agentConfig)
+		exe.agent.UUID)
 
 	// Set version
 	agent.SetVersion(exe.agent.Package.Version)

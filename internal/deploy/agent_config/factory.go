@@ -96,14 +96,14 @@ func (exe *remoteExecutor) Execute() error {
 	agent, err := clt.GetAgentByName(exe.name)
 	if err != nil {
 		if strings.Contains(err.Error(), "Could not find agent") {
-			uuid, err := install.CreateAgentFromConfiguration(exe.agentConfig, exe.name, clt)
+			uuid, err := createAgentFromConfiguration(exe.agentConfig, exe.name, clt)
 			exe.uuid = uuid
 			return err
 		}
 		return err
 	}
 	exe.uuid = agent.UUID
-	return install.UpdateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
+	return updateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

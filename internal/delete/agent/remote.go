@@ -32,8 +32,7 @@ func (exe executor) deleteRemoteAgent(agent config.Agent) (err error) {
 			agent.SSH.Port,
 			agent.SSH.KeyFile,
 			agent.Name,
-			agent.UUID,
-			nil)
+			agent.UUID)
 		if err = sshAgent.Uninstall(); err != nil {
 			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
 		}

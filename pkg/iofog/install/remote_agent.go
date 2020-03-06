@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -32,11 +31,11 @@ type RemoteAgent struct {
 	token   string
 }
 
-func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string, agentConfig *config.AgentConfiguration) *RemoteAgent {
+func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) *RemoteAgent {
 	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
 	ssh.SetPort(port)
 	return &RemoteAgent{
-		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID, agentConfig: agentConfig},
+		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
 		ssh:          ssh,
 		version:      util.GetAgentTag(),
 	}

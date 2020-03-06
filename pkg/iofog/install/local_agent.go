@@ -16,7 +16,6 @@ package install
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -25,12 +24,11 @@ type LocalAgent struct {
 	defaultAgent
 	client           *LocalContainer
 	localAgentConfig *LocalAgentConfig
-	agentConfig      *config.AgentConfiguration
 }
 
-func NewLocalAgent(agentConfig *config.AgentConfiguration, localAgentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
+func NewLocalAgent(localAgentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
 	return &LocalAgent{
-		defaultAgent:     defaultAgent{name: localAgentConfig.Name, agentConfig: agentConfig},
+		defaultAgent:     defaultAgent{name: localAgentConfig.Name},
 		localAgentConfig: localAgentConfig,
 		client:           client,
 	}
@@ -41,18 +39,11 @@ func (agent *LocalAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uuid string, err error) {
-	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user)
+func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
+	controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
+	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
 		return "", err
-	}
-
-	controllerEndpoint := ctrl.Endpoint
-	if util.IsLocalHost(ctrl.Host) {
-		controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
-		if err != nil {
-			return uuid, err
-		}
 	}
 
 	// Instantiate provisioning commands

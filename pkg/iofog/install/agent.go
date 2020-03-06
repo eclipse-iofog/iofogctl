@@ -15,70 +15,17 @@ package install
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 
 type Agent interface {
 	Bootstrap() error
 	getProvisionKey(string, IofogUser) (string, string, error)
-	Configure(*config.Controller, IofogUser) (string, error)
 }
 
 // defaultAgent implements commong behavior
 type defaultAgent struct {
-	name        string
-	uuid        string
-	agentConfig *config.AgentConfiguration
-}
-
-func getAgentUpdateRequestFromAgentConfig(agentConfig config.AgentConfiguration) (request client.AgentUpdateRequest) {
-	var fogTypePtr *int64
-	if agentConfig.FogType != nil {
-		fogType, found := config.FogTypeStringMap[*agentConfig.FogType]
-		if !found {
-			fogType = 0
-		}
-		fogTypePtr = &fogType
-	}
-	request.Location = agentConfig.Location
-	request.Latitude = agentConfig.Latitude
-	request.Longitude = agentConfig.Longitude
-	request.Description = agentConfig.Description
-	request.Name = agentConfig.Name
-	request.FogType = fogTypePtr
-	request.AgentConfiguration = agentConfig.AgentConfiguration
-	return
-}
-
-func CreateAgentFromConfiguration(agentConfig config.AgentConfiguration, name string, clt *client.Client) (uuid string, err error) {
-	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig)
-	createAgentRequest := client.CreateAgentRequest{
-		AgentUpdateRequest: updateAgentConfigRequest,
-	}
-	if createAgentRequest.AgentUpdateRequest.Name == "" {
-		createAgentRequest.AgentUpdateRequest.Name = name
-	}
-	if createAgentRequest.AgentUpdateRequest.FogType == nil {
-		fogType := int64(0)
-		createAgentRequest.AgentUpdateRequest.FogType = &fogType
-	}
-	agent, err := clt.CreateAgent(createAgentRequest)
-	if err != nil {
-		return "", err
-	}
-	return agent.UUID, nil
-}
-
-func UpdateAgentConfiguration(agentConfig *config.AgentConfiguration, uuid string, clt *client.Client) (err error) {
-	if agentConfig != nil {
-		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(*agentConfig)
-		updateAgentConfigRequest.UUID = uuid
-
-		if _, err = clt.UpdateAgent(&updateAgentConfigRequest); err != nil {
-			return
-		}
-	}
-	return nil
+	name string
+	uuid string
 }
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
