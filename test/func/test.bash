@@ -31,8 +31,8 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     for FILE_IDX in 1 2 3; do
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat /tmp/iofogctl_tests/test$FILE_IDX | grep "test$FILE_IDX"
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat /tmp/iofogctl_tests/testdir/test$FILE_IDX | grep "test$FILE_IDX"
+      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DIR/test$FILE_IDX | grep "test$FILE_IDX"
+      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DIR/testdir/test$FILE_IDX | grep "test$FILE_IDX"
     done
   done
 }

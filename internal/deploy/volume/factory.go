@@ -102,6 +102,10 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {
 			return nil, util.NewInputError("Trying to push volume but SSH details for Agent " + agent.Name + " are not available. They can be added manually through the `configure` command")
 		}
+		// Check agent is not local
+		if util.IsLocalHost(agent.Host) {
+			return nil, util.NewError("Volume deployment is not supported for local Agents")
+		}
 		// Record all agent details
 		agents = append(agents, agent)
 	}
