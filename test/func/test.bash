@@ -4,7 +4,8 @@ function testDeployVolume(){
   DIR="/tmp/iofogctl_tests"
   YAML_DIR=$DIR
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    YAML_DIR=$(wslpath $DIR)
+    YAML_DIR="C:/tests"
+    DIR=$(wslpath $YAML_DIR)
   fi
   initAgents
   echo "---
