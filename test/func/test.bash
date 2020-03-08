@@ -6,7 +6,7 @@ function testDeployVolume(){
   YAML_SRC="$SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
     YAML_SRC="C:/tests"
-    SRC=$(wslpath $SRC)
+    SRC=$(wslpath $YAML_SRC)
   fi
   initAgents
   echo "---
