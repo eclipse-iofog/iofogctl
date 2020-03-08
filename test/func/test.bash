@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 function testDeployVolume(){
-  DIR="/tmp/iofogctl_tests"
+  LNX_DIR="/tmp/iofogctl_tests"
+  DIR="$LNX_DIR"
   YAML_DIR=$DIR
   if [[ ! -z $WSL_KEY_FILE ]]; then
     YAML_DIR="C:/tests"
@@ -36,8 +37,8 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     for FILE_IDX in 1 2 3; do
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DIR/test$FILE_IDX | grep "test$FILE_IDX"
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DIR/testdir/test$FILE_IDX | grep "test$FILE_IDX"
+      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $LNX_DIR/test$FILE_IDX | grep "test$FILE_IDX"
+      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $LNX_DIR/testdir/test$FILE_IDX | grep "test$FILE_IDX"
     done
   done
 }
