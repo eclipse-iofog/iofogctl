@@ -1,32 +1,32 @@
 #!/usr/bin/env bash
 
 function testDeployVolume(){
-  LNX_DIR="/tmp/iofogctl_tests"
-  DIR="$LNX_DIR"
-  YAML_DIR=$DIR
+  SRC="/tmp/iofogctl_tests"
+  DST="/tmp"
+  YAML_SRC="$SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    YAML_DIR="C:/tests"
-    DIR=$(wslpath $YAML_DIR)
+    YAML_SRC="C:/tests"
+    SRC=$(wslpath $SRC)
   fi
   initAgents
   echo "---
 apiVersion: iofog.org/v1
 kind: Volume
 spec:
-  source: $YAML_DIR
-  destination: $YAML_DIR
+  source: $YAML_SRC
+  destination: $DST
   permissions: 666
   agents:
   - $NAME-0
   - $NAME-1" > test/conf/volume.yaml
 
-  [ ! -d $DIR ] && mkdir $DIR
+  [ ! -d $SRC ] && mkdir $SRC
   for IDX in 1 2 3; do
-    echo "test$IDX" > "$DIR/test$IDX"
+    echo "test$IDX" > "$SRC/test$IDX"
   done
-  [ ! -d $DIR/testdir ] && mkdir $DIR/testdir
+  [ ! -d $SRC/testdir ] && mkdir $SRC/testdir
   for IDX in 1 2 3; do
-    echo "test$IDX" > "$DIR/testdir/test$IDX"
+    echo "test$IDX" > "$SRC/testdir/test$IDX"
   done
   iofogctl -v -n "$NS" deploy -f test/conf/volume.yaml
 
@@ -37,8 +37,8 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     for FILE_IDX in 1 2 3; do
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $LNX_DIR/test$FILE_IDX | grep "test$FILE_IDX"
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $LNX_DIR/testdir/test$FILE_IDX | grep "test$FILE_IDX"
+      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
+      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DST/testdir/test$FILE_IDX | grep "test$FILE_IDX"
     done
   done
 }
