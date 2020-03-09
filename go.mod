@@ -15,7 +15,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200309230602-7130b955c1b5
-	github.com/eclipse-iofog/iofog-operator v0.0.0-20200301234831-32e3f2f1431e
+	github.com/eclipse-iofog/iofog-operator v0.0.0-20200309231419-d257a7f8e711
 	github.com/json-iterator/go v1.1.8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/image-spec v1.0.1 // indirect
