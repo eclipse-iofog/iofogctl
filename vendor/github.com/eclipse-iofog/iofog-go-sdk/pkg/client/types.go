@@ -387,3 +387,15 @@ type Router struct {
 	RouterConfig
 	Host string `json:"host"`
 }
+
+type UpdateConfigRequest struct {
+	Key string
+	Value string
+}
+
+func newDefaultProxyRequest(address string) *UpdateConfigRequest {
+	return &UpdateConfigRequest{
+		Key: "default-proxy-host",
+		Value: address,
+	}
+}

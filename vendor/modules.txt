@@ -41,7 +41,7 @@ github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
-# github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200303012617-80fa9694db83
+# github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200309230602-7130b955c1b5
 github.com/eclipse-iofog/iofog-go-sdk/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/pkg/apps
 # github.com/eclipse-iofog/iofog-operator v0.0.0-20200301234831-32e3f2f1431e
@@ -49,10 +49,10 @@ github.com/eclipse-iofog/iofog-operator/pkg/apis
 github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
+# github.com/gogo/protobuf v1.3.1
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
-# github.com/golang/protobuf v1.3.2
+# github.com/golang/protobuf v1.3.4
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes
@@ -62,14 +62,14 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/google/btree
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.3.0
+# github.com/googleapis/gnostic v0.4.1
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
 # github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 github.com/gregjones/httpcache
 github.com/gregjones/httpcache/diskcache
-# github.com/imdario/mergo v0.3.7
+# github.com/imdario/mergo v0.3.8
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
@@ -108,16 +108,18 @@ github.com/spf13/pflag
 # github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
 github.com/twmb/algoimpl/go/graph
 github.com/twmb/algoimpl/go/graph/lite
-# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+# golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/terminal
+golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/ed25519
-golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/poly1305
-golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/internal/subtle
-# golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
+golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/blowfish
+# golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 golang.org/x/net/http2
 golang.org/x/net/proxy
 golang.org/x/net/http/httpguts
@@ -126,7 +128,7 @@ golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
 golang.org/x/net/internal/socks
-# golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+# golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
@@ -141,7 +143,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+# golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 golang.org/x/time/rate
 # google.golang.org/appengine v1.6.1
 google.golang.org/appengine
@@ -164,9 +166,9 @@ google.golang.org/grpc/connectivity
 google.golang.org/grpc/grpclog
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
-# gopkg.in/yaml.v2 v2.2.4
+# gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
-# k8s.io/api v0.0.0-20191115135540-bbc9463b57e5 => k8s.io/api v0.0.0-20190222213804-5cb15d344471
+# k8s.io/api v0.17.3 => k8s.io/api v0.0.0-20190222213804-5cb15d344471
 k8s.io/api/apps/v1
 k8s.io/api/core/v1
 k8s.io/api/rbac/v1
@@ -205,7 +207,7 @@ k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme
-# k8s.io/apimachinery v0.0.0-20191115015347-3c7067801da2 => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
+# k8s.io/apimachinery v0.17.3 => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/runtime
@@ -308,5 +310,5 @@ k8s.io/klog
 sigs.k8s.io/controller-runtime/pkg/client
 sigs.k8s.io/controller-runtime/pkg/runtime/scheme
 sigs.k8s.io/controller-runtime/pkg/client/apiutil
-# sigs.k8s.io/yaml v1.1.0
+# sigs.k8s.io/yaml v1.2.0
 sigs.k8s.io/yaml
