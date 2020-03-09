@@ -149,6 +149,10 @@ spec:
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
+@test "Volumes are mounted" {
+  testMountVolume
+}
+
 @test "Deploy application and test deploy idempotence" {
   iofogctl -v deploy -f test/conf/application.yaml
   checkApplication

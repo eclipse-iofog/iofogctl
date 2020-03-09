@@ -1,3 +1,7 @@
+@test "Deploy Volumes" {
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
@@ -64,6 +68,10 @@
   checkApplication
   waitForMsvc "$MSVC1_NAME" "$NS"
   waitForMsvc "$MSVC2_NAME" "$NS"
+}
+
+@test "Volumes are mounted" {
+  testMountVolume
 }
 
 @test "Test Public Ports w/ Microservices on same Agent" {

@@ -82,10 +82,6 @@ spec:
   done
 }
 
-@test "Deploy Volumes" {
-  testDeployVolume
-}
-
 # LOAD: test/bats/common-k8s.bats
 
 @test "Delete Agents" {

@@ -131,7 +131,10 @@ function initApplicationFiles() {
           - external: 5000
             internal: 80
             public: 5000
-        volumes: []
+        volumes:
+        - hostDestination: $VOL_DEST
+          containerDestination: $VOL_CONT_DEST
+          accessMode: rw
         env:
           - key: BASE_URL
             value: http://localhost:8080/data"

@@ -2,7 +2,7 @@
 
 function testDeployVolume(){
   SRC="/tmp/iofogctl_tests"
-  DST="/tmp"
+  DST="$VOL_DEST"
   YAML_SRC="$SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
     YAML_SRC="C:/tests"
@@ -37,8 +37,24 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     for FILE_IDX in 1 2 3; do
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
-      ssh -oStrictHostKeyChecking=no -i "$SSH_KEY_PATH" "${USERS[IDX]}@${HOSTS[IDX]}" -- cat $DST/testdir/test$FILE_IDX | grep "test$FILE_IDX"
+      SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
+      $SSH_COMMAND -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
+      $SSH_COMMAND -- cat $DST/testdir/test$FILE_IDX | grep "test$FILE_IDX"
     done
+  done
+}
+
+function testMountVolume(){
+  initAgents
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  SSH_COMMAND="ssh -S -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[0]}@${HOSTS[0]}"
+  CONTAINER=$($SSH_COMMAND -- sudo docker ps | grep "heart-rate-ui" | awk '{print $1}')
+  $SSH_COMMAND -- sudo docker exec $CONTAINER ls $VOL_CONT_DEST
+  for FILE_IDX in 1 2 3; do
+    $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/test$FILE_IDX | grep test$FILE_IDX
+    $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/testdir/test$FILE_IDX | grep test$FILE_IDX
   done
 }
