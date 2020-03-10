@@ -175,8 +175,8 @@ spec:
   iofogUser:
     name: Testing
     surname: Functional
-    email: user@domain.com
-    password: S5gYVgLEZV
+    email: $USER_EMAIL
+    password: $USER_PW
   controllers:
   - name: $NAME
     host: 127.0.0.1

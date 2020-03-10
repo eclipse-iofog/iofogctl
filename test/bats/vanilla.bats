@@ -4,8 +4,6 @@
 
 NS="$NAMESPACE"
 NS2="$NS"_2
-USER_PW="S5gYVgLEZV"
-USER_EMAIL="user@domain.com"
 
 @test "Create namespace" {
   iofogctl create namespace "$NS"
