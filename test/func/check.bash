@@ -286,7 +286,7 @@ function hitMsvcEndpoint() {
   IP="$1"
   ITER=0
   SUCC=1
-  while [ $SUCC -ne 0 ] && [ $ITER -lt 12 ]; do
+  while [ $SUCC -ne 0 ] && [ $ITER -lt 24 ]; do
     sleep 10
     run curl -s --max-time 120 http://${IP}:5000/api/raw
     SUCC=$status
