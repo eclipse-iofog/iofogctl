@@ -83,6 +83,7 @@
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
+  testDefaultProxyConfig "$EXT_IP"
   # Hit the endpoint
   hitMsvcEndpoint "$EXT_IP"
 }
@@ -102,6 +103,7 @@
 @test "Test Public Ports w/ Microservice on different Agents" {
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
+  testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
 }
 

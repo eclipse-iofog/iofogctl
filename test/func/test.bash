@@ -58,3 +58,15 @@ function testMountVolume(){
     $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/testdir/test$FILE_IDX | grep test$FILE_IDX
   done
 }
+
+function testDefaultProxyConfig(){
+  ACTUAL_IP="$1"
+  ITER=0
+  IP=""
+  while [ $ITER -lt 10 ] && [ "$IP" != "$ACTUAL_IP" ]; do
+    sleep 6
+    IP=$(iofogctl -n "$NS" -v describe microservice "$MSVC2_NAME" | grep publicLink | sed 's/.*http:\/\///g' | sed 's/:.*//g')
+    ITER=$((ITER+1))
+  done
+  [ "$ACTUAL_IP" == "$IP" ] || echo "Incorrect IP: $IP, expected $ACTUAL_IP"
+}

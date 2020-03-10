@@ -172,6 +172,7 @@ spec:
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
+  testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
 }
 
@@ -193,6 +194,7 @@ spec:
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
+  testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
 }
 
