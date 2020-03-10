@@ -168,6 +168,7 @@ spec:
   fi
   # Wait for proxy microservice
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
+  waitForProxyMsvc $VANILLA_HOST $VANILLA_USER $SSH_KEY_PATH
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
   testDefaultProxyConfig "$EXT_IP"
@@ -190,6 +191,7 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  waitForProxyMsvc $VANILLA_HOST $VANILLA_USER $SSH_KEY_PATH
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
   testDefaultProxyConfig "$EXT_IP"
