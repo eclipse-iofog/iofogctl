@@ -15,8 +15,8 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -61,7 +61,10 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 	// Update controller (its a pointer, this is returned to caller)
-	exe.ctrl.Endpoint = exe.ctrl.Host + ":" + iofog.ControllerPortString
+	exe.ctrl.Endpoint, err = util.GetControllerEndpoint(exe.ctrl.Host)
+	if err != nil {
+		return err
+	}
 
 	return
 }

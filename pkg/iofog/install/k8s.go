@@ -488,6 +488,5 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("%s:%d", ip, port)
-	return
+	return util.GetControllerEndpoint(fmt.Sprintf("%s:%d", ip, port))
 }
