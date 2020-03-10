@@ -70,11 +70,11 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 }
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
-func Process(config config.AgentConfiguration, name string, clt *client.Client) (config.AgentConfiguration, error) {
-	routerMode := getRouterMode(config)
+func Process(agentConfig config.AgentConfiguration, name string, clt *client.Client) (config.AgentConfiguration, error) {
+	routerMode := getRouterMode(agentConfig)
 	agentList, err := clt.ListAgents()
 	if err != nil {
-		return config, err
+		return agentConfig, err
 	}
 
 	// Try to find current agent based on name
@@ -86,34 +86,34 @@ func Process(config config.AgentConfiguration, name string, clt *client.Client) 
 		}
 	}
 
-	if config.UpstreamRouters != nil {
+	if agentConfig.UpstreamRouters != nil {
 		upstreamRoutersUUID := []string{}
-		for _, agentName := range *config.UpstreamRouters {
+		for _, agentName := range *agentConfig.UpstreamRouters {
 			uuid, err := findAgentUuidInList(agentList.Agents, agentName)
 			if err != nil {
-				return config, err
+				return agentConfig, err
 			}
 			upstreamRoutersUUID = append(upstreamRoutersUUID, uuid)
 		}
-		config.UpstreamRouters = &upstreamRoutersUUID
+		agentConfig.UpstreamRouters = &upstreamRoutersUUID
 	}
 
-	if config.NetworkRouter != nil {
-		uuid, err := findAgentUuidInList(agentList.Agents, *config.NetworkRouter)
+	if agentConfig.NetworkRouter != nil {
+		uuid, err := findAgentUuidInList(agentList.Agents, *agentConfig.NetworkRouter)
 		if err != nil {
-			return config, err
+			return agentConfig, err
 		}
-		config.NetworkRouter = &uuid
+		agentConfig.NetworkRouter = &uuid
 	}
 
-	if routerMode != NoneRouter && config.Host == nil {
+	if routerMode != NoneRouter && agentConfig.Host == nil {
 		if agent == nil {
-			return config, util.NewInputError(fmt.Sprintf("Could not infere agent host for agent %s. Host is required because router mode is %s", name, routerMode))
+			return agentConfig, util.NewInputError(fmt.Sprintf("Could not infere agent host for agent %s. Host is required because router mode is %s", name, routerMode))
 		}
-		config.Host = &agent.IPAddressExternal
+		agentConfig.Host = &agent.IPAddressExternal
 	}
 
-	return config, nil
+	return agentConfig, nil
 }
 
 func getAgentUpdateRequestFromAgentConfig(agentConfig config.AgentConfiguration) (request client.AgentUpdateRequest) {
