@@ -389,13 +389,13 @@ type Router struct {
 }
 
 type UpdateConfigRequest struct {
-	Key string
-	Value string
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 	return &UpdateConfigRequest{
-		Key: "default-proxy-host",
+		Key:   "default-proxy-host",
 		Value: address,
 	}
 }

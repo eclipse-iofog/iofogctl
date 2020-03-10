@@ -5,11 +5,12 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
-MAJOR ?= 0
-MINOR ?= 0
-PATCH ?= 0
-SUFFIX ?= -dev
+MAJOR ?= $(shell cat version | grep MAJOR | sed 's/MAJOR=//g')
+MINOR ?= $(shell cat version | grep MINOR | sed 's/MINOR=//g')
+PATCH ?= $(shell cat version | grep PATCH | sed 's/PATCH=//g')
+SUFFIX ?= $(shell cat version | grep SUFFIX | sed 's/SUFFIX=//g')
 VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
+MODULES_VERSION = $(shell [ $(SUFFIX) == "-dev" ] && echo develop || echo $(VERSION))
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
@@ -27,7 +28,7 @@ GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
-all: init build install ## Get deps, build, and install binary
+all: init build install ## Build, and install binary
 
 .PHONY: clean
 clean: ## Clean the working area and the project
@@ -38,11 +39,20 @@ clean: ## Clean the working area and the project
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
 
+.PHONY: modules
+modules: get vendor ## Get modules and vendor them
+
+.PHONY: get
+get: ## Pull modules
+	@for module in iofog-go-sdk iofog-operator; do \
+		go get github.com/eclipse-iofog/$$module@$(MODULES_VERSION); \
+	done
+
 .PHONY: vendor
-vendor: ## Vendor all deps
+vendor: ## Vendor all modules
 	@go mod vendor
-	@for dep in GeertJohan akavel jessevdk jstemmer nkovacs valyala; do \
-		git checkout -- vendor/github.com/$$dep; \
+	@for module in GeertJohan akavel jessevdk jstemmer nkovacs valyala; do \
+		git checkout -- vendor/github.com/$$module; \
 	done
 
 .PHONY: build
@@ -81,7 +91,3 @@ help: ## Get help output
 # Variable outputting/exporting rules
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
-
-update-go-sdk:
-	go get github.com/eclipse-iofog/iofog-go-sdk@develop
-	make vendor

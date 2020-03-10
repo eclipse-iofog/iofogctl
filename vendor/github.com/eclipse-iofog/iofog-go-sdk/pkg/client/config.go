@@ -11,10 +11,9 @@
  *
  */
 
- package client
+package client
 
- func (clt *Client) PutDefaultProxy(address string) (err error) {
-	 _, err = clt.doRequest("PUT", "/config", newDefaultProxyRequest(address))
-	 return
- }
- 
+func (clt *Client) PutDefaultProxy(address string) (err error) {
+	_, err = clt.doRequest("PUT", "/config", newDefaultProxyRequest(address))
+	return
+}
