@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
+	"github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog/v1"
 )
 
 func init() {

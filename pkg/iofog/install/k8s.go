@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
-	iofogv1 "github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
+	crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
+	iofogv1 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog/v1"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
