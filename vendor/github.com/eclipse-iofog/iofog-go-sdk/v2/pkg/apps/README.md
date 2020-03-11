@@ -6,8 +6,8 @@ This package contains executors to deploy iofog applications and microservices u
 
 ```go
 import (
-	deploytypes "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps/application"
+	deploytypes "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/deployapps"
+	deploy "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/deployapps/application"
 )
 
 // Create your Controller access structure

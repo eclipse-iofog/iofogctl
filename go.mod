@@ -14,8 +14,8 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200310003733-ed7887c5b0d8
-	github.com/eclipse-iofog/iofog-operator v0.0.0-20200310011641-b33e70a993af
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-20200311045332-5eff3ba76bbc
+	github.com/eclipse-iofog/iofog-operator v0.0.0-20200311050457-9ec2b6fe6e2c
 	github.com/json-iterator/go v1.1.8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/image-spec v1.0.1 // indirect
@@ -38,6 +38,7 @@ require (
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1
+	github.com/openshift/api => github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/sirupsen/logrus => github.com/sirupsen/logrus v1.0.1
 	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236

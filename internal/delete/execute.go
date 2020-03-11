@@ -16,7 +16,7 @@ package delete
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
 	deleteapplication "github.com/eclipse-iofog/iofogctl/internal/delete/application"

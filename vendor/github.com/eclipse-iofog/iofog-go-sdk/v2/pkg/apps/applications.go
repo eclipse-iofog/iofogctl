@@ -16,7 +16,7 @@ package apps
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
 type iofogUser struct {

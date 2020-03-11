@@ -16,7 +16,7 @@ package connect
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	connectagent "github.com/eclipse-iofog/iofogctl/internal/connect/agent"
 	connectcontroller "github.com/eclipse-iofog/iofogctl/internal/connect/controller"

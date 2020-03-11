@@ -14,7 +14,7 @@
 package connectcontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 )
 

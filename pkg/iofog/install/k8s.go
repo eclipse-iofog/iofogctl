@@ -17,7 +17,7 @@ import (
 	"context"
 	"fmt"
 
-	ioclient "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
 	iofogv1 "github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"

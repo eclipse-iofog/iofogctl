@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

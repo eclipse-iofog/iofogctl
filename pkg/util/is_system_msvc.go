@@ -14,7 +14,7 @@
 package util
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
 const LastSystemCatalogItemID int = 3

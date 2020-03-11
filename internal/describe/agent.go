@@ -14,7 +14,7 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/internal"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"

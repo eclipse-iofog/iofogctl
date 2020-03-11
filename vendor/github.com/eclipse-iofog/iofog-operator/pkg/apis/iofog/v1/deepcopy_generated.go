@@ -21,7 +21,7 @@ limitations under the License.
 package v1
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
