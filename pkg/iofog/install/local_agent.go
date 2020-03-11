@@ -41,7 +41,10 @@ func (agent *LocalAgent) Bootstrap() error {
 
 func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
 	controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
+	if err != nil {
+		return "", err
+	}
+	key, uuid, err := agent.getProvisionKey("localhost", user)
 	if err != nil {
 		return "", err
 	}
