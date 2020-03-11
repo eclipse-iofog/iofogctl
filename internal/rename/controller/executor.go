@@ -15,8 +15,8 @@ package controller
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func Execute(namespace, name, newName string) error {

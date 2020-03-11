@@ -17,9 +17,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 

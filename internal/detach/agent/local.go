@@ -16,8 +16,8 @@ package detachagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func (exe executor) localDeprovision() error {

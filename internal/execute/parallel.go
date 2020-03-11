@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type jobResult struct {

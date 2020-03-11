@@ -14,10 +14,10 @@
 package deletecontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Executor struct {

@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/v2/internal"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type registryExecutor struct {

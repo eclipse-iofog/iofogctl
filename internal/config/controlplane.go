@@ -16,8 +16,8 @@ package config
 import (
 	"strconv"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // GetControllerEndpoint returns ioFog controller endpoint

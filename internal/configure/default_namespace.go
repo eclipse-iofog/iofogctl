@@ -14,7 +14,7 @@
 package configure
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 )
 
 type defaultNamespaceExecutor struct {

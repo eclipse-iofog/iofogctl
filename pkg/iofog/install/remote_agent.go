@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // Remote agent uses SSH

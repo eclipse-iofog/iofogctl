@@ -1,4 +1,4 @@
-module github.com/eclipse-iofog/iofogctl
+module github.com/eclipse-iofog/iofogctl/v2
 
 go 1.12
 

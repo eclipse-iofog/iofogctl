@@ -17,8 +17,8 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func Execute(namespace, name, agent string) error {

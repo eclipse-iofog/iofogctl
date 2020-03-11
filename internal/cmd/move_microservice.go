@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	move "github.com/eclipse-iofog/iofogctl/internal/move/microservice"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	move "github.com/eclipse-iofog/iofogctl/v2/internal/move/microservice"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 

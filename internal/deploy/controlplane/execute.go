@@ -18,15 +18,15 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
-	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {

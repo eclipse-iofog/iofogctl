@@ -16,7 +16,7 @@ package install
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // LocalAgent uses Container exec commands
