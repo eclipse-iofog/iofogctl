@@ -37,13 +37,11 @@ function waitForSvc() {
   SVC="$2"
   ITER=0
   EXT_IP=""
-  while [ -z "$EXT_IP" ] && [ $ITER -lt 30 ]; do
+  while [[ ! "$EXT_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ $ITER -lt 30 ]; do
       sleep 10
       EXT_IP=$(kctl get svc -n $NS | grep $SVC | awk '{print $4}')
       ITER=$((ITER+1))
   done
-  # Error if empty
-  [ ! -z "$EXT_IP" ]
   # Check valid IP address
   [[ "$EXT_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
 
