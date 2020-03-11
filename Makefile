@@ -10,7 +10,7 @@ MINOR ?= $(shell cat version | grep MINOR | sed 's/MINOR=//g')
 PATCH ?= $(shell cat version | grep PATCH | sed 's/PATCH=//g')
 SUFFIX ?= $(shell cat version | grep SUFFIX | sed 's/SUFFIX=//g')
 VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
-MODULES_VERSION = $(shell [ $(SUFFIX) == "-dev" ] && echo develop || echo $(VERSION))
+MODULES_VERSION = $(shell [ $(SUFFIX) == "-dev" ] && echo develop || echo v$(VERSION))
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
