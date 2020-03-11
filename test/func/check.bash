@@ -292,21 +292,24 @@ function hitMsvcEndpoint() {
   SUCC=1
   while [ $SUCC -ne 0 ] && [ $ITER -lt 24 ]; do
     sleep 10
-    run curl -s --max-time 120 http://${IP}:5000/api/raw
     SUCC=$status
     ITER=$((ITER+1))
   done
-  [ $SUCC -eq 0 ]
+  [ $status -eq 0 ]
 
   ITER=0
   COUNT=0
   while [ $COUNT -eq 0 ] && [ $ITER -lt 12 ]; do
     sleep 10
-    RET=$(curl -s --max-time 120 http://${IP}:5000/api/raw)
-    echo "$RET"
-    run echo "$RET" | jq '. | length'
+    run curlMsvc "$IP"
     if [ $status -eq 0 ]; then
-      COUNT=$(echo "$RET" | jq '. | length')
+      RET="$output"
+      echo "$RET"
+  
+      run jqMsvcArray "$RET"
+      if [ $status -eq 0 ]; then
+        COUNT=$output
+      fi
     fi
     ITER=$((ITER+1))
   done
