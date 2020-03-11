@@ -289,17 +289,8 @@ function checkRenamedNamespace() {
 function hitMsvcEndpoint() {
   IP="$1"
   ITER=0
-  SUCC=1
-  while [ $SUCC -ne 0 ] && [ $ITER -lt 24 ]; do
-    sleep 10
-    SUCC=$status
-    ITER=$((ITER+1))
-  done
-  [ $status -eq 0 ]
-
-  ITER=0
   COUNT=0
-  while [ $COUNT -eq 0 ] && [ $ITER -lt 12 ]; do
+  while [ $COUNT -eq 0 ] && [ $ITER -lt 24 ]; do
     sleep 10
     run curlMsvc "$IP"
     if [ $status -eq 0 ]; then
