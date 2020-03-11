@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	startapplication "github.com/eclipse-iofog/iofogctl/internal/start"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	startapplication "github.com/eclipse-iofog/iofogctl/v2/internal/start"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 

@@ -14,9 +14,9 @@
 package connectcontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	connectcontroller "github.com/eclipse-iofog/iofogctl/internal/connect/controller"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 

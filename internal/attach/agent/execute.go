@@ -14,13 +14,13 @@
 package attachagent
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
-	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
+	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
 )
 
 type Options struct {

@@ -16,21 +16,22 @@ package deploy
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deployagent "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agent_config"
-	deployapplication "github.com/eclipse-iofog/iofogctl/internal/deploy/application"
-	deploycatalogitem "github.com/eclipse-iofog/iofogctl/internal/deploy/catalog_item"
-	deploycontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller"
-	deploycontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane"
-	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
-	deployregistry "github.com/eclipse-iofog/iofogctl/internal/deploy/registry"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deployapplication "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/application"
+	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalog_item"
+	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
+	deploycontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane"
+	deploymicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/microservice"
+	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
+	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/twmb/algoimpl/go/graph"
 )
 
@@ -44,6 +45,7 @@ var kindOrder = []apps.Kind{
 	config.CatalogItemKind,
 	apps.ApplicationKind,
 	apps.MicroserviceKind,
+	config.VolumeKind,
 }
 
 type Options struct {
@@ -83,6 +85,10 @@ func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error
 	return deployregistry.NewExecutor(deployregistry.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
+func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML})
+}
+
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
 	apps.ApplicationKind:   deployApplication,
 	config.CatalogItemKind: deployCatalogItem,
@@ -92,6 +98,7 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	config.AgentConfigKind: deployAgentConfig,
 	apps.ControllerKind:    deployController,
 	config.RegistryKind:    deployRegistry,
+	config.VolumeKind:      deployVolume,
 }
 
 // Execute deploy from yaml file

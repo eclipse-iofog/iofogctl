@@ -23,8 +23,6 @@
 . test/func/include.bash
 
 NS="$NAMESPACE"
-USER_PW="S5gYVgLEZV"
-USER_EMAIL="user@domain.com"
 
 @test "Verify kubectl works" {
   kctl get ns

@@ -4,8 +4,6 @@
 
 NS="$NAMESPACE"
 NS2="$NS"_2
-USER_PW="S5gYVgLEZV"
-USER_EMAIL="user@domain.com"
 
 @test "Create namespace" {
   iofogctl create namespace "$NS"
@@ -88,6 +86,10 @@ spec:
   done
 }
 
+@test "Deploy Volumes" {
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
@@ -145,6 +147,10 @@ spec:
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
+@test "Volumes are mounted" {
+  testMountVolume
+}
+
 @test "Deploy application and test deploy idempotence" {
   iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
@@ -162,8 +168,10 @@ spec:
   fi
   # Wait for proxy microservice
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
+  waitForProxyMsvc $VANILLA_HOST $VANILLA_USER $SSH_KEY_PATH
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
+  testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
 }
 
@@ -183,8 +191,10 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
+  waitForProxyMsvc $VANILLA_HOST $VANILLA_USER $SSH_KEY_PATH
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
+  testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
 }
 

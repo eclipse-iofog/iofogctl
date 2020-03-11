@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -196,7 +197,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 	return NewInternalError("Timed out waiting for condition '" + condition.String() + "' with SSH command: " + cmd)
 }
 
-func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int) error {
+func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int64) error {
 	// Check permissions string
 	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
 		return NewError("Invalid file permission specified: " + permissions)
@@ -244,4 +245,60 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 	}
 
 	return nil
+}
+
+func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string, recurse bool) error {
+	files, err := ioutil.ReadDir(srcPath)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		if file.IsDir() && recurse {
+			// Create the dir if necessary
+			if err := cl.CreateFolder(addTrailingSlash(destPath) + file.Name()); err != nil {
+				return err
+			}
+			// Copy contents of dir
+			return cl.CopyFolderTo(
+				addTrailingSlash(srcPath)+file.Name(),
+				addTrailingSlash(destPath)+file.Name(),
+				permissions,
+				true,
+			)
+		} else {
+			// Read the file
+			openFile, err := os.Open(addTrailingSlash(srcPath) + file.Name())
+			if err != nil {
+				return err
+			}
+			// Copy the file
+			if err := cl.CopyTo(openFile, addTrailingSlash(destPath), file.Name(), addLeadingZero(permissions), file.Size()); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (cl *SecureShellClient) CreateFolder(path string) error {
+	if _, err := cl.Run("mkdir -p " + addTrailingSlash(path)); err != nil {
+		if !strings.Contains(err.Error(), "exists") {
+			return err
+		}
+	}
+	return nil
+}
+
+func addLeadingZero(in string) string {
+	if in[0:0] != "0" {
+		in = "0" + in
+	}
+	return in
+}
+
+func addTrailingSlash(in string) string {
+	if in[len(in)-1:] != "/" {
+		in = in + "/"
+	}
+	return in
 }

@@ -15,15 +15,16 @@ package deployagentconfig
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/internal"
+	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"gopkg.in/yaml.v2"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {
@@ -75,6 +76,28 @@ func (exe *remoteExecutor) GetName() string {
 	return exe.name
 }
 
+func isOverridingSystemAgent(controllerHost, agentHost string, isSystem bool) (err error) {
+	// Generate controller endpoint
+	controllerURL, err := url.Parse(controllerHost)
+	if err != nil || controllerURL.Host == "" {
+		controllerURL, err = url.Parse("//" + controllerHost) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
+		if err != nil {
+			return err
+		}
+	}
+	agentURL, err := url.Parse(agentHost)
+	if err != nil || agentURL.Host == "" {
+		agentURL, err = url.Parse("//" + agentHost) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
+		if err != nil {
+			return err
+		}
+	}
+	if agentURL.Hostname() == controllerURL.Hostname() && !isSystem {
+		return util.NewConflictError("Cannot deploy an agent on the same host than the Controller\n")
+	}
+	return nil
+}
+
 func (exe *remoteExecutor) Execute() error {
 	isSystem := internal.IsSystemAgent(exe.agentConfig)
 	if !isSystem || install.IsVerbose() {
@@ -84,6 +107,20 @@ func (exe *remoteExecutor) Execute() error {
 	// Check controller is reachable
 	clt, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
+		return err
+	}
+
+	// Check we are not about to override Vanilla system agent
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil || len(controlPlane.Controllers) == 0 {
+		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
+		return err
+	}
+	host := ""
+	if exe.agentConfig.Host != nil {
+		host = *exe.agentConfig.Host
+	}
+	if err := isOverridingSystemAgent(controlPlane.Controllers[0].Host, host, isSystem); err != nil {
 		return err
 	}
 

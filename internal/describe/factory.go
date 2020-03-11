@@ -14,8 +14,8 @@
 package describe
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func NewExecutor(resourceType, namespace, name, filename string, useDetached bool) (execute.Executor, error) {

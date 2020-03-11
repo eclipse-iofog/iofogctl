@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	rename "github.com/eclipse-iofog/iofogctl/internal/rename/namespace"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/namespace"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 

@@ -19,9 +19,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type ControllerOptions struct {
@@ -81,7 +81,7 @@ func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, prov
 func (ctrl *Controller) CopyScript(path string, name string) (err error) {
 	script := util.GetStaticFile(path + name)
 	reader := strings.NewReader(script)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", len(script)); err != nil {
+	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", int64(len(script))); err != nil {
 		return err
 	}
 

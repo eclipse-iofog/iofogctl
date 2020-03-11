@@ -1,4 +1,4 @@
-module github.com/eclipse-iofog/iofogctl
+module github.com/eclipse-iofog/iofogctl/v2
 
 go 1.12
 
@@ -14,28 +14,23 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk v0.0.0-20200303012617-80fa9694db83
-	github.com/eclipse-iofog/iofog-operator v0.0.0-20200301234831-32e3f2f1431e
-	github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d // indirect
-	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200311081837-d2bbc0fc4a4f
 	github.com/json-iterator/go v1.1.8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/petar/GoLLRB v0.0.0-20190514000832-33fb24c13b99 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9 // indirect
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456 // indirect
 	google.golang.org/grpc v1.22.1 // indirect
-	gopkg.in/yaml.v2 v2.2.4
-	k8s.io/api v0.0.0-20191115135540-bbc9463b57e5
+	gopkg.in/yaml.v2 v2.2.8
+	k8s.io/api v0.17.3
 	k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236
-	k8s.io/apimachinery v0.0.0-20191115015347-3c7067801da2
+	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6 // indirect
 	sigs.k8s.io/controller-runtime v0.1.10
 )
 
@@ -43,6 +38,7 @@ require (
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1
+	github.com/openshift/api => github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/sirupsen/logrus => github.com/sirupsen/logrus v1.0.1
 	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236

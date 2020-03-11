@@ -14,8 +14,9 @@
 package configure
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type controllerExecutor struct {
@@ -57,7 +58,7 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Disallow editing vanilla fields for k8s Controller
-	if controller.Kube.Config != "" && (exe.port != 0 || exe.keyFile != "" || exe.user != "") {
+	if controller.Kube.Config != "" && (exe.port != 0 || exe.keyFile != "" || exe.user != "" || exe.host != "") {
 		return util.NewInputError("Controller " + exe.name + " is deployed on Kubernetes. You cannot add SSH details to this Controller")
 	}
 
@@ -69,6 +70,10 @@ func (exe *controllerExecutor) Execute() error {
 	// Only add/overwrite values provided
 	if exe.host != "" {
 		controller.Host = exe.host
+		controller.Endpoint, err = util.GetControllerEndpoint(exe.host)
+		if err != nil {
+			return err
+		}
 	}
 	if exe.keyFile != "" {
 		controller.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
@@ -84,6 +89,14 @@ func (exe *controllerExecutor) Execute() error {
 	}
 	if exe.kubeConfig != "" {
 		controller.Kube.Config, err = util.FormatPath(exe.kubeConfig)
+		if err != nil {
+			return err
+		}
+		installer, err := install.NewKubernetes(controller.Kube.Config, exe.namespace)
+		if err != nil {
+			return err
+		}
+		controller.Endpoint, err = installer.GetControllerEndpoint()
 		if err != nil {
 			return err
 		}

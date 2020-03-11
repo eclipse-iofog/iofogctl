@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	detach "github.com/eclipse-iofog/iofogctl/internal/detach/agent"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	detach "github.com/eclipse-iofog/iofogctl/v2/internal/detach/agent"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 

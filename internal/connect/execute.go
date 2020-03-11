@@ -16,13 +16,13 @@ package connect
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	connectagent "github.com/eclipse-iofog/iofogctl/internal/connect/agent"
-	connectcontroller "github.com/eclipse-iofog/iofogctl/internal/connect/controller"
-	connectcontrolplane "github.com/eclipse-iofog/iofogctl/internal/connect/controlplane"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
+	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
+	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {

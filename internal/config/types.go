@@ -14,8 +14,8 @@
 package config
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
 // iofogctl specific Kinds
@@ -25,6 +25,7 @@ const (
 	IofogctlConfigKind    apps.Kind = "IofogctlConfig"
 	IofogctlNamespaceKind apps.Kind = "IofogctlNamespace"
 	RegistryKind          apps.Kind = "Registry"
+	VolumeKind            apps.Kind = "Volume"
 )
 
 type Container struct {
@@ -118,6 +119,13 @@ type Registry struct {
 	ID           int     `yaml:"id"`
 }
 
+type Volume struct {
+	Agents      []string `json:"agents" yaml:"agents"`
+	Source      string   `json:"source" yaml:"source"`
+	Destination string   `json:"destination" yaml:"destination"`
+	Permissions string   `json:"permissions" yaml:"permissions"`
+}
+
 // AgentConfiguration contains configuration information for a deployed agent
 type AgentConfiguration struct {
 	Name                      string  `json:"name,omitempty" yaml:"name"`
@@ -127,6 +135,7 @@ type AgentConfiguration struct {
 	Description               string  `json:"description,omitempty" yaml:"description"`
 	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
+	Volumes                   []Volume `json:"volumes,omitempty" yaml:"volumes,omitempty"`
 }
 
 // FogTypeStringMap map human readable fog type to Controller fog type

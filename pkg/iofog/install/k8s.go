@@ -17,10 +17,10 @@ import (
 	"context"
 	"fmt"
 
-	ioclient "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	crdapi "github.com/eclipse-iofog/iofog-operator/pkg/apis"
-	iofogv1 "github.com/eclipse-iofog/iofog-operator/pkg/apis/iofog/v1"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
+	iofogv1 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog/v1"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -488,6 +488,5 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	if err != nil {
 		return
 	}
-	endpoint = fmt.Sprintf("%s:%d", ip, port)
-	return
+	return util.GetControllerEndpoint(fmt.Sprintf("%s:%d", ip, port))
 }

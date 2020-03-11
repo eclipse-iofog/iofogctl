@@ -1,3 +1,7 @@
+@test "Deploy Volumes" {
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
@@ -66,6 +70,10 @@
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
+@test "Volumes are mounted" {
+  testMountVolume
+}
+
 @test "Test Public Ports w/ Microservices on same Agent" {
   initAgents
   local SSH_KEY_PATH=$KEY_FILE
@@ -75,6 +83,7 @@
   waitForProxyMsvc ${HOSTS[0]} ${USERS[0]} $SSH_KEY_PATH
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
+  testDefaultProxyConfig "$EXT_IP"
   # Hit the endpoint
   hitMsvcEndpoint "$EXT_IP"
 }
@@ -94,6 +103,7 @@
 @test "Test Public Ports w/ Microservice on different Agents" {
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
+  testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
 }
 

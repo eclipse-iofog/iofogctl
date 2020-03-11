@@ -18,10 +18,10 @@ import (
 	"os/user"
 	"regexp"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 )
 
 type localExecutor struct {
@@ -108,7 +108,10 @@ func (exe *localExecutor) Execute() error {
 
 	// Update controller (its a pointer, this is returned to caller)
 	controllerContainerConfig := exe.localControllerConfig
-	exe.ctrl.Endpoint = fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host)
+	exe.ctrl.Endpoint, err = util.GetControllerEndpoint(fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host))
+	if err != nil {
+		return err
+	}
 	exe.ctrl.Host = controllerContainerConfig.Host
 	exe.ctrl.SSH.User = currUser.Username
 	exe.ctrl.Created = util.NowUTC()

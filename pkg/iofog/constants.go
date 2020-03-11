@@ -13,7 +13,7 @@
 
 package iofog
 
-import "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+import "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 
 // String and numeric values of TCP ports used accross ioFog
 const (

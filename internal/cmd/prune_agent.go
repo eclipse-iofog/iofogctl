@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	prune "github.com/eclipse-iofog/iofogctl/internal/prune/agent"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	prune "github.com/eclipse-iofog/iofogctl/v2/internal/prune/agent"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 

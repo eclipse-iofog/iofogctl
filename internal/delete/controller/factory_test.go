@@ -16,7 +16,7 @@ package deletecontroller
 import (
 	"testing"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 )
 
 var ns = "test_delete_controller"

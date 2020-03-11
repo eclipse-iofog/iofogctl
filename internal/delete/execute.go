@@ -16,16 +16,16 @@ package delete
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
-	deleteapplication "github.com/eclipse-iofog/iofogctl/internal/delete/application"
-	deletecatalogitem "github.com/eclipse-iofog/iofogctl/internal/delete/catalog_item"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
-	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
-	deletemicroservice "github.com/eclipse-iofog/iofogctl/internal/delete/microservice"
-	deleteregistry "github.com/eclipse-iofog/iofogctl/internal/delete/registry"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
+	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
+	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalog_item"
+	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
+	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
+	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
+	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 )
 
 type Options struct {

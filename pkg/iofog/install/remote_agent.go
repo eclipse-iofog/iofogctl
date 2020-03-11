@@ -18,8 +18,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // Remote agent uses SSH
@@ -287,7 +287,7 @@ func (agent RemoteAgent) copyScriptsToAgent(scripts []string) error {
 	for _, script := range scripts {
 		staticFile := util.GetStaticFile(script)
 		reader := strings.NewReader(staticFile)
-		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", len(staticFile)); err != nil {
+		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", int64(len(staticFile))); err != nil {
 			return err
 		}
 	}

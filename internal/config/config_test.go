@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 )
 
 var configData = []byte(`kind: IofogctlConfig
