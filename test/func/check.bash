@@ -120,11 +120,11 @@ function checkApplication() {
   [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
   MSVCS=$(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" )
-  [ $(echo "$MSVCS" | grep "$MSVC1_NAME") ]
-  [ $(echo "$MSVCS" | grep "$MSVC2_NAME") ]
+  echo "$MSVCS" | grep "$MSVC1_NAME"
+  echo "$MSVCS" | grep "$MSVC2_NAME"
   MSVCS=$(iofogctl -v -n "$NS_CHECK" get microservices)
-  [ $(echo "$MSVCS" | grep "$MSVC1_NAME") ]
-  [ $(echo "$MSVCS" | grep "$MSVC2_NAME") ]
+  echo "$MSVCS" | grep "$MSVC1_NAME"
+  echo "$MSVCS" | grep "$MSVC2_NAME"
 
   # Check config
   MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $4}')
