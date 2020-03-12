@@ -25,7 +25,7 @@ sed -i.bkp "s/SUFFIX=.*/SUFFIX=-$suffix/g" "version"
 rm "version.bkp"
 
 # Pull modules
-#make modules
+make modules
 
 # Update Makefile
 sed -i.bkp -E "s/(.*-X.*Tag=).*/\1$version/g" Makefile
