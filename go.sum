@@ -195,6 +195,8 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-20200311045332-5eff3ba76bbc h1:a
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-20200311045332-5eff3ba76bbc/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha h1:4CVAr6SWNO31PjuOAoBwE/zQAUpbbAD5f/kkU+ow+IM=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta h1:Cs2yw9TO1/yb8dBm6WSSv9sIbDyceIpee3TvnVWiFos=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0 h1:Y+Du5W3kwbGqjlYise6UQkDYLLta046Cv2Lgs3c7eiU=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191117223400-e0d2d4ac3fcc h1:XFKDwcHFze4CxbMDNafmCiE/qN8sumD+S5yoGzUoDWQ=
@@ -222,6 +224,9 @@ github.com/eclipse-iofog/iofog-operator v1.2.0/go.mod h1:r/bGkjLr59ORotQDHTC8+yb
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200311081837-d2bbc0fc4a4f h1:Ri6CwzEXLBYVdd0f68D7A4DRnGYYTZH11qkXpT8zIys=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200311081837-d2bbc0fc4a4f/go.mod h1:443JsyKlB/0ZaSXaOo8dOMpR8m5KDG2FthRPGVwctqI=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200312011921-7404b8a116cd h1:3l5xSCnEeJlXva0KK3OS/iiNnsjU5qeFvWhUwqTpV18=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200312011921-7404b8a116cd/go.mod h1:443JsyKlB/0ZaSXaOo8dOMpR8m5KDG2FthRPGVwctqI=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta h1:ur3Txl0omOqYunNKOKKPtKh5JbBiGYWq2RZBcan3YM8=
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
