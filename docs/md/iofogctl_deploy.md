@@ -9,7 +9,7 @@ Deploy ioFog platform or individual components on existing infrastructure.
 The YAML resource specification file should look like this (two Controllers specified for example only):
 ```
 kind: ControlPlane
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 metadata:
   name: alpaca-1 # ControlPlane name
 spec:
@@ -23,7 +23,7 @@ spec:
       user: serge # SSH user
 	  keyFile: ~/.ssh/id_rsa # SSH private key
 ---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Agent
 metadata:
   name: agent1 # Agent name
@@ -33,7 +33,7 @@ spec:
     user: serge # SSH User
     keyFile: ~/.ssh/id_rsa # SSH private key
 ---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Agent
 metadata:
   name: agent2

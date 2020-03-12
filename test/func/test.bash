@@ -10,7 +10,7 @@ function testDeployVolume(){
   fi
   initAgents
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Volume
 spec:
   source: $YAML_SRC
