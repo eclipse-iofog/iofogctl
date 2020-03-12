@@ -17,7 +17,7 @@ function initAllLocalDeleteFile() {
 
 function initMicroserviceFile() {
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Microservice 
 metadata:
   name: ${MICROSERVICE_NAME}
@@ -53,7 +53,7 @@ spec:
 
 function initMicroserviceUpdateFile() {
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Microservice
 metadata:
   name: ${MICROSERVICE_NAME}
@@ -146,7 +146,7 @@ function initApplicationFiles() {
       to: $MSVC2_NAME"
 
   echo -n "---
-  apiVersion: iofog.org/v1
+  apiVersion: iofog.org/v2
   kind: Application
   metadata:
     name: $APPLICATION_NAME
@@ -157,7 +157,7 @@ function initApplicationFiles() {
 
 function initLocalAgentFile() {
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Agent
 metadata:
   name: ${NAME}-0
@@ -169,7 +169,7 @@ spec:
 
 function initLocalControllerFile() {
     echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: ControlPlane
 spec:
   iofogUser:
@@ -191,7 +191,7 @@ function initAgentsFile() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: Agent 
 metadata:
   name: $AGENT_NAME
@@ -239,7 +239,7 @@ function initAgents(){
 function initGCRRegistryFile() {
   echo "---
 kind: Registry
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 spec:
   url: gcr.io
   email: alex@edgeworx.io
@@ -252,7 +252,7 @@ spec:
 function initUpdatedGCRRegistryFile() {
   echo "---
 kind: Registry
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 spec:
   id: 3
   url: https://gcr.io

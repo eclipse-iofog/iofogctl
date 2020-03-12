@@ -29,7 +29,7 @@ NS="$NAMESPACE"
 
 @test "Deploy Control Plane" {
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: ControlPlane
 metadata:
   name: func-controlplane
@@ -93,7 +93,7 @@ spec:
 
 @test "Deploy Controller for idempotence" {
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: ControlPlane
 metadata:
   name: func-controlplane

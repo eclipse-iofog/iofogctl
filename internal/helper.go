@@ -48,7 +48,7 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 }
 
 const APIVersionGroup = "iofog.org"
-const LatestAPIVersion = APIVersionGroup + "/v1"
+const LatestAPIVersion = APIVersionGroup + "/v2"
 
 var supportedAPIVersionsMap = map[string]bool{
 	LatestAPIVersion: true,

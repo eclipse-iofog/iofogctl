@@ -16,7 +16,7 @@ NS2="$NS"_2
 @test "Deploy vanilla Controller" {
   initVanillaController
   echo "---
-apiVersion: iofog.org/v1
+apiVersion: iofog.org/v2
 kind: ControlPlane
 metadata:
   name: func-controlplane

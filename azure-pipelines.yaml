@@ -51,7 +51,6 @@ stages:
   jobs:
   - template: pipeline/win-k8s.yaml
   - template: pipeline/win-vanilla.yaml
-  - template: pipeline/win-local.yaml
   - template: pipeline/local.yaml
   - template: pipeline/k8s.yaml
   - template: pipeline/ha.yaml
