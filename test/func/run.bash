@@ -11,3 +11,10 @@ function jqMsvcArray(){
     ARR="$1"
     echo "$ARR" | jq '. | length'
 }
+
+function findMsvcState(){
+    NS="$1"
+    MS="$2"
+    STATE="$3"
+    iofogctl -n $NS get microservices | grep $MS | grep $STATE
+}
