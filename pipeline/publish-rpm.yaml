@@ -21,16 +21,18 @@ jobs:
       package=$(ls | grep *.rpm)
       echo "package..."
       echo $package
-      declare -a FEDORA_VERS=("23" "24" "30" "31")
-      declare -a REDHAT_VERS=("6" "7" "8")
-      for fed in ${FEDORA_VERS[@]}
-      do
-          package_cloud yank iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud || true
-          package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
-      done
-      for red in ${REDHAT_VERS[@]}
-      do
-          package_cloud yank iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud || true
-          package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
-      done
+      package_cloud yank iofog/iofogctl-snapshots $package --config=$(Agent.TempDirectory)/package_cloud || true
+      package_cloud push iofog/iofogctl-snapshots $package --config=$(Agent.TempDirectory)/package_cloud
+      # declare -a FEDORA_VERS=("23" "24" "30" "31")
+      # declare -a REDHAT_VERS=("6" "7" "8")
+      # for fed in ${FEDORA_VERS[@]}
+      # do
+      #     package_cloud yank iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud || true
+      #     package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
+      # done
+      # for red in ${REDHAT_VERS[@]}
+      # do
+      #     package_cloud yank iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud || true
+      #     package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
+      # done
     displayName: 'Publish RPM to package-cloud'
