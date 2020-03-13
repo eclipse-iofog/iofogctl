@@ -15,11 +15,11 @@ COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/v2/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).controllerTag=develop
+LDFLAGS += -X $(PREFIX).controllerTag=latest
 LDFLAGS += -X $(PREFIX).portManagerTag=develop
 LDFLAGS += -X $(PREFIX).kubeletTag=develop
 LDFLAGS += -X $(PREFIX).operatorTag=develop
-LDFLAGS += -X $(PREFIX).agentTag=develop
+LDFLAGS += -X $(PREFIX).agentTag=0.0.0-dev
 LDFLAGS += -X $(PREFIX).proxyTag=develop
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
