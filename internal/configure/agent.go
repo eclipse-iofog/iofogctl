@@ -45,10 +45,6 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
-	if exe.host != "" {
-		return util.NewInputError("Cannot change host address of Agents")
-	}
-
 	var agent config.Agent
 	var err error
 	if exe.useDetached {
@@ -67,6 +63,9 @@ func (exe *agentExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
+	}
+	if exe.host != "" {
+		agent.Host = exe.host
 	}
 	if exe.user != "" {
 		agent.SSH.User = exe.user
