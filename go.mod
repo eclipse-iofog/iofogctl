@@ -5,7 +5,6 @@ go 1.12
 require (
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Microsoft/go-winio v0.4.12 // indirect
-	github.com/NYTimes/gziphandler v1.0.1 // indirect
 	github.com/Sirupsen/logrus v1.0.6 // indirect
 	github.com/briandowns/spinner v1.6.1
 	github.com/daaku/go.zipexe v1.0.1 // indirect
