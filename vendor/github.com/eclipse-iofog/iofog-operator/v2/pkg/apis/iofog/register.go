@@ -1,9 +1,9 @@
 // NOTE: Boilerplate only.  Ignore this file.
 
-// Package v1 contains API Schema definitions for the k8s v1 API group
+// Package v2 contains API Schema definitions for the k8s v2 API group
 // +k8s:deepcopy-gen=package,register
 // +groupName=k8s.iofog.org
-package v1
+package iofog
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -12,7 +12,7 @@ import (
 
 var (
 	// SchemeGroupVersion is group version used to register these objects
-	SchemeGroupVersion = schema.GroupVersion{Group: "iofog.org", Version: "v1"}
+	SchemeGroupVersion = schema.GroupVersion{Group: "iofog.org", Version: "v2"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}

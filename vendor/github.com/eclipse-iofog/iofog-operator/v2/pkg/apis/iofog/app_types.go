@@ -1,4 +1,4 @@
-package v1
+package iofog
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
