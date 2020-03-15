@@ -20,11 +20,12 @@ var (
 	commit         = "undefined"
 	date           = "undefined"
 	controllerTag  = "undefined"
-	kubeletTag     = "undefined"
-	proxyTag       = "undefined"
-	operatorTag    = "undefined"
-	portManagerTag = "undefined"
 	agentTag       = "undefined"
+	operatorTag    = "undefined"
+	kubeletTag     = "undefined"
+	routerTag      = "undefined"
+	portManagerTag = "undefined"
+	proxyTag       = "undefined"
 )
 
 type Version struct {
@@ -44,8 +45,9 @@ func GetVersion() Version {
 }
 
 func GetControllerTag() string  { return controllerTag }
-func GetKubeletTag() string     { return kubeletTag }
-func GetProxyTag() string       { return proxyTag }
-func GetOperatorTag() string    { return operatorTag }
-func GetPortManagerTag() string { return portManagerTag }
 func GetAgentTag() string       { return agentTag }
+func GetOperatorTag() string    { return operatorTag }
+func GetKubeletTag() string     { return kubeletTag }
+func GetRouterTag() string      { return routerTag }
+func GetPortManagerTag() string { return portManagerTag }
+func GetProxyTag() string       { return proxyTag }

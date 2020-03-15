@@ -49,6 +49,7 @@ type KubeImages struct {
 	Operator    string `yaml:"operator,omitempty"`
 	Kubelet     string `yaml:"kubelet,omitempty"`
 	PortManager string `yaml:"portManager,omitempty"`
+	Router      string `yaml:"router,omitempty"`
 	Proxy       string `yaml:"proxy,omitempty"`
 }
 

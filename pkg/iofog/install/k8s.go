@@ -79,6 +79,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		controlPlane: &iofogv1.ControlPlane{
 			ControllerImage:  dockerRepo + "/controller:" + util.GetControllerTag(),
 			PortManagerImage: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
+			RouterImage:      dockerRepo + "/router:" + util.GetRouterTag(),
 			ProxyImage:       dockerRepo + "/proxy:" + util.GetProxyTag(),
 			KubeletImage:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
 			ServiceType:      string(corev1.ServiceTypeLoadBalancer),
@@ -102,6 +103,12 @@ func (k8s *Kubernetes) SetOperatorImage(image string) {
 func (k8s *Kubernetes) SetPortManagerImage(image string) {
 	if image != "" {
 		k8s.controlPlane.PortManagerImage = image
+	}
+}
+
+func (k8s *Kubernetes) SetRouterImage(image string) {
+	if image != "" {
+		k8s.controlPlane.RouterImage = image
 	}
 }
 

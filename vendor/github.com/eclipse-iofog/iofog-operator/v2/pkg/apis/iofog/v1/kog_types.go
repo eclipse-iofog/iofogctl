@@ -21,6 +21,7 @@ type ControlPlane struct {
 	Database               Database  `json:"database,omitempty"`
 	ControllerImage        string    `json:"controllerImage"`
 	PortManagerImage       string    `json:"portManagerImage"`
+	RouterImage            string    `json:"routerImage"`
 	ProxyImage             string    `json:"proxyImage"`
 	ImagePullSecret        string    `json:"imagePullSecret,omitempty"`
 	KubeletImage           string    `json:"kubeletImage"`
