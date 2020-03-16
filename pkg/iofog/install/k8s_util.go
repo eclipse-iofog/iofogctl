@@ -14,14 +14,18 @@
 package install
 
 import (
+	"strconv"
+	"strings"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"strconv"
 )
+
+var apiVersions = []string{"v2", "v1"}
 
 func newService(namespace string, ms *microservice) *corev1.Service {
 	svc := &corev1.Service{
@@ -162,21 +166,45 @@ func newRole(namespace string, ms *microservice) *rbacv1.Role {
 	}
 }
 
-func newKogCRD() *extsv1.CustomResourceDefinition {
+func isSupported(crd *extsv1.CustomResourceDefinition) bool {
+	if len(crd.Spec.Versions) != len(apiVersions) {
+		return false
+	}
+	supportedCount := 0
+	for _, supportedVersion := range apiVersions {
+		for _, version := range crd.Spec.Versions {
+			if version.Name == supportedVersion {
+				supportedCount = supportedCount + 1
+				break
+			}
+		}
+	}
+	return supportedCount == len(apiVersions)
+}
+
+func newCRD(name string) *extsv1.CustomResourceDefinition {
+	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
+	for idx, version := range apiVersions {
+		versions[idx].Name = version
+		versions[idx].Served = true
+		if idx == 0 {
+			versions[idx].Storage = true
+		}
+	}
 	return &extsv1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "kogs.iofog.org",
+			Name: name + "s.iofog.org",
 		},
 		Spec: extsv1.CustomResourceDefinitionSpec{
 			Group: "iofog.org",
 			Names: extsv1.CustomResourceDefinitionNames{
-				Kind:     "Kog",
-				ListKind: "KogList",
-				Plural:   "kogs",
-				Singular: "kog",
+				Kind:     strings.Title(name),
+				ListKind: strings.Title(name) + "List",
+				Plural:   name + "s",
+				Singular: name,
 			},
-			Scope:   extsv1.ResourceScope("Namespaced"),
-			Version: "v2",
+			Scope:    extsv1.ResourceScope("Namespaced"),
+			Versions: versions,
 			Subresources: &extsv1.CustomResourceSubresources{
 				Status: &extsv1.CustomResourceSubresourceStatus{},
 			},
@@ -184,24 +212,10 @@ func newKogCRD() *extsv1.CustomResourceDefinition {
 	}
 }
 
+func newKogCRD() *extsv1.CustomResourceDefinition {
+	return newCRD("kog")
+}
+
 func newAppCRD() *extsv1.CustomResourceDefinition {
-	return &extsv1.CustomResourceDefinition{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "apps.iofog.org",
-		},
-		Spec: extsv1.CustomResourceDefinitionSpec{
-			Group: "iofog.org",
-			Names: extsv1.CustomResourceDefinitionNames{
-				Kind:     "Application",
-				ListKind: "ApplicationList",
-				Plural:   "apps",
-				Singular: "app",
-			},
-			Scope:   extsv1.ResourceScope("Namespaced"),
-			Version: "v2",
-			Subresources: &extsv1.CustomResourceSubresources{
-				Status: &extsv1.CustomResourceSubresourceStatus{},
-			},
-		},
-	}
+	return newCRD("app")
 }

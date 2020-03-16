@@ -134,8 +134,15 @@ func (k8s *Kubernetes) enableCustomResources() error {
 				return err
 			}
 			// Update
-			if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(crd); err != nil {
+			existingCRD, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
+			if err != nil {
 				return err
+			}
+			if !isSupported(existingCRD) {
+				existingCRD.Spec.Versions = crd.Spec.Versions
+				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(existingCRD); err != nil {
+					return err
+				}
 			}
 		}
 	}
