@@ -176,7 +176,7 @@ func newKogCRD() *extsv1.CustomResourceDefinition {
 				Singular: "kog",
 			},
 			Scope:   extsv1.ResourceScope("Namespaced"),
-			Version: "v1",
+			Version: "v2",
 			Subresources: &extsv1.CustomResourceSubresources{
 				Status: &extsv1.CustomResourceSubresourceStatus{},
 			},
@@ -198,7 +198,7 @@ func newAppCRD() *extsv1.CustomResourceDefinition {
 				Singular: "app",
 			},
 			Scope:   extsv1.ResourceScope("Namespaced"),
-			Version: "v1",
+			Version: "v2",
 			Subresources: &extsv1.CustomResourceSubresources{
 				Status: &extsv1.CustomResourceSubresourceStatus{},
 			},

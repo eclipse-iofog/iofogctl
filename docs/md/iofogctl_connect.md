@@ -41,7 +41,7 @@ iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 ```
       --detached           Use/Show detached resources
       --http-verbose       Toggle for displaying verbose output of API client
-  -n, --namespace string   Namespace to execute respective command within (default "skupper")
+  -n, --namespace string   Namespace to execute respective command within (default "serge")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
 

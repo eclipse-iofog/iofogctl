@@ -331,6 +331,9 @@ type AgentInfo struct {
 	MessagingPort             *int      `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
 	EdgeRouterPort            *int      `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
 	InterRouterPort           *int      `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
+	LogLevel                  *string   `json:"logLevel" yaml:"logLevel"`
+	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency" yaml:"dockerPruningFrequency"`
+	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
 }
 
 type RouterConfig struct {
@@ -360,6 +363,9 @@ type AgentConfiguration struct {
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
 	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
+	LogLevel                  *string  `json:"logLevel,omitempty" yaml:"logLevel"`
+	DockerPruningFrequency    *float64 `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
+	AvailableDiskThreshold    *float64 `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
 }
 
 type AgentUpdateRequest struct {
