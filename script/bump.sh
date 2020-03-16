@@ -29,6 +29,7 @@ make modules
 
 # Update Makefile
 sed -i.bkp -E "s/(.*-X.*Tag=).*/\1$version/g" Makefile
+sed -i.bkp -E "s/(.*-X.*Version=).*/\1$version/g" Makefile
 rm Makefile.bkp
 # Update pipeline
 sed -i.bkp -E "s/(_image:.*focal-freedom.*:).*/\1$version'/g" azure-pipelines.yaml

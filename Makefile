@@ -20,8 +20,10 @@ LDFLAGS += -X $(PREFIX).kubeletTag=develop
 LDFLAGS += -X $(PREFIX).operatorTag=develop
 LDFLAGS += -X $(PREFIX).proxyTag=develop
 LDFLAGS += -X $(PREFIX).routerTag=develop
-LDFLAGS += -X $(PREFIX).controllerTag=2.0.0-beta
-LDFLAGS += -X $(PREFIX).agentTag=2.0.0-beta
+LDFLAGS += -X $(PREFIX).controllerTag=develop
+LDFLAGS += -X $(PREFIX).agentTag=develop
+LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
+LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml

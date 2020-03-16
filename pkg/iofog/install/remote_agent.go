@@ -37,7 +37,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	return &RemoteAgent{
 		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
 		ssh:          ssh,
-		version:      util.GetAgentTag(),
+		version:      util.GetAgentVersion(),
 	}
 }
 

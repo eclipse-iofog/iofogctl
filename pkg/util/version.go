@@ -15,10 +15,11 @@ package util
 
 // Set by linker
 var (
-	versionNumber  = "undefined"
-	platform       = "undefined"
-	commit         = "undefined"
-	date           = "undefined"
+	versionNumber = "undefined"
+	platform      = "undefined"
+	commit        = "undefined"
+	date          = "undefined"
+
 	controllerTag  = "undefined"
 	agentTag       = "undefined"
 	operatorTag    = "undefined"
@@ -26,6 +27,9 @@ var (
 	routerTag      = "undefined"
 	portManagerTag = "undefined"
 	proxyTag       = "undefined"
+
+	controllerVersion = "undefined"
+	agentVersion      = "undefined"
 )
 
 type Version struct {
@@ -51,3 +55,6 @@ func GetKubeletTag() string     { return kubeletTag }
 func GetRouterTag() string      { return routerTag }
 func GetPortManagerTag() string { return portManagerTag }
 func GetProxyTag() string       { return proxyTag }
+
+func GetControllerVersion() string { return controllerVersion }
+func GetAgentVersion() string      { return agentVersion }

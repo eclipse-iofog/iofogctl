@@ -53,7 +53,7 @@ func NewController(options *ControllerOptions) *Controller {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
 	ssh.SetPort(options.Port)
 	if options.Version == "" || options.Version == "latest" {
-		options.Version = util.GetControllerTag()
+		options.Version = util.GetControllerVersion()
 	}
 	return &Controller{
 		ControllerOptions: options,
