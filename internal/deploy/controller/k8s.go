@@ -47,6 +47,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	installer.SetKubeletImage(exe.ctrl.Kube.Images.Kubelet)
 	installer.SetOperatorImage(exe.ctrl.Kube.Images.Operator)
 	installer.SetPortManagerImage(exe.ctrl.Kube.Images.PortManager)
+	installer.SetRouterImage(exe.ctrl.Kube.Images.Router)
 	installer.SetProxyImage(exe.ctrl.Kube.Images.Proxy)
 	installer.SetControllerImage(exe.ctrl.Container.Image)
 	installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
