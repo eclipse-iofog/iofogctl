@@ -22,6 +22,7 @@ import (
 	iofogv1 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	corev1 "k8s.io/api/core/v1"
+	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -125,19 +126,20 @@ func (k8s *Kubernetes) SetControllerImage(image string) {
 }
 
 func (k8s *Kubernetes) enableCustomResources() error {
-	// Kogs
-	iokogCRD := newKogCRD()
-	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(iokogCRD); err != nil {
-		if !k8serrors.IsAlreadyExists(err) {
-			return err
-		}
-	}
-
-	// Applications
-	appCRD := newAppCRD()
-	if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(appCRD); err != nil {
-		if !k8serrors.IsAlreadyExists(err) {
-			return err
+	// Kog and App
+	for _, crd := range []*extsv1.CustomResourceDefinition{newKogCRD(), newAppCRD()} {
+		// Try create new
+		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
+			if !k8serrors.IsAlreadyExists(err) {
+				return err
+			}
+			// Delete and redeploy
+			if err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, &metav1.DeleteOptions{}); err != nil {
+				return err
+			}
+			if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
+				return err
+			}
 		}
 	}
 
