@@ -235,6 +235,17 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 	return nil
 }
 
+func (k8s *Kubernetes) disableCustomResources() (err error) {
+	for _, name := range []string{newKogCRD().Name, newAppCRD().Name} {
+		if err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(name, &metav1.DeleteOptions{}); err != nil {
+			if !k8serrors.IsNotFound(err) {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (k8s *Kubernetes) deleteOperator() (err error) {
 	// Resource name for deletions
 	name := k8s.operator.name
@@ -348,6 +359,11 @@ func (k8s *Kubernetes) DeleteController() error {
 
 	// Delete Operator
 	if err := k8s.deleteOperator(); err != nil {
+		return err
+	}
+
+	// Delete CRDs
+	if err := k8s.disableCustomResources(); err != nil {
 		return err
 	}
 
