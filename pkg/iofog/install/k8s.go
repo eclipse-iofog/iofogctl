@@ -133,11 +133,8 @@ func (k8s *Kubernetes) enableCustomResources() error {
 			if !k8serrors.IsAlreadyExists(err) {
 				return err
 			}
-			// Delete and redeploy
-			if err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, &metav1.DeleteOptions{}); err != nil {
-				return err
-			}
-			if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
+			// Update
+			if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(crd); err != nil {
 				return err
 			}
 		}
@@ -234,17 +231,6 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		}
 	}
 
-	return nil
-}
-
-func (k8s *Kubernetes) disableCustomResources() (err error) {
-	for _, name := range []string{newKogCRD().Name, newAppCRD().Name} {
-		if err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(name, &metav1.DeleteOptions{}); err != nil {
-			if !k8serrors.IsNotFound(err) {
-				return err
-			}
-		}
-	}
 	return nil
 }
 
@@ -361,11 +347,6 @@ func (k8s *Kubernetes) DeleteController() error {
 
 	// Delete Operator
 	if err := k8s.deleteOperator(); err != nil {
-		return err
-	}
-
-	// Delete CRDs
-	if err := k8s.disableCustomResources(); err != nil {
 		return err
 	}
 
