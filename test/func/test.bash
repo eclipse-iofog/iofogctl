@@ -48,7 +48,7 @@ spec:
 function testGetDescribeVolume(){
   SRC="$VOL_SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    SRC=$(wslpath "$WIN_VOL_SRC")
+    SRC="$WIN_VOL_SRC"
   fi
 
   # Describe
@@ -75,7 +75,7 @@ function testGetDescribeVolume(){
 function testDeleteVolume(){
   SRC="$VOL_SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    SRC=$(wslpath "$WIN_VOL_SRC")
+    SRC="$WIN_VOL_SRC"
   fi
 
   iofogctl -v -n "$NS" delete volume "$VOL_NAME"
