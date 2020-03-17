@@ -5,7 +5,7 @@ function testDeployVolume(){
   DST="$VOL_DEST"
   YAML_SRC="$SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    YAML_SRC="C:/tests"
+    YAML_SRC="$WIN_VOL_SRC"
     SRC=$(wslpath $YAML_SRC)
   fi
   initAgents
@@ -46,13 +46,18 @@ spec:
 }
 
 function testGetDescribeVolume(){
+  SRC="$VOL_SRC"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SRC=$(wslpath "$WIN_VOL_SRC")
+  fi
+
   # Describe
   DESC=$(iofogctl -v -n "$NS" describe volume "$VOL_NAME")
   echo "$DESC"
   [ ! -z "$(echo $DESC | grep $VOL_NAME)" ]
   [ ! -z "$(echo $DESC | grep $NAME-0)" ]
   [ ! -z "$(echo $DESC | grep $NAME-1)" ]
-  [ ! -z "$(echo $DESC | grep $VOL_SRC)" ]
+  [ ! -z "$(echo $DESC | grep $SRC)" ]
   [ ! -z "$(echo $DESC | grep $VOL_DEST)" ]
   [ ! -z "$(echo $DESC | grep 666)" ]
 
@@ -62,12 +67,17 @@ function testGetDescribeVolume(){
   [ ! -z "$(echo $GET | grep $VOL_NAME)" ]
   [ ! -z "$(echo $GET | grep $NAME-0)" ]
   [ ! -z "$(echo $GET | grep $NAME-1)" ]
-  [ ! -z "$(echo $GET | grep $VOL_SRC)" ]
+  [ ! -z "$(echo $GET | grep $SRC)" ]
   [ ! -z "$(echo $GET | grep $VOL_DEST)" ]
   [ ! -z "$(echo $GET | grep 666)" ]
 }
 
 function testDeleteVolume(){
+  SRC="$VOL_SRC"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SRC=$(wslpath "$WIN_VOL_SRC")
+  fi
+
   iofogctl -v -n "$NS" delete volume "$VOL_NAME"
   GET=$(iofogctl -v -n "$NS" get volumes)
   echo "$GET"
@@ -76,7 +86,7 @@ function testDeleteVolume(){
   [ -z "$(echo $GET | grep $VOL_NAME)" ]
   [ -z "$(echo $GET | grep $NAME-0)" ]
   [ -z "$(echo $GET | grep $NAME-1)" ]
-  [ -z "$(echo $GET | grep $VOL_SRC)" ]
+  [ -z "$(echo $GET | grep $SRC)" ]
   [ -z "$(echo $GET | grep $VOL_DEST)" ]
   [ -z "$(echo $GET | grep 666)" ]
 
