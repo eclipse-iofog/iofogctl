@@ -72,7 +72,12 @@ func (exe *allExecutor) Execute() error {
 		return err
 	}
 
-	return config.Flush()
+	// Print volumes
+	if err := newVolumeExecutor(exe.namespace).Execute(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func printDetached() {

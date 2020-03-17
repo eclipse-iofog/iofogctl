@@ -37,6 +37,8 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newCatalogExecutor(namespace), nil
 	case "registries":
 		return newRegistryExecutor(namespace), nil
+	case "volumes":
+		return newVolumeExecutor(namespace), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

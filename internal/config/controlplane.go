@@ -36,3 +36,35 @@ func (ctrlPlane ControlPlane) GetControllerEndpoint() (string, error) {
 	}
 	return ctrlPlane.Controllers[0].Endpoint, nil
 }
+
+func DeleteControlPlane(namespace string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	mux.Lock()
+	ns.ControlPlane = ControlPlane{}
+	mux.Unlock()
+	return nil
+}
+
+// GetControlPlane returns a control plane within a namespace
+func GetControlPlane(namespace string) (ControlPlane, error) {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return ControlPlane{}, err
+	}
+	return ns.ControlPlane, nil
+}
+
+// UpdateControlPlane overwrites Control Plane in the namespace
+func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	mux.Lock()
+	ns.ControlPlane = controlPlane
+	mux.Unlock()
+	return nil
+}

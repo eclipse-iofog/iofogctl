@@ -35,7 +35,7 @@ type remoteExecutor struct {
 }
 
 func (exe remoteExecutor) GetName() string {
-	return "Deploy Volume " + exe.volume.Destination
+	return "deploying Volume " + exe.volume.Name
 }
 
 func (exe remoteExecutor) Execute() error {
@@ -50,7 +50,11 @@ func (exe remoteExecutor) Execute() error {
 			return err
 		}
 	}
-	return nil
+	// Update config
+	if err := config.AddVolume(exe.namespace, exe.volume); err != nil {
+		return err
+	}
+	return config.Flush()
 }
 
 func (exe remoteExecutor) execute(agentIdx int, ch chan error) {

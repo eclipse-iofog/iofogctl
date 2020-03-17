@@ -25,6 +25,7 @@ import (
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
 	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
 	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
+	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 )
 
@@ -42,6 +43,7 @@ var kindOrder = []apps.Kind{
 	apps.AgentKind,
 	apps.ControllerKind,
 	apps.ControlPlaneKind,
+	config.VolumeKind,
 }
 
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
@@ -65,6 +67,9 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	},
 	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
+	},
+	config.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletevolume.NewExecutor(opt.Namespace, opt.Name)
 	},
 }
 

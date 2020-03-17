@@ -14,33 +14,38 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newDeleteMicroserviceCommand() *cobra.Command {
+func newDeleteVolumeCommand() *cobra.Command {
+	var soft bool
 	cmd := &cobra.Command{
-		Use:     "microservice NAME",
-		Short:   "Delete a Microservice",
-		Long:    `Delete a Microservice`,
-		Example: `iofogctl delete microservice NAME`,
+		Use:   "volume NAME",
+		Short: "Delete an Volume",
+		Long: `Delete an Volume.
+
+The Volume will be deleted from the Agents that it is stored on.`,
+		Example: `iofogctl delete volume NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get name and namespace
+			// Get name and namespace of volume
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Get an executor for the command
+			// Run the command
 			exe, err := delete.NewExecutor(namespace, name)
 			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted microservice " + name)
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
+
+	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete iofog-volume from remote host")
 
 	return cmd
 }

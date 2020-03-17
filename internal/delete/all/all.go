@@ -18,6 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
+	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -30,6 +31,22 @@ func Execute(namespace string, useDetached, soft bool) error {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return err
+	}
+
+	// Delete Volumes
+	if len(ns.Volumes) > 0 {
+		util.SpinStart("Deleting Volumes")
+		var executors []execute.Executor
+		for _, volume := range ns.Volumes {
+			exe, err := deletevolume.NewExecutor(namespace, volume.Name)
+			if err != nil {
+				return err
+			}
+			executors = append(executors, exe)
+		}
+		if err := runExecutors(executors); err != nil {
+			return err
+		}
 	}
 
 	// Delete Agents

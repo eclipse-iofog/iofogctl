@@ -40,7 +40,8 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 			util.Check(err)
 
 			// Run the command
-			exe, _ := delete.NewExecutor(namespace, name, useDetached, soft)
+			exe, err := delete.NewExecutor(namespace, name, useDetached, soft)
+			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)
 

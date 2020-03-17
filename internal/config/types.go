@@ -121,6 +121,7 @@ type Registry struct {
 }
 
 type Volume struct {
+	Name        string   `json:"name" yaml:"name"`
 	Agents      []string `json:"agents" yaml:"agents"`
 	Source      string   `json:"source" yaml:"source"`
 	Destination string   `json:"destination" yaml:"destination"`
@@ -169,6 +170,7 @@ type Namespace struct {
 	Name         string       `yaml:"name,omitempty"`
 	ControlPlane ControlPlane `yaml:"controlPlane,omitempty"`
 	Agents       []Agent      `yaml:"agents,omitempty"`
+	Volumes      []Volume     `yaml:"volumes,omitempty"`
 	Created      string       `yaml:"created,omitempty"`
 }
 
