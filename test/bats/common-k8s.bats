@@ -2,6 +2,15 @@
   testDeployVolume
 }
 
+@test "Get and Describe Volumes" {
+  testGetDescribeVolume
+}
+
+@test "Delete Volumes and Redeploy" {
+  testDeleteVolume
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"

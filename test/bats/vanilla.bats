@@ -90,6 +90,15 @@ spec:
   testDeployVolume
 }
 
+@test "Get and Describe Volumes" {
+  testGetDescribeVolume
+}
+
+@test "Delete Volumes and Redeploy" {
+  testDeleteVolume
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   initAgents
   for IDX in "${!AGENTS[@]}"; do
