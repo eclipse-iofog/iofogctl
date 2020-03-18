@@ -102,7 +102,8 @@ var httpVerbose bool
 func initialize() {
 	client.SetGlobalRetries(client.Retries{
 		CustomMessage: map[string]int{
-			"dial tcp": 10,
+			"timeout":           10, // Linux
+			"failed to respond": 10, // Windows
 		},
 	})
 	client.SetVerbosity(httpVerbose)
