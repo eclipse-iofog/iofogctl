@@ -44,7 +44,8 @@ func (exe *applicationExecutor) Execute() error {
 	if err := exe.init(); err != nil {
 		return err
 	}
-	return exe.generateApplicationOutput()
+	printNamespace(exe.namespace)
+	return exe.GenerateApplicationOutput()
 }
 
 func (exe *applicationExecutor) init() (err error) {
@@ -77,7 +78,7 @@ func (exe *applicationExecutor) init() (err error) {
 	return
 }
 
-func (exe *applicationExecutor) generateApplicationOutput() error {
+func (exe *applicationExecutor) GenerateApplicationOutput() error {
 	// Generate table and headers
 	table := make([][]string, len(exe.flows)+1)
 	headers := []string{"APPLICATION", "STATUS", "MICROSERVICES"}

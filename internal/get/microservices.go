@@ -72,11 +72,11 @@ func (exe *microserviceExecutor) Execute() error {
 	if err := exe.init(); err != nil {
 		return err
 	}
-
-	return exe.generateMicroserviceOutput()
+	printNamespace(exe.namespace)
+	return exe.GenerateMicroserviceOutput()
 }
 
-func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
+func (exe *microserviceExecutor) GenerateMicroserviceOutput() (err error) {
 
 	// Generate table and headers
 	table := make([][]string, len(exe.msvcPerID)+1)

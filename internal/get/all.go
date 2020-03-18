@@ -63,17 +63,17 @@ func (exe *allExecutor) Execute() error {
 	}
 
 	// Print applications
-	if err := newApplicationExecutor(exe.namespace).Execute(); err != nil {
+	if err := newApplicationExecutor(exe.namespace).GenerateApplicationOutput(); err != nil {
 		return err
 	}
 
 	// Print microservices
-	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {
+	if err := newMicroserviceExecutor(exe.namespace).GenerateMicroserviceOutput(); err != nil {
 		return err
 	}
 
 	// Print volumes
-	if err := newVolumeExecutor(exe.namespace).Execute(); err != nil {
+	if err := generateVolumeOutput(exe.namespace); err != nil {
 		return err
 	}
 
