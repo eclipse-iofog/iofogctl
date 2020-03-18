@@ -50,7 +50,8 @@ func (exe *agentExecutor) Execute() error {
 	if err := generateAgentOutput(exe.namespace); err != nil {
 		return err
 	}
-	return config.Flush()
+	// Flush occurs in generateAgentOutput
+	return nil
 }
 
 func generateDetachedAgentOutput() error {
@@ -100,15 +101,21 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Process Agents
+	newAgents := false
 	for _, remoteAgent := range listAgentsResponse.Agents {
 		// Server may have agents that the client is not aware of, update config if so
 		if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
-			newAgentConf := config.Agent{
-				Name: remoteAgent.Name,
-				UUID: remoteAgent.UUID,
-				Host: remoteAgent.IPAddressExternal,
+			// Overwrite config based on backend
+			if err := config.UpdateAgent(
+				namespace,
+				config.Agent{
+					Name: remoteAgent.Name,
+					UUID: remoteAgent.UUID,
+					Host: remoteAgent.IPAddressExternal,
+				}); err != nil {
+				return err
 			}
-			config.AddAgent(namespace, newAgentConf)
+			newAgents = true
 		}
 
 		// Use the pre-processed default info if necessary
@@ -118,6 +125,12 @@ func generateAgentOutput(namespace string) error {
 
 		// Add details for output
 		agentsToPrint[remoteAgent.Name] = remoteAgent
+	}
+	if newAgents {
+		// Save the new agents
+		if err := config.Flush(); err != nil {
+			return err
+		}
 	}
 
 	return tabulateAgents(agentsToPrint)

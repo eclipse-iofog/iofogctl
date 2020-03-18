@@ -233,7 +233,7 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 
 	header.Spec = v2Spec
 
-	return header, nil
+	return header, Flush()
 }
 
 func updateConfigToV2(header iofogctlConfig) (iofogctlConfig, error) {
