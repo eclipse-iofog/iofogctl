@@ -151,7 +151,7 @@ func Init(configFolderArg string) {
 
 		// Create default config file
 		conf.DefaultNamespace = "default"
-		err = FlushConfig()
+		err = flushConfig()
 		util.Check(err)
 	}
 
@@ -172,9 +172,11 @@ func Init(configFolderArg string) {
 
 	// Check namespace dir exists
 	initNamespaces := []string{"default", detachedNamespace}
+	flush := false
 	for _, initNamespace := range initNamespaces {
 		nsFile := getNamespaceFile(initNamespace)
 		if _, err := os.Stat(nsFile); os.IsNotExist(err) {
+			flush = true
 			err = os.MkdirAll(namespaceDirectory, 0755)
 			util.Check(err)
 
@@ -184,26 +186,15 @@ func Init(configFolderArg string) {
 			}
 		}
 	}
+	if flush {
+		err = flushNamespaces()
+		util.Check(err)
+	}
 }
 
 // getNamespaceFile helper function that returns the full path to a namespace file
 func getNamespaceFile(name string) string {
 	return path.Join(namespaceDirectory, name+".yaml")
-}
-
-// FlushConfig will write over the config file based on the runtime data of all namespaces
-func FlushConfig() (err error) {
-	// Marshal the runtime data
-	marshal, err := getConfigYAMLFile(conf)
-	if err != nil {
-		return
-	}
-	// Overwrite the file
-	err = ioutil.WriteFile(configFilename, marshal, 0644)
-	if err != nil {
-		return
-	}
-	return
 }
 
 func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
@@ -333,8 +324,7 @@ func getNamespaceYAMLFile(ns *Namespace) ([]byte, error) {
 	return yaml.Marshal(namespaceHeader)
 }
 
-// Flush will write over the namespace file based on the runtime data
-func Flush() (err error) {
+func flushNamespaces() error {
 	for _, ns := range namespaces {
 		// Marshal the runtime data
 		marshal, err := getNamespaceYAMLFile(ns)
@@ -347,7 +337,31 @@ func Flush() (err error) {
 			return err
 		}
 	}
-	return
+	return nil
+}
+
+func flushConfig() error {
+	// Marshal the runtime data
+	marshal, err := getConfigYAMLFile(conf)
+	if err != nil {
+		return nil
+	}
+	// Overwrite the file
+	err = ioutil.WriteFile(configFilename, marshal, 0644)
+	if err != nil {
+		return nil
+	}
+	return nil
+}
+
+// Flush will write namespace and configuration files to disk
+func Flush() (err error) {
+	// Flush namespace files
+	if err = flushNamespaces(); err != nil {
+		return
+	}
+	// Flush configuration e.g. default namespace
+	return flushConfig()
 }
 
 // NewRandomUser creates a new config user

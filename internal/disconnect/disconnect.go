@@ -29,7 +29,9 @@ func Execute(opt *Options) error {
 	}
 
 	if ns.Name == config.GetDefaultNamespaceName() {
-		config.ClearNamespace(ns.Name)
+		if err = config.ClearNamespace(ns.Name); err != nil {
+			return err
+		}
 		return config.Flush()
 	}
 

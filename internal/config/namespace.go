@@ -71,7 +71,7 @@ func getNamespace(name string) (*Namespace, error) {
 			return nil, err
 		}
 		namespaces[name] = &ns
-		return namespaces[name], nil
+		return &ns, nil
 	}
 	return namespace, nil
 }
@@ -122,10 +122,8 @@ func DeleteNamespace(name string) error {
 
 	// Reset default namespace if required
 	if name == conf.DefaultNamespace {
-		err1 := SetDefaultNamespace("default")
-		err2 := FlushConfig()
-		if err1 != nil || err2 != nil {
-			return errors.New("Failed to delete namespace " + name + " which is configured as default")
+		if err := SetDefaultNamespace("default"); err != nil {
+			return errors.New("Failed to reconfigure default namespace")
 		}
 	}
 
@@ -156,11 +154,7 @@ func RenameNamespace(name, newName string) error {
 	if err != nil {
 		return err
 	}
-	err = FlushConfig()
-	if err != nil {
-		return err
-	}
-	return Flush()
+	return nil
 }
 
 func ClearNamespace(namespace string) error {
@@ -172,5 +166,5 @@ func ClearNamespace(namespace string) error {
 	defer mux.Unlock()
 	ns.ControlPlane = ControlPlane{}
 	ns.Agents = []Agent{}
-	return FlushConfig()
+	return nil
 }

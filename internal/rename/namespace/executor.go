@@ -29,6 +29,6 @@ func Execute(name, newName string) error {
 	if err := config.RenameNamespace(name, newName); err != nil {
 		return err
 	}
-	return nil
+	return config.Flush()
 
 }

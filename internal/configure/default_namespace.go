@@ -35,9 +35,6 @@ func (exe *defaultNamespaceExecutor) Execute() error {
 	if err := config.SetDefaultNamespace(exe.name); err != nil {
 		return err
 	}
-	if err := config.FlushConfig(); err != nil {
-		return err
-	}
 
-	return nil
+	return config.Flush()
 }
