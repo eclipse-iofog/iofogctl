@@ -35,14 +35,14 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() error {
-	// Find the requested controller
-	ctrl, err := config.GetController(exe.namespace, exe.name)
+	// Get controller from config
+	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	// Instantiate Kubernetes object
-	k8s, err := install.NewKubernetes(ctrl.Kube.Config, exe.namespace)
+	k8s, err := install.NewKubernetes(controlPlane.Kube.Config, exe.namespace)
 
 	// Delete Controller on cluster
 	err = k8s.DeleteController()

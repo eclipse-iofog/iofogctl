@@ -47,8 +47,11 @@ func TestLocal(t *testing.T) {
 func TestRemote(t *testing.T) {
 	ctrl := config.Controller{
 		Name: "test_remote",
-		Kube: config.Kube{
-			Config: "~/.kube/config",
+		Host: "123.123.123.123",
+		SSH: config.SSH{
+			User:    "Peter",
+			KeyFile: "~/.ssh/id_rsa",
+			Port:    22,
 		},
 	}
 	if err := config.AddController(ns, ctrl); err != nil {

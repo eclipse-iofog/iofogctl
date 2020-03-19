@@ -49,15 +49,12 @@ func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 		if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
 			return
 		}
-		if ctrl.Kube.Config, err = util.FormatPath(ctrl.Kube.Config); err != nil {
-			return
-		}
 	}
 
 	return
 }
 
-func validate(controlPlane config.ControlPlane) error {
+func validate(controlPlane config.ControlPlane) (err error) {
 	// Validate user
 	user := controlPlane.IofogUser
 	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
@@ -69,6 +66,10 @@ func validate(controlPlane config.ControlPlane) error {
 		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
 			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
 		}
+	}
+	// Validate Kube
+	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
+		return
 	}
 	// Validate loadbalancer
 	lb := controlPlane.LoadBalancer
@@ -82,10 +83,10 @@ func validate(controlPlane config.ControlPlane) error {
 		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
 	}
 	for _, ctrl := range controlPlane.Controllers {
-		if err := deploycontroller.Validate(ctrl); err != nil {
-			return err
+		if err = deploycontroller.Validate(ctrl); err != nil {
+			return
 		}
 	}
 
-	return nil
+	return
 }

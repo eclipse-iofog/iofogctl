@@ -21,10 +21,10 @@ import (
 type kubernetesExecutor struct {
 	namespace    string
 	ctrl         *config.Controller
-	controlPlane config.ControlPlane
+	controlPlane *config.ControlPlane
 }
 
-func newKubernetesExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, ctrl *config.Controller, controlPlane *config.ControlPlane) *kubernetesExecutor {
 	return &kubernetesExecutor{
 		namespace:    namespace,
 		ctrl:         ctrl,
@@ -38,26 +38,25 @@ func (exe *kubernetesExecutor) GetName() string {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Get Kubernetes deployer
-	installer, err := install.NewKubernetes(exe.ctrl.Kube.Config, exe.namespace)
+	installer, err := install.NewKubernetes(exe.controlPlane.Kube.Config, exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Configure deploy
-	installer.SetKubeletImage(exe.ctrl.Kube.Images.Kubelet)
-	installer.SetOperatorImage(exe.ctrl.Kube.Images.Operator)
-	installer.SetPortManagerImage(exe.ctrl.Kube.Images.PortManager)
-	installer.SetRouterImage(exe.ctrl.Kube.Images.Router)
-	installer.SetProxyImage(exe.ctrl.Kube.Images.Proxy)
-	installer.SetControllerImage(exe.ctrl.Container.Image)
-	installer.SetControllerIP(exe.ctrl.Kube.StaticIP)
-	if err = installer.SetControllerServiceType(exe.ctrl.Kube.ServiceType); err != nil {
-		return
-	}
+	installer.SetKubeletImage(exe.controlPlane.Kube.Images.Kubelet)
+	installer.SetOperatorImage(exe.controlPlane.Kube.Images.Operator)
+	installer.SetPortManagerImage(exe.controlPlane.Kube.Images.PortManager)
+	installer.SetRouterImage(exe.controlPlane.Kube.Images.Router)
+	installer.SetProxyImage(exe.controlPlane.Kube.Images.Proxy)
+	installer.SetControllerImage(exe.controlPlane.Kube.Images.Controller)
+	installer.SetControllerService(exe.controlPlane.Kube.Services.Controller.Type, exe.controlPlane.Kube.Services.Controller.IP)
+	installer.SetRouterService(exe.controlPlane.Kube.Services.Router.Type, exe.controlPlane.Kube.Services.Router.IP)
+	installer.SetRouterService(exe.controlPlane.Kube.Services.Proxy.Type, exe.controlPlane.Kube.Services.Proxy.IP)
 
-	replicas := 1
-	if exe.ctrl.Kube.Replicas != 0 {
-		replicas = exe.ctrl.Kube.Replicas
+	replicas := int32(1)
+	if exe.controlPlane.Kube.Replicas.Controller != 0 {
+		replicas = exe.controlPlane.Kube.Replicas.Controller
 	}
 	// Create controller on cluster
 	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {

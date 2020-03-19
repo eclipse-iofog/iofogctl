@@ -39,17 +39,14 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-    container:
-      image: $CONTROLLER_IMAGE
-    kube:
-      config: $KUBE_CONFIG
-      images:
-        operator: $OPERATOR_IMAGE
-        portManager: $PORT_MANAGER_IMAGE
-        proxy: $PROXY_IMAGE
-        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  kube:
+    config: $KUBE_CONFIG
+    images:
+      controller: $CONTROLLER_IMAGE
+      operator: $OPERATOR_IMAGE
+      portManager: $PORT_MANAGER_IMAGE
+      proxy: $PROXY_IMAGE
+      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -103,17 +100,14 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-    container:
-      image: $CONTROLLER_IMAGE
-    kube:
-      config: $KUBE_CONFIG
-      images:
-        operator: $OPERATOR_IMAGE
-        portManager: $PORT_MANAGER
-        proxy: $PROXY_IMAGE
-        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  kube:
+    config: $KUBE_CONFIG
+    images:
+      controller: $CONTROLLER_IMAGE
+      operator: $OPERATOR_IMAGE
+      portManager: $PORT_MANAGER
+      proxy: $PROXY_IMAGE
+      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController

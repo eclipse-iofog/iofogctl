@@ -13,10 +13,11 @@ apiVersion: iofog.org/v2
 metadata:
   name: alpaca-1 # ControlPlane name
 spec:
+  kube: # K8s
+	config: ~/.kube/config # Will deploy a controller in a kubernetes cluster
+	images:
+		controller: ...
   controllers:
-  - name: k8s # Controller name
-    kube:
-      config: ~/.kube/config # Will deploy a controller in a kubernetes cluster
   - name: vanilla
     host: 35.239.157.151 # Will deploy a controller as a standalone binary
     ssh:

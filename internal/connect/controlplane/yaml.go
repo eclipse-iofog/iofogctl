@@ -32,12 +32,12 @@ func unmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 		err = util.NewInputError("No Controllers specified in Control Plane. Cannot connect.")
 		return
 	}
+	if ctrlPlane.Kube.Config, err = util.FormatPath(ctrlPlane.Kube.Config); err != nil {
+		return
+	}
 	// Pre-process controllers
 	for idx := range ctrlPlane.Controllers {
 		if ctrlPlane.Controllers[idx].SSH.KeyFile, err = util.FormatPath(ctrlPlane.Controllers[idx].SSH.KeyFile); err != nil {
-			return
-		}
-		if ctrlPlane.Controllers[idx].Kube.Config, err = util.FormatPath(ctrlPlane.Controllers[idx].Kube.Config); err != nil {
 			return
 		}
 	}
@@ -52,21 +52,25 @@ func unmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 	return
 }
 
-func validate(controlPlane config.ControlPlane) error {
+func validate(controlPlane config.ControlPlane) (err error) {
 	// Validate user
 	user := controlPlane.IofogUser
 	if user.Password == "" || user.Email == "" {
 		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty values in email and password fields")
+	}
+	// Validate Kube
+	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
+		return
 	}
 	// Validate Controllers
 	if len(controlPlane.Controllers) == 0 {
 		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
 	}
 	for _, ctrl := range controlPlane.Controllers {
-		if err := connectcontroller.Validate(ctrl); err != nil {
-			return err
+		if err = connectcontroller.Validate(ctrl); err != nil {
+			return
 		}
 	}
 
-	return nil
+	return
 }

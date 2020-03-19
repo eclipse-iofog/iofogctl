@@ -46,6 +46,7 @@ type SSH struct {
 }
 
 type KubeImages struct {
+	Controller  string `yaml:"controller,omitempty"`
 	Operator    string `yaml:"operator,omitempty"`
 	Kubelet     string `yaml:"kubelet,omitempty"`
 	PortManager string `yaml:"portManager,omitempty"`
@@ -54,11 +55,25 @@ type KubeImages struct {
 }
 
 type Kube struct {
-	Config      string     `yaml:"config,omitempty"`
-	StaticIP    string     `yaml:"staticIp,omitempty"`
-	Replicas    int        `yaml:"replicas,omitempty"`
-	ServiceType string     `yaml:"serviceType,omitempty"`
-	Images      KubeImages `yaml:"images,omitempty"`
+	Config   string     `yaml:"config,omitempty"`
+	Services Services   `yaml:"services,omitempty"`
+	Replicas Replicas   `yaml:"replicas,omitempty"`
+	Images   KubeImages `yaml:"images,omitempty"`
+}
+
+type Services struct {
+	Controller Service `json:"controller,omitempty"`
+	Router     Service `json:"router,omitempty"`
+	Proxy      Service `json:"proxy,omitempty"`
+}
+
+type Service struct {
+	Type string `json:"type,omitempty"`
+	IP   string `json:"ip,omitempty"`
+}
+
+type Replicas struct {
+	Controller int32 `yaml:"controller"`
 }
 
 // IofogUser contains information about users registered against a controller
@@ -94,6 +109,7 @@ type ControlPlane struct {
 	LoadBalancer Loadbalancer `yaml:"loadBalancer,omitempty"`
 	IofogUser    IofogUser    `yaml:"iofogUser,omitempty"`
 	Controllers  []Controller `yaml:"controllers,omitempty"`
+	Kube         Kube         `yaml:"kube,omitempty"`
 }
 
 // Controller contains information for configuring a controller
@@ -101,7 +117,6 @@ type Controller struct {
 	Name        string    `yaml:"name,omitempty"`
 	Host        string    `yaml:"host,omitempty"`
 	SSH         SSH       `yaml:"ssh,omitempty"`
-	Kube        Kube      `yaml:"kube,omitempty"`
 	Endpoint    string    `yaml:"endpoint,omitempty"`
 	Created     string    `yaml:"created,omitempty"`
 	Package     Package   `yaml:"package,omitempty"`

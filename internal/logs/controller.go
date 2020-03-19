@@ -39,7 +39,11 @@ func (ctrl *controllerExecutor) GetName() string {
 
 func (exe *controllerExecutor) Execute() error {
 	// Get controller config
-	ctrl, err := config.GetController(exe.namespace, exe.name)
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil {
+		return err
+	}
+	ctrl, err := controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
 	}
@@ -62,8 +66,8 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// K8s
-	if ctrl.Kube.Config != "" {
-		out, err := util.Exec("KUBECONFIG="+ctrl.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", exe.namespace)
+	if controlPlane.Kube.Config != "" {
+		out, err := util.Exec("KUBECONFIG="+controlPlane.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", exe.namespace)
 		if err != nil {
 			return err
 		}

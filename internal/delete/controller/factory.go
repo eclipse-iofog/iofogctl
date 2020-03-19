@@ -26,7 +26,11 @@ func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 	}
 
 	// Get controller from config
-	ctrl, err := config.GetController(namespace, name)
+	controlPlane, err := config.GetControlPlane(namespace)
+	if err != nil {
+		return nil, err
+	}
+	ctrl, err := controlPlane.GetController(name)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +45,7 @@ func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 	}
 
 	// Kubernetes executor
-	if ctrl.Kube.Config != "" {
+	if controlPlane.Kube.Config != "" {
 		return newKubernetesExecutor(namespace, name), nil
 	}
 

@@ -90,16 +90,16 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 }
 
 func (exe controlPlaneExecutor) postDeploy() (err error) {
-	// Look for a Vanilla controller
-	controllers, err := config.GetControllers(exe.namespace)
-	if err != nil {
-		return err
-	}
-	for _, ctrl := range controllers {
-		// If Vanilla controller
-		if ctrl.Kube.Config == "" {
+	if exe.controlPlane.Kube.Config == "" {
+		// Look for a Vanilla controller
+		controllers, err := config.GetControllers(exe.namespace)
+		if err != nil {
+			return err
+		}
+		for _, ctrl := range controllers {
+			// If Vanilla controller
 			if err = deploySystemAgent(exe.namespace, ctrl); err != nil {
-				return
+				return err
 			}
 		}
 	}

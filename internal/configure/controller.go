@@ -15,29 +15,26 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type controllerExecutor struct {
-	namespace  string
-	name       string
-	kubeConfig string
-	host       string
-	keyFile    string
-	user       string
-	port       int
+	namespace string
+	name      string
+	host      string
+	keyFile   string
+	user      string
+	port      int
 }
 
 func newControllerExecutor(opt Options) *controllerExecutor {
 	return &controllerExecutor{
-		namespace:  opt.Namespace,
-		name:       opt.Name,
-		kubeConfig: opt.KubeConfig,
-		keyFile:    opt.KeyFile,
-		user:       opt.User,
-		port:       opt.Port,
-		host:       opt.Host,
+		namespace: opt.Namespace,
+		name:      opt.Name,
+		keyFile:   opt.KeyFile,
+		user:      opt.User,
+		port:      opt.Port,
+		host:      opt.Host,
 	}
 }
 
@@ -47,7 +44,11 @@ func (exe *controllerExecutor) GetName() string {
 
 func (exe *controllerExecutor) Execute() error {
 	// Get config
-	controller, err := config.GetController(exe.namespace, exe.name)
+	controlPlane, err := config.GetControlPlane(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controller, err := controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
 	}
@@ -58,13 +59,8 @@ func (exe *controllerExecutor) Execute() error {
 	}
 
 	// Disallow editing vanilla fields for k8s Controller
-	if controller.Kube.Config != "" && (exe.port != 0 || exe.keyFile != "" || exe.user != "" || exe.host != "") {
+	if controlPlane.Kube.Config != "" && (exe.port != 0 || exe.keyFile != "" || exe.user != "" || exe.host != "") {
 		return util.NewInputError("Controller " + exe.name + " is deployed on Kubernetes. You cannot add SSH details to this Controller")
-	}
-
-	// Disallow editing k8s fields for vanilla Controller
-	if controller.Host != "" && exe.kubeConfig != "" {
-		return util.NewInputError("Controller " + exe.name + " has a host address already which suggests it is not on Kubernetes. You cannot add Kube Config details to this Controller")
 	}
 
 	// Only add/overwrite values provided
@@ -86,20 +82,6 @@ func (exe *controllerExecutor) Execute() error {
 	}
 	if exe.port != 0 {
 		controller.SSH.Port = exe.port
-	}
-	if exe.kubeConfig != "" {
-		controller.Kube.Config, err = util.FormatPath(exe.kubeConfig)
-		if err != nil {
-			return err
-		}
-		installer, err := install.NewKubernetes(controller.Kube.Config, exe.namespace)
-		if err != nil {
-			return err
-		}
-		controller.Endpoint, err = installer.GetControllerEndpoint()
-		if err != nil {
-			return err
-		}
 	}
 
 	// Add port if not specified or existing
