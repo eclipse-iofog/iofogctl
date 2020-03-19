@@ -47,7 +47,9 @@ func GetNamespaces() (namespaces []string) {
 
 	for _, file := range files {
 		name := util.Before(file.Name(), ".yaml")
-		namespaces = append(namespaces, name)
+		if name != detachedNamespace {
+			namespaces = append(namespaces, name)
+		}
 	}
 	return
 }
@@ -71,7 +73,7 @@ func getNamespace(name string) (*Namespace, error) {
 			return nil, err
 		}
 		namespaces[name] = &ns
-		return &ns, nil
+		return &ns, flushNamespaces()
 	}
 	return namespace, nil
 }

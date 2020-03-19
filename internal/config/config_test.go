@@ -118,10 +118,10 @@ func TestDelete(t *testing.T) {
 func TestReadingNamespaces(t *testing.T) {
 	// Test all namespace queries
 	namespaces := GetNamespaces()
-	if len(namespaces) != 4 {
+	if len(namespaces) != 3 {
 		t.Errorf("Incorrect number of namespaces: %d", len(namespaces))
 	}
-	expectedNamespaceNames := []string{"first", "second", "default", "_detached"}
+	expectedNamespaceNames := []string{"first", "second", "default"}
 	for _, nsName := range expectedNamespaceNames {
 		found := false
 
@@ -152,14 +152,17 @@ func TestReadingNamespaces(t *testing.T) {
 }
 
 func TestReadingControllers(t *testing.T) {
-	for nsIdx, ns := range GetNamespaces() {
+	for _, ns := range GetNamespaces() {
 		// Test bulk Controller queries
 		ctrls, err := GetControllers(ns)
 		if err != nil {
 			t.Errorf("Error: %s", err.Error())
 		}
 		for ctrlIdx, ctrl := range ctrls {
-			idx := nsIdx + ctrlIdx
+			idx := ctrlIdx
+			if ns == "second" {
+				idx += 1
+			}
 			expectedName := "controller" + strconv.Itoa(idx)
 			if ctrl.Name != expectedName {
 				t.Errorf("Error in Controller name. Expected %s, Found: %s", expectedName, ctrl.Name)
@@ -185,14 +188,17 @@ func TestReadingControllers(t *testing.T) {
 }
 
 func TesReadingtAgents(t *testing.T) {
-	for nsIdx, ns := range GetNamespaces() {
+	for _, ns := range GetNamespaces() {
 		// Test bulk Agent queries
 		agents, err := GetAgents(ns)
 		if err != nil {
 			t.Errorf("Error: %s", err.Error())
 		}
 		for agentIdx, agent := range agents {
-			idx := nsIdx + agentIdx
+			idx := agentIdx
+			if ns == "second" {
+				idx += 1
+			}
 			expectedName := "agent" + strconv.Itoa(idx)
 			if agent.Name != expectedName {
 				t.Errorf("Error in Agent name. Expected %s, Found: %s", expectedName, agent.Name)
