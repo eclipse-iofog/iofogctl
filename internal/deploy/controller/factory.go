@@ -79,8 +79,8 @@ func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.
 	}
 
 	// Kubernetes executor
-	if ctrl.Kube.Config != "" {
-		return newFacadeExecutor(newKubernetesExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
+	if controlPlane.Kube.Config != "" {
+		return newFacadeExecutor(newKubernetesExecutor(namespace, ctrl, &controlPlane), namespace, ctrl), nil
 	}
 
 	// Default executor

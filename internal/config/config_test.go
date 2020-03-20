@@ -239,8 +239,6 @@ func compareControllers(lhs, rhs Controller) bool {
 	equal = equal && (lhs.Endpoint == rhs.Endpoint)
 	equal = equal && (lhs.Host == lhs.Host)
 	equal = equal && (lhs.SSH.KeyFile == rhs.SSH.KeyFile)
-	equal = equal && (lhs.Kube.Config == rhs.Kube.Config)
-	equal = equal && (lhs.Kube.StaticIP == rhs.Kube.StaticIP)
 	equal = equal && (lhs.Name == rhs.Name)
 	equal = equal && (lhs.SSH.User == lhs.SSH.User)
 
@@ -254,10 +252,6 @@ func TestWritingController(t *testing.T) {
 		SSH: SSH{
 			User:    "Kubert",
 			KeyFile: "~/.key/file",
-		},
-		Kube: Kube{
-			Config:   "~/.kube/config",
-			StaticIP: "123.12.123.13",
 		},
 		Name: "Hubert",
 	}

@@ -61,7 +61,7 @@ fi
 # Is bats installed?
 if ! checkForInstallation "bats"; then
     echoInfo " Attempting to install 'bats'"
-    git clone https://github.com/cats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
+    git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
 fi
 
 # Is jq installed?

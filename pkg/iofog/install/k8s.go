@@ -19,7 +19,7 @@ import (
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
-	iofogv1 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog"
+	iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -33,25 +33,26 @@ import (
 
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	kogclient "sigs.k8s.io/controller-runtime/pkg/client"
+	opclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	b64 "encoding/base64"
 )
 
 const (
-	kogInstanceName = "iokog"
-	dockerRepo      = "iofog"
+	cpInstanceName = "iofog"
+	dockerRepo     = "iofog"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
 type Kubernetes struct {
 	config        *restclient.Config
-	kogClient     kogclient.Client
+	opClient      opclient.Client
 	clientset     *kubernetes.Clientset
 	extsClientset *extsclientset.Clientset
 	ns            string
 	operator      *microservice
-	controlPlane  *iofogv1.ControlPlane
+	services      iofogv2.Services
+	images        iofogv2.Images
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -77,57 +78,52 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		clientset:     clientset,
 		extsClientset: extsClientset,
 		ns:            namespace,
-		controlPlane: &iofogv1.ControlPlane{
-			ControllerImage:  dockerRepo + "/controller:" + util.GetControllerTag(),
-			PortManagerImage: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
-			RouterImage:      dockerRepo + "/router:" + util.GetRouterTag(),
-			ProxyImage:       dockerRepo + "/proxy:" + util.GetProxyTag(),
-			KubeletImage:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
-			ServiceType:      string(corev1.ServiceTypeLoadBalancer),
+		images: iofogv2.Images{
+			Controller:  dockerRepo + "/controller:" + util.GetControllerTag(),
+			PortManager: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
+			Router:      dockerRepo + "/router:" + util.GetRouterTag(),
+			Proxy:       dockerRepo + "/proxy:" + util.GetProxyTag(),
+			Kubelet:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
+		},
+		services: iofogv2.Services{
+			Controller: iofogv2.Service{
+				Type: string(corev1.ServiceTypeLoadBalancer),
+			},
+			Router: iofogv2.Service{
+				Type: string(corev1.ServiceTypeLoadBalancer),
+			},
 		},
 		operator: newOperatorMicroservice(),
 	}, nil
 }
 
 func (k8s *Kubernetes) SetKubeletImage(image string) {
-	if image != "" {
-		k8s.controlPlane.KubeletImage = image
-	}
+	k8s.images.Kubelet = image
 }
 
 func (k8s *Kubernetes) SetOperatorImage(image string) {
-	if image != "" {
-		k8s.operator.containers[0].image = image
-	}
+	k8s.operator.containers[0].image = image
 }
 
 func (k8s *Kubernetes) SetPortManagerImage(image string) {
-	if image != "" {
-		k8s.controlPlane.PortManagerImage = image
-	}
+	k8s.images.PortManager = image
 }
 
 func (k8s *Kubernetes) SetRouterImage(image string) {
-	if image != "" {
-		k8s.controlPlane.RouterImage = image
-	}
+	k8s.images.Router = image
 }
 
 func (k8s *Kubernetes) SetProxyImage(image string) {
-	if image != "" {
-		k8s.controlPlane.ProxyImage = image
-	}
+	k8s.images.Proxy = image
 }
 
 func (k8s *Kubernetes) SetControllerImage(image string) {
-	if image != "" {
-		k8s.controlPlane.ControllerImage = image
-	}
+	k8s.images.Controller = image
 }
 
 func (k8s *Kubernetes) enableCustomResources() error {
-	// Kog and App
-	for _, crd := range []*extsv1.CustomResourceDefinition{newKogCRD(), newAppCRD()} {
+	// Control Plane and App
+	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv2.NewControlPlaneCustomResource(), iofogv2.NewAppCustomResource()} {
 		// Try create new
 		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
@@ -138,7 +134,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 			if err != nil {
 				return err
 			}
-			if !isSupported(existingCRD) {
+			if !iofogv2.IsSupportedCustomResource(existingCRD) {
 				existingCRD.Spec.Versions = crd.Spec.Versions
 				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(existingCRD); err != nil {
 					return err
@@ -153,18 +149,18 @@ func (k8s *Kubernetes) enableCustomResources() error {
 	}
 
 	// Enable client after CRDs have been made
-	if err := k8s.enableKogClient(); err != nil {
+	if err := k8s.enableOperatorClient(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (k8s *Kubernetes) enableKogClient() (err error) {
+func (k8s *Kubernetes) enableOperatorClient() (err error) {
 	scheme := runtime.NewScheme()
 	clientgoscheme.AddToScheme(scheme)
 	crdapi.AddToScheme(scheme)
-	k8s.kogClient, err = kogclient.New(k8s.config, kogclient.Options{Scheme: scheme})
+	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
 	if err != nil {
 		return err
 	}
@@ -172,7 +168,7 @@ func (k8s *Kubernetes) enableKogClient() (err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Database) error {
+func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Database) error {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
 	ns := &corev1.Namespace{
@@ -192,23 +188,23 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 		return err
 	}
 
-	// Check if kog exists
-	Verbose("Finding existing Kog")
-	kogKey := kogclient.ObjectKey{
-		Name:      kogInstanceName,
+	// Check if Control Plane exists
+	Verbose("Finding existing Control Plane")
+	cpKey := opclient.ObjectKey{
+		Name:      cpInstanceName,
 		Namespace: k8s.ns,
 	}
-	var kog iofogv1.Kog
+	var cp iofogv2.ControlPlane
 	found := true
-	if err := k8s.kogClient.Get(context.Background(), kogKey, &kog); err != nil {
+	if err := k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return err
 		}
 		// Not found, set basic info
 		found = false
-		kog = iofogv1.Kog{
+		cp = iofogv2.ControlPlane{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      kogInstanceName,
+				Name:      cpInstanceName,
 				Namespace: k8s.ns,
 			},
 		}
@@ -218,22 +214,21 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int, db Databas
 	user.Password = b64.StdEncoding.EncodeToString([]byte(user.Password))
 
 	// Set specification
-	kog.Spec = iofogv1.KogSpec{
-		ControlPlane: *k8s.controlPlane,
-	}
-	kog.Spec.ControlPlane.ControllerReplicaCount = int32(replicas)
-	kog.Spec.ControlPlane.Database = iofogv1.Database(db)
-	kog.Spec.ControlPlane.IofogUser = iofogv1.IofogUser(user)
+	cp.Spec.Replicas.Controller = int32(replicas)
+	cp.Spec.Database = iofogv2.Database(db)
+	cp.Spec.User = iofogv2.User(user)
+	cp.Spec.Services = k8s.services
+	cp.Spec.Images = k8s.images
 
-	// Create or update Kog
+	// Create or update Control Plane
 	if found {
-		Verbose("Updating existing Kog")
-		if err := k8s.kogClient.Update(context.Background(), &kog); err != nil {
+		Verbose("Updating existing Control Plane")
+		if err := k8s.opClient.Update(context.Background(), &cp); err != nil {
 			return err
 		}
 	} else {
-		Verbose("Deploying new Kog")
-		if err := k8s.kogClient.Create(context.Background(), &kog); err != nil {
+		Verbose("Deploying new Control Plane")
+		if err := k8s.opClient.Create(context.Background(), &cp); err != nil {
 			return err
 		}
 	}
@@ -334,19 +329,19 @@ func (k8s *Kubernetes) createOperator() (err error) {
 }
 
 func (k8s *Kubernetes) DeleteController() error {
-	// Prepare kog client
-	if err := k8s.enableKogClient(); err != nil {
+	// Prepare Control Plane client
+	if err := k8s.enableOperatorClient(); err != nil {
 		return err
 	}
 
-	// Delete Kog
-	kog := &iofogv1.Kog{
+	// Delete Control Plane
+	cp := &iofogv2.ControlPlane{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      kogInstanceName,
+			Name:      cpInstanceName,
 			Namespace: k8s.ns,
 		},
 	}
-	if err := k8s.kogClient.Delete(context.Background(), kog); err != nil {
+	if err := k8s.opClient.Delete(context.Background(), cp); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return err
 		}
@@ -455,23 +450,17 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 	return
 }
 
-func (k8s *Kubernetes) SetControllerServiceType(svcType string) (err error) {
-	if svcType == "" {
-		return nil
-	}
-
-	coreSvcType := corev1.ServiceType(svcType)
-	if coreSvcType != corev1.ServiceTypeLoadBalancer && coreSvcType != corev1.ServiceTypeNodePort && coreSvcType != corev1.ServiceTypeClusterIP {
-		err = util.NewInputError("Tried to set K8s Service type to " + svcType + ". Only LoadBalancer, NodePort, and ClusterIP types are acceptable.")
-	}
-	k8s.controlPlane.ServiceType = svcType
-	return
+func (k8s *Kubernetes) SetControllerService(svcType, ip string) {
+	k8s.services.Controller.Type = svcType
+	k8s.services.Controller.IP = ip
 }
-
-func (k8s *Kubernetes) SetControllerIP(ip string) {
-	if ip != "" {
-		k8s.controlPlane.LoadBalancerIP = ip
-	}
+func (k8s *Kubernetes) SetRouterService(svcType, ip string) {
+	k8s.services.Router.Type = svcType
+	k8s.services.Router.IP = ip
+}
+func (k8s *Kubernetes) SetProxyService(svcType, ip string) {
+	k8s.services.Proxy.Type = svcType
+	k8s.services.Proxy.IP = ip
 }
 
 func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {

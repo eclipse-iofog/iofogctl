@@ -6,27 +6,41 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// KogSpec defines the desired state of Kog
+// ControlPlaneSpec defines the desired state of ControlPlane
 // +k8s:openapi-gen=true
-type KogSpec struct {
+type ControlPlaneSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	ControlPlane ControlPlane `json:"controlPlane"`
+	User     User     `json:"user"`
+	Database Database `json:"database,omitempty"`
+	Services Services `json:"services,omitempty"`
+	Replicas Replicas `json:"replicas,omitempty"`
+	Images   Images   `json:"images,omitempty"`
 }
 
-type ControlPlane struct {
-	IofogUser              IofogUser `json:"iofogUser"`
-	ControllerReplicaCount int32     `json:"controllerReplicaCount"`
-	Database               Database  `json:"database,omitempty"`
-	ControllerImage        string    `json:"controllerImage"`
-	PortManagerImage       string    `json:"portManagerImage"`
-	RouterImage            string    `json:"routerImage"`
-	ProxyImage             string    `json:"proxyImage"`
-	ImagePullSecret        string    `json:"imagePullSecret,omitempty"`
-	KubeletImage           string    `json:"kubeletImage"`
-	ServiceType            string    `json:"serviceType"`
-	LoadBalancerIP         string    `json:"loadBalancerIp,omitempty"`
+type Replicas struct {
+	Controller int32 `json:"controller,omitempty"`
+}
+
+type Services struct {
+	Controller Service `json:"controller,omitempty"`
+	Router     Service `json:"router,omitempty"`
+	Proxy      Service `json:"proxy,omitempty"`
+}
+
+type Service struct {
+	Type string `json:"type,omitempty"`
+	IP   string `json:"ip,omitempty"`
+}
+
+type Images struct {
+	PullSecret  string `json:"pullSecret,omitempty"`
+	Kubelet     string `json:"kubelet,omitempty"`
+	Controller  string `json:"controller,omitempty"`
+	Router      string `json:"router,omitempty"`
+	PortManager string `json:"portManager,omitempty"`
+	Proxy       string `json:"proxy,omitempty"`
 }
 
 type Database struct {
@@ -38,44 +52,43 @@ type Database struct {
 	DatabaseName string `json:"databaseName"`
 }
 
-type IofogUser struct {
+type User struct {
 	Name     string `json:"name"`
 	Surname  string `json:"surname"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// KogStatus defines the observed state of Kog
+// ControlPlaneStatus defines the observed state of ControlPlane
 // +k8s:openapi-gen=true
-type KogStatus struct {
+type ControlPlaneStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	ControllerPods []string `json:"controllerPods"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Kog is the Schema for the kogs API
+// ControlPlane is the Schema for the control plane API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-type Kog struct {
+type ControlPlane struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KogSpec   `json:"spec,omitempty"`
-	Status KogStatus `json:"status,omitempty"`
+	Spec   ControlPlaneSpec   `json:"spec,omitempty"`
+	Status ControlPlaneStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogList contains a list of Kog
-type KogList struct {
+// ControlPlaneList contains a list of ControlPlane
+type ControlPlaneList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Kog `json:"items"`
+	Items           []ControlPlane `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Kog{}, &KogList{})
+	SchemeBuilder.Register(&ControlPlane{}, &ControlPlaneList{})
 }

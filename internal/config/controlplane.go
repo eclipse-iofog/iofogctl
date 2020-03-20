@@ -20,6 +20,21 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
+func (ctrlPlane ControlPlane) GetController(name string) (ctrl Controller, err error) {
+	if len(ctrlPlane.Controllers) == 0 {
+		err = util.NewError("Control Plane has no Controllers")
+	}
+	for _, controller := range ctrlPlane.Controllers {
+		if controller.Name == name {
+			ctrl = controller
+			return
+		}
+	}
+
+	err = util.NewNotFoundError(name)
+	return
+}
+
 // GetControllerEndpoint returns ioFog controller endpoint
 func (ctrlPlane ControlPlane) GetControllerEndpoint() (string, error) {
 	// Loadbalancer ?

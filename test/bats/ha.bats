@@ -9,6 +9,7 @@
 # AGENT_PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
 # PORT_MANAGER_IMAGE
+# ROUTER_IMAGE
 # PROXY_IMAGE
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
@@ -53,16 +54,17 @@ spec:
     password: $USER_PW
   controllers:
   - name: $NAME
-    container:
-      image: $CONTROLLER_IMAGE
-    kube:
-      config: $KUBE_CONFIG
-      replicas: 2
-      images:
-        operator: $OPERATOR_IMAGE
-        portManager: $PORT_MANAGER_IMAGE
-        proxy: $PROXY_IMAGE
-        kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  kube:
+    config: $KUBE_CONFIG
+    replicas:
+      controller: 2
+    images:
+      controller: $CONTROLLER_IMAGE
+      operator: $OPERATOR_IMAGE
+      portManager: $PORT_MANAGER_IMAGE
+      proxy: $PROXY_IMAGE
+      router: $ROUTER_IMAGE
+      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController

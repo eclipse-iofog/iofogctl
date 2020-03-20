@@ -104,11 +104,13 @@ iofogctl legacy agent NAME status`,
 			switch resource {
 			case "controller":
 				// Get config
-				ctrl, err := config.GetController(namespace, name)
+				controlPlane, err := config.GetControlPlane(namespace)
+				util.Check(err)
+				ctrl, err := controlPlane.GetController(name)
 				util.Check(err)
 				cliCommand := []string{"iofog-controller"}
-				if ctrl.Kube.Config != "" {
-					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
+				if controlPlane.Kube.Config != "" {
+					k8sExecute(controlPlane.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
 				} else if util.IsLocalHost(ctrl.Host) {
 					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				} else {

@@ -38,6 +38,11 @@ func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 		return
 	}
 
+	// Preprocess Inputs for Control Plane
+	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
+		return
+	}
+
 	// Pre-process inputs for Controllers
 	for idx := range controlPlane.Controllers {
 		ctrl := &controlPlane.Controllers[idx]
@@ -49,15 +54,12 @@ func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 		if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
 			return
 		}
-		if ctrl.Kube.Config, err = util.FormatPath(ctrl.Kube.Config); err != nil {
-			return
-		}
 	}
 
 	return
 }
 
-func validate(controlPlane config.ControlPlane) error {
+func validate(controlPlane config.ControlPlane) (err error) {
 	// Validate user
 	user := controlPlane.IofogUser
 	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
@@ -82,10 +84,10 @@ func validate(controlPlane config.ControlPlane) error {
 		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
 	}
 	for _, ctrl := range controlPlane.Controllers {
-		if err := deploycontroller.Validate(ctrl); err != nil {
-			return err
+		if err = deploycontroller.Validate(ctrl); err != nil {
+			return
 		}
 	}
 
-	return nil
+	return
 }
