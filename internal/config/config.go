@@ -322,7 +322,7 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
 		{
 			msg := `An older YAML version has been detected in Namespace %s.
   You will only be able to view this Namespace from your current version of iofogctl.
-  Either downgrade your version of iofogctl or redeploy the corresponding ECN with your current version of iofogctl to gain full control.`
+  Redeploy the corresponding ECN with your current version of iofogctl to gain full control.`
 			util.PrintNotify(fmt.Sprintf(msg, header.Metadata.Name))
 			headerV2, err := updateNamespaceToV2(header)
 			if err != nil {
