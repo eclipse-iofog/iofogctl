@@ -63,12 +63,20 @@ func (exe *allExecutor) Execute() error {
 	}
 
 	// Print applications
-	if err := newApplicationExecutor(exe.namespace).generateApplicationOutput(); err != nil {
+	appExe := newApplicationExecutor(exe.namespace)
+	if err := appExe.init(); err != nil {
+		return err
+	}
+	if err := appExe.generateApplicationOutput(); err != nil {
 		return err
 	}
 
 	// Print microservices
-	if err := newMicroserviceExecutor(exe.namespace).generateMicroserviceOutput(); err != nil {
+	msvcExe := newMicroserviceExecutor(exe.namespace)
+	if err := msvcExe.init(); err != nil {
+		return err
+	}
+	if err := msvcExe.generateMicroserviceOutput(); err != nil {
 		return err
 	}
 
