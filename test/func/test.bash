@@ -128,5 +128,7 @@ function testDefaultProxyConfig(){
     IP=$(iofogctl -n "$NS" -v describe microservice "$MSVC2_NAME" | grep publicLink | sed 's/.*http:\/\///g' | sed 's/:.*//g')
     ITER=$((ITER+1))
   done
-  [ "$ACTUAL_IP" == "$IP" ] || echo "Incorrect IP: $IP, expected $ACTUAL_IP"
+  echo "Found IP: $IP"
+  echo "Wanted IP: $ACTUAL_IP"
+  [ "$ACTUAL_IP" == "$IP" ]
 }
