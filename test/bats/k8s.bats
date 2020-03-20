@@ -39,6 +39,8 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
+  controllers:
+  - name: $NAME
   kube:
     config: $KUBE_CONFIG
     images:
@@ -100,6 +102,8 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
+  controllers:
+  - name: $NAME
   kube:
     config: $KUBE_CONFIG
     images:

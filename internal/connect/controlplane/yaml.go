@@ -35,6 +35,10 @@ func unmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 	if ctrlPlane.Kube.Config, err = util.FormatPath(ctrlPlane.Kube.Config); err != nil {
 		return
 	}
+	// Preprocess Inputs for Control Plane
+	if ctrlPlane.Kube.Config, err = util.FormatPath(ctrlPlane.Kube.Config); err != nil {
+		return
+	}
 	// Pre-process controllers
 	for idx := range ctrlPlane.Controllers {
 		if ctrlPlane.Controllers[idx].SSH.KeyFile, err = util.FormatPath(ctrlPlane.Controllers[idx].SSH.KeyFile); err != nil {
@@ -57,10 +61,6 @@ func validate(controlPlane config.ControlPlane) (err error) {
 	user := controlPlane.IofogUser
 	if user.Password == "" || user.Email == "" {
 		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty values in email and password fields")
-	}
-	// Validate Kube
-	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
-		return
 	}
 	// Validate Controllers
 	if len(controlPlane.Controllers) == 0 {

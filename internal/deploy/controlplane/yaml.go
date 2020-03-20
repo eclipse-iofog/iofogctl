@@ -38,6 +38,11 @@ func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 		return
 	}
 
+	// Preprocess Inputs for Control Plane
+	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
+		return
+	}
+
 	// Pre-process inputs for Controllers
 	for idx := range controlPlane.Controllers {
 		ctrl := &controlPlane.Controllers[idx]
@@ -66,10 +71,6 @@ func validate(controlPlane config.ControlPlane) (err error) {
 		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
 			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
 		}
-	}
-	// Validate Kube
-	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
-		return
 	}
 	// Validate loadbalancer
 	lb := controlPlane.LoadBalancer
