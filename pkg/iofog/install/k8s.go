@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	cpInstanceName = "control-plane"
+	cpInstanceName = "iofog"
 	dockerRepo     = "iofog"
 )
 
