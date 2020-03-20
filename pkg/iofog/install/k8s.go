@@ -51,7 +51,8 @@ type Kubernetes struct {
 	extsClientset *extsclientset.Clientset
 	ns            string
 	operator      *microservice
-	controlPlane  *iofogv2.ControlPlaneSpec
+	services      iofogv2.Services
+	images        iofogv2.Images
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -77,21 +78,19 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		clientset:     clientset,
 		extsClientset: extsClientset,
 		ns:            namespace,
-		controlPlane: &iofogv2.ControlPlaneSpec{
-			Images: iofogv2.Images{
-				Controller:  dockerRepo + "/controller:" + util.GetControllerTag(),
-				PortManager: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
-				Router:      dockerRepo + "/router:" + util.GetRouterTag(),
-				Proxy:       dockerRepo + "/proxy:" + util.GetProxyTag(),
-				Kubelet:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
+		images: iofogv2.Images{
+			Controller:  dockerRepo + "/controller:" + util.GetControllerTag(),
+			PortManager: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
+			Router:      dockerRepo + "/router:" + util.GetRouterTag(),
+			Proxy:       dockerRepo + "/proxy:" + util.GetProxyTag(),
+			Kubelet:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
+		},
+		services: iofogv2.Services{
+			Controller: iofogv2.Service{
+				Type: string(corev1.ServiceTypeLoadBalancer),
 			},
-			Services: iofogv2.Services{
-				Controller: iofogv2.Service{
-					Type: string(corev1.ServiceTypeLoadBalancer),
-				},
-				Router: iofogv2.Service{
-					Type: string(corev1.ServiceTypeLoadBalancer),
-				},
+			Router: iofogv2.Service{
+				Type: string(corev1.ServiceTypeLoadBalancer),
 			},
 		},
 		operator: newOperatorMicroservice(),
@@ -99,7 +98,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 }
 
 func (k8s *Kubernetes) SetKubeletImage(image string) {
-	k8s.controlPlane.Images.Kubelet = image
+	k8s.images.Kubelet = image
 }
 
 func (k8s *Kubernetes) SetOperatorImage(image string) {
@@ -107,19 +106,19 @@ func (k8s *Kubernetes) SetOperatorImage(image string) {
 }
 
 func (k8s *Kubernetes) SetPortManagerImage(image string) {
-	k8s.controlPlane.Images.PortManager = image
+	k8s.images.PortManager = image
 }
 
 func (k8s *Kubernetes) SetRouterImage(image string) {
-	k8s.controlPlane.Images.Router = image
+	k8s.images.Router = image
 }
 
 func (k8s *Kubernetes) SetProxyImage(image string) {
-	k8s.controlPlane.Images.Proxy = image
+	k8s.images.Proxy = image
 }
 
 func (k8s *Kubernetes) SetControllerImage(image string) {
-	k8s.controlPlane.Images.Controller = image
+	k8s.images.Controller = image
 }
 
 func (k8s *Kubernetes) enableCustomResources() error {
@@ -218,6 +217,8 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	cp.Spec.Replicas.Controller = int32(replicas)
 	cp.Spec.Database = iofogv2.Database(db)
 	cp.Spec.User = iofogv2.User(user)
+	cp.Spec.Services = k8s.services
+	cp.Spec.Images = k8s.images
 
 	// Create or update Control Plane
 	if found {
@@ -450,16 +451,16 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 }
 
 func (k8s *Kubernetes) SetControllerService(svcType, ip string) {
-	k8s.controlPlane.Services.Controller.Type = svcType
-	k8s.controlPlane.Services.Controller.IP = ip
+	k8s.services.Controller.Type = svcType
+	k8s.services.Controller.IP = ip
 }
 func (k8s *Kubernetes) SetRouterService(svcType, ip string) {
-	k8s.controlPlane.Services.Router.Type = svcType
-	k8s.controlPlane.Services.Router.IP = ip
+	k8s.services.Router.Type = svcType
+	k8s.services.Router.IP = ip
 }
 func (k8s *Kubernetes) SetProxyService(svcType, ip string) {
-	k8s.controlPlane.Services.Proxy.Type = svcType
-	k8s.controlPlane.Services.Proxy.IP = ip
+	k8s.services.Proxy.Type = svcType
+	k8s.services.Proxy.IP = ip
 }
 
 func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {

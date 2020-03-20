@@ -55,7 +55,8 @@ spec:
   - name: $NAME
   kube:
     config: $KUBE_CONFIG
-    replicas: 2
+    replicas:
+      controller: 2
     images:
       controller: $CONTROLLER_IMAGE
       operator: $OPERATOR_IMAGE
