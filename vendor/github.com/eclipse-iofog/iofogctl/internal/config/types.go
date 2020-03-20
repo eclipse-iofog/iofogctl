@@ -14,18 +14,14 @@
 package config
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
 // iofogctl specific Kinds
 const (
-	AgentConfigKind       apps.Kind = "AgentConfig"
-	CatalogItemKind       apps.Kind = "CatalogItem"
-	IofogctlConfigKind    apps.Kind = "IofogctlConfig"
-	IofogctlNamespaceKind apps.Kind = "IofogctlNamespace"
-	RegistryKind          apps.Kind = "Registry"
-	VolumeKind            apps.Kind = "Volume"
+	AgentConfigKind apps.Kind = "AgentConfig"
+	CatalogItemKind apps.Kind = "CatalogItem"
 )
 
 type Container struct {
@@ -46,34 +42,16 @@ type SSH struct {
 }
 
 type KubeImages struct {
-	Controller  string `yaml:"controller,omitempty"`
-	Operator    string `yaml:"operator,omitempty"`
-	Kubelet     string `yaml:"kubelet,omitempty"`
-	PortManager string `yaml:"portManager,omitempty"`
-	Router      string `yaml:"router,omitempty"`
-	Proxy       string `yaml:"proxy,omitempty"`
+	Operator string `yaml:"operator,omitempty"`
+	Kubelet  string `yaml:"kubelet,omitempty"`
 }
 
 type Kube struct {
-	Config   string     `yaml:"config,omitempty"`
-	Services Services   `yaml:"services,omitempty"`
-	Replicas Replicas   `yaml:"replicas,omitempty"`
-	Images   KubeImages `yaml:"images,omitempty"`
-}
-
-type Services struct {
-	Controller Service `json:"controller,omitempty"`
-	Router     Service `json:"router,omitempty"`
-	Proxy      Service `json:"proxy,omitempty"`
-}
-
-type Service struct {
-	Type string `json:"type,omitempty"`
-	IP   string `json:"ip,omitempty"`
-}
-
-type Replicas struct {
-	Controller int32 `yaml:"controller"`
+	Config      string     `yaml:"config,omitempty"`
+	StaticIP    string     `yaml:"staticIp,omitempty"`
+	Replicas    int        `yaml:"replicas,omitempty"`
+	ServiceType string     `yaml:"serviceType,omitempty"`
+	Images      KubeImages `yaml:"images,omitempty"`
 }
 
 // IofogUser contains information about users registered against a controller
@@ -99,48 +77,39 @@ type Database struct {
 	DatabaseName string `yaml:"databaseName,omitempty"`
 }
 
-type LoadBalancer struct {
+type Loadbalancer struct {
 	Host string `yaml:"host,omitempty"`
 	Port int    `yaml:"port,omitempty"`
 }
 
 type ControlPlane struct {
 	Database     Database     `yaml:"database,omitempty"`
-	LoadBalancer LoadBalancer `yaml:"loadBalancer,omitempty"`
+	LoadBalancer Loadbalancer `yaml:"loadBalancer,omitempty"`
 	IofogUser    IofogUser    `yaml:"iofogUser,omitempty"`
 	Controllers  []Controller `yaml:"controllers,omitempty"`
-	Kube         Kube         `yaml:"kube,omitempty"`
+}
+
+type Connector struct {
+	Name      string    `yaml:"name,omitempty"`
+	Host      string    `yaml:"host,omitempty"`
+	SSH       SSH       `yaml:"ssh,omitempty"`
+	Kube      Kube      `yaml:"kube,omitempty"`
+	Created   string    `yaml:"created,omitempty"`
+	Endpoint  string    `yaml:"endpoint,omitempty"`
+	Package   Package   `yaml:"package,omitempty"`
+	Container Container `yaml:"container,omitempty"`
 }
 
 // Controller contains information for configuring a controller
 type Controller struct {
-	Name        string    `yaml:"name,omitempty"`
-	Host        string    `yaml:"host,omitempty"`
-	SSH         SSH       `yaml:"ssh,omitempty"`
-	Endpoint    string    `yaml:"endpoint,omitempty"`
-	Created     string    `yaml:"created,omitempty"`
-	Package     Package   `yaml:"package,omitempty"`
-	SystemAgent Package   `yaml:"systemAgent,omitempty"`
-	Container   Container `yaml:"container,omitempty"`
-}
-
-type Registry struct {
-	URL          *string `yaml:"url"`
-	Private      *bool   `yaml:"private"`
-	Username     *string `yaml:"username"`
-	Password     *string `yaml:"password"`
-	Email        *string `yaml:"email"`
-	RequiresCert *bool   `yaml:"requireCert"`
-	Certificate  *string `yaml:"certificate,omitempty"`
-	ID           int     `yaml:"id"`
-}
-
-type Volume struct {
-	Name        string   `json:"name" yaml:"name"`
-	Agents      []string `json:"agents" yaml:"agents"`
-	Source      string   `json:"source" yaml:"source"`
-	Destination string   `json:"destination" yaml:"destination"`
-	Permissions string   `json:"permissions" yaml:"permissions"`
+	Name      string    `yaml:"name,omitempty"`
+	Host      string    `yaml:"host,omitempty"`
+	SSH       SSH       `yaml:"ssh,omitempty"`
+	Kube      Kube      `yaml:"kube,omitempty"`
+	Endpoint  string    `yaml:"endpoint,omitempty"`
+	Created   string    `yaml:"created,omitempty"`
+	Package   Package   `yaml:"package,omitempty"`
+	Container Container `yaml:"container,omitempty"`
 }
 
 // AgentConfiguration contains configuration information for a deployed agent
@@ -150,9 +119,8 @@ type AgentConfiguration struct {
 	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description               string  `json:"description,omitempty" yaml:"description"`
-	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
+	FogType                   string  `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
-	Volumes                   []Volume `json:"volumes,omitempty" yaml:"volumes,omitempty"`
 }
 
 // FogTypeStringMap map human readable fog type to Controller fog type
@@ -184,22 +152,14 @@ type Agent struct {
 type Namespace struct {
 	Name         string       `yaml:"name,omitempty"`
 	ControlPlane ControlPlane `yaml:"controlPlane,omitempty"`
+	Connectors   []Connector  `yaml:"connectors,omitempty"`
 	Agents       []Agent      `yaml:"agents,omitempty"`
-	Volumes      []Volume     `yaml:"volumes,omitempty"`
 	Created      string       `yaml:"created,omitempty"`
 }
 
-// Configuration contains the unmarshalled configuration file
+// configuration contains the unmarshalled configuration file
 type configuration struct {
-	DefaultNamespace string `yaml:"defaultNamespace"`
-}
-
-type iofogctlConfig struct {
-	Header `yaml:",inline"`
-}
-
-type iofogctlNamespace struct {
-	Header `yaml:",inline"`
+	Namespaces []Namespace `yaml:"namespaces,omitempty"`
 }
 
 // HeaderMetadata contains k8s metadata

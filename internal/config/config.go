@@ -21,6 +21,7 @@ import (
 	"path"
 	"sync"
 
+	configv1 "github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
@@ -198,31 +199,76 @@ func getNamespaceFile(name string) string {
 }
 
 func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
-	type v1NamespaceSpecContent struct {
-		Name         string        `yaml:"name,omitempty"`
-		ControlPlane ControlPlane  `yaml:"controlPlane,omitempty"`
-		Agents       []Agent       `yaml:"agents,omitempty"`
-		Created      string        `yaml:"created,omitempty"`
-		Connectors   []interface{} `yaml:"connectors,omitempty"`
-	}
 	header.APIVersion = configV2
 	bytes, err := yaml.Marshal(header.Spec)
-	v1Spec := v1NamespaceSpecContent{}
+	nsV1 := configv1.Namespace{}
 	if err != nil {
 		return header, err
 	}
-	if err = yaml.UnmarshalStrict(bytes, &v1Spec); err != nil {
+	if err = yaml.UnmarshalStrict(bytes, &nsV1); err != nil {
 		return header, err
 	}
 
-	v2Spec := Namespace{
-		Name:         v1Spec.Name,
-		ControlPlane: v1Spec.ControlPlane,
-		Agents:       v1Spec.Agents,
-		Created:      v1Spec.Created,
+	ns := Namespace{
+		Name: nsV1.Name,
+		ControlPlane: ControlPlane{
+			LoadBalancer: LoadBalancer(nsV1.ControlPlane.LoadBalancer),
+			Database:     Database(nsV1.ControlPlane.Database),
+			IofogUser:    IofogUser(nsV1.ControlPlane.IofogUser),
+		},
+		Created: nsV1.Created,
+	}
+	for _, ctrlV1 := range nsV1.ControlPlane.Controllers {
+		if ctrlV1.Kube.Config != "" {
+			ns.ControlPlane.Kube = Kube{
+				Config: ctrlV1.Kube.Config,
+				Services: Services{
+					Controller: Service{
+						Type: ctrlV1.Kube.ServiceType,
+						IP:   ctrlV1.Kube.StaticIP,
+					},
+				},
+				Replicas: Replicas{
+					Controller: int32(ctrlV1.Kube.Replicas),
+				},
+				Images: KubeImages{
+					Controller: ctrlV1.Container.Image,
+					Operator:   ctrlV1.Kube.Images.Operator,
+					Kubelet:    ctrlV1.Kube.Images.Kubelet,
+				},
+			}
+		}
+		ctrl := Controller{
+			Name:     ctrlV1.Name,
+			Host:     ctrlV1.Host,
+			SSH:      SSH(ctrlV1.SSH),
+			Endpoint: ctrlV1.Endpoint,
+			Created:  ctrlV1.Created,
+			Package:  Package(ctrlV1.Package),
+			Container: Container{
+				Image:       ctrlV1.Container.Image,
+				Credentials: Credentials(ctrlV1.Container.Credentials),
+			},
+		}
+		ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, ctrl)
+	}
+	for _, agentV1 := range nsV1.Agents {
+		agent := Agent{
+			Name:    agentV1.Name,
+			Host:    agentV1.Host,
+			SSH:     SSH(agentV1.SSH),
+			UUID:    agentV1.UUID,
+			Created: agentV1.Created,
+			Package: Package(agentV1.Package),
+			Container: Container{
+				Image:       agentV1.Container.Image,
+				Credentials: Credentials(agentV1.Container.Credentials),
+			},
+		}
+		ns.Agents = append(ns.Agents, agent)
 	}
 
-	header.Spec = v2Spec
+	header.Spec = ns
 
 	return header, nil
 }
@@ -274,6 +320,10 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
 		}
 	case configV1:
 		{
+			msg := `An older YAML version has been detected in Namespace %s.
+  You will only be able to view this Namespace from your current version of iofogctl.
+  Either downgrade your version of iofogctl or redeploy the corresponding ECN with your current version of iofogctl to gain full control.`
+			util.PrintNotify(fmt.Sprintf(msg, header.Metadata.Name))
 			headerV2, err := updateNamespaceToV2(header)
 			if err != nil {
 				return n, err

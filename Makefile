@@ -55,6 +55,7 @@ get: ## Pull modules
 	@for module in iofog-go-sdk/v2 iofog-operator/v2; do \
 		go get github.com/eclipse-iofog/$$module@$(MODULES_VERSION); \
 	done
+	@go get github.com/eclipse-iofog/iofogctl@v1.3
 
 .PHONY: vendor
 vendor: ## Vendor all modules
