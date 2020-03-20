@@ -9,6 +9,7 @@
 # AGENT_PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
 # PORT_MANAGER_IMAGE
+# ROUTER_IMAGE
 # PROXY_IMAGE
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
@@ -62,6 +63,7 @@ spec:
       operator: $OPERATOR_IMAGE
       portManager: $PORT_MANAGER_IMAGE
       proxy: $PROXY_IMAGE
+      router: $ROUTER_IMAGE
       kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
