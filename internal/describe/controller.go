@@ -14,7 +14,6 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -46,7 +45,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       apps.ControllerKind,
+		Kind:       config.ControllerKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

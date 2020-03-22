@@ -26,6 +26,9 @@ const (
 	IofogctlNamespaceKind apps.Kind = "IofogctlNamespace"
 	RegistryKind          apps.Kind = "Registry"
 	VolumeKind            apps.Kind = "Volume"
+	ControllerKind        apps.Kind = "Controller"
+	AgentKind             apps.Kind = "Agent"
+	ControlPlaneKind      apps.Kind = "ControlPlane"
 )
 
 type Container struct {
