@@ -20,7 +20,33 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func (ctrlPlane ControlPlane) GetController(name string) (ctrl Controller, err error) {
+type ControlPlane interface {
+	GetControllers() []Controller
+	GetController(string) Controller
+	GetEndpoint() string
+}
+
+type KubernetesControlPlane struct {
+	Database     Database     `yaml:"database,omitempty"`
+	LoadBalancer LoadBalancer `yaml:"loadBalancer,omitempty"`
+	IofogUser    IofogUser    `yaml:"iofogUser,omitempty"`
+	KubeConfig   string       `yaml:"config,omitempty"`
+	Services     Services     `yaml:"services,omitempty"`
+	Replicas     Replicas     `yaml:"replicas,omitempty"`
+	Images       KubeImages   `yaml:"images,omitempty"`
+}
+
+type LocalControlPlane struct {
+	IofogUser IofogUser `yaml:"iofogUser,omitempty"`
+}
+
+type RemoteControlPlane struct {
+	Database    Database     `yaml:"database,omitempty"`
+	IofogUser   IofogUser    `yaml:"iofogUser,omitempty"`
+	Controllers []Controller `yaml:"controllers,omitempty"`
+}
+
+func (ctrlPlane KubernetesControlPlane) GetController(name string) (ctrl Controller, err error) {
 	if len(ctrlPlane.Controllers) == 0 {
 		err = util.NewError("Control Plane has no Controllers")
 	}

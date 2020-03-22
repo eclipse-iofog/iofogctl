@@ -17,6 +17,33 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
+type Controller interface {
+	GetAddress() string
+	GetName() string
+	SetName()
+}
+
+type LocalController struct {
+	Name      string    `yaml:"name,omitempty"`
+	Endpoint  string    `yaml:"endpoint,omitempty"`
+	Container Container `yaml:"container,omitempty"`
+}
+
+type KubernetesController struct {
+	Name     string `yaml:"name,omitempty"`
+	Endpoint string `yaml:"endpoint,omitempty"`
+}
+
+type RemoteController struct {
+	Name        string  `yaml:"name,omitempty"`
+	Host        string  `yaml:"host,omitempty"`
+	SSH         SSH     `yaml:"ssh,omitempty"`
+	Endpoint    string  `yaml:"endpoint,omitempty"`
+	Created     string  `yaml:"created,omitempty"`
+	Package     Package `yaml:"package,omitempty"`
+	SystemAgent Package `yaml:"systemAgent,omitempty"`
+}
+
 // GetControllers returns all controllers within the namespace
 func GetControllers(namespace string) ([]Controller, error) {
 	ns, err := getNamespace(namespace)

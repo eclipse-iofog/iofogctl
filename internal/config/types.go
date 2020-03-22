@@ -57,13 +57,6 @@ type KubeImages struct {
 	Proxy       string `yaml:"proxy,omitempty"`
 }
 
-type Kube struct {
-	Config   string     `yaml:"config,omitempty"`
-	Services Services   `yaml:"services,omitempty"`
-	Replicas Replicas   `yaml:"replicas,omitempty"`
-	Images   KubeImages `yaml:"images,omitempty"`
-}
-
 type Services struct {
 	Controller Service `json:"controller,omitempty"`
 	Router     Service `json:"router,omitempty"`
@@ -105,26 +98,6 @@ type Database struct {
 type LoadBalancer struct {
 	Host string `yaml:"host,omitempty"`
 	Port int    `yaml:"port,omitempty"`
-}
-
-type ControlPlane struct {
-	Database     Database     `yaml:"database,omitempty"`
-	LoadBalancer LoadBalancer `yaml:"loadBalancer,omitempty"`
-	IofogUser    IofogUser    `yaml:"iofogUser,omitempty"`
-	Controllers  []Controller `yaml:"controllers,omitempty"`
-	Kube         Kube         `yaml:"kube,omitempty"`
-}
-
-// Controller contains information for configuring a controller
-type Controller struct {
-	Name        string    `yaml:"name,omitempty"`
-	Host        string    `yaml:"host,omitempty"`
-	SSH         SSH       `yaml:"ssh,omitempty"`
-	Endpoint    string    `yaml:"endpoint,omitempty"`
-	Created     string    `yaml:"created,omitempty"`
-	Package     Package   `yaml:"package,omitempty"`
-	SystemAgent Package   `yaml:"systemAgent,omitempty"`
-	Container   Container `yaml:"container,omitempty"`
 }
 
 type Registry struct {
