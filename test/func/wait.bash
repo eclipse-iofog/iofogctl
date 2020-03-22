@@ -54,7 +54,7 @@ function waitForSvc() {
 }
 
 function waitForProxyMsvc(){
-  waitForSystemMsvc "iofog/proxy:latest" $1 $2 $3
+  waitForSystemMsvc "proxy" $1 $2 $3
 }
 
 function waitForSystemMsvc() {

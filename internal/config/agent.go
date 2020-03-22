@@ -14,11 +14,12 @@
 package config
 
 import (
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // GetAgents returns all agents within the namespace
-func GetAgents(namespace string) ([]Agent, error) {
+func GetAgents(namespace string) ([]rsc.Agent, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return nil, err
@@ -27,7 +28,7 @@ func GetAgents(namespace string) ([]Agent, error) {
 }
 
 // GetAgent returns a single agent within a namespace
-func GetAgent(namespace, name string) (agent Agent, err error) {
+func GetAgent(namespace, name string) (agent rsc.Agent, err error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func GetAgent(namespace, name string) (agent Agent, err error) {
 }
 
 // Overwrites or creates new agent to the namespace
-func UpdateAgent(namespace string, agent Agent) error {
+func UpdateAgent(namespace string, agent rsc.Agent) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
@@ -63,7 +64,7 @@ func UpdateAgent(namespace string, agent Agent) error {
 }
 
 // AddAgent adds a new agent to the namespace
-func AddAgent(namespace string, agent Agent) error {
+func AddAgent(namespace string, agent rsc.Agent) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
@@ -98,11 +99,11 @@ func DeleteAgent(namespace, name string) error {
 	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
-func GetDetachedAgents() ([]Agent, error) {
+func GetDetachedAgents() ([]rsc.Agent, error) {
 	return GetAgents(detachedNamespace)
 }
 
-func GetDetachedAgent(name string) (Agent, error) {
+func GetDetachedAgent(name string) (rsc.Agent, error) {
 	return GetAgent(detachedNamespace, name)
 }
 
@@ -146,6 +147,6 @@ func DeleteDetachedAgent(name string) error {
 	return DeleteAgent(detachedNamespace, name)
 }
 
-func UpdateDetachedAgent(agent Agent) error {
+func UpdateDetachedAgent(agent rsc.Agent) error {
 	return UpdateAgent(detachedNamespace, agent)
 }

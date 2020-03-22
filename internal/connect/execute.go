@@ -16,11 +16,10 @@ package connect
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
-	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
-	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
+	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
+	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -36,21 +35,25 @@ type Options struct {
 	IofogUserPass      string
 }
 
-var kindOrder = []apps.Kind{
-	config.ControlPlaneKind,
-	config.ControllerKind,
+var kindOrder = []config.Kind{
+	config.KubernetesControlPlaneKind,
+	config.RemoteControlPlaneKind,
+	config.LocalControlPlaneKind,
+	config.KubernetesControllerKind,
+	config.RemoteControllerKind,
+	config.LocalControllerKind,
 	config.AgentKind,
 }
 
-var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	config.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectk8scontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
+	},
+	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
 	},
 	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
-	},
-	config.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
 }
 
@@ -60,6 +63,7 @@ func Execute(opt Options) error {
 		return util.NewInputError("Either use a YAML file or provide Controller endpoint or Kube config to connect")
 	}
 
+	// TODO: refactor this to have less nesting
 	// Check for existing namespace
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {
@@ -72,8 +76,10 @@ func Execute(opt Options) error {
 			}
 		} else {
 			// Check the namespace is empty
-			if len(ns.Agents) != 0 || len(ns.ControlPlane.Controllers) != 0 {
-				return util.NewInputError("You must use an empty or non-existent namespace")
+			if err == nil {
+				if len(ns.Agents) != 0 || len(ns.GetControllers()) != 0 {
+					return util.NewInputError("You must use an empty or non-existent namespace")
+				}
 			}
 		}
 	} else {
@@ -93,10 +99,23 @@ func Execute(opt Options) error {
 		if !hasAllFlags(opt) {
 			return util.NewInputError("If no YAML file is provided, must provide Controller endpoint or kube config along with Controller name and ioFog user email/password")
 		}
-		exe, err := connectcontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
-		if err != nil {
-			return err
+
+		// K8s or Remote
+		var exe execute.Executor
+		if opt.KubeConfig != "" {
+			exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+			if err != nil {
+				return err
+			}
+		} else {
+			// TODO: This doesn't make sense, connect to controlplane is passing in a controller name, it should be a list of controller details
+			exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
+			if err != nil {
+				return err
+			}
 		}
+
+		// Execute
 		if err = exe.Execute(); err != nil {
 			return err
 		}

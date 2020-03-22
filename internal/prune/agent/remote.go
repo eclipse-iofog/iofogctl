@@ -18,12 +18,12 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func (exe executor) remoteAgentPrune(agent config.Agent) error {
+func (exe executor) remoteAgentPrune(agent rsc.Agent) error {
 	ctrl, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (exe executor) remoteAgentPrune(agent config.Agent) error {
 	return nil
 }
 
-func (exe executor) remoteDetachedAgentPrune(agent config.Agent) error {
+func (exe executor) remoteDetachedAgentPrune(agent rsc.Agent) error {
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 		return util.NewInputError("Could not Prune Iofog resource " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
 	} else {

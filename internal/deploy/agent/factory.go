@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -30,7 +31,7 @@ type AgentDeployExecutor interface {
 type facadeExecutor struct {
 	isSystem  bool
 	exe       execute.Executor
-	agent     *config.Agent
+	agent     *rsc.Agent
 	namespace string
 }
 
@@ -44,9 +45,13 @@ func (facade *facadeExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
 
 	// Check Controller exists
-	if len(ns.ControlPlane.Controllers) == 0 {
+	if len(controlPlane.GetControllers()) == 0 {
 		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
 	}
 
@@ -80,7 +85,7 @@ func (facade *facadeExecutor) ProvisionAgent() (string, error) {
 	return provisionExecutor.ProvisionAgent()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Agent, isSystem bool) execute.Executor {
+func newFacadeExecutor(exe execute.Executor, namespace string, agent *rsc.Agent, isSystem bool) execute.Executor {
 	return &facadeExecutor{
 		exe:       exe,
 		namespace: namespace,
@@ -89,7 +94,7 @@ func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Age
 	}
 }
 
-func NewDeployExecutor(namespace string, agent *config.Agent, isSystem bool) (execute.Executor, error) {
+func NewDeployExecutor(namespace string, agent *rsc.Agent, isSystem bool) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
 		return nil, err
 	}

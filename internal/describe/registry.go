@@ -18,6 +18,7 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -57,13 +58,13 @@ func (exe *registryExecutor) Execute() error {
 		return err
 	}
 
-	var registry config.Registry
+	var registry rsc.Registry
 	var private bool
 
 	for _, r := range registriesList.Registries {
 		if r.ID == exe.id {
 			private = !r.IsPublic
-			registry = config.Registry{
+			registry = rsc.Registry{
 				URL:          &r.URL,
 				ID:           r.ID,
 				Private:      &private,

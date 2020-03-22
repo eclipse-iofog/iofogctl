@@ -17,7 +17,7 @@ NS2="$NS"_2
   initVanillaController
   echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: RemoteControlPlane
 metadata:
   name: func-controlplane
 spec:
@@ -57,9 +57,7 @@ spec:
   [[ "ok" == $($SSH_COMMAND -- sudo iofog-agent status | grep 'Controller' | awk '{print $5}') ]]
   [[ "RUNNING" == $($SSH_COMMAND --  sudo iofog-agent status | grep 'daemon' | awk '{print $4}') ]]
   [[ "http://${VANILLA_HOST}:51121/api/v3/" == $($SSH_COMMAND -- sudo iofog-agent info | grep 'Controller' | awk '{print $4}') ]]
-  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json
-  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId'
-  [[ "\"quay.io/interconnectedcloud/qdrouterd:latest\"" == $($SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId') ]]
+  [[ $($SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | grep "router") ]]
 }
 
 @test "Controller legacy commands after vanilla deploy" {
@@ -82,7 +80,7 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     # Wait for router microservice
-    waitForSystemMsvc "quay.io/interconnectedcloud/qdrouterd:latest" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
+    waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
 }
 

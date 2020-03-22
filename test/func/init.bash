@@ -170,16 +170,15 @@ spec:
 function initLocalControllerFile() {
     echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: LocalControlPlane
 spec:
   iofogUser:
     name: Testing
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-    host: 127.0.0.1
+  controller:
+    name: $NAME
     container:
       image: ${CONTROLLER_IMAGE}"> test/conf/local.yaml
 }

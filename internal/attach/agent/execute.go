@@ -17,10 +17,11 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 )
 
 type Options struct {
@@ -48,15 +49,15 @@ func (exe executor) GetName() string {
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
-	var agent config.Agent
+	var agent rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
 		agent, err = config.GetDetachedAgent(exe.opt.Name)
 	} else {
-		agent = config.Agent{
+		agent = rsc.Agent{
 			Name: exe.opt.Name,
 			Host: exe.opt.Host,
-			SSH: config.SSH{
+			SSH: rsc.SSH{
 				User:    exe.opt.User,
 				KeyFile: exe.opt.KeyFile,
 				Port:    exe.opt.Port,
@@ -71,7 +72,7 @@ func (exe executor) Execute() error {
 	// Create fog
 	configExecutor := deployagentconfig.NewRemoteExecutor(
 		exe.opt.Name,
-		config.AgentConfiguration{
+		rsc.AgentConfiguration{
 			Name: exe.opt.Name,
 			AgentConfiguration: client.AgentConfiguration{
 				Host: &agent.Host,

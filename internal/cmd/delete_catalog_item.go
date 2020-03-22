@@ -14,7 +14,7 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalog_item"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalogitem"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )

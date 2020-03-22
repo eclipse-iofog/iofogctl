@@ -14,12 +14,12 @@
 package connectagent
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
-func unmarshallYAML(file []byte) (agent config.Agent, err error) {
+func unmarshallYAML(file []byte) (agent rsc.Agent, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &agent); err != nil {
 		err = util.NewUnmarshalError(err.Error())

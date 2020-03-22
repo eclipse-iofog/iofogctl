@@ -15,6 +15,7 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -45,7 +46,7 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
-	var agent config.Agent
+	var agent rsc.Agent
 	var err error
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)
