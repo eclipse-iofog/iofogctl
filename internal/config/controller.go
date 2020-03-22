@@ -14,35 +14,10 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
-
-type Controller interface {
-	GetAddress() string
-	GetName() string
-	SetName()
-}
-
-type LocalController struct {
-	Name      string    `yaml:"name,omitempty"`
-	Endpoint  string    `yaml:"endpoint,omitempty"`
-	Container Container `yaml:"container,omitempty"`
-}
-
-type KubernetesController struct {
-	Name     string `yaml:"name,omitempty"`
-	Endpoint string `yaml:"endpoint,omitempty"`
-}
-
-type RemoteController struct {
-	Name        string  `yaml:"name,omitempty"`
-	Host        string  `yaml:"host,omitempty"`
-	SSH         SSH     `yaml:"ssh,omitempty"`
-	Endpoint    string  `yaml:"endpoint,omitempty"`
-	Created     string  `yaml:"created,omitempty"`
-	Package     Package `yaml:"package,omitempty"`
-	SystemAgent Package `yaml:"systemAgent,omitempty"`
-}
 
 // GetControllers returns all controllers within the namespace
 func GetControllers(namespace string) ([]Controller, error) {
@@ -50,7 +25,7 @@ func GetControllers(namespace string) ([]Controller, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ns.ControlPlane.Controllers, nil
+	return ns.ControlPlane.GetControllers(), nil
 }
 
 // GetController returns a single controller within the current
@@ -59,8 +34,8 @@ func GetController(namespace, name string) (controller Controller, err error) {
 	if err != nil {
 		return
 	}
-	for _, ctrl := range ns.ControlPlane.Controllers {
-		if ctrl.Name == name {
+	for _, ctrl := range ns.ControlPlane.GetControllers() {
+		if ctrl.GetName() == name {
 			controller = ctrl
 			return
 		}
@@ -77,16 +52,12 @@ func UpdateController(namespace string, controller Controller) error {
 	if err != nil {
 		return err
 	}
-	for idx := range ns.ControlPlane.Controllers {
-		if ns.ControlPlane.Controllers[idx].Name == controller.Name {
-			mux.Lock()
-			ns.ControlPlane.Controllers[idx] = controller
-			mux.Unlock()
-			return nil
-		}
+	mux.Lock()
+	if err := ns.ControlPlane.UpdateController(controller); err != nil {
+		return err
 	}
-	// Add new controller
-	return AddController(namespace, controller)
+	mux.Unlock()
+	return nil
 }
 
 // AddController adds a new controller to the current namespace
@@ -95,14 +66,16 @@ func AddController(namespace string, controller Controller) error {
 	if err != nil {
 		return err
 	}
-	_, err = GetController(namespace, controller.Name)
+	_, err = ns.ControlPlane.GetController(controller.GetName())
 	if err == nil {
-		return util.NewConflictError(namespace + "/" + controller.Name)
+		return util.NewConflictError(namespace + "/" + controller.GetName())
 	}
 
-	// Append the controller
+	// Add the Controller
 	mux.Lock()
-	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
+	if err := ns.ControlPlane.AddController(controller); err != nil {
+		return err
+	}
 	mux.Unlock()
 
 	return nil
@@ -114,14 +87,11 @@ func DeleteController(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	for idx := range ns.ControlPlane.Controllers {
-		if ns.ControlPlane.Controllers[idx].Name == name {
-			mux.Lock()
-			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
 
-	return util.NewNotFoundError(ns.Name + "/" + name)
+	mux.Lock()
+	if err := ns.ControlPlane.DeleteController(name); err != nil {
+		return err
+	}
+	mux.Unlock()
+	return nil
 }

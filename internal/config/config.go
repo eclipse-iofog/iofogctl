@@ -49,7 +49,7 @@ const (
 
 type v1NamespaceSpecContent struct {
 	Name         string        `yaml:"name,omitempty"`
-	ControlPlane ControlPlane  `yaml:"controlPlane,omitempty"`
+	ControlPlane *ControlPlane `yaml:"controlPlane,omitempty"`
 	Agents       []Agent       `yaml:"agents,omitempty"`
 	Created      string        `yaml:"created,omitempty"`
 	Connectors   []interface{} `yaml:"connectors,omitempty"`
