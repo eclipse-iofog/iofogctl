@@ -72,12 +72,12 @@ func generateControllerOutput(namespace string) error {
 
 		// Get age
 		age := "-"
-		if ctrlConfig.Created != "" {
-			age, _ = util.ElapsedUTC(ctrlConfig.Created, util.NowUTC())
+		if ctrlConfig.GetCreatedTime() != "" {
+			age, _ = util.ElapsedUTC(ctrlConfig.GetCreatedTime(), util.NowUTC())
 		}
-		endpoint, port := getEndpointAndPort(ctrlConfig.Endpoint, client.ControllerPortString)
+		endpoint, port := getEndpointAndPort(ctrlConfig.GetEndpoint(), client.ControllerPortString)
 		row := []string{
-			ctrlConfig.Name,
+			ctrlConfig.GetName(),
 			status,
 			age,
 			uptime,

@@ -20,6 +20,7 @@ import (
 type Controller interface {
 	GetName() string
 	GetEndpoint() string
+	GetCreatedTime() string
 	SetName(string)
 }
 
@@ -54,6 +55,10 @@ func (ctrl LocalController) GetEndpoint() string {
 	return ctrl.Endpoint
 }
 
+func (ctrl LocalController) GetCreatedTime() string {
+	return ctrl.Created
+}
+
 func (ctrl *LocalController) SetName(name string) {
 	ctrl.Name = name
 }
@@ -66,6 +71,10 @@ func (ctrl KubernetesController) GetEndpoint() string {
 	return ""
 }
 
+func (ctrl KubernetesController) GetCreatedTime() string {
+	return ctrl.Created
+}
+
 func (ctrl *KubernetesController) SetName(name string) {
 	ctrl.PodName = name
 }
@@ -76,6 +85,10 @@ func (ctrl RemoteController) GetName() string {
 
 func (ctrl RemoteController) GetEndpoint() string {
 	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
+}
+
+func (ctrl RemoteController) GetCreatedTime() string {
+	return ctrl.Created
 }
 
 func (ctrl *RemoteController) SetName(name string) {

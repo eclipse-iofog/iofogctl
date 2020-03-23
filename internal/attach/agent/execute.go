@@ -17,6 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
@@ -56,7 +57,7 @@ func (exe executor) Execute() error {
 		agent = rsc.Agent{
 			Name: exe.opt.Name,
 			Host: exe.opt.Host,
-			SSH: config.SSH{
+			SSH: rsc.SSH{
 				User:    exe.opt.User,
 				KeyFile: exe.opt.KeyFile,
 				Port:    exe.opt.Port,
