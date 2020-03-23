@@ -91,7 +91,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		return err
 	}
 
-	fogType, found := config.FogTypeIntMap[getAgentResponse.FogType]
+	fogType, found := rsc.FogTypeIntMap[getAgentResponse.FogType]
 	if !found {
 		fogType = "auto"
 	}
@@ -149,7 +149,7 @@ func (exe *agentConfigExecutor) Execute() error {
 
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       rsc.AgentConfigKind,
+		Kind:       config.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

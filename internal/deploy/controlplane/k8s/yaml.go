@@ -11,25 +11,19 @@
  *
  */
 
-package deployremotecontrolplane
+package deployk8scontrolplane
 
 import (
-	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
 // TODO: Unmarshall based on kind?
-func UnmarshallYAML(file []byte) (controlPlane *rsc.RemoteControlPlane, err error) {
+func UnmarshallYAML(file []byte) (controlPlane *rsc.KubernetesControlPlane, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
-		return
-	}
-	// None specified
-	controllers := controlPlane.GetControllers()
-	if len(controlPlane.GetControllers()) == 0 {
 		return
 	}
 
@@ -38,29 +32,17 @@ func UnmarshallYAML(file []byte) (controlPlane *rsc.RemoteControlPlane, err erro
 		return
 	}
 
-	// Pre-process inputs for Controllers
-	for idx := range controllers {
-		controller, ok := controllers[idx].(*rsc.RemoteController)
-		if !ok {
-			err = util.NewInternalError("Could not convert Controller to Remote Controller")
-			return
-		}
-		// Fix SSH port
-		if controller.Host != "" && controller.SSH.Port == 0 {
-			controller.SSH.Port = 22
-		}
-		// Format file paths
-		if controller.SSH.KeyFile, err = util.FormatPath(controller.SSH.KeyFile); err != nil {
-			return
-		}
+	// Preprocess Inputs for Control Plane
+	if controlPlane.KubeConfig, err = util.FormatPath(controlPlane.KubeConfig); err != nil {
+		return
 	}
 
 	return
 }
 
-func validate(controlPlane *rsc.RemoteControlPlane) (err error) {
+func validate(controlPlane *rsc.KubernetesControlPlane) (err error) {
 	// Validate user
-	user := controlPlane.IofogUser
+	user := controlPlane.GetUser()
 	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
 		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
 	}
@@ -71,16 +53,5 @@ func validate(controlPlane *rsc.RemoteControlPlane) (err error) {
 			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
 		}
 	}
-	// Validate Controllers
-	controllers := controlPlane.GetControllers()
-	if len(controllers) == 0 {
-		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
-	}
-	for _, ctrl := range controllers {
-		if err = deploycontroller.Validate(ctrl); err != nil {
-			return
-		}
-	}
-
 	return
 }

@@ -14,39 +14,91 @@
 package connectcontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
-func unmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
+func unmarshallKubernetesYaml(file []byte) (controlPlane *rsc.KubernetesControlPlane, err error) {
 	// Unmarshall the input file
-	var ctrlPlane rsc.ControlPlane
-	if err = yaml.UnmarshalStrict(file, &ctrlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 	// None specified
-	if len(ctrlPlane.Controllers) == 0 {
+	if len(controlPlane.GetControllers()) == 0 {
 		err = util.NewInputError("No Controllers specified in Control Plane. Cannot connect.")
 		return
 	}
-	if ctrlPlane.Kube.Config, err = util.FormatPath(ctrlPlane.Kube.Config); err != nil {
+	// Preprocess Inputs for Control Plane
+	if controlPlane.KubeConfig, err = util.FormatPath(controlPlane.KubeConfig); err != nil {
 		return
 	}
-	// Preprocess Inputs for Control Plane
-	if ctrlPlane.Kube.Config, err = util.FormatPath(ctrlPlane.Kube.Config); err != nil {
+
+	// Validate inputs
+	if err = validate(controlPlane); err != nil {
+		return
+	}
+
+	return
+}
+
+func unmarshallRemoteYAML(file []byte) (controlPlane *rsc.RemoteControlPlane, err error) {
+	// Unmarshall the input file
+	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+	// None specified
+	if len(controlPlane.GetControllers()) == 0 {
+		err = util.NewInputError("No Controllers specified in Control Plane. Cannot connect.")
 		return
 	}
 	// Pre-process controllers
-	for idx := range ctrlPlane.Controllers {
-		if ctrlPlane.Controllers[idx].SSH.KeyFile, err = util.FormatPath(ctrlPlane.Controllers[idx].SSH.KeyFile); err != nil {
+	for idx := range controlPlane.GetControllers() {
+		if controlPlane.Controllers[idx].SSH.KeyFile, err = util.FormatPath(controlPlane.Controllers[idx].SSH.KeyFile); err != nil {
 			return
 		}
 	}
 
-	controlPlane = ctrlPlane
+	controlPlane = controlPlane
+
+	// Validate inputs
+	if err = validate(controlPlane); err != nil {
+		return
+	}
+
+	return
+}
+
+func unmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
+	// Unmarshall the input file
+	var controlPlane rsc.ControlPlane
+	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+	// None specified
+	if len(controlPlane.GetControllers()) == 0 {
+		err = util.NewInputError("No Controllers specified in Control Plane. Cannot connect.")
+		return
+	}
+	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
+		return
+	}
+	// Preprocess Inputs for Control Plane
+	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
+		return
+	}
+	// Pre-process controllers
+	for idx := range controlPlane.Controllers {
+		if controlPlane.Controllers[idx].SSH.KeyFile, err = util.FormatPath(controlPlane.Controllers[idx].SSH.KeyFile); err != nil {
+			return
+		}
+	}
+
+	controlPlane = controlPlane
 
 	// Validate inputs
 	if err = validate(controlPlane); err != nil {
@@ -58,7 +110,7 @@ func unmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
 
 func validate(controlPlane rsc.ControlPlane) (err error) {
 	// Validate user
-	user := controlPlane.IofogUser
+	user := controlPlane.GetUser()
 	if user.Password == "" || user.Email == "" {
 		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty values in email and password fields")
 	}
@@ -66,7 +118,7 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 	if len(controlPlane.Controllers) == 0 {
 		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
 	}
-	for _, ctrl := range controlPlane.Controllers {
+	for _, ctrl := range controlPlane.GetControllers() {
 		if err = connectcontroller.Validate(ctrl); err != nil {
 			return
 		}

@@ -32,8 +32,9 @@ type LocalController struct {
 }
 
 type KubernetesController struct {
-	PodName string `yaml:"podName"`
-	Created string `yaml:"created,omitempty"`
+	PodName  string `yaml:"podName"`
+	Endpoint string `yaml:"endpoint"`
+	Created  string `yaml:"created,omitempty"`
 }
 
 type RemoteController struct {
@@ -68,7 +69,7 @@ func (ctrl KubernetesController) GetName() string {
 }
 
 func (ctrl KubernetesController) GetEndpoint() string {
-	return ""
+	return ctrl.Endpoint
 }
 
 func (ctrl KubernetesController) GetCreatedTime() string {

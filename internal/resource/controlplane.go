@@ -28,25 +28,25 @@ type ControlPlane interface {
 }
 
 type LocalControlPlane struct {
-	IofogUser  IofogUser  `yaml:"iofogUser,omitempty"`
-	Controller Controller `yaml:"controller,omitempty"`
+	IofogUser  IofogUser        `yaml:"iofogUser,omitempty"`
+	Controller *LocalController `yaml:"controller,omitempty"`
 }
 
 type KubernetesControlPlane struct {
-	ControllerPods []Controller `yaml:"controllerPods,omitempty"`
-	Database       Database     `yaml:"database,omitempty"`
-	IofogUser      IofogUser    `yaml:"iofogUser,omitempty"`
-	Endpoint       string       `yaml:"endpoint,omitempty"`
-	KubeConfig     string       `yaml:"config,omitempty"`
-	Services       Services     `yaml:"services,omitempty"`
-	Replicas       Replicas     `yaml:"replicas,omitempty"`
-	Images         KubeImages   `yaml:"images,omitempty"`
+	ControllerPods []*KubernetesController `yaml:"controllerPods,omitempty"`
+	Database       Database                `yaml:"database,omitempty"`
+	IofogUser      IofogUser               `yaml:"iofogUser,omitempty"`
+	Endpoint       string                  `yaml:"endpoint,omitempty"`
+	KubeConfig     string                  `yaml:"config,omitempty"`
+	Services       Services                `yaml:"services,omitempty"`
+	Replicas       Replicas                `yaml:"replicas,omitempty"`
+	Images         KubeImages              `yaml:"images,omitempty"`
 }
 
 type RemoteControlPlane struct {
-	Database    Database     `yaml:"database,omitempty"`
-	IofogUser   IofogUser    `yaml:"iofogUser,omitempty"`
-	Controllers []Controller `yaml:"controllers,omitempty"`
+	Database    Database            `yaml:"database,omitempty"`
+	IofogUser   IofogUser           `yaml:"iofogUser,omitempty"`
+	Controllers []*RemoteController `yaml:"controllers,omitempty"`
 }
 
 func (cp LocalControlPlane) GetUser() IofogUser {
@@ -65,13 +65,21 @@ func (cp LocalControlPlane) GetEndpoint() (string, error) {
 	return cp.Controller.GetEndpoint(), nil
 }
 
-func (cp *LocalControlPlane) UpdateController(ctrl Controller) error {
-	cp.Controller = ctrl
+func (cp *LocalControlPlane) UpdateController(baseController Controller) error {
+	controller, ok := baseController.(*LocalController)
+	if !ok {
+		return util.NewError("Could not convert Controller to Local Controller")
+	}
+	cp.Controller = controller
 	return nil
 }
 
-func (cp *LocalControlPlane) AddController(ctrl Controller) error {
-	cp.Controller = ctrl
+func (cp *LocalControlPlane) AddController(baseController Controller) error {
+	controller, ok := baseController.(*LocalController)
+	if !ok {
+		return util.NewError("Could not convert Controller to Local Controller")
+	}
+	cp.Controller = controller
 	return nil
 }
 
@@ -84,8 +92,11 @@ func (cp KubernetesControlPlane) GetUser() IofogUser {
 	return cp.IofogUser
 }
 
-func (cp KubernetesControlPlane) GetControllers() []Controller {
-	return cp.ControllerPods
+func (cp KubernetesControlPlane) GetControllers() (controllers []Controller) {
+	for _, controller := range cp.ControllerPods {
+		controllers = append(controllers, controller)
+	}
+	return
 }
 
 func (cp KubernetesControlPlane) GetController(name string) (ret Controller, err error) {
@@ -103,22 +114,30 @@ func (cp KubernetesControlPlane) GetEndpoint() (string, error) {
 	return cp.Endpoint, nil
 }
 
-func (cp *KubernetesControlPlane) UpdateController(ctrl Controller) error {
+func (cp *KubernetesControlPlane) UpdateController(baseController Controller) error {
+	controller, ok := baseController.(*KubernetesController)
+	if !ok {
+		return util.NewError("Must add Kubernetes Controller to Kubernetes Control Plane")
+	}
 	for idx := range cp.ControllerPods {
-		if cp.ControllerPods[idx].GetName() == ctrl.GetName() {
-			cp.ControllerPods[idx] = ctrl
+		if cp.ControllerPods[idx].GetName() == controller.GetName() {
+			cp.ControllerPods[idx] = controller
 			return nil
 		}
 	}
-	cp.ControllerPods = append(cp.ControllerPods, ctrl)
+	cp.ControllerPods = append(cp.ControllerPods, controller)
 	return nil
 }
 
-func (cp *KubernetesControlPlane) AddController(ctrl Controller) error {
-	if _, err := cp.GetController(ctrl.GetName()); err == nil {
-		return util.NewError("Could not add Controller " + ctrl.GetName() + " because it already exists")
+func (cp *KubernetesControlPlane) AddController(baseController Controller) error {
+	if _, err := cp.GetController(baseController.GetName()); err == nil {
+		return util.NewError("Could not add Controller " + baseController.GetName() + " because it already exists")
 	}
-	cp.ControllerPods = append(cp.ControllerPods, ctrl)
+	controller, ok := baseController.(*KubernetesController)
+	if !ok {
+		return util.NewError("Must add Kubernetes Controller to Kubernetes Control Plane")
+	}
+	cp.ControllerPods = append(cp.ControllerPods, controller)
 	return nil
 }
 
@@ -136,8 +155,11 @@ func (cp RemoteControlPlane) GetUser() IofogUser {
 	return cp.IofogUser
 }
 
-func (cp RemoteControlPlane) GetControllers() []Controller {
-	return cp.Controllers
+func (cp RemoteControlPlane) GetControllers() (controllers []Controller) {
+	for _, controller := range cp.Controllers {
+		controllers = append(controllers, controller)
+	}
+	return
 }
 
 func (cp RemoteControlPlane) GetController(name string) (ret Controller, err error) {
@@ -158,22 +180,31 @@ func (cp RemoteControlPlane) GetEndpoint() (string, error) {
 	return cp.GetControllers()[0].GetEndpoint(), nil
 }
 
-func (cp *RemoteControlPlane) UpdateController(ctrl Controller) error {
+func (cp *RemoteControlPlane) UpdateController(baseController Controller) error {
+	controller, ok := baseController.(*RemoteController)
+	if !ok {
+		return util.NewError("Must add Remote Controller to Remote Control Plane")
+	}
 	for idx := range cp.Controllers {
-		if cp.Controllers[idx].GetName() == ctrl.GetName() {
-			cp.Controllers[idx] = ctrl
+		if cp.Controllers[idx].GetName() == controller.GetName() {
+			cp.Controllers[idx] = controller
 			return nil
 		}
 	}
-	cp.Controllers = append(cp.Controllers, ctrl)
+	cp.Controllers = append(cp.Controllers, controller)
 	return nil
 }
 
-func (cp *RemoteControlPlane) AddController(ctrl Controller) error {
-	if _, err := cp.GetController(ctrl.GetName()); err == nil {
-		return util.NewError("Could not add Controller " + ctrl.GetName() + " because it already exists")
+func (cp *RemoteControlPlane) AddController(baseController Controller) error {
+	if _, err := cp.GetController(baseController.GetName()); err == nil {
+		return util.NewError("Could not add Controller " + baseController.GetName() + " because it already exists")
 	}
-	cp.Controllers = append(cp.Controllers, ctrl)
+	controller, ok := baseController.(*RemoteController)
+	if !ok {
+		return util.NewError("Must add Remote Controller to Remote Control Plane")
+	}
+
+	cp.Controllers = append(cp.Controllers, controller)
 	return nil
 }
 

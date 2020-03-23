@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
+func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
 	// Read the input file
 	controlPlane, err := unmarshallYAML(yaml)
 	if err != nil {

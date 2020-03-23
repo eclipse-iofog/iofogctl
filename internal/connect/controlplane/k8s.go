@@ -14,19 +14,23 @@
 package connectcontrolplane
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type kubernetesExecutor struct {
-	ctrlPlane rsc.ControlPlane
-	namespace string
+	controlPlane *rsc.KubernetesControlPlane
+	namespace    string
 }
 
-func newKubernetesExecutor(ctrlPlane rsc.ControlPlane, namespace string) *kubernetesExecutor {
+func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace string) *kubernetesExecutor {
 	return &kubernetesExecutor{
-		ctrlPlane: ctrlPlane,
-		namespace: namespace,
+		controlPlane: controlPlane,
+		namespace:    namespace,
 	}
 }
 
@@ -36,7 +40,7 @@ func (exe *kubernetesExecutor) GetName() string {
 
 func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
-	k8s, err := install.NewKubernetes(exe.ctrlPlane.Kube.Config, exe.namespace)
+	k8s, err := install.NewKubernetes(exe.controlPlane.Kube.Config, exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -53,13 +57,23 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Establish connection
-	err = connect(exe.ctrlPlane, endpoint, exe.namespace)
+	err = connect(exe.controlPlane, endpoint, exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	exe.ctrlPlane.Controllers[0].Endpoint = endpoint
-	err = config.UpdateControlPlane(exe.namespace, exe.ctrlPlane)
+	// TODO: Get Kubernetes pods
+	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
+		k8sPod := rsc.KubernetesController{
+			Endpoint: endpoint,
+			PodName:  fmt.Sprintf("Kubernetes-%d", idx),
+			Created:  util.NowUTC(),
+		}
+		if err := exe.controlPlane.AddController(&k8sPod); err != nil {
+			return err
+		}
+	}
+	err = config.UpdateControlPlane(exe.namespace, exe.controlPlane)
 	if err != nil {
 		return err
 	}

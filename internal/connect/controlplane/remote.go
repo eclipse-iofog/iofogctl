@@ -15,15 +15,16 @@ package connectcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type remoteExecutor struct {
-	ctrlPlane rsc.ControlPlane
+	ctrlPlane rsc.RemoteControlPlane
 	namespace string
 }
 
-func newRemoteExecutor(ctrlPlane rsc.ControlPlane, namespace string) *remoteExecutor {
+func newRemoteExecutor(ctrlPlane rsc.RemoteControlPlane, namespace string) *remoteExecutor {
 	r := &remoteExecutor{
 		ctrlPlane: ctrlPlane,
 		namespace: namespace,
@@ -37,10 +38,14 @@ func (exe *remoteExecutor) GetName() string {
 
 func (exe *remoteExecutor) Execute() (err error) {
 	// Establish connection
-	if len(exe.ctrlPlane.Controllers) == 0 {
+	controllers := exe.ctrlPlane.GetControllers()
+	if len(controllers) == 0 {
 		return util.NewError("Control Plane in Namespace " + exe.namespace + " has no Controllers. Try deploying a Control Plane to this Namespace.")
 	}
-	endpoint := exe.ctrlPlane.Controllers[0].Endpoint
+	endpoint, err := exe.ctrlPlane.GetEndpoint()
+	if err != nil {
+		return err
+	}
 	err = connect(exe.ctrlPlane, endpoint, exe.namespace)
 	if err != nil {
 		return err

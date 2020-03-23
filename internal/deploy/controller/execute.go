@@ -23,6 +23,7 @@ type Options struct {
 	Namespace string
 	Yaml      []byte
 	Name      string
+	Kind      config.Kind
 }
 
 func NewExecutorWithoutParsing(namespace string, controller rsc.Controller) (exe execute.Executor, err error) {

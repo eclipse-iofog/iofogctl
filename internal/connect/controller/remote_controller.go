@@ -28,27 +28,33 @@ type executor struct {
 }
 
 func (exe executor) GetName() string {
-	return exe.controller.Name
+	return exe.controller.GetName()
 }
 
 func (exe executor) Execute() error {
-	controllers, err := config.GetControllers(exe.namespace)
+	baseControllers, err := config.GetControllers(exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	for _, controller := range controllers {
-		if controller.Name == exe.controller.Name {
-			// Only update ssh info
-			controller.SSH.KeyFile = exe.controller.SSH.KeyFile
-			controller.SSH.Port = exe.controller.SSH.Port
-			controller.SSH.User = exe.controller.SSH.User
-			config.UpdateController(exe.namespace, controller)
-			return nil
+	for _, baseController := range baseControllers {
+		if baseController.GetName() == exe.controller.GetName() {
+			// Update ssh info for Remote Controllers
+			if controller, ok := baseController.(*rsc.RemoteController); ok {
+				exeController, ok := exe.controller.(*rsc.RemoteController)
+				if !ok {
+					return util.NewInternalError("Could not convert Controller to Remote Controller")
+				}
+				controller.SSH.KeyFile = exeController.SSH.KeyFile
+				controller.SSH.Port = exeController.SSH.Port
+				controller.SSH.User = exeController.SSH.User
+				config.UpdateController(exe.namespace, controller)
+				return nil
+			}
 		}
 	}
 
-	util.PrintNotify(fmt.Sprintf("ECN does not contain controller %s\n", exe.controller.Name))
+	util.PrintNotify(fmt.Sprintf("ECN does not contain controller %s\n", exe.controller.GetName()))
 	return nil
 }
 

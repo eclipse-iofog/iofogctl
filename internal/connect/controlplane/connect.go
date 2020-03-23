@@ -16,6 +16,7 @@ package connectcontrolplane
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 func connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string) error {

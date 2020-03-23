@@ -22,7 +22,7 @@ import (
 // TODO: Unmarshall based on kind?
 func UnmarshallYAML(file []byte) (controlPlane *rsc.LocalControlPlane, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}

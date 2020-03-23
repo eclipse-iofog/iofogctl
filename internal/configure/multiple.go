@@ -16,6 +16,7 @@ package configure
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 type multipleExecutor struct {
@@ -83,7 +84,7 @@ func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor
 	}
 	for _, controller := range controllers {
 		opt := exe.opt
-		opt.Name = controller.Name
+		opt.Name = controller.GetName()
 		executors = append(executors, newControllerExecutor(opt))
 	}
 

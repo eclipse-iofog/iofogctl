@@ -16,7 +16,6 @@ package connect
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
 	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
@@ -36,20 +35,30 @@ type Options struct {
 	IofogUserPass      string
 }
 
-var kindOrder = []apps.Kind{
-	rsc.ControlPlaneKind,
-	rsc.ControllerKind,
-	rsc.AgentKind,
+var kindOrder = []config.Kind{
+	config.KubernetesControlPlaneKind,
+	config.RemoteControlPlaneKind,
+	config.LocalControlPlaneKind,
+	config.KubernetesControllerKind,
+	config.RemoteControllerKind,
+	config.LocalControllerKind,
+	config.AgentKind,
 }
 
-var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	rsc.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
 	},
-	rsc.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
+	},
+	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.LocalControlPlaneKind)
+	},
+	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
-	rsc.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.KubernetesControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
 }
@@ -72,7 +81,7 @@ func Execute(opt Options) error {
 			}
 		} else {
 			// Check the namespace is empty
-			if len(ns.Agents) != 0 || len(ns.ControlPlane.Controllers) != 0 {
+			if len(ns.Agents) != 0 || len(ns.ControlPlane.GetControllers()) != 0 {
 				return util.NewInputError("You must use an empty or non-existent namespace")
 			}
 		}

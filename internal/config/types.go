@@ -9,11 +9,13 @@ const (
 	IofogctlNamespaceKind      Kind = "IofogctlNamespace"
 	RegistryKind               Kind = "Registry"
 	VolumeKind                 Kind = "Volume"
-	ControllerKind             Kind = "Controller"
 	AgentKind                  Kind = "Agent"
 	KubernetesControlPlaneKind Kind = "KubernetesControlPlane"
 	RemoteControlPlaneKind     Kind = "RemoteControlPlane"
 	LocalControlPlaneKind      Kind = "LocalControlPlane"
+	KubernetesControllerKind   Kind = "KubernetesController"
+	RemoteControllerKind       Kind = "RemoteController"
+	LocalControllerKind        Kind = "LocalController"
 )
 
 // Header contains k8s yaml header

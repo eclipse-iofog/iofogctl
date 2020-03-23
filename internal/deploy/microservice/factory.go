@@ -52,7 +52,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Check Controller exists
-	if len(ns.ControlPlane.Controllers) == 0 {
+	if len(ns.ControlPlane.GetControllers()) == 0 {
 		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
@@ -76,7 +76,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		microservice.Images.Registry = "remote"
 	}
 
-	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	endpoint, err := ns.ControlPlane.GetEndpoint()
 	if err != nil {
 		return
 	}
@@ -89,8 +89,8 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	return remoteExecutor{
 		controller: apps.IofogController{
 			Endpoint: endpoint,
-			Email:    ns.ControlPlane.IofogUser.Email,
-			Password: ns.ControlPlane.IofogUser.Password,
+			Email:    ns.ControlPlane.GetUser().Email,
+			Password: ns.ControlPlane.GetUser().Password,
 			Token:    clt.GetAccessToken(),
 		},
 		microservice: microservice}, nil
