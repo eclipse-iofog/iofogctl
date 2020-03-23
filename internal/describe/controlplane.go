@@ -46,11 +46,11 @@ func (exe *controlPlaneExecutor) Execute() error {
 	var header config.Header
 	switch controlPlane := baseControlPlane.(type) {
 	case *rsc.KubernetesControlPlane:
-		header = exe.generateHeader(config.KubernetesControlPlaneKind, controlPlane)
+		header = exe.generateControlPlaneHeader(config.KubernetesControlPlaneKind, controlPlane)
 	case *rsc.RemoteControlPlane:
-		header = exe.generateHeader(config.RemoteControlPlaneKind, controlPlane)
+		header = exe.generateControlPlaneHeader(config.RemoteControlPlaneKind, controlPlane)
 	case *rsc.LocalControlPlane:
-		header = exe.generateHeader(config.LocalControlPlaneKind, controlPlane)
+		header = exe.generateControlPlaneHeader(config.LocalControlPlaneKind, controlPlane)
 	default:
 		return util.NewInternalError("Could not convert Control Plane to dynamic type")
 	}
@@ -67,7 +67,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 	return nil
 }
 
-func (exe *controlPlaneExecutor) generateHeader(kind config.Kind, controlPlane rsc.ControlPlane) config.Header {
+func (exe *controlPlaneExecutor) generateControlPlaneHeader(kind config.Kind, controlPlane rsc.ControlPlane) config.Header {
 	return config.Header{
 		APIVersion: internal.LatestAPIVersion,
 		Kind:       kind,

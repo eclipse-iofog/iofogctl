@@ -1,5 +1,9 @@
 package config
 
+import (
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+)
+
 type Kind string
 
 const (
@@ -16,6 +20,8 @@ const (
 	KubernetesControllerKind   Kind = "KubernetesController"
 	RemoteControllerKind       Kind = "RemoteController"
 	LocalControllerKind        Kind = "LocalController"
+	MicroserviceKind           Kind = Kind(apps.MicroserviceKind)
+	ApplicationKind            Kind = Kind(apps.ApplicationKind)
 )
 
 // Header contains k8s yaml header

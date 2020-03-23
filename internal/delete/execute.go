@@ -16,7 +16,6 @@ package delete
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
 	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
@@ -35,40 +34,40 @@ type Options struct {
 	Soft      bool
 }
 
-var kindOrder = []apps.Kind{
-	rsc.CatalogItemKind,
-	apps.MicroserviceKind,
-	apps.ApplicationKind,
+var kindOrder = []config.Kind{
+	config.CatalogItemKind,
+	config.MicroserviceKind,
+	config.ApplicationKind,
 	config.RegistryKind,
 	config.AgentKind,
-	config.ControllerKind,
-	rsc.ControlPlaneKind,
-	rsc.VolumeKind,
+	config.RemoteControllerKind,
+	config.RemoteControlPlaneKind,
+	config.VolumeKind,
 }
 
-var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	apps.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteapplication.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	rsc.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
 	},
 	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	config.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	rsc.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
 	},
-	rsc.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletevolume.NewExecutor(opt.Namespace, opt.Name)
 	},
 }

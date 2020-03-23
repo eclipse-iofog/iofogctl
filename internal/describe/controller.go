@@ -16,6 +16,7 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -38,19 +39,22 @@ func (exe *controllerExecutor) GetName() string {
 }
 
 func (exe *controllerExecutor) Execute() error {
-	controller, err := config.GetController(exe.namespace, exe.name)
+	baseController, err := config.GetController(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}
 
-	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.ControllerKind,
-		Metadata: config.HeaderMetadata{
-			Namespace: exe.namespace,
-			Name:      exe.name,
-		},
-		Spec: controller,
+	// Generate header
+	var header config.Header
+	switch controller := baseController.(type) {
+	case *rsc.KubernetesController:
+		header = exe.generateControllerHeader(config.KubernetesControllerKind, controller)
+	case *rsc.RemoteController:
+		header = exe.generateControllerHeader(config.RemoteControllerKind, controller)
+	case *rsc.LocalController:
+		header = exe.generateControllerHeader(config.LocalControllerKind, controller)
+	default:
+		return util.NewInternalError("Could not convert Control Plane to dynamic type")
 	}
 
 	if exe.filename == "" {
@@ -63,4 +67,16 @@ func (exe *controllerExecutor) Execute() error {
 		}
 	}
 	return nil
+}
+
+func (exe *controllerExecutor) generateControllerHeader(kind config.Kind, controller rsc.Controller) config.Header {
+	return config.Header{
+		APIVersion: internal.LatestAPIVersion,
+		Kind:       kind,
+		Metadata: config.HeaderMetadata{
+			Namespace: exe.namespace,
+			Name:      controller.GetName(),
+		},
+		Spec: controller,
+	}
 }

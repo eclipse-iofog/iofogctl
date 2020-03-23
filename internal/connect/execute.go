@@ -19,7 +19,8 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
 	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
-	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
+	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
+	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -47,13 +48,10 @@ var kindOrder = []config.Kind{
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
 	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
+		return connectk8scontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
 	},
 	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
-	},
-	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.LocalControlPlaneKind)
+		return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
 	},
 	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
@@ -102,10 +100,22 @@ func Execute(opt Options) error {
 		if !hasAllFlags(opt) {
 			return util.NewInputError("If no YAML file is provided, must provide Controller endpoint or kube config along with Controller name and ioFog user email/password")
 		}
-		exe, err := connectcontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
-		if err != nil {
-			return err
+
+		// K8s or Remote
+		var exe execute.Executor
+		if opt.KubeConfig != "" {
+			exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+			if err != nil {
+				return err
+			}
+		} else {
+			exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
+			if err != nil {
+				return err
+			}
 		}
+
+		// Execute
 		if err = exe.Execute(); err != nil {
 			return err
 		}

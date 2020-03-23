@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -106,18 +107,24 @@ iofogctl legacy agent NAME status`,
 				// Get config
 				controlPlane, err := config.GetControlPlane(namespace)
 				util.Check(err)
-				ctrl, err := controlPlane.GetController(name)
+				baseController, err := controlPlane.GetController(name)
 				util.Check(err)
 				cliCommand := []string{"iofog-controller"}
-				if controlPlane.Kube.Config != "" {
-					k8sExecute(controlPlane.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
-				} else if util.IsLocalHost(ctrl.Host) {
-					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
-				} else {
-					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
+				switch controller := baseController.(type) {
+				case *rsc.KubernetesController:
+					k8sControlPlane, ok := controlPlane.(*rsc.KubernetesControlPlane)
+					if !ok {
+						util.Check(util.NewError("Could not convert Control Plane to Kubernetes Control Plane"))
+					}
+					k8sExecute(k8sControlPlane.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
+				case *rsc.RemoteController:
+					// TODO: replace this with member func
+					if controller.Host == "" || controller.SSH.User == "" || controller.SSH.KeyFile == "" || controller.SSH.Port == 0 {
 						util.Check(util.NewNoConfigError("Controller"))
 					}
-					remoteExec(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile, ctrl.SSH.Port, "sudo iofog-controller", args[2:])
+					remoteExec(controller.SSH.User, controller.Host, controller.SSH.KeyFile, controller.SSH.Port, "sudo iofog-controller", args[2:])
+				case *rsc.LocalController:
+					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				}
 			case "agent":
 				// Get config

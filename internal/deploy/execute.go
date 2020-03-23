@@ -16,7 +16,6 @@ package deploy
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
@@ -46,8 +45,8 @@ var kindOrder = []config.Kind{
 	config.AgentKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
-	config.Kind(apps.ApplicationKind),
-	config.Kind(apps.MicroserviceKind),
+	config.ApplicationKind,
+	config.MicroserviceKind,
 	config.VolumeKind,
 }
 
@@ -109,19 +108,19 @@ func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) 
 }
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	config.Kind(apps.ApplicationKind):  deployApplication,
-	config.Kind(apps.MicroserviceKind): deployMicroservice,
-	config.CatalogItemKind:             deployCatalogItem,
-	config.KubernetesControlPlaneKind:  deployKubernetesControlPlane,
-	config.RemoteControlPlaneKind:      deployRemoteControlPlane,
-	config.LocalControlPlaneKind:       deployLocalControlPlane,
-	config.KubernetesControllerKind:    deployKubernetesController,
-	config.RemoteControllerKind:        deployRemoteController,
-	config.LocalControllerKind:         deployLocalController,
-	config.AgentKind:                   deployAgent,
-	config.AgentConfigKind:             deployAgentConfig,
-	config.RegistryKind:                deployRegistry,
-	config.VolumeKind:                  deployVolume,
+	config.ApplicationKind:            deployApplication,
+	config.MicroserviceKind:           deployMicroservice,
+	config.CatalogItemKind:            deployCatalogItem,
+	config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
+	config.RemoteControlPlaneKind:     deployRemoteControlPlane,
+	config.LocalControlPlaneKind:      deployLocalControlPlane,
+	config.KubernetesControllerKind:   deployKubernetesController,
+	config.RemoteControllerKind:       deployRemoteController,
+	config.LocalControllerKind:        deployLocalController,
+	config.AgentKind:                  deployAgent,
+	config.AgentConfigKind:            deployAgentConfig,
+	config.RegistryKind:               deployRegistry,
+	config.VolumeKind:                 deployVolume,
 }
 
 // Execute deploy from yaml file

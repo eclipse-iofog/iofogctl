@@ -34,16 +34,16 @@ func newViewCommand() *cobra.Command {
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 			controlPlane, err := config.GetControlPlane(namespace)
-			if err != nil || len(controlPlane.Controllers) == 0 {
+			if err != nil || len(controlPlane.GetControllers()) == 0 {
 				util.PrintError("You must deploy a Controller to a namespace to see an ECN Viewer")
 				os.Exit(1)
 			}
-			ctrl := controlPlane.Controllers[0]
-			url := ctrl.Host
+			ctrl := controlPlane.GetControllers()[0]
+			url := util.Before(ctrl.GetEndpoint(), ":")
 			if !strings.HasPrefix(url, "http") {
 				url = "http://" + url
 			}
-			if util.IsLocalHost(ctrl.Host) {
+			if util.IsLocalHost(util.After(url, "http://")) {
 				url += ":" + iofog.ControllerHostECNViewerPortString
 			}
 			if err := browser.OpenURL(url); err != nil {

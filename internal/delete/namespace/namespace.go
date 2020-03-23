@@ -33,7 +33,7 @@ func Execute(name string, force, soft bool) error {
 
 	// Check resources exist
 	hasAgents := len(ns.Agents) > 0
-	hasControllers := len(ns.ControlPlane.Controllers) > 0
+	hasControllers := len(ns.ControlPlane.GetControllers()) > 0
 
 	// Force must be specified
 	if !force && (hasAgents || hasControllers) {
