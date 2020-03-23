@@ -21,7 +21,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 )
 
 type Options struct {

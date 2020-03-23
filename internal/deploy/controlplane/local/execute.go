@@ -20,8 +20,8 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
-	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -165,8 +165,12 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	var controllerExecutors []execute.Executor
 
 	// Create exe Controllers
-	for _, ctrl := range controlPlane.GetControllers() {
-		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, ctrl)
+	for _, baseController := range controlPlane.GetControllers() {
+		controller, ok := baseController.(*rsc.LocalController)
+		if !ok {
+			return nil, util.NewError("Could not convert Controller to Local Controller")
+		}
+		exe, err := deploylocalcontroller.NewExecutorWithoutParsing(opt.Namespace, controlPlane, controller)
 		if err != nil {
 			return nil, err
 		}

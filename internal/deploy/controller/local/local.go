@@ -11,12 +11,14 @@
  *
  */
 
-package deploycontroller
+package deploylocalcontroller
 
 import (
 	"fmt"
 	"regexp"
 
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
@@ -32,7 +34,52 @@ type localExecutor struct {
 	iofogUser             rsc.IofogUser
 }
 
-func newLocalExecutor(namespace string, ctrl *rsc.LocalController, controlPlane rsc.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
+type Options struct {
+	Namespace string
+	Yaml      []byte
+	Name      string
+}
+
+func NewExecutor(opt Options) (exe execute.Executor, err error) {
+	// Unmarshall file
+	controller, err := UnmarshallYAML(opt.Yaml)
+	if err != nil {
+		return
+	}
+
+	if len(opt.Name) > 0 {
+		controller.Name = opt.Name
+	}
+
+	// Validate
+	if err = Validate(controller); err != nil {
+		return
+	}
+
+	// Get the Control Plane
+	controlPlane, err := config.GetControlPlane(opt.Namespace)
+	if err != nil {
+		return
+	}
+
+	return NewExecutorWithoutParsing(opt.Namespace, controlPlane, controller)
+}
+
+func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, controller *rsc.LocalController) (exe execute.Executor, err error) {
+	_, err = config.GetNamespace(namespace)
+	if err != nil {
+		return
+	}
+	cli, err := install.NewLocalContainerClient()
+	if err != nil {
+		return nil, err
+	}
+
+	// Instantiate executor
+	return newExecutor(namespace, controlPlane, controller, cli)
+}
+
+func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.LocalController, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
 		namespace: namespace,
 		ctrl:      ctrl,

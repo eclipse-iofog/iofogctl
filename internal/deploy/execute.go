@@ -20,13 +20,14 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	deployapplication "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/application"
 	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalog_item"
-	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
-	deployk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"
-	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/local"
-	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/local"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
@@ -79,16 +80,12 @@ func deployLocalControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, 
 	return deploylocalcontrolplane.NewExecutor(deploylocalcontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployKubernetesController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name, Kind: config.KubernetesControllerKind})
-}
-
 func deployRemoteController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name, Kind: config.RemoteControllerKind})
+	return deployremotecontroller.NewExecutor(deployremotecontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployLocalController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name, Kind: config.LocalControllerKind})
+	return deploylocalcontroller.NewExecutor(deploylocalcontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -114,7 +111,6 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
 	config.RemoteControlPlaneKind:     deployRemoteControlPlane,
 	config.LocalControlPlaneKind:      deployLocalControlPlane,
-	config.KubernetesControllerKind:   deployKubernetesController,
 	config.RemoteControllerKind:       deployRemoteController,
 	config.LocalControllerKind:        deployLocalController,
 	config.AgentKind:                  deployAgent,

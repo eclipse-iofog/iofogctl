@@ -11,9 +11,11 @@
  *
  */
 
-package deploycontroller
+package deployremotecontroller
 
 import (
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -25,7 +27,43 @@ type remoteExecutor struct {
 	controller   *rsc.RemoteController
 }
 
-func newRemoteExecutor(namespace string, controller *rsc.RemoteController, controlPlane *rsc.RemoteControlPlane) *remoteExecutor {
+type Options struct {
+	Namespace string
+	Yaml      []byte
+	Name      string
+}
+
+func NewExecutor(opt Options) (exe execute.Executor, err error) {
+	// Unmarshall file
+	controller, err := UnmarshallYAML(opt.Yaml)
+	if err != nil {
+		return
+	}
+
+	if len(opt.Name) > 0 {
+		controller.Name = opt.Name
+	}
+
+	// Validate
+	if err = Validate(controller); err != nil {
+		return
+	}
+
+	// Get the Control Plane
+	baseControlPlane, err := config.GetControlPlane(opt.Namespace)
+	if err != nil {
+		return
+	}
+	controlPlane, ok := baseControlPlane.(*rsc.RemoteControlPlane)
+	if !ok {
+		err = util.NewError("Could not convert Control Plane to Remote Control Plane")
+		return
+	}
+
+	return NewExecutorWithoutParsing(opt.Namespace, controlPlane, controller)
+}
+
+func newExecutor(namespace string, controlPlane *rsc.RemoteControlPlane, controller *rsc.RemoteController) *remoteExecutor {
 	return &remoteExecutor{
 		namespace:    namespace,
 		controlPlane: controlPlane,
@@ -35,6 +73,16 @@ func newRemoteExecutor(namespace string, controller *rsc.RemoteController, contr
 
 func (exe *remoteExecutor) GetName() string {
 	return "Deploy Remote Controller"
+}
+
+func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.RemoteControlPlane, controller *rsc.RemoteController) (exe execute.Executor, err error) {
+	_, err = config.GetNamespace(namespace)
+	if err != nil {
+		return
+	}
+
+	// Instantiate executor
+	return newExecutor(namespace, controlPlane, controller), nil
 }
 
 func (exe *remoteExecutor) Execute() (err error) {

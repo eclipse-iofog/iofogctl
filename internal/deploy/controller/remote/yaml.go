@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontroller
+package deployremotecontroller
 
 import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -19,24 +19,23 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (controller *rsc.KubernetesController, err error) {
+func UnmarshallYAML(file []byte) (controller *rsc.RemoteController, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, controller); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
-	switch dynamicCtrl := ctrl.(type) {
-	case *rsc.RemoteController:
-		// Format file paths
-		if dynamicCtrl.SSH.KeyFile, err = util.FormatPath(dynamicCtrl.SSH.KeyFile); err != nil {
-			return
-		}
-		// Fix SSH port
-		if dynamicCtrl.Host != "" && dynamicCtrl.SSH.Port == 0 {
-			dynamicCtrl.SSH.Port = 22
-		}
+	// Format file paths
+	if controller.SSH.KeyFile, err = util.FormatPath(controller.SSH.KeyFile); err != nil {
+		return
 	}
+	// Fix SSH port
+	if controller.Host != "" && controller.SSH.Port == 0 {
+		controller.SSH.Port = 22
+	}
+
+	err = Validate(controller)
 
 	return
 }

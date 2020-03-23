@@ -14,7 +14,7 @@
 package deployremotecontrolplane
 
 import (
-	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -77,7 +77,7 @@ func validate(controlPlane *rsc.RemoteControlPlane) (err error) {
 		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
 	}
 	for _, ctrl := range controllers {
-		if err = deploycontroller.Validate(ctrl); err != nil {
+		if err = deployremotecontroller.Validate(ctrl); err != nil {
 			return
 		}
 	}

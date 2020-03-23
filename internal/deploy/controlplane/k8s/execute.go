@@ -19,7 +19,6 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -33,16 +32,15 @@ type Options struct {
 }
 
 type kubernetesControlPlaneExecutor struct {
-	ctrlClient          *client.Client
-	controllerExecutors []execute.Executor
-	controlPlane        *rsc.KubernetesControlPlane
-	namespace           string
-	name                string
+	ctrlClient   *client.Client
+	controlPlane *rsc.KubernetesControlPlane
+	namespace    string
+	name         string
 }
 
 func (exe kubernetesControlPlaneExecutor) Execute() (err error) {
 	util.SpinStart(fmt.Sprintf("Deploying controlplane %s", exe.GetName()))
-	if err := runExecutors(exe.controllerExecutors); err != nil {
+	if err := exe.executeInstall(); err != nil {
 		return err
 	}
 
@@ -85,12 +83,11 @@ func (exe kubernetesControlPlaneExecutor) GetName() string {
 	return exe.name
 }
 
-func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane *rsc.KubernetesControlPlane) execute.Executor {
+func newControlPlaneExecutor(namespace, name string, controlPlane *rsc.KubernetesControlPlane) execute.Executor {
 	return kubernetesControlPlaneExecutor{
-		controllerExecutors: executors,
-		namespace:           namespace,
-		controlPlane:        controlPlane,
-		name:                name,
+		namespace:    namespace,
+		controlPlane: controlPlane,
+		name:         name,
 	}
 }
 
@@ -107,23 +104,48 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	// Create exe Controllers
-	var controllerExecutors []execute.Executor
-	exe, err = deploycontroller.NewExecutorWithoutParsing(opt.Namespace, nil) // TODO: Replace this function with unique to k8s function
-	if err != nil {
-		return nil, err
-	}
-	controllerExecutors = append(controllerExecutors, exe)
-
-	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, controlPlane), nil
+	return newControlPlaneExecutor(opt.Namespace, opt.Name, controlPlane), nil
 }
 
-func runExecutors(executors []execute.Executor) error {
-	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
-		}
-		return util.NewError("Failed to deploy")
+func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
+	// Get Kubernetes deployer
+	installer, err := install.NewKubernetes(exe.controlPlane.KubeConfig, exe.namespace)
+	if err != nil {
+		return
 	}
-	return nil
+
+	// Configure deploy
+	installer.SetKubeletImage(exe.controlPlane.Images.Kubelet)
+	installer.SetOperatorImage(exe.controlPlane.Images.Operator)
+	installer.SetPortManagerImage(exe.controlPlane.Images.PortManager)
+	installer.SetRouterImage(exe.controlPlane.Images.Router)
+	installer.SetProxyImage(exe.controlPlane.Images.Proxy)
+	installer.SetControllerImage(exe.controlPlane.Images.Controller)
+	installer.SetControllerService(exe.controlPlane.Services.Controller.Type, exe.controlPlane.Services.Controller.IP)
+	installer.SetRouterService(exe.controlPlane.Services.Router.Type, exe.controlPlane.Services.Router.IP)
+	installer.SetRouterService(exe.controlPlane.Services.Proxy.Type, exe.controlPlane.Services.Proxy.IP)
+
+	replicas := int32(1)
+	if exe.controlPlane.Replicas.Controller != 0 {
+		replicas = exe.controlPlane.Replicas.Controller
+	}
+	// Create controller on cluster
+	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {
+		return
+	}
+
+	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
+		if err := exe.controlPlane.AddController(&rsc.KubernetesController{
+			PodName: fmt.Sprintf("kubernetes-%d", idx), // TODO: use actual pod name
+			Created: util.NowUTC(),
+		}); err != nil {
+			return err
+		}
+	}
+	// Update controller (its a pointer, this is returned to caller)
+	if exe.controlPlane.Endpoint, err = installer.GetControllerEndpoint(); err != nil {
+		return
+	}
+
+	return
 }
