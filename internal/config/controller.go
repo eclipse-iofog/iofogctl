@@ -24,6 +24,9 @@ func GetControllers(namespace string) ([]rsc.Controller, error) {
 	if err != nil {
 		return nil, err
 	}
+	if ns.ControlPlane == nil {
+		return []rsc.Controller{}, nil
+	}
 	return ns.ControlPlane.GetControllers(), nil
 }
 

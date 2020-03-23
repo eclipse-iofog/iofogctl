@@ -34,7 +34,10 @@ func GetControlPlane(namespace string) (rsc.ControlPlane, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ns.ControlPlane, nil
+	if ns.ControlPlane == nil {
+		err = NewNoControlPlaneError(namespace)
+	}
+	return ns.ControlPlane, err
 }
 
 // UpdateControlPlane overwrites Control Plane in the namespace
