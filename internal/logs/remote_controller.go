@@ -17,62 +17,42 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type controllerExecutor struct {
-	namespace string
-	name      string
+type remoteControllerExecutor struct {
+	controlPlane *rsc.RemoteControlPlane
+	namespace    string
+	name         string
 }
 
-func newControllerExecutor(namespace, name string) *controllerExecutor {
-	return &controllerExecutor{
-		namespace: namespace,
-		name:      name,
+func newRemoteControllerExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *remoteControllerExecutor {
+	return &remoteControllerExecutor{
+		controlPlane: controlPlane,
+		namespace:    namespace,
+		name:         name,
 	}
 }
 
-func (ctrl *controllerExecutor) GetName() string {
+func (ctrl *remoteControllerExecutor) GetName() string {
 	return ctrl.name
 }
 
-func (exe *controllerExecutor) Execute() error {
+func (exe *remoteControllerExecutor) Execute() error {
 	// Get controller config
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return err
 	}
-	ctrl, err := controlPlane.GetController(exe.name)
+	baseCtrl, err := controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
 	}
 
-	// Local
-	if util.IsLocalHost(ctrl.Host) {
-		lc, err := install.NewLocalContainerClient()
-		if err != nil {
-			return err
-		}
-		containerName := install.GetLocalContainerName("controller", false)
-		stdout, stderr, err := lc.GetLogsByName(containerName)
-		if err != nil {
-			return err
-		}
-
-		printContainerLogs(stdout, stderr)
-
-		return nil
-	}
-
-	// K8s
-	if controlPlane.Kube.Config != "" {
-		out, err := util.Exec("KUBECONFIG="+controlPlane.Kube.Config, "kubectl", "logs", "-l", "name=controller", "-n", exe.namespace)
-		if err != nil {
-			return err
-		}
-		fmt.Print(out.String())
-		return nil
+	ctrl, ok := baseCtrl.(*rsc.RemoteController)
+	if !ok {
+		return util.NewInternalError("Could not assert Controller type to Remote Controller")
 	}
 
 	// Remote

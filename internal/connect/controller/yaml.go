@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// TODO: unmarshall based on kind
 func unmarshallYAML(file []byte) (ctrl rsc.Controller, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &ctrl); err != nil {

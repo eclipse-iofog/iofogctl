@@ -16,6 +16,7 @@ package deploycontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 type Options struct {
@@ -24,14 +25,14 @@ type Options struct {
 	Name      string
 }
 
-func NewExecutorWithoutParsing(namespace string, controller *rsc.Controller, controlPlane rsc.ControlPlane) (exe execute.Executor, err error) {
+func NewExecutorWithoutParsing(namespace string, controller rsc.Controller) (exe execute.Executor, err error) {
 	_, err = config.GetNamespace(namespace)
 	if err != nil {
 		return
 	}
 
 	// Instantiate executor
-	return newExecutor(namespace, controller, controlPlane)
+	return newExecutor(namespace, controller)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -41,8 +42,8 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	if len(opt.Name) > 0 {
-		ctrl.Name = opt.Name
+	if opt.Name != "" {
+		ctrl.SetName(opt.Name)
 	}
 
 	// Validate
@@ -50,11 +51,5 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	// Get the Control Plane
-	controlPlane, err := config.GetControlPlane(opt.Namespace)
-	if err != nil {
-		return
-	}
-
-	return NewExecutorWithoutParsing(opt.Namespace, &ctrl, controlPlane)
+	return NewExecutorWithoutParsing(opt.Namespace, ctrl)
 }

@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"gopkg.in/yaml.v2"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
@@ -112,7 +113,7 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Check we are not about to override Vanilla system agent
 	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil || len(controlPlane.Controllers) == 0 {
+	if err != nil || len(controlPlane.GetControllers()) == 0 {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return err
 	}
@@ -120,7 +121,12 @@ func (exe *remoteExecutor) Execute() error {
 	if exe.agentConfig.Host != nil {
 		host = *exe.agentConfig.Host
 	}
-	if err := isOverridingSystemAgent(controlPlane.Controllers[0].Host, host, isSystem); err != nil {
+	// TODO: Endpoint might not work, was host previously
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		return err
+	}
+	if err := isOverridingSystemAgent(endpoint, host, isSystem); err != nil {
 		return err
 	}
 

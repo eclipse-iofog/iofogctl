@@ -25,15 +25,14 @@ type Controller interface {
 
 type LocalController struct {
 	Name      string    `yaml:"name"`
-	Host      string    `yaml:"host"`
-	Port      int32     `yaml:"port"`
+	Endpoint  string    `yaml:"endpoint"`
 	Container Container `yaml:"container"`
+	Created   string    `yaml:"created,omitempty"`
 }
 
 type KubernetesController struct {
-	Name string `yaml:"name"`
-	Host string `yaml:"host"`
-	Port int32  `yaml:"port"`
+	PodName string `yaml:"podName"`
+	Created string `yaml:"created,omitempty"`
 }
 
 type RemoteController struct {
@@ -52,7 +51,7 @@ func (ctrl LocalController) GetName() string {
 }
 
 func (ctrl LocalController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
+	return ctrl.Endpoint
 }
 
 func (ctrl *LocalController) SetName(name string) {
@@ -60,15 +59,15 @@ func (ctrl *LocalController) SetName(name string) {
 }
 
 func (ctrl KubernetesController) GetName() string {
-	return ctrl.Name
+	return ctrl.PodName
 }
 
 func (ctrl KubernetesController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
+	return ""
 }
 
 func (ctrl *KubernetesController) SetName(name string) {
-	ctrl.Name = name
+	ctrl.PodName = name
 }
 
 func (ctrl RemoteController) GetName() string {

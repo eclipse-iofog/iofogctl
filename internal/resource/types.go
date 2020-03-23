@@ -82,11 +82,6 @@ type Database struct {
 	DatabaseName string `yaml:"databaseName,omitempty"`
 }
 
-type LoadBalancer struct {
-	Host string `yaml:"host,omitempty"`
-	Port int    `yaml:"port,omitempty"`
-}
-
 type Registry struct {
 	URL          *string `yaml:"url"`
 	Private      *bool   `yaml:"private"`

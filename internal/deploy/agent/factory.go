@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -46,7 +47,7 @@ func (facade *facadeExecutor) Execute() (err error) {
 	}
 
 	// Check Controller exists
-	if len(ns.ControlPlane.Controllers) == 0 {
+	if len(ns.ControlPlane.GetControllers()) == 0 {
 		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
 	}
 

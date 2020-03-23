@@ -14,8 +14,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -38,7 +36,7 @@ type KubernetesControlPlane struct {
 	ControllerPods []Controller `yaml:"controllerPods,omitempty"`
 	Database       Database     `yaml:"database,omitempty"`
 	IofogUser      IofogUser    `yaml:"iofogUser,omitempty"`
-	LoadBalancer   LoadBalancer `yaml:"loadBalancer,omitempty"`
+	Endpoint       string       `yaml:"endpoint,omitempty"`
 	KubeConfig     string       `yaml:"config,omitempty"`
 	Services       Services     `yaml:"services,omitempty"`
 	Replicas       Replicas     `yaml:"replicas,omitempty"`
@@ -102,10 +100,7 @@ func (cp KubernetesControlPlane) GetController(name string) (ret Controller, err
 }
 
 func (cp KubernetesControlPlane) GetEndpoint() (string, error) {
-	if cp.LoadBalancer.Host == "" || cp.LoadBalancer.Port == 0 {
-		return "", util.NewError("Control Plane does not have a valid endpoint")
-	}
-	return fmt.Sprintf("%s:%d", cp.LoadBalancer.Host, cp.LoadBalancer.Port), nil
+	return cp.Endpoint, nil
 }
 
 func (cp *KubernetesControlPlane) UpdateController(ctrl Controller) error {

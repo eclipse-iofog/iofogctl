@@ -16,13 +16,25 @@ package logs
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func NewExecutor(resourceType, namespace, name string) (execute.Executor, error) {
 	switch resourceType {
 	case "controller":
-		return newControllerExecutor(namespace, name), nil
+		baseControlPlane, err := config.GetControlPlane(namespace)
+		if err != nil {
+			return nil, util.NewError("Could not get Control Plane for namespace " + namespace)
+		}
+		switch controlPlane := baseControlPlane.(type) {
+		case *rsc.KubernetesControlPlane:
+			return newKubernetesControllerExecutor(controlPlane, namespace, name), nil
+		case *rsc.RemoteControlPlane:
+			return newRemoteControllerExecutor(controlPlane, namespace, name), nil
+		case *rsc.LocalControlPlane:
+			return newLocalControllerExecutor(controlPlane, namespace, name), nil
+		}
 	case "agent":
 		return newAgentExecutor(namespace, name), nil
 	case "microservice":
@@ -34,8 +46,7 @@ func NewExecutor(resourceType, namespace, name string) (execute.Executor, error)
 			return nil, util.NewError("No Controllers found in namespace " + namespace)
 		}
 		return newRemoteMicroserviceExecutor(namespace, name), nil
-	default:
-		msg := "Unknown resource: '" + resourceType + "'"
-		return nil, util.NewInputError(msg)
 	}
+	msg := "Unknown resource: '" + resourceType + "'"
+	return nil, util.NewInputError(msg)
 }

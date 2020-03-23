@@ -14,7 +14,7 @@
 package deploycontroller
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -26,20 +26,23 @@ func UnmarshallYAML(file []byte) (ctrl rsc.Controller, err error) {
 		return
 	}
 
-	// Fix SSH port
-	if ctrl.Host != "" && ctrl.SSH.Port == 0 {
-		ctrl.SSH.Port = 22
-	}
-	// Format file paths
-	if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
-		return
+	switch dynamicCtrl := ctrl.(type) {
+	case *rsc.RemoteController:
+		// Format file paths
+		if dynamicCtrl.SSH.KeyFile, err = util.FormatPath(dynamicCtrl.SSH.KeyFile); err != nil {
+			return
+		}
+		// Fix SSH port
+		if dynamicCtrl.Host != "" && dynamicCtrl.SSH.Port == 0 {
+			dynamicCtrl.SSH.Port = 22
+		}
 	}
 
 	return
 }
 
 func Validate(ctrl rsc.Controller) error {
-	if ctrl.Name == "" {
+	if ctrl.GetName() == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 	}
 	return nil

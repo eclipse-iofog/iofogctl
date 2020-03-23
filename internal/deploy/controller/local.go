@@ -15,25 +15,24 @@ package deploycontroller
 
 import (
 	"fmt"
-	"os/user"
 	"regexp"
 
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 )
 
 type localExecutor struct {
 	namespace             string
-	ctrl                  *rsc.Controller
+	ctrl                  *rsc.LocalController
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalContainerConfig
-	iofogUser             config.IofogUser
 	containersNames       []string
+	iofogUser             rsc.IofogUser
 }
 
-func newLocalExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, ctrl *rsc.LocalController, controlPlane rsc.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
 		namespace: namespace,
 		ctrl:      ctrl,
@@ -42,7 +41,7 @@ func newLocalExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.C
 			User:     ctrl.Container.Credentials.User,
 			Password: ctrl.Container.Credentials.Password,
 		}),
-		iofogUser: controlPlane.IofogUser,
+		iofogUser: controlPlane.GetUser(),
 	}, nil
 }
 
@@ -100,20 +99,14 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
-	// Get current user
-	currUser, err := user.Current()
+	// Update controller (its a pointer, this is returned to caller)
+	controllerContainerConfig := exe.localControllerConfig
+	endpoint, err := util.GetControllerEndpoint(fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host))
 	if err != nil {
 		return err
 	}
 
-	// Update controller (its a pointer, this is returned to caller)
-	controllerContainerConfig := exe.localControllerConfig
-	exe.ctrl.Endpoint, err = util.GetControllerEndpoint(fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host))
-	if err != nil {
-		return err
-	}
-	exe.ctrl.Host = controllerContainerConfig.Host
-	exe.ctrl.SSH.User = currUser.Username
+	exe.ctrl.Endpoint = endpoint
 	exe.ctrl.Created = util.NowUTC()
 
 	return nil

@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -67,20 +68,18 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
 	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
-	// Get Controller details
-	controller, err := getController(exe.namespace)
-	if err != nil {
-		return "", err
-	}
-
 	// Get user
 	controlPlane, err := config.GetControlPlane(exe.namespace)
 	if err != nil {
 		return "", err
 	}
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		return "", err
+	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(controller.Endpoint, install.IofogUser(controlPlane.IofogUser))
+	return agent.Configure(endpoint, install.IofogUser(controlPlane.GetUser()))
 }
 
 func (exe *localExecutor) GetName() string {

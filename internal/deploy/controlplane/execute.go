@@ -24,6 +24,7 @@ import (
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -128,9 +129,10 @@ func (exe controlPlaneExecutor) Execute() (err error) {
 			return err
 		}
 		// Try to log in
+		user := exe.controlPlane.GetUser()
 		if err = exe.ctrlClient.Login(client.LoginRequest{
-			Email:    exe.controlPlane.IofogUser.Email,
-			Password: exe.controlPlane.IofogUser.Password,
+			Email:    user.Email,
+			Password: user.Password,
 		}); err != nil {
 			return err
 		}
@@ -176,8 +178,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	var controllerExecutors []execute.Executor
 
 	// Create exe Controllers
-	for idx := range controlPlane.Controllers {
-		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, &controlPlane.Controllers[idx], controlPlane)
+	for _, ctrl := range controlPlane.GetControllers() {
+		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, ctrl)
+		if err != nil {
+			return nil, err
+		}
+		controllerExecutors = append(controllerExecutors, exe)
+	}
+	if _, ok := controlPlane.(*rsc.KubernetesControlPlane); ok {
+		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, nil)
 		if err != nil {
 			return nil, err
 		}

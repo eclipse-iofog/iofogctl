@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -134,7 +134,7 @@ func Process(agentConfig rsc.AgentConfiguration, name string, clt *client.Client
 func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration) (request client.AgentUpdateRequest) {
 	var fogTypePtr *int64
 	if agentConfig.FogType != nil {
-		fogType, found := config.FogTypeStringMap[*agentConfig.FogType]
+		fogType, found := rsc.FogTypeStringMap[*agentConfig.FogType]
 		if !found {
 			fogType = 0
 		}
@@ -146,7 +146,7 @@ func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration) (r
 	request.Description = agentConfig.Description
 	request.Name = agentConfig.Name
 	request.FogType = fogTypePtr
-	request.AgentConfiguration = agentrsc.AgentConfiguration
+	request.AgentConfiguration = agentConfig.AgentConfiguration
 	return
 }
 

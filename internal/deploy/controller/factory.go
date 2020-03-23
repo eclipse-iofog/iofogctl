@@ -18,13 +18,14 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type facadeExecutor struct {
 	exe        execute.Executor
-	controller *rsc.Controller
+	controller rsc.Controller
 	namespace  string
 }
 
@@ -33,8 +34,8 @@ func (facade facadeExecutor) Execute() (err error) {
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
-	install.Verbose(fmt.Sprintf("Controller is running at %s", facade.controller.Endpoint))
-	if err = config.UpdateController(facade.namespace, *facade.controller); err != nil {
+	install.Verbose(fmt.Sprintf("Controller is running at %s", facade.controller.GetEndpoint))
+	if err = config.UpdateController(facade.namespace, facade.controller); err != nil {
 		return
 	}
 	return config.Flush()
@@ -44,7 +45,7 @@ func (facade facadeExecutor) GetName() string {
 	return facade.exe.GetName()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, controller *rsc.Controller) execute.Executor {
+func newFacadeExecutor(exe execute.Executor, namespace string, controller rsc.Controller) execute.Executor {
 	return facadeExecutor{
 		exe:        exe,
 		namespace:  namespace,
@@ -52,40 +53,44 @@ func newFacadeExecutor(exe execute.Executor, namespace string, controller *rsc.C
 	}
 }
 
-func newExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.ControlPlane) (execute.Executor, error) {
-	if err := util.IsLowerAlphanumeric(ctrl.Name); err != nil {
+func newExecutor(namespace string, baseController rsc.Controller) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(baseController.GetName()); err != nil {
 		return nil, err
 	}
 
-	if controlPlane.IofogUser.Email == "" || controlPlane.IofogUser.Password == "" {
+	baseControlPlane, err := config.GetControlPlane(namespace)
+	if err != nil {
+		return nil, err
+	}
+	user := baseControlPlane.GetUser()
+	if user.Email == "" || user.Password == "" {
 		return nil, util.NewError("Cannot deploy Controller because ioFog user is not specified")
 	}
-	// Local executor
-	if util.IsLocalHost(ctrl.Host) {
-		// Check the namespace does not contain a Controller yet
-		nbControllers := len(controlPlane.Controllers)
-		if nbControllers != 1 {
-			return nil, util.NewInputError("Cannot deploy more than a single Controller locally")
+	switch controlPlane := baseControlPlane.(type) {
+	case *rsc.KubernetesControlPlane:
+		return newFacadeExecutor(newKubernetesExecutor(namespace, controlPlane), namespace, nil), nil
+	case *rsc.RemoteControlPlane:
+		remoteController, ok := baseController.(*rsc.RemoteController)
+		if !ok {
+			return nil, util.NewInputError("Tried to deploy wrong type of Controller in a Remote Control Plane")
 		}
+		return newFacadeExecutor(newRemoteExecutor(namespace, remoteController, controlPlane), namespace, remoteController), nil
+	case *rsc.LocalControlPlane:
+		// Check the namespace does not contain a Controller yet
 		cli, err := install.NewLocalContainerClient()
 		if err != nil {
 			return nil, err
 		}
-		exe, err := newLocalExecutor(namespace, ctrl, controlPlane, cli)
+		localController, ok := baseController.(*rsc.LocalController)
+		if !ok {
+			return nil, util.NewInputError("Tried to deploy wrong type of Controller in a Remote Control Plane")
+		}
+		exe, err := newLocalExecutor(namespace, localController, controlPlane, cli)
 		if err != nil {
 			return nil, err
 		}
-		return newFacadeExecutor(exe, namespace, ctrl), nil
+		return newFacadeExecutor(exe, namespace, localController), nil
 	}
 
-	// Kubernetes executor
-	if controlPlane.Kube.Config != "" {
-		return newFacadeExecutor(newKubernetesExecutor(namespace, ctrl, &controlPlane), namespace, ctrl), nil
-	}
-
-	// Default executor
-	if ctrl.Host == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.User == "" {
-		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment")
-	}
-	return newFacadeExecutor(newRemoteExecutor(namespace, ctrl, controlPlane), namespace, ctrl), nil
+	return nil, util.NewError("Could not determine Control Plane type")
 }

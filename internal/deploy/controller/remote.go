@@ -14,39 +14,43 @@
 package deploycontroller
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type remoteExecutor struct {
 	namespace    string
-	ctrl         *rsc.Controller
-	controlPlane rsc.ControlPlane
+	controlPlane *rsc.RemoteControlPlane
+	controller   *rsc.RemoteController
 }
 
-func newRemoteExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.ControlPlane) *remoteExecutor {
-	d := &remoteExecutor{}
-	d.namespace = namespace
-	d.ctrl = ctrl
-	d.controlPlane = controlPlane
-	return d
+func newRemoteExecutor(namespace string, controller *rsc.RemoteController, controlPlane *rsc.RemoteControlPlane) *remoteExecutor {
+	return &remoteExecutor{
+		namespace:    namespace,
+		controlPlane: controlPlane,
+		controller:   controller,
+	}
 }
 
 func (exe *remoteExecutor) GetName() string {
-	return exe.ctrl.Name
+	return "Deploy Remote Controller"
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
+	// TODO: replace with member func
+	if exe.controller.Host == "" || exe.controller.SSH.KeyFile == "" || exe.controller.SSH.User == "" {
+		return util.NewInputError("Must specify user, host, and key file flags for remote deployment")
+	}
 	// Instantiate deployer
 	controllerOptions := &install.ControllerOptions{
-		User:            exe.ctrl.SSH.User,
-		Host:            exe.ctrl.Host,
-		Port:            exe.ctrl.SSH.Port,
-		PrivKeyFilename: exe.ctrl.SSH.KeyFile,
-		Version:         exe.ctrl.Package.Version,
-		Repo:            exe.ctrl.Package.Repo,
-		Token:           exe.ctrl.Package.Token,
+		User:            exe.controller.SSH.User,
+		Host:            exe.controller.Host,
+		Port:            exe.controller.SSH.Port,
+		PrivKeyFilename: exe.controller.SSH.KeyFile,
+		Version:         exe.controller.Package.Version,
+		Repo:            exe.controller.Package.Repo,
+		Token:           exe.controller.Package.Token,
 	}
 	deployer := install.NewController(controllerOptions)
 
@@ -61,7 +65,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 	// Update controller (its a pointer, this is returned to caller)
-	exe.ctrl.Endpoint, err = util.GetControllerEndpoint(exe.ctrl.Host)
+	exe.controller.Endpoint, err = util.GetControllerEndpoint(exe.controller.Host)
 	if err != nil {
 		return err
 	}

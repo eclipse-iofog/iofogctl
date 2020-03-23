@@ -14,15 +14,16 @@
 package deploycontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
+// TODO: Unmarshall based on kind?
 func UnmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
 	// Unmarshall the input file
-	var ctrlPlane rsc.ControlPlane
+	var baseControlPlane rsc.ControlPlane
 	if err = yaml.UnmarshalStrict(file, &ctrlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
