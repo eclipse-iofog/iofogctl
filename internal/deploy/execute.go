@@ -37,10 +37,10 @@ import (
 
 var kindOrder = []apps.Kind{
 	// Deploy Agents after Control Plane
-	// config.ControlPlaneKind,
-	// config.ControllerKind,
+	// apps.ControlPlaneKind,
+	// apps.ControllerKind,
 	// config.AgentConfigKind,
-	config.AgentKind,
+	apps.AgentKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
 	apps.ApplicationKind,
@@ -90,15 +90,15 @@ func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) 
 }
 
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	apps.ApplicationKind:    deployApplication,
-	config.CatalogItemKind:  deployCatalogItem,
-	apps.MicroserviceKind:   deployMicroservice,
-	config.ControlPlaneKind: deployControlPlane,
-	config.AgentKind:        deployAgent,
-	config.AgentConfigKind:  deployAgentConfig,
-	config.ControllerKind:   deployController,
-	config.RegistryKind:     deployRegistry,
-	config.VolumeKind:       deployVolume,
+	apps.ApplicationKind:   deployApplication,
+	config.CatalogItemKind: deployCatalogItem,
+	apps.MicroserviceKind:  deployMicroservice,
+	apps.ControlPlaneKind:  deployControlPlane,
+	apps.AgentKind:         deployAgent,
+	config.AgentConfigKind: deployAgentConfig,
+	apps.ControllerKind:    deployController,
+	config.RegistryKind:    deployRegistry,
+	config.VolumeKind:      deployVolume,
 }
 
 // Execute deploy from yaml file
@@ -110,7 +110,7 @@ func Execute(opt *Options) (err error) {
 
 	// Create any AgentConfig executor missing
 	// Each Agent requires a corresponding Agent Config to be created with Controller
-	for _, agentGenericExecutor := range executorsMap[config.AgentKind] {
+	for _, agentGenericExecutor := range executorsMap[apps.AgentKind] {
 		agentExecutor, ok := agentGenericExecutor.(deployagent.AgentDeployExecutor)
 		if !ok {
 			return util.NewInternalError("Could not convert agent deploy executor\n")
@@ -143,12 +143,12 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Controlplane
-	if err = execute.RunExecutors(executorsMap[config.ControlPlaneKind], "deploy control plane"); err != nil {
+	if err = execute.RunExecutors(executorsMap[apps.ControlPlaneKind], "deploy control plane"); err != nil {
 		return
 	}
 
 	// Controller
-	if err = execute.RunExecutors(executorsMap[config.ControllerKind], "deploy controller"); err != nil {
+	if err = execute.RunExecutors(executorsMap[apps.ControllerKind], "deploy controller"); err != nil {
 		return
 	}
 

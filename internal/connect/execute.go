@@ -37,19 +37,19 @@ type Options struct {
 }
 
 var kindOrder = []apps.Kind{
-	config.ControlPlaneKind,
-	config.ControllerKind,
-	config.AgentKind,
+	apps.ControlPlaneKind,
+	apps.ControllerKind,
+	apps.AgentKind,
 }
 
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	config.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
-	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
-	config.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
 }

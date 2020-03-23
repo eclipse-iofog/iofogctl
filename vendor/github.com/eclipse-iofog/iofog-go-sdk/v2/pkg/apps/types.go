@@ -32,6 +32,10 @@ type Kind string
 const (
 	ApplicationKind  Kind = "Application"
 	MicroserviceKind Kind = "Microservice"
+	ControlPlaneKind Kind = "ControlPlane"
+	AgentKind        Kind = "Agent"
+	ConnectorKind    Kind = "Connector"
+	ControllerKind   Kind = "Controller"
 )
 
 // Header contains k8s yaml header

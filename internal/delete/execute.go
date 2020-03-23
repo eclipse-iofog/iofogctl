@@ -40,9 +40,9 @@ var kindOrder = []apps.Kind{
 	apps.MicroserviceKind,
 	apps.ApplicationKind,
 	config.RegistryKind,
-	config.AgentKind,
-	config.ControllerKind,
-	config.ControlPlaneKind,
+	apps.AgentKind,
+	apps.ControllerKind,
+	apps.ControlPlaneKind,
 	config.VolumeKind,
 }
 
@@ -53,13 +53,13 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	apps.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	config.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
