@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontrolplane
+package deploylocalcontrolplane
 
 import (
 	"fmt"
@@ -20,7 +20,6 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
 	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
@@ -35,8 +34,7 @@ type Options struct {
 	Yaml      []byte
 	Name      string
 }
-
-type controlPlaneExecutor struct {
+type localControlPlaneExecutor struct {
 	ctrlClient          *client.Client
 	controllerExecutors []execute.Executor
 	controlPlane        rsc.ControlPlane
@@ -44,14 +42,14 @@ type controlPlaneExecutor struct {
 	name                string
 }
 
+// TODO: remove duplication
 func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
+	host := "localhost"
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
 	agent := rsc.Agent{
-		Name:    iofog.VanillaRouterAgentName,
-		Host:    ctrl.Host,
-		SSH:     ctrl.SSH,
-		Package: ctrl.SystemAgent,
+		Name: iofog.VanillaRouterAgentName,
+		Host: host,
 	}
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
@@ -64,7 +62,7 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 		Name: iofog.VanillaRouterAgentName,
 		AgentConfiguration: client.AgentConfiguration{
 			IsSystem:     internal.MakeBoolPtr(true),
-			Host:         &ctrl.Host,
+			Host:         &host,
 			RouterConfig: RouterConfig,
 		},
 	}
@@ -80,41 +78,30 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 		return err
 	}
 	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
-	if !util.IsLocalHost(ctrl.Host) {
-		agentDeployExecutor, err := deployagent.NewDeployExecutor(namespace, &agent, true)
-		if err != nil {
-			return err
-		}
-		return agentDeployExecutor.Execute()
-	}
 	return nil
 }
 
-func (exe controlPlaneExecutor) postDeploy() (err error) {
-	if exe.controlPlane.Kube.Config == "" {
-		// Look for a Vanilla controller
-		controllers, err := config.GetControllers(exe.namespace)
-		if err != nil {
+// TODO: remove duplication
+func (exe localControlPlaneExecutor) postDeploy() (err error) {
+	// Look for a Vanilla controller
+	controllers := exe.controlPlane.GetControllers()
+	for _, ctrl := range controllers {
+		// If Vanilla controller
+		if err = deploySystemAgent(exe.namespace, ctrl); err != nil {
 			return err
-		}
-		for _, ctrl := range controllers {
-			// If Vanilla controller
-			if err = deploySystemAgent(exe.namespace, ctrl); err != nil {
-				return err
-			}
 		}
 	}
 	return nil
 }
 
-func (exe controlPlaneExecutor) Execute() (err error) {
+func (exe localControlPlaneExecutor) Execute() (err error) {
 	util.SpinStart(fmt.Sprintf("Deploying controlplane %s", exe.GetName()))
 	if err := runExecutors(exe.controllerExecutors); err != nil {
 		return err
 	}
 
 	// Make sure Controller API is ready
-	endpoint, err := exe.controlPlane.GetControllerEndpoint()
+	endpoint, err := exe.controlPlane.GetEndpoint()
 	if err != nil {
 		return
 	}
@@ -123,7 +110,7 @@ func (exe controlPlaneExecutor) Execute() (err error) {
 	}
 	// Create new user
 	exe.ctrlClient = client.New(client.Options{Endpoint: endpoint})
-	if err = exe.ctrlClient.CreateUser(client.User(exe.controlPlane.IofogUser)); err != nil {
+	if err = exe.ctrlClient.CreateUser(client.User(exe.controlPlane.GetUser())); err != nil {
 		// If not error about account existing, fail
 		if !strings.Contains(err.Error(), "already an account associated") {
 			return err
@@ -148,12 +135,12 @@ func (exe controlPlaneExecutor) Execute() (err error) {
 	return exe.postDeploy()
 }
 
-func (exe controlPlaneExecutor) GetName() string {
+func (exe localControlPlaneExecutor) GetName() string {
 	return exe.name
 }
 
 func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
-	return controlPlaneExecutor{
+	return localControlPlaneExecutor{
 		controllerExecutors: executors,
 		namespace:           namespace,
 		controlPlane:        controlPlane,
@@ -180,13 +167,6 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Create exe Controllers
 	for _, ctrl := range controlPlane.GetControllers() {
 		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, ctrl)
-		if err != nil {
-			return nil, err
-		}
-		controllerExecutors = append(controllerExecutors, exe)
-	}
-	if _, ok := controlPlane.(*rsc.KubernetesControlPlane); ok {
-		exe, err := deploycontroller.NewExecutorWithoutParsing(opt.Namespace, nil)
 		if err != nil {
 			return nil, err
 		}

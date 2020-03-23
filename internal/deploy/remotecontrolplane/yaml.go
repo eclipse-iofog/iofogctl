@@ -11,7 +11,7 @@
  *
  */
 
-package deploycontrolplane
+package deployremotecontrolplane
 
 import (
 	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
@@ -21,38 +21,36 @@ import (
 )
 
 // TODO: Unmarshall based on kind?
-func UnmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
+func UnmarshallYAML(file []byte) (controlPlane *rsc.RemoteControlPlane, err error) {
 	// Unmarshall the input file
-	var baseControlPlane rsc.ControlPlane
-	if err = yaml.UnmarshalStrict(file, &ctrlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 	// None specified
-	if len(ctrlPlane.Controllers) == 0 {
+	controllers := controlPlane.GetControllers()
+	if len(controlPlane.GetControllers()) == 0 {
 		return
 	}
-	controlPlane = ctrlPlane
 
 	// Validate inputs
 	if err = validate(controlPlane); err != nil {
 		return
 	}
 
-	// Preprocess Inputs for Control Plane
-	if controlPlane.Kube.Config, err = util.FormatPath(controlPlane.Kube.Config); err != nil {
-		return
-	}
-
 	// Pre-process inputs for Controllers
-	for idx := range controlPlane.Controllers {
-		ctrl := &controlPlane.Controllers[idx]
+	for idx := range controllers {
+		controller, ok := controllers[idx].(*rsc.RemoteController)
+		if !ok {
+			err = util.NewInternalError("Could not convert Controller to Remote Controller")
+			return
+		}
 		// Fix SSH port
-		if ctrl.Host != "" && ctrl.SSH.Port == 0 {
-			ctrl.SSH.Port = 22
+		if controller.Host != "" && controller.SSH.Port == 0 {
+			controller.SSH.Port = 22
 		}
 		// Format file paths
-		if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
+		if controller.SSH.KeyFile, err = util.FormatPath(controller.SSH.KeyFile); err != nil {
 			return
 		}
 	}
@@ -60,7 +58,7 @@ func UnmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
 	return
 }
 
-func validate(controlPlane rsc.ControlPlane) (err error) {
+func validate(controlPlane *rsc.RemoteControlPlane) (err error) {
 	// Validate user
 	user := controlPlane.IofogUser
 	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
@@ -73,18 +71,12 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
 		}
 	}
-	// Validate loadbalancer
-	lb := controlPlane.LoadBalancer
-	if lb.Host != "" || lb.Port != 0 {
-		if lb.Host == "" || lb.Port == 0 {
-			return util.NewInputError("If you are specifying a load balancer you must provide non-empty valies in host and port fields")
-		}
-	}
 	// Validate Controllers
-	if len(controlPlane.Controllers) == 0 {
+	controllers := controlPlane.GetControllers()
+	if len(controllers) == 0 {
 		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
 	}
-	for _, ctrl := range controlPlane.Controllers {
+	for _, ctrl := range controllers {
 		if err = deploycontroller.Validate(ctrl); err != nil {
 			return
 		}

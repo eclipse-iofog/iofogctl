@@ -11,7 +11,7 @@
  *
  */
 
-package connectcontroller
+package deploylocalcontrolplane
 
 import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -19,29 +19,28 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// TODO: unmarshall based on kind
-func unmarshallYAML(file []byte) (ctrl *rsc.RemoteController, err error) {
+// TODO: Unmarshall based on kind?
+func UnmarshallYAML(file []byte) (controlPlane *rsc.LocalControlPlane, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, &ctrl); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
-	// Fix SSH port
-	if ctrl.Host != "" && ctrl.SSH.Port == 0 {
-		ctrl.SSH.Port = 22
-	}
-	// Format file paths
-	if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
+	// Validate inputs
+	if err = validate(controlPlane); err != nil {
 		return
 	}
 
 	return
 }
 
-func Validate(ctrl rsc.Controller) error {
-	if ctrl.GetName() == "" {
-		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
+func validate(controlPlane rsc.ControlPlane) (err error) {
+	// Validate user
+	user := controlPlane.GetUser()
+	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
+		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
 	}
-	return nil
+
+	return
 }
