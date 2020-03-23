@@ -57,7 +57,7 @@ func (exe *multipleExecutor) Execute() (err error) {
 }
 
 func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	var agents []config.Agent
+	var agents []rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
 		agents, err = config.GetDetachedAgents()

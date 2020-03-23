@@ -14,86 +14,71 @@
 package resource
 
 import (
+	"fmt"
 )
 
 type Controller interface {
 	GetName() string
 	GetEndpoint() string
 	SetName(string)
-	SetEndpoint(string, int32)
 }
 
 type LocalController struct {
-	name string `yaml:"name"`
-	host string `yaml:"host"`
-	port int32 `yaml:"port"`
-	container Container `yaml:"container"`
+	Name      string    `yaml:"name"`
+	Host      string    `yaml:"host"`
+	Port      int32     `yaml:"port"`
+	Container Container `yaml:"container"`
 }
 
 type KubernetesController struct {
-	name string `yaml:"name"`
-	host string `yaml:"host"`
-	port int32 `yaml:"port"`
+	Name string `yaml:"name"`
+	Host string `yaml:"host"`
+	Port int32  `yaml:"port"`
 }
 
 type RemoteController struct {
-	name string `yaml:"name"`
-	host string `yaml:"host"`
-	port int32 `yaml:"port"`
-    SSH         SSH     `yaml:"ssh,omitempty"`
-    Endpoint    string  `yaml:"endpoint,omitempty"`
-    Created     string  `yaml:"created,omitempty"`
-    Package     Package `yaml:"package,omitempty"`
-    SystemAgent Package `yaml:"systemAgent,omitempty"`
+	Name        string  `yaml:"name"`
+	Host        string  `yaml:"host"`
+	Port        int32   `yaml:"port"`
+	SSH         SSH     `yaml:"ssh,omitempty"`
+	Endpoint    string  `yaml:"endpoint,omitempty"`
+	Created     string  `yaml:"created,omitempty"`
+	Package     Package `yaml:"package,omitempty"`
+	SystemAgent Package `yaml:"systemAgent,omitempty"`
 }
 
 func (ctrl LocalController) GetName() string {
-	return ctrl.name
+	return ctrl.Name
 }
 
 func (ctrl LocalController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.host, ctrl.port)
+	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
 }
 
 func (ctrl *LocalController) SetName(name string) {
-	ctrl.name = name
-}
-
-func (ctrl *LocalController) SetEndpoint(host string, port int32) {
-	ctrl.host = host
-	ctrl.port = port
+	ctrl.Name = name
 }
 
 func (ctrl KubernetesController) GetName() string {
-	return ctrl.name
+	return ctrl.Name
 }
 
 func (ctrl KubernetesController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.host, ctrl.port)
+	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
 }
 
 func (ctrl *KubernetesController) SetName(name string) {
-	ctrl.name = name
-}
-
-func (ctrl *KubernetesController) SetEndpoint(host string, port int32) {
-	ctrl.host = host
-	ctrl.port = port
+	ctrl.Name = name
 }
 
 func (ctrl RemoteController) GetName() string {
-	return ctrl.name
+	return ctrl.Name
 }
 
 func (ctrl RemoteController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.host, ctrl.port)
+	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
 }
 
 func (ctrl *RemoteController) SetName(name string) {
-	ctrl.name = name
-}
-
-func (ctrl *RemoteController) SetEndpoint(host string, port int32) {
-	ctrl.host = host
-	ctrl.port = port
+	ctrl.Name = name
 }

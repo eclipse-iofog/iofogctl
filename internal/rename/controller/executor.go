@@ -27,7 +27,7 @@ func Execute(namespace, name, newName string) error {
 	}
 
 	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
-	ctrl.Name = newName
+	ctrl.SetName(newName)
 	if err = config.UpdateController(namespace, ctrl); err != nil {
 		return err
 	}

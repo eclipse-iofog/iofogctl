@@ -14,10 +14,11 @@
 package config
 
 import (
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func AddVolume(namespace string, volume Volume) error {
+func AddVolume(namespace string, volume rsc.Volume) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func DeleteVolume(namespace, name string) error {
 	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
-func GetVolumes(namespace string) ([]Volume, error) {
+func GetVolumes(namespace string) ([]rsc.Volume, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func GetVolumes(namespace string) ([]Volume, error) {
 	return ns.Volumes, nil
 }
 
-func GetVolume(namespace, name string) (agent Volume, err error) {
+func GetVolume(namespace, name string) (agent rsc.Volume, err error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return

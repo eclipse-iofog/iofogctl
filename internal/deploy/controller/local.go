@@ -26,14 +26,14 @@ import (
 
 type localExecutor struct {
 	namespace             string
-	ctrl                  *config.Controller
+	ctrl                  *rsc.Controller
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalContainerConfig
 	iofogUser             config.IofogUser
 	containersNames       []string
 }
 
-func newLocalExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.ControlPlane, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
 		namespace: namespace,
 		ctrl:      ctrl,

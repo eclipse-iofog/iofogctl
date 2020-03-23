@@ -118,7 +118,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		networkRouterPtr = &networkRouter
 	}
 
-	agentConfig := config.AgentConfiguration{
+	agentConfig := rsc.AgentConfiguration{
 		Name:        getAgentResponse.Name,
 		Location:    getAgentResponse.Location,
 		Latitude:    getAgentResponse.Latitude,
@@ -148,7 +148,7 @@ func (exe *agentConfigExecutor) Execute() error {
 
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.AgentConfigKind,
+		Kind:       rsc.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

@@ -14,33 +14,35 @@
 package resource
 
 import (
-	"strconv"
+	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type ControlPlane interface {
+	GetUser() IofogUser
 	GetControllers() []Controller
 	GetController(string) (Controller, error)
-	GetEndpoint() string
-	AddController(Controller) error
+	GetEndpoint() (string, error)
 	UpdateController(Controller) error
+	AddController(Controller) error
 	DeleteController(string) error
 }
 
 type LocalControlPlane struct {
-	IofogUser IofogUser `yaml:"iofogUser,omitempty"`
+	IofogUser  IofogUser  `yaml:"iofogUser,omitempty"`
+	Controller Controller `yaml:"controller,omitempty"`
 }
 
 type KubernetesControlPlane struct {
-	Database     Database     `yaml:"database,omitempty"`
-	LoadBalancer LoadBalancer `yaml:"loadBalancer,omitempty"`
-	IofogUser    IofogUser    `yaml:"iofogUser,omitempty"`
-	KubeConfig   string       `yaml:"config,omitempty"`
-	Services     Services     `yaml:"services,omitempty"`
-	Replicas     Replicas     `yaml:"replicas,omitempty"`
-	Images       KubeImages   `yaml:"images,omitempty"`
+	ControllerPods []Controller `yaml:"controllerPods,omitempty"`
+	Database       Database     `yaml:"database,omitempty"`
+	IofogUser      IofogUser    `yaml:"iofogUser,omitempty"`
+	LoadBalancer   LoadBalancer `yaml:"loadBalancer,omitempty"`
+	KubeConfig     string       `yaml:"config,omitempty"`
+	Services       Services     `yaml:"services,omitempty"`
+	Replicas       Replicas     `yaml:"replicas,omitempty"`
+	Images         KubeImages   `yaml:"images,omitempty"`
 }
 
 type RemoteControlPlane struct {
@@ -49,34 +51,143 @@ type RemoteControlPlane struct {
 	Controllers []Controller `yaml:"controllers,omitempty"`
 }
 
-func (ctrlPlane KubernetesControlPlane) GetController(name string) (ctrl Controller, err error) {
-	if len(ctrlPlane.GetControllers()) == 0 {
-		err = util.NewError("Control Plane has no Controllers")
-	}
-	for _, controller := range ctrlPlane.Controllers {
-		if controller.Name == name {
-			ctrl = controller
+func (cp LocalControlPlane) GetUser() IofogUser {
+	return cp.IofogUser
+}
+
+func (cp LocalControlPlane) GetControllers() []Controller {
+	return []Controller{cp.Controller}
+}
+
+func (cp LocalControlPlane) GetController(name string) (Controller, error) {
+	return cp.Controller, nil
+}
+
+func (cp LocalControlPlane) GetEndpoint() (string, error) {
+	return cp.Controller.GetEndpoint(), nil
+}
+
+func (cp *LocalControlPlane) UpdateController(ctrl Controller) error {
+	cp.Controller = ctrl
+	return nil
+}
+
+func (cp *LocalControlPlane) AddController(ctrl Controller) error {
+	cp.Controller = ctrl
+	return nil
+}
+
+func (cp *LocalControlPlane) DeleteController(string) error {
+	cp.Controller = &LocalController{}
+	return nil
+}
+
+func (cp KubernetesControlPlane) GetUser() IofogUser {
+	return cp.IofogUser
+}
+
+func (cp KubernetesControlPlane) GetControllers() []Controller {
+	return cp.ControllerPods
+}
+
+func (cp KubernetesControlPlane) GetController(name string) (ret Controller, err error) {
+	for _, ctrl := range cp.ControllerPods {
+		if ctrl.GetName() == name {
+			ret = ctrl
 			return
 		}
 	}
-
-	err = util.NewNotFoundError(name)
+	err = util.NewError("Could not find Controller " + name)
 	return
 }
 
-// GetControllerEndpoint returns ioFog controller endpoint
-func (ctrlPlane ControlPlane) GetControllerEndpoint() (string, error) {
-	// Loadbalancer ?
-	if ctrlPlane.LoadBalancer.Host != "" {
-		if ctrlPlane.LoadBalancer.Port != 0 {
-			return ctrlPlane.LoadBalancer.Host + ":" + strconv.Itoa(ctrlPlane.LoadBalancer.Port), nil
-		}
-		return ctrlPlane.LoadBalancer.Host + ":" + iofog.ControllerPortString, nil
+func (cp KubernetesControlPlane) GetEndpoint() (string, error) {
+	if cp.LoadBalancer.Host == "" || cp.LoadBalancer.Port == 0 {
+		return "", util.NewError("Control Plane does not have a valid endpoint")
 	}
+	return fmt.Sprintf("%s:%d", cp.LoadBalancer.Host, cp.LoadBalancer.Port), nil
+}
 
-	// First controller
-	if len(ctrlPlane.Controllers) < 1 {
-		return "", util.NewError("This control plane does not have controller")
+func (cp *KubernetesControlPlane) UpdateController(ctrl Controller) error {
+	for idx := range cp.ControllerPods {
+		if cp.ControllerPods[idx].GetName() == ctrl.GetName() {
+			cp.ControllerPods[idx] = ctrl
+			return nil
+		}
 	}
-	return ctrlPlane.Controllers[0].Endpoint, nil
+	cp.ControllerPods = append(cp.ControllerPods, ctrl)
+	return nil
+}
+
+func (cp *KubernetesControlPlane) AddController(ctrl Controller) error {
+	if _, err := cp.GetController(ctrl.GetName()); err == nil {
+		return util.NewError("Could not add Controller " + ctrl.GetName() + " because it already exists")
+	}
+	cp.ControllerPods = append(cp.ControllerPods, ctrl)
+	return nil
+}
+
+func (cp *KubernetesControlPlane) DeleteController(name string) error {
+	for idx := range cp.ControllerPods {
+		if cp.ControllerPods[idx].GetName() == name {
+			cp.ControllerPods = append(cp.ControllerPods[:idx-1], cp.ControllerPods[idx+1:]...)
+			return nil
+		}
+	}
+	return util.NewError("Could not find Controller " + name + " when performing deletion")
+}
+
+func (cp RemoteControlPlane) GetUser() IofogUser {
+	return cp.IofogUser
+}
+
+func (cp RemoteControlPlane) GetControllers() []Controller {
+	return cp.Controllers
+}
+
+func (cp RemoteControlPlane) GetController(name string) (ret Controller, err error) {
+	for _, ctrl := range cp.Controllers {
+		if ctrl.GetName() == name {
+			ret = ctrl
+			return
+		}
+	}
+	err = util.NewError("Could not find Controller " + name)
+	return
+}
+
+func (cp RemoteControlPlane) GetEndpoint() (string, error) {
+	if len(cp.Controllers) == 0 {
+		return "", util.NewError("Control Plane does not have any Controllers")
+	}
+	return cp.GetControllers()[0].GetEndpoint(), nil
+}
+
+func (cp *RemoteControlPlane) UpdateController(ctrl Controller) error {
+	for idx := range cp.Controllers {
+		if cp.Controllers[idx].GetName() == ctrl.GetName() {
+			cp.Controllers[idx] = ctrl
+			return nil
+		}
+	}
+	cp.Controllers = append(cp.Controllers, ctrl)
+	return nil
+}
+
+func (cp *RemoteControlPlane) AddController(ctrl Controller) error {
+	if _, err := cp.GetController(ctrl.GetName()); err == nil {
+		return util.NewError("Could not add Controller " + ctrl.GetName() + " because it already exists")
+	}
+	cp.Controllers = append(cp.Controllers, ctrl)
+	return nil
+}
+
+func (cp *RemoteControlPlane) DeleteController(name string) error {
+	for idx := range cp.Controllers {
+		if cp.Controllers[idx].GetName() == name {
+			cp.Controllers = append(cp.Controllers[:idx-1], cp.Controllers[idx+1:]...)
+			return nil
+		}
+	}
+	return util.NewError("Could not find Controller " + name + " when performing deletion")
 }

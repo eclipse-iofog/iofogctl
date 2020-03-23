@@ -30,7 +30,7 @@ func NewExecutor(resourceType, namespace, name string) (execute.Executor, error)
 		if err != nil {
 			return nil, util.NewError("Could not get Control Plane for namespace " + namespace)
 		}
-		if len(controlPlane.Controllers) == 0 {
+		if len(controlPlane.GetControllers()) == 0 {
 			return nil, util.NewError("No Controllers found in namespace " + namespace)
 		}
 		return newRemoteMicroserviceExecutor(namespace, name), nil

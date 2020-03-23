@@ -24,7 +24,7 @@ type Options struct {
 	Name      string
 }
 
-func NewExecutorWithoutParsing(namespace string, controller *config.Controller, controlPlane config.ControlPlane) (exe execute.Executor, err error) {
+func NewExecutorWithoutParsing(namespace string, controller *rsc.Controller, controlPlane rsc.ControlPlane) (exe execute.Executor, err error) {
 	_, err = config.GetNamespace(namespace)
 	if err != nil {
 		return

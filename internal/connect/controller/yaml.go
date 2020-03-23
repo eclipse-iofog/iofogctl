@@ -14,12 +14,11 @@
 package connectcontroller
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
-func unmarshallYAML(file []byte) (ctrl config.Controller, err error) {
+func unmarshallYAML(file []byte) (ctrl rsc.Controller, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &ctrl); err != nil {
 		err = util.NewUnmarshalError(err.Error())
@@ -38,7 +37,7 @@ func unmarshallYAML(file []byte) (ctrl config.Controller, err error) {
 	return
 }
 
-func Validate(ctrl config.Controller) error {
+func Validate(ctrl rsc.Controller) error {
 	if ctrl.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 	}

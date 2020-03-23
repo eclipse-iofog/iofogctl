@@ -14,7 +14,7 @@
 package config
 
 import (
-	rsc "github.com/eclipse-iofog/iofogctl/v2/resource"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 func DeleteControlPlane(namespace string) error {
@@ -23,22 +23,22 @@ func DeleteControlPlane(namespace string) error {
 		return err
 	}
 	mux.Lock()
-	ns.ControlPlane = ControlPlane{}
+	ns.ControlPlane = nil
 	mux.Unlock()
 	return nil
 }
 
 // GetControlPlane returns a control plane within a namespace
-func GetControlPlane(namespace string) (ControlPlane, error) {
+func GetControlPlane(namespace string) (rsc.ControlPlane, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
-		return rsc.ControlPlane{}, err
+		return nil, err
 	}
 	return ns.ControlPlane, nil
 }
 
 // UpdateControlPlane overwrites Control Plane in the namespace
-func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
+func UpdateControlPlane(namespace string, controlPlane rsc.ControlPlane) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err

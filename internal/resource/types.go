@@ -11,24 +11,11 @@
  *
  */
 
-package config
+package resource
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-)
-
-// iofogctl specific Kinds
-const (
-	AgentConfigKind       apps.Kind = "AgentConfig"
-	CatalogItemKind       apps.Kind = "CatalogItem"
-	IofogctlConfigKind    apps.Kind = "IofogctlConfig"
-	IofogctlNamespaceKind apps.Kind = "IofogctlNamespace"
-	RegistryKind          apps.Kind = "Registry"
-	VolumeKind            apps.Kind = "Volume"
-	ControllerKind        apps.Kind = "Controller"
-	AgentKind             apps.Kind = "Agent"
-	ControlPlaneKind      apps.Kind = "ControlPlane"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Container struct {
@@ -165,29 +152,12 @@ type Namespace struct {
 	Created      string       `yaml:"created,omitempty"`
 }
 
-// Configuration contains the unmarshalled configuration file
-type configuration struct {
-	DefaultNamespace string `yaml:"defaultNamespace"`
-}
-
-type iofogctlConfig struct {
-	Header `yaml:",inline"`
-}
-
-type iofogctlNamespace struct {
-	Header `yaml:",inline"`
-}
-
-// HeaderMetadata contains k8s metadata
-type HeaderMetadata struct {
-	Name      string `yaml:"name" json:"name"`
-	Namespace string `yaml:"namespace" json:"namespace"`
-}
-
-// Header contains k8s yaml header
-type Header struct {
-	APIVersion string         `yaml:"apiVersion" json:"apiVersion"`
-	Kind       apps.Kind      `yaml:"kind" json:"kind"`
-	Metadata   HeaderMetadata `yaml:"metadata" json:"metadata"`
-	Spec       interface{}    `yaml:"spec" json:"spec"`
+// NewRandomUser creates a new config user
+func NewRandomUser() IofogUser {
+	return IofogUser{
+		Name:     "N" + util.RandomString(10, util.AlphaLower),
+		Surname:  "S" + util.RandomString(10, util.AlphaLower),
+		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
+		Password: util.RandomString(10, util.AlphaNum),
+	}
 }

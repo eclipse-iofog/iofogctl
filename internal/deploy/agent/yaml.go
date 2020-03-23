@@ -22,7 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
+func UnmarshallYAML(file []byte) (agent rsc.Agent, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &agent); err != nil {
 		err = util.NewUnmarshalError(err.Error())
@@ -44,7 +44,7 @@ func UnmarshallYAML(file []byte) (agent config.Agent, err error) {
 	return
 }
 
-func Validate(agent config.Agent) error {
+func Validate(agent rsc.Agent) error {
 	if agent.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Agents")
 	}

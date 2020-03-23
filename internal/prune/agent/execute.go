@@ -35,7 +35,7 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Pruning Agent")
-	var agent config.Agent
+	var agent rsc.Agent
 	var err error
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)

@@ -29,9 +29,9 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	volume    config.Volume
+	volume    rsc.Volume
 	namespace string
-	agents    []config.Agent
+	agents    []rsc.Agent
 }
 
 func (exe remoteExecutor) GetName() string {
@@ -90,13 +90,13 @@ func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Unmarshal file
-	var volume config.Volume
+	var volume rsc.Volume
 	if err = yaml.UnmarshalStrict(opt.Yaml, &volume); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 	// Check agents exist
-	agents := make([]config.Agent, 0)
+	agents := make([]rsc.Agent, 0)
 	for _, agentName := range volume.Agents {
 		agent, err := config.GetAgent(opt.Namespace, agentName)
 		if err != nil {

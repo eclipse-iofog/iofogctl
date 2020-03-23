@@ -18,7 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 )
 
-func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
+func connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string) error {
 	// Connect to Controller
 	ctrl, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, ctrlPlane.IofogUser.Email, ctrlPlane.IofogUser.Password)
 	if err != nil {
@@ -33,7 +33,7 @@ func connect(ctrlPlane config.ControlPlane, endpoint, namespace string) error {
 
 	// Update Agents config
 	for _, agent := range listAgentsResponse.Agents {
-		agentConfig := config.Agent{
+		agentConfig := rsc.Agent{
 			Name: agent.Name,
 			UUID: agent.UUID,
 			Host: agent.IPAddressExternal,

@@ -42,7 +42,7 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 	if err != nil {
 		return nil, err
 	}
-	controlPlane := config.ControlPlane{
+	controlPlane := rsc.ControlPlane{
 		IofogUser: config.IofogUser{
 			Email:    email,
 			Password: password,
@@ -50,7 +50,7 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 		Kube: config.Kube{
 			Config: fmtKubeConfig,
 		},
-		Controllers: []config.Controller{
+		Controllers: []rsc.Controller{
 			{
 				Name:     name,
 				Endpoint: formatEndpoint(endpoint),

@@ -30,6 +30,7 @@ import (
 	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/twmb/algoimpl/go/graph"
@@ -37,15 +38,15 @@ import (
 
 var kindOrder = []apps.Kind{
 	// Deploy Agents after Control Plane
-	// config.ControlPlaneKind,
-	// config.ControllerKind,
-	// config.AgentConfigKind,
-	config.AgentKind,
+	// rsc.ControlPlaneKind,
+	// rsc.ControllerKind,
+	// rsc.AgentConfigKind,
+	rsc.AgentKind,
 	config.RegistryKind,
-	config.CatalogItemKind,
+	rsc.CatalogItemKind,
 	apps.ApplicationKind,
 	apps.MicroserviceKind,
-	config.VolumeKind,
+	rsc.VolumeKind,
 }
 
 type Options struct {
@@ -65,8 +66,20 @@ func deployMicroservice(opt execute.KindHandlerOpt) (exe execute.Executor, err e
 	return deploymicroservice.NewExecutor(deploymicroservice.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+func deployKubernetesControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployk8scontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployRemoteControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployremotecontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployLocalControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploylocalcontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -75,10 +88,6 @@ func deployAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 
 func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
-}
-
-func deployController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -90,15 +99,16 @@ func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) 
 }
 
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	apps.ApplicationKind:    deployApplication,
-	config.CatalogItemKind:  deployCatalogItem,
-	apps.MicroserviceKind:   deployMicroservice,
-	config.ControlPlaneKind: deployControlPlane,
-	config.AgentKind:        deployAgent,
-	config.AgentConfigKind:  deployAgentConfig,
-	config.ControllerKind:   deployController,
-	config.RegistryKind:     deployRegistry,
-	config.VolumeKind:       deployVolume,
+	apps.ApplicationKind:           deployApplication,
+	rsc.CatalogItemKind:            deployCatalogItem,
+	apps.MicroserviceKind:          deployMicroservice,
+	rsc.KubernetesControlPlaneKind: deployKubernetesControlPlane,
+	rsc.RemoteControlPlaneKind:     deployRemoteControlPlane,
+	rsc.LocalControlPlaneKind:      deployLocalControlPlane,
+	rsc.AgentKind:                  deployAgent,
+	rsc.AgentConfigKind:            deployAgentConfig,
+	rsc.RegistryKind:               deployRegistry,
+	rsc.VolumeKind:                 deployVolume,
 }
 
 // Execute deploy from yaml file
@@ -110,15 +120,15 @@ func Execute(opt *Options) (err error) {
 
 	// Create any AgentConfig executor missing
 	// Each Agent requires a corresponding Agent Config to be created with Controller
-	for _, agentGenericExecutor := range executorsMap[config.AgentKind] {
+	for _, agentGenericExecutor := range executorsMap[rsc.AgentKind] {
 		agentExecutor, ok := agentGenericExecutor.(deployagent.AgentDeployExecutor)
 		if !ok {
 			return util.NewInternalError("Could not convert agent deploy executor\n")
 		}
 		found := false
 		host := agentExecutor.GetHost()
-		for _, configGenericExecutor := range executorsMap[config.AgentConfigKind] {
-			configExecutor, ok := configGenericExecutor.(deployagentconfig.AgentConfigExecutor)
+		for _, configGenericExecutor := range executorsMap[rsc.AgentConfigKind] {
+			configExecutor, ok := configGenericExecutor.(deployagentrsc.AgentConfigExecutor)
 			if !ok {
 				return util.NewInternalError("Could not convert agent config executor\n")
 			}
@@ -129,9 +139,9 @@ func Execute(opt *Options) (err error) {
 			}
 		}
 		if !found {
-			executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
+			executorsMap[rsc.AgentConfigKind] = append(executorsMap[rsc.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
 				agentExecutor.GetName(),
-				config.AgentConfiguration{
+				rsc.AgentConfiguration{
 					Name: agentExecutor.GetName(),
 					AgentConfiguration: client.AgentConfiguration{
 						Host: &host,
@@ -142,18 +152,40 @@ func Execute(opt *Options) (err error) {
 		}
 	}
 
-	// Controlplane
-	if err = execute.RunExecutors(executorsMap[config.ControlPlaneKind], "deploy control plane"); err != nil {
-		return
+	// Controlplanes (should only be 1)
+	cpCount := 0
+	errMsg := "Specified multiple Control Planes in a single Namespace"
+	if exe, exists := executorsMap[rsc.KubernetesControlPlaneKind]; exists {
+		if err = execute.RunExecutors(exe, "deploy Kubernetes Control Plane"); err != nil {
+			return
+		}
+		cpCount++
+	}
+	if exe, exists := executorsMap[rsc.RemoteControlPlaneKind]; exists {
+		if cpCount > 0 {
+			err = util.NewInputError(errMsg)
+		}
+		if err = execute.RunExecutors(exe, "deploy Remote Control Plane"); err != nil {
+			return
+		}
+		cpCount++
+	}
+	if exe, exists := executorsMap[rsc.LocalControlPlaneKind]; exists {
+		if cpCount > 0 {
+			err = util.NewInputError(errMsg)
+		}
+		if err = execute.RunExecutors(exe, "deploy Local Control Plane"); err != nil {
+			return
+		}
 	}
 
 	// Controller
-	if err = execute.RunExecutors(executorsMap[config.ControllerKind], "deploy controller"); err != nil {
+	if err = execute.RunExecutors(executorsMap[rsc.ControllerKind], "deploy controller"); err != nil {
 		return
 	}
 
 	// Agent config
-	if err = deployAgentConfiguration(executorsMap[config.AgentConfigKind]); err != nil {
+	if err = deployAgentConfiguration(executorsMap[rsc.AgentConfigKind]); err != nil {
 		return err
 	}
 
@@ -173,12 +205,12 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 		return nil
 	}
 
-	executorsByNamespace := make(map[string][]deployagentconfig.AgentConfigExecutor)
+	executorsByNamespace := make(map[string][]deployagentrsc.AgentConfigExecutor)
 
 	// Sort executors by namespace
 	for idx := range executors {
 		// Get a more specific executor allowing retrieval of namespace
-		agentConfigExecutor, ok := (executors[idx]).(deployagentconfig.AgentConfigExecutor)
+		agentConfigExecutor, ok := (executors[idx]).(deployagentrsc.AgentConfigExecutor)
 		if !ok {
 			return util.NewInternalError("Could not convert node to agent config executor")
 		}
@@ -223,7 +255,7 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 		// Create connections
 		for _, node := range nodeMap {
 			// Get a more specific executor allowing retrieval of upstream agents
-			agentConfigExecutor, ok := (*node.Value).(deployagentconfig.AgentConfigExecutor)
+			agentConfigExecutor, ok := (*node.Value).(deployagentrsc.AgentConfigExecutor)
 			if !ok {
 				return util.NewInternalError("Could not convert node to agent config executor")
 			}

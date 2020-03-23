@@ -30,7 +30,7 @@ type AgentDeployExecutor interface {
 type facadeExecutor struct {
 	isSystem  bool
 	exe       execute.Executor
-	agent     *config.Agent
+	agent     *rsc.Agent
 	namespace string
 }
 
@@ -80,7 +80,7 @@ func (facade *facadeExecutor) ProvisionAgent() (string, error) {
 	return provisionExecutor.ProvisionAgent()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Agent, isSystem bool) execute.Executor {
+func newFacadeExecutor(exe execute.Executor, namespace string, agent *rsc.Agent, isSystem bool) execute.Executor {
 	return &facadeExecutor{
 		exe:       exe,
 		namespace: namespace,
@@ -89,7 +89,7 @@ func newFacadeExecutor(exe execute.Executor, namespace string, agent *config.Age
 	}
 }
 
-func NewDeployExecutor(namespace string, agent *config.Agent, isSystem bool) (execute.Executor, error) {
+func NewDeployExecutor(namespace string, agent *rsc.Agent, isSystem bool) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
 		return nil, err
 	}

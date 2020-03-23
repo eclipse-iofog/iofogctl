@@ -19,7 +19,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (ctrl config.Controller, err error) {
+func UnmarshallYAML(file []byte) (ctrl rsc.Controller, err error) {
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &ctrl); err != nil {
 		err = util.NewUnmarshalError(err.Error())
@@ -38,7 +38,7 @@ func UnmarshallYAML(file []byte) (ctrl config.Controller, err error) {
 	return
 }
 
-func Validate(ctrl config.Controller) error {
+func Validate(ctrl rsc.Controller) error {
 	if ctrl.Name == "" {
 		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 	}

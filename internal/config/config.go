@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	configv1 "github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
@@ -32,7 +33,7 @@ var (
 	configFolder       string // config directory
 	configFilename     string // config file name
 	namespaceDirectory string // Path of namespace directory
-	namespaces         map[string]*Namespace
+	namespaces         map[string]*rsc.Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
 	mux = &sync.Mutex{}
 )
@@ -47,81 +48,9 @@ const (
 	detachedNamespace    = "_detached"
 )
 
-type v1NamespaceSpecContent struct {
-	Name         string        `yaml:"name,omitempty"`
-	ControlPlane *ControlPlane `yaml:"controlPlane,omitempty"`
-	Agents       []Agent       `yaml:"agents,omitempty"`
-	Created      string        `yaml:"created,omitempty"`
-	Connectors   []interface{} `yaml:"connectors,omitempty"`
-}
-
-func updateConfigToK8sStyle() error {
-	// Previous config structure
-	type OldConfig struct {
-		Namespaces []v1NamespaceSpecContent `yaml:"namespaces"`
-	}
-
-	// Get config files
-	configFileName := path.Join(configFolder, "config.yaml")
-	configSaveFileName := path.Join(configFolder, "config.yaml.save")
-
-	// Create namespaces folder
-	namespaceDirectory := path.Join(configFolder, "namespaces")
-	err := os.MkdirAll(namespaceDirectory, 0755)
-	util.Check(err)
-
-	// Read previous config
-	r, err := ioutil.ReadFile(configFileName)
-	util.Check(err)
-
-	oldConfig := OldConfig{}
-	newConfig := configuration{DefaultNamespace: "default"}
-	configHeader := iofogctlConfig{}
-	err = yaml.UnmarshalStrict(r, &oldConfig)
-	if err != nil {
-		if err2 := yaml.UnmarshalStrict(r, &configHeader); err2 != nil {
-			util.Check(err)
-		}
-		return nil
-	}
-
-	// Map old config to new config file system
-	for _, ns := range oldConfig.Namespaces {
-		// Write namespace config file
-		namespaceHeader := iofogctlNamespace{
-			Header{
-				Kind:       IofogctlNamespaceKind,
-				APIVersion: configV1,
-				Metadata: HeaderMetadata{
-					Name: ns.Name,
-				},
-				Spec: ns,
-			},
-		}
-		bytes, err := yaml.Marshal(namespaceHeader)
-		util.Check(err)
-		configFile := getNamespaceFile(ns.Name)
-		err = ioutil.WriteFile(configFile, bytes, 0644)
-		util.Check(err)
-	}
-
-	// Write old config save file
-	err = ioutil.WriteFile(configSaveFileName, r, 0644)
-	util.Check(err)
-
-	// Write new config file
-	bytes, err := getConfigYAMLFile(newConfig)
-	util.Check(err)
-	err = ioutil.WriteFile(configFileName, bytes, 0644)
-	util.Check(err)
-
-	util.PrintInfo(fmt.Sprintf("Your config file has successfully been updated, the previous config file has been saved under %s", configSaveFileName))
-	return nil
-}
-
 // Init initializes config, namespace and unmarshalls the files
 func Init(configFolderArg string) {
-	namespaces = make(map[string]*Namespace)
+	namespaces = make(map[string]*rsc.Namespace)
 
 	var err error
 	configFolder, err = util.FormatPath(configFolderArg)
@@ -198,81 +127,6 @@ func getNamespaceFile(name string) string {
 	return path.Join(namespaceDirectory, name+".yaml")
 }
 
-func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
-	header.APIVersion = configV2
-	bytes, err := yaml.Marshal(header.Spec)
-	nsV1 := configv1.Namespace{}
-	if err != nil {
-		return header, err
-	}
-	if err = yaml.UnmarshalStrict(bytes, &nsV1); err != nil {
-		return header, err
-	}
-
-	ns := Namespace{
-		Name: nsV1.Name,
-		ControlPlane: ControlPlane{
-			LoadBalancer: LoadBalancer(nsV1.ControlPlane.LoadBalancer),
-			Database:     Database(nsV1.ControlPlane.Database),
-			IofogUser:    IofogUser(nsV1.ControlPlane.IofogUser),
-		},
-		Created: nsV1.Created,
-	}
-	for _, ctrlV1 := range nsV1.ControlPlane.Controllers {
-		if ctrlV1.Kube.Config != "" {
-			ns.ControlPlane.Kube = Kube{
-				Config: ctrlV1.Kube.Config,
-				Services: Services{
-					Controller: Service{
-						Type: ctrlV1.Kube.ServiceType,
-						IP:   ctrlV1.Kube.StaticIP,
-					},
-				},
-				Replicas: Replicas{
-					Controller: int32(ctrlV1.Kube.Replicas),
-				},
-				Images: KubeImages{
-					Controller: ctrlV1.Container.Image,
-					Operator:   ctrlV1.Kube.Images.Operator,
-					Kubelet:    ctrlV1.Kube.Images.Kubelet,
-				},
-			}
-		}
-		ctrl := Controller{
-			Name:     ctrlV1.Name,
-			Host:     ctrlV1.Host,
-			SSH:      SSH(ctrlV1.SSH),
-			Endpoint: ctrlV1.Endpoint,
-			Created:  ctrlV1.Created,
-			Package:  Package(ctrlV1.Package),
-			Container: Container{
-				Image:       ctrlV1.Container.Image,
-				Credentials: Credentials(ctrlV1.Container.Credentials),
-			},
-		}
-		ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, ctrl)
-	}
-	for _, agentV1 := range nsV1.Agents {
-		agent := Agent{
-			Name:    agentV1.Name,
-			Host:    agentV1.Host,
-			SSH:     SSH(agentV1.SSH),
-			UUID:    agentV1.UUID,
-			Created: agentV1.Created,
-			Package: Package(agentV1.Package),
-			Container: Container{
-				Image:       agentV1.Container.Image,
-				Credentials: Credentials(agentV1.Container.Credentials),
-			},
-		}
-		ns.Agents = append(ns.Agents, agent)
-	}
-
-	header.Spec = ns
-
-	return header, nil
-}
-
 func updateConfigToV2(header iofogctlConfig) (iofogctlConfig, error) {
 	header.APIVersion = configV2
 	return header, nil
@@ -311,7 +165,7 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	return
 }
 
-func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
+func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err error) {
 	switch header.APIVersion {
 	case CurrentConfigVersion:
 		{
@@ -320,15 +174,8 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n Namespace, err error) {
 		}
 	case configV1:
 		{
-			msg := `An older YAML version has been detected in Namespace %s.
-  You will only be able to view this Namespace from your current version of iofogctl.
-  Redeploy the corresponding ECN with your current version of iofogctl to gain full control.`
-			util.PrintNotify(fmt.Sprintf(msg, header.Metadata.Name))
-			headerV2, err := updateNamespaceToV2(header)
-			if err != nil {
-				return n, err
-			}
-			return getNamespaceFromHeader(headerV2)
+			err = util.NewError("TODO: Allow YAML upgrades")
+			return
 		}
 	// Example for further maintenance
 	// case PreviousConfigVersion {
@@ -360,7 +207,7 @@ func getConfigYAMLFile(conf configuration) ([]byte, error) {
 	return yaml.Marshal(confHeader)
 }
 
-func getNamespaceYAMLFile(ns *Namespace) ([]byte, error) {
+func getNamespaceYAMLFile(ns *rsc.Namespace) ([]byte, error) {
 	namespaceHeader := iofogctlNamespace{
 		Header{
 			Kind:       IofogctlNamespaceKind,
@@ -414,12 +261,74 @@ func Flush() (err error) {
 	return flushConfig()
 }
 
-// NewRandomUser creates a new config user
-func NewRandomUser() IofogUser {
-	return IofogUser{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
-		Password: util.RandomString(10, util.AlphaNum),
+type v1NamespaceSpecContent struct {
+	Name         string                `yaml:"name,omitempty"`
+	ControlPlane configv1.ControlPlane `yaml:"controlPlane,omitempty"`
+	Agents       []configv1.Agent      `yaml:"agents,omitempty"`
+	Created      string                `yaml:"created,omitempty"`
+	Connectors   []configv1.Connector  `yaml:"connectors,omitempty"`
+}
+
+func updateConfigToK8sStyle() error {
+	// Previous config structure
+	type OldConfig struct {
+		Namespaces []v1NamespaceSpecContent `yaml:"namespaces"`
 	}
+
+	// Get config files
+	configFileName := path.Join(configFolder, "config.yaml")
+	configSaveFileName := path.Join(configFolder, "config.yaml.save")
+
+	// Create namespaces folder
+	namespaceDirectory := path.Join(configFolder, "namespaces")
+	err := os.MkdirAll(namespaceDirectory, 0755)
+	util.Check(err)
+
+	// Read previous config
+	r, err := ioutil.ReadFile(configFileName)
+	util.Check(err)
+
+	oldConfig := OldConfig{}
+	newConfig := configuration{DefaultNamespace: "default"}
+	configHeader := iofogctlConfig{}
+	err = yaml.UnmarshalStrict(r, &oldConfig)
+	if err != nil {
+		if err2 := yaml.UnmarshalStrict(r, &configHeader); err2 != nil {
+			util.Check(err)
+		}
+		return nil
+	}
+
+	// Map old config to new config file system
+	for _, ns := range oldConfig.Namespaces {
+		// Write namespace config file
+		namespaceHeader := iofogctlNamespace{
+			Header{
+				Kind:       IofogctlNamespaceKind,
+				APIVersion: configV1,
+				Metadata: HeaderMetadata{
+					Name: ns.Name,
+				},
+				Spec: ns,
+			},
+		}
+		bytes, err := yaml.Marshal(namespaceHeader)
+		util.Check(err)
+		configFile := getNamespaceFile(ns.Name)
+		err = ioutil.WriteFile(configFile, bytes, 0644)
+		util.Check(err)
+	}
+
+	// Write old config save file
+	err = ioutil.WriteFile(configSaveFileName, r, 0644)
+	util.Check(err)
+
+	// Write new config file
+	bytes, err := getConfigYAMLFile(newConfig)
+	util.Check(err)
+	err = ioutil.WriteFile(configFileName, bytes, 0644)
+	util.Check(err)
+
+	util.PrintInfo(fmt.Sprintf("Your config file has successfully been updated, the previous config file has been saved under %s", configSaveFileName))
+	return nil
 }

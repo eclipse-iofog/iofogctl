@@ -22,7 +22,7 @@ import (
 )
 
 type executor struct {
-	agent     config.Agent
+	agent     rsc.Agent
 	namespace string
 }
 

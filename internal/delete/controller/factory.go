@@ -16,7 +16,7 @@ package deletecontroller
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -26,33 +26,18 @@ func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 	}
 
 	// Get controller from config
-	controlPlane, err := config.GetControlPlane(namespace)
+	baseControlPlane, err := config.GetControlPlane(namespace)
 	if err != nil {
 		return nil, err
 	}
-	ctrl, err := controlPlane.GetController(name)
-	if err != nil {
-		return nil, err
+	switch controlPlane := baseControlPlane.(type) {
+	case *rsc.KubernetesControlPlane:
+		return newKubernetesExecutor(controlPlane, namespace, name), nil
+	case *rsc.RemoteControlPlane:
+		return newRemoteExecutor(controlPlane, namespace, name), nil
+	case *rsc.LocalControlPlane:
+		return newLocalExecutor(controlPlane, namespace, name), nil
 	}
 
-	// Local executor
-	if util.IsLocalHost(ctrl.Host) {
-		cli, err := install.NewLocalContainerClient()
-		if err != nil {
-			return nil, err
-		}
-		return newLocalExecutor(namespace, name, cli), nil
-	}
-
-	// Kubernetes executor
-	if controlPlane.Kube.Config != "" {
-		return newKubernetesExecutor(namespace, name), nil
-	}
-
-	// Can't kill Controller without configuration
-	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
-		return nil, util.NewNoConfigError("Controller")
-	}
-	// Default executor
-	return newRemoteExecutor(namespace, name), nil
+	return nil, util.NewInternalError("Could not determine what kind of Control Plane is in Namespace " + namespace)
 }

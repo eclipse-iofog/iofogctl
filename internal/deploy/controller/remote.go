@@ -21,11 +21,11 @@ import (
 
 type remoteExecutor struct {
 	namespace    string
-	ctrl         *config.Controller
-	controlPlane config.ControlPlane
+	ctrl         *rsc.Controller
+	controlPlane rsc.ControlPlane
 }
 
-func newRemoteExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) *remoteExecutor {
+func newRemoteExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.ControlPlane) *remoteExecutor {
 	d := &remoteExecutor{}
 	d.namespace = namespace
 	d.ctrl = ctrl

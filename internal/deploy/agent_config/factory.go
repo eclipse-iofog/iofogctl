@@ -37,18 +37,18 @@ type AgentConfigExecutor interface {
 	execute.Executor
 	GetAgentUUID() string
 	SetHost(string)
-	GetConfiguration() config.AgentConfiguration
+	GetConfiguration() rsc.AgentConfiguration
 	GetNamespace() string
 }
 
 type remoteExecutor struct {
 	name        string
 	uuid        string
-	agentConfig config.AgentConfiguration
+	agentConfig rsc.AgentConfiguration
 	namespace   string
 }
 
-func NewRemoteExecutor(name string, config config.AgentConfiguration, namespace string) *remoteExecutor {
+func NewRemoteExecutor(name string, config rsc.AgentConfiguration, namespace string) *remoteExecutor {
 	return &remoteExecutor{
 		name:        name,
 		agentConfig: config,
@@ -60,7 +60,7 @@ func (exe *remoteExecutor) GetNamespace() string {
 	return exe.namespace
 }
 
-func (exe *remoteExecutor) GetConfiguration() config.AgentConfiguration {
+func (exe *remoteExecutor) GetConfiguration() rsc.AgentConfiguration {
 	return exe.agentConfig
 }
 
@@ -145,7 +145,7 @@ func (exe *remoteExecutor) Execute() error {
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Unmarshal file
-	agentConfig := config.AgentConfiguration{}
+	agentConfig := rsc.AgentConfiguration{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &agentConfig); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return

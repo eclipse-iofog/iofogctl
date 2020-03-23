@@ -108,7 +108,7 @@ func generateAgentOutput(namespace string) error {
 			// Overwrite config based on backend
 			if err := config.UpdateAgent(
 				namespace,
-				config.Agent{
+				rsc.Agent{
 					Name: remoteAgent.Name,
 					UUID: remoteAgent.UUID,
 					Host: remoteAgent.IPAddressExternal,

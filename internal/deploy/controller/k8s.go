@@ -15,25 +15,24 @@ package deploycontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 )
 
 type kubernetesExecutor struct {
 	namespace    string
-	ctrl         *config.Controller
-	controlPlane *config.ControlPlane
+	controlPlane *rsc.KubernetesControlPlane
 }
 
-func newKubernetesExecutor(namespace string, ctrl *config.Controller, controlPlane *config.ControlPlane) *kubernetesExecutor {
+func newKubernetesExecutor(namespace string, controlPlane *rsc.ControlPlane) *kubernetesExecutor {
 	return &kubernetesExecutor{
 		namespace:    namespace,
-		ctrl:         ctrl,
 		controlPlane: controlPlane,
 	}
 }
 
 func (exe *kubernetesExecutor) GetName() string {
-	return exe.ctrl.Name
+	return "Deploy Kubernetes Control Plane"
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {

@@ -38,15 +38,15 @@ type Options struct {
 type controlPlaneExecutor struct {
 	ctrlClient          *client.Client
 	controllerExecutors []execute.Executor
-	controlPlane        config.ControlPlane
+	controlPlane        rsc.ControlPlane
 	namespace           string
 	name                string
 }
 
-func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
+func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
-	agent := config.Agent{
+	agent := rsc.Agent{
 		Name:    iofog.VanillaRouterAgentName,
 		Host:    ctrl.Host,
 		SSH:     ctrl.SSH,
@@ -59,7 +59,7 @@ func deploySystemAgent(namespace string, ctrl config.Controller) (err error) {
 		EdgeRouterPort:  internal.MakeIntPtr(56721),
 		InterRouterPort: internal.MakeIntPtr(56722),
 	}
-	deployAgentConfig := config.AgentConfiguration{
+	deployAgentConfig := rsc.AgentConfiguration{
 		Name: iofog.VanillaRouterAgentName,
 		AgentConfiguration: client.AgentConfiguration{
 			IsSystem:     internal.MakeBoolPtr(true),
@@ -150,7 +150,7 @@ func (exe controlPlaneExecutor) GetName() string {
 	return exe.name
 }
 
-func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane config.ControlPlane) execute.Executor {
+func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
 	return controlPlaneExecutor{
 		controllerExecutors: executors,
 		namespace:           namespace,

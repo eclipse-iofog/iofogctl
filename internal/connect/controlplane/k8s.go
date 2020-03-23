@@ -19,11 +19,11 @@ import (
 )
 
 type kubernetesExecutor struct {
-	ctrlPlane config.ControlPlane
+	ctrlPlane rsc.ControlPlane
 	namespace string
 }
 
-func newKubernetesExecutor(ctrlPlane config.ControlPlane, namespace string) *kubernetesExecutor {
+func newKubernetesExecutor(ctrlPlane rsc.ControlPlane, namespace string) *kubernetesExecutor {
 	return &kubernetesExecutor{
 		ctrlPlane: ctrlPlane,
 		namespace: namespace,

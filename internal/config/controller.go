@@ -14,13 +14,12 @@
 package config
 
 import (
-	"fmt"
-
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // GetControllers returns all controllers within the namespace
-func GetControllers(namespace string) ([]Controller, error) {
+func GetControllers(namespace string) ([]rsc.Controller, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return nil, err
@@ -29,7 +28,7 @@ func GetControllers(namespace string) ([]Controller, error) {
 }
 
 // GetController returns a single controller within the current
-func GetController(namespace, name string) (controller Controller, err error) {
+func GetController(namespace, name string) (controller rsc.Controller, err error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return
@@ -46,7 +45,7 @@ func GetController(namespace, name string) (controller Controller, err error) {
 }
 
 // Overwrites or creates new controller to the namespace
-func UpdateController(namespace string, controller Controller) error {
+func UpdateController(namespace string, controller rsc.Controller) error {
 	// Update existing controller if exists
 	ns, err := getNamespace(namespace)
 	if err != nil {
@@ -61,7 +60,7 @@ func UpdateController(namespace string, controller Controller) error {
 }
 
 // AddController adds a new controller to the current namespace
-func AddController(namespace string, controller Controller) error {
+func AddController(namespace string, controller rsc.Controller) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err

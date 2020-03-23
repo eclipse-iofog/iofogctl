@@ -36,14 +36,14 @@ type Options struct {
 }
 
 var kindOrder = []apps.Kind{
-	config.CatalogItemKind,
+	rsc.CatalogItemKind,
 	apps.MicroserviceKind,
 	apps.ApplicationKind,
 	config.RegistryKind,
-	config.AgentKind,
-	config.ControllerKind,
-	config.ControlPlaneKind,
-	config.VolumeKind,
+	rsc.AgentKind,
+	rsc.ControllerKind,
+	rsc.ControlPlaneKind,
+	rsc.VolumeKind,
 }
 
 var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
@@ -53,22 +53,22 @@ var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor,
 	apps.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	rsc.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	rsc.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	config.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	rsc.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	rsc.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	rsc.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletevolume.NewExecutor(opt.Namespace, opt.Name)
 	},
 }

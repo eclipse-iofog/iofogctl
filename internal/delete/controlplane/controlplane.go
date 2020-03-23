@@ -50,8 +50,8 @@ func (exe *Executor) Execute() (err error) {
 	}
 
 	var executors []execute.Executor
-	for _, controller := range controlPlane.Controllers {
-		exe, err := deletecontroller.NewExecutor(exe.namespace, controller.Name, false)
+	for _, controller := range controlPlane.GetControllers() {
+		exe, err := deletecontroller.NewExecutor(exe.namespace, controller.GetName(), false)
 		if err != nil {
 			return err
 		}

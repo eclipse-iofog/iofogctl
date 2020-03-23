@@ -121,7 +121,7 @@ iofogctl legacy agent NAME status`,
 				}
 			case "agent":
 				// Get config
-				var agent config.Agent
+				var agent rsc.Agent
 				var err error
 				if useDetached {
 					agent, err = config.GetDetachedAgent(name)

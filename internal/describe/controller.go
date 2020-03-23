@@ -45,7 +45,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.ControllerKind,
+		Kind:       rsc.ControllerKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

@@ -20,9 +20,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
+func UnmarshallYAML(file []byte) (controlPlane rsc.ControlPlane, err error) {
 	// Unmarshall the input file
-	var ctrlPlane config.ControlPlane
+	var ctrlPlane rsc.ControlPlane
 	if err = yaml.UnmarshalStrict(file, &ctrlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
@@ -59,7 +59,7 @@ func UnmarshallYAML(file []byte) (controlPlane config.ControlPlane, err error) {
 	return
 }
 
-func validate(controlPlane config.ControlPlane) (err error) {
+func validate(controlPlane rsc.ControlPlane) (err error) {
 	// Validate user
 	user := controlPlane.IofogUser
 	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {

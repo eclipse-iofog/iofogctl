@@ -48,12 +48,12 @@ func (exe executor) GetName() string {
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
-	var agent config.Agent
+	var agent rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
 		agent, err = config.GetDetachedAgent(exe.opt.Name)
 	} else {
-		agent = config.Agent{
+		agent = rsc.Agent{
 			Name: exe.opt.Name,
 			Host: exe.opt.Host,
 			SSH: config.SSH{
@@ -71,7 +71,7 @@ func (exe executor) Execute() error {
 	// Create fog
 	configExecutor := deployagentconfig.NewRemoteExecutor(
 		exe.opt.Name,
-		config.AgentConfiguration{
+		rsc.AgentConfiguration{
 			Name: exe.opt.Name,
 			AgentConfiguration: client.AgentConfiguration{
 				Host: &agent.Host,

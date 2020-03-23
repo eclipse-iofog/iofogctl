@@ -21,7 +21,7 @@ import (
 
 type Executor struct {
 	namespace string
-	volume    config.Volume
+	volume    rsc.Volume
 }
 
 func NewExecutor(namespace, name string) (execute.Executor, error) {

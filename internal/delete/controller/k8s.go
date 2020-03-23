@@ -15,18 +15,21 @@ package deletecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 )
 
 type kubernetesExecutor struct {
-	namespace string
-	name      string
+	controlPlane *rsc.KubernetesControlPlane
+	namespace    string
+	name         string
 }
 
-func newKubernetesExecutor(namespace, name string) *kubernetesExecutor {
+func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace, name string) *kubernetesExecutor {
 	return &kubernetesExecutor{
-		namespace: namespace,
-		name:      name,
+		controlPlane: controlPlane,
+		namespace:    namespace,
+		name:         name,
 	}
 }
 
@@ -35,14 +38,8 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func (exe *kubernetesExecutor) Execute() error {
-	// Get controller from config
-	controlPlane, err := config.GetControlPlane(exe.namespace)
-	if err != nil {
-		return err
-	}
-
 	// Instantiate Kubernetes object
-	k8s, err := install.NewKubernetes(controlPlane.Kube.Config, exe.namespace)
+	k8s, err := install.NewKubernetes(exe.controlPlane.KubeConfig, exe.namespace)
 
 	// Delete Controller on cluster
 	err = k8s.DeleteController()

@@ -19,6 +19,7 @@ import (
 	"os"
 	"sort"
 
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -58,7 +59,7 @@ func GetDefaultNamespaceName() string {
 	return conf.DefaultNamespace
 }
 
-func getNamespace(name string) (*Namespace, error) {
+func getNamespace(name string) (*rsc.Namespace, error) {
 	namespace, ok := namespaces[name]
 	if !ok {
 		namespaceHeader := iofogctlNamespace{}
@@ -79,10 +80,10 @@ func getNamespace(name string) (*Namespace, error) {
 }
 
 // GetNamespace returns the namespace
-func GetNamespace(namespace string) (Namespace, error) {
+func GetNamespace(namespace string) (rsc.Namespace, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
-		return Namespace{}, err
+		return rsc.Namespace{}, err
 	}
 	return *ns, nil
 }
@@ -96,7 +97,7 @@ func AddNamespace(name, created string) error {
 		}
 	}
 
-	newNamespace := Namespace{
+	newNamespace := rsc.Namespace{
 		Name:    name,
 		Created: created,
 	}
@@ -166,7 +167,7 @@ func ClearNamespace(namespace string) error {
 	}
 	mux.Lock()
 	defer mux.Unlock()
-	ns.ControlPlane = ControlPlane{}
-	ns.Agents = []Agent{}
+	ns.ControlPlane = nil
+	ns.Agents = []rsc.Agent{}
 	return nil
 }

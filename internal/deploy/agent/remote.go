@@ -21,11 +21,11 @@ import (
 
 type remoteExecutor struct {
 	namespace string
-	agent     *config.Agent
+	agent     *rsc.Agent
 	uuid      string
 }
 
-func newRemoteExecutor(namespace string, agent *config.Agent) *remoteExecutor {
+func newRemoteExecutor(namespace string, agent *rsc.Agent) *remoteExecutor {
 	exe := &remoteExecutor{}
 	exe.namespace = namespace
 	exe.agent = agent

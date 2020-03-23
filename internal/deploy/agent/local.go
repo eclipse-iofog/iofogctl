@@ -26,12 +26,12 @@ import (
 type localExecutor struct {
 	isSystem         bool
 	namespace        string
-	agent            *config.Agent
+	agent            *rsc.Agent
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
 
-func getController(namespace string) (*config.Controller, error) {
+func getController(namespace string) (*rsc.Controller, error) {
 	controllers, err := config.GetControllers(namespace)
 	if err != nil {
 		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
@@ -43,7 +43,7 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer, isSystem bool) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent *rsc.Agent, client *install.LocalContainer, isSystem bool) (*localExecutor, error) {
 	// Get Controller LocalContainerConfig
 	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	return &localExecutor{

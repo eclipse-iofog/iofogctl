@@ -24,7 +24,7 @@ import (
 
 type facadeExecutor struct {
 	exe        execute.Executor
-	controller *config.Controller
+	controller *rsc.Controller
 	namespace  string
 }
 
@@ -44,7 +44,7 @@ func (facade facadeExecutor) GetName() string {
 	return facade.exe.GetName()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, controller *config.Controller) execute.Executor {
+func newFacadeExecutor(exe execute.Executor, namespace string, controller *rsc.Controller) execute.Executor {
 	return facadeExecutor{
 		exe:        exe,
 		namespace:  namespace,
@@ -52,7 +52,7 @@ func newFacadeExecutor(exe execute.Executor, namespace string, controller *confi
 	}
 }
 
-func newExecutor(namespace string, ctrl *config.Controller, controlPlane config.ControlPlane) (execute.Executor, error) {
+func newExecutor(namespace string, ctrl *rsc.Controller, controlPlane rsc.ControlPlane) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric(ctrl.Name); err != nil {
 		return nil, err
 	}

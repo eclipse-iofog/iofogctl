@@ -30,7 +30,7 @@ const (
 	NoneRouter     RouterMode = "none"
 )
 
-func getRouterMode(config config.AgentConfiguration) RouterMode {
+func getRouterMode(config rsc.AgentConfiguration) RouterMode {
 	if config.RouterConfig.RouterMode != nil {
 		return RouterMode(*config.RouterConfig.RouterMode)
 	} else {
@@ -38,7 +38,7 @@ func getRouterMode(config config.AgentConfiguration) RouterMode {
 	}
 }
 
-func Validate(config config.AgentConfiguration) error {
+func Validate(config rsc.AgentConfiguration) error {
 	routerMode := getRouterMode(config)
 
 	if routerMode != EdgeRouter && routerMode != InteriorRouter && routerMode != NoneRouter {
@@ -70,7 +70,7 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 }
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
-func Process(agentConfig config.AgentConfiguration, name string, clt *client.Client) (config.AgentConfiguration, error) {
+func Process(agentConfig rsc.AgentConfiguration, name string, clt *client.Client) (rsc.AgentConfiguration, error) {
 	// If local agent, set fixed config
 	if agentConfig.Host != nil && util.IsLocalHost(*agentConfig.Host) {
 		upstreamRouters := []string{}
@@ -131,7 +131,7 @@ func Process(agentConfig config.AgentConfiguration, name string, clt *client.Cli
 	return agentConfig, nil
 }
 
-func getAgentUpdateRequestFromAgentConfig(agentConfig config.AgentConfiguration) (request client.AgentUpdateRequest) {
+func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration) (request client.AgentUpdateRequest) {
 	var fogTypePtr *int64
 	if agentConfig.FogType != nil {
 		fogType, found := config.FogTypeStringMap[*agentConfig.FogType]
@@ -146,11 +146,11 @@ func getAgentUpdateRequestFromAgentConfig(agentConfig config.AgentConfiguration)
 	request.Description = agentConfig.Description
 	request.Name = agentConfig.Name
 	request.FogType = fogTypePtr
-	request.AgentConfiguration = agentConfig.AgentConfiguration
+	request.AgentConfiguration = agentrsc.AgentConfiguration
 	return
 }
 
-func createAgentFromConfiguration(agentConfig config.AgentConfiguration, name string, clt *client.Client) (uuid string, err error) {
+func createAgentFromConfiguration(agentConfig rsc.AgentConfiguration, name string, clt *client.Client) (uuid string, err error) {
 	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig)
 	createAgentRequest := client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
@@ -169,7 +169,7 @@ func createAgentFromConfiguration(agentConfig config.AgentConfiguration, name st
 	return agent.UUID, nil
 }
 
-func updateAgentConfiguration(agentConfig *config.AgentConfiguration, uuid string, clt *client.Client) (err error) {
+func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, uuid string, clt *client.Client) (err error) {
 	if agentConfig != nil {
 		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(*agentConfig)
 		updateAgentConfigRequest.UUID = uuid

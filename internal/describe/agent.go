@@ -41,7 +41,7 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() (err error) {
-	var agent config.Agent
+	var agent rsc.Agent
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)
 	} else {
@@ -53,7 +53,7 @@ func (exe *agentExecutor) Execute() (err error) {
 
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.AgentKind,
+		Kind:       rsc.AgentKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

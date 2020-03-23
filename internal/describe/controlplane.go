@@ -43,7 +43,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.ControlPlaneKind,
+		Kind:       rsc.ControlPlaneKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      "controlPlane",
