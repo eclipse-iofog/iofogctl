@@ -175,8 +175,15 @@ type MicroserviceInfo struct {
 	Routes            []string                    `json:"routes"`
 	Commands          []string                    `json:"cmd"`
 	Env               []MicroserviceEnvironment   `json:"env"`
+	ExtraHosts        []MicroserviceExtraHost     `json:"extraHosts"`
 	Status            MicroserviceStatus          `json:"status"`
 	Images            []CatalogImage              `json:"images"`
+}
+
+type MicroserviceExtraHost struct {
+	Name    string `json:"name,omitempty"`
+	Address string `json:"address,omitempty"`
+	Value   string `json:"value,omitempty"`
 }
 
 type MicroserviceCreateRequest struct {
@@ -194,6 +201,7 @@ type MicroserviceCreateRequest struct {
 	Commands       []string                    `json:"cmd,omitempty"`
 	Env            []MicroserviceEnvironment   `json:"env"`
 	Images         []CatalogImage              `json:"images,omitempty"`
+	ExtraHosts     []MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 }
 
 type MicroserviceUpdateRequest struct {
@@ -214,6 +222,7 @@ type MicroserviceUpdateRequest struct {
 	Commands          *[]string                    `json:"cmd,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
+	ExtraHosts        *[]MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 	Images            []CatalogImage               `json:"images,omitempty"`
 	Rebuild           bool                         `json:"rebuild"`
 }

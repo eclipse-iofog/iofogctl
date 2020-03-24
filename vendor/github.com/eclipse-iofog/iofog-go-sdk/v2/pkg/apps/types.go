@@ -76,6 +76,7 @@ type MicroserviceContainer struct {
 	Commands       []string                     `yaml:"commands,omitempty" json:"commands,omitempty"`
 	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
 	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
+	ExtraHosts     *[]MicroserviceExtraHost     `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
 	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
 	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
 }
@@ -136,6 +137,13 @@ type MicroserviceVolumeMapping struct {
 type MicroserviceEnvironment struct {
 	Key   string `yaml:"key" json:"key"`
 	Value string `yaml:"value" json:"value"`
+}
+
+// +k8s:deepcopy-gen=true
+type MicroserviceExtraHost struct {
+	Name    string `yaml:"name" json:"name,omitempty"`
+	Address string `yaml:"address" json:"address,omitempty"`
+	Value   string `yaml:"value" json:"value,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true

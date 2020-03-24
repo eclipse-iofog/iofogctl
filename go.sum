@@ -199,6 +199,8 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200315200621-20eaaed13
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200315200621-20eaaed13c41/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200322230005-d4324d091ca8 h1:1p/Y+Iad5B4397JuQnAdHr7FxY0jMfZ4l0Dew1GeWcQ=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200322230005-d4324d091ca8/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200324202806-29930ccf63c3 h1:OlIDmL6gykN3QDVt7/ARLNF/v/IMhbglsV1hbmEqUDo=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200324202806-29930ccf63c3/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta h1:Cs2yw9TO1/yb8dBm6WSSv9sIbDyceIpee3TvnVWiFos=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0 h1:Y+Du5W3kwbGqjlYise6UQkDYLLta046Cv2Lgs3c7eiU=
@@ -245,7 +247,7 @@ github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200319222827-f4144a149b4f h1
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200319222827-f4144a149b4f/go.mod h1:xBL4JFlwHhASm5WhKTFsY/4p9/SHZmRwE0ZL1YTQWLE=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200320033252-b31517dcba0c h1:vmhI3RXpfjDDQYHfCRMxuvdTshVANDN7dKpI2WpFUKQ=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200320033252-b31517dcba0c/go.mod h1:xBL4JFlwHhASm5WhKTFsY/4p9/SHZmRwE0ZL1YTQWLE=
-github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta h1:g42QLdjoIV249U1HVRpnOM44mFF9azmD6gvkD1bPFek=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta h1:ur3Txl0omOqYunNKOKKPtKh5JbBiGYWq2RZBcan3YM8=
 github.com/eclipse-iofog/iofogctl v1.3.2 h1:k38k0bpiGU57BVrdj6g0/1A93xSLl4Yp9jbX8Nlz6CM=
 github.com/eclipse-iofog/iofogctl v1.3.2/go.mod h1:qhUiKuc7PjbxPEgEpAHYArgUqlvIuHAb6DnuTDX6+tg=
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
