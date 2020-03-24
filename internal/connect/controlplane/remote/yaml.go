@@ -22,7 +22,7 @@ import (
 
 func unmarshallYAML(file []byte) (controlPlane rsc.RemoteControlPlane, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}

@@ -1,50 +1,50 @@
-@test "Deploy Volumes" {
-  testDeployVolume
-}
-
-@test "Get and Describe Volumes" {
-  testGetDescribeVolume
-}
-
-@test "Delete Volumes and Redeploy" {
-  testDeleteVolume
-  testDeployVolume
-}
-
-@test "Agent legacy commands" {
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}-${IDX}"
-    iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
-    checkLegacyAgent "$AGENT_NAME"
-  done
-}
-
-@test "Get Agent logs" {
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}-${IDX}"
-    iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
-  done
-}
-
-@test "Prune Agent" {
-  initAgents
-  local AGENT_NAME="${NAME}-0"
-  iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
-  local CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  local SSH_KEY_PATH=$KEY_FILE
-  if [[ ! -z $WSL_KEY_FILE ]]; then
-    SSH_KEY_PATH=$WSL_KEY_FILE
-  fi
-  # TODO: Enable check that is not flake
-  #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
-}
-
-@test "Disconnect from cluster" {
-  initAgents
-  iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
-  checkAgentsNegative
-}
+#@test "Deploy Volumes" {
+#  testDeployVolume
+#}
+#
+#@test "Get and Describe Volumes" {
+#  testGetDescribeVolume
+#}
+#
+#@test "Delete Volumes and Redeploy" {
+#  testDeleteVolume
+#  testDeployVolume
+#}
+#
+#@test "Agent legacy commands" {
+#  for IDX in "${!AGENTS[@]}"; do
+#    local AGENT_NAME="${NAME}-${IDX}"
+#    iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
+#    checkLegacyAgent "$AGENT_NAME"
+#  done
+#}
+#
+#@test "Get Agent logs" {
+#  for IDX in "${!AGENTS[@]}"; do
+#    local AGENT_NAME="${NAME}-${IDX}"
+#    iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
+#  done
+#}
+#
+#@test "Prune Agent" {
+#  initAgents
+#  local AGENT_NAME="${NAME}-0"
+#  iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
+#  local CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+#  local SSH_KEY_PATH=$KEY_FILE
+#  if [[ ! -z $WSL_KEY_FILE ]]; then
+#    SSH_KEY_PATH=$WSL_KEY_FILE
+#  fi
+#  # TODO: Enable check that is not flake
+#  #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
+#}
+#
+#@test "Disconnect from cluster" {
+#  initAgents
+#  iofogctl -v -n "$NS" disconnect
+#  checkControllerNegative
+#  checkAgentsNegative
+#}
 
 @test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)

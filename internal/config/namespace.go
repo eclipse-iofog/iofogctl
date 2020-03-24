@@ -171,5 +171,6 @@ func ClearNamespace(namespace string) error {
 	ns.RemoteControlPlane = nil
 	ns.LocalControlPlane = nil
 	ns.Agents = []rsc.Agent{}
+	ns.Volumes = []rsc.Volume{}
 	return nil
 }
