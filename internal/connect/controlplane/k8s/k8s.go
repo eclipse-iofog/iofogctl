@@ -65,8 +65,12 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 
 func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
 	// Read the input file
-	controlPlane, err := unmarshallYAML(yaml)
+	controlPlane, err := rsc.UnmarshallKubernetesControlPlane(yaml)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := validate(&controlPlane); err != nil {
 		return nil, err
 	}
 
@@ -101,7 +105,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
 		k8sPod := rsc.KubernetesController{
 			Endpoint: endpoint,
-			PodName:  fmt.Sprintf("Kubernetes-%d", idx),
+			PodName:  fmt.Sprintf("Kubernetes-%d", idx+1),
 			Created:  util.NowUTC(),
 		}
 		if err := exe.controlPlane.AddController(&k8sPod); err != nil {
@@ -154,4 +158,14 @@ func formatEndpoint(endpoint string) string {
 		after = iofog.ControllerPortString
 	}
 	return before + ":" + after
+}
+
+func validate(controlPlane rsc.ControlPlane) (err error) {
+	// Validate user
+	user := controlPlane.GetUser()
+	if user.Password == "" || user.Email == "" {
+		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty values in email and password fields")
+	}
+
+	return
 }

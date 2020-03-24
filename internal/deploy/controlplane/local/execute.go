@@ -154,7 +154,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Read the input file
-	controlPlane, err := UnmarshallYAML(opt.Yaml)
+	controlPlane, err := rsc.UnmarshallLocalControlPlane(opt.Yaml)
 	if err != nil {
 		return
 	}
@@ -186,4 +186,14 @@ func runExecutors(executors []execute.Executor) error {
 		return util.NewError("Failed to deploy")
 	}
 	return nil
+}
+
+func validate(controlPlane rsc.ControlPlane) (err error) {
+	// Validate user
+	user := controlPlane.GetUser()
+	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
+		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
+	}
+
+	return
 }

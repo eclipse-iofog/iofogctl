@@ -41,10 +41,12 @@ type Options struct {
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
-	// Unmarshall file
-	controller, err := UnmarshallYAML(opt.Yaml)
+	controller, err := rsc.UnmarshallLocalController(opt.Yaml)
 	if err != nil {
 		return
+	}
+	if err := Validate(&controller); err != nil {
+		return nil, err
 	}
 
 	if len(opt.Name) > 0 {
@@ -160,5 +162,12 @@ func (exe *localExecutor) Execute() error {
 	exe.ctrl.Endpoint = endpoint
 	exe.ctrl.Created = util.NowUTC()
 
+	return nil
+}
+
+func Validate(ctrl rsc.Controller) error {
+	if ctrl.GetName() == "" {
+		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
+	}
 	return nil
 }

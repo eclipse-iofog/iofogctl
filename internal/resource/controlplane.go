@@ -25,28 +25,29 @@ type ControlPlane interface {
 	UpdateController(Controller) error
 	AddController(Controller) error
 	DeleteController(string) error
+	Sanitize() error
 }
 
 type LocalControlPlane struct {
-	IofogUser  IofogUser        `yaml:"iofogUser,omitempty"`
+	IofogUser  IofogUser        `yaml:"iofogUser"`
 	Controller *LocalController `yaml:"controller,omitempty"`
 }
 
 type KubernetesControlPlane struct {
+	KubeConfig     string                  `yaml:"config"`
+	IofogUser      IofogUser               `yaml:"iofogUser"`
 	ControllerPods []*KubernetesController `yaml:"controllerPods,omitempty"`
 	Database       Database                `yaml:"database,omitempty"`
-	IofogUser      IofogUser               `yaml:"iofogUser,omitempty"`
-	Endpoint       string                  `yaml:"endpoint,omitempty"`
-	KubeConfig     string                  `yaml:"config,omitempty"`
 	Services       Services                `yaml:"services,omitempty"`
 	Replicas       Replicas                `yaml:"replicas,omitempty"`
 	Images         KubeImages              `yaml:"images,omitempty"`
+	Endpoint       string                  `yaml:"endpoint,omitempty"`
 }
 
 type RemoteControlPlane struct {
+	IofogUser   IofogUser           `yaml:"iofogUser"`
+	Controllers []*RemoteController `yaml:"controllers"`
 	Database    Database            `yaml:"database,omitempty"`
-	IofogUser   IofogUser           `yaml:"iofogUser,omitempty"`
-	Controllers []*RemoteController `yaml:"controllers,omitempty"`
 }
 
 func (cp LocalControlPlane) GetUser() IofogUser {
@@ -85,6 +86,11 @@ func (cp *LocalControlPlane) AddController(baseController Controller) error {
 
 func (cp *LocalControlPlane) DeleteController(string) error {
 	cp.Controller = &LocalController{}
+	return nil
+}
+
+func (cp *LocalControlPlane) Sanitize() error {
+	// Nothing to sanitize
 	return nil
 }
 
@@ -149,6 +155,16 @@ func (cp *KubernetesControlPlane) DeleteController(name string) error {
 		}
 	}
 	return util.NewError("Could not find Controller " + name + " when performing deletion")
+}
+
+func (cp *KubernetesControlPlane) Sanitize() (err error) {
+	if cp.KubeConfig, err = util.FormatPath(cp.KubeConfig); err != nil {
+		return
+	}
+	if cp.Replicas.Controller == 0 {
+		cp.Replicas.Controller = 1
+	}
+	return
 }
 
 func (cp RemoteControlPlane) GetUser() IofogUser {
@@ -216,4 +232,13 @@ func (cp *RemoteControlPlane) DeleteController(name string) error {
 		}
 	}
 	return util.NewError("Could not find Controller " + name + " when performing deletion")
+}
+
+func (cp *RemoteControlPlane) Sanitize() (err error) {
+	for idx := range cp.Controllers {
+		if err = cp.Controllers[idx].Sanitize(); err != nil {
+			return
+		}
+	}
+	return nil
 }

@@ -15,6 +15,8 @@ package resource
 
 import (
 	"fmt"
+
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Controller interface {
@@ -22,6 +24,7 @@ type Controller interface {
 	GetEndpoint() string
 	GetCreatedTime() string
 	SetName(string)
+	Sanitize() error
 }
 
 type LocalController struct {
@@ -64,6 +67,10 @@ func (ctrl *LocalController) SetName(name string) {
 	ctrl.Name = name
 }
 
+func (ctrl *LocalController) Sanitize() error {
+	return nil
+}
+
 func (ctrl KubernetesController) GetName() string {
 	return ctrl.PodName
 }
@@ -80,6 +87,10 @@ func (ctrl *KubernetesController) SetName(name string) {
 	ctrl.PodName = name
 }
 
+func (ctrl *KubernetesController) Sanitize() error {
+	return nil
+}
+
 func (ctrl RemoteController) GetName() string {
 	return ctrl.Name
 }
@@ -94,4 +105,16 @@ func (ctrl RemoteController) GetCreatedTime() string {
 
 func (ctrl *RemoteController) SetName(name string) {
 	ctrl.Name = name
+}
+
+func (ctrl *RemoteController) Sanitize() (err error) {
+	// Fix SSH port
+	if ctrl.Host != "" && ctrl.SSH.Port == 0 {
+		ctrl.SSH.Port = 22
+	}
+	// Format file paths
+	if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
+		return
+	}
+	return
 }

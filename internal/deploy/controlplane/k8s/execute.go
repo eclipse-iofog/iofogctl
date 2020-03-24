@@ -93,9 +93,12 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Read the input file
-	controlPlane, err := UnmarshallYAML(opt.Yaml)
+	controlPlane, err := rsc.UnmarshallKubernetesControlPlane(opt.Yaml)
 	if err != nil {
 		return
+	}
+	if err := validate(&controlPlane); err != nil {
+		return nil, err
 	}
 
 	return newControlPlaneExecutor(opt.Namespace, opt.Name, &controlPlane), nil
@@ -136,7 +139,7 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	// Create controller pods for config
 	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
 		if err := exe.controlPlane.AddController(&rsc.KubernetesController{
-			PodName:  fmt.Sprintf("kubernetes-%d", idx), // TODO: use actual pod name
+			PodName:  fmt.Sprintf("kubernetes-%d", idx+1), // TODO: use actual pod name
 			Created:  util.NowUTC(),
 			Endpoint: endpoint,
 		}); err != nil {
@@ -147,5 +150,21 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	// Assign control plane endpoint
 	exe.controlPlane.Endpoint = endpoint
 
+	return
+}
+
+func validate(controlPlane *rsc.KubernetesControlPlane) (err error) {
+	// Validate user
+	user := controlPlane.GetUser()
+	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
+		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
+	}
+	// Validate database
+	db := controlPlane.Database
+	if db.Host != "" || db.DatabaseName != "" || db.Password != "" || db.Port != 0 || db.User != "" {
+		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
+			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
+		}
+	}
 	return
 }

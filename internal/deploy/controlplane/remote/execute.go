@@ -165,7 +165,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Read the input file
-	controlPlane, err := UnmarshallYAML(opt.Yaml)
+	controlPlane, err := rsc.UnmarshallRemoteControlPlane(opt.Yaml)
 	if err != nil {
 		return
 	}
@@ -197,4 +197,31 @@ func runExecutors(executors []execute.Executor) error {
 		return util.NewError("Failed to deploy")
 	}
 	return nil
+}
+
+func validate(controlPlane *rsc.RemoteControlPlane) (err error) {
+	// Validate user
+	user := controlPlane.IofogUser
+	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
+		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
+	}
+	// Validate database
+	db := controlPlane.Database
+	if db.Host != "" || db.DatabaseName != "" || db.Password != "" || db.Port != 0 || db.User != "" {
+		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
+			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
+		}
+	}
+	// Validate Controllers
+	controllers := controlPlane.GetControllers()
+	if len(controllers) == 0 {
+		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
+	}
+	for _, ctrl := range controllers {
+		if err = deployremotecontroller.Validate(ctrl); err != nil {
+			return
+		}
+	}
+
+	return
 }

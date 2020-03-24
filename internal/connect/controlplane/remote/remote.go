@@ -16,6 +16,7 @@ package connectremotecontrolplane
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -46,8 +47,12 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 
 func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
 	// Read the input file
-	controlPlane, err := unmarshallYAML(yaml)
+	controlPlane, err := rsc.UnmarshallRemoteControlPlane(yaml)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := validate(&controlPlane); err != nil {
 		return nil, err
 	}
 
@@ -131,4 +136,24 @@ func formatEndpoint(endpoint string) string {
 		after = iofog.ControllerPortString
 	}
 	return before + ":" + after
+}
+
+func validate(controlPlane rsc.ControlPlane) (err error) {
+	// Validate user
+	user := controlPlane.GetUser()
+	if user.Password == "" || user.Email == "" {
+		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty values in email and password fields")
+	}
+	// Validate Controllers
+	if len(controlPlane.GetControllers()) == 0 {
+		err = util.NewInputError("Control Plane must have at least one Controller instance specified.")
+		return
+	}
+	for _, ctrl := range controlPlane.GetControllers() {
+		if err = connectcontroller.Validate(ctrl); err != nil {
+			return
+		}
+	}
+
+	return
 }

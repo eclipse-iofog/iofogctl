@@ -53,7 +53,7 @@ NS="$NAMESPACE"
 #  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
 #  # TODO: Replace this one controller pod name is returned
 #  OLD_NAME="$NAME"
-#  NAME="kubernetes-0"
+#  NAME="kubernetes-1"
 #  checkController
 #  NAME="$OLD_NAME"
 #}

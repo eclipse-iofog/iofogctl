@@ -63,11 +63,18 @@ func (exe executor) Execute() error {
 
 func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) {
 	// Read the input file
-	controller, err := unmarshallYAML(yaml)
+	controller, err := rsc.UnmarshallRemoteController(yaml)
 	if err != nil {
 		return nil, err
 	}
 	controller.Name = name
 
 	return executor{namespace: namespace, controller: &controller}, nil
+}
+
+func Validate(ctrl rsc.Controller) error {
+	if ctrl.GetName() == "" {
+		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
+	}
+	return nil
 }
