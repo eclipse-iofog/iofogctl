@@ -37,11 +37,7 @@ func getController(namespace string) (*rsc.Controller, error) {
 	if err != nil {
 		return nil, err
 	}
-	controlPlane, err := ns.GetControlPlane()
-	if err != nil {
-		return nil, err
-	}
-	controllers := controlPlane.GetControllers()
+	controllers := ns.GetControllers()
 	if len(controllers) == 0 {
 		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
 		return nil, err

@@ -80,9 +80,8 @@ func Execute(opt Options) error {
 			}
 		} else {
 			// Check the namespace is empty
-			controlPlane, err := ns.GetControlPlane()
 			if err == nil {
-				if len(ns.Agents) != 0 || len(controlPlane.GetControllers()) != 0 {
+				if len(ns.Agents) != 0 || len(ns.GetControllers()) != 0 {
 					return util.NewInputError("You must use an empty or non-existent namespace")
 				}
 			}

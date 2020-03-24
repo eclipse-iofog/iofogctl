@@ -47,11 +47,7 @@ func generateControllerOutput(namespace string) error {
 	if err != nil {
 		return err
 	}
-	controlPlane, err := ns.GetControlPlane()
-	if err != nil {
-		return err
-	}
-	controllers := controlPlane.GetControllers()
+	controllers := ns.GetControllers()
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)

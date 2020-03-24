@@ -35,12 +35,11 @@ func newViewCommand() *cobra.Command {
 			util.Check(err)
 			ns, err := config.GetNamespace(namespace)
 			util.Check(err)
-			controlPlane, err := ns.GetControlPlane()
-			if err != nil || len(controlPlane.GetControllers()) == 0 {
+			if len(ns.GetControllers()) == 0 {
 				util.PrintError("You must deploy a Control Plane to a namespace to see an ECN Viewer")
 				os.Exit(1)
 			}
-			ctrl := controlPlane.GetControllers()[0]
+			ctrl := ns.GetControllers()[0]
 			url := util.Before(ctrl.GetEndpoint(), ":")
 			if !strings.HasPrefix(url, "http") {
 				url = "http://" + url

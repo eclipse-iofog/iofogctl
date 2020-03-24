@@ -82,11 +82,7 @@ func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor
 	if err != nil {
 		return nil, err
 	}
-	controlPlane, err := ns.GetControlPlane()
-	if err != nil {
-		return nil, err
-	}
-	for _, controller := range controlPlane.GetControllers() {
+	for _, controller := range ns.GetControllers() {
 		opt := exe.opt
 		opt.Name = controller.GetName()
 		executors = append(executors, newControllerExecutor(opt))
