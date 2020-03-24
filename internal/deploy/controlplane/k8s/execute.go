@@ -69,6 +69,7 @@ func (exe kubernetesControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 	// Update config
+	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
 	return config.Flush()
 }
 
@@ -127,18 +128,24 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 		return
 	}
 
+	// Get service endpoint
+	endpoint, err := installer.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
+	// Create controller pods for config
 	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
 		if err := exe.controlPlane.AddController(&rsc.KubernetesController{
-			PodName: fmt.Sprintf("kubernetes-%d", idx), // TODO: use actual pod name
-			Created: util.NowUTC(),
+			PodName:  fmt.Sprintf("kubernetes-%d", idx), // TODO: use actual pod name
+			Created:  util.NowUTC(),
+			Endpoint: endpoint,
 		}); err != nil {
 			return err
 		}
 	}
-	// Update controller (its a pointer, this is returned to caller)
-	if exe.controlPlane.Endpoint, err = installer.GetControllerEndpoint(); err != nil {
-		return
-	}
+
+	// Assign control plane endpoint
+	exe.controlPlane.Endpoint = endpoint
 
 	return
 }

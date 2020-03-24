@@ -36,6 +36,9 @@ func UnmarshallYAML(file []byte) (controlPlane *rsc.KubernetesControlPlane, err 
 	if controlPlane.KubeConfig, err = util.FormatPath(controlPlane.KubeConfig); err != nil {
 		return
 	}
+	if controlPlane.Replicas.Controller == 0 {
+		controlPlane.Replicas.Controller = 1
+	}
 
 	return
 }

@@ -51,7 +51,11 @@ spec:
     kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+  # TODO: Replace this one controller pod name is returned
+  OLD_NAME="$NAME"
+  NAME="kubernetes-0"
   checkController
+  NAME="$OLD_NAME"
 }
 
 #@test "Get endpoint" {

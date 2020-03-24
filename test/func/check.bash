@@ -4,7 +4,7 @@ function checkController() {
   NS_CHECK=${1:-$NS}
   [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME") ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "ame: $NAME") ]]
 }
 
 function checkControllerNegative() {
