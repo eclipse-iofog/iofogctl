@@ -37,7 +37,11 @@ func (exe *controlPlaneExecutor) GetName() string {
 }
 
 func (exe *controlPlaneExecutor) Execute() error {
-	baseControlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	baseControlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return err
 	}

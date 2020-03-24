@@ -43,10 +43,15 @@ func (exe *controllerExecutor) Execute() error {
 
 func generateControllerOutput(namespace string) error {
 	// Get controller config details
-	controllers, err := config.GetControllers(namespace)
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return err
 	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+	controllers := controlPlane.GetControllers()
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)

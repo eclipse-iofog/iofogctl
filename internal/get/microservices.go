@@ -18,7 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -41,7 +41,7 @@ func newMicroserviceExecutor(namespace string) *microserviceExecutor {
 func (exe *microserviceExecutor) init() (err error) {
 	exe.client, err = internal.NewControllerClient(exe.namespace)
 	if err != nil {
-		if config.IsNoControlPlaneError(err) {
+		if rsc.IsNoControlPlaneError(err) {
 			return nil
 		}
 		return

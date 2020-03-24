@@ -20,18 +20,27 @@ import (
 )
 
 func Execute(namespace, name, newName string) error {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return err
+	}
 	// Check that Controller exists in current namespace
-	ctrl, err := config.GetController(namespace, name)
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+
+	controller, err := controlPlane.GetController(name)
 	if err != nil {
 		return err
 	}
 
 	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
-	ctrl.SetName(newName)
-	if err = config.UpdateController(namespace, ctrl); err != nil {
+	controller.SetName(newName)
+	if err = controlPlane.AddController(controller); err != nil {
 		return err
 	}
-	if err = config.DeleteController(namespace, name); err != nil {
+	if err = controlPlane.DeleteController(name); err != nil {
 		return err
 	}
 	config.Flush()

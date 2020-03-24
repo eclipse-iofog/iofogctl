@@ -138,15 +138,6 @@ type Agent struct {
 	Package   Package   `yaml:"package,omitempty"`
 }
 
-// Namespace contains information for configuring a namespace
-type Namespace struct {
-	Name         string       `yaml:"name,omitempty"`
-	ControlPlane ControlPlane `yaml:"controlPlane,omitempty"`
-	Agents       []Agent      `yaml:"agents,omitempty"`
-	Volumes      []Volume     `yaml:"volumes,omitempty"`
-	Created      string       `yaml:"created,omitempty"`
-}
-
 // NewRandomUser creates a new config user
 func NewRandomUser() IofogUser {
 	return IofogUser{

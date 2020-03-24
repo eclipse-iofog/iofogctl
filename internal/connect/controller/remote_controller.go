@@ -32,12 +32,16 @@ func (exe executor) GetName() string {
 }
 
 func (exe executor) Execute() error {
-	baseControllers, err := config.GetControllers(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return err
 	}
 
-	for _, baseController := range baseControllers {
+	for _, baseController := range controlPlane.GetControllers() {
 		if baseController.GetName() == exe.controller.GetName() {
 			// Update ssh info for Remote Controllers
 			if controller, ok := baseController.(*rsc.RemoteController); ok {
@@ -48,8 +52,7 @@ func (exe executor) Execute() error {
 				controller.SSH.KeyFile = exeController.SSH.KeyFile
 				controller.SSH.Port = exeController.SSH.Port
 				controller.SSH.User = exeController.SSH.User
-				config.UpdateController(exe.namespace, controller)
-				return nil
+				return controlPlane.UpdateController(controller)
 			}
 		}
 	}

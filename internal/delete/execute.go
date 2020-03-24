@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
 	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
-	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalog_item"
+	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalogitem"
 	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
 	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"

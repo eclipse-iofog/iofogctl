@@ -33,8 +33,16 @@ type localExecutor struct {
 }
 
 func getController(namespace string) (*rsc.Controller, error) {
-	controllers, err := config.GetControllers(namespace)
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
+		return nil, err
+	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return nil, err
+	}
+	controllers := controlPlane.GetControllers()
+	if len(controllers) == 0 {
 		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
 		return nil, err
 	}
@@ -69,7 +77,11 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
 	// Get user
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return "", err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return "", err
 	}

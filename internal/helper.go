@@ -27,7 +27,11 @@ var clientByNamespace map[string]*client.Client = make(map[string]*client.Client
 // NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
 func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(namespace)
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return nil, err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return nil, err
 	}

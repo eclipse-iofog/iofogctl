@@ -48,7 +48,11 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 		exe.agent.Name,
 		exe.agent.UUID)
 
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return "", err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +70,11 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 //
 func (exe *remoteExecutor) Execute() (err error) {
 	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil || len(controlPlane.GetControllers()) == 0 {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return

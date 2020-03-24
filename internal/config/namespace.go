@@ -167,7 +167,9 @@ func ClearNamespace(namespace string) error {
 	}
 	mux.Lock()
 	defer mux.Unlock()
-	ns.ControlPlane = nil
+	ns.KubernetesControlPlane = nil
+	ns.RemoteControlPlane = nil
+	ns.LocalControlPlane = nil
 	ns.Agents = []rsc.Agent{}
 	return nil
 }

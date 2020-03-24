@@ -19,8 +19,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// TODO: Unmarshall based on kind?
 func UnmarshallYAML(file []byte) (controlPlane *rsc.KubernetesControlPlane, err error) {
+	controlPlane = &rsc.KubernetesControlPlane{}
 	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())

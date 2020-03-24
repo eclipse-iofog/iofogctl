@@ -45,7 +45,11 @@ func (exe *controllerExecutor) GetName() string {
 
 func (exe *controllerExecutor) Execute() error {
 	// Get config
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return err
 	}
@@ -86,7 +90,7 @@ func (exe *controllerExecutor) Execute() error {
 			controller.SSH.Port = 22
 		}
 		// Save config
-		if err = config.UpdateController(exe.namespace, controller); err != nil {
+		if err = controlPlane.UpdateController(controller); err != nil {
 			return err
 		}
 

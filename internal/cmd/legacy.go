@@ -105,7 +105,9 @@ iofogctl legacy agent NAME status`,
 			switch resource {
 			case "controller":
 				// Get config
-				controlPlane, err := config.GetControlPlane(namespace)
+				ns, err := config.GetNamespace(namespace)
+				util.Check(err)
+				controlPlane, err := ns.GetControlPlane()
 				util.Check(err)
 				baseController, err := controlPlane.GetController(name)
 				util.Check(err)

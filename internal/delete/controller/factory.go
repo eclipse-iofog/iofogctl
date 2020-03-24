@@ -26,7 +26,11 @@ func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 	}
 
 	// Get controller from config
-	baseControlPlane, err := config.GetControlPlane(namespace)
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return nil, err
+	}
+	baseControlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return nil, err
 	}

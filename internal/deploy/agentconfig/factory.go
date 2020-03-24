@@ -112,7 +112,11 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Check we are not about to override Vanilla system agent
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil || len(controlPlane.GetControllers()) == 0 {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return err

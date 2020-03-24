@@ -41,7 +41,11 @@ func (ctrl *remoteControllerExecutor) GetName() string {
 
 func (exe *remoteControllerExecutor) Execute() error {
 	// Get controller config
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return err
 	}

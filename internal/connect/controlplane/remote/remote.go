@@ -90,11 +90,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return err
 	}
 
-	err = config.UpdateControlPlane(exe.namespace, exe.controlPlane)
-	if err != nil {
-		return err
-	}
-
+	// Save result
 	return config.Flush()
 }
 

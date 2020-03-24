@@ -136,9 +136,11 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 	// Update config
-	if err = config.UpdateControlPlane(exe.namespace, exe.controlPlane); err != nil {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
 		return err
 	}
+	ns.SetControlPlane(exe.controlPlane)
 	if err = config.Flush(); err != nil {
 		return err
 	}

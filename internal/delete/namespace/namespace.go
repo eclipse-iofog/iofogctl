@@ -30,10 +30,14 @@ func Execute(name string, force, soft bool) error {
 	if err != nil {
 		return err
 	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
 
 	// Check resources exist
 	hasAgents := len(ns.Agents) > 0
-	hasControllers := len(ns.ControlPlane.GetControllers()) > 0
+	hasControllers := len(controlPlane.GetControllers()) > 0
 
 	// Force must be specified
 	if !force && (hasAgents || hasControllers) {

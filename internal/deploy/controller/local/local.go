@@ -57,7 +57,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Get the Control Plane
-	controlPlane, err := config.GetControlPlane(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
+	if err != nil {
+		return nil, err
+	}
+	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return
 	}

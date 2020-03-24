@@ -21,9 +21,13 @@ import (
 )
 
 func NewExecutor(resourceType, namespace, name string) (execute.Executor, error) {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return nil, err
+	}
 	switch resourceType {
 	case "controller":
-		baseControlPlane, err := config.GetControlPlane(namespace)
+		baseControlPlane, err := ns.GetControlPlane()
 		if err != nil {
 			return nil, util.NewError("Could not get Control Plane for namespace " + namespace)
 		}
@@ -38,7 +42,7 @@ func NewExecutor(resourceType, namespace, name string) (execute.Executor, error)
 	case "agent":
 		return newAgentExecutor(namespace, name), nil
 	case "microservice":
-		controlPlane, err := config.GetControlPlane(namespace)
+		controlPlane, err := ns.GetControlPlane()
 		if err != nil {
 			return nil, util.NewError("Could not get Control Plane for namespace " + namespace)
 		}

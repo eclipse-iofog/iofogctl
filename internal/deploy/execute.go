@@ -22,7 +22,7 @@ import (
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	deployapplication "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/application"
-	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalog_item"
+	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalogitem"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"

@@ -108,10 +108,12 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 			return err
 		}
 	}
-	err = config.UpdateControlPlane(exe.namespace, exe.controlPlane)
+
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
 	}
+	ns.SetControlPlane(exe.controlPlane)
 
 	return config.Flush()
 }

@@ -14,7 +14,6 @@
 package deletecontroller
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 )
@@ -48,7 +47,7 @@ func (exe *kubernetesExecutor) Execute() error {
 	}
 
 	// Update config
-	if err = config.DeleteController(exe.namespace, exe.name); err != nil {
+	if err = exe.controlPlane.DeleteController(exe.name); err != nil {
 		return err
 	}
 

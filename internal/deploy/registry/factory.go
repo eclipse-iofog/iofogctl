@@ -102,11 +102,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
-		return exe, err
+		return
+	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return
 	}
 
 	// Check Controller exists
-	if len(ns.ControlPlane.GetControllers()) == 0 {
+	if len(controlPlane.GetControllers()) == 0 {
 		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 

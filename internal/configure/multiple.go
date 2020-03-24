@@ -78,11 +78,15 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 }
 
 func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	controllers, err := config.GetControllers(exe.opt.Namespace)
+	ns, err := config.GetNamespace(exe.opt.Namespace)
 	if err != nil {
 		return nil, err
 	}
-	for _, controller := range controllers {
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return nil, err
+	}
+	for _, controller := range controlPlane.GetControllers() {
 		opt := exe.opt
 		opt.Name = controller.GetName()
 		executors = append(executors, newControllerExecutor(opt))
