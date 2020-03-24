@@ -16,7 +16,6 @@ package connectremotecontrolplane
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -34,6 +33,7 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 			Email:    email,
 			Password: password,
 		},
+		// TODO: This is wrong, could be a list of controllers in a control plane
 		Controllers: []*rsc.RemoteController{
 			{
 				Name:     name,
@@ -94,8 +94,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-
 	// Save result
+	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
 	return config.Flush()
 }
 
@@ -150,8 +150,8 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 		return
 	}
 	for _, ctrl := range controlPlane.GetControllers() {
-		if err = connectcontroller.Validate(ctrl); err != nil {
-			return
+		if ctrl.GetName() == "" {
+			return util.NewInputError("You must specify a non-empty value for name value of Controllers")
 		}
 	}
 

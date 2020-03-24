@@ -10,7 +10,7 @@ const (
 	AgentConfigKind            Kind = "AgentConfig"
 	CatalogItemKind            Kind = "CatalogItem"
 	IofogctlConfigKind         Kind = "IofogctlConfig"
-	IofogctlNamespaceKind      Kind = "IofogctlNamespace"
+	IofogctlNamespaceKind      Kind = "Namespace"
 	RegistryKind               Kind = "Registry"
 	VolumeKind                 Kind = "Volume"
 	AgentKind                  Kind = "Agent"

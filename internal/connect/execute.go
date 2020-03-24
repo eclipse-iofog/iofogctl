@@ -18,7 +18,6 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
-	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
 	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
 	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
@@ -55,9 +54,6 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	},
 	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
-	},
-	config.KubernetesControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
 }
 
@@ -112,6 +108,7 @@ func Execute(opt Options) error {
 				return err
 			}
 		} else {
+			// TODO: This doesn't make sense, connect to controlplane is passing in a controller name, it should be a list of controller details
 			exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
 			if err != nil {
 				return err

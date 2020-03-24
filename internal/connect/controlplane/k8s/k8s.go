@@ -52,12 +52,7 @@ func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password st
 			Password: password,
 		},
 		KubeConfig: fmtKubeConfig,
-		ControllerPods: []*rsc.KubernetesController{
-			{
-				PodName:  name,
-				Endpoint: formatEndpoint(endpoint),
-			},
-		},
+		Endpoint:   formatEndpoint(endpoint),
 	}
 
 	return newKubernetesExecutor(controlPlane, namespace), nil
@@ -113,12 +108,8 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		}
 	}
 
-	ns, err := config.GetNamespace(exe.namespace)
-	if err != nil {
-		return err
-	}
-	ns.SetControlPlane(exe.controlPlane)
-
+	// Save changes
+	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
 	return config.Flush()
 }
 

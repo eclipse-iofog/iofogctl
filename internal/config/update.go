@@ -17,10 +17,10 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
-func UpdateNamespace(newNamespace *rsc.Namespace) {
+func UpdateNamespace(newNamespace rsc.Namespace) {
 	mux.Lock()
 	defer mux.Unlock()
-	namespaces[newNamespace.Name] = newNamespace
+	namespaces[newNamespace.Name] = &newNamespace
 }
 
 func UpdateControlPlane(namespace string, controlPlane rsc.ControlPlane) {
