@@ -15,6 +15,7 @@ package deletecontroller
 
 import (
 	"fmt"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -58,6 +59,7 @@ func (exe *localExecutor) Execute() error {
 	if err := exe.controlPlane.DeleteController(exe.name); err != nil {
 		return err
 	}
+	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
 
 	return nil
 }

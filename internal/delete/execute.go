@@ -40,8 +40,12 @@ var kindOrder = []config.Kind{
 	config.ApplicationKind,
 	config.RegistryKind,
 	config.AgentKind,
+	config.KubernetesControllerKind,
 	config.RemoteControllerKind,
+	config.LocalControllerKind,
+	config.KubernetesControlPlaneKind,
 	config.RemoteControlPlaneKind,
+	config.LocalControlPlaneKind,
 	config.VolumeKind,
 }
 
@@ -52,14 +56,26 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	config.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
+	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
+	},
 	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
+	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
+	},
+	config.KubernetesControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
 	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+	},
+	config.LocalControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+	},
+	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)

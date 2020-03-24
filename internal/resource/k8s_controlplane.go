@@ -84,7 +84,7 @@ func (cp *KubernetesControlPlane) AddController(baseController Controller) error
 func (cp *KubernetesControlPlane) DeleteController(name string) error {
 	for idx := range cp.ControllerPods {
 		if cp.ControllerPods[idx].GetName() == name {
-			cp.ControllerPods = append(cp.ControllerPods[:idx-1], cp.ControllerPods[idx+1:]...)
+			cp.ControllerPods = append(cp.ControllerPods[:idx], cp.ControllerPods[idx+1:]...)
 			return nil
 		}
 	}

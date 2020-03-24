@@ -42,19 +42,15 @@ func (exe *kubernetesExecutor) GetName() string {
 }
 
 func NewManualExecutor(namespace, name, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
-	fmtKubeConfig, err := util.FormatPath(kubeConfig)
-	if err != nil {
-		return nil, err
-	}
 	controlPlane := &rsc.KubernetesControlPlane{
 		IofogUser: rsc.IofogUser{
 			Email:    email,
 			Password: password,
 		},
-		KubeConfig: fmtKubeConfig,
+		KubeConfig: kubeConfig,
 		Endpoint:   formatEndpoint(endpoint),
 	}
-
+	controlPlane.Sanitize()
 	return newKubernetesExecutor(controlPlane, namespace), nil
 }
 
@@ -96,17 +92,10 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		return err
 	}
 
-	// TODO: Get Kubernetes pods
-	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
-		k8sPod := rsc.KubernetesController{
-			Endpoint: endpoint,
-			PodName:  fmt.Sprintf("Kubernetes-%d", idx+1),
-			Created:  util.NowUTC(),
-		}
-		if err := exe.controlPlane.AddController(&k8sPod); err != nil {
-			return err
-		}
+	if err := addPods(exe.controlPlane, endpoint); err != nil {
+		return err
 	}
+	exe.controlPlane.Endpoint = endpoint
 
 	// Save changes
 	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
@@ -159,4 +148,19 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 	}
 
 	return
+}
+
+func addPods(controlPlane *rsc.KubernetesControlPlane, endpoint string) error {
+	// TODO: Get Kubernetes pods
+	for idx := int32(0); idx < controlPlane.Replicas.Controller; idx++ {
+		k8sPod := rsc.KubernetesController{
+			Endpoint: endpoint,
+			PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
+			Created:  util.NowUTC(),
+		}
+		if err := controlPlane.AddController(&k8sPod); err != nil {
+			return err
+		}
+	}
+	return nil
 }

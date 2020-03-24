@@ -34,6 +34,12 @@ func (ns *Namespace) SetControlPlane(baseControlPlane ControlPlane) {
 	}
 }
 
+func (ns *Namespace) DeleteControlPlane() {
+	ns.KubernetesControlPlane = nil
+	ns.RemoteControlPlane = nil
+	ns.LocalControlPlane = nil
+}
+
 func (ns *Namespace) GetControllers() []Controller {
 	if ns.KubernetesControlPlane != nil {
 		return ns.KubernetesControlPlane.GetControllers()

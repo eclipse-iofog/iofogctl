@@ -51,11 +51,7 @@ spec:
     kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  # TODO: Replace this one controller pod name is returned
-  OLD_NAME="$NAME"
-  NAME="kubernetes-1"
-  checkController
-  NAME="$OLD_NAME"
+  checkControllerK8s
 }
 
 @test "Get endpoint" {
@@ -84,52 +80,51 @@ spec:
 } 
 
 # LOAD: test/bats/common-k8s.bats
-#
-#@test "Delete Agents" {
-#  initAgents
-#  for IDX in "${!AGENTS[@]}"; do
-#    local AGENT_NAME="${NAME}-${IDX}"
-#    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
-#  done
-#  checkAgentsNegative
-#}
-#
-#@test "Deploy Controller for idempotence" {
-#  echo "---
-#apiVersion: iofog.org/v2
-#kind: ControlPlane
-#metadata:
-#  name: func-controlplane
-#spec:
-#  iofogUser:
-#    name: Testing
-#    surname: Functional
-#    email: $USER_EMAIL
-#    password: $USER_PW
-#  controllers:
-#  - name: $NAME
-#  kube:
-#    config: $KUBE_CONFIG
-#    images:
-#      controller: $CONTROLLER_IMAGE
-#      operator: $OPERATOR_IMAGE
-#      portManager: $PORT_MANAGER
-#      proxy: $PROXY_IMAGE
-#      router: $ROUTER_IMAGE
-#      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
-#
-#  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-#  checkController
-#}
-#
-#@test "Delete all" {
-#  iofogctl -v -n "$NS" delete all
-#  checkControllerNegative
-#  checkAgentsNegative
-#}
-#
-#@test "Delete namespace" {
-#  iofogctl delete namespace "$NS"
-#  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
-#}
-#
+
+@test "Delete Agents" {
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+  done
+  checkAgentsNegative
+}
+
+@test "Deploy Controller for idempotence" {
+  echo "---
+apiVersion: iofog.org/v2
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $USER_PW
+  controllers:
+  - name: $NAME
+  kube:
+    config: $KUBE_CONFIG
+    images:
+      controller: $CONTROLLER_IMAGE
+      operator: $OPERATOR_IMAGE
+      portManager: $PORT_MANAGER
+      proxy: $PROXY_IMAGE
+      router: $ROUTER_IMAGE
+      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+
+  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+  checkControllerK8s
+}
+
+@test "Delete all" {
+  iofogctl -v -n "$NS" delete all
+  checkControllerNegativeK8s
+  checkAgentsNegative
+}
+
+@test "Delete namespace" {
+  iofogctl delete namespace "$NS"
+  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+}

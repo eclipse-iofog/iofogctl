@@ -36,7 +36,6 @@ func newConfigureCommand() *cobra.Command {
 Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
 		Example: `iofogctl configure default-namespace NAME
 iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controller NAME --kube KUBECONFIG
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
 iofogctl configure all --user USER --key KEYFILE --port PORTNUM
