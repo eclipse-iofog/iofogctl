@@ -52,7 +52,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Validate
-	if err = Validate(controller); err != nil {
+	if err = Validate(&controller); err != nil {
 		return
 	}
 
@@ -66,7 +66,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	return NewExecutorWithoutParsing(opt.Namespace, controlPlane, controller)
+	return NewExecutorWithoutParsing(opt.Namespace, controlPlane, &controller)
 }
 
 func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, controller *rsc.LocalController) (exe execute.Executor, err error) {

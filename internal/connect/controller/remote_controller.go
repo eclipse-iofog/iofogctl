@@ -69,5 +69,5 @@ func NewExecutor(namespace, name string, yaml []byte) (execute.Executor, error) 
 	}
 	controller.Name = name
 
-	return executor{namespace: namespace, controller: controller}, nil
+	return executor{namespace: namespace, controller: &controller}, nil
 }

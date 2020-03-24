@@ -19,9 +19,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (controller *rsc.RemoteController, err error) {
+func UnmarshallYAML(file []byte) (controller rsc.RemoteController, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, controller); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controller); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
@@ -35,7 +35,7 @@ func UnmarshallYAML(file []byte) (controller *rsc.RemoteController, err error) {
 		controller.SSH.Port = 22
 	}
 
-	err = Validate(controller)
+	err = Validate(&controller)
 
 	return
 }

@@ -168,14 +168,14 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		if !ok {
 			return nil, util.NewError("Could not convert Controller to Local Controller")
 		}
-		exe, err := deploylocalcontroller.NewExecutorWithoutParsing(opt.Namespace, controlPlane, controller)
+		exe, err := deploylocalcontroller.NewExecutorWithoutParsing(opt.Namespace, &controlPlane, controller)
 		if err != nil {
 			return nil, err
 		}
 		controllerExecutors = append(controllerExecutors, exe)
 	}
 
-	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, controlPlane), nil
+	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, &controlPlane), nil
 }
 
 func runExecutors(executors []execute.Executor) error {

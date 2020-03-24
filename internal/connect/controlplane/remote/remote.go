@@ -60,7 +60,7 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		// TODO: Create SetEndpoint member func
 		controller.Endpoint = formatEndpoint(controlPlane.Controllers[0].Host)
 	}
-	return newRemoteExecutor(controlPlane, namespace), nil
+	return newRemoteExecutor(&controlPlane, namespace), nil
 }
 
 func newRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace string) *remoteExecutor {

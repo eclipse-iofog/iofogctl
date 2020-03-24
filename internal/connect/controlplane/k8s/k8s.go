@@ -70,7 +70,7 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		return nil, err
 	}
 
-	return newKubernetesExecutor(controlPlane, namespace), nil
+	return newKubernetesExecutor(&controlPlane, namespace), nil
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {

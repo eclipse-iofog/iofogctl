@@ -19,14 +19,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (controller *rsc.LocalController, err error) {
+func UnmarshallYAML(file []byte) (controller rsc.LocalController, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, controller); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controller); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
-	err = Validate(controller)
+	err = Validate(&controller)
 	return
 }
 

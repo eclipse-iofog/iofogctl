@@ -21,9 +21,9 @@ import (
 )
 
 // TODO: Unmarshall based on kind?
-func UnmarshallYAML(file []byte) (controlPlane *rsc.RemoteControlPlane, err error) {
+func UnmarshallYAML(file []byte) (controlPlane rsc.RemoteControlPlane, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
@@ -34,7 +34,7 @@ func UnmarshallYAML(file []byte) (controlPlane *rsc.RemoteControlPlane, err erro
 	}
 
 	// Validate inputs
-	if err = validate(controlPlane); err != nil {
+	if err = validate(&controlPlane); err != nil {
 		return
 	}
 

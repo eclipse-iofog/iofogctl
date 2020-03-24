@@ -19,20 +19,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// TODO: unmarshall based on kind
-func unmarshallYAML(file []byte) (ctrl *rsc.RemoteController, err error) {
+func unmarshallYAML(file []byte) (controller rsc.RemoteController, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, ctrl); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controller); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
 	// Fix SSH port
-	if ctrl.Host != "" && ctrl.SSH.Port == 0 {
-		ctrl.SSH.Port = 22
+	if controller.Host != "" && controller.SSH.Port == 0 {
+		controller.SSH.Port = 22
 	}
 	// Format file paths
-	if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
+	if controller.SSH.KeyFile, err = util.FormatPath(controller.SSH.KeyFile); err != nil {
 		return
 	}
 

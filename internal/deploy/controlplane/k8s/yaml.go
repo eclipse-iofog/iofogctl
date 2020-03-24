@@ -19,16 +19,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func UnmarshallYAML(file []byte) (controlPlane *rsc.KubernetesControlPlane, err error) {
-	controlPlane = &rsc.KubernetesControlPlane{}
+func UnmarshallYAML(file []byte) (controlPlane rsc.KubernetesControlPlane, err error) {
 	// Unmarshall the input file
-	if err = yaml.UnmarshalStrict(file, controlPlane); err != nil {
+	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
 	// Validate inputs
-	if err = validate(controlPlane); err != nil {
+	if err = validate(&controlPlane); err != nil {
 		return
 	}
 

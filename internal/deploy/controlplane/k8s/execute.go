@@ -98,7 +98,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	return newControlPlaneExecutor(opt.Namespace, opt.Name, controlPlane), nil
+	return newControlPlaneExecutor(opt.Namespace, opt.Name, &controlPlane), nil
 }
 
 func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
