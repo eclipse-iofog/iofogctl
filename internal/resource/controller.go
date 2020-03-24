@@ -13,108 +13,10 @@
 
 package resource
 
-import (
-	"fmt"
-
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
-)
-
 type Controller interface {
 	GetName() string
 	GetEndpoint() string
 	GetCreatedTime() string
 	SetName(string)
 	Sanitize() error
-}
-
-type LocalController struct {
-	Name      string    `yaml:"name"`
-	Endpoint  string    `yaml:"endpoint"`
-	Container Container `yaml:"container"`
-	Created   string    `yaml:"created,omitempty"`
-}
-
-type KubernetesController struct {
-	PodName  string `yaml:"podName"`
-	Endpoint string `yaml:"endpoint"`
-	Created  string `yaml:"created,omitempty"`
-}
-
-type RemoteController struct {
-	Name        string  `yaml:"name"`
-	Host        string  `yaml:"host"`
-	Port        int32   `yaml:"port"`
-	SSH         SSH     `yaml:"ssh,omitempty"`
-	Endpoint    string  `yaml:"endpoint,omitempty"`
-	Created     string  `yaml:"created,omitempty"`
-	Package     Package `yaml:"package,omitempty"`
-	SystemAgent Package `yaml:"systemAgent,omitempty"`
-}
-
-func (ctrl LocalController) GetName() string {
-	return ctrl.Name
-}
-
-func (ctrl LocalController) GetEndpoint() string {
-	return ctrl.Endpoint
-}
-
-func (ctrl LocalController) GetCreatedTime() string {
-	return ctrl.Created
-}
-
-func (ctrl *LocalController) SetName(name string) {
-	ctrl.Name = name
-}
-
-func (ctrl *LocalController) Sanitize() error {
-	return nil
-}
-
-func (ctrl KubernetesController) GetName() string {
-	return ctrl.PodName
-}
-
-func (ctrl KubernetesController) GetEndpoint() string {
-	return ctrl.Endpoint
-}
-
-func (ctrl KubernetesController) GetCreatedTime() string {
-	return ctrl.Created
-}
-
-func (ctrl *KubernetesController) SetName(name string) {
-	ctrl.PodName = name
-}
-
-func (ctrl *KubernetesController) Sanitize() error {
-	return nil
-}
-
-func (ctrl RemoteController) GetName() string {
-	return ctrl.Name
-}
-
-func (ctrl RemoteController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
-}
-
-func (ctrl RemoteController) GetCreatedTime() string {
-	return ctrl.Created
-}
-
-func (ctrl *RemoteController) SetName(name string) {
-	ctrl.Name = name
-}
-
-func (ctrl *RemoteController) Sanitize() (err error) {
-	// Fix SSH port
-	if ctrl.Host != "" && ctrl.SSH.Port == 0 {
-		ctrl.SSH.Port = 22
-	}
-	// Format file paths
-	if ctrl.SSH.KeyFile, err = util.FormatPath(ctrl.SSH.KeyFile); err != nil {
-		return
-	}
-	return
 }
