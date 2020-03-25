@@ -16,6 +16,7 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -25,10 +26,10 @@ type controlPlaneExecutor struct {
 }
 
 func newControlPlaneExecutor(namespace, filename string) *controlPlaneExecutor {
-	c := &controlPlaneExecutor{}
-	c.namespace = namespace
-	c.filename = filename
-	return c
+	return &controlPlaneExecutor{
+		namespace: namespace,
+		filename:  filename,
+	}
 }
 
 func (exe *controlPlaneExecutor) GetName() string {
@@ -36,29 +37,48 @@ func (exe *controlPlaneExecutor) GetName() string {
 }
 
 func (exe *controlPlaneExecutor) Execute() error {
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	baseControlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return err
 	}
 
-	header := config.Header{
+	// Generate header
+	var header config.Header
+	switch controlPlane := baseControlPlane.(type) {
+	case *rsc.KubernetesControlPlane:
+		header = exe.generateControlPlaneHeader(config.KubernetesControlPlaneKind, controlPlane)
+	case *rsc.RemoteControlPlane:
+		header = exe.generateControlPlaneHeader(config.RemoteControlPlaneKind, controlPlane)
+	case *rsc.LocalControlPlane:
+		header = exe.generateControlPlaneHeader(config.LocalControlPlaneKind, controlPlane)
+	default:
+		return util.NewInternalError("Could not convert Control Plane to dynamic type")
+	}
+
+	if exe.filename == "" {
+		if err := util.Print(header); err != nil {
+			return err
+		}
+	} else {
+		if err := util.FPrint(header, exe.filename); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (exe *controlPlaneExecutor) generateControlPlaneHeader(kind config.Kind, controlPlane rsc.ControlPlane) config.Header {
+	return config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.ControlPlaneKind,
+		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      "controlPlane",
 		},
 		Spec: controlPlane,
 	}
-
-	if exe.filename == "" {
-		if err = util.Print(header); err != nil {
-			return err
-		}
-	} else {
-		if err = util.FPrint(header, exe.filename); err != nil {
-			return err
-		}
-	}
-	return nil
 }

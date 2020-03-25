@@ -19,6 +19,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -90,7 +91,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		return err
 	}
 
-	fogType, found := config.FogTypeIntMap[getAgentResponse.FogType]
+	fogType, found := rsc.FogTypeIntMap[getAgentResponse.FogType]
 	if !found {
 		fogType = "auto"
 	}
@@ -118,7 +119,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		networkRouterPtr = &networkRouter
 	}
 
-	agentConfig := config.AgentConfiguration{
+	agentConfig := rsc.AgentConfiguration{
 		Name:        getAgentResponse.Name,
 		Location:    getAgentResponse.Location,
 		Latitude:    getAgentResponse.Latitude,

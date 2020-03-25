@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -26,14 +27,18 @@ import (
 type localExecutor struct {
 	isSystem         bool
 	namespace        string
-	agent            *config.Agent
+	agent            *rsc.Agent
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
 
-func getController(namespace string) (*config.Controller, error) {
-	controllers, err := config.GetControllers(namespace)
+func getController(namespace string) (*rsc.Controller, error) {
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
+		return nil, err
+	}
+	controllers := ns.GetControllers()
+	if len(controllers) == 0 {
 		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
 		return nil, err
 	}
@@ -43,7 +48,7 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer, isSystem bool) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent *rsc.Agent, client *install.LocalContainer, isSystem bool) (*localExecutor, error) {
 	// Get Controller LocalContainerConfig
 	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	return &localExecutor{
@@ -67,20 +72,22 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
 	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
-	// Get Controller details
-	controller, err := getController(exe.namespace)
+	// Get user
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return "", err
 	}
-
-	// Get user
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return "", err
+	}
+	endpoint, err := controlPlane.GetEndpoint()
 	if err != nil {
 		return "", err
 	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(controller.Endpoint, install.IofogUser(controlPlane.IofogUser))
+	return agent.Configure(endpoint, install.IofogUser(controlPlane.GetUser()))
 }
 
 func (exe *localExecutor) GetName() string {

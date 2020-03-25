@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
 
+function checkControllerK8s {
+  # TODO: Replace this one controller pod name is returned
+  OLD_NAME="$NAME"
+  NAME="$1"
+  checkController
+  NAME="$OLD_NAME"
+}
+
+function checkControllerNegativeK8s {
+  # TODO: Replace this one controller pod name is returned
+  OLD_NAME="$NAME"
+  NAME="$1"
+  checkControllerNegative
+  NAME="$OLD_NAME"
+}
+
 function checkController() {
   NS_CHECK=${1:-$NS}
   [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME") ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "name: $NAME") ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "ame: $NAME") ]]
 }
 
 function checkControllerNegative() {

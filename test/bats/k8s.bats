@@ -32,7 +32,7 @@ NS="$NAMESPACE"
 @test "Deploy Control Plane" {
   echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: KubernetesControlPlane
 metadata:
   name: func-controlplane
 spec:
@@ -41,20 +41,17 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-  kube:
-    config: $KUBE_CONFIG
-    images:
-      controller: $CONTROLLER_IMAGE
-      operator: $OPERATOR_IMAGE
-      portManager: $PORT_MANAGER_IMAGE
-      proxy: $PROXY_IMAGE
-      router: $ROUTER_IMAGE
-      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  config: $KUBE_CONFIG
+  images:
+    controller: $CONTROLLER_IMAGE
+    operator: $OPERATOR_IMAGE
+    portManager: $PORT_MANAGER_IMAGE
+    proxy: $PROXY_IMAGE
+    router: $ROUTER_IMAGE
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  checkController
+  checkControllerK8s "${K8S_POD}1"
 }
 
 @test "Get endpoint" {
@@ -64,7 +61,7 @@ spec:
 }
 
 @test "Get Controller logs on K8s after deploy" {
-  iofogctl -v -n "$NS" logs controller "$NAME"
+  iofogctl -v -n "$NS" logs controller "$NAME" | grep "api/v3"
 }
 
 @test "Deploy Agents" {
@@ -78,9 +75,9 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     # Wait for router microservice
-    waitForSystemMsvc "quay.io/interconnectedcloud/qdrouterd:latest" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
+    waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
-}
+} 
 
 # LOAD: test/bats/common-k8s.bats
 
@@ -96,7 +93,7 @@ spec:
 @test "Deploy Controller for idempotence" {
   echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: KubernetesControlPlane
 metadata:
   name: func-controlplane
 spec:
@@ -105,25 +102,22 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-  kube:
-    config: $KUBE_CONFIG
-    images:
-      controller: $CONTROLLER_IMAGE
-      operator: $OPERATOR_IMAGE
-      portManager: $PORT_MANAGER
-      proxy: $PROXY_IMAGE
-      router: $ROUTER_IMAGE
-      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  config: $KUBE_CONFIG
+  images:
+    controller: $CONTROLLER_IMAGE
+    operator: $OPERATOR_IMAGE
+    portManager: $PORT_MANAGER
+    proxy: $PROXY_IMAGE
+    router: $ROUTER_IMAGE
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  checkController
+  checkControllerK8s "${K8S_POD}1"
 }
 
 @test "Delete all" {
   iofogctl -v -n "$NS" delete all
-  checkControllerNegative
+  checkControllerNegativeK8s "${K8S_POD}1"
   checkAgentsNegative
 }
 

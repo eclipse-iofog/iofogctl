@@ -42,28 +42,28 @@
 @test "Disconnect from cluster" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
+  checkControllerNegativeK8s "${K8S_POD}1"
   checkAgentsNegative
 }
 
 @test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
-  checkController
+  checkControllerK8s "${K8S_POD}1"
   checkAgents
 }
 
 @test "Disconnect from cluster again" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
+  checkControllerNegativeK8s "${K8S_POD}1"
   checkAgentsNegative
 }
 
 @test "Connect to cluster using flags" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect --name "$NAME" --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkController
+  checkControllerK8s "${K8S_POD}1"
   checkAgents
 }
 
@@ -169,13 +169,6 @@
   initAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
-}
-
-@test "Configure Controller" {
-  for resource in controller; do
-    iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube "$KUBE_CONFIG"
-  done
-  iofogctl -v -n "$NS" logs controller "$NAME"
 }
 
 @test "Configure Agents" {

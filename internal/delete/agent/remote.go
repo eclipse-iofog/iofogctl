@@ -16,12 +16,12 @@ package deleteagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func (exe executor) deleteRemoteAgent(agent config.Agent) (err error) {
+func (exe executor) deleteRemoteAgent(agent rsc.Agent) (err error) {
 	// Stop and remove the Agent process on remote server
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")

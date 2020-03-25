@@ -16,6 +16,7 @@ package configure
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 type multipleExecutor struct {
@@ -57,7 +58,7 @@ func (exe *multipleExecutor) Execute() (err error) {
 }
 
 func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	var agents []config.Agent
+	var agents []rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
 		agents, err = config.GetDetachedAgents()
@@ -77,13 +78,13 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 }
 
 func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	controllers, err := config.GetControllers(exe.opt.Namespace)
+	ns, err := config.GetNamespace(exe.opt.Namespace)
 	if err != nil {
 		return nil, err
 	}
-	for _, controller := range controllers {
+	for _, controller := range ns.GetControllers() {
 		opt := exe.opt
-		opt.Name = controller.Name
+		opt.Name = controller.GetName()
 		executors = append(executors, newControllerExecutor(opt))
 	}
 

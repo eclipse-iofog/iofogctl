@@ -67,8 +67,12 @@ func Execute(namespace string, useDetached, soft bool) error {
 	}
 
 	if !useDetached {
+		controlPlane, err := ns.GetControlPlane()
+		if err != nil {
+			return err
+		}
 		// Delete routes
-		if len(ns.ControlPlane.Controllers) > 0 {
+		if len(controlPlane.GetControllers()) > 0 {
 			// Get list of microservices from backend
 			clt, err := internal.NewControllerClient(namespace)
 			if err != nil {
@@ -95,8 +99,8 @@ func Execute(namespace string, useDetached, soft bool) error {
 
 	if !useDetached {
 		// Delete Controllers
-		util.SpinStart("Deleting ControlPlane")
-		exe, err := deletecontrolplane.NewExecutor(namespace, "controlplane", soft)
+		util.SpinStart("Deleting Control Plane")
+		exe, err := deletecontrolplane.NewExecutor(namespace, soft)
 		if err != nil {
 			return err
 		}
