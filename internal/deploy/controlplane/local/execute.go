@@ -37,7 +37,7 @@ type Options struct {
 type localControlPlaneExecutor struct {
 	ctrlClient          *client.Client
 	controllerExecutors []execute.Executor
-	controlPlane        rsc.ControlPlane
+	controlPlane        *rsc.LocalControlPlane
 	namespace           string
 	name                string
 }
@@ -101,10 +101,12 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 	}
 
 	// Make sure Controller API is ready
-	endpoint, err := exe.controlPlane.GetEndpoint()
+	controller, err := exe.controlPlane.GetController("")
 	if err != nil {
-		return
+		return err
 	}
+	endpoint := controller.GetEndpoint()
+
 	if err = install.WaitForControllerAPI(endpoint); err != nil {
 		return err
 	}
@@ -137,7 +139,7 @@ func (exe localControlPlaneExecutor) GetName() string {
 	return exe.name
 }
 
-func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
+func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane *rsc.LocalControlPlane) execute.Executor {
 	return localControlPlaneExecutor{
 		controllerExecutors: executors,
 		namespace:           namespace,

@@ -18,8 +18,8 @@ import (
 )
 
 type LocalControlPlane struct {
-	IofogUser  IofogUser        `yaml:"iofogUser"`
-	Controller *LocalController `yaml:"controller,omitempty"`
+	IofogUser  IofogUser       `yaml:"iofogUser"`
+	Controller LocalController `yaml:"controller,omitempty"`
 }
 
 func (cp LocalControlPlane) GetUser() IofogUser {
@@ -27,11 +27,11 @@ func (cp LocalControlPlane) GetUser() IofogUser {
 }
 
 func (cp LocalControlPlane) GetControllers() []Controller {
-	return []Controller{cp.Controller}
+	return []Controller{&cp.Controller}
 }
 
 func (cp LocalControlPlane) GetController(name string) (Controller, error) {
-	return cp.Controller, nil
+	return &cp.Controller, nil
 }
 
 func (cp LocalControlPlane) GetEndpoint() (string, error) {
@@ -43,7 +43,7 @@ func (cp *LocalControlPlane) UpdateController(baseController Controller) error {
 	if !ok {
 		return util.NewError("Could not convert Controller to Local Controller")
 	}
-	cp.Controller = controller
+	cp.Controller = *controller
 	return nil
 }
 
@@ -52,12 +52,12 @@ func (cp *LocalControlPlane) AddController(baseController Controller) error {
 	if !ok {
 		return util.NewError("Could not convert Controller to Local Controller")
 	}
-	cp.Controller = controller
+	cp.Controller = *controller
 	return nil
 }
 
 func (cp *LocalControlPlane) DeleteController(string) error {
-	cp.Controller = &LocalController{}
+	cp.Controller = LocalController{}
 	return nil
 }
 

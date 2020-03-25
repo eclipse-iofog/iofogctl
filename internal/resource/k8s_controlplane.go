@@ -18,14 +18,14 @@ import (
 )
 
 type KubernetesControlPlane struct {
-	KubeConfig     string                  `yaml:"config"`
-	IofogUser      IofogUser               `yaml:"iofogUser"`
-	ControllerPods []*KubernetesController `yaml:"controllerPods,omitempty"`
-	Database       Database                `yaml:"database,omitempty"`
-	Services       Services                `yaml:"services,omitempty"`
-	Replicas       Replicas                `yaml:"replicas,omitempty"`
-	Images         KubeImages              `yaml:"images,omitempty"`
-	Endpoint       string                  `yaml:"endpoint,omitempty"`
+	KubeConfig     string                 `yaml:"config"`
+	IofogUser      IofogUser              `yaml:"iofogUser"`
+	ControllerPods []KubernetesController `yaml:"controllerPods,omitempty"`
+	Database       Database               `yaml:"database,omitempty"`
+	Services       Services               `yaml:"services,omitempty"`
+	Replicas       Replicas               `yaml:"replicas,omitempty"`
+	Images         KubeImages             `yaml:"images,omitempty"`
+	Endpoint       string                 `yaml:"endpoint,omitempty"`
 }
 
 func (cp KubernetesControlPlane) GetUser() IofogUser {
@@ -34,7 +34,7 @@ func (cp KubernetesControlPlane) GetUser() IofogUser {
 
 func (cp KubernetesControlPlane) GetControllers() (controllers []Controller) {
 	for _, controller := range cp.ControllerPods {
-		controllers = append(controllers, controller)
+		controllers = append(controllers, &controller)
 	}
 	return
 }
@@ -42,7 +42,7 @@ func (cp KubernetesControlPlane) GetControllers() (controllers []Controller) {
 func (cp KubernetesControlPlane) GetController(name string) (ret Controller, err error) {
 	for _, ctrl := range cp.ControllerPods {
 		if ctrl.GetName() == name {
-			ret = ctrl
+			ret = &ctrl
 			return
 		}
 	}
@@ -61,11 +61,11 @@ func (cp *KubernetesControlPlane) UpdateController(baseController Controller) er
 	}
 	for idx := range cp.ControllerPods {
 		if cp.ControllerPods[idx].GetName() == controller.GetName() {
-			cp.ControllerPods[idx] = controller
+			cp.ControllerPods[idx] = *controller
 			return nil
 		}
 	}
-	cp.ControllerPods = append(cp.ControllerPods, controller)
+	cp.ControllerPods = append(cp.ControllerPods, *controller)
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (cp *KubernetesControlPlane) AddController(baseController Controller) error
 	if !ok {
 		return util.NewError("Must add Kubernetes Controller to Kubernetes Control Plane")
 	}
-	cp.ControllerPods = append(cp.ControllerPods, controller)
+	cp.ControllerPods = append(cp.ControllerPods, *controller)
 	return nil
 }
 

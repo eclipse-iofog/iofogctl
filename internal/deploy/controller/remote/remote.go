@@ -118,13 +118,12 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err = deployer.Install(); err != nil {
 		return
 	}
-	// Update controller (its a pointer, this is returned to caller)
+	// Update controller
 	exe.controller.Endpoint, err = util.GetControllerEndpoint(exe.controller.Host)
 	if err != nil {
 		return err
 	}
-
-	return
+	return exe.controlPlane.UpdateController(exe.controller)
 }
 
 func Validate(ctrl rsc.Controller) error {

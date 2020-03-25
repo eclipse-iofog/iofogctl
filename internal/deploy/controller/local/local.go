@@ -28,6 +28,7 @@ import (
 type localExecutor struct {
 	namespace             string
 	ctrl                  *rsc.LocalController
+	ctrlPlane             rsc.ControlPlane
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalContainerConfig
 	containersNames       []string
@@ -85,6 +86,7 @@ func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, 
 	return newExecutor(namespace, controlPlane, controller, cli)
 }
 
+// TODO: Rewrite this pkg, don't need ctrl coming in here
 func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.LocalController, client *install.LocalContainer) (*localExecutor, error) {
 	return &localExecutor{
 		namespace: namespace,
@@ -95,6 +97,7 @@ func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.Loca
 			Password: ctrl.Container.Credentials.Password,
 		}),
 		iofogUser: controlPlane.GetUser(),
+		ctrlPlane: controlPlane,
 	}, nil
 }
 
@@ -161,8 +164,8 @@ func (exe *localExecutor) Execute() error {
 
 	exe.ctrl.Endpoint = endpoint
 	exe.ctrl.Created = util.NowUTC()
+	return exe.ctrlPlane.UpdateController(exe.ctrl)
 
-	return nil
 }
 
 func Validate(ctrl rsc.Controller) error {

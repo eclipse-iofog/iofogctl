@@ -18,9 +18,9 @@ import (
 )
 
 type RemoteControlPlane struct {
-	IofogUser   IofogUser           `yaml:"iofogUser"`
-	Controllers []*RemoteController `yaml:"controllers"`
-	Database    Database            `yaml:"database,omitempty"`
+	IofogUser   IofogUser          `yaml:"iofogUser"`
+	Controllers []RemoteController `yaml:"controllers"`
+	Database    Database           `yaml:"database,omitempty"`
 }
 
 func (cp RemoteControlPlane) GetUser() IofogUser {
@@ -29,7 +29,7 @@ func (cp RemoteControlPlane) GetUser() IofogUser {
 
 func (cp RemoteControlPlane) GetControllers() (controllers []Controller) {
 	for _, controller := range cp.Controllers {
-		controllers = append(controllers, controller)
+		controllers = append(controllers, &controller)
 	}
 	return
 }
@@ -37,7 +37,7 @@ func (cp RemoteControlPlane) GetControllers() (controllers []Controller) {
 func (cp RemoteControlPlane) GetController(name string) (ret Controller, err error) {
 	for _, ctrl := range cp.Controllers {
 		if ctrl.GetName() == name {
-			ret = ctrl
+			ret = &ctrl
 			return
 		}
 	}
@@ -47,9 +47,14 @@ func (cp RemoteControlPlane) GetController(name string) (ret Controller, err err
 
 func (cp RemoteControlPlane) GetEndpoint() (string, error) {
 	if len(cp.Controllers) == 0 {
-		return "", util.NewError("Control Plane does not have any Controllers")
+		return "", util.NewInternalError("Control Plane does not have any Controllers")
 	}
-	return cp.GetControllers()[0].GetEndpoint(), nil
+	for idx := range cp.Controllers {
+		if cp.Controllers[idx].Endpoint != "" {
+			return cp.Controllers[idx].Endpoint, nil
+		}
+	}
+	return "", util.NewInternalError("No Controllers in Remote Control Plane had an endpoint available")
 }
 
 func (cp *RemoteControlPlane) UpdateController(baseController Controller) error {
@@ -59,11 +64,11 @@ func (cp *RemoteControlPlane) UpdateController(baseController Controller) error 
 	}
 	for idx := range cp.Controllers {
 		if cp.Controllers[idx].GetName() == controller.GetName() {
-			cp.Controllers[idx] = controller
+			cp.Controllers[idx] = *controller
 			return nil
 		}
 	}
-	cp.Controllers = append(cp.Controllers, controller)
+	cp.Controllers = append(cp.Controllers, *controller)
 	return nil
 }
 
@@ -76,7 +81,7 @@ func (cp *RemoteControlPlane) AddController(baseController Controller) error {
 		return util.NewError("Must add Remote Controller to Remote Control Plane")
 	}
 
-	cp.Controllers = append(cp.Controllers, controller)
+	cp.Controllers = append(cp.Controllers, *controller)
 	return nil
 }
 
