@@ -411,7 +411,7 @@ func (lc *LocalContainer) GetLocalControllerEndpoint() (controllerEndpoint strin
 	if err != nil {
 		return controllerEndpoint, err
 	}
-	controllerEndpoint = fmt.Sprintf("%s:%s", host, iofog.ControllerPortString)
+	controllerEndpoint = fmt.Sprintf("http://%s:%s", host, iofog.ControllerPortString)
 	return
 }
 
