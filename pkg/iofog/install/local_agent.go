@@ -40,17 +40,21 @@ func (agent *LocalAgent) Bootstrap() error {
 }
 
 func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
-	controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
-	if err != nil {
-		return "", err
+	provisioningEndpoint := controllerEndpoint
+	if controllerEndpoint == "" || util.IsLocalHost(controllerEndpoint) {
+		controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
+		provisioningEndpoint = "localhost"
+		if err != nil {
+			return "", err
+		}
 	}
-	key, uuid, err := agent.getProvisionKey("localhost", user)
+	key, uuid, err := agent.getProvisionKey(provisioningEndpoint, user)
 	if err != nil {
 		return "", err
 	}
 
 	// Instantiate provisioning commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
+	controllerBaseURL := fmt.Sprintf("%s/api/v3", controllerEndpoint)
 	cmds := [][]string{
 		{"iofog-agent", "config", "-idc", "off"},
 		{"iofog-agent", "config", "-a", controllerBaseURL},
