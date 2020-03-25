@@ -135,6 +135,8 @@ func DeleteNamespace(name string) error {
 		return util.NewNotFoundError("Could not delete namespace file " + filename)
 	}
 
+	mux.Lock()
+	defer mux.Unlock()
 	delete(namespaces, name)
 
 	return nil
@@ -142,7 +144,6 @@ func DeleteNamespace(name string) error {
 
 // RenameNamespace renames a namespace
 func RenameNamespace(name, newName string) error {
-
 	if name == conf.DefaultNamespace {
 		util.PrintError("Cannot rename default namespaces, please choose a different namespace to rename")
 		return util.NewInputError("Cannot find valid namespace with name: " + name)
@@ -173,4 +174,16 @@ func ClearNamespace(namespace string) error {
 	ns.Agents = []rsc.Agent{}
 	ns.Volumes = []rsc.Volume{}
 	return nil
+}
+
+func UpdateNamespace(newNamespace rsc.Namespace) {
+	mux.Lock()
+	defer mux.Unlock()
+	namespaces[newNamespace.Name] = &newNamespace
+}
+
+func UpdateControlPlane(namespace string, controlPlane rsc.ControlPlane) {
+	mux.Lock()
+	defer mux.Unlock()
+	namespaces[namespace].SetControlPlane(controlPlane)
 }

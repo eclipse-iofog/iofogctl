@@ -174,8 +174,15 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err erro
 		}
 	case configV1:
 		{
-			err = util.NewError("TODO: Allow YAML upgrades")
-			return
+			msg := `An older YAML version has been detected in Namespace %s.
+  You will only be able to view this Namespace from your current version of iofogctl.
+  Redeploy the corresponding ECN with your current version of iofogctl to gain full control.`
+			util.PrintNotify(fmt.Sprintf(msg, header.Metadata.Name))
+			headerV2, err := updateNamespaceToV2(header)
+			if err != nil {
+				return n, err
+			}
+			return getNamespaceFromHeader(headerV2)
 		}
 	// Example for further maintenance
 	// case PreviousConfigVersion {
@@ -331,4 +338,113 @@ func updateConfigToK8sStyle() error {
 
 	util.PrintInfo(fmt.Sprintf("Your config file has successfully been updated, the previous config file has been saved under %s", configSaveFileName))
 	return nil
+}
+
+func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
+	header.APIVersion = configV2
+	bytes, err := yaml.Marshal(header.Spec)
+	nsV1 := configv1.Namespace{}
+	if err != nil {
+		return header, err
+	}
+	if err = yaml.UnmarshalStrict(bytes, &nsV1); err != nil {
+		return header, err
+	}
+
+	// Namespace
+	ns := rsc.Namespace{
+		Name:    nsV1.Name,
+		Created: nsV1.Created,
+	}
+
+	// Agents
+	for _, agentV1 := range nsV1.Agents {
+		agent := rsc.Agent{
+			Name:    agentV1.Name,
+			Host:    agentV1.Host,
+			SSH:     rsc.SSH(agentV1.SSH),
+			UUID:    agentV1.UUID,
+			Created: agentV1.Created,
+			Package: rsc.Package(agentV1.Package),
+			Container: rsc.Container{
+				Image:       agentV1.Container.Image,
+				Credentials: rsc.Credentials(agentV1.Container.Credentials),
+			},
+		}
+		ns.Agents = append(ns.Agents, agent)
+	}
+
+	// Finish
+	if len(nsV1.ControlPlane.Controllers) == 0 {
+		header.Spec = ns
+		return header, nil
+	}
+
+	// Control Plane
+	for idx, ctrlV1 := range nsV1.ControlPlane.Controllers {
+		// K8s control plane
+		if ctrlV1.Kube.Config != "" {
+			if ns.KubernetesControlPlane == nil {
+				ns.KubernetesControlPlane = &rsc.KubernetesControlPlane{
+					KubeConfig: ctrlV1.Kube.Config,
+					Services: rsc.Services{
+						Controller: rsc.Service{
+							Type: ctrlV1.Kube.ServiceType,
+							IP:   ctrlV1.Kube.StaticIP,
+						},
+					},
+					Replicas: rsc.Replicas{
+						Controller: int32(ctrlV1.Kube.Replicas),
+					},
+					Images: rsc.KubeImages{
+						Controller: ctrlV1.Container.Image,
+						Operator:   ctrlV1.Kube.Images.Operator,
+						Kubelet:    ctrlV1.Kube.Images.Kubelet,
+					},
+					Endpoint: ctrlV1.Endpoint,
+				}
+				pod := rsc.KubernetesController{
+					PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
+					Endpoint: ctrlV1.Endpoint,
+					Created:  ctrlV1.Created,
+				}
+				ns.KubernetesControlPlane.ControllerPods = append(ns.KubernetesControlPlane.ControllerPods, pod)
+			}
+		}
+		// Local Control Plane
+		if util.IsLocalHost(ctrlV1.Host) {
+			ns.LocalControlPlane = &rsc.LocalControlPlane{
+				Controller: rsc.LocalController{
+					Name:     ctrlV1.Name,
+					Endpoint: ctrlV1.Endpoint,
+					Created:  ctrlV1.Created,
+					Container: rsc.Container{
+						Image:       ctrlV1.Container.Image,
+						Credentials: rsc.Credentials(ctrlV1.Container.Credentials),
+					},
+				},
+			}
+			header.Spec = ns
+			return header, nil
+		}
+
+		// Remote Control Plane
+		if ctrlV1.Host != "" {
+			if ns.RemoteControlPlane == nil {
+				ns.RemoteControlPlane = new(rsc.RemoteControlPlane)
+			}
+			ctrl := rsc.RemoteController{
+				Name:     ctrlV1.Name,
+				Host:     ctrlV1.Host,
+				SSH:      rsc.SSH(ctrlV1.SSH),
+				Endpoint: ctrlV1.Endpoint,
+				Created:  ctrlV1.Created,
+				Package:  rsc.Package(ctrlV1.Package),
+			}
+			ns.RemoteControlPlane.Controllers = append(ns.RemoteControlPlane.Controllers, ctrl)
+		}
+	}
+
+	header.Spec = ns
+	return header, nil
 }
