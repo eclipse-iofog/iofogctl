@@ -64,11 +64,12 @@ spec:
     kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  checkController
+  checkControllerK8s "${K8S_POD}1"
+  checkControllerK8s "${K8S_POD}2"
 }
 
 @test "Get endpoint" {
-  CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | sed "s|.*endpoint: ||")
+  CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | head -n 1 | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
 }
@@ -132,7 +133,8 @@ spec:
 
 @test "Delete all" {
   iofogctl -v -n "$NS" delete all
-  checkControllerNegative
+  checkControllerNegativeK8s "${K8S_POD}1"
+  checkControllerNegativeK8s "${K8S_POD}2"
   checkAgentsNegative
 }
 

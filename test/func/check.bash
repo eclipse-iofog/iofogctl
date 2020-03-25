@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-function checkControllerK8s() {
+function checkControllerK8s {
   # TODO: Replace this one controller pod name is returned
   OLD_NAME="$NAME"
-  NAME="${K8S_POD}1"
+  NAME="$1"
   checkController
   NAME="$OLD_NAME"
 }
 
-function checkControllerNegativeK8s() {
+function checkControllerNegativeK8s {
   # TODO: Replace this one controller pod name is returned
   OLD_NAME="$NAME"
-  NAME="${K8S_POD}1"
+  NAME="$1"
   checkControllerNegative
   NAME="$OLD_NAME"
 }

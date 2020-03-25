@@ -42,7 +42,7 @@
 @test "Disconnect from cluster" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegativeK8s
+  checkControllerNegativeK8s "${K8S_POD}1"
   checkAgentsNegative
 }
 
@@ -56,7 +56,7 @@
 @test "Disconnect from cluster again" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegativeK8s
+  checkControllerNegativeK8s "${K8S_POD}1"
   checkAgentsNegative
 }
 
