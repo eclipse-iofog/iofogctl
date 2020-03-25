@@ -381,68 +381,73 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 	}
 
 	// Control Plane
-	for idx, ctrlV1 := range nsV1.ControlPlane.Controllers {
-		// K8s control plane
-		if ctrlV1.Kube.Config != "" {
+	controllerV1 := nsV1.ControlPlane.Controllers[0]
+
+	// Local Control Plane
+	if util.IsLocalHost(controllerV1.Host) {
+		ns.LocalControlPlane = &rsc.LocalControlPlane{
+			Controller: rsc.LocalController{
+				Name:     controllerV1.Name,
+				Endpoint: controllerV1.Endpoint,
+				Created:  controllerV1.Created,
+				Container: rsc.Container{
+					Image:       controllerV1.Container.Image,
+					Credentials: rsc.Credentials(controllerV1.Container.Credentials),
+				},
+			},
+		}
+		header.Spec = ns
+		return header, nil
+	}
+
+	// K8s control plane
+	if controllerV1.Kube.Config != "" {
+		for idx, controllerV1 := range nsV1.ControlPlane.Controllers {
 			if ns.KubernetesControlPlane == nil {
 				ns.KubernetesControlPlane = &rsc.KubernetesControlPlane{
-					KubeConfig: ctrlV1.Kube.Config,
+					KubeConfig: controllerV1.Kube.Config,
 					Services: rsc.Services{
 						Controller: rsc.Service{
-							Type: ctrlV1.Kube.ServiceType,
-							IP:   ctrlV1.Kube.StaticIP,
+							Type: controllerV1.Kube.ServiceType,
+							IP:   controllerV1.Kube.StaticIP,
 						},
 					},
 					Replicas: rsc.Replicas{
-						Controller: int32(ctrlV1.Kube.Replicas),
+						Controller: int32(controllerV1.Kube.Replicas),
 					},
 					Images: rsc.KubeImages{
-						Controller: ctrlV1.Container.Image,
-						Operator:   ctrlV1.Kube.Images.Operator,
-						Kubelet:    ctrlV1.Kube.Images.Kubelet,
+						Controller: controllerV1.Container.Image,
+						Operator:   controllerV1.Kube.Images.Operator,
+						Kubelet:    controllerV1.Kube.Images.Kubelet,
 					},
-					Endpoint: ctrlV1.Endpoint,
+					Endpoint: controllerV1.Endpoint,
 				}
 				pod := rsc.KubernetesController{
 					PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
-					Endpoint: ctrlV1.Endpoint,
-					Created:  ctrlV1.Created,
+					Endpoint: controllerV1.Endpoint,
+					Created:  controllerV1.Created,
 				}
 				ns.KubernetesControlPlane.ControllerPods = append(ns.KubernetesControlPlane.ControllerPods, pod)
 			}
 		}
-		// Local Control Plane
-		if util.IsLocalHost(ctrlV1.Host) {
-			ns.LocalControlPlane = &rsc.LocalControlPlane{
-				Controller: rsc.LocalController{
-					Name:     ctrlV1.Name,
-					Endpoint: ctrlV1.Endpoint,
-					Created:  ctrlV1.Created,
-					Container: rsc.Container{
-						Image:       ctrlV1.Container.Image,
-						Credentials: rsc.Credentials(ctrlV1.Container.Credentials),
-					},
-				},
-			}
-			header.Spec = ns
-			return header, nil
-		}
+		header.Spec = ns
+		return header, nil
+	}
 
-		// Remote Control Plane
-		if ctrlV1.Host != "" {
-			if ns.RemoteControlPlane == nil {
-				ns.RemoteControlPlane = new(rsc.RemoteControlPlane)
-			}
-			ctrl := rsc.RemoteController{
-				Name:     ctrlV1.Name,
-				Host:     ctrlV1.Host,
-				SSH:      rsc.SSH(ctrlV1.SSH),
-				Endpoint: ctrlV1.Endpoint,
-				Created:  ctrlV1.Created,
-				Package:  rsc.Package(ctrlV1.Package),
-			}
-			ns.RemoteControlPlane.Controllers = append(ns.RemoteControlPlane.Controllers, ctrl)
+	// Remote Control Plane
+	for _, controllerV1 := range nsV1.ControlPlane.Controllers {
+		if ns.RemoteControlPlane == nil {
+			ns.RemoteControlPlane = new(rsc.RemoteControlPlane)
 		}
+		ctrl := rsc.RemoteController{
+			Name:     controllerV1.Name,
+			Host:     controllerV1.Host,
+			SSH:      rsc.SSH(controllerV1.SSH),
+			Endpoint: controllerV1.Endpoint,
+			Created:  controllerV1.Created,
+			Package:  rsc.Package(controllerV1.Package),
+		}
+		ns.RemoteControlPlane.Controllers = append(ns.RemoteControlPlane.Controllers, ctrl)
 	}
 
 	header.Spec = ns
