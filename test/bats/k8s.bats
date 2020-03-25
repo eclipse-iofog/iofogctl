@@ -93,7 +93,7 @@ spec:
 @test "Deploy Controller for idempotence" {
   echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: KubernetesControlPlane
 metadata:
   name: func-controlplane
 spec:
@@ -102,17 +102,14 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-  kube:
-    config: $KUBE_CONFIG
-    images:
-      controller: $CONTROLLER_IMAGE
-      operator: $OPERATOR_IMAGE
-      portManager: $PORT_MANAGER
-      proxy: $PROXY_IMAGE
-      router: $ROUTER_IMAGE
-      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  config: $KUBE_CONFIG
+  images:
+    controller: $CONTROLLER_IMAGE
+    operator: $OPERATOR_IMAGE
+    portManager: $PORT_MANAGER
+    proxy: $PROXY_IMAGE
+    router: $ROUTER_IMAGE
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s

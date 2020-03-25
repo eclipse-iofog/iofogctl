@@ -37,12 +37,10 @@ func Execute(namespace, name, newName string) error {
 
 	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
 	controller.SetName(newName)
-	if err = controlPlane.AddController(controller); err != nil {
+	if err = controlPlane.UpdateController(controller); err != nil {
 		return err
 	}
-	if err = controlPlane.DeleteController(name); err != nil {
-		return err
-	}
+	config.UpdateControlPlane(namespace, controlPlane)
 	config.Flush()
 	return nil
 }

@@ -11,24 +11,23 @@
  *
  */
 
-package deletecontrolplane
+package deletek8scontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Executor struct {
 	namespace string
-	name      string
 }
 
-func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
+func NewExecutor(namespace string, soft bool) (execute.Executor, error) {
 	exe := &Executor{
 		namespace: namespace,
-		name:      name,
 	}
 	if soft {
 		return nil, util.NewInputError("Cannot soft delete a ControlPlane")
@@ -38,7 +37,7 @@ func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 
 // GetName returns application name
 func (exe *Executor) GetName() string {
-	return exe.name
+	return "Delete Control Plane"
 }
 
 // Execute deletes application by deleting its associated flow
@@ -48,21 +47,25 @@ func (exe *Executor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	controlPlane, err := ns.GetControlPlane()
+	baseControlPlane, err := ns.GetControlPlane()
 	if err != nil {
 		return err
 	}
 
-	var executors []execute.Executor
-	for _, controller := range controlPlane.GetControllers() {
-		exe, err := deletecontroller.NewExecutor(exe.namespace, controller.GetName(), false)
-		if err != nil {
-			return err
-		}
-		executors = append(executors, exe)
+	controlPlane, ok := baseControlPlane.(*rsc.KubernetesControlPlane)
+	if !ok {
+		return util.NewError("Could not convert Control Plane to Kubernetes Control Plane")
 	}
 
-	if err = runExecutors(executors); err != nil {
+	// Instantiate Kubernetes object
+	k8s, err := install.NewKubernetes(controlPlane.KubeConfig, exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	// Delete Controller on cluster
+	err = k8s.DeleteController()
+	if err != nil {
 		return err
 	}
 
@@ -71,14 +74,4 @@ func (exe *Executor) Execute() (err error) {
 	config.UpdateNamespace(ns)
 
 	return config.Flush()
-}
-
-func runExecutors(executors []execute.Executor) error {
-	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
-		}
-		return util.NewError("Failed to delete")
-	}
-	return nil
 }

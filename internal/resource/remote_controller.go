@@ -14,15 +14,12 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type RemoteController struct {
 	Name        string  `yaml:"name"`
 	Host        string  `yaml:"host"`
-	Port        int32   `yaml:"port"`
 	SSH         SSH     `yaml:"ssh,omitempty"`
 	Endpoint    string  `yaml:"endpoint,omitempty"`
 	Created     string  `yaml:"created,omitempty"`
@@ -35,7 +32,7 @@ func (ctrl RemoteController) GetName() string {
 }
 
 func (ctrl RemoteController) GetEndpoint() string {
-	return fmt.Sprintf("%s:%d", ctrl.Host, ctrl.Port)
+	return ctrl.Endpoint
 }
 
 func (ctrl RemoteController) GetCreatedTime() string {

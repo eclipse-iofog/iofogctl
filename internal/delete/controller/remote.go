@@ -29,7 +29,7 @@ type remoteExecutor struct {
 	name         string
 }
 
-func newRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *remoteExecutor {
+func NewRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *remoteExecutor {
 	return &remoteExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,

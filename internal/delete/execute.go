@@ -21,7 +21,9 @@ import (
 	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
 	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalogitem"
 	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
-	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
+	deletek8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/k8s"
+	deletelocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/local"
+	deleteremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/remote"
 	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
 	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
 	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
@@ -40,7 +42,6 @@ var kindOrder = []config.Kind{
 	config.ApplicationKind,
 	config.RegistryKind,
 	config.AgentKind,
-	config.KubernetesControllerKind,
 	config.RemoteControllerKind,
 	config.LocalControllerKind,
 	config.KubernetesControlPlaneKind,
@@ -57,16 +58,13 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
+		return deletek8scontrolplane.NewExecutor(opt.Namespace, false)
 	},
 	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
+		return deleteremotecontrolplane.NewExecutor(opt.Namespace, false)
 	},
 	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
-	},
-	config.KubernetesControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+		return deletelocalcontrolplane.NewExecutor(opt.Namespace, false)
 	},
 	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)

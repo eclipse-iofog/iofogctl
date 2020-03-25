@@ -99,8 +99,8 @@ func Execute(namespace string, useDetached, soft bool) error {
 
 	if !useDetached {
 		// Delete Controllers
-		util.SpinStart("Deleting ControlPlane")
-		exe, err := deletecontrolplane.NewExecutor(namespace, "controlplane", soft)
+		util.SpinStart("Deleting Control Plane")
+		exe, err := deletecontrolplane.NewExecutor(namespace, soft)
 		if err != nil {
 			return err
 		}

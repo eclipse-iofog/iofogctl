@@ -88,7 +88,7 @@ func (cp *RemoteControlPlane) AddController(baseController Controller) error {
 func (cp *RemoteControlPlane) DeleteController(name string) error {
 	for idx := range cp.Controllers {
 		if cp.Controllers[idx].GetName() == name {
-			cp.Controllers = append(cp.Controllers[:idx-1], cp.Controllers[idx+1:]...)
+			cp.Controllers = append(cp.Controllers[:idx], cp.Controllers[idx+1:]...)
 			return nil
 		}
 	}

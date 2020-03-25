@@ -30,7 +30,7 @@ type localExecutor struct {
 	localControllerConfig *install.LocalContainerConfig
 }
 
-func newLocalExecutor(controlPlane *rsc.LocalControlPlane, namespace, name string) *localExecutor {
+func NewLocalExecutor(controlPlane *rsc.LocalControlPlane, namespace, name string) *localExecutor {
 	exe := &localExecutor{
 		controlPlane:          controlPlane,
 		namespace:             namespace,

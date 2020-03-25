@@ -36,11 +36,11 @@ func NewExecutor(namespace, name string, soft bool) (execute.Executor, error) {
 	}
 	switch controlPlane := baseControlPlane.(type) {
 	case *rsc.KubernetesControlPlane:
-		return newKubernetesExecutor(controlPlane, namespace, name), nil
+		return nil, util.NewInputError("Cannot delete Kubernetes Controller, delete the Control Plane instead.")
 	case *rsc.RemoteControlPlane:
-		return newRemoteExecutor(controlPlane, namespace, name), nil
+		return NewRemoteExecutor(controlPlane, namespace, name), nil
 	case *rsc.LocalControlPlane:
-		return newLocalExecutor(controlPlane, namespace, name), nil
+		return NewLocalExecutor(controlPlane, namespace, name), nil
 	}
 
 	return nil, util.NewInternalError("Could not determine what kind of Control Plane is in Namespace " + namespace)

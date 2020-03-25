@@ -62,9 +62,12 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		if !ok {
 			return nil, util.NewError("Could not convert Controller to Remote Controller")
 		}
-		// TODO: Create SetEndpoint member func
 		controller.Endpoint = formatEndpoint(controlPlane.Controllers[0].Host)
+		if err := controlPlane.UpdateController(controller); err != nil {
+			return nil, err
+		}
 	}
+
 	return newRemoteExecutor(&controlPlane, namespace), nil
 }
 

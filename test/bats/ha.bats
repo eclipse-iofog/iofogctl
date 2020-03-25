@@ -36,7 +36,7 @@ NS="$NAMESPACE"
 @test "Deploy Control Plane" {
   echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: KubernetesControlPlane
 metadata:
   name: ha-controlplane
 spec:
@@ -52,19 +52,16 @@ spec:
     surname: Functional
     email: $USER_EMAIL
     password: $USER_PW
-  controllers:
-  - name: $NAME
-  kube:
-    config: $KUBE_CONFIG
-    replicas:
-      controller: 2
-    images:
-      controller: $CONTROLLER_IMAGE
-      operator: $OPERATOR_IMAGE
-      portManager: $PORT_MANAGER_IMAGE
-      proxy: $PROXY_IMAGE
-      router: $ROUTER_IMAGE
-      kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+  config: $KUBE_CONFIG
+  replicas:
+    controller: 2
+  images:
+    controller: $CONTROLLER_IMAGE
+    operator: $OPERATOR_IMAGE
+    portManager: $PORT_MANAGER_IMAGE
+    proxy: $PROXY_IMAGE
+    router: $ROUTER_IMAGE
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkController
@@ -118,7 +115,7 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     # Wait for router microservice
-    waitForSystemMsvc "quay.io/interconnectedcloud/qdrouterd:latest" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
+    waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
 }
 
