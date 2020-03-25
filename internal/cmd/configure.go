@@ -24,7 +24,7 @@ import (
 
 func newConfigureCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"controller", "agent", "all", "agents", "controllers", "default-namespace"}
+	var validResources = []string{"controlplane", "agent", "all", "agents", "default-namespace"}
 	// Instantiate options
 	var opt configure.Options
 
@@ -35,11 +35,11 @@ func newConfigureCommand() *cobra.Command {
 
 Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
 		Example: `iofogctl configure default-namespace NAME
-iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controlplane NAME --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controlplane NAME --kube-config KUBECONFIGFILE
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
 iofogctl configure all --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port PORTNUM
 iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 ` + fmt.Sprintf("\nValid resources are: %s\n", strings.Join(validResources, ", ")),
 		Args: cobra.RangeArgs(1, 2),
@@ -52,7 +52,7 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			if len(args) > 1 {
 				opt.Name = args[1]
 			} else {
-				if opt.ResourceType != "all" && opt.ResourceType != "controllers" && opt.ResourceType != "agents" {
+				if opt.ResourceType != "all" && opt.ResourceType != "agents" {
 					util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
 				}
 			}
@@ -79,7 +79,7 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 	cmd.Flags().StringVar(&opt.Host, "host", "", "Hostname of remote host")
 	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host")
 	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key")
-	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Path to Kubernetes configuration file")
+	cmd.Flags().StringVar(&opt.KubeConfig, "kube-config", "", "Path to Kubernetes configuration file")
 	cmd.Flags().IntVar(&opt.Port, "port", 0, "Port number that iofogctl uses to SSH into remote hosts")
 
 	return cmd

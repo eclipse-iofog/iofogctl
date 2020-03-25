@@ -31,17 +31,16 @@ type Options struct {
 }
 
 var multipleResources = map[string]bool{
-	"all":         true,
-	"controllers": true,
-	"agents":      true,
+	"all":    true,
+	"agents": true,
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {
 	switch opt.ResourceType {
 	case "default-namespace":
 		return newDefaultNamespaceExecutor(opt), nil
-	case "controller":
-		return newControllerExecutor(opt), nil
+	case "controlplane":
+		return newControlPlaneExecutor(opt), nil
 	case "agent":
 		return newAgentExecutor(opt), nil
 	default:

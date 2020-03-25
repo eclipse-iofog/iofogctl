@@ -64,6 +64,13 @@ spec:
   iofogctl -v -n "$NS" logs controller "$NAME" | grep "api/v3"
 }
 
+@test "Configure kube config file" {
+  local NEWKUBEFILE = "/tmp/new-kube.config"
+  iofogctl -v -n "$NS" configure controlplane --kube-config "$NEWKUBEFILE"
+  [[ "$NEWKUBEFILE" == $(iofogctl -v -n "$NS" describe controlplane | grep "config:" | awk '{print $2}') ]]
+  iofogctl -v -n "$NS" configure controlplane --kube-config "$KUBE_CONFIG"
+}
+
 @test "Deploy Agents" {
   initAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml

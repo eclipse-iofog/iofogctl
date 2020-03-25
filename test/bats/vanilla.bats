@@ -233,7 +233,7 @@ spec:
 
 @test "Configure Controller and Connector" {
   initVanillaController
-  for resource in controller; do
+  for resource in controlplane; do
     iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
   done
   iofogctl -v -n "$NS2" logs controller "$NAME"
