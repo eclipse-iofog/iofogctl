@@ -70,7 +70,7 @@ spec:
 }
 
 @test "Deploy Agents against vanilla Controller" {
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   # Wait for router microservice
@@ -294,7 +294,7 @@ spec:
 @test "Deploy again to check it doesn't lose database" {
   iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   checkApplication

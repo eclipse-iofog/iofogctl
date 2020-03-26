@@ -61,7 +61,7 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 	var agents []rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
-		agents, err = config.GetDetachedAgents()
+		agents = config.GetDetachedAgents()
 	} else {
 		agents, err = config.GetAgents(exe.opt.Namespace)
 	}
@@ -70,7 +70,7 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 	}
 	for _, agent := range agents {
 		opt := exe.opt
-		opt.Name = agent.Name
+		opt.Name = agent.GetName()
 		executors = append(executors, newAgentExecutor(opt))
 	}
 

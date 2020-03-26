@@ -47,7 +47,7 @@ type remoteControlPlaneExecutor struct {
 func deploySystemAgent(namespace string, ctrl *rsc.RemoteController) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
-	agent := rsc.Agent{
+	agent := rsc.RemoteAgent{
 		Name:    iofog.VanillaRouterAgentName,
 		Host:    ctrl.Host,
 		SSH:     ctrl.SSH,
@@ -81,7 +81,7 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController) (err error)
 	}
 	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
 	if !util.IsLocalHost(ctrl.Host) {
-		agentDeployExecutor, err := deployagent.NewDeployExecutor(namespace, &agent, true)
+		agentDeployExecutor, err := deployagent.NewRemoteExecutor(namespace, &agent, true)
 		if err != nil {
 			return err
 		}

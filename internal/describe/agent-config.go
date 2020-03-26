@@ -82,7 +82,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		agentMapByUUID[agent.UUID] = agent
 	}
 
-	getAgentResponse, err := ctrl.GetAgentByID(agent.UUID)
+	getAgentResponse, err := ctrl.GetAgentByID(agent.GetUUID())
 	if err != nil {
 		// The agents might not be provisioned with Controller
 		if strings.Contains(err.Error(), "NotFoundError") {

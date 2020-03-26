@@ -166,7 +166,7 @@
 }
 
 @test "Deploy Agents for idempotence" {
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
 }

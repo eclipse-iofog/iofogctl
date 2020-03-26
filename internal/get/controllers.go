@@ -37,11 +37,10 @@ func (exe *controllerExecutor) GetName() string {
 }
 
 func (exe *controllerExecutor) Execute() error {
-	printNamespace(exe.namespace)
-	return generateControllerOutput(exe.namespace)
+	return generateControllerOutput(exe.namespace, true)
 }
 
-func generateControllerOutput(namespace string) error {
+func generateControllerOutput(namespace string, printNS bool) error {
 	// Get controller config details
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -88,6 +87,9 @@ func generateControllerOutput(namespace string) error {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
+	if printNS {
+		printNamespace(namespace)
+	}
 	// Print table
 	err = print(table)
 	if err != nil {

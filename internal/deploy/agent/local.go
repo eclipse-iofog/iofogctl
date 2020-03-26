@@ -15,7 +15,6 @@ package deployagent
 
 import (
 	"fmt"
-	"os/user"
 	"regexp"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
@@ -27,7 +26,7 @@ import (
 type localExecutor struct {
 	isSystem         bool
 	namespace        string
-	agent            *rsc.Agent
+	agent            *rsc.LocalAgent
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
@@ -48,7 +47,11 @@ func getController(namespace string) (*rsc.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(namespace string, agent *rsc.Agent, client *install.LocalContainer, isSystem bool) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (*localExecutor, error) {
+	client, err := install.NewLocalContainerClient()
+	if err != nil {
+		return nil, err
+	}
 	// Get Controller LocalContainerConfig
 	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	return &localExecutor{
@@ -96,12 +99,6 @@ func (exe *localExecutor) GetName() string {
 
 func (exe *localExecutor) Execute() error {
 
-	// Get current user
-	currUser, err := user.Current()
-	if err != nil {
-		return err
-	}
-
 	// Deploy agent image
 	util.SpinStart("Deploying Agent container")
 	if exe.agent.Container.Image == "" {
@@ -116,13 +113,13 @@ func (exe *localExecutor) Execute() error {
 		}
 	}
 
-	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
+	if _, err := exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
 		return err
 	}
 
 	// Wait for agent
 	util.SpinStart("Waiting for Agent")
-	if err = exe.client.WaitForCommand(
+	if err := exe.client.WaitForCommand(
 		install.GetLocalContainerName("agent", exe.isSystem),
 		regexp.MustCompile("ioFog daemon[ |\t]*: RUNNING"),
 		"iofog-agent",
@@ -145,7 +142,6 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Return new Agent config because variable is a pointer
-	exe.agent.SSH.User = currUser.Username
 	exe.agent.Host = fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
 	exe.agent.UUID = uuid
 

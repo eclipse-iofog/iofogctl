@@ -158,11 +158,10 @@ function initApplicationFiles() {
 function initLocalAgentFile() {
   echo "---
 apiVersion: iofog.org/v2
-kind: Agent
+kind: LocalAgent
 metadata:
   name: ${NAME}-0
 spec:
-  host: 127.0.0.1
   container:
     image: ${AGENT_IMAGE}" > test/conf/local-agent.yaml
 }
@@ -183,7 +182,7 @@ spec:
       image: ${CONTROLLER_IMAGE}"> test/conf/local.yaml
 }
 
-function initAgentsFile() {
+function initRemoteAgentsFile() {
   initAgents
   # Empty file
   echo -n "" > test/conf/agents.yaml
@@ -191,7 +190,7 @@ function initAgentsFile() {
     local AGENT_NAME="${NAME}-${IDX}"
     echo "---
 apiVersion: iofog.org/v2
-kind: Agent 
+kind: RemoteAgent 
 metadata:
   name: $AGENT_NAME
 spec:

@@ -46,47 +46,48 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
-	var agent rsc.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.useDetached {
-		agent, err = config.GetDetachedAgent(exe.name)
+		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		agent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
 	}
-
 	if err != nil {
 		return err
 	}
 
-	// Only updated fields specified
-	if exe.keyFile != "" {
-		agent.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
-		if err != nil {
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		return util.NewInputError("Cannot configure Local Agent")
+	case *rsc.RemoteAgent:
+		// Only updated fields specified
+		if exe.host != "" {
+			agent.Host = exe.host
+		}
+		if exe.user != "" {
+			agent.SSH.User = exe.user
+		}
+		if exe.port != 0 {
+			agent.SSH.Port = exe.port
+		}
+		if exe.keyFile != "" {
+			agent.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
+			if err != nil {
+				return err
+			}
+		}
+		agent.Sanitize()
+
+		// Save config
+		if exe.useDetached {
+			config.UpdateDetachedAgent(agent)
+			return nil
+		}
+		if err = config.UpdateAgent(exe.namespace, agent); err != nil {
 			return err
 		}
+		return config.Flush()
 	}
-	if exe.host != "" {
-		agent.Host = exe.host
-	}
-	if exe.user != "" {
-		agent.SSH.User = exe.user
-	}
-	if exe.port != 0 {
-		agent.SSH.Port = exe.port
-	}
-
-	// Add port if not specified or existing
-	if agent.SSH.Port == 0 {
-		agent.SSH.Port = 22
-	}
-
-	// Save config
-	if exe.useDetached {
-		return config.UpdateDetachedAgent(agent)
-	}
-	if err = config.UpdateAgent(exe.namespace, agent); err != nil {
-		return err
-	}
-
-	return config.Flush()
+	return util.NewError("Could not convert Agent to dynamic type")
 }

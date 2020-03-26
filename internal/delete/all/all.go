@@ -50,12 +50,12 @@ func Execute(namespace string, useDetached, soft bool) error {
 	}
 
 	// Delete Agents
-	if len(ns.Agents) > 0 {
+	if len(ns.GetAgents()) > 0 {
 		util.SpinStart("Deleting Agents")
 
 		var executors []execute.Executor
-		for _, agent := range ns.Agents {
-			exe, err := deleteagent.NewExecutor(namespace, agent.Name, useDetached, soft)
+		for _, agent := range ns.GetAgents() {
+			exe, err := deleteagent.NewExecutor(namespace, agent.GetName(), useDetached, soft)
 			if err != nil {
 				return err
 			}

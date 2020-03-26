@@ -357,31 +357,47 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 		Created: nsV1.Created,
 	}
 
-	// Agents
-	for _, agentV1 := range nsV1.Agents {
-		agent := rsc.Agent{
-			Name:    agentV1.Name,
-			Host:    agentV1.Host,
-			SSH:     rsc.SSH(agentV1.SSH),
-			UUID:    agentV1.UUID,
-			Created: agentV1.Created,
-			Package: rsc.Package(agentV1.Package),
-			Container: rsc.Container{
-				Image:       agentV1.Container.Image,
-				Credentials: rsc.Credentials(agentV1.Container.Credentials),
-			},
-		}
-		ns.Agents = append(ns.Agents, agent)
-	}
-
 	// Finish
 	if len(nsV1.ControlPlane.Controllers) == 0 {
 		header.Spec = ns
 		return header, nil
 	}
 
-	// Control Plane
+	// Get Controller to determine Control Plane type
 	controllerV1 := nsV1.ControlPlane.Controllers[0]
+
+	// Local Agents
+	if util.IsLocalHost(controllerV1.Host) {
+		for _, agentV1 := range nsV1.Agents {
+			agent := rsc.LocalAgent{
+				Name:    agentV1.Name,
+				UUID:    agentV1.UUID,
+				Created: agentV1.Created,
+				Container: rsc.Container{
+					Image:       agentV1.Container.Image,
+					Credentials: rsc.Credentials(agentV1.Container.Credentials),
+				},
+			}
+			if err := ns.AddAgent(&agent); err != nil {
+				return header, err
+			}
+		}
+	} else {
+		// Remote Agents
+		for _, agentV1 := range nsV1.Agents {
+			agent := rsc.RemoteAgent{
+				Name:    agentV1.Name,
+				Host:    agentV1.Host,
+				SSH:     rsc.SSH(agentV1.SSH),
+				UUID:    agentV1.UUID,
+				Created: agentV1.Created,
+				Package: rsc.Package(agentV1.Package),
+			}
+			if err := ns.AddAgent(&agent); err != nil {
+				return header, err
+			}
+		}
+	}
 
 	// Local Control Plane
 	if util.IsLocalHost(controllerV1.Host) {
@@ -427,7 +443,9 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 					Endpoint: controllerV1.Endpoint,
 					Created:  controllerV1.Created,
 				}
-				ns.KubernetesControlPlane.ControllerPods = append(ns.KubernetesControlPlane.ControllerPods, pod)
+				if err := ns.KubernetesControlPlane.AddController(&pod); err != nil {
+					return header, err
+				}
 			}
 		}
 		header.Spec = ns
@@ -447,7 +465,9 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 			Created:  controllerV1.Created,
 			Package:  rsc.Package(controllerV1.Package),
 		}
-		ns.RemoteControlPlane.Controllers = append(ns.RemoteControlPlane.Controllers, ctrl)
+		if err := ns.RemoteControlPlane.AddController(&ctrl); err != nil {
+			return header, err
+		}
 	}
 
 	header.Spec = ns

@@ -59,7 +59,7 @@ func (exe remoteExecutor) Execute() error {
 }
 
 func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
-	agent := exe.agents[agentIdx]
+	agent := exe.agents[agentIdx].(*rsc.RemoteAgent)
 
 	// Connect
 	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
@@ -99,9 +99,13 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Check agents exist
 	agents := make([]rsc.Agent, 0)
 	for _, agentName := range volume.Agents {
-		agent, err := config.GetAgent(opt.Namespace, agentName)
+		baseAgent, err := config.GetAgent(opt.Namespace, agentName)
 		if err != nil {
 			return nil, err
+		}
+		agent, ok := baseAgent.(*rsc.RemoteAgent)
+		if !ok {
+			return nil, util.NewInputError("Cannot push Volumes to Local Agents")
 		}
 		// Check SSH details
 		if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {

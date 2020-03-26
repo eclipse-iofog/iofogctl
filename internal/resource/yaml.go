@@ -59,3 +59,25 @@ func UnmarshallLocalController(file []byte) (controller LocalController, err err
 	err = controller.Sanitize()
 	return
 }
+
+func UnmarshallRemoteAgent(file []byte) (agent RemoteAgent, err error) {
+	// Unmarshall the input file
+	if err = yaml.UnmarshalStrict(file, &agent); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+
+	err = agent.Sanitize()
+	return
+}
+
+func UnmarshallLocalAgent(file []byte) (agent LocalAgent, err error) {
+	// Unmarshall the input file
+	if err = yaml.UnmarshalStrict(file, &agent); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+
+	err = agent.Sanitize()
+	return
+}

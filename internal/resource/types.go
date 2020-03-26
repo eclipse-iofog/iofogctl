@@ -15,7 +15,6 @@ package resource
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Container struct {
@@ -125,25 +124,4 @@ var FogTypeIntMap = map[int]string{
 	0: "auto",
 	1: "x86",
 	2: "arm",
-}
-
-// Agent contains information for deploying an agent
-type Agent struct {
-	Name      string    `yaml:"name,omitempty"`
-	Host      string    `yaml:"host,omitempty"`
-	SSH       SSH       `yaml:"ssh,omitempty"`
-	UUID      string    `yaml:"uuid,omitempty"`
-	Created   string    `yaml:"created,omitempty"`
-	Container Container `yaml:"container,omitempty"`
-	Package   Package   `yaml:"package,omitempty"`
-}
-
-// NewRandomUser creates a new config user
-func NewRandomUser() IofogUser {
-	return IofogUser{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
-		Password: util.RandomString(10, util.AlphaNum),
-	}
 }

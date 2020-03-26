@@ -53,12 +53,12 @@ func (exe *allExecutor) Execute() error {
 	printNamespace(ns.Name)
 
 	// Print controllers
-	if err := generateControllerOutput(exe.namespace); err != nil {
+	if err := generateControllerOutput(exe.namespace, false); err != nil {
 		return err
 	}
 
 	// Print agents
-	if err := generateAgentOutput(exe.namespace); err != nil {
+	if err := generateAgentOutput(exe.namespace, false); err != nil {
 		return err
 	}
 
@@ -81,7 +81,7 @@ func (exe *allExecutor) Execute() error {
 	}
 
 	// Print volumes
-	if err := generateVolumeOutput(exe.namespace); err != nil {
+	if err := generateVolumeOutput(exe.namespace, false); err != nil {
 		return err
 	}
 

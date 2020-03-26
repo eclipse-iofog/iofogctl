@@ -47,8 +47,7 @@ func (exe *agentExecutor) Execute() error {
 		}
 		return nil
 	}
-	printNamespace(exe.namespace)
-	if err := generateAgentOutput(exe.namespace); err != nil {
+	if err := generateAgentOutput(exe.namespace, true); err != nil {
 		return err
 	}
 	// Flush occurs in generateAgentOutput
@@ -56,22 +55,19 @@ func (exe *agentExecutor) Execute() error {
 }
 
 func generateDetachedAgentOutput() error {
-	detachedAgents, err := config.GetDetachedAgents()
-	if err != nil {
-		return err
-	}
+	detachedAgents := config.GetDetachedAgents()
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
 	for _, agent := range detachedAgents {
-		agentsToPrint[agent.Name] = client.AgentInfo{
-			Name:              agent.Name,
-			IPAddressExternal: agent.Host,
+		agentsToPrint[agent.GetName()] = client.AgentInfo{
+			Name:              agent.GetName(),
+			IPAddressExternal: agent.GetHost(),
 		}
 	}
 	return tabulateAgents(agentsToPrint)
 }
 
-func generateAgentOutput(namespace string) error {
+func generateAgentOutput(namespace string, printNS bool) error {
 	// Get Config
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -80,10 +76,10 @@ func generateAgentOutput(namespace string) error {
 
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
-	for _, agent := range ns.Agents {
-		agentsToPrint[agent.Name] = client.AgentInfo{
-			Name:              agent.Name,
-			IPAddressExternal: agent.Host,
+	for _, agent := range ns.GetAgents() {
+		agentsToPrint[agent.GetName()] = client.AgentInfo{
+			Name:              agent.GetName(),
+			IPAddressExternal: agent.GetHost(),
 		}
 	}
 
@@ -106,10 +102,11 @@ func generateAgentOutput(namespace string) error {
 	for _, remoteAgent := range listAgentsResponse.Agents {
 		// Server may have agents that the client is not aware of, update config if so
 		if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
+			// TODO: Check whether its local or remote
 			// Overwrite config based on backend
 			if err := config.UpdateAgent(
 				namespace,
-				rsc.Agent{
+				&rsc.RemoteAgent{
 					Name: remoteAgent.Name,
 					UUID: remoteAgent.UUID,
 					Host: remoteAgent.IPAddressExternal,
@@ -132,6 +129,10 @@ func generateAgentOutput(namespace string) error {
 		if err := config.Flush(); err != nil {
 			return err
 		}
+	}
+
+	if printNS {
+		printNamespace(namespace)
 	}
 
 	return tabulateAgents(agentsToPrint)
