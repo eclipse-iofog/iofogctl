@@ -105,7 +105,7 @@ func sanitizeContainerName(name string) string {
 // NewAgentConfig generates a static agent config
 func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig, credentials Credentials, isSystem bool) *LocalAgentConfig {
 	if image == "" {
-		image = "docker.io/iofog/agent:" + util.GetAgentTag()
+		image = util.GetAgentImage()
 	}
 
 	var bindings []string
@@ -137,7 +137,7 @@ func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerCo
 // NewLocalControllerConfig generats a static controller config
 func NewLocalControllerConfig(image string, credentials Credentials) *LocalContainerConfig {
 	if image == "" {
-		image = "docker.io/iofog/controller:" + util.GetControllerTag()
+		image = util.GetControllerImage()
 	}
 	return &LocalContainerConfig{
 		Host: "0.0.0.0",

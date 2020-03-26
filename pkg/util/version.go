@@ -13,12 +13,16 @@
 
 package util
 
+import "fmt"
+
 // Set by linker
 var (
 	versionNumber = "undefined"
 	platform      = "undefined"
 	commit        = "undefined"
 	date          = "undefined"
+
+	repo = "undefined"
 
 	controllerTag  = "undefined"
 	agentTag       = "undefined"
@@ -30,6 +34,16 @@ var (
 
 	controllerVersion = "undefined"
 	agentVersion      = "undefined"
+)
+
+const (
+	controllerImage  = "controller"
+	agentImage       = "agent"
+	operatorImage    = "operator"
+	kubeletImage     = "kubelet"
+	portManagerImage = "port-manager"
+	proxyImage       = "proxy"
+	routerImage      = "router"
 )
 
 type Version struct {
@@ -48,13 +62,15 @@ func GetVersion() Version {
 	}
 }
 
-func GetControllerTag() string  { return controllerTag }
-func GetAgentTag() string       { return agentTag }
-func GetOperatorTag() string    { return operatorTag }
-func GetKubeletTag() string     { return kubeletTag }
-func GetRouterTag() string      { return routerTag }
-func GetPortManagerTag() string { return portManagerTag }
-func GetProxyTag() string       { return proxyTag }
-
 func GetControllerVersion() string { return controllerVersion }
 func GetAgentVersion() string      { return agentVersion }
+
+func GetControllerImage() string { return fmt.Sprintf("%s/%s:%s", repo, controllerImage, controllerTag) }
+func GetAgentImage() string      { return fmt.Sprintf("%s/%s:%s", repo, agentImage, agentTag) }
+func GetOperatorImage() string   { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
+func GetKubeletImage() string    { return fmt.Sprintf("%s/%s:%s", repo, kubeletImage, kubeletTag) }
+func GetRouterImage() string     { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
+func GetPortManagerImage() string {
+	return fmt.Sprintf("%s/%s:%s", repo, portManagerImage, portManagerTag)
+}
+func GetProxyImage() string { return fmt.Sprintf("%s/%s:%s", repo, proxyImage, proxyTag) }

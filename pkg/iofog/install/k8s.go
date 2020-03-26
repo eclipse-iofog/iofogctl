@@ -40,7 +40,6 @@ import (
 
 const (
 	cpInstanceName = "iofog"
-	dockerRepo     = "iofog"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -79,11 +78,11 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		extsClientset: extsClientset,
 		ns:            namespace,
 		images: iofogv2.Images{
-			Controller:  dockerRepo + "/controller:" + util.GetControllerTag(),
-			PortManager: dockerRepo + "/port-manager:" + util.GetPortManagerTag(),
-			Router:      dockerRepo + "/router:" + util.GetRouterTag(),
-			Proxy:       dockerRepo + "/proxy:" + util.GetProxyTag(),
-			Kubelet:     dockerRepo + "/kubelet:" + util.GetKubeletTag(),
+			Controller:  util.GetControllerImage(),
+			PortManager: util.GetPortManagerImage(),
+			Router:      util.GetRouterImage(),
+			Proxy:       util.GetProxyImage(),
+			Kubelet:     util.GetKubeletImage(),
 		},
 		services: iofogv2.Services{
 			Controller: iofogv2.Service{

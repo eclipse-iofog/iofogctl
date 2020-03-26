@@ -69,7 +69,7 @@ func newOperatorMicroservice() *microservice {
 		containers: []container{
 			{
 				name:            "iofog-operator",
-				image:           "iofog/iofog-operator:" + util.GetOperatorTag(),
+				image:           util.GetOperatorImage(),
 				imagePullPolicy: "Always",
 				readinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{

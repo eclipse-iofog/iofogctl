@@ -24,6 +24,7 @@ LDFLAGS += -X $(PREFIX).controllerTag=develop
 LDFLAGS += -X $(PREFIX).agentTag=develop
 LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
+LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
