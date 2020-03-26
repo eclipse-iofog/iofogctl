@@ -35,8 +35,8 @@ func newConfigureCommand() *cobra.Command {
 
 Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
 		Example: `iofogctl configure default-namespace NAME
-iofogctl configure controlplane NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controlplane NAME --kube-config KUBECONFIGFILE
+iofogctl configure controlplane --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controlplane --kube-config KUBECONFIGFILE
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
 iofogctl configure all --user USER --key KEYFILE --port PORTNUM
@@ -52,7 +52,7 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			if len(args) > 1 {
 				opt.Name = args[1]
 			} else {
-				if opt.ResourceType != "all" && opt.ResourceType != "agents" {
+				if opt.ResourceType == "all" && opt.ResourceType != "agents" && opt.ResourceType != "controlplane" {
 					util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
 				}
 			}

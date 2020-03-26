@@ -16,8 +16,8 @@ iofogctl configure resource NAME [flags]
 
 ```
 iofogctl configure default-namespace NAME
-iofogctl configure controlplane NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controlplane NAME --kube-config KUBECONFIGFILE
+iofogctl configure controlplane --host HOST --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controlplane --kube-config KUBECONFIGFILE
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
 iofogctl configure all --user USER --key KEYFILE --port PORTNUM

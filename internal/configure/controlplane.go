@@ -107,45 +107,48 @@ func (exe *controlPlaneExecutor) remoteConfigure(controlPlane *rsc.RemoteControl
 		return util.NewInputError("Cannot edit kubernetes config of a remote controlplane")
 	}
 
-	baseController, err := controlPlane.GetController(exe.name)
-	if err != nil {
-		return err
-	}
+	controllers := controlPlane.GetControllers()
 
-	controller, ok := baseController.(*rsc.RemoteController)
-	if !ok {
-		return util.NewInternalError("Failed to convert controller into remoteController")
-	}
+	// TODO: Find a way to allow configuration of separate controllers
+	for _, baseController := range controllers {
+		controller, ok := baseController.(*rsc.RemoteController)
+		if !ok {
+			return util.NewInternalError("Failed to convert controller into remoteController")
+		}
 
-	// Disallow editing host if already exists
-	if controller.Host != "" && exe.remoteConfig.host != "" {
-		return util.NewInputError("Cannot edit existing host address of Controller. Can only add host address where it doesn't exist after running connect command")
-	}
-	// Only add/overwrite values provided
-	if exe.remoteConfig.host != "" {
-		controller.Host = exe.remoteConfig.host
-		controller.Endpoint, err = util.GetControllerEndpoint(exe.remoteConfig.host)
-		if err != nil {
+		// Disallow editing host if already exists
+		if controller.Host != "" && exe.remoteConfig.host != "" {
+			return util.NewInputError("Cannot edit existing host address of Controller. Can only add host address where it doesn't exist after running connect command")
+		}
+		// Only add/overwrite values provided
+		if exe.remoteConfig.host != "" {
+			controller.Host = exe.remoteConfig.host
+			controller.Endpoint, err = util.GetControllerEndpoint(exe.remoteConfig.host)
+			if err != nil {
+				return err
+			}
+		}
+		if exe.remoteConfig.keyFile != "" {
+			controller.SSH.KeyFile, err = util.FormatPath(exe.remoteConfig.keyFile)
+			if err != nil {
+				return err
+			}
+		}
+		if exe.remoteConfig.user != "" {
+			controller.SSH.User = exe.remoteConfig.user
+		}
+		if exe.remoteConfig.port != 0 {
+			controller.SSH.Port = exe.remoteConfig.port
+		}
+
+		// Add port if not specified or existing
+		if controller.Host != "" && controller.SSH.Port == 0 {
+			controller.SSH.Port = 22
+		}
+
+		if err = controlPlane.UpdateController(baseController); err != nil {
 			return err
 		}
 	}
-	if exe.remoteConfig.keyFile != "" {
-		controller.SSH.KeyFile, err = util.FormatPath(exe.remoteConfig.keyFile)
-		if err != nil {
-			return err
-		}
-	}
-	if exe.remoteConfig.user != "" {
-		controller.SSH.User = exe.remoteConfig.user
-	}
-	if exe.remoteConfig.port != 0 {
-		controller.SSH.Port = exe.remoteConfig.port
-	}
-
-	// Add port if not specified or existing
-	if controller.Host != "" && controller.SSH.Port == 0 {
-		controller.SSH.Port = 22
-	}
-
-	return controlPlane.UpdateController(baseController)
+	return nil
 }
