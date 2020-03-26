@@ -98,27 +98,39 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 }
 
 func (k8s *Kubernetes) SetKubeletImage(image string) {
-	k8s.images.Kubelet = image
+	if image != "" {
+		k8s.images.Kubelet = image
+	}
 }
 
 func (k8s *Kubernetes) SetOperatorImage(image string) {
-	k8s.operator.containers[0].image = image
+	if image != "" {
+		k8s.operator.containers[0].image = image
+	}
 }
 
 func (k8s *Kubernetes) SetPortManagerImage(image string) {
-	k8s.images.PortManager = image
+	if image != "" {
+		k8s.images.PortManager = image
+	}
 }
 
 func (k8s *Kubernetes) SetRouterImage(image string) {
-	k8s.images.Router = image
+	if image != "" {
+		k8s.images.Router = image
+	}
 }
 
 func (k8s *Kubernetes) SetProxyImage(image string) {
-	k8s.images.Proxy = image
+	if image != "" {
+		k8s.images.Proxy = image
+	}
 }
 
 func (k8s *Kubernetes) SetControllerImage(image string) {
-	k8s.images.Controller = image
+	if image != "" {
+		k8s.images.Controller = image
+	}
 }
 
 func (k8s *Kubernetes) enableCustomResources() error {
