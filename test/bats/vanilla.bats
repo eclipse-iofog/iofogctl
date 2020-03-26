@@ -318,6 +318,5 @@ spec:
 
 @test "Delete namespaces" {
   iofogctl delete namespace "$NS"
-  iofogctl delete namespace "$NS2"
-  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  checkNamespaceExistsNegative "$NS"
 }

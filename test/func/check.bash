@@ -297,7 +297,7 @@ function checkRenamedApplication() {
 
 function checkNamespaceExistsNegative() {
   CHECK_NS="$1"
-  [ -z "$(iofogctl get namespaces | grep $NS)" ]
+  [ -z "$(iofogctl get namespaces | grep $CHECK_NS)" ]
 }
 
 function checkRenamedNamespace() {
