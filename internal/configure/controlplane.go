@@ -90,7 +90,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 
 func (exe *controlPlaneExecutor) kubernetesConfigure(controlPlane *rsc.KubernetesControlPlane) (err error) {
 	// Error if remoteConfig is passed
-	if (kubernetesConfig{}) != exe.kubernetesConfig {
+	if (remoteConfig{}) != exe.remoteConfig {
 		return util.NewInputError("Cannot edit remote config of a kubernetes controlplane")
 	}
 

@@ -22,13 +22,13 @@ type Options struct {
 }
 
 func Execute(opt *Options) error {
-	// Check namespace
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
+	// // Check namespace
+	// ns, err := config.GetNamespace(opt.Namespace)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err = config.ClearNamespace(ns.Name); err != nil {
+	if err := config.ClearNamespace(opt.Namespace); err != nil {
 		return err
 	}
 	return config.Flush()

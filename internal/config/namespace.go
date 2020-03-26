@@ -162,17 +162,14 @@ func RenameNamespace(name, newName string) error {
 }
 
 func ClearNamespace(namespace string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
+	nsFile := getNamespaceFile(namespace)
+	if _, err := os.Stat(nsFile); err != nil {
+		return util.NewNotFoundError(namespace)
 	}
-	mux.Lock()
-	defer mux.Unlock()
-	ns.KubernetesControlPlane = nil
-	ns.RemoteControlPlane = nil
-	ns.LocalControlPlane = nil
-	ns.Agents = []rsc.Agent{}
-	ns.Volumes = []rsc.Volume{}
+
+	UpdateNamespace(rsc.Namespace{
+		Name: namespace,
+	})
 	return nil
 }
 
