@@ -218,9 +218,7 @@ spec:
 
 @test "Disconnect other namespace" {
   iofogctl -v -n "$NS2" disconnect
-  checkControllerNegative "$NS2"
-  checkAgentsNegative "$NS2"
-  checkApplicationNegative "$NS2"
+  checkNamespaceExistsNegative "$NS2"
 }
 
 @test "Connect in other namespace using flags" {
@@ -285,9 +283,7 @@ spec:
 
 @test "Disconnect other namespace again" {
   iofogctl -v -n "$NS2" disconnect
-  checkControllerNegative "$NS2"
-  checkAgentsNegative "$NS2"
-  checkApplicationNegative "$NS2"
+  checkNamespaceExistsNegative "$NS2"
 }
 
 

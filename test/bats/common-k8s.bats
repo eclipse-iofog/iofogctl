@@ -42,8 +42,7 @@
 @test "Disconnect from cluster" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegativeK8s "${K8S_POD}1"
-  checkAgentsNegative
+  checkNamespaceExistsNegative "$NS"
 }
 
 @test "Connect to cluster using deploy file" {
@@ -56,8 +55,7 @@
 @test "Disconnect from cluster again" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegativeK8s "${K8S_POD}1"
-  checkAgentsNegative
+  checkNamespaceExistsNegative "$NS"
 }
 
 @test "Connect to cluster using flags" {

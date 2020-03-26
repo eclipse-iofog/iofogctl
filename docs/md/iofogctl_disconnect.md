@@ -6,7 +6,9 @@ Disconnect from an ioFog cluster
 
 Disconnect from an ioFog cluster.
 
-This will not teardown any components of the cluster. If you would like to tear down deployments, use the delete command.
+This will remove all client-side information for this Namespace. The Namespace will itself be deleted.
+Use the connect command to reconnect after a disconnect.
+If you would like to uninstall the Control Plane and/or Agents, use the delete command instead.
 
 This will leave the corresponding namespace empty.
 
