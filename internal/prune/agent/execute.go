@@ -36,28 +36,29 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Pruning Agent")
-	var agent rsc.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.useDetached {
-		agent, err = config.GetDetachedAgent(exe.name)
+		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		agent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
 	}
 	if err != nil {
 		return err
 	}
 	// Prune Agent
-	if util.IsLocalHost(agent.Host) {
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
 		if err = exe.localAgentPrune(); err != nil {
 			return err
 		}
-	} else {
+	case *rsc.RemoteAgent:
 		if exe.useDetached {
 			if err = exe.remoteDetachedAgentPrune(agent); err != nil {
 				return err
 			}
 		} else {
-			if err = exe.remoteAgentPrune(agent); err != nil {
+			if err = exe.remoteAgentPrune(baseAgent); err != nil {
 				return err
 			}
 		}

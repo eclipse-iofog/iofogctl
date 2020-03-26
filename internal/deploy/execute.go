@@ -43,7 +43,8 @@ var kindOrder = []config.Kind{
 	// rsc.ControlPlaneKind,
 	// config.ControllerKind,
 	// config.AgentConfigKind,
-	config.AgentKind,
+	config.RemoteAgentKind,
+	config.LocalAgentKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
 	config.ApplicationKind,
@@ -88,8 +89,12 @@ func deployLocalController(opt execute.KindHandlerOpt) (exe execute.Executor, er
 	return deploylocalcontroller.NewExecutor(deploylocalcontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployagent.NewExecutor(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+func deployRemoteAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployagent.NewRemoteExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployLocalAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployagent.NewLocalExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -113,7 +118,8 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	config.LocalControlPlaneKind:      deployLocalControlPlane,
 	config.RemoteControllerKind:       deployRemoteController,
 	config.LocalControllerKind:        deployLocalController,
-	config.AgentKind:                  deployAgent,
+	config.RemoteAgentKind:            deployRemoteAgent,
+	config.LocalAgentKind:             deployLocalAgent,
 	config.AgentConfigKind:            deployAgentConfig,
 	config.RegistryKind:               deployRegistry,
 	config.VolumeKind:                 deployVolume,
@@ -128,7 +134,8 @@ func Execute(opt *Options) (err error) {
 
 	// Create any AgentConfig executor missing
 	// Each Agent requires a corresponding Agent Config to be created with Controller
-	for _, agentGenericExecutor := range executorsMap[config.AgentKind] {
+	appendedAgentExecs := append(executorsMap[config.LocalAgentKind], executorsMap[config.RemoteAgentKind]...)
+	for _, agentGenericExecutor := range appendedAgentExecs {
 		agentExecutor, ok := agentGenericExecutor.(deployagent.AgentDeployExecutor)
 		if !ok {
 			return util.NewInternalError("Could not convert agent deploy executor\n")

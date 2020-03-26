@@ -41,7 +41,8 @@ var kindOrder = []config.Kind{
 	config.MicroserviceKind,
 	config.ApplicationKind,
 	config.RegistryKind,
-	config.AgentKind,
+	config.RemoteAgentKind,
+	config.LocalAgentKind,
 	config.RemoteControllerKind,
 	config.LocalControllerKind,
 	config.KubernetesControlPlaneKind,
@@ -72,7 +73,10 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	config.LocalControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
-	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
+	},
+	config.LocalAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {

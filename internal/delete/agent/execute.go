@@ -43,22 +43,23 @@ func (exe executor) Execute() error {
 
 	// Delete agent software first, so it can properly deprovision itself before being removed
 	// Get Agent from config
-	var agent rsc.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.useDetached {
-		agent, err = config.GetDetachedAgent(exe.name)
+		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		agent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
 	}
 	if err == nil {
 		if !exe.soft {
-			if util.IsLocalHost(agent.Host) {
+			switch agent := baseAgent.(type) {
+			case *rsc.LocalAgent:
 				if err = exe.deleteLocalContainer(); err != nil {
-					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent container %s. Error: %s\n", agent.Host, err.Error()))
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
 				}
-			} else {
+			case *rsc.RemoteAgent:
 				if err = exe.deleteRemoteAgent(agent); err != nil {
-					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from the remote host %s. Error: %s\n", agent.Host, err.Error()))
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
 				}
 			}
 		}

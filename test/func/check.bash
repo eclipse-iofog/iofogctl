@@ -295,6 +295,11 @@ function checkRenamedApplication() {
   [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print $1}' | grep ${NEWNAME}) ]]
 }
 
+function checkNamespaceExistsNegative() {
+  CHECK_NS="$1"
+  [ -z "$(iofogctl get namespaces | grep $CHECK_NS)" ]
+}
+
 function checkRenamedNamespace() {
   OLDNAME=$1
   NEWNAME=$2

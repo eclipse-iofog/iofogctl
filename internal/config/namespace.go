@@ -161,18 +161,6 @@ func RenameNamespace(name, newName string) error {
 	return nil
 }
 
-func ClearNamespace(namespace string) error {
-	nsFile := getNamespaceFile(namespace)
-	if _, err := os.Stat(nsFile); err != nil {
-		return util.NewNotFoundError(namespace)
-	}
-
-	UpdateNamespace(rsc.Namespace{
-		Name: namespace,
-	})
-	return nil
-}
-
 func UpdateNamespace(newNamespace rsc.Namespace) {
 	mux.Lock()
 	defer mux.Unlock()

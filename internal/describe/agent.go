@@ -52,9 +52,16 @@ func (exe *agentExecutor) Execute() (err error) {
 		return err
 	}
 
+	var kind config.Kind
+	switch agent.(type) {
+	case *rsc.LocalAgent:
+		kind = config.LocalAgentKind
+	case *rsc.RemoteAgent:
+		kind = config.RemoteAgentKind
+	}
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       config.AgentKind,
+		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

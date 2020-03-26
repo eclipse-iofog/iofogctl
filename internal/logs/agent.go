@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -39,13 +40,13 @@ func (agent *agentExecutor) GetName() string {
 
 func (exe *agentExecutor) Execute() error {
 	// Get agent config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	baseAgent, err := config.GetAgent(exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}
 
-	// Local
-	if util.IsLocalHost(agent.Host) {
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
 		lc, err := install.NewLocalContainerClient()
 		if err != nil {
 			return err
@@ -59,25 +60,25 @@ func (exe *agentExecutor) Execute() error {
 		printContainerLogs(stdout, stderr)
 
 		return nil
-	}
+	case *rsc.RemoteAgent:
+		// Establish SSH connection
+		if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
+			util.Check(util.NewNoConfigError("Agent"))
+		}
+		ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+		ssh.SetPort(agent.SSH.Port)
+		err = ssh.Connect()
+		if err != nil {
+			return err
+		}
 
-	// Establish SSH connection
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-		util.Check(util.NewNoConfigError("Agent"))
+		// Get logs
+		out, err := ssh.Run("sudo cat /var/log/iofog-agent/iofog-agent.0.log")
+		if err != nil {
+			return err
+		}
+		fmt.Print(out.String())
 	}
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
-	ssh.SetPort(agent.SSH.Port)
-	err = ssh.Connect()
-	if err != nil {
-		return err
-	}
-
-	// Get logs
-	out, err := ssh.Run("sudo cat /var/log/iofog-agent/iofog-agent.0.log")
-	if err != nil {
-		return err
-	}
-	fmt.Print(out.String())
 
 	return nil
 }

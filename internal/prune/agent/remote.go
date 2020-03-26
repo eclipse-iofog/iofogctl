@@ -30,7 +30,7 @@ func (exe executor) remoteAgentPrune(agent rsc.Agent) error {
 	}
 	// If controller exists, prune the agent
 	// Perform Docker pruning of Agent through Controller
-	if err = ctrl.PruneAgent(agent.UUID); err != nil {
+	if err = ctrl.PruneAgent(agent.GetUUID()); err != nil {
 		if !strings.Contains(err.Error(), "NotFoundError") {
 			return err
 		}
@@ -38,7 +38,7 @@ func (exe executor) remoteAgentPrune(agent rsc.Agent) error {
 	return nil
 }
 
-func (exe executor) remoteDetachedAgentPrune(agent rsc.Agent) error {
+func (exe executor) remoteDetachedAgentPrune(agent *rsc.RemoteAgent) error {
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 		return util.NewInputError("Could not Prune Iofog resource " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
 	} else {

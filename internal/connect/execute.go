@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
 	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
 	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
@@ -42,7 +41,6 @@ var kindOrder = []config.Kind{
 	config.KubernetesControllerKind,
 	config.RemoteControllerKind,
 	config.LocalControllerKind,
-	config.AgentKind,
 }
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
@@ -51,9 +49,6 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	},
 	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
-	},
-	config.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
 	},
 }
 
@@ -77,7 +72,7 @@ func Execute(opt Options) error {
 		} else {
 			// Check the namespace is empty
 			if err == nil {
-				if len(ns.Agents) != 0 || len(ns.GetControllers()) != 0 {
+				if len(ns.GetAgents()) != 0 || len(ns.GetControllers()) != 0 {
 					return util.NewInputError("You must use an empty or non-existent namespace")
 				}
 			}

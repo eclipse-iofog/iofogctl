@@ -67,9 +67,13 @@ func (exe *Executor) Execute() error {
 
 func (exe *Executor) execute(agentIdx int, ch chan error) {
 	agentName := exe.volume.Agents[agentIdx]
-	agent, err := config.GetAgent(exe.namespace, agentName)
+	baseAgent, err := config.GetAgent(exe.namespace, agentName)
 	if err != nil {
 		ch <- err
+	}
+	agent, ok := baseAgent.(*rsc.RemoteAgent)
+	if !ok {
+		ch <- util.NewInputError("Cannot delete Volumes from Local Agents")
 	}
 	// Check SSH details
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {

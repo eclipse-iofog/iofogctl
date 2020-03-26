@@ -15,92 +15,52 @@ package config
 
 import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-// GetAgents returns all agents within the namespace
+func GetAgent(namespace, name string) (rsc.Agent, error) {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return nil, err
+	}
+	return ns.GetAgent(name)
+}
+
 func GetAgents(namespace string) ([]rsc.Agent, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return nil, err
 	}
-	return ns.Agents, nil
+	return ns.GetAgents(), nil
 }
 
-// GetAgent returns a single agent within a namespace
-func GetAgent(namespace, name string) (agent rsc.Agent, err error) {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return
-	}
-	for _, ag := range ns.Agents {
-		if ag.Name == name {
-			agent = ag
-			return
-		}
-	}
-
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
-}
-
-// Overwrites or creates new agent to the namespace
-func UpdateAgent(namespace string, agent rsc.Agent) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Update existing agent if exists
-	for idx := range ns.Agents {
-		if ns.Agents[idx].Name == agent.Name {
-			mux.Lock()
-			ns.Agents[idx] = agent
-			mux.Unlock()
-			return nil
-		}
-	}
-	// Add new agent
-	return AddAgent(namespace, agent)
-}
-
-// AddAgent adds a new agent to the namespace
 func AddAgent(namespace string, agent rsc.Agent) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
 	}
-	_, err = GetAgent(namespace, agent.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + agent.Name)
+	return ns.AddAgent(agent)
+}
+
+func UpdateAgent(namespace string, agent rsc.Agent) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
 	}
-
-	mux.Lock()
-	ns.Agents = append(ns.Agents, agent)
-	mux.Unlock()
-
+	ns.UpdateAgent(agent)
 	return nil
 }
 
-// DeleteAgent deletes an agent from a namespace
 func DeleteAgent(namespace, name string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
 	}
-	for idx := range ns.Agents {
-		if ns.Agents[idx].Name == name {
-			mux.Lock()
-			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(ns.Name + "/" + name)
+	return ns.DeleteAgent(name)
 }
 
-func GetDetachedAgents() ([]rsc.Agent, error) {
-	return GetAgents(detachedNamespace)
+func GetDetachedAgents() []rsc.Agent {
+	ns, _ := getNamespace(detachedNamespace)
+	return ns.GetAgents()
 }
 
 func GetDetachedAgent(name string) (rsc.Agent, error) {
@@ -108,15 +68,15 @@ func GetDetachedAgent(name string) (rsc.Agent, error) {
 }
 
 func AttachAgent(namespace, name, UUID string) error {
-	agent, err := GetDetachedAgent(name)
+	detachedAgent, err := GetAgent(detachedNamespace, name)
 	if err != nil {
 		return err
 	}
 	if err := DeleteAgent(detachedNamespace, name); err != nil {
 		return err
 	}
-	agent.UUID = UUID
-	return UpdateAgent(namespace, agent)
+	detachedAgent.SetUUID(UUID)
+	return AddAgent(namespace, detachedAgent)
 }
 
 func DetachAgent(namespace, name string) error {
@@ -124,7 +84,7 @@ func DetachAgent(namespace, name string) error {
 	if err != nil {
 		return err
 	}
-	agent.UUID = ""
+	agent.SetUUID("")
 	if err := AddAgent(detachedNamespace, agent); err != nil {
 		return err
 	}
@@ -132,21 +92,21 @@ func DetachAgent(namespace, name string) error {
 }
 
 func RenameDetachedAgent(oldName, newName string) error {
-	agent, err := GetDetachedAgent(oldName)
+	detachedAgent, err := GetAgent(detachedNamespace, oldName)
 	if err != nil {
 		return err
 	}
-	if err = DeleteDetachedAgent(oldName); err != nil {
+	if err = DeleteAgent(detachedNamespace, oldName); err != nil {
 		return err
 	}
-	agent.Name = newName
-	return AddAgent(detachedNamespace, agent)
+	detachedAgent.SetName(newName)
+	return AddAgent(detachedNamespace, detachedAgent)
 }
 
 func DeleteDetachedAgent(name string) error {
 	return DeleteAgent(detachedNamespace, name)
 }
 
-func UpdateDetachedAgent(agent rsc.Agent) error {
-	return UpdateAgent(detachedNamespace, agent)
+func UpdateDetachedAgent(agent rsc.Agent) {
+	UpdateAgent(detachedNamespace, agent)
 }

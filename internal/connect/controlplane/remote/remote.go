@@ -118,12 +118,12 @@ func connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string) error {
 
 	// Update Agents config
 	for _, agent := range listAgentsResponse.Agents {
-		agentConfig := rsc.Agent{
+		agentConfig := rsc.RemoteAgent{
 			Name: agent.Name,
 			UUID: agent.UUID,
 			Host: agent.IPAddressExternal,
 		}
-		if err = config.AddAgent(namespace, agentConfig); err != nil {
+		if err = config.AddAgent(namespace, &agentConfig); err != nil {
 			return err
 		}
 	}

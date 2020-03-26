@@ -32,11 +32,10 @@ func (exe *volumeExecutor) GetName() string {
 }
 
 func (exe *volumeExecutor) Execute() error {
-	printNamespace(exe.namespace)
-	return generateVolumeOutput(exe.namespace)
+	return generateVolumeOutput(exe.namespace, true)
 }
 
-func generateVolumeOutput(namespace string) error {
+func generateVolumeOutput(namespace string, printNS bool) error {
 	// Get volume config details
 	volumes, err := config.GetVolumes(namespace)
 	if err != nil {
@@ -70,6 +69,9 @@ func generateVolumeOutput(namespace string) error {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
+	if printNS {
+		printNamespace(namespace)
+	}
 	// Print table
 	err = print(table)
 	if err != nil {

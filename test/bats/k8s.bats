@@ -72,7 +72,7 @@ spec:
 }
 
 @test "Deploy Agents" {
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
     # Wait for router microservice

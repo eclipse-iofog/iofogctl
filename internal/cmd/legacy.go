@@ -130,18 +130,19 @@ iofogctl legacy agent NAME status`,
 				}
 			case "agent":
 				// Get config
-				var agent rsc.Agent
+				var baseAgent rsc.Agent
 				var err error
 				if useDetached {
-					agent, err = config.GetDetachedAgent(name)
+					baseAgent, err = config.GetDetachedAgent(name)
 				} else {
-					agent, err = config.GetAgent(namespace, name)
+					baseAgent, err = config.GetAgent(namespace, name)
 				}
 				util.Check(err)
-				if util.IsLocalHost(agent.Host) {
+				switch agent := baseAgent.(type) {
+				case *rsc.LocalAgent:
 					localExecute(install.GetLocalContainerName("agent", false), []string{"iofog-agent"}, args[2:])
 					return
-				} else {
+				case *rsc.RemoteAgent:
 					// SSH connect
 					if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 						util.Check(util.NewNoConfigError("Agent"))

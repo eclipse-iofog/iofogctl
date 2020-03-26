@@ -14,19 +14,22 @@
 package deployagent
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type remoteExecutor struct {
 	namespace string
-	agent     *rsc.Agent
+	agent     *rsc.RemoteAgent
 	uuid      string
 }
 
-func newRemoteExecutor(namespace string, agent *rsc.Agent) *remoteExecutor {
+func newRemoteExecutor(namespace string, agent *rsc.RemoteAgent) *remoteExecutor {
 	exe := &remoteExecutor{}
 	exe.namespace = namespace
 	exe.agent = agent
@@ -109,4 +112,17 @@ func (exe *remoteExecutor) Execute() (err error) {
 	exe.agent.Created = util.NowUTC()
 
 	return
+}
+
+func ValidateRemoteAgent(agent rsc.RemoteAgent) error {
+	if agent.Name == "" {
+		return util.NewInputError("You must specify a non-empty value for name value of Agents")
+	}
+	if agent.Name == iofog.VanillaRouterAgentName {
+		return util.NewInputError(fmt.Sprintf("%s is a reserved name and cannot be used for an Agent", iofog.VanillaRouterAgentName))
+	}
+	if (agent.Host != "localhost" && agent.Host != "127.0.0.1") && (agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "") {
+		return util.NewInputError("For Agents you must specify non-empty values for host, user, and keyfile")
+	}
+	return nil
 }

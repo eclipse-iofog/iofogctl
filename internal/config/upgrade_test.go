@@ -185,7 +185,7 @@ func run(nsName string, nsV1 v1.Namespace, t *testing.T) {
 	if len(cp.GetControllers()) == 0 {
 		t.Errorf("Failed to find Controllers v2, count: %d", len(cp.GetControllers()))
 	}
-	if len(ns.Agents) == 0 {
-		t.Errorf("Failed to find Agents v2, count: %d", len(ns.Agents))
+	if len(ns.GetAgents()) == 0 {
+		t.Errorf("Failed to find Agents v2, count: %d", len(ns.GetAgents()))
 	}
 }

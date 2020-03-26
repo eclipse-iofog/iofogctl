@@ -70,7 +70,7 @@ spec:
 }
 
 @test "Deploy Agents against vanilla Controller" {
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   # Wait for router microservice
@@ -218,9 +218,7 @@ spec:
 
 @test "Disconnect other namespace" {
   iofogctl -v -n "$NS2" disconnect
-  checkControllerNegative "$NS2"
-  checkAgentsNegative "$NS2"
-  checkApplicationNegative "$NS2"
+  checkNamespaceExistsNegative "$NS2"
 }
 
 @test "Connect in other namespace using flags" {
@@ -285,16 +283,14 @@ spec:
 
 @test "Disconnect other namespace again" {
   iofogctl -v -n "$NS2" disconnect
-  checkControllerNegative "$NS2"
-  checkAgentsNegative "$NS2"
-  checkApplicationNegative "$NS2"
+  checkNamespaceExistsNegative "$NS2"
 }
 
 
 @test "Deploy again to check it doesn't lose database" {
   iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   checkApplication
@@ -322,6 +318,5 @@ spec:
 
 @test "Delete namespaces" {
   iofogctl delete namespace "$NS"
-  iofogctl delete namespace "$NS2"
-  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  checkNamespaceExistsNegative "$NS"
 }

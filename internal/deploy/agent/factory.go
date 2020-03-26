@@ -31,12 +31,12 @@ type AgentDeployExecutor interface {
 type facadeExecutor struct {
 	isSystem  bool
 	exe       execute.Executor
-	agent     *rsc.Agent
+	agent     rsc.Agent
 	namespace string
 }
 
 func (facade *facadeExecutor) GetHost() string {
-	return facade.agent.Host
+	return facade.agent.GetHost()
 }
 
 func (facade *facadeExecutor) Execute() (err error) {
@@ -65,7 +65,7 @@ func (facade *facadeExecutor) Execute() (err error) {
 
 	// Don't add system agent to the namespace config file
 	if !facade.isSystem {
-		if err = config.UpdateAgent(facade.namespace, *facade.agent); err != nil {
+		if err = config.UpdateAgent(facade.namespace, facade.agent); err != nil {
 			return
 		}
 	}
@@ -85,7 +85,7 @@ func (facade *facadeExecutor) ProvisionAgent() (string, error) {
 	return provisionExecutor.ProvisionAgent()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, agent *rsc.Agent, isSystem bool) execute.Executor {
+func newFacadeExecutor(exe execute.Executor, namespace string, agent rsc.Agent, isSystem bool) execute.Executor {
 	return &facadeExecutor{
 		exe:       exe,
 		namespace: namespace,
@@ -94,27 +94,25 @@ func newFacadeExecutor(exe execute.Executor, namespace string, agent *rsc.Agent,
 	}
 }
 
-func NewDeployExecutor(namespace string, agent *rsc.Agent, isSystem bool) (execute.Executor, error) {
-	if err := util.IsLowerAlphanumeric(agent.Name); err != nil {
+func NewRemoteExecutor(namespace string, agent *rsc.RemoteAgent, isSystem bool) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(agent.GetName()); err != nil {
 		return nil, err
 	}
 
-	// Local executor
-	if util.IsLocalHost(agent.Host) {
-		cli, err := install.NewLocalContainerClient()
-		if err != nil {
-			return nil, err
-		}
-		exe, err := newLocalExecutor(namespace, agent, cli, isSystem)
-		if err != nil {
-			return nil, err
-		}
-		return newFacadeExecutor(exe, namespace, agent, isSystem), nil
-	}
-
-	// Default executor
 	if agent.Host == "" || agent.SSH.KeyFile == "" || agent.SSH.User == "" {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment or provisioning")
 	}
 	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent, isSystem), nil
+}
+
+func NewLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (execute.Executor, error) {
+	if err := util.IsLowerAlphanumeric(agent.GetName()); err != nil {
+		return nil, err
+	}
+
+	exe, err := newLocalExecutor(namespace, agent, isSystem)
+	if err != nil {
+		return nil, err
+	}
+	return newFacadeExecutor(exe, namespace, agent, isSystem), nil
 }

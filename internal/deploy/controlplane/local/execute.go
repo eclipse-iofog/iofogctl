@@ -47,7 +47,7 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	host := "localhost"
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
-	agent := rsc.Agent{
+	agent := rsc.LocalAgent{
 		Name: iofog.VanillaRouterAgentName,
 		Host: host,
 	}

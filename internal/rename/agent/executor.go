@@ -50,11 +50,11 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 		return err
 	}
 	config.DeleteAgent(namespace, name)
-	ag.Name = newName
+	ag.SetName(newName)
 	config.AddAgent(namespace, ag)
 
 	_, err = clt.UpdateAgent(&client.AgentUpdateRequest{
-		UUID: agent.UUID,
+		UUID: agent.GetUUID(),
 		Name: newName,
 	})
 
