@@ -158,7 +158,8 @@ func (agent *RemoteAgent) Deprovision() (err error) {
 	}
 
 	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil {
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
+		println(err.Error())
 		return
 	}
 
@@ -179,11 +180,15 @@ func (agent *RemoteAgent) Stop() (err error) {
 	}
 
 	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil {
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
 		return err
 	}
 
 	return
+}
+
+func isNotProvisionedError(err error) bool {
+	return strings.Contains(err.Error(), "not provisioned")
 }
 
 func (agent *RemoteAgent) Prune() (err error) {
