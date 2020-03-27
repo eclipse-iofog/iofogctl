@@ -54,5 +54,8 @@ func (agent *LocalAgent) SetCreatedTime(time string) {
 }
 
 func (agent *LocalAgent) Sanitize() error {
+	if agent.Name == "" {
+		agent.Name = "local"
+	}
 	return nil
 }

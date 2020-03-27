@@ -39,10 +39,8 @@ func (exe executor) deleteLocalContainer() error {
 	// Clean microservices
 	containers, err := client.ListContainers()
 	for _, container := range containers {
-		fmt.Printf("Container names: %v\n", container.Names)
 		for _, containerName := range container.Names {
 			if strings.HasPrefix(containerName, "/iofog_") {
-				fmt.Printf("Deleting name: %s\n", containerName)
 				if errClean := client.CleanContainerByID(container.ID); errClean != nil {
 					util.PrintNotify(fmt.Sprintf("Could not clean Microservice container: %v", errClean))
 				}

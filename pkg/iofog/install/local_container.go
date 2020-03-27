@@ -273,8 +273,7 @@ func (lc *LocalContainer) waitForImage(image string, counter int8) error {
 	ctx := context.Background()
 	imgs, listErr := lc.client.ImageList(ctx, types.ImageListOptions{All: true})
 	if listErr != nil {
-		fmt.Printf("Could not list local images: %v\n", listErr)
-		return listErr
+		return util.NewError(fmt.Sprintf("Could not list local images: %v\n", listErr))
 	}
 	for idx := range imgs {
 		for _, tag := range imgs[idx].RepoTags {
@@ -324,10 +323,10 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	reader, err := lc.client.ImagePull(ctx, containerConfig.Image, lc.getPullOptions(containerConfig))
 	imageTag := getImageTag(containerConfig.Image)
 	if err != nil {
-		fmt.Printf("Could not pull image: %v, listing local images...\n", err)
+		Verbose(fmt.Sprintf("Could not pull image: %v, listing local images...\n", err.Error()))
 		imgs, listErr := lc.client.ImageList(ctx, types.ImageListOptions{All: true})
 		if listErr != nil {
-			fmt.Printf("Could not list local images: %v\n", listErr)
+			Verbose(fmt.Sprintf("Could not list local images: %v\n", listErr))
 			return "", err
 		}
 		found := false
@@ -343,7 +342,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 			}
 		}
 		if !found {
-			fmt.Printf("Could not pull image: %v\n Could not find image [%v] locally, please run docker pull [%v]\n", err, containerConfig.Image, containerConfig.Image)
+			Verbose(fmt.Sprintf("Could not pull image: %v\n Could not find image [%v] locally, please run docker pull [%v]\n", err, containerConfig.Image, containerConfig.Image))
 			return "", err
 		}
 	} else {
@@ -384,8 +383,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 
 	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, containerConfig.ContainerName)
 	if err != nil {
-		fmt.Printf("Failed to create container: %v\n", err)
-		return "", err
+		return "", util.NewError(fmt.Sprintf("Failed to create container: %v\n", err))
 	}
 
 	// Connect to network
@@ -398,8 +396,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 	// Start container
 	err = lc.client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
 	if err != nil {
-		fmt.Printf("Failed to start container: %v\n", err)
-		return "", err
+		return "", util.NewError(fmt.Sprintf("Failed to start container: %v\n", err))
 	}
 
 	return container.ID, err

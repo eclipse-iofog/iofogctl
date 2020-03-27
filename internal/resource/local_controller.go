@@ -38,7 +38,7 @@ func (ctrl *LocalController) SetName(name string) {
 
 func (ctrl *LocalController) Sanitize() error {
 	if ctrl.Name == "" {
-		ctrl.Name = "local-controller"
+		ctrl.Name = "local"
 	}
 	return nil
 }

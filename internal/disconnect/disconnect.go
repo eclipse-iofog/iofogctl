@@ -22,8 +22,14 @@ type Options struct {
 }
 
 func Execute(opt *Options) error {
-	if err := config.DeleteNamespace(opt.Namespace); err != nil {
-		return err
+	if opt.Namespace == "default" {
+		if err := config.ClearNamespace(opt.Namespace); err != nil {
+			return err
+		}
+	} else {
+		if err := config.DeleteNamespace(opt.Namespace); err != nil {
+			return err
+		}
 	}
 	return config.Flush()
 }

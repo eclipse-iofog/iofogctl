@@ -172,3 +172,19 @@ func UpdateControlPlane(namespace string, controlPlane rsc.ControlPlane) {
 	defer mux.Unlock()
 	namespaces[namespace].SetControlPlane(controlPlane)
 }
+
+func ClearNamespace(namespace string) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	mux.Lock()
+	defer mux.Unlock()
+	ns.KubernetesControlPlane = nil
+	ns.RemoteControlPlane = nil
+	ns.LocalControlPlane = nil
+	ns.LocalAgents = []rsc.LocalAgent{}
+	ns.RemoteAgents = []rsc.RemoteAgent{}
+	ns.Volumes = []rsc.Volume{}
+	return nil
+}

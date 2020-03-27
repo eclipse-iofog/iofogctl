@@ -12,7 +12,14 @@ func UnmarshallKubernetesControlPlane(file []byte) (controlPlane KubernetesContr
 		return
 	}
 
-	err = controlPlane.Sanitize()
+	if err = controlPlane.Sanitize(); err != nil {
+		return
+	}
+	for idx := range controlPlane.ControllerPods {
+		if err = controlPlane.ControllerPods[idx].Sanitize(); err != nil {
+			return
+		}
+	}
 	return
 }
 
@@ -23,7 +30,14 @@ func UnmarshallRemoteControlPlane(file []byte) (controlPlane RemoteControlPlane,
 		return
 	}
 
-	err = controlPlane.Sanitize()
+	if err = controlPlane.Sanitize(); err != nil {
+		return
+	}
+	for idx := range controlPlane.Controllers {
+		if err = controlPlane.Controllers[idx].Sanitize(); err != nil {
+			return
+		}
+	}
 	return
 }
 
@@ -34,7 +48,12 @@ func UnmarshallLocalControlPlane(file []byte) (controlPlane LocalControlPlane, e
 		return
 	}
 
-	err = controlPlane.Sanitize()
+	if err = controlPlane.Sanitize(); err != nil {
+		return
+	}
+	if err = controlPlane.Controller.Sanitize(); err != nil {
+		return
+	}
 	return
 }
 
