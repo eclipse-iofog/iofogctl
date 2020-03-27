@@ -80,14 +80,11 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController) (err error)
 		return err
 	}
 	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
-	if !util.IsLocalHost(ctrl.Host) {
-		agentDeployExecutor, err := deployagent.NewRemoteExecutor(namespace, &agent, true)
-		if err != nil {
-			return err
-		}
-		return agentDeployExecutor.Execute()
+	agentDeployExecutor, err := deployagent.NewRemoteExecutor(namespace, &agent, true)
+	if err != nil {
+		return err
 	}
-	return nil
+	return agentDeployExecutor.Execute()
 }
 
 func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
