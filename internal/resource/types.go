@@ -109,7 +109,6 @@ type AgentConfiguration struct {
 	Description               string  `json:"description,omitempty" yaml:"description"`
 	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
-	Volumes                   []Volume `json:"volumes,omitempty" yaml:"volumes,omitempty"`
 }
 
 // FogTypeStringMap map human readable fog type to Controller fog type
