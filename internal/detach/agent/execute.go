@@ -68,7 +68,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return err
 	}
 
-	agentInfo, err := ctrl.GetAgentByName(exe.name)
+	agentInfo, err := ctrl.GetAgentByName(exe.name, false)
 	if err != nil {
 		return err
 	}

@@ -72,7 +72,7 @@ func (exe *agentConfigExecutor) Execute() error {
 	}
 
 	// Get all agents for mapping uuid to name if required
-	getAgentList, err := ctrl.ListAgents()
+	getAgentList, err := ctrl.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}

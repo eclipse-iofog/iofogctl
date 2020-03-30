@@ -104,7 +104,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 }
 
 func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
+	key, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
 		return
 	}

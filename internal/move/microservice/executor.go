@@ -35,7 +35,7 @@ func Execute(namespace, name, agent string) error {
 		return err
 	}
 
-	destAgent, err := clt.GetAgentByName(agent)
+	destAgent, err := clt.GetAgentByName(agent, false)
 	if err != nil {
 		return err
 	}

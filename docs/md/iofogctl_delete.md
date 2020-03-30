@@ -13,7 +13,10 @@ iofogctl delete [flags]
 ### Examples
 
 ```
-deploy -f platform.yaml
+delete all
+delete controller NAME
+delete agent NAME
+delete application NAME
 ```
 
 ### Options

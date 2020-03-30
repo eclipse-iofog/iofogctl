@@ -16,12 +16,12 @@ package deployagentconfig
 import (
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"gopkg.in/yaml.v2"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -134,21 +134,29 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
+	// Get the Agent in question
+	agent, err := clt.GetAgentByName(exe.name, isSystem)
+	if err != nil {
+		return err
+	}
+	// Get all other non-system Agents
+	agentList, err := clt.ListAgents(client.ListAgentsRequest{})
+	if err != nil {
+		return err
+	}
 	// Process needs to be done at execute time because agent might have been created during deploy
-	exe.agentConfig, err = Process(exe.agentConfig, exe.name, clt)
+	exe.agentConfig, err = Process(exe.agentConfig, exe.name, *agent, agentList.Agents)
 	if err != nil {
 		return err
 	}
 
-	agent, err := clt.GetAgentByName(exe.name)
-	if err != nil {
-		if strings.Contains(err.Error(), "Could not find agent") {
-			uuid, err := createAgentFromConfiguration(exe.agentConfig, exe.name, clt)
-			exe.uuid = uuid
-			return err
-		}
+	// Create if Agent does not exist
+	if agent == nil {
+		uuid, err := createAgentFromConfiguration(exe.agentConfig, exe.name, clt)
+		exe.uuid = uuid
 		return err
 	}
+	// Update existing Agent
 	exe.uuid = agent.UUID
 	return updateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
 }
@@ -174,4 +182,13 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		agentConfig: agentConfig,
 		namespace:   opt.Namespace,
 	}, nil
+}
+
+func findAgent(agents []client.AgentInfo, name string) *client.AgentInfo {
+	for idx := range agents {
+		if agents[idx].Name == name {
+			return &agents[idx]
+		}
+	}
+	return nil
 }

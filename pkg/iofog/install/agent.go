@@ -15,6 +15,7 @@ package install
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Agent interface {
@@ -28,7 +29,7 @@ type defaultAgent struct {
 	uuid string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, err error) {
 	// Connect to controller
 	ctrl, err := client.NewAndLogin(client.Options{Endpoint: controllerEndpoint}, user.Email, user.Password)
 
@@ -43,17 +44,11 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	}
 
 	if agent.uuid != "" {
-		uuid = agent.uuid
-	} else {
-		existingAgent, err := ctrl.GetAgentByName(agent.name)
-		if err != nil {
-			return "", "", err
-		}
-		uuid = existingAgent.UUID
+		err = util.NewInternalError("Agent does not have UUID")
 	}
 
 	// Get provisioning key
-	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid)
+	provisionResponse, err := ctrl.GetAgentProvisionKey(agent.uuid)
 	if err != nil {
 		return
 	}

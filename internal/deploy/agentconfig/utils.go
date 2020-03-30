@@ -70,7 +70,7 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 }
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
-func Process(agentConfig rsc.AgentConfiguration, name string, clt *client.Client) (rsc.AgentConfiguration, error) {
+func Process(agentConfig rsc.AgentConfiguration, name string, agent client.AgentInfo, otherAgents []client.AgentInfo) (rsc.AgentConfiguration, error) {
 	// If local agent, set fixed config
 	if agentConfig.Host != nil && util.IsLocalHost(*agentConfig.Host) {
 		upstreamRouters := []string{}
@@ -87,24 +87,11 @@ func Process(agentConfig rsc.AgentConfiguration, name string, clt *client.Client
 	}
 
 	routerMode := getRouterMode(agentConfig)
-	agentList, err := clt.ListAgents()
-	if err != nil {
-		return agentConfig, err
-	}
-
-	// Try to find current agent based on name
-	var agent *client.AgentInfo
-	for idx := range agentList.Agents {
-		if name == agentList.Agents[idx].Name {
-			agent = &agentList.Agents[idx]
-			break
-		}
-	}
 
 	if agentConfig.UpstreamRouters != nil {
 		upstreamRoutersUUID := []string{}
 		for _, agentName := range *agentConfig.UpstreamRouters {
-			uuid, err := findAgentUuidInList(agentList.Agents, agentName)
+			uuid, err := findAgentUuidInList(otherAgents, agentName)
 			if err != nil {
 				return agentConfig, err
 			}
@@ -114,7 +101,7 @@ func Process(agentConfig rsc.AgentConfiguration, name string, clt *client.Client
 	}
 
 	if agentConfig.NetworkRouter != nil {
-		uuid, err := findAgentUuidInList(agentList.Agents, *agentConfig.NetworkRouter)
+		uuid, err := findAgentUuidInList(otherAgents, *agentConfig.NetworkRouter)
 		if err != nil {
 			return agentConfig, err
 		}
@@ -122,9 +109,6 @@ func Process(agentConfig rsc.AgentConfiguration, name string, clt *client.Client
 	}
 
 	if routerMode != NoneRouter && agentConfig.Host == nil {
-		if agent == nil {
-			return agentConfig, util.NewInputError(fmt.Sprintf("Could not infere agent host for agent %s. Host is required because router mode is %s", name, routerMode))
-		}
 		agentConfig.Host = &agent.IPAddressExternal
 	}
 
