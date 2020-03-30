@@ -47,10 +47,6 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	host := "localhost"
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
-	agent := rsc.LocalAgent{
-		Name: iofog.VanillaRouterAgentName,
-		Host: host,
-	}
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
 		RouterMode:      internal.MakeStrPtr("interior"),
@@ -71,13 +67,8 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace)
 	// If there already is a system fog, ignore error
 	if err = deployAgentConfigExecutor.Execute(); err != nil {
-		if strings.Contains(err.Error(), "There already is a system fog") {
-			util.PrintNotify(fmt.Sprintf("Using existing default router"))
-			return nil
-		}
 		return err
 	}
-	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
 	return nil
 }
 

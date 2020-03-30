@@ -48,6 +48,7 @@ func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (u
 			return "", err
 		}
 	}
+
 	key, err := agent.getProvisionKey(provisioningEndpoint, user)
 	if err != nil {
 		return "", err

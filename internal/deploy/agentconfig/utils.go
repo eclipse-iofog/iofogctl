@@ -70,7 +70,7 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 }
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
-func Process(agentConfig rsc.AgentConfiguration, name string, agent client.AgentInfo, otherAgents []client.AgentInfo) (rsc.AgentConfiguration, error) {
+func Process(agentConfig rsc.AgentConfiguration, name, agentIP string, otherAgents []client.AgentInfo) (rsc.AgentConfiguration, error) {
 	// If local agent, set fixed config
 	if agentConfig.Host != nil && util.IsLocalHost(*agentConfig.Host) {
 		upstreamRouters := []string{}
@@ -109,7 +109,7 @@ func Process(agentConfig rsc.AgentConfiguration, name string, agent client.Agent
 	}
 
 	if routerMode != NoneRouter && agentConfig.Host == nil {
-		agentConfig.Host = &agent.IPAddressExternal
+		agentConfig.Host = &agentIP
 	}
 
 	return agentConfig, nil

@@ -73,10 +73,6 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController) (err error)
 	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace)
 	// If there already is a system fog, ignore error
 	if err = deployAgentConfigExecutor.Execute(); err != nil {
-		if strings.Contains(err.Error(), "There already is a system fog") {
-			util.PrintNotify(fmt.Sprintf("Using existing default router"))
-			return nil
-		}
 		return err
 	}
 	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()

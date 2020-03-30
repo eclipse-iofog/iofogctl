@@ -16,6 +16,7 @@ package deployagentconfig
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -136,8 +137,13 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Get the Agent in question
 	agent, err := clt.GetAgentByName(exe.name, isSystem)
-	if err != nil {
+	// TODO: replace this check with built-in IsNewNotFound() func from go-sdk
+	if err != nil && !strings.Contains(err.Error(), "not find agent") {
 		return err
+	}
+	ip := ""
+	if agent != nil {
+		ip = agent.IPAddressExternal
 	}
 	// Get all other non-system Agents
 	agentList, err := clt.ListAgents(client.ListAgentsRequest{})
@@ -145,7 +151,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 	// Process needs to be done at execute time because agent might have been created during deploy
-	exe.agentConfig, err = Process(exe.agentConfig, exe.name, *agent, agentList.Agents)
+	exe.agentConfig, err = Process(exe.agentConfig, exe.name, ip, agentList.Agents)
 	if err != nil {
 		return err
 	}

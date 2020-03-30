@@ -15,7 +15,6 @@ package install
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Agent interface {
@@ -43,8 +42,14 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 		return
 	}
 
-	if agent.uuid != "" {
-		err = util.NewInternalError("Agent does not have UUID")
+	// System agents have uuid passed through, normal agents dont
+	if agent.uuid == "" {
+		var agentInfo *client.AgentInfo
+		agentInfo, err = ctrl.GetAgentByName(agent.name, false)
+		if err != nil {
+			return
+		}
+		agent.uuid = agentInfo.UUID
 	}
 
 	// Get provisioning key
