@@ -22,8 +22,12 @@ import (
 )
 
 func FormatPath(input string) (string, error) {
+	if len(input) == 0 {
+		return input, nil
+	}
+
 	// Replace tilde
-	if strings.Contains(input, "~") {
+	if string(input[0]) == "~" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return input, err
@@ -32,7 +36,7 @@ func FormatPath(input string) (string, error) {
 	}
 
 	// Convert relative to absolute
-	if strings.Contains(input, ".") {
+	if string(input[0]) == "." {
 		return filepath.Abs(input)
 	}
 
