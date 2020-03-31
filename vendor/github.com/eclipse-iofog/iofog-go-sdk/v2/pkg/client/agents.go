@@ -75,7 +75,7 @@ func (clt *Client) ListAgents(request ListAgentsRequest) (response ListAgentsRes
 	}
 
 	// Send request
-	body, err := clt.doRequest("GET", generateListAgentURL(request), request)
+	body, err := clt.doRequest("GET", generateListAgentURL(request), nil)
 	if err != nil {
 		return
 	}

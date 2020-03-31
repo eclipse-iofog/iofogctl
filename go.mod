@@ -15,7 +15,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/eclipse-iofog/iofog-go-sdk v1.3.0 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200330061516-0b084b0d2939
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-alpha.0.20200331011241-a95d16e765a7
 	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200327003721-a522571f4b83
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/gorilla/mux v1.7.4 // indirect
