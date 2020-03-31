@@ -15,8 +15,8 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os"
-	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -40,16 +40,15 @@ func newViewCommand() *cobra.Command {
 				os.Exit(1)
 			}
 			ctrl := ns.GetControllers()[0]
-			url := util.Before(ctrl.GetEndpoint(), ":")
-			if !strings.HasPrefix(url, "http") {
-				url = "http://" + url
+			URL, err := url.Parse(ctrl.GetEndpoint())
+			util.Check(err)
+			ecnViewer := URL.Scheme + "://" + URL.Hostname()
+			if util.IsLocalHost(ecnViewer) {
+				ecnViewer += ":" + iofog.ControllerHostECNViewerPortString
 			}
-			if util.IsLocalHost(util.After(url, "http://")) {
-				url += ":" + iofog.ControllerHostECNViewerPortString
-			}
-			if err := browser.OpenURL(url); err != nil {
+			if err := browser.OpenURL(ecnViewer); err != nil {
 				util.PrintInfo("To see the ECN Viewer, open your browser and go to:\n")
-				util.PrintInfo(fmt.Sprintf("%s\n", url))
+				util.PrintInfo(fmt.Sprintf("%s\n", URL))
 			}
 		},
 	}
