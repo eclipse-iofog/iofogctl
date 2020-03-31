@@ -67,7 +67,9 @@ spec:
 @test "Configure kube config file" {
   local NEWKUBEFILE="/tmp/new-kube.config"
   iofogctl -v -n "$NS" configure controlplane --kube-config "$NEWKUBEFILE"
-  [[ "$NEWKUBEFILE" == $(iofogctl -v -n "$NS" describe controlplane | grep "config:" | awk '{print $2}') ]]
+  DESC=$(iofogctl -v -n "$NS" describe controlplane)
+  echo $DESC
+  [[ "$NEWKUBEFILE" == "$(echo $DESC |  grep config: | awk '{print $2}')" ]]
   iofogctl -v -n "$NS" configure controlplane --kube-config "$KUBE_CONFIG"
 }
 
