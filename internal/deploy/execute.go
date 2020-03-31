@@ -239,7 +239,7 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 			return err
 		}
 
-		listAgentReponse, err := ctrlClient.ListAgents()
+		listAgentReponse, err := ctrlClient.ListAgents(client.ListAgentsRequest{})
 		if err != nil {
 			return err
 		}

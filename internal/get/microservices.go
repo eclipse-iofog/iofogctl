@@ -54,7 +54,7 @@ func (exe *microserviceExecutor) init() (err error) {
 		exe.msvcPerID[listMsvcs.Microservices[i].UUID] = &listMsvcs.Microservices[i]
 	}
 
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}

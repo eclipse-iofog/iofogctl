@@ -111,7 +111,7 @@ func connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string) error {
 	}
 
 	// Get Agents
-	listAgentsResponse, err := ctrl.ListAgents()
+	listAgentsResponse, err := ctrl.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}

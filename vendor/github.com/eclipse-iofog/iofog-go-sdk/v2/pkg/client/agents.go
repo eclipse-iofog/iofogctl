@@ -16,6 +16,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // CreateAgent creates an ioFog Agent using Controller REST API
@@ -67,14 +68,14 @@ func (clt *Client) GetAgentProvisionKey(UUID string) (response GetAgentProvision
 }
 
 // ListAgents returns all ioFog Agents information using Controller REST API
-func (clt *Client) ListAgents() (response ListAgentsResponse, err error) {
+func (clt *Client) ListAgents(request ListAgentsRequest) (response ListAgentsResponse, err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform List Agents request")
 		return
 	}
 
 	// Send request
-	body, err := clt.doRequest("GET", "/iofog-list", AgentListFilter{})
+	body, err := clt.doRequest("GET", generateListAgentURL(request), nil)
 	if err != nil {
 		return
 	}
@@ -139,14 +140,14 @@ func (clt *Client) DeleteAgent(UUID string) error {
 }
 
 // GetAgentByName retrieve the agent information by getting all agents then searching for the first occurance in the list
-func (clt *Client) GetAgentByName(name string) (_ *AgentInfo, err error) {
-	list, err := clt.ListAgents()
+func (clt *Client) GetAgentByName(name string, system bool) (*AgentInfo, error) {
+	list, err := clt.ListAgents(ListAgentsRequest{ System: system })
 	if err != nil {
-		return
+		return nil, err
 	}
-	for _, agent := range list.Agents {
-		if agent.Name == name {
-			return &agent, nil
+	for idx := range list.Agents {
+		if list.Agents[idx].Name == name {
+			return &list.Agents[idx], nil
 		}
 	}
 	return nil, NewNotFoundError(fmt.Sprintf("Could not find agent: %s", name))
@@ -156,4 +157,23 @@ func (clt *Client) GetAgentByName(name string) (_ *AgentInfo, err error) {
 func (clt *Client) PruneAgent(UUID string) (err error) {
 	_, err = clt.doRequest("POST", fmt.Sprintf("/iofog/%s/prune", UUID), nil)
 	return
+}
+
+func generateListAgentURL(request ListAgentsRequest) string {
+	// Embed request options into URL as query params
+	url := "/iofog-list?system=false"
+	if request.System {
+		url = strings.Replace(url, "false", "true", 1)
+	}
+	for idx, filter := range request.Filters {
+		params := []string{
+			fmt.Sprintf("&filters[%d][key]=%s", idx, filter.Key),
+			fmt.Sprintf("&filters[%d][value]=%s", idx, filter.Value),
+			fmt.Sprintf("&filters[%d][condition]=%s", idx, filter.Condition),
+		}
+		for _, param := range params {
+			url = fmt.Sprintf("%s%s", url, param)
+		}
+	}
+	return url
 }

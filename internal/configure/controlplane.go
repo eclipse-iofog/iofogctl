@@ -98,7 +98,7 @@ func (exe *controlPlaneExecutor) kubernetesConfigure(controlPlane *rsc.Kubernete
 		controlPlane.KubeConfig = exe.kubernetesConfig.kubeConfig
 	}
 
-	return nil
+	return controlPlane.Sanitize()
 }
 
 func (exe *controlPlaneExecutor) remoteConfigure(controlPlane *rsc.RemoteControlPlane) (err error) {

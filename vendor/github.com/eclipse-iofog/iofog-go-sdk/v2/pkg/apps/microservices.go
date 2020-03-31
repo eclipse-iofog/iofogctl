@@ -123,7 +123,7 @@ func (exe *microserviceExecutor) init() (err error) {
 			}
 		}
 	}
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return
 	}

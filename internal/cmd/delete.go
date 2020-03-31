@@ -24,10 +24,13 @@ func newDeleteCommand() *cobra.Command {
 	opt := &delete.Options{}
 
 	cmd := &cobra.Command{
-		Use:     "delete",
-		Example: `deploy -f platform.yaml`,
-		Short:   "Delete an existing ioFog resource",
-		Long:    `Delete an existing ioFog resource.`,
+		Use: "delete",
+		Example: `delete all
+delete controller NAME
+delete agent NAME
+delete application NAME`,
+		Short: "Delete an existing ioFog resource",
+		Long:  `Delete an existing ioFog resource.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")

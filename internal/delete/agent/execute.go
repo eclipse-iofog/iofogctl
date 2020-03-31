@@ -80,7 +80,7 @@ func (exe executor) Execute() error {
 		ctrl, err := internal.NewControllerClient(exe.namespace)
 		if err == nil {
 			// Does agent exists on Controller
-			agent, err := ctrl.GetAgentByName(exe.name)
+			agent, err := ctrl.GetAgentByName(exe.name, false)
 			if err != nil {
 				util.PrintInfo(fmt.Sprintf("Could not delete agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
 			} else {

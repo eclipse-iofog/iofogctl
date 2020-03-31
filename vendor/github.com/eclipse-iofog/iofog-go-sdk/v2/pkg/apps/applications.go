@@ -98,7 +98,7 @@ func (exe *applicationExecutor) init() (err error) {
 
 	exe.flowInfo = flowInfo
 
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return
 	}

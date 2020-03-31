@@ -273,6 +273,11 @@ type LoginResponse struct {
 	AccessToken string `json:"accessToken"`
 }
 
+type ListAgentsRequest struct {
+	System bool `json:"system"`
+	Filters []AgentListFilter `json:"filters"`
+}
+
 type CreateAgentRequest struct {
 	AgentUpdateRequest `json:",inline"`
 }

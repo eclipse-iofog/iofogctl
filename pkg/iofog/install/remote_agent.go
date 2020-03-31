@@ -103,10 +103,10 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
+func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (string, error) {
+	key, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
-		return
+		return "", err
 	}
 
 	// Generate controller endpoint
@@ -142,10 +142,10 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 
 	// Execute commands on remote server
 	if err = agent.run(cmds); err != nil {
-		return
+		return "", err
 	}
 
-	return
+	return agent.uuid, nil
 }
 
 func (agent *RemoteAgent) Deprovision() (err error) {
@@ -159,7 +159,6 @@ func (agent *RemoteAgent) Deprovision() (err error) {
 
 	// Execute commands on remote server
 	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
-		println(err.Error())
 		return
 	}
 

@@ -92,7 +92,7 @@ func generateAgentOutput(namespace string, printNS bool) error {
 	}
 
 	// Get Agents from Controller
-	listAgentsResponse, err := ctrl.ListAgents()
+	listAgentsResponse, err := ctrl.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}
