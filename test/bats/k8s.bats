@@ -65,11 +65,17 @@ spec:
 }
 
 @test "Configure kube config file" {
-  local NEWKUBEFILE="/tmp/new-kube.config"
-  iofogctl -v -n "$NS" configure controlplane --kube-config "$NEWKUBEFILE"
+  local NEW_KUBE="/tmp/new-kubeconfig"
+  local TEST_KUBE="$NEW_KUBE"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    NEW_KUBE="C:\tmp\new-kubeconfig"
+    TEST_KUBE='C:\\tmp\\new-kubeconfig'
+  fi
+  iofogctl -v -n "$NS" configure controlplane --kube-config "$NEW_KUBE"
   DESC=$(iofogctl -v -n "$NS" describe controlplane)
+  echo $NEW_KUBE
   echo $DESC
-  echo $DESC |  grep $NEWKUBEFILE
+  iofogctl -v -n "$NS" describe controlplane | grep $TEST_KUBE
   iofogctl -v -n "$NS" configure controlplane --kube-config "$KUBE_CONFIG"
 }
 
