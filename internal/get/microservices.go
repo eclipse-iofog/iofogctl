@@ -81,7 +81,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 
 	// Generate table and headers
 	table := make([][]string, len(exe.msvcPerID)+1)
-	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "CONFIG", "ROUTES", "VOLUMES", "PORTS"}
+	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "ROUTES", "VOLUMES", "PORTS"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -135,7 +135,6 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 			ms.Name,
 			status,
 			agentName,
-			ms.Config,
 			routes,
 			volumes,
 			ports,

@@ -33,9 +33,9 @@ function checkMicroservice() {
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
-  checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
-  checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person_2\""
+  DESC_MSVC=$(iofogctl -v -n "$NS_CHECK" get microservice "$MICROSERVICE_NAME")
+  checkMsvcConfig "${DESC_MSVC}" "\"test_mode\":true"
+  checkMsvcConfig "${DESC_MSVC}" "\"data_label\":\"Anonymous_Person_2\""
   [[ "memoryLimit: 8192" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
   # Check route
   [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $6}') ]]
@@ -75,10 +75,10 @@ function checkUpdatedMicroservice() {
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
-  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $4}')
-  checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
-  checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person_3\""
-  checkMsvcConfig "${MSVC_CONFIG}" "\"test_data\":{\"key\":42}"
+  DESC_MSVC=$(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME")
+  checkMsvcConfig "${DESC_MSVC}" "\"test_mode\":true"
+  checkMsvcConfig "${DESC_MSVC}" "\"data_label\":\"Anonymous_Person_3\""
+  checkMsvcConfig "${DESC_MSVC}" "\"test_data\":{\"key\":42}"
   [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
   [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
   # Check route
@@ -143,9 +143,9 @@ function checkApplication() {
   echo "$MSVCS" | grep "$MSVC2_NAME"
 
   # Check config
-  MSVC_CONFIG=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $4}')
-  checkMsvcConfig "${MSVC_CONFIG}" "\"test_mode\":true"
-  checkMsvcConfig "${MSVC_CONFIG}" "\"data_label\":\"Anonymous_Person\""
+  DESC_MSVC=$(iofogctl -v -n "$NS_CHECK" describe microservice "$MSVC1_NAME")
+  checkMsvcConfig "${DESC_MSVC}" "\"test_mode\":true"
+  checkMsvcConfig "${DESC_MSVC}" "\"data_label\":\"Anonymous_Person\""
   [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check route
   [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $5}') ]]

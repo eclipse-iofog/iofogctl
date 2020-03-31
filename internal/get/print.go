@@ -22,7 +22,7 @@ import (
 func print(table [][]string) error {
 	minWidth := 16
 	tabWidth := 8
-	padding := 0
+	padding := 1
 	writer := tabwriter.NewWriter(os.Stdout, minWidth, tabWidth, padding, '\t', 0)
 	defer writer.Flush()
 
