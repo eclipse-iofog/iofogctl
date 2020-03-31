@@ -68,6 +68,7 @@ spec:
   local NEWKUBEFILE="/tmp/new-kube.config"
   iofogctl -v -n "$NS" configure controlplane --kube-config "$NEWKUBEFILE"
   DESC=$(iofogctl -v -n "$NS" describe controlplane)
+  echo $DESC
   echo $DESC |  grep $NEWKUBEFILE
   iofogctl -v -n "$NS" configure controlplane --kube-config "$KUBE_CONFIG"
 }
