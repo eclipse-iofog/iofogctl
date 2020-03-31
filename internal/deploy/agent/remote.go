@@ -102,15 +102,14 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 
-	UUID, err := exe.ProvisionAgent()
+	uuid, err := exe.ProvisionAgent()
 	if err != nil {
 		return err
 	}
 
 	// Return the Agent through pointer
-	exe.agent.UUID = UUID
+	exe.agent.UUID = uuid
 	exe.agent.Created = util.NowUTC()
-
 	return
 }
 

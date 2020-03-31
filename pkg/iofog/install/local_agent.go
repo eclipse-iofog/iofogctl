@@ -39,14 +39,15 @@ func (agent *LocalAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
+func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (string, error) {
 	provisioningEndpoint := controllerEndpoint
 	if controllerEndpoint == "" || util.IsLocalHost(controllerEndpoint) {
-		controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
-		provisioningEndpoint = "localhost"
+		localControllerEndpoint, err := agent.client.GetLocalControllerEndpoint()
 		if err != nil {
 			return "", err
 		}
+		provisioningEndpoint = "localhost"
+		controllerEndpoint = localControllerEndpoint
 	}
 
 	key, err := agent.getProvisionKey(provisioningEndpoint, user)
@@ -74,5 +75,5 @@ func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (u
 		}
 	}
 
-	return
+	return agent.uuid, nil
 }
