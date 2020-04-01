@@ -71,12 +71,12 @@ spec:
     NEW_KUBE="C:\tmp\new-kubeconfig"
     TEST_KUBE='C:\\tmp\\new-kubeconfig'
   fi
-  iofogctl -v -n "$NS" configure controlplane --kube-config "$NEW_KUBE"
+  iofogctl -v -n "$NS" configure controlplane --kube "$NEW_KUBE"
   DESC=$(iofogctl -v -n "$NS" describe controlplane)
   echo $NEW_KUBE
   echo $DESC
   iofogctl -v -n "$NS" describe controlplane | grep $TEST_KUBE
-  iofogctl -v -n "$NS" configure controlplane --kube-config "$KUBE_CONFIG"
+  iofogctl -v -n "$NS" configure controlplane --kube "$KUBE_CONFIG"
 }
 
 @test "Deploy Agents" {

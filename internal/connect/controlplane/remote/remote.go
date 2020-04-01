@@ -28,6 +28,7 @@ type remoteExecutor struct {
 }
 
 func NewManualExecutor(namespace, name, endpoint, email, password string) (execute.Executor, error) {
+	fmtEndpoint := formatEndpoint(endpoint)
 	controlPlane := &rsc.RemoteControlPlane{
 		IofogUser: rsc.IofogUser{
 			Email:    email,
@@ -37,7 +38,8 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 		Controllers: []rsc.RemoteController{
 			{
 				Name:     name,
-				Endpoint: formatEndpoint(endpoint),
+				Endpoint: fmtEndpoint,
+				Host:     util.Before(fmtEndpoint, ":"),
 			},
 		},
 	}

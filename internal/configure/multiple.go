@@ -34,14 +34,14 @@ func (exe *multipleExecutor) Execute() (err error) {
 	var executors []execute.Executor
 
 	// Populate list
-	if exe.opt.ResourceType == "all" || exe.opt.ResourceType == "agents" {
+	if exe.opt.ResourceType == "agents" {
 		executors, err = exe.AddAgentExecutors(executors)
 		if err != nil {
 			return err
 		}
 	}
-	if exe.opt.ResourceType == "all" {
-		executors, err = exe.AddControlPlaneExecutors(executors)
+	if exe.opt.ResourceType == "controllers" {
+		executors, err = exe.AddControllerExecutors(executors)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 	return executors, nil
 }
 
-func (exe *multipleExecutor) AddControlPlaneExecutors(executors []execute.Executor) ([]execute.Executor, error) {
+func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor) ([]execute.Executor, error) {
 	ns, err := config.GetNamespace(exe.opt.Namespace)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (exe *multipleExecutor) AddControlPlaneExecutors(executors []execute.Execut
 	for _, controller := range ns.GetControllers() {
 		opt := exe.opt
 		opt.Name = controller.GetName()
-		executors = append(executors, newControlPlaneExecutor(opt))
+		executors = append(executors, newControllerExecutor(opt))
 	}
 
 	return executors, nil
