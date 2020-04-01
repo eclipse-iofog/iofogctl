@@ -23,7 +23,6 @@ type Options struct {
 	Namespace    string
 	Name         string
 	KubeConfig   string
-	Host         string
 	KeyFile      string
 	User         string
 	Port         int
@@ -31,8 +30,8 @@ type Options struct {
 }
 
 var multipleResources = map[string]bool{
-	"all":    true,
-	"agents": true,
+	"agents":      true,
+	"controllers": true,
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {
@@ -41,6 +40,8 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 		return newDefaultNamespaceExecutor(opt), nil
 	case "controlplane":
 		return newControlPlaneExecutor(opt), nil
+	case "controller":
+		return newControllerExecutor(opt), nil
 	case "agent":
 		return newAgentExecutor(opt), nil
 	default:

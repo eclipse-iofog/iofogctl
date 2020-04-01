@@ -231,15 +231,20 @@ spec:
 
 @test "Configure Controller and Connector" {
   initVanillaController
-  for resource in controlplane; do
-    iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
-  done
+  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+  iofogctl -v -n "$NS2" logs controller "$NAME"
+  iofogctl -v -n "$NS2" configure controllers "$NAME" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
   iofogctl -v -n "$NS2" logs controller "$NAME"
 }
 
 @test "Configure Agents" {
   initAgents
   iofogctl -v -n "$NS2" configure agents --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME" "$NS2"
+  done
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS2" configure agent "$AGENT_NAME" --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"

@@ -25,7 +25,6 @@ type agentExecutor struct {
 	keyFile     string
 	user        string
 	port        int
-	host        string
 	useDetached bool
 }
 
@@ -36,7 +35,6 @@ func newAgentExecutor(opt Options) *agentExecutor {
 		keyFile:     opt.KeyFile,
 		user:        opt.User,
 		port:        opt.Port,
-		host:        opt.Host,
 		useDetached: opt.UseDetached,
 	}
 }
@@ -62,9 +60,6 @@ func (exe *agentExecutor) Execute() error {
 		return util.NewInputError("Cannot configure Local Agent")
 	case *rsc.RemoteAgent:
 		// Only updated fields specified
-		if exe.host != "" {
-			agent.Host = exe.host
-		}
 		if exe.user != "" {
 			agent.SSH.User = exe.user
 		}
