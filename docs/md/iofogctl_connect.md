@@ -1,10 +1,10 @@
 ## iofogctl connect
 
-Connect to an existing ioFog cluster
+Connect to an existing Edge Compute Network
 
 ### Synopsis
 
-Connect to an existing ioFog cluster.
+Connect to an existing Edge Compute Network.
 
 This command must be executed within an empty or non-existent namespace.
 All resources provisioned with the corresponding Controller will become visible under the namespace.

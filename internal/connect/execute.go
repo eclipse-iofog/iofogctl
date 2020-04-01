@@ -37,10 +37,6 @@ type Options struct {
 var kindOrder = []config.Kind{
 	config.KubernetesControlPlaneKind,
 	config.RemoteControlPlaneKind,
-	config.LocalControlPlaneKind,
-	config.KubernetesControllerKind,
-	config.RemoteControllerKind,
-	config.LocalControllerKind,
 }
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
@@ -58,23 +54,19 @@ func Execute(opt Options) error {
 		return util.NewInputError("Either use a YAML file or provide Controller endpoint or Kube config to connect")
 	}
 
-	// TODO: refactor this to have less nesting
 	// Check for existing namespace
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {
-		// Overwrite namespace if requested
-		if opt.OverwriteNamespace {
+		// Check the namespace is empty
+		if len(ns.GetAgents()) != 0 || len(ns.GetControllers()) != 0 {
+			if !opt.OverwriteNamespace {
+				return util.NewInputError("You must use an empty or non-existent namespace")
+			}
+			// Overwrite
 			delErr := config.DeleteNamespace(opt.Namespace)
 			addErr := config.AddNamespace(opt.Namespace, util.NowUTC())
 			if delErr != nil || addErr != nil {
 				return util.NewInternalError("Failed to overwrite namespace " + opt.Namespace)
-			}
-		} else {
-			// Check the namespace is empty
-			if err == nil {
-				if len(ns.GetAgents()) != 0 || len(ns.GetControllers()) != 0 {
-					return util.NewInputError("You must use an empty or non-existent namespace")
-				}
 			}
 		}
 	} else {
@@ -98,7 +90,7 @@ func Execute(opt Options) error {
 		// K8s or Remote
 		var exe execute.Executor
 		if opt.KubeConfig != "" {
-			exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+			exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
 			if err != nil {
 				return err
 			}
