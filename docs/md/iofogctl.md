@@ -24,7 +24,7 @@ iofogctl [flags]
 
 * [iofogctl attach](iofogctl_attach.md)	 - Attach an existing ioFog resource to an ECN
 * [iofogctl configure](iofogctl_configure.md)	 - Configure iofogctl or SSH details an existing resource
-* [iofogctl connect](iofogctl_connect.md)	 - Connect to an existing ioFog cluster
+* [iofogctl connect](iofogctl_connect.md)	 - Connect to an existing Edge Compute Network
 * [iofogctl create](iofogctl_create.md)	 - Create a resource
 * [iofogctl delete](iofogctl_delete.md)	 - Delete an existing ioFog resource
 * [iofogctl deploy](iofogctl_deploy.md)	 - Deploy ioFog platform or components on existing infrastructure
