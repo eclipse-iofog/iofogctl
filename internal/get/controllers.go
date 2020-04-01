@@ -75,13 +75,13 @@ func generateControllerOutput(namespace string, printNS bool) error {
 		if ctrlConfig.GetCreatedTime() != "" {
 			age, _ = util.ElapsedUTC(ctrlConfig.GetCreatedTime(), util.NowUTC())
 		}
-		endpoint, port := getEndpointAndPort(ctrlConfig.GetEndpoint(), client.ControllerPortString)
+		addr, port := getAddressAndPort(ctrlConfig.GetEndpoint(), client.ControllerPortString)
 		row := []string{
 			ctrlConfig.GetName(),
 			status,
 			age,
 			uptime,
-			endpoint,
+			addr,
 			port,
 		}
 		table[idx+1] = append(table[idx+1], row...)

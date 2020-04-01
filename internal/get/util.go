@@ -15,25 +15,19 @@ package get
 
 import (
 	"regexp"
-	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func getEndpointAndPort(connectionString, defaultPort string) (endpoint, port string) {
-	// Remove prefix
-	endpoint = connectionString
-	regex := regexp.MustCompile("https?://")
-	port = regex.ReplaceAllString(endpoint, "")
-
-	if !strings.Contains(port, ":") {
-		// No port, return connectionString as endpoint and default port
+func getAddressAndPort(endpoint, defaultPort string) (addr, port string) {
+	port = util.AfterLast(endpoint, ":")
+	if port == "" {
 		port = defaultPort
-		endpoint = connectionString
-	} else {
-		// Port specified, extract port and return connection string - port as endpoint
-		port = util.After(port, ":")
-		endpoint = connectionString[:len(connectionString)-(len(port)+1)]
 	}
+	// Remove prefix
+	regex := regexp.MustCompile("https?://")
+	addr = regex.ReplaceAllString(endpoint, "")
+	addr = util.Before(addr, ":")
+
 	return
 }
