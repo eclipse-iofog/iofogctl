@@ -20,13 +20,17 @@ import (
 )
 
 func getAddressAndPort(endpoint, defaultPort string) (addr, port string) {
-	port = util.AfterLast(endpoint, ":")
-	if port == "" {
-		port = defaultPort
-	}
 	// Remove prefix
 	regex := regexp.MustCompile("https?://")
 	addr = regex.ReplaceAllString(endpoint, "")
+
+	// Get port from address
+	port = util.AfterLast(addr, ":")
+	if port == "" {
+		port = defaultPort
+	}
+
+	// Remove port from address
 	addr = util.Before(addr, ":")
 
 	return
