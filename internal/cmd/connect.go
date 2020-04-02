@@ -34,7 +34,7 @@ All resources provisioned with the corresponding Controller will become visible 
 All ssh access will be configured as provided in the config file.
 See iofog.org for the YAML format.`,
 		Example: `iofogctl connect -f platform.yaml
-iofogctl connect --kube FILE --name NAME --email EMAIL --pass PASSWORD
+iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
 iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

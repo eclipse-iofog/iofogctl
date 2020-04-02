@@ -60,7 +60,7 @@
 
 @test "Connect to cluster using flags" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  iofogctl -v -n "$NS" connect --name "$NAME" --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
+  iofogctl -v -n "$NS" connect --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkControllerK8s "${K8S_POD}1"
   checkAgents
 }
