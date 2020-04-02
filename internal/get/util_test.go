@@ -19,23 +19,34 @@ import (
 )
 
 func TestAddressConversion(t *testing.T) {
+	defaultPort := "12345"
 	expectedPort := "51121"
 	expectedAddress := "domain.controller"
-	addr, port := getAddressAndPort(fmt.Sprintf("%s:%s", expectedAddress, expectedPort), "12345")
+	addr, port := getAddressAndPort(fmt.Sprintf("%s:%s", expectedAddress, expectedPort), defaultPort)
 	if addr != expectedAddress || port != expectedPort {
 		t.Errorf("Failed %s:%s != %s:%s", addr, port, expectedAddress, expectedPort)
 	}
 
+	// http://
 	expectedPort = "61121"
 	expectedAddress = "123.123.123.123"
-	addr, port = getAddressAndPort(fmt.Sprintf("http://%s:%s", expectedAddress, expectedPort), "12345")
+	addr, port = getAddressAndPort(fmt.Sprintf("http://%s:%s", expectedAddress, expectedPort), defaultPort)
+	if addr != expectedAddress || port != expectedPort {
+		t.Errorf("Failed %s:%s != %s:%s", addr, port, expectedAddress, expectedPort)
+	}
+	expectedAddress = "domain.user.com"
+	addr, port = getAddressAndPort(fmt.Sprintf("http://%s:%s", expectedAddress, expectedPort), defaultPort)
 	if addr != expectedAddress || port != expectedPort {
 		t.Errorf("Failed %s:%s != %s:%s", addr, port, expectedAddress, expectedPort)
 	}
 
-	expectedAddress = "domain.user.com"
-	addr, port = getAddressAndPort(fmt.Sprintf("http://%s:%s", expectedAddress, expectedPort), "12345")
+	// Default port
+	addr, port = getAddressAndPort(fmt.Sprintf("http://%s", expectedAddress), defaultPort)
 	if addr != expectedAddress || port != expectedPort {
-		t.Errorf("Failed %s:%s != %s:%s", addr, port, expectedAddress, expectedPort)
+		t.Errorf("Failed %s:%s != %s:%s", addr, port, expectedAddress, defaultPort)
+	}
+	addr, port = getAddressAndPort(expectedAddress, defaultPort)
+	if addr != expectedAddress || port != defaultPort {
+		t.Errorf("Failed %s:%s != %s:%s", addr, port, expectedAddress, defaultPort)
 	}
 }
