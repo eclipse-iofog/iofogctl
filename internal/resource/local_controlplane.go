@@ -18,8 +18,8 @@ import (
 )
 
 type LocalControlPlane struct {
-	IofogUser  IofogUser       `yaml:"iofogUser"`
-	Controller LocalController `yaml:"controller,omitempty"`
+	IofogUser  IofogUser        `yaml:"iofogUser"`
+	Controller *LocalController `yaml:"controller,omitempty"`
 }
 
 func (cp LocalControlPlane) GetUser() IofogUser {
@@ -27,41 +27,52 @@ func (cp LocalControlPlane) GetUser() IofogUser {
 }
 
 func (cp LocalControlPlane) GetControllers() []Controller {
-	return []Controller{&cp.Controller}
+	if cp.Controller == nil {
+		return []Controller{}
+	}
+	return []Controller{cp.Controller}
 }
 
 func (cp LocalControlPlane) GetController(name string) (Controller, error) {
-	return &cp.Controller, nil
+	if cp.Controller == nil {
+		return nil, util.NewError("Local Control Plane does not have a Controller")
+	}
+	return cp.Controller, nil
 }
 
 func (cp LocalControlPlane) GetEndpoint() (string, error) {
+	if cp.Controller == nil {
+		return "", util.NewError("Local Control Plane does not have a Controller, cannot get endpoint.")
+	}
 	return cp.Controller.GetEndpoint(), nil
 }
 
 func (cp *LocalControlPlane) UpdateController(baseController Controller) error {
 	controller, ok := baseController.(*LocalController)
 	if !ok {
-		return util.NewError("Could not convert Controller to Local Controller")
+		return util.NewError("Must add Local Controller to Local Control Plane")
 	}
-	cp.Controller = *controller
+	cp.Controller = controller
 	return nil
 }
 
 func (cp *LocalControlPlane) AddController(baseController Controller) error {
 	controller, ok := baseController.(*LocalController)
 	if !ok {
-		return util.NewError("Could not convert Controller to Local Controller")
+		return util.NewError("Must add Local Controller to Local Control Plane")
 	}
-	cp.Controller = *controller
+	cp.Controller = controller
 	return nil
 }
 
 func (cp *LocalControlPlane) DeleteController(string) error {
-	cp.Controller = LocalController{}
+	cp.Controller = nil
 	return nil
 }
 
 func (cp *LocalControlPlane) Sanitize() error {
-	// Nothing to sanitize
+	if cp.Controller != nil && !util.IsLocalHost(cp.Controller.Endpoint) {
+		cp.Controller.Endpoint = "localhost"
+	}
 	return nil
 }

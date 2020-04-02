@@ -402,7 +402,7 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 	// Local Control Plane
 	if util.IsLocalHost(controllerV1.Host) {
 		ns.LocalControlPlane = &rsc.LocalControlPlane{
-			Controller: rsc.LocalController{
+			Controller: &rsc.LocalController{
 				Name:     controllerV1.Name,
 				Endpoint: controllerV1.Endpoint,
 				Created:  controllerV1.Created,
