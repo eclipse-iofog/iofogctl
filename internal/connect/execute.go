@@ -83,8 +83,8 @@ func Execute(opt Options) error {
 			return err
 		}
 	} else {
-		if !hasAllFlags(opt) {
-			return util.NewInputError("If no YAML file is provided, must provide Controller endpoint or kube config along with Controller name and ioFog user email/password")
+		if err := hasAllFlags(opt); err != nil {
+			return err
 		}
 
 		// K8s or Remote
@@ -126,6 +126,18 @@ func executeWithYAML(yamlFile, namespace string) error {
 	return nil
 }
 
-func hasAllFlags(opt Options) bool {
-	return opt.ControllerName != "" && opt.IofogUserEmail != "" && opt.IofogUserPass != "" && (opt.KubeConfig != "" || opt.ControllerEndpoint != "")
+func hasAllFlags(opt Options) error {
+	if opt.IofogUserEmail == "" || opt.IofogUserPass == "" {
+		return util.NewInputError("Must provide ioFog User and Password flags")
+	}
+	if opt.KubeConfig == "" {
+		if opt.ControllerName == "" || opt.ControllerEndpoint == "" {
+			return util.NewInputError("Must provide Controller Name and Endpoint flags for Remote Control Plane")
+		}
+	} else {
+		if opt.ControllerName != "" || opt.ControllerEndpoint != "" {
+			return util.NewInputError("Cannot specify Controller Name and Endpoint for Kubernetes Control Plane")
+		}
+	}
+	return nil
 }
