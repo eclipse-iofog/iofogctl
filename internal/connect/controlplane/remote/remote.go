@@ -34,7 +34,6 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 			Email:    email,
 			Password: password,
 		},
-		// TODO: This is wrong, could be a list of controllers in a control plane
 		Controllers: []rsc.RemoteController{
 			{
 				Name:     name,

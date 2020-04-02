@@ -7,9 +7,8 @@ Connect to an existing Edge Compute Network
 Connect to an existing Edge Compute Network.
 
 This command must be executed within an empty or non-existent namespace.
-All resources provisioned with the corresponding Controller will become visible under the namespace.
-All ssh access will be configured as provided in the config file.
-See iofog.org for the YAML format.
+All resources provisioned with the corresponding Control Plane will become visible under the namespace.
+See iofog.org for the Control Plane YAML format.
 
 ```
 iofogctl connect [flags]
@@ -18,7 +17,7 @@ iofogctl connect [flags]
 ### Examples
 
 ```
-iofogctl connect -f platform.yaml
+iofogctl connect -f controlplane.yaml
 iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
 iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
 ```

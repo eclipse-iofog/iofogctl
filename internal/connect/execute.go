@@ -95,7 +95,6 @@ func Execute(opt Options) error {
 				return err
 			}
 		} else {
-			// TODO: This doesn't make sense, connect to controlplane is passing in a controller name, it should be a list of controller details
 			exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
 			if err != nil {
 				return err
@@ -116,7 +115,6 @@ func executeWithYAML(yamlFile, namespace string) error {
 		return err
 	}
 
-	// Controlplane, Controller, Connector, Agent
 	for idx := range kindOrder {
 		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("connect %s", kindOrder[idx])); err != nil {
 			return err
