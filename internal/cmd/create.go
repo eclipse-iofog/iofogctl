@@ -21,9 +21,7 @@ func newCreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a resource",
-		Long: `Create a resource.
-
-Some resources (e.g. namespaces) are relevant to iofogctl alone. Other resources are created on the ioFog cluster itself.`,
+		Long:  `Create a component of an Edge Compute Network.`,
 	}
 
 	// Add subcommands

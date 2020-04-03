@@ -22,8 +22,8 @@ import (
 func newRenameControllerCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "controller NAME NEW_NAME",
-		Short:   "Rename a Controller to another name in your ECN",
-		Long:    `Rename a Controller to another name in your ECN`,
+		Short:   "Rename a Controller",
+		Long:    `Rename a Controller`,
 		Example: `iofogctl rename controller NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {

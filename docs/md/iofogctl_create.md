@@ -4,9 +4,7 @@ Create a resource
 
 ### Synopsis
 
-Create a resource.
-
-Some resources (e.g. namespaces) are relevant to iofogctl alone. Other resources are created on the ioFog cluster itself.
+Create a component of an Edge Compute Network.
 
 ### Options
 

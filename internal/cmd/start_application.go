@@ -25,7 +25,7 @@ func newStartApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Starts an application",
 		Long:    "Starts an application",
-		Example: `iofogctl start application meerkat`,
+		Example: `iofogctl start application NAME`,
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

@@ -23,9 +23,9 @@ func newStopApplicationCommand() *cobra.Command {
 	opt := stopapplication.Options{}
 	cmd := &cobra.Command{
 		Use:     "application NAME",
-		Short:   "Stops an application",
-		Long:    "Stops an application",
-		Example: `iofogctl stop application meerkat`,
+		Short:   "Stop an application",
+		Long:    "Stop an application",
+		Example: `iofogctl stop application NAME`,
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

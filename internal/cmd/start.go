@@ -22,7 +22,7 @@ func newStartCommand() *cobra.Command {
 		Use:     "start",
 		Short:   "Starts a resource",
 		Long:    "Starts a resource",
-		Example: `iofogctl start application meerkat`,
+		Example: `iofogctl start application NAME`,
 	}
 
 	// Add subcommands

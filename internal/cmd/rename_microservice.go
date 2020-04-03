@@ -22,8 +22,8 @@ import (
 func newRenameMicroserviceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "microservice NAME NEW_NAME",
-		Short:   "Rename a Microservice in your ECN to another name",
-		Long:    `Rename a Microservice in your ECN to another name`,
+		Short:   "Rename a Microservice",
+		Long:    `Rename a Microservice`,
 		Example: `iofogctl rename microservice NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {

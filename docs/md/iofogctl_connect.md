@@ -1,14 +1,14 @@
 ## iofogctl connect
 
-Connect to an existing Edge Compute Network
+Connect to an existing Control Plane
 
 ### Synopsis
 
-Connect to an existing Edge Compute Network.
+Connect to an existing Control Plane.
 
-This command must be executed within an empty or non-existent namespace.
-All resources provisioned with the corresponding Control Plane will become visible under the namespace.
-See iofog.org for the Control Plane YAML format.
+This command must be executed within an empty or non-existent Namespace.
+All resources provisioned with the corresponding Control Plane will become visible under the Namespace.
+Visit iofog.org to view all YAML specifications usable with this command.
 
 ```
 iofogctl connect [flags]

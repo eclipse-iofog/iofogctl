@@ -4,7 +4,11 @@ Create a Namespace
 
 ### Synopsis
 
-Create a Namespace
+Create a Namespace.
+
+A Namespace contains all components of an Edge Compute Network.
+
+A single instance of iofogctl can be used to manage any number of Edge Compute Networks.
 
 ```
 iofogctl create namespace NAME [flags]

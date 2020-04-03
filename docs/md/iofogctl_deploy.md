@@ -1,11 +1,11 @@
 ## iofogctl deploy
 
-Deploy ioFog platform or components on existing infrastructure
+Deploy Edge Compute Network components on existing infrastructure
 
 ### Synopsis
 
-Deploy ioFog platform or individual components on existing infrastructure.
-The complete description of yaml file definition can be found at iofog.org
+Deploy Edge Compute Network components on existing infrastructure.
+Visit iofog.org to view all YAML specifications usable with this command.
 
 ```
 iofogctl deploy [flags]

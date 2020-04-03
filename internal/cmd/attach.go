@@ -21,8 +21,8 @@ func newAttachCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "attach",
 		Example: `attach`,
-		Short:   "Attach an existing ioFog resource to an ECN",
-		Long:    `Attach an existing ioFog resource to an ECN.`,
+		Short:   "Attach an existing ioFog resource to Control Plane",
+		Long:    `Attach an existing ioFog resource to Control Plane.`,
 	}
 
 	// Add subcommands

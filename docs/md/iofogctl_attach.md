@@ -1,10 +1,10 @@
 ## iofogctl attach
 
-Attach an existing ioFog resource to an ECN
+Attach an existing ioFog resource to Control Plane
 
 ### Synopsis
 
-Attach an existing ioFog resource to an ECN.
+Attach an existing ioFog resource to Control Plane.
 
 ### Examples
 
@@ -30,6 +30,6 @@ attach
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl attach agent](iofogctl_attach_agent.md)	 - Attaches an Agent to an existing ECN
+* [iofogctl attach agent](iofogctl_attach_agent.md)	 - Attach an Agent to an existing Namespace
 
 

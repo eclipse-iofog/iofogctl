@@ -27,9 +27,9 @@ func newDeployCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "deploy",
 		Example: `deploy -f platform.yaml`,
-		Short:   "Deploy ioFog platform or components on existing infrastructure",
-		Long: `Deploy ioFog platform or individual components on existing infrastructure.
-The complete description of yaml file definition can be found at iofog.org`,
+		Short:   "Deploy Edge Compute Network components on existing infrastructure",
+		Long: `Deploy Edge Compute Network components on existing infrastructure.
+Visit iofog.org to view all YAML specifications usable with this command.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")

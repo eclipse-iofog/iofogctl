@@ -22,8 +22,8 @@ import (
 func newMoveMicroserviceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "microservice NAME AGENT_NAME",
-		Short:   "Move a Microservice to another agent in the same ECN",
-		Long:    `Move a Microservice to another agent in the same ECN`,
+		Short:   "Move a Microservice to another agent in the same Namespace",
+		Long:    `Move a Microservice to another agent in the same Namespace`,
 		Example: `iofogctl move microservice NAME AGENT_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {

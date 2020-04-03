@@ -1,10 +1,10 @@
 ## iofogctl stop application
 
-Stops an application
+Stop an application
 
 ### Synopsis
 
-Stops an application
+Stop an application
 
 ```
 iofogctl stop application NAME [flags]
@@ -13,7 +13,7 @@ iofogctl stop application NAME [flags]
 ### Examples
 
 ```
-iofogctl stop application meerkat
+iofogctl stop application NAME
 ```
 
 ### Options

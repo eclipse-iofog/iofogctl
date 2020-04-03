@@ -27,7 +27,9 @@ func newDeleteNamespaceCommand() *cobra.Command {
 		Short: "Delete a Namespace",
 		Long: `Delete a Namespace.
 
-The namespace must not have any resources within it.`,
+The Namespace must be empty.
+
+If you would like to delete all resources in the Namespace, use the --force flag.`,
 		Example: `iofogctl delete namespace NAME`,
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

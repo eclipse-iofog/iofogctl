@@ -38,8 +38,8 @@ type executor struct {
 	opt Options
 }
 
-func NewExecutor(opt Options) (execute.Executor, error) {
-	return executor{opt: opt}, nil
+func NewExecutor(opt Options) execute.Executor {
+	return executor{opt: opt}
 }
 
 func (exe executor) GetName() string {

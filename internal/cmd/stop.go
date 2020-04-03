@@ -22,7 +22,7 @@ func newStopCommand() *cobra.Command {
 		Use:     "stop",
 		Short:   "Stops a resource",
 		Long:    "Stops a resource",
-		Example: `iofogctl stop application meerkat`,
+		Example: `iofogctl stop application NAME`,
 	}
 
 	// Add subcommands
