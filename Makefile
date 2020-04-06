@@ -22,7 +22,7 @@ LDFLAGS += -X $(PREFIX).routerTag=2.0.0-beta
 LDFLAGS += -X $(PREFIX).controllerTag=2.0.0-beta2
 LDFLAGS += -X $(PREFIX).agentTag=2.0.0-beta2
 LDFLAGS += -X $(PREFIX).controllerVersion=2.0.0-beta2
-FLAGS += -X $(PREFIX).agentVersion=2.0.0-beta2
+LDFLAGS += -X $(PREFIX).agentVersion=2.0.0-beta2
 LDFLAGS += -X $(PREFIX).repo=iofog
 GO_SDK_MODULE = iofog-go-sdk/v2@v2.0.0-beta2
 OPERATOR_MODULE = iofog-operator/v2@v2.0.0-beta2
