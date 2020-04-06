@@ -1,12 +1,10 @@
 ## iofogctl prune agent
 
-prune ioFog resources
+Remove all dangling images from Agent
 
 ### Synopsis
 
-prune ioFog resources.
- 
- Removes all the images which are not used by existing containers.
+Remove all the images which are not used by existing containers on the specified Agent
 
 ```
 iofogctl prune agent NAME [flags]

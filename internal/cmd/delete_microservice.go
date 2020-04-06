@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -33,7 +33,8 @@ func newDeleteMicroserviceCommand() *cobra.Command {
 			util.Check(err)
 
 			// Get an executor for the command
-			exe, _ := delete.NewExecutor(namespace, name)
+			exe, err := delete.NewExecutor(namespace, name)
+			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)
 

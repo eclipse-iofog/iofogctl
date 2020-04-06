@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,6 +16,7 @@ package configure
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 type multipleExecutor struct {
@@ -33,13 +34,13 @@ func (exe *multipleExecutor) Execute() (err error) {
 	var executors []execute.Executor
 
 	// Populate list
-	if exe.opt.ResourceType == "all" || exe.opt.ResourceType == "agents" {
+	if exe.opt.ResourceType == "agents" {
 		executors, err = exe.AddAgentExecutors(executors)
 		if err != nil {
 			return err
 		}
 	}
-	if exe.opt.ResourceType == "all" || exe.opt.ResourceType == "controllers" {
+	if exe.opt.ResourceType == "controllers" {
 		executors, err = exe.AddControllerExecutors(executors)
 		if err != nil {
 			return err
@@ -57,10 +58,10 @@ func (exe *multipleExecutor) Execute() (err error) {
 }
 
 func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	var agents []config.Agent
+	var agents []rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
-		agents, err = config.GetDetachedAgents()
+		agents = config.GetDetachedAgents()
 	} else {
 		agents, err = config.GetAgents(exe.opt.Namespace)
 	}
@@ -69,7 +70,7 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 	}
 	for _, agent := range agents {
 		opt := exe.opt
-		opt.Name = agent.Name
+		opt.Name = agent.GetName()
 		executors = append(executors, newAgentExecutor(opt))
 	}
 
@@ -77,13 +78,13 @@ func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]
 }
 
 func (exe *multipleExecutor) AddControllerExecutors(executors []execute.Executor) ([]execute.Executor, error) {
-	controllers, err := config.GetControllers(exe.opt.Namespace)
+	ns, err := config.GetNamespace(exe.opt.Namespace)
 	if err != nil {
 		return nil, err
 	}
-	for _, controller := range controllers {
+	for _, controller := range ns.GetControllers() {
 		opt := exe.opt
-		opt.Name = controller.Name
+		opt.Name = controller.GetName()
 		executors = append(executors, newControllerExecutor(opt))
 	}
 

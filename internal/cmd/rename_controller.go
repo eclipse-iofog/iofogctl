@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,8 +22,8 @@ import (
 func newRenameControllerCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "controller NAME NEW_NAME",
-		Short:   "Rename a Controller to another name in your ECN",
-		Long:    `Rename a Controller to another name in your ECN`,
+		Short:   "Rename a Controller",
+		Long:    `Rename a Controller`,
 		Example: `iofogctl rename controller NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {

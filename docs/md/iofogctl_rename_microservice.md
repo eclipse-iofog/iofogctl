@@ -1,10 +1,10 @@
 ## iofogctl rename microservice
 
-Rename a Microservice in your ECN to another name
+Rename a Microservice
 
 ### Synopsis
 
-Rename a Microservice in your ECN to another name
+Rename a Microservice
 
 ```
 iofogctl rename microservice NAME NEW_NAME [flags]

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,9 +23,9 @@ func newStopApplicationCommand() *cobra.Command {
 	opt := stopapplication.Options{}
 	cmd := &cobra.Command{
 		Use:     "application NAME",
-		Short:   "Stops an application",
-		Long:    "Stops an application",
-		Example: `iofogctl stop application meerkat`,
+		Short:   "Stop an application",
+		Long:    "Stop an application",
+		Example: `iofogctl stop application NAME`,
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

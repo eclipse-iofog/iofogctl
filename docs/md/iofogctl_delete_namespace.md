@@ -6,7 +6,9 @@ Delete a Namespace
 
 Delete a Namespace.
 
-The namespace must not have any resources within it.
+The Namespace must be empty.
+
+If you would like to delete all resources in the Namespace, use the --force flag.
 
 ```
 iofogctl delete namespace NAME [flags]

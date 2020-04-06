@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -26,8 +26,10 @@ func newDeleteAgentCommand() *cobra.Command {
 		Short: "Delete an Agent",
 		Long: `Delete an Agent.
 
-The Agent will be deleted from the Controller within the namespace.
+The Agent will be unprovisioned from the Controller within the namespace.
+
 The Agent stack will be uninstalled from the host.
+
 If you wish to not remove the Agent stack from the host, please use iofogctl detach agent`,
 		Example: `iofogctl delete agent NAME`,
 		Args:    cobra.ExactArgs(1),
@@ -40,7 +42,8 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 			util.Check(err)
 
 			// Run the command
-			exe, _ := delete.NewExecutor(namespace, name, useDetached, soft)
+			exe, err := delete.NewExecutor(namespace, name, useDetached, soft)
+			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)
 

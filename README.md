@@ -4,6 +4,10 @@
 It can be used to remotely manage multiple ECNs from a single host. It is built for an
 ioFog user and a DevOps engineer wanting to manage ECNs.
 
+## What's new in 2.0 ?
+
+See our [release document](2.0.0-beta.release.md)!
+
 ## Install
 
 #### Mac

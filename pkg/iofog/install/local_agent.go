@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -39,18 +39,24 @@ func (agent *LocalAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
-	controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
-	if err != nil {
-		return "", err
+func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (string, error) {
+	provisioningEndpoint := controllerEndpoint
+	if controllerEndpoint == "" || util.IsLocalHost(controllerEndpoint) {
+		localControllerEndpoint, err := agent.client.GetLocalControllerEndpoint()
+		if err != nil {
+			return "", err
+		}
+		provisioningEndpoint = "localhost"
+		controllerEndpoint = localControllerEndpoint
 	}
-	key, uuid, err := agent.getProvisionKey("localhost", user)
+
+	key, err := agent.getProvisionKey(provisioningEndpoint, user)
 	if err != nil {
 		return "", err
 	}
 
 	// Instantiate provisioning commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
+	controllerBaseURL := fmt.Sprintf("%s/api/v3", controllerEndpoint)
 	cmds := [][]string{
 		{"iofog-agent", "config", "-idc", "off"},
 		{"iofog-agent", "config", "-a", controllerBaseURL},
@@ -69,5 +75,5 @@ func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (u
 		}
 	}
 
-	return
+	return agent.uuid, nil
 }

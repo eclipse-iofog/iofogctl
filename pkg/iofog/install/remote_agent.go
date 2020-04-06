@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -37,7 +37,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	return &RemoteAgent{
 		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
 		ssh:          ssh,
-		version:      util.GetAgentTag(),
+		version:      util.GetAgentVersion(),
 	}
 }
 
@@ -103,10 +103,10 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (uuid string, err error) {
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
+func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (string, error) {
+	key, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
-		return
+		return "", err
 	}
 
 	// Generate controller endpoint
@@ -142,10 +142,10 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 
 	// Execute commands on remote server
 	if err = agent.run(cmds); err != nil {
-		return
+		return "", err
 	}
 
-	return
+	return agent.uuid, nil
 }
 
 func (agent *RemoteAgent) Deprovision() (err error) {
@@ -158,7 +158,7 @@ func (agent *RemoteAgent) Deprovision() (err error) {
 	}
 
 	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil {
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
 		return
 	}
 
@@ -179,11 +179,15 @@ func (agent *RemoteAgent) Stop() (err error) {
 	}
 
 	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil {
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
 		return err
 	}
 
 	return
+}
+
+func isNotProvisionedError(err error) bool {
+	return strings.Contains(err.Error(), "not provisioned")
 }
 
 func (agent *RemoteAgent) Prune() (err error) {

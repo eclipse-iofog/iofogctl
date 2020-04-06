@@ -35,10 +35,10 @@ iofogctl rename namespace NAME NEW_NAME
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl rename agent](iofogctl_rename_agent.md)	 - Rename a Agent to another name in your ECN
-* [iofogctl rename application](iofogctl_rename_application.md)	 - Rename a Application in your ECN to another name
-* [iofogctl rename controller](iofogctl_rename_controller.md)	 - Rename a Controller to another name in your ECN
-* [iofogctl rename microservice](iofogctl_rename_microservice.md)	 - Rename a Microservice in your ECN to another name
-* [iofogctl rename namespace](iofogctl_rename_namespace.md)	 - Rename a Namespace in your ECN to another name
+* [iofogctl rename agent](iofogctl_rename_agent.md)	 - Rename an Agent
+* [iofogctl rename application](iofogctl_rename_application.md)	 - Rename a Application
+* [iofogctl rename controller](iofogctl_rename_controller.md)	 - Rename a Controller
+* [iofogctl rename microservice](iofogctl_rename_microservice.md)	 - Rename a Microservice
+* [iofogctl rename namespace](iofogctl_rename_namespace.md)	 - Rename the Namespace of your ECN
 
 

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,19 +18,19 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func (exe executor) remoteAgentPrune(agent config.Agent) error {
+func (exe executor) remoteAgentPrune(agent rsc.Agent) error {
 	ctrl, err := internal.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 	// If controller exists, prune the agent
 	// Perform Docker pruning of Agent through Controller
-	if err = ctrl.PruneAgent(agent.UUID); err != nil {
+	if err = ctrl.PruneAgent(agent.GetUUID()); err != nil {
 		if !strings.Contains(err.Error(), "NotFoundError") {
 			return err
 		}
@@ -38,7 +38,7 @@ func (exe executor) remoteAgentPrune(agent config.Agent) error {
 	return nil
 }
 
-func (exe executor) remoteDetachedAgentPrune(agent config.Agent) error {
+func (exe executor) remoteDetachedAgentPrune(agent *rsc.RemoteAgent) error {
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 		return util.NewInputError("Could not Prune Iofog resource " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
 	} else {

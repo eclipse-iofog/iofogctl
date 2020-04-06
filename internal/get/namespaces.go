@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ package get
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -32,7 +33,7 @@ func (exe *namespaceExecutor) GetName() string {
 
 func (exe *namespaceExecutor) Execute() error {
 	namespacesNames := config.GetNamespaces()
-	var namespaces []config.Namespace
+	var namespaces []rsc.Namespace
 	for _, n := range namespacesNames {
 		ns, err := config.GetNamespace(n)
 		if err != nil {

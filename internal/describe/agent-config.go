@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -71,7 +72,7 @@ func (exe *agentConfigExecutor) Execute() error {
 	}
 
 	// Get all agents for mapping uuid to name if required
-	getAgentList, err := ctrl.ListAgents()
+	getAgentList, err := ctrl.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}
@@ -81,7 +82,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		agentMapByUUID[agent.UUID] = agent
 	}
 
-	getAgentResponse, err := ctrl.GetAgentByID(agent.UUID)
+	getAgentResponse, err := ctrl.GetAgentByID(agent.GetUUID())
 	if err != nil {
 		// The agents might not be provisioned with Controller
 		if strings.Contains(err.Error(), "NotFoundError") {
@@ -90,7 +91,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		return err
 	}
 
-	fogType, found := config.FogTypeIntMap[getAgentResponse.FogType]
+	fogType, found := rsc.FogTypeIntMap[getAgentResponse.FogType]
 	if !found {
 		fogType = "auto"
 	}
@@ -118,7 +119,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		networkRouterPtr = &networkRouter
 	}
 
-	agentConfig := config.AgentConfiguration{
+	agentConfig := rsc.AgentConfiguration{
 		Name:        getAgentResponse.Name,
 		Location:    getAgentResponse.Location,
 		Latitude:    getAgentResponse.Latitude,
@@ -140,6 +141,9 @@ func (exe *agentConfigExecutor) Execute() error {
 			BluetoothEnabled:          &getAgentResponse.BluetoothEnabled,
 			WatchdogEnabled:           &getAgentResponse.WatchdogEnabled,
 			AbstractedHardwareEnabled: &getAgentResponse.AbstractedHardwareEnabled,
+			LogLevel:                  getAgentResponse.LogLevel,
+			DockerPruningFrequency:    getAgentResponse.DockerPruningFrequency,
+			AvailableDiskThreshold:    getAgentResponse.AvailableDiskThreshold,
 			UpstreamRouters:           upstreamRoutersPtr,
 			NetworkRouter:             networkRouterPtr,
 			RouterConfig:              routerConfig,

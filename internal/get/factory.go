@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -37,6 +37,8 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newCatalogExecutor(namespace), nil
 	case "registries":
 		return newRegistryExecutor(namespace), nil
+	case "volumes":
+		return newVolumeExecutor(namespace), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

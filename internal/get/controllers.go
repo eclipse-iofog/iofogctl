@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -37,16 +37,16 @@ func (exe *controllerExecutor) GetName() string {
 }
 
 func (exe *controllerExecutor) Execute() error {
-	printNamespace(exe.namespace)
-	return generateControllerOutput(exe.namespace)
+	return generateControllerOutput(exe.namespace, true)
 }
 
-func generateControllerOutput(namespace string) error {
+func generateControllerOutput(namespace string, printNS bool) error {
 	// Get controller config details
-	controllers, err := config.GetControllers(namespace)
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return err
 	}
+	controllers := ns.GetControllers()
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
@@ -72,21 +72,24 @@ func generateControllerOutput(namespace string) error {
 
 		// Get age
 		age := "-"
-		if ctrlConfig.Created != "" {
-			age, _ = util.ElapsedUTC(ctrlConfig.Created, util.NowUTC())
+		if ctrlConfig.GetCreatedTime() != "" {
+			age, _ = util.ElapsedUTC(ctrlConfig.GetCreatedTime(), util.NowUTC())
 		}
-		endpoint, port := getEndpointAndPort(ctrlConfig.Endpoint, client.ControllerPortString)
+		addr, port := getAddressAndPort(ctrlConfig.GetEndpoint(), client.ControllerPortString)
 		row := []string{
-			ctrlConfig.Name,
+			ctrlConfig.GetName(),
 			status,
 			age,
 			uptime,
-			endpoint,
+			addr,
 			port,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
+	if printNS {
+		printNamespace(namespace)
+	}
 	// Print table
 	err = print(table)
 	if err != nil {

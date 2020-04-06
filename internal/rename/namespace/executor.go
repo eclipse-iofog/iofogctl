@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -29,6 +29,6 @@ func Execute(name, newName string) error {
 	if err := config.RenameNamespace(name, newName); err != nil {
 		return err
 	}
-	return nil
+	return config.Flush()
 
 }

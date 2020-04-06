@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -28,7 +28,7 @@ func newDeleteAllCommand() *cobra.Command {
 
 Tears down all components of an Edge Compute Network.
 
-If you don't want to tear down the deployments but would like to free up the namespace, use the disconnect command instead.`,
+If you don't want to tear down the deployments but would like to free up the Namespace, use the disconnect command instead.`,
 		Example: `iofogctl delete all -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Execute command

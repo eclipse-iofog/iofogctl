@@ -9,7 +9,7 @@ Stops a resource
 ### Examples
 
 ```
-iofogctl stop application meerkat
+iofogctl stop application NAME
 ```
 
 ### Options
@@ -30,6 +30,6 @@ iofogctl stop application meerkat
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl stop application](iofogctl_stop_application.md)	 - Stops an application
+* [iofogctl stop application](iofogctl_stop_application.md)	 - Stop an application
 
 

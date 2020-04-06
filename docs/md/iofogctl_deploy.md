@@ -1,50 +1,11 @@
 ## iofogctl deploy
 
-Deploy ioFog platform or components on existing infrastructure
+Deploy Edge Compute Network components on existing infrastructure
 
 ### Synopsis
 
-Deploy ioFog platform or individual components on existing infrastructure.
-
-The YAML resource specification file should look like this (two Controllers specified for example only):
-```
-kind: ControlPlane
-apiVersion: iofog.org/v2
-metadata:
-  name: alpaca-1 # ControlPlane name
-spec:
-  controllers:
-  - name: k8s # Controller name
-    kube:
-      config: ~/.kube/config # Will deploy a controller in a kubernetes cluster
-  - name: vanilla
-    host: 35.239.157.151 # Will deploy a controller as a standalone binary
-    ssh:
-      user: serge # SSH user
-	  keyFile: ~/.ssh/id_rsa # SSH private key
----
-apiVersion: iofog.org/v2
-kind: Agent
-metadata:
-  name: agent1 # Agent name
-spec:
-  host: 35.239.157.151 # SSH host
-  ssh:
-    user: serge # SSH User
-    keyFile: ~/.ssh/id_rsa # SSH private key
----
-apiVersion: iofog.org/v2
-kind: Agent
-metadata:
-  name: agent2
-spec:
-  host: 35.232.114.32
-  ssh:
-    user: serge
-    keyFile: ~/.ssh/id_rsa
-
-```
-The complete description of yaml file definition can be found at iofog.org
+Deploy Edge Compute Network components on existing infrastructure.
+Visit iofog.org to view all YAML specifications usable with this command.
 
 ```
 iofogctl deploy [flags]

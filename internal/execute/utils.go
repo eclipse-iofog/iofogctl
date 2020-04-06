@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,7 +19,6 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -44,7 +43,7 @@ func NewEmptyExecutor(name string) Executor {
 	}
 }
 
-func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
+func generateExecutor(header config.Header, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
 	// Check namespace exists
 	if len(header.Metadata.Namespace) > 0 {
 		namespace = header.Metadata.Namespace
@@ -78,13 +77,13 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[a
 }
 
 type KindHandlerOpt struct {
-	Kind      apps.Kind
+	Kind      config.Kind
 	Namespace string
 	Name      string
 	YAML      []byte
 }
 
-func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kind]func(KindHandlerOpt) (Executor, error)) (executorsMap map[apps.Kind][]Executor, err error) {
+func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
 	yamlFile, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		return
@@ -100,7 +99,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kin
 	}
 
 	// Generate all executors
-	executorsMap = make(map[apps.Kind][]Executor)
+	executorsMap = make(map[config.Kind][]Executor)
 	decodeErr := dec.Decode(&header)
 	for decodeErr == nil {
 		exe, err := generateExecutor(header, namespace, kindHandlers)

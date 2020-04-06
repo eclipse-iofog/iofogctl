@@ -30,6 +30,6 @@ Iofogctl prune agent NAME
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl prune agent](iofogctl_prune_agent.md)	 - prune ioFog resources
+* [iofogctl prune agent](iofogctl_prune_agent.md)	 - Remove all dangling images from Agent
 
 

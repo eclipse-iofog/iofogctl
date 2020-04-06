@@ -2,6 +2,15 @@
   testDeployVolume
 }
 
+@test "Get and Describe Volumes" {
+  testGetDescribeVolume
+}
+
+@test "Delete Volumes and Redeploy" {
+  testDeleteVolume
+  testDeployVolume
+}
+
 @test "Agent legacy commands" {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
@@ -33,28 +42,26 @@
 @test "Disconnect from cluster" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
-  checkAgentsNegative
+  checkNamespaceExistsNegative "$NS"
 }
 
 @test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
-  checkController
+  checkControllerK8s "${K8S_POD}1"
   checkAgents
 }
 
 @test "Disconnect from cluster again" {
   initAgents
   iofogctl -v -n "$NS" disconnect
-  checkControllerNegative
-  checkAgentsNegative
+  checkNamespaceExistsNegative "$NS"
 }
 
 @test "Connect to cluster using flags" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  iofogctl -v -n "$NS" connect --name "$NAME" --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkController
+  iofogctl -v -n "$NS" connect --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
+  checkControllerK8s "${K8S_POD}1"
   checkAgents
 }
 
@@ -157,16 +164,9 @@
 }
 
 @test "Deploy Agents for idempotence" {
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
-}
-
-@test "Configure Controller" {
-  for resource in controller; do
-    iofogctl -v -n "$NS" configure "$resource" "$NAME" --kube "$KUBE_CONFIG"
-  done
-  iofogctl -v -n "$NS" logs controller "$NAME"
 }
 
 @test "Configure Agents" {

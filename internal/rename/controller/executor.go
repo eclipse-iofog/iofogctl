@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,20 +20,30 @@ import (
 )
 
 func Execute(namespace, name, newName string) error {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return err
+	}
 	// Check that Controller exists in current namespace
-	ctrl, err := config.GetController(namespace, name)
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+
+	controller, err := controlPlane.GetController(name)
 	if err != nil {
 		return err
 	}
 
 	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
-	ctrl.Name = newName
-	if err = config.UpdateController(namespace, ctrl); err != nil {
+	controller.SetName(newName)
+	// Add first to fail on name clash
+	if err = controlPlane.AddController(controller); err != nil {
 		return err
 	}
-	if err = config.DeleteController(namespace, name); err != nil {
+	if err = controlPlane.DeleteController(name); err != nil {
 		return err
 	}
-	config.Flush()
-	return nil
+	config.UpdateControlPlane(namespace, controlPlane)
+	return config.Flush()
 }

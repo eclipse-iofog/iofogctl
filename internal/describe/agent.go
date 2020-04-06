@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,10 +14,10 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -42,7 +42,7 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() (err error) {
-	var agent config.Agent
+	var agent rsc.Agent
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)
 	} else {
@@ -52,9 +52,16 @@ func (exe *agentExecutor) Execute() (err error) {
 		return err
 	}
 
+	var kind config.Kind
+	switch agent.(type) {
+	case *rsc.LocalAgent:
+		kind = config.LocalAgentKind
+	case *rsc.RemoteAgent:
+		kind = config.RemoteAgentKind
+	}
 	header := config.Header{
 		APIVersion: internal.LatestAPIVersion,
-		Kind:       apps.AgentKind,
+		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

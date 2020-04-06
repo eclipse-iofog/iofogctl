@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -104,33 +105,44 @@ iofogctl legacy agent NAME status`,
 			switch resource {
 			case "controller":
 				// Get config
-				ctrl, err := config.GetController(namespace, name)
+				ns, err := config.GetNamespace(namespace)
+				util.Check(err)
+				controlPlane, err := ns.GetControlPlane()
+				util.Check(err)
+				baseController, err := controlPlane.GetController(name)
 				util.Check(err)
 				cliCommand := []string{"iofog-controller"}
-				if ctrl.Kube.Config != "" {
-					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
-				} else if util.IsLocalHost(ctrl.Host) {
-					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
-				} else {
-					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
+				switch controller := baseController.(type) {
+				case *rsc.KubernetesController:
+					k8sControlPlane, ok := controlPlane.(*rsc.KubernetesControlPlane)
+					if !ok {
+						util.Check(util.NewError("Could not convert Control Plane to Kubernetes Control Plane"))
+					}
+					k8sExecute(k8sControlPlane.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
+				case *rsc.RemoteController:
+					// TODO: replace this with member func
+					if controller.Host == "" || controller.SSH.User == "" || controller.SSH.KeyFile == "" || controller.SSH.Port == 0 {
 						util.Check(util.NewNoConfigError("Controller"))
 					}
-					remoteExec(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile, ctrl.SSH.Port, "sudo iofog-controller", args[2:])
+					remoteExec(controller.SSH.User, controller.Host, controller.SSH.KeyFile, controller.SSH.Port, "sudo iofog-controller", args[2:])
+				case *rsc.LocalController:
+					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				}
 			case "agent":
 				// Get config
-				var agent config.Agent
+				var baseAgent rsc.Agent
 				var err error
 				if useDetached {
-					agent, err = config.GetDetachedAgent(name)
+					baseAgent, err = config.GetDetachedAgent(name)
 				} else {
-					agent, err = config.GetAgent(namespace, name)
+					baseAgent, err = config.GetAgent(namespace, name)
 				}
 				util.Check(err)
-				if util.IsLocalHost(agent.Host) {
+				switch agent := baseAgent.(type) {
+				case *rsc.LocalAgent:
 					localExecute(install.GetLocalContainerName("agent", false), []string{"iofog-agent"}, args[2:])
 					return
-				} else {
+				case *rsc.RemoteAgent:
 					// SSH connect
 					if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
 						util.Check(util.NewNoConfigError("Agent"))

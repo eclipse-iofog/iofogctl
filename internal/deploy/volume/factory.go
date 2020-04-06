@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -29,13 +30,13 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	volume    config.Volume
+	volume    rsc.Volume
 	namespace string
-	agents    []config.Agent
+	agents    []rsc.Agent
 }
 
 func (exe remoteExecutor) GetName() string {
-	return "Deploy Volume " + exe.volume.Destination
+	return "deploying Volume " + exe.volume.Name
 }
 
 func (exe remoteExecutor) Execute() error {
@@ -50,11 +51,15 @@ func (exe remoteExecutor) Execute() error {
 			return err
 		}
 	}
-	return nil
+	// Update config
+	if err := config.AddVolume(exe.namespace, exe.volume); err != nil {
+		return err
+	}
+	return config.Flush()
 }
 
 func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
-	agent := exe.agents[agentIdx]
+	agent := exe.agents[agentIdx].(*rsc.RemoteAgent)
 
 	// Connect
 	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
@@ -86,17 +91,21 @@ func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Unmarshal file
-	var volume config.Volume
+	var volume rsc.Volume
 	if err = yaml.UnmarshalStrict(opt.Yaml, &volume); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 	// Check agents exist
-	agents := make([]config.Agent, 0)
+	agents := make([]rsc.Agent, 0)
 	for _, agentName := range volume.Agents {
-		agent, err := config.GetAgent(opt.Namespace, agentName)
+		baseAgent, err := config.GetAgent(opt.Namespace, agentName)
 		if err != nil {
 			return nil, err
+		}
+		agent, ok := baseAgent.(*rsc.RemoteAgent)
+		if !ok {
+			return nil, util.NewInputError("Cannot push Volumes to Local Agents")
 		}
 		// Check SSH details
 		if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {

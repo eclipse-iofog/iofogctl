@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,7 +24,7 @@ import (
 
 func newDescribeCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"namespace", "controlplane", "controller", "agent", "agent-config", "microservice", "application"}
+	var validResources = []string{"namespace", "controlplane", "controller", "agent", "agent-config", "microservice", "application", "volume"}
 	filename := ""
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",

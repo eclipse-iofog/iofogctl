@@ -13,7 +13,7 @@ iofogctl start application NAME [flags]
 ### Examples
 
 ```
-iofogctl start application meerkat
+iofogctl start application NAME
 ```
 
 ### Options

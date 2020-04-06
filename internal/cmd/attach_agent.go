@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,10 +23,13 @@ func newAttachAgentCommand() *cobra.Command {
 	opt := attach.Options{}
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
-		Short: "Attaches an Agent to an existing ECN",
-		Long: `Attaches an Agent to an existing ECN
+		Short: "Attach an Agent to an existing Namespace",
+		Long: `Attach an Agent to an existing Namespace.
 
-The Agent will be provisioned with the Controller within the namespace.`,
+The Agent will be provisioned with the Controller within the Namespace.
+
+Can be used after detach command to re-provision the Agent. Can also be used with Agents that have not been detached.
+`,
 		Example: `iofogctl attach agent NAME --detached
 		iofogctl attach agent NAME --host AGENT_HOST --user SSH_USER --port SSH_PORT --key SSH_PRIVATE_KEY_PATH`,
 		Args: cobra.ExactArgs(1),
@@ -48,7 +51,7 @@ The Agent will be provisioned with the Controller within the namespace.`,
 			}
 
 			// Run the command
-			exe, _ := attach.NewExecutor(opt)
+			exe := attach.NewExecutor(opt)
 			err = exe.Execute()
 			util.Check(err)
 

@@ -1,12 +1,12 @@
 ## iofogctl configure
 
-Configure iofogctl or SSH details an existing resource
+Configure iofogctl or ioFog resources
 
 ### Synopsis
 
-Configure iofogctl or SSH details for an existing resource
+Configure iofogctl or ioFog resources
 
-Note that you cannot (and shouldn't need to) configure the host value of Agents.
+If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.
 
 ```
 iofogctl configure resource NAME [flags]
@@ -16,15 +16,15 @@ iofogctl configure resource NAME [flags]
 
 ```
 iofogctl configure default-namespace NAME
-iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controller NAME --kube KUBECONFIG
+
+iofogctl configure controlplane --kube KUBECONFIGFILE
+iofogctl configure controller NAME --user USER --key KEYFILE --port PORTNUM
 iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
 
-iofogctl configure all --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controllers NAME --user USER --key KEYFILE --port PORTNUM
+iofogctl configure agents NAME --user USER --key KEYFILE --port PORTNUM
 
-Valid resources are: controller, agent, all, agents, controllers, default-namespace
+Valid resources are: controlplane, controller, agent, controllers, agents, default-namespace
 
 ```
 
@@ -32,7 +32,6 @@ Valid resources are: controller, agent, all, agents, controllers, default-namesp
 
 ```
   -h, --help          help for configure
-      --host string   Hostname of remote host
       --key string    Path to private SSH key
       --kube string   Path to Kubernetes configuration file
       --port int      Port number that iofogctl uses to SSH into remote hosts

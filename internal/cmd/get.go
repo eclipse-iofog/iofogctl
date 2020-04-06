@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,7 +24,7 @@ import (
 )
 
 func newGetCommand() *cobra.Command {
-	validResources := []string{"all", "namespaces", "controllers", "agents", "applications", "microservices", "catalog", "registries"}
+	validResources := []string{"all", "namespaces", "controllers", "agents", "applications", "microservices", "catalog", "registries", "volumes"}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",

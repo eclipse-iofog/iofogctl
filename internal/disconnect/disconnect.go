@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,26 +22,14 @@ type Options struct {
 }
 
 func Execute(opt *Options) error {
-	// Check namespace
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return err
+	if opt.Namespace == "default" {
+		if err := config.ClearNamespace(opt.Namespace); err != nil {
+			return err
+		}
+	} else {
+		if err := config.DeleteNamespace(opt.Namespace); err != nil {
+			return err
+		}
 	}
-
-	if ns.Name == config.GetDefaultNamespaceName() {
-		config.ClearNamespace(ns.Name)
-		return config.Flush()
-	}
-
-	// Wipe the namespace
-	err = config.DeleteNamespace(opt.Namespace)
-	if err != nil {
-		return err
-	}
-	err = config.AddNamespace(opt.Namespace, ns.Created)
-	if err != nil {
-		return err
-	}
-
 	return config.Flush()
 }

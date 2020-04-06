@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -53,7 +53,7 @@ func NewController(options *ControllerOptions) *Controller {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
 	ssh.SetPort(options.Port)
 	if options.Version == "" || options.Version == "latest" {
-		options.Version = util.GetControllerTag()
+		options.Version = util.GetControllerVersion()
 	}
 	return &Controller{
 		ControllerOptions: options,

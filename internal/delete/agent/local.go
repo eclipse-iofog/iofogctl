@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -39,10 +39,8 @@ func (exe executor) deleteLocalContainer() error {
 	// Clean microservices
 	containers, err := client.ListContainers()
 	for _, container := range containers {
-		fmt.Printf("Container names: %v\n", container.Names)
 		for _, containerName := range container.Names {
 			if strings.HasPrefix(containerName, "/iofog_") {
-				fmt.Printf("Deleting name: %s\n", containerName)
 				if errClean := client.CleanContainerByID(container.ID); errClean != nil {
 					util.PrintNotify(fmt.Sprintf("Could not clean Microservice container: %v", errClean))
 				}

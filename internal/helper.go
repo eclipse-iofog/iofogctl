@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -26,11 +27,15 @@ var clientByNamespace map[string]*client.Client = make(map[string]*client.Client
 // NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
 func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	// Get Control Plane
-	controlPlane, err := config.GetControlPlane(namespace)
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
 	}
-	endpoint, err := controlPlane.GetControllerEndpoint()
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return nil, err
+	}
+	endpoint, err := controlPlane.GetEndpoint()
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +43,8 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	// If we are already authenticated, use existing client
 	clt, ok := clientByNamespace[namespace]
 	if !ok {
-		clt, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, controlPlane.IofogUser.Email, controlPlane.IofogUser.Password)
+		user := controlPlane.GetUser()
+		clt, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.Password)
 		if err != nil {
 			return
 		}
@@ -61,7 +67,7 @@ func ValidateHeader(header config.Header) error {
 	return nil
 }
 
-func IsSystemAgent(agentConfig config.AgentConfiguration) bool {
+func IsSystemAgent(agentConfig rsc.AgentConfiguration) bool {
 	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
 }
 

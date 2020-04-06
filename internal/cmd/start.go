@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,7 +22,7 @@ func newStartCommand() *cobra.Command {
 		Use:     "start",
 		Short:   "Starts a resource",
 		Long:    "Starts a resource",
-		Example: `iofogctl start application meerkat`,
+		Example: `iofogctl start application NAME`,
 	}
 
 	// Add subcommands

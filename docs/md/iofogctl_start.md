@@ -9,7 +9,7 @@ Starts a resource
 ### Examples
 
 ```
-iofogctl start application meerkat
+iofogctl start application NAME
 ```
 
 ### Options

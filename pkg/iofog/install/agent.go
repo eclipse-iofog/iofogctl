@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -28,7 +28,7 @@ type defaultAgent struct {
 	uuid string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, err error) {
 	// Connect to controller
 	ctrl, err := client.NewAndLogin(client.Options{Endpoint: controllerEndpoint}, user.Email, user.Password)
 
@@ -42,18 +42,18 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 		return
 	}
 
-	if agent.uuid != "" {
-		uuid = agent.uuid
-	} else {
-		existingAgent, err := ctrl.GetAgentByName(agent.name)
+	// System agents have uuid passed through, normal agents dont
+	if agent.uuid == "" {
+		var agentInfo *client.AgentInfo
+		agentInfo, err = ctrl.GetAgentByName(agent.name, false)
 		if err != nil {
-			return "", "", err
+			return
 		}
-		uuid = existingAgent.UUID
+		agent.uuid = agentInfo.UUID
 	}
 
 	// Get provisioning key
-	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid)
+	provisionResponse, err := ctrl.GetAgentProvisionKey(agent.uuid)
 	if err != nil {
 		return
 	}

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,10 +24,13 @@ func newDeleteCommand() *cobra.Command {
 	opt := &delete.Options{}
 
 	cmd := &cobra.Command{
-		Use:     "delete",
-		Example: `deploy -f platform.yaml`,
-		Short:   "Delete an existing ioFog resource",
-		Long:    `Delete an existing ioFog resource.`,
+		Use: "delete",
+		Example: `delete all
+delete controller NAME
+delete agent NAME
+delete application NAME`,
+		Short: "Delete an existing ioFog resource",
+		Long:  `Delete an existing ioFog resource.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
@@ -51,10 +54,11 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteCatalogItemCommand(),
 		newDeleteRegistryCommand(),
 		newDeleteMicroserviceCommand(),
+		newDeleteVolumeCommand(),
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to delete")
 	cmd.Flags().BoolVar(&opt.Soft, "soft", false, "Don't delete ioFog stack from remote hosts")
 
 	return cmd

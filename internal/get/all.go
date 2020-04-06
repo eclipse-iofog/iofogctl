@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -53,26 +53,39 @@ func (exe *allExecutor) Execute() error {
 	printNamespace(ns.Name)
 
 	// Print controllers
-	if err := generateControllerOutput(exe.namespace); err != nil {
+	if err := generateControllerOutput(exe.namespace, false); err != nil {
 		return err
 	}
 
 	// Print agents
-	if err := generateAgentOutput(exe.namespace); err != nil {
+	if err := generateAgentOutput(exe.namespace, false); err != nil {
 		return err
 	}
 
 	// Print applications
-	if err := newApplicationExecutor(exe.namespace).Execute(); err != nil {
+	appExe := newApplicationExecutor(exe.namespace)
+	if err := appExe.init(); err != nil {
+		return err
+	}
+	if err := appExe.generateApplicationOutput(); err != nil {
 		return err
 	}
 
 	// Print microservices
-	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {
+	msvcExe := newMicroserviceExecutor(exe.namespace)
+	if err := msvcExe.init(); err != nil {
+		return err
+	}
+	if err := msvcExe.generateMicroserviceOutput(); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	// Print volumes
+	if err := generateVolumeOutput(exe.namespace, false); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func printDetached() {

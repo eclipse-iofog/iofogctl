@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,8 +22,8 @@ import (
 func newRenameApplicationCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "application NAME NEW_NAME",
-		Short:   "Rename a Application in your ECN to another name",
-		Long:    `Rename a Application in your ECN to another name`,
+		Short:   "Rename a Application",
+		Long:    `Rename a Application`,
 		Example: `iofogctl rename application NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {

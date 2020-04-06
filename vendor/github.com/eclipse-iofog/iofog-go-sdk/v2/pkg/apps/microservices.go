@@ -123,7 +123,7 @@ func (exe *microserviceExecutor) init() (err error) {
 			}
 		}
 	}
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return
 	}
@@ -241,6 +241,10 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 	if envs == nil {
 		envs = &[]client.MicroserviceEnvironment{}
 	}
+	extraHosts := mapExtraHosts(exe.msvc.Container.ExtraHosts)
+	if extraHosts == nil {
+		extraHosts = &[]client.MicroserviceExtraHost{}
+	}
 	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
@@ -250,6 +254,7 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        *volumes,
 		Env:            *envs,
+		ExtraHosts:     *extraHosts,
 		RegistryID:     registryID,
 		AgentUUID:      agentUUID,
 		Routes:         exe.routes,
@@ -278,6 +283,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        mapVolumes(exe.msvc.Container.Volumes),
 		Env:            mapEnvs(exe.msvc.Container.Env),
+		ExtraHosts:     mapExtraHosts(exe.msvc.Container.ExtraHosts),
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
 		Routes:         exe.routes,
@@ -314,6 +320,18 @@ func mapEnvs(in *[]MicroserviceEnvironment) *[]client.MicroserviceEnvironment {
 	out := make([]client.MicroserviceEnvironment, 0)
 	for _, env := range *in {
 		out = append(out, client.MicroserviceEnvironment(env))
+	}
+	return &out
+}
+
+func mapExtraHosts(in *[]MicroserviceExtraHost) *[]client.MicroserviceExtraHost {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]client.MicroserviceExtraHost, 0)
+	for _, eH := range *in {
+		out = append(out, client.MicroserviceExtraHost(eH))
 	}
 	return &out
 }

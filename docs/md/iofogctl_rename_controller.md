@@ -1,10 +1,10 @@
 ## iofogctl rename controller
 
-Rename a Controller to another name in your ECN
+Rename a Controller
 
 ### Synopsis
 
-Rename a Controller to another name in your ECN
+Rename a Controller
 
 ```
 iofogctl rename controller NAME NEW_NAME [flags]

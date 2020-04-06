@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -139,6 +139,7 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 	volumes := mapVolumes(msvc.Volumes)
 	envs := mapEnvs(msvc.Env)
+	extraHosts := mapExtraHosts(msvc.ExtraHosts)
 	result.Images = &images
 	result.Config = jsonConfig
 	result.Container.RootHostAccess = msvc.RootHostAccess
@@ -146,6 +147,7 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	result.Container.Ports = mapPorts(msvc.Ports)
 	result.Container.Volumes = &volumes
 	result.Container.Env = &envs
+	result.Container.ExtraHosts = &extraHosts
 	result.Routes = routes
 	result.Flow = &application.Name
 	return
@@ -168,6 +170,13 @@ func mapVolumes(in []client.MicroserviceVolumeMapping) (out []apps.MicroserviceV
 func mapEnvs(in []client.MicroserviceEnvironment) (out []apps.MicroserviceEnvironment) {
 	for _, env := range in {
 		out = append(out, apps.MicroserviceEnvironment(env))
+	}
+	return
+}
+
+func mapExtraHosts(in []client.MicroserviceExtraHost) (out []apps.MicroserviceExtraHost) {
+	for _, eH := range in {
+		out = append(out, apps.MicroserviceExtraHost(eH))
 	}
 	return
 }

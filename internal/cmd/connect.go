@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -26,15 +26,14 @@ func newConnectCommand() *cobra.Command {
 	// Instantiate command
 	cmd := &cobra.Command{
 		Use:   "connect",
-		Short: "Connect to an existing ioFog cluster",
-		Long: `Connect to an existing ioFog cluster.
+		Short: "Connect to an existing Control Plane",
+		Long: `Connect to an existing Control Plane.
 
-This command must be executed within an empty or non-existent namespace.
-All resources provisioned with the corresponding Controller will become visible under the namespace.
-All ssh access will be configured as provided in the config file.
-See iofog.org for the YAML format.`,
-		Example: `iofogctl connect -f platform.yaml
-iofogctl connect --kube FILE --name NAME --email EMAIL --pass PASSWORD
+This command must be executed within an empty or non-existent Namespace.
+All resources provisioned with the corresponding Control Plane will become visible under the Namespace.
+Visit iofog.org to view all YAML specifications usable with this command.`,
+		Example: `iofogctl connect -f controlplane.yaml
+iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
 iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

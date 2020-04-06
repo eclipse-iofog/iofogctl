@@ -1,10 +1,10 @@
 ## iofogctl rename agent
 
-Rename a Agent to another name in your ECN
+Rename an Agent
 
 ### Synopsis
 
-Rename a Agent to another name in your ECN
+Rename an Agent
 
 ```
 iofogctl rename agent NAME NEW_NAME [flags]

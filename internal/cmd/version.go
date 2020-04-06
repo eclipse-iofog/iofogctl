@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,8 +23,8 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Get CLI application version",
 		Run: func(cmd *cobra.Command, args []string) {
-			util.PrintInfo("iofogctl Unified Cli\n")
-			util.PrintInfo("Copyright (C) 2019, Edgeworx, Inc.\n")
+			util.PrintInfo("ioFog Unified CLI\n")
+			util.PrintInfo("Copyright (C) 2020, Edgeworx, Inc.\n")
 			util.Print(util.GetVersion())
 		},
 	}

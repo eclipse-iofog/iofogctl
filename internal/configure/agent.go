@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,6 +15,7 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -24,7 +25,6 @@ type agentExecutor struct {
 	keyFile     string
 	user        string
 	port        int
-	host        string
 	useDetached bool
 }
 
@@ -35,7 +35,6 @@ func newAgentExecutor(opt Options) *agentExecutor {
 		keyFile:     opt.KeyFile,
 		user:        opt.User,
 		port:        opt.Port,
-		host:        opt.Host,
 		useDetached: opt.UseDetached,
 	}
 }
@@ -45,48 +44,45 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
-	if exe.host != "" {
-		return util.NewInputError("Cannot change host address of Agents")
-	}
-
-	var agent config.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.useDetached {
-		agent, err = config.GetDetachedAgent(exe.name)
+		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		agent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
 	}
-
 	if err != nil {
 		return err
 	}
 
-	// Only updated fields specified
-	if exe.keyFile != "" {
-		agent.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
-		if err != nil {
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		return util.NewInputError("Cannot configure Local Agent")
+	case *rsc.RemoteAgent:
+		// Only updated fields specified
+		if exe.user != "" {
+			agent.SSH.User = exe.user
+		}
+		if exe.port != 0 {
+			agent.SSH.Port = exe.port
+		}
+		if exe.keyFile != "" {
+			agent.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
+			if err != nil {
+				return err
+			}
+		}
+		agent.Sanitize()
+
+		// Save config
+		if exe.useDetached {
+			config.UpdateDetachedAgent(agent)
+			return nil
+		}
+		if err = config.UpdateAgent(exe.namespace, agent); err != nil {
 			return err
 		}
+		return config.Flush()
 	}
-	if exe.user != "" {
-		agent.SSH.User = exe.user
-	}
-	if exe.port != 0 {
-		agent.SSH.Port = exe.port
-	}
-
-	// Add port if not specified or existing
-	if agent.SSH.Port == 0 {
-		agent.SSH.Port = 22
-	}
-
-	// Save config
-	if exe.useDetached {
-		return config.UpdateDetachedAgent(agent)
-	}
-	if err = config.UpdateAgent(exe.namespace, agent); err != nil {
-		return err
-	}
-
-	return config.Flush()
+	return util.NewError("Could not convert Agent to dynamic type")
 }

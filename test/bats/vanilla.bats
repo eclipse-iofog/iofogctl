@@ -17,7 +17,7 @@ NS2="$NS"_2
   initVanillaController
   echo "---
 apiVersion: iofog.org/v2
-kind: ControlPlane
+kind: RemoteControlPlane
 metadata:
   name: func-controlplane
 spec:
@@ -57,9 +57,7 @@ spec:
   [[ "ok" == $($SSH_COMMAND -- sudo iofog-agent status | grep 'Controller' | awk '{print $5}') ]]
   [[ "RUNNING" == $($SSH_COMMAND --  sudo iofog-agent status | grep 'daemon' | awk '{print $4}') ]]
   [[ "http://${VANILLA_HOST}:51121/api/v3/" == $($SSH_COMMAND -- sudo iofog-agent info | grep 'Controller' | awk '{print $4}') ]]
-  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json
-  $SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId'
-  [[ "\"quay.io/interconnectedcloud/qdrouterd:latest\"" == $($SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | jq '.data[0].imageId') ]]
+  [[ $($SSH_COMMAND -- sudo cat /etc/iofog-agent/microservices.json | grep "router") ]]
 }
 
 @test "Controller legacy commands after vanilla deploy" {
@@ -72,7 +70,7 @@ spec:
 }
 
 @test "Deploy Agents against vanilla Controller" {
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   # Wait for router microservice
@@ -82,11 +80,20 @@ spec:
   fi
   for IDX in "${!AGENTS[@]}"; do
     # Wait for router microservice
-    waitForSystemMsvc "quay.io/interconnectedcloud/qdrouterd:latest" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
+    waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
 }
 
 @test "Deploy Volumes" {
+  testDeployVolume
+}
+
+@test "Get and Describe Volumes" {
+  testGetDescribeVolume
+}
+
+@test "Delete Volumes and Redeploy" {
+  testDeleteVolume
   testDeployVolume
 }
 
@@ -211,9 +218,7 @@ spec:
 
 @test "Disconnect other namespace" {
   iofogctl -v -n "$NS2" disconnect
-  checkControllerNegative "$NS2"
-  checkAgentsNegative "$NS2"
-  checkApplicationNegative "$NS2"
+  checkNamespaceExistsNegative "$NS2"
 }
 
 @test "Connect in other namespace using flags" {
@@ -226,15 +231,20 @@ spec:
 
 @test "Configure Controller and Connector" {
   initVanillaController
-  for resource in controller; do
-    iofogctl -v -n "$NS2" configure "$resource" "$NAME" --host "$VANILLA_HOST" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
-  done
+  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+  iofogctl -v -n "$NS2" logs controller "$NAME"
+  iofogctl -v -n "$NS2" configure controllers "$NAME" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
   iofogctl -v -n "$NS2" logs controller "$NAME"
 }
 
 @test "Configure Agents" {
   initAgents
   iofogctl -v -n "$NS2" configure agents --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
+    checkLegacyAgent "$AGENT_NAME" "$NS2"
+  done
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS2" configure agent "$AGENT_NAME" --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
@@ -278,16 +288,14 @@ spec:
 
 @test "Disconnect other namespace again" {
   iofogctl -v -n "$NS2" disconnect
-  checkControllerNegative "$NS2"
-  checkAgentsNegative "$NS2"
-  checkApplicationNegative "$NS2"
+  checkNamespaceExistsNegative "$NS2"
 }
 
 
 @test "Deploy again to check it doesn't lose database" {
   iofogctl -v deploy -f test/conf/vanilla.yaml
   checkController
-  initAgentsFile
+  initRemoteAgentsFile
   iofogctl -v deploy -f test/conf/agents.yaml
   checkAgents
   checkApplication
@@ -315,6 +323,5 @@ spec:
 
 @test "Delete namespaces" {
   iofogctl delete namespace "$NS"
-  iofogctl delete namespace "$NS2"
-  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  checkNamespaceExistsNegative "$NS"
 }

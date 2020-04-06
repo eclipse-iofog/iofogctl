@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -46,30 +47,27 @@ func (exe *agentExecutor) Execute() error {
 		}
 		return nil
 	}
-	printNamespace(exe.namespace)
-	if err := generateAgentOutput(exe.namespace); err != nil {
+	if err := generateAgentOutput(exe.namespace, true); err != nil {
 		return err
 	}
-	return config.Flush()
+	// Flush occurs in generateAgentOutput
+	return nil
 }
 
 func generateDetachedAgentOutput() error {
-	detachedAgents, err := config.GetDetachedAgents()
-	if err != nil {
-		return err
-	}
+	detachedAgents := config.GetDetachedAgents()
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
 	for _, agent := range detachedAgents {
-		agentsToPrint[agent.Name] = client.AgentInfo{
-			Name:              agent.Name,
-			IPAddressExternal: agent.Host,
+		agentsToPrint[agent.GetName()] = client.AgentInfo{
+			Name:              agent.GetName(),
+			IPAddressExternal: agent.GetHost(),
 		}
 	}
 	return tabulateAgents(agentsToPrint)
 }
 
-func generateAgentOutput(namespace string) error {
+func generateAgentOutput(namespace string, printNS bool) error {
 	// Get Config
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -78,10 +76,10 @@ func generateAgentOutput(namespace string) error {
 
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make(map[string]client.AgentInfo)
-	for _, agent := range ns.Agents {
-		agentsToPrint[agent.Name] = client.AgentInfo{
-			Name:              agent.Name,
-			IPAddressExternal: agent.Host,
+	for _, agent := range ns.GetAgents() {
+		agentsToPrint[agent.GetName()] = client.AgentInfo{
+			Name:              agent.GetName(),
+			IPAddressExternal: agent.GetHost(),
 		}
 	}
 
@@ -94,21 +92,28 @@ func generateAgentOutput(namespace string) error {
 	}
 
 	// Get Agents from Controller
-	listAgentsResponse, err := ctrl.ListAgents()
+	listAgentsResponse, err := ctrl.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}
 
 	// Process Agents
+	newAgents := false
 	for _, remoteAgent := range listAgentsResponse.Agents {
 		// Server may have agents that the client is not aware of, update config if so
 		if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
-			newAgentConf := config.Agent{
-				Name: remoteAgent.Name,
-				UUID: remoteAgent.UUID,
-				Host: remoteAgent.IPAddressExternal,
+			// TODO: Check whether its local or remote
+			// Overwrite config based on backend
+			if err := config.UpdateAgent(
+				namespace,
+				&rsc.RemoteAgent{
+					Name: remoteAgent.Name,
+					UUID: remoteAgent.UUID,
+					Host: remoteAgent.IPAddressExternal,
+				}); err != nil {
+				return err
 			}
-			config.AddAgent(namespace, newAgentConf)
+			newAgents = true
 		}
 
 		// Use the pre-processed default info if necessary
@@ -118,6 +123,16 @@ func generateAgentOutput(namespace string) error {
 
 		// Add details for output
 		agentsToPrint[remoteAgent.Name] = remoteAgent
+	}
+	if newAgents {
+		// Save the new agents
+		if err := config.Flush(); err != nil {
+			return err
+		}
+	}
+
+	if printNS {
+		printNamespace(namespace)
 	}
 
 	return tabulateAgents(agentsToPrint)

@@ -175,8 +175,15 @@ type MicroserviceInfo struct {
 	Routes            []string                    `json:"routes"`
 	Commands          []string                    `json:"cmd"`
 	Env               []MicroserviceEnvironment   `json:"env"`
+	ExtraHosts        []MicroserviceExtraHost     `json:"extraHosts"`
 	Status            MicroserviceStatus          `json:"status"`
 	Images            []CatalogImage              `json:"images"`
+}
+
+type MicroserviceExtraHost struct {
+	Name    string `json:"name,omitempty"`
+	Address string `json:"address,omitempty"`
+	Value   string `json:"value,omitempty"`
 }
 
 type MicroserviceCreateRequest struct {
@@ -194,6 +201,7 @@ type MicroserviceCreateRequest struct {
 	Commands       []string                    `json:"cmd,omitempty"`
 	Env            []MicroserviceEnvironment   `json:"env"`
 	Images         []CatalogImage              `json:"images,omitempty"`
+	ExtraHosts     []MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 }
 
 type MicroserviceUpdateRequest struct {
@@ -214,6 +222,7 @@ type MicroserviceUpdateRequest struct {
 	Commands          *[]string                    `json:"cmd,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
+	ExtraHosts        *[]MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 	Images            []CatalogImage               `json:"images,omitempty"`
 	Rebuild           bool                         `json:"rebuild"`
 }
@@ -262,6 +271,11 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	AccessToken string `json:"accessToken"`
+}
+
+type ListAgentsRequest struct {
+	System bool `json:"system"`
+	Filters []AgentListFilter `json:"filters"`
 }
 
 type CreateAgentRequest struct {
@@ -331,6 +345,9 @@ type AgentInfo struct {
 	MessagingPort             *int      `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
 	EdgeRouterPort            *int      `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
 	InterRouterPort           *int      `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
+	LogLevel                  *string   `json:"logLevel" yaml:"logLevel"`
+	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency" yaml:"dockerPruningFrequency"`
+	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
 }
 
 type RouterConfig struct {
@@ -360,6 +377,9 @@ type AgentConfiguration struct {
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
 	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
+	LogLevel                  *string  `json:"logLevel,omitempty" yaml:"logLevel"`
+	DockerPruningFrequency    *float64 `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
+	AvailableDiskThreshold    *float64 `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
 }
 
 type AgentUpdateRequest struct {

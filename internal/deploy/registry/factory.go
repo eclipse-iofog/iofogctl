@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,6 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -32,7 +33,7 @@ type Options struct {
 
 type remoteExecutor struct {
 	namespace string
-	registry  config.Registry
+	registry  rsc.Registry
 }
 
 func (exe remoteExecutor) GetName() string {
@@ -101,16 +102,20 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
-		return exe, err
+		return
+	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return
 	}
 
 	// Check Controller exists
-	if len(ns.ControlPlane.Controllers) == 0 {
+	if len(controlPlane.GetControllers()) == 0 {
 		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
 	// Unmarshal file
-	var registry config.Registry
+	var registry rsc.Registry
 	if err = yaml.UnmarshalStrict(opt.Yaml, &registry); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
@@ -131,7 +136,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}, nil
 }
 
-func validate(opt config.Registry, create bool) error {
+func validate(opt rsc.Registry, create bool) error {
 	if create {
 		if opt.URL == nil || *opt.URL == "" {
 			return util.NewInputError("URL cannot be empty")

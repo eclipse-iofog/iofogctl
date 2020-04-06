@@ -47,13 +47,14 @@ function waitForSvc() {
   done
   # Check valid IP address
   [[ "$EXT_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+  [[ "$EXT_IP" != *"pending"* ]]
 
   # Return via stdout
   echo "$EXT_IP"
 }
 
 function waitForProxyMsvc(){
-  waitForSystemMsvc "iofog/proxy:latest" $1 $2 $3
+  waitForSystemMsvc "proxy" $1 $2 $3
 }
 
 function waitForSystemMsvc() {

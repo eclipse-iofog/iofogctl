@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,10 +17,11 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 )
 
 type Options struct {
@@ -37,8 +38,8 @@ type executor struct {
 	opt Options
 }
 
-func NewExecutor(opt Options) (execute.Executor, error) {
-	return executor{opt: opt}, nil
+func NewExecutor(opt Options) execute.Executor {
+	return executor{opt: opt}
 }
 
 func (exe executor) GetName() string {
@@ -48,19 +49,27 @@ func (exe executor) GetName() string {
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
-	var agent config.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.opt.UseDetached {
-		agent, err = config.GetDetachedAgent(exe.opt.Name)
+		baseAgent, err = config.GetDetachedAgent(exe.opt.Name)
 	} else {
-		agent = config.Agent{
-			Name: exe.opt.Name,
-			Host: exe.opt.Host,
-			SSH: config.SSH{
-				User:    exe.opt.User,
-				KeyFile: exe.opt.KeyFile,
-				Port:    exe.opt.Port,
-			},
+		switch baseAgent.(type) {
+		case *rsc.LocalAgent:
+			baseAgent = &rsc.LocalAgent{
+				Name: exe.opt.Name,
+				Host: exe.opt.Host,
+			}
+		case *rsc.RemoteAgent:
+			baseAgent = &rsc.RemoteAgent{
+				Name: exe.opt.Name,
+				Host: exe.opt.Host,
+				SSH: rsc.SSH{
+					User:    exe.opt.User,
+					KeyFile: exe.opt.KeyFile,
+					Port:    exe.opt.Port,
+				},
+			}
 		}
 	}
 
@@ -69,19 +78,26 @@ func (exe executor) Execute() error {
 	}
 
 	// Create fog
+	host := baseAgent.GetHost()
 	configExecutor := deployagentconfig.NewRemoteExecutor(
 		exe.opt.Name,
-		config.AgentConfiguration{
+		rsc.AgentConfiguration{
 			Name: exe.opt.Name,
 			AgentConfiguration: client.AgentConfiguration{
-				Host: &agent.Host,
+				Host: &host,
 			},
 		}, exe.opt.Namespace)
 	if err = configExecutor.Execute(); err != nil {
 		return err
 	}
 
-	executor, err := deploy.NewDeployExecutor(exe.opt.Namespace, &agent, false)
+	var executor execute.Executor
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		executor, err = deploy.NewLocalExecutor(exe.opt.Namespace, agent, false)
+	case *rsc.RemoteAgent:
+		executor, err = deploy.NewRemoteExecutor(exe.opt.Namespace, agent, false)
+	}
 	if err != nil {
 		return err
 	}
@@ -95,9 +111,9 @@ func (exe executor) Execute() error {
 		return err
 	}
 
-	agent.UUID = UUID
-	if agent.Created == "" {
-		agent.Created = util.NowUTC()
+	baseAgent.SetUUID(UUID)
+	if baseAgent.GetCreatedTime() == "" {
+		baseAgent.SetCreatedTime(util.NowUTC())
 	}
 
 	if exe.opt.UseDetached {
@@ -105,7 +121,7 @@ func (exe executor) Execute() error {
 			return err
 		}
 	} else {
-		if err = config.UpdateAgent(exe.opt.Namespace, agent); err != nil {
+		if err = config.UpdateAgent(exe.opt.Namespace, baseAgent); err != nil {
 			return err
 		}
 	}

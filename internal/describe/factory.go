@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -30,6 +30,8 @@ func NewExecutor(resourceType, namespace, name, filename string, useDetached boo
 		return newAgentExecutor(namespace, name, filename, useDetached), nil
 	case "registry":
 		return newRegistryExecutor(namespace, name, filename, useDetached)
+	case "volume":
+		return newVolumeExecutor(namespace, name, filename), nil
 	case "agent-config":
 		return newAgentConfigExecutor(namespace, name, filename), nil
 	case "microservice":

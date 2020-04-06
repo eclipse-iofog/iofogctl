@@ -1,10 +1,10 @@
 ## iofogctl rename application
 
-Rename a Application in your ECN to another name
+Rename a Application
 
 ### Synopsis
 
-Rename a Application in your ECN to another name
+Rename a Application
 
 ```
 iofogctl rename application NAME NEW_NAME [flags]

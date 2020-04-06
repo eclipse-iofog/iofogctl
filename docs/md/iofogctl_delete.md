@@ -13,13 +13,16 @@ iofogctl delete [flags]
 ### Examples
 
 ```
-deploy -f platform.yaml
+delete all
+delete controller NAME
+delete agent NAME
+delete application NAME
 ```
 
 ### Options
 
 ```
-  -f, --file string   YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
+  -f, --file string   YAML file containing resource definitions for Controllers, Agents, and Microservice to delete
   -h, --help          help for delete
       --soft          Don't delete ioFog stack from remote hosts
 ```
@@ -44,5 +47,6 @@ deploy -f platform.yaml
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace
 * [iofogctl delete registry](iofogctl_delete_registry.md)	 - Delete a registry
+* [iofogctl delete volume](iofogctl_delete_volume.md)	 - Delete an Volume
 
 

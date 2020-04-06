@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,18 +13,37 @@
 
 package util
 
+import "fmt"
+
 // Set by linker
 var (
-	versionNumber  = "undefined"
-	platform       = "undefined"
-	commit         = "undefined"
-	date           = "undefined"
+	versionNumber = "undefined"
+	platform      = "undefined"
+	commit        = "undefined"
+	date          = "undefined"
+
+	repo = "undefined"
+
 	controllerTag  = "undefined"
-	kubeletTag     = "undefined"
-	proxyTag       = "undefined"
-	operatorTag    = "undefined"
-	portManagerTag = "undefined"
 	agentTag       = "undefined"
+	operatorTag    = "undefined"
+	kubeletTag     = "undefined"
+	routerTag      = "undefined"
+	portManagerTag = "undefined"
+	proxyTag       = "undefined"
+
+	controllerVersion = "undefined"
+	agentVersion      = "undefined"
+)
+
+const (
+	controllerImage  = "controller"
+	agentImage       = "agent"
+	operatorImage    = "operator"
+	kubeletImage     = "kubelet"
+	portManagerImage = "port-manager"
+	proxyImage       = "proxy"
+	routerImage      = "router"
 )
 
 type Version struct {
@@ -43,9 +62,15 @@ func GetVersion() Version {
 	}
 }
 
-func GetControllerTag() string  { return controllerTag }
-func GetKubeletTag() string     { return kubeletTag }
-func GetProxyTag() string       { return proxyTag }
-func GetOperatorTag() string    { return operatorTag }
-func GetPortManagerTag() string { return portManagerTag }
-func GetAgentTag() string       { return agentTag }
+func GetControllerVersion() string { return controllerVersion }
+func GetAgentVersion() string      { return agentVersion }
+
+func GetControllerImage() string { return fmt.Sprintf("%s/%s:%s", repo, controllerImage, controllerTag) }
+func GetAgentImage() string      { return fmt.Sprintf("%s/%s:%s", repo, agentImage, agentTag) }
+func GetOperatorImage() string   { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
+func GetKubeletImage() string    { return fmt.Sprintf("%s/%s:%s", repo, kubeletImage, kubeletTag) }
+func GetRouterImage() string     { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
+func GetPortManagerImage() string {
+	return fmt.Sprintf("%s/%s:%s", repo, portManagerImage, portManagerTag)
+}
+func GetProxyImage() string { return fmt.Sprintf("%s/%s:%s", repo, proxyImage, proxyTag) }

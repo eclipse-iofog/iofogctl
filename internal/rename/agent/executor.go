@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -50,11 +50,11 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 		return err
 	}
 	config.DeleteAgent(namespace, name)
-	ag.Name = newName
+	ag.SetName(newName)
 	config.AddAgent(namespace, ag)
 
 	_, err = clt.UpdateAgent(&client.AgentUpdateRequest{
-		UUID: agent.UUID,
+		UUID: agent.GetUUID(),
 		Name: newName,
 	})
 

@@ -1,10 +1,10 @@
 ## iofogctl move
 
-Move an existing resources inside the current ECN
+Move an existing resources inside the current Namespace
 
 ### Synopsis
 
-Move an existing resources inside the current ECN
+Move an existing resources inside the current Namespace
 
 ### Examples
 
@@ -30,6 +30,6 @@ iofogctl move microservice NAME AGENT_NAME
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl move microservice](iofogctl_move_microservice.md)	 - Move a Microservice to another agent in the same ECN
+* [iofogctl move microservice](iofogctl_move_microservice.md)	 - Move a Microservice to another agent in the same Namespace
 
 

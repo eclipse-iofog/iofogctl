@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,7 +23,6 @@ type Options struct {
 	Namespace    string
 	Name         string
 	KubeConfig   string
-	Host         string
 	KeyFile      string
 	User         string
 	Port         int
@@ -31,15 +30,16 @@ type Options struct {
 }
 
 var multipleResources = map[string]bool{
-	"all":         true,
-	"controllers": true,
 	"agents":      true,
+	"controllers": true,
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {
 	switch opt.ResourceType {
 	case "default-namespace":
 		return newDefaultNamespaceExecutor(opt), nil
+	case "controlplane":
+		return newControlPlaneExecutor(opt), nil
 	case "controller":
 		return newControllerExecutor(opt), nil
 	case "agent":

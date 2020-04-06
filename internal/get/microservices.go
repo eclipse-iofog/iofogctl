@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -40,7 +41,7 @@ func newMicroserviceExecutor(namespace string) *microserviceExecutor {
 func (exe *microserviceExecutor) init() (err error) {
 	exe.client, err = internal.NewControllerClient(exe.namespace)
 	if err != nil {
-		if err.Error() == "This control plane does not have controller" {
+		if rsc.IsNoControlPlaneError(err) {
 			return nil
 		}
 		return
@@ -53,7 +54,7 @@ func (exe *microserviceExecutor) init() (err error) {
 		exe.msvcPerID[listMsvcs.Microservices[i].UUID] = &listMsvcs.Microservices[i]
 	}
 
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return err
 	}
@@ -72,7 +73,7 @@ func (exe *microserviceExecutor) Execute() error {
 	if err := exe.init(); err != nil {
 		return err
 	}
-
+	printNamespace(exe.namespace)
 	return exe.generateMicroserviceOutput()
 }
 
@@ -80,7 +81,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 
 	// Generate table and headers
 	table := make([][]string, len(exe.msvcPerID)+1)
-	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "CONFIG", "ROUTES", "VOLUMES", "PORTS"}
+	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "ROUTES", "VOLUMES", "PORTS"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -134,7 +135,6 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 			ms.Name,
 			status,
 			agentName,
-			ms.Config,
 			routes,
 			volumes,
 			ports,

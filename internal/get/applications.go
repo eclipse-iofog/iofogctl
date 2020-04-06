@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -44,13 +45,14 @@ func (exe *applicationExecutor) Execute() error {
 	if err := exe.init(); err != nil {
 		return err
 	}
+	printNamespace(exe.namespace)
 	return exe.generateApplicationOutput()
 }
 
 func (exe *applicationExecutor) init() (err error) {
 	exe.client, err = internal.NewControllerClient(exe.namespace)
 	if err != nil {
-		if err.Error() == "This control plane does not have controller" {
+		if rsc.IsNoControlPlaneError(err) {
 			return nil
 		}
 		return err

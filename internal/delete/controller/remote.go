@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,21 +17,24 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type remoteExecutor struct {
-	namespace string
-	name      string
+	controlPlane *rsc.RemoteControlPlane
+	namespace    string
+	name         string
 }
 
-func newRemoteExecutor(namespace, name string) *remoteExecutor {
-	exe := &remoteExecutor{}
-	exe.namespace = namespace
-	exe.name = name
-	return exe
+func NewRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *remoteExecutor {
+	return &remoteExecutor{
+		controlPlane: controlPlane,
+		namespace:    namespace,
+		name:         name,
+	}
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -40,9 +43,15 @@ func (exe *remoteExecutor) GetName() string {
 
 func (exe *remoteExecutor) Execute() error {
 	// Get controller from config
-	ctrl, err := config.GetController(exe.namespace, exe.name)
+	baseCtrl, err := exe.controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
+	}
+
+	// Assert dynamic type
+	ctrl, ok := baseCtrl.(*rsc.RemoteController)
+	if !ok {
+		return util.NewInternalError("Could not assert Controller type to Remote Controller")
 	}
 
 	// Instantiate installer
@@ -72,9 +81,10 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Update config
-	if err = config.DeleteController(exe.namespace, exe.name); err != nil {
+	if err = exe.controlPlane.DeleteController(exe.name); err != nil {
 		return err
 	}
+	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
 
 	return nil
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -32,8 +32,8 @@ func Execute(name string, force, soft bool) error {
 	}
 
 	// Check resources exist
-	hasAgents := len(ns.Agents) > 0
-	hasControllers := len(ns.ControlPlane.Controllers) > 0
+	hasAgents := len(ns.GetAgents()) > 0
+	hasControllers := len(ns.GetControllers()) > 0
 
 	// Force must be specified
 	if !force && (hasAgents || hasControllers) {

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,11 +16,9 @@ package connect
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	connectagent "github.com/eclipse-iofog/iofogctl/v2/internal/connect/agent"
-	connectcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controller"
-	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
+	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
+	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -36,21 +34,17 @@ type Options struct {
 	IofogUserPass      string
 }
 
-var kindOrder = []apps.Kind{
-	apps.ControlPlaneKind,
-	apps.ControllerKind,
-	apps.AgentKind,
+var kindOrder = []config.Kind{
+	config.KubernetesControlPlaneKind,
+	config.RemoteControlPlaneKind,
 }
 
-var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectk8scontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
 	},
-	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectagent.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
-	},
-	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectcontroller.NewExecutor(opt.Namespace, opt.Name, opt.YAML)
+	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
 	},
 }
 
@@ -63,17 +57,16 @@ func Execute(opt Options) error {
 	// Check for existing namespace
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err == nil {
-		// Overwrite namespace if requested
-		if opt.OverwriteNamespace {
+		// Check the namespace is empty
+		if len(ns.GetAgents()) != 0 || len(ns.GetControllers()) != 0 {
+			if !opt.OverwriteNamespace {
+				return util.NewInputError("You must use an empty or non-existent namespace")
+			}
+			// Overwrite
 			delErr := config.DeleteNamespace(opt.Namespace)
 			addErr := config.AddNamespace(opt.Namespace, util.NowUTC())
 			if delErr != nil || addErr != nil {
 				return util.NewInternalError("Failed to overwrite namespace " + opt.Namespace)
-			}
-		} else {
-			// Check the namespace is empty
-			if len(ns.Agents) != 0 || len(ns.ControlPlane.Controllers) != 0 {
-				return util.NewInputError("You must use an empty or non-existent namespace")
 			}
 		}
 	} else {
@@ -90,13 +83,25 @@ func Execute(opt Options) error {
 			return err
 		}
 	} else {
-		if !hasAllFlags(opt) {
-			return util.NewInputError("If no YAML file is provided, must provide Controller endpoint or kube config along with Controller name and ioFog user email/password")
-		}
-		exe, err := connectcontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
-		if err != nil {
+		if err := hasAllFlags(opt); err != nil {
 			return err
 		}
+
+		// K8s or Remote
+		var exe execute.Executor
+		if opt.KubeConfig != "" {
+			exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+			if err != nil {
+				return err
+			}
+		} else {
+			exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Execute
 		if err = exe.Execute(); err != nil {
 			return err
 		}
@@ -110,7 +115,6 @@ func executeWithYAML(yamlFile, namespace string) error {
 		return err
 	}
 
-	// Controlplane, Controller, Connector, Agent
 	for idx := range kindOrder {
 		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("connect %s", kindOrder[idx])); err != nil {
 			return err
@@ -120,6 +124,18 @@ func executeWithYAML(yamlFile, namespace string) error {
 	return nil
 }
 
-func hasAllFlags(opt Options) bool {
-	return opt.ControllerName != "" && opt.IofogUserEmail != "" && opt.IofogUserPass != "" && (opt.KubeConfig != "" || opt.ControllerEndpoint != "")
+func hasAllFlags(opt Options) error {
+	if opt.IofogUserEmail == "" || opt.IofogUserPass == "" {
+		return util.NewInputError("Must provide ioFog User and Password flags")
+	}
+	if opt.KubeConfig == "" {
+		if opt.ControllerName == "" || opt.ControllerEndpoint == "" {
+			return util.NewInputError("Must provide Controller Name and Endpoint flags for Remote Control Plane")
+		}
+	} else {
+		if opt.ControllerName != "" || opt.ControllerEndpoint != "" {
+			return util.NewInputError("Cannot specify Controller Name and Endpoint for Kubernetes Control Plane")
+		}
+	}
+	return nil
 }

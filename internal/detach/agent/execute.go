@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -46,14 +47,15 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return util.NewConflictError(fmt.Sprintf(msg, exe.name, exe.name, exe.name, exe.namespace, exe.name, exe.name, exe.namespace))
 	}
 
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	baseAgent, err := config.GetAgent(exe.namespace, exe.name)
 	if err == nil {
 		// Deprovision agent
-		if util.IsLocalHost(agent.Host) {
+		switch agent := baseAgent.(type) {
+		case *rsc.LocalAgent:
 			if err = exe.localDeprovision(); err != nil {
 				return err
 			}
-		} else {
+		case *rsc.RemoteAgent:
 			if err = exe.remoteDeprovision(agent); err != nil {
 				return err
 			}
@@ -66,7 +68,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return err
 	}
 
-	agentInfo, err := ctrl.GetAgentByName(exe.name)
+	agentInfo, err := ctrl.GetAgentByName(exe.name, false)
 	if err != nil {
 		return err
 	}
@@ -77,7 +79,6 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Try to detach from config
-	// Ignore error, because only error is not found.
 	if err = config.DetachAgent(exe.namespace, exe.name); err != nil {
 		return err
 	}

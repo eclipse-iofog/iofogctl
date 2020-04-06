@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,35 +16,39 @@ package deploy
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent_config"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	deployapplication "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/application"
-	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalog_item"
-	deploycontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller"
-	deploycontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane"
+	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalogitem"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/local"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/twmb/algoimpl/go/graph"
 )
 
-var kindOrder = []apps.Kind{
+var kindOrder = []config.Kind{
 	// Deploy Agents after Control Plane
-	// apps.ControlPlaneKind,
-	// apps.ControllerKind,
+	// rsc.ControlPlaneKind,
+	// config.ControllerKind,
 	// config.AgentConfigKind,
-	apps.AgentKind,
+	config.RemoteAgentKind,
+	config.LocalAgentKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
-	apps.ApplicationKind,
-	apps.MicroserviceKind,
+	config.ApplicationKind,
+	config.MicroserviceKind,
 	config.VolumeKind,
 }
 
@@ -65,20 +69,36 @@ func deployMicroservice(opt execute.KindHandlerOpt) (exe execute.Executor, err e
 	return deploymicroservice.NewExecutor(deploymicroservice.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontrolplane.NewExecutor(deploycontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+func deployKubernetesControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployk8scontrolplane.NewExecutor(deployk8scontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployagent.NewExecutor(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+func deployRemoteControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployremotecontrolplane.NewExecutor(deployremotecontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployLocalControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploylocalcontrolplane.NewExecutor(deploylocalcontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployRemoteController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployremotecontroller.NewExecutor(deployremotecontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployLocalController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploylocalcontroller.NewExecutor(deploylocalcontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployRemoteAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployagent.NewRemoteExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployLocalAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployagent.NewLocalExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
-}
-
-func deployController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploycontroller.NewExecutor(deploycontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -89,16 +109,20 @@ func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) 
 	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML})
 }
 
-var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	apps.ApplicationKind:   deployApplication,
-	config.CatalogItemKind: deployCatalogItem,
-	apps.MicroserviceKind:  deployMicroservice,
-	apps.ControlPlaneKind:  deployControlPlane,
-	apps.AgentKind:         deployAgent,
-	config.AgentConfigKind: deployAgentConfig,
-	apps.ControllerKind:    deployController,
-	config.RegistryKind:    deployRegistry,
-	config.VolumeKind:      deployVolume,
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.ApplicationKind:            deployApplication,
+	config.MicroserviceKind:           deployMicroservice,
+	config.CatalogItemKind:            deployCatalogItem,
+	config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
+	config.RemoteControlPlaneKind:     deployRemoteControlPlane,
+	config.LocalControlPlaneKind:      deployLocalControlPlane,
+	config.RemoteControllerKind:       deployRemoteController,
+	config.LocalControllerKind:        deployLocalController,
+	config.RemoteAgentKind:            deployRemoteAgent,
+	config.LocalAgentKind:             deployLocalAgent,
+	config.AgentConfigKind:            deployAgentConfig,
+	config.RegistryKind:               deployRegistry,
+	config.VolumeKind:                 deployVolume,
 }
 
 // Execute deploy from yaml file
@@ -110,7 +134,8 @@ func Execute(opt *Options) (err error) {
 
 	// Create any AgentConfig executor missing
 	// Each Agent requires a corresponding Agent Config to be created with Controller
-	for _, agentGenericExecutor := range executorsMap[apps.AgentKind] {
+	appendedAgentExecs := append(executorsMap[config.LocalAgentKind], executorsMap[config.RemoteAgentKind]...)
+	for _, agentGenericExecutor := range appendedAgentExecs {
 		agentExecutor, ok := agentGenericExecutor.(deployagent.AgentDeployExecutor)
 		if !ok {
 			return util.NewInternalError("Could not convert agent deploy executor\n")
@@ -131,7 +156,7 @@ func Execute(opt *Options) (err error) {
 		if !found {
 			executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
 				agentExecutor.GetName(),
-				config.AgentConfiguration{
+				rsc.AgentConfiguration{
 					Name: agentExecutor.GetName(),
 					AgentConfiguration: client.AgentConfiguration{
 						Host: &host,
@@ -142,13 +167,35 @@ func Execute(opt *Options) (err error) {
 		}
 	}
 
-	// Controlplane
-	if err = execute.RunExecutors(executorsMap[apps.ControlPlaneKind], "deploy control plane"); err != nil {
-		return
+	// Controlplanes (should only be 1)
+	cpCount := 0
+	errMsg := "Specified multiple Control Planes in a single Namespace"
+	if exe, exists := executorsMap[config.KubernetesControlPlaneKind]; exists {
+		if err = execute.RunExecutors(exe, "deploy Kubernetes Control Plane"); err != nil {
+			return
+		}
+		cpCount++
+	}
+	if exe, exists := executorsMap[config.RemoteControlPlaneKind]; exists {
+		if cpCount > 0 {
+			err = util.NewInputError(errMsg)
+		}
+		if err = execute.RunExecutors(exe, "deploy Remote Control Plane"); err != nil {
+			return
+		}
+		cpCount++
+	}
+	if exe, exists := executorsMap[config.LocalControlPlaneKind]; exists {
+		if cpCount > 0 {
+			err = util.NewInputError(errMsg)
+		}
+		if err = execute.RunExecutors(exe, "deploy Local Control Plane"); err != nil {
+			return
+		}
 	}
 
-	// Controller
-	if err = execute.RunExecutors(executorsMap[apps.ControllerKind], "deploy controller"); err != nil {
+	// Controllers
+	if err = execute.RunExecutors(executorsMap[config.LocalControllerKind], "deploy local controller"); err != nil {
 		return
 	}
 
@@ -192,7 +239,7 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 			return err
 		}
 
-		listAgentReponse, err := ctrlClient.ListAgents()
+		listAgentReponse, err := ctrlClient.ListAgents(client.ListAgentsRequest{})
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,6 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -42,22 +43,23 @@ func (exe executor) Execute() error {
 
 	// Delete agent software first, so it can properly deprovision itself before being removed
 	// Get Agent from config
-	var agent config.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.useDetached {
-		agent, err = config.GetDetachedAgent(exe.name)
+		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		agent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
 	}
 	if err == nil {
 		if !exe.soft {
-			if util.IsLocalHost(agent.Host) {
+			switch agent := baseAgent.(type) {
+			case *rsc.LocalAgent:
 				if err = exe.deleteLocalContainer(); err != nil {
-					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent container %s. Error: %s\n", agent.Host, err.Error()))
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
 				}
-			} else {
+			case *rsc.RemoteAgent:
 				if err = exe.deleteRemoteAgent(agent); err != nil {
-					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from the remote host %s. Error: %s\n", agent.Host, err.Error()))
+					util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
 				}
 			}
 		}
@@ -78,7 +80,7 @@ func (exe executor) Execute() error {
 		ctrl, err := internal.NewControllerClient(exe.namespace)
 		if err == nil {
 			// Does agent exists on Controller
-			agent, err := ctrl.GetAgentByName(exe.name)
+			agent, err := ctrl.GetAgentByName(exe.name, false)
 			if err != nil {
 				util.PrintInfo(fmt.Sprintf("Could not delete agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
 			} else {

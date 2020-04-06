@@ -1,12 +1,15 @@
 ## iofogctl attach agent
 
-Attaches an Agent to an existing ECN
+Attach an Agent to an existing Namespace
 
 ### Synopsis
 
-Attaches an Agent to an existing ECN
+Attach an Agent to an existing Namespace.
 
-The Agent will be provisioned with the Controller within the namespace.
+The Agent will be provisioned with the Controller within the Namespace.
+
+Can be used after detach command to re-provision the Agent. Can also be used with Agents that have not been detached.
+
 
 ```
 iofogctl attach agent NAME [flags]
@@ -40,6 +43,6 @@ iofogctl attach agent NAME --detached
 
 ### SEE ALSO
 
-* [iofogctl attach](iofogctl_attach.md)	 - Attach an existing ioFog resource to an ECN
+* [iofogctl attach](iofogctl_attach.md)	 - Attach an existing ioFog resource to Control Plane
 
 

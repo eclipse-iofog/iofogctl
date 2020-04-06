@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -255,24 +255,24 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 	for _, file := range files {
 		if file.IsDir() && recurse {
 			// Create the dir if necessary
-			if err := cl.CreateFolder(addTrailingSlash(destPath) + file.Name()); err != nil {
+			if err := cl.CreateFolder(AddTrailingSlash(destPath) + file.Name()); err != nil {
 				return err
 			}
 			// Copy contents of dir
 			return cl.CopyFolderTo(
-				addTrailingSlash(srcPath)+file.Name(),
-				addTrailingSlash(destPath)+file.Name(),
+				AddTrailingSlash(srcPath)+file.Name(),
+				AddTrailingSlash(destPath)+file.Name(),
 				permissions,
 				true,
 			)
 		} else {
 			// Read the file
-			openFile, err := os.Open(addTrailingSlash(srcPath) + file.Name())
+			openFile, err := os.Open(AddTrailingSlash(srcPath) + file.Name())
 			if err != nil {
 				return err
 			}
 			// Copy the file
-			if err := cl.CopyTo(openFile, addTrailingSlash(destPath), file.Name(), addLeadingZero(permissions), file.Size()); err != nil {
+			if err := cl.CopyTo(openFile, AddTrailingSlash(destPath), file.Name(), addLeadingZero(permissions), file.Size()); err != nil {
 				return err
 			}
 		}
@@ -281,7 +281,7 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 }
 
 func (cl *SecureShellClient) CreateFolder(path string) error {
-	if _, err := cl.Run("mkdir -p " + addTrailingSlash(path)); err != nil {
+	if _, err := cl.Run("mkdir -p " + AddTrailingSlash(path)); err != nil {
 		if !strings.Contains(err.Error(), "exists") {
 			return err
 		}
@@ -296,7 +296,7 @@ func addLeadingZero(in string) string {
 	return in
 }
 
-func addTrailingSlash(in string) string {
+func AddTrailingSlash(in string) string {
 	if in[len(in)-1:] != "/" {
 		in = in + "/"
 	}

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,6 +16,7 @@ package pruneagent
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -35,28 +36,29 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Pruning Agent")
-	var agent config.Agent
+	var baseAgent rsc.Agent
 	var err error
 	if exe.useDetached {
-		agent, err = config.GetDetachedAgent(exe.name)
+		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		agent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
 	}
 	if err != nil {
 		return err
 	}
 	// Prune Agent
-	if util.IsLocalHost(agent.Host) {
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
 		if err = exe.localAgentPrune(); err != nil {
 			return err
 		}
-	} else {
+	case *rsc.RemoteAgent:
 		if exe.useDetached {
 			if err = exe.remoteDetachedAgentPrune(agent); err != nil {
 				return err
 			}
 		} else {
-			if err = exe.remoteAgentPrune(agent); err != nil {
+			if err = exe.remoteAgentPrune(baseAgent); err != nil {
 				return err
 			}
 		}

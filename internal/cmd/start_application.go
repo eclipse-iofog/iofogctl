@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -25,7 +25,7 @@ func newStartApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Starts an application",
 		Long:    "Starts an application",
-		Example: `iofogctl start application meerkat`,
+		Example: `iofogctl start application NAME`,
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

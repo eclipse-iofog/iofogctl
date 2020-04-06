@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,15 +16,17 @@ package delete
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
 	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
-	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalog_item"
+	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalogitem"
 	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
-	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
+	deletek8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/k8s"
+	deletelocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/local"
+	deleteremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/remote"
 	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
 	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
+	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 )
 
@@ -34,37 +36,57 @@ type Options struct {
 	Soft      bool
 }
 
-var kindOrder = []apps.Kind{
+var kindOrder = []config.Kind{
 	config.CatalogItemKind,
-	apps.MicroserviceKind,
-	apps.ApplicationKind,
+	config.MicroserviceKind,
+	config.ApplicationKind,
 	config.RegistryKind,
-	apps.AgentKind,
-	apps.ControllerKind,
-	apps.ControlPlaneKind,
+	config.RemoteAgentKind,
+	config.LocalAgentKind,
+	config.RemoteControllerKind,
+	config.LocalControllerKind,
+	config.KubernetesControlPlaneKind,
+	config.RemoteControlPlaneKind,
+	config.LocalControlPlaneKind,
+	config.VolumeKind,
 }
 
-var kindHandlers = map[apps.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	apps.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteapplication.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.ControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(opt.Namespace, opt.Name, false)
+	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletek8scontrolplane.NewExecutor(opt.Namespace, false)
 	},
-	apps.AgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteremotecontrolplane.NewExecutor(opt.Namespace, false)
+	},
+	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletelocalcontrolplane.NewExecutor(opt.Namespace, false)
+	},
+	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+	},
+	config.LocalControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+	},
+	config.RemoteAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	apps.ControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+	config.LocalAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
+	},
+	config.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletevolume.NewExecutor(opt.Namespace, opt.Name)
 	},
 }
 
