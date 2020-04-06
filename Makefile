@@ -10,7 +10,6 @@ MINOR ?= $(shell cat version | grep MINOR | sed 's/MINOR=//g')
 PATCH ?= $(shell cat version | grep PATCH | sed 's/PATCH=//g')
 SUFFIX ?= $(shell cat version | grep SUFFIX | sed 's/SUFFIX=//g')
 VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
-MODULES_VERSION = $(shell [ $(SUFFIX) == "-dev" ] && echo develop || echo v$(VERSION))
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/v2/pkg/util
@@ -25,6 +24,8 @@ LDFLAGS += -X $(PREFIX).agentTag=develop
 LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
+GO_SDK_MODULE = iofog-go-sdk/v2@develop
+OPERATOR_MODULE = iofog-operator/v2@develop
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -53,8 +54,8 @@ modules: get vendor ## Get modules and vendor them
 
 .PHONY: get
 get: ## Pull modules
-	@for module in iofog-go-sdk/v2 iofog-operator/v2; do \
-		go get github.com/eclipse-iofog/$$module@$(MODULES_VERSION); \
+	@for module in $(GO_SDK_MODULE) $(OPERATOR_MODULE); do \
+		go get github.com/eclipse-iofog/$$module; \
 	done
 	@go get github.com/eclipse-iofog/iofogctl@v1.3
 

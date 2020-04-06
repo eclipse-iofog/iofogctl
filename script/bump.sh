@@ -24,15 +24,18 @@ sed -i.bkp "s/PATCH=.*/PATCH=$patch/g" "version"
 sed -i.bkp "s/SUFFIX=.*/SUFFIX=-$suffix/g" "version"
 rm "version.bkp"
 
-# Pull modules
-make modules
-
 # Update Makefile
+sed -i.bkp -E "s/(.*iofog-go-sdk\/v2@).*/\1v$version/g" Makefile
+sed -i.bkp -E "s/(.*iofog-operator\/v2@).*/\1v$version/g" Makefile
 sed -i.bkp -E "s/(.*-X.*Tag=).*/\1$version/g" Makefile
 sed -i.bkp -E "s/(.*-X.*Version=).*/\1$version/g" Makefile
 sed -i.bkp -E "s/(.*-X.*repo=).*/\1iofog/g" Makefile
 rm Makefile.bkp
+
 # Update pipeline
 sed -i.bkp -E "s/(_image:.*focal-freedom.*:).*/\1$version'/g" azure-pipelines.yaml
 sed -i.bkp -E "s/(_version: ).*/\1'$version'/g" azure-pipelines.yaml
 rm azure-pipelines.yaml.bkp
+
+# Pull modules
+make modules
