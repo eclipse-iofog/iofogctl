@@ -121,7 +121,7 @@ spec:
   images:
     controller: $CONTROLLER_IMAGE
     operator: $OPERATOR_IMAGE
-    portManager: $PORT_MANAGER
+    portManager: $PORT_MANAGER_IMAGE
     proxy: $PROXY_IMAGE
     router: $ROUTER_IMAGE
     kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
