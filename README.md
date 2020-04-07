@@ -1,8 +1,10 @@
 ![iofogctl-logo](iofogctl-logo.png?raw=true "iofogctl logo")
 
-`iofogctl` is a CLI for the installation, configuration, and operation of ioFog Edge Compute Networks (ECNs).
-It can be used to remotely manage multiple ECNs from a single host. It is built for an
-ioFog user and a DevOps engineer wanting to manage ECNs.
+`iofogctl` is a CLI for the installation, configuration, and operation of ioFog 
+[Edge Compute Networks (ECNs)](https://iofog.org/docs/2.0.0/getting-started/core-concepts.html).
+It can be used to remotely manage multiple ECNs from a single host. It is built for ioFog users and DevOps engineers 
+wanting to manage ECNs. It is modelled on existing tools such as Terraform or kubectl that can be used to automate
+infrastructure-as-code.
 
 ## Install
 
@@ -33,7 +35,7 @@ sudo apt install iofogctl
 
 ### Documentation
 
-The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/1.2.0/getting-started/quick-start.html) learning resources.
+The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/2.0.0/getting-started/quick-start.html) learning resources.
 
 There are also auto-generated docs within this [repo](./docs/md).
 
@@ -48,27 +50,55 @@ iofogctl --help
 Current options include:
 
 ```
-ioFog Unified Command Line Interface
+     _       ____                 __  __    
+    (_)___  / __/___  ____  _____/ /_/ /         
+   / / __ \/ /_/ __ \/ __ `/ ___/ __/ /   
+  / / /_/ / __/ /_/ / /_/ / /__/ /_/ /           
+ /_/\____/_/  \____/\__, /\___/\__/_/  
+                   /____/                   
+
+
+
+Welcome to the cool new iofogctl Cli!
+
+Use `iofogctl version` to display the current version.
+
 
 Usage:
+  iofogctl [flags]
   iofogctl [command]
 
 Available Commands:
-  create      Create an ioFog resource
-  delete      Delete existing ioFog resources
-  deploy      Deploy ioFog stack on existing infrastructure
-  describe    Get detailed information of existing resources
-  get         Get information of existing resources
-  help        Help about any command
-  legacy      Execute commands using legacy CLI
-  logs        Get log contents of deployed resource
+  attach        Attach an existing ioFog resource to Control Plane
+  configure     Configure iofogctl or ioFog resources
+  connect       Connect to an existing Control Plane
+  create        Create a resource
+  delete        Delete an existing ioFog resource
+  deploy        Deploy Edge Compute Network components on existing infrastructure
+  describe      Get detailed information of existing resources
+  detach        Detach an existing ioFog resource from its ECN
+  disconnect    Disconnect from an ioFog cluster
+  get           Get information of existing resources
+  help          Help about any command
+  legacy        Execute commands using legacy CLI
+  logs          Get log contents of deployed resource
+  move          Move an existing resources inside the current Namespace
+  prune         prune ioFog resources
+  rename        Rename the iofog resources that are currently deployed
+  start         Starts a resource
+  stop          Stops a resource
+  version       Get CLI application version
+  view          Open ECN Viewer
 
 Flags:
-      --config string      CLI configuration file (default is ~/.iofog/config.yaml)
+      --detached           Use/Show detached resources
   -h, --help               help for iofogctl
+      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
+  -v, --verbose            Toggle for displaying verbose output of iofogctl
 
 Use "iofogctl [command] --help" for more information about a command.
+
 ```
 
 ### Autocomplete

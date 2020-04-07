@@ -23,7 +23,7 @@ jobs:
       package=$(ls | grep *.deb)
       echo "package..."
       echo $package
-      declare -a UBUNTU_VERS=("xenial" "bionic")
+      declare -a UBUNTU_VERS=("xenial" "bionic" "trusty")
       declare -a DEBIAN_VERS=("stretch" "buster")
       for ubu in "${UBUNTU_VERS[@]}"
       do

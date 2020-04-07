@@ -13,6 +13,7 @@ iofogctl version [flags]
 ### Options
 
 ```
+      --ecn    Get default package versions and images of all ECN components
   -h, --help   help for version
 ```
 
