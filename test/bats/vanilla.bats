@@ -216,6 +216,11 @@ spec:
   done
 }
 
+@test "Test you can access logs in other namespace" {
+  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --key "$KEY_FILE"
+  iofogctl -v -n "$NS2" logs controller "$NAME"
+}
+
 @test "Disconnect other namespace" {
   iofogctl -v -n "$NS2" disconnect
   checkNamespaceExistsNegative "$NS2"

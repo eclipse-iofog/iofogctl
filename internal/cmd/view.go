@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 
@@ -41,11 +42,20 @@ func newViewCommand() *cobra.Command {
 			}
 			ctrl := ns.GetControllers()[0]
 			URL, err := url.Parse(ctrl.GetEndpoint())
-			util.Check(err)
-			ecnViewer := URL.Scheme + "://" + URL.Hostname()
-			if util.IsLocalHost(ecnViewer) {
-				ecnViewer += ":" + iofog.ControllerHostECNViewerPortString
+			if err != nil || URL.Host == "" {
+				URL, err = url.Parse("//" + ctrl.GetEndpoint()) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
 			}
+			util.Check(err)
+			if URL.Scheme == "" {
+				URL.Scheme = "http"
+			}
+			host, _, err := net.SplitHostPort(URL.Host)
+			util.Check(err)
+			if util.IsLocalHost(host) {
+				host += ":" + iofog.ControllerHostECNViewerPortString
+			}
+			URL.Host = host
+			ecnViewer := URL.String()
 			if err := browser.OpenURL(ecnViewer); err != nil {
 				util.PrintInfo("To see the ECN Viewer, open your browser and go to:\n")
 				util.PrintInfo(fmt.Sprintf("%s\n", URL))
