@@ -54,3 +54,10 @@ func (ctrl *RemoteController) Sanitize() (err error) {
 	}
 	return
 }
+
+func (controller *RemoteController) ValidateSSH() error {
+	if controller.Host == "" || controller.SSH.User == "" || controller.SSH.Port == 0 || controller.SSH.KeyFile == "" {
+		return NewNoSSHConfigError("Agent")
+	}
+	return nil
+}

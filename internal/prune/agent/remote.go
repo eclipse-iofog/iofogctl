@@ -39,8 +39,8 @@ func (exe executor) remoteAgentPrune(agent rsc.Agent) error {
 }
 
 func (exe executor) remoteDetachedAgentPrune(agent *rsc.RemoteAgent) error {
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-		return util.NewInputError("Could not Prune Iofog resource " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
+	if err := agent.ValidateSSH(); err != nil {
+		return err
 	} else {
 		sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name, agent.UUID)
 		if err := sshAgent.Prune(); err != nil {

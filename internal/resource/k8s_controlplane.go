@@ -100,3 +100,10 @@ func (cp *KubernetesControlPlane) Sanitize() (err error) {
 	}
 	return
 }
+
+func (cp *KubernetesControlPlane) ValidateKubeConfig() error {
+	if cp.KubeConfig == "" {
+		return NewNoKubeConfigError("Control Plane")
+	}
+	return nil
+}

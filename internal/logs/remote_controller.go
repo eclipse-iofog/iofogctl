@@ -60,8 +60,8 @@ func (exe *remoteControllerExecutor) Execute() error {
 	}
 
 	// Remote
-	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
-		util.Check(util.NewNoConfigError("Controller"))
+	if err = ctrl.ValidateSSH(); err != nil {
+		return err
 	}
 	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
 	ssh.SetPort(ctrl.SSH.Port)

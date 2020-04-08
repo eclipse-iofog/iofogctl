@@ -70,8 +70,8 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		return nil
 	case *rsc.RemoteAgent:
 		// Verify we can SSH into the Agent
-		if agent.SSH.User == "" || agent.Host == "" || agent.SSH.KeyFile == "" {
-			return util.NewError("Cannot get logs for microservice on Agent " + agent.Name + " because SSH details are not available")
+		if err = agent.ValidateSSH(); err != nil {
+			return err
 		}
 
 		// SSH into the Agent and get the logs

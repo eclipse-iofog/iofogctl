@@ -151,7 +151,6 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 }
 
 func addPods(controlPlane *rsc.KubernetesControlPlane, endpoint string) error {
-	// TODO: Get Kubernetes pods
 	for idx := int32(0); idx < controlPlane.Replicas.Controller; idx++ {
 		k8sPod := rsc.KubernetesController{
 			Endpoint: endpoint,
