@@ -99,7 +99,10 @@ func NewRemoteExecutor(namespace string, agent *rsc.RemoteAgent, isSystem bool) 
 		return nil, err
 	}
 
-	if agent.Host == "" || agent.SSH.KeyFile == "" || agent.SSH.User == "" {
+	if err := agent.Sanitize(); err != nil {
+		return nil, err
+	}
+	if agent.ValidateSSH() != nil {
 		return nil, util.NewInputError("Must specify user, host, and key file flags for remote deployment or provisioning")
 	}
 	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent, isSystem), nil

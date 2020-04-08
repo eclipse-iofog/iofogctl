@@ -62,8 +62,8 @@ func (exe *agentExecutor) Execute() error {
 		return nil
 	case *rsc.RemoteAgent:
 		// Establish SSH connection
-		if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-			util.Check(util.NewNoConfigError("Agent"))
+		if err = agent.ValidateSSH(); err != nil {
+			return err
 		}
 		ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
 		ssh.SetPort(agent.SSH.Port)

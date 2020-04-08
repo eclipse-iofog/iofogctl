@@ -65,3 +65,10 @@ func (agent *RemoteAgent) Sanitize() (err error) {
 	}
 	return
 }
+
+func (agent *RemoteAgent) ValidateSSH() error {
+	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {
+		return NewNoSSHConfigError("Agent")
+	}
+	return nil
+}

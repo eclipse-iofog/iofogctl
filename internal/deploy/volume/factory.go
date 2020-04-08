@@ -108,8 +108,8 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 			return nil, util.NewInputError("Cannot push Volumes to Local Agents")
 		}
 		// Check SSH details
-		if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {
-			return nil, util.NewInputError("Trying to push volume but SSH details for Agent " + agent.Name + " are not available. They can be added manually through the `configure` command")
+		if err = agent.ValidateSSH(); err != nil {
+			return nil, err
 		}
 		// Check agent is not local
 		if util.IsLocalHost(agent.Host) {

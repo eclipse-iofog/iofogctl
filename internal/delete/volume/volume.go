@@ -76,8 +76,8 @@ func (exe *Executor) execute(agentIdx int, ch chan error) {
 		ch <- util.NewInputError("Cannot delete Volumes from Local Agents")
 	}
 	// Check SSH details
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {
-		ch <- util.NewInputError("Trying to delete volume but SSH details for Agent " + agent.Name + " are not available. They can be added manually through the `configure` command")
+	if err := agent.ValidateSSH(); err != nil {
+		ch <- err
 	}
 	// Check agent is not local
 	if util.IsLocalHost(agent.Host) {
