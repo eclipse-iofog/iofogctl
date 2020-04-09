@@ -29,6 +29,10 @@ NS="$NAMESPACE"
   iofogctl create namespace "$NS"
 }
 
+@test "Test no executors" {
+  testNoExecutors
+}
+
 @test "Deploy Control Plane" {
   echo "---
 apiVersion: iofog.org/v2

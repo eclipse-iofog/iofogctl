@@ -9,6 +9,10 @@ NS2="$NS"_2
   iofogctl create namespace "$NS"
 }
 
+@test "Test no executors" {
+  testNoExecutors
+}
+
 @test "Set default namespace" {
   iofogctl configure default-namespace "$NS"
 }

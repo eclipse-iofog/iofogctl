@@ -18,3 +18,8 @@ function findMsvcState(){
     STATE="$3"
     iofogctl -n $NS get microservices | grep $MS | grep $STATE
 }
+
+function runNoExecutors(){
+  touch /tmp/nothing.yaml
+  iofogctl deploy -f /tmp/nothing.yaml -n "$NS"
+}

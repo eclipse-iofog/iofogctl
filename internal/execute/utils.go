@@ -99,6 +99,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 	}
 
 	// Generate all executors
+	empty := true
 	executorsMap = make(map[config.Kind][]Executor)
 	decodeErr := dec.Decode(&header)
 	for decodeErr == nil {
@@ -107,12 +108,17 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 			return nil, err
 		}
 		if exe != nil {
+			empty = false
 			executorsMap[header.Kind] = append(executorsMap[header.Kind], exe)
 		}
 		decodeErr = dec.Decode(&header)
 	}
 	if decodeErr != io.EOF && decodeErr != nil {
 		return nil, decodeErr
+	}
+
+	if empty {
+		err = util.NewInputError("Could not decode any valid resources from input YAML file")
 	}
 
 	return

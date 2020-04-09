@@ -132,3 +132,9 @@ function testDefaultProxyConfig(){
   echo "Wanted IP: $ACTUAL_IP"
   [ "$ACTUAL_IP" == "$IP" ]
 }
+
+function testNoExecutors(){
+  run runNoExecutors
+  [ $status -ne 0 ]
+  [[ "$output" == *"not decode any valid resources"* ]]
+}

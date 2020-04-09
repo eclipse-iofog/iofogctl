@@ -8,6 +8,10 @@ NS="$NAMESPACE"
   iofogctl create namespace "$NS"
 }
 
+@test "Test no executors" {
+  testNoExecutors
+}
+
 @test "Deploy local Controller" {
   initLocalControllerFile
   iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
