@@ -19,7 +19,7 @@ NS="$NAMESPACE"
 @test "Deploy local Controller" {
   initLocalControllerFile
   iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
-  checkController
+  checkControllerLocal
 }
 
 @test "Controller legacy commands after deploy" {
@@ -41,7 +41,7 @@ NS="$NAMESPACE"
 @test "Deploy local Controller again for indempotence" {
   initLocalControllerFile
   iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
-  checkController
+  checkControllerLocal
 }
 
 @test "Deploy Agents against local Controller again for indempotence" {

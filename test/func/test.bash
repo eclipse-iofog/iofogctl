@@ -152,3 +152,9 @@ function testWrongNamespace(){
   echo "$output"
   [[ "$output" == *"does not match the Namespace"* ]]
 }
+
+function testDefaultNamespace(){
+  SET_NS="$1"
+  iofogctl configure default-namespace "$NS"
+  iofogctl get all | grep "$NS"
+}
