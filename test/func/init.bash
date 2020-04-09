@@ -190,7 +190,7 @@ function initRemoteAgentsFile() {
     local AGENT_NAME="${NAME}-${IDX}"
     echo "---
 apiVersion: iofog.org/v2
-kind: RemoteAgent 
+kind: Agent
 metadata:
   name: $AGENT_NAME
 spec:

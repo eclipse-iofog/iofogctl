@@ -21,7 +21,7 @@ NS2="$NS"_2
   initVanillaController
   echo "---
 apiVersion: iofog.org/v2
-kind: RemoteControlPlane
+kind: ControlPlane
 metadata:
   name: func-controlplane
 spec:

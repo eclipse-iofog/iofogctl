@@ -14,12 +14,12 @@ const (
 	RegistryKind               Kind = "Registry"
 	VolumeKind                 Kind = "Volume"
 	LocalAgentKind             Kind = "LocalAgent"
-	RemoteAgentKind            Kind = "RemoteAgent"
+	RemoteAgentKind            Kind = "Agent"
 	KubernetesControlPlaneKind Kind = "KubernetesControlPlane"
-	RemoteControlPlaneKind     Kind = "RemoteControlPlane"
+	RemoteControlPlaneKind     Kind = "ControlPlane"
 	LocalControlPlaneKind      Kind = "LocalControlPlane"
 	KubernetesControllerKind   Kind = "KubernetesController"
-	RemoteControllerKind       Kind = "RemoteController"
+	RemoteControllerKind       Kind = "Controller"
 	LocalControllerKind        Kind = "LocalController"
 	MicroserviceKind           Kind = Kind(apps.MicroserviceKind)
 	ApplicationKind            Kind = Kind(apps.ApplicationKind)
