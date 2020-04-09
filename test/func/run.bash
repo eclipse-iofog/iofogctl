@@ -20,6 +20,6 @@ function findMsvcState(){
 }
 
 function runNoExecutors(){
-  touch /tmp/nothing.yaml
-  iofogctl deploy -f /tmp/nothing.yaml -n "$NS"
+  echo '' > test/conf/nothing.yaml
+  iofogctl deploy -f test/conf/nothing.yaml -n "$NS"
 }
