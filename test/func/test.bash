@@ -136,5 +136,6 @@ function testDefaultProxyConfig(){
 function testNoExecutors(){
   run runNoExecutors
   [ $status -ne 0 ]
+  echo "$output"
   [[ "$output" == *"not decode any valid resources"* ]]
 }
