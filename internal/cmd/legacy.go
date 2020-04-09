@@ -118,12 +118,10 @@ iofogctl legacy agent NAME status`,
 					if !ok {
 						util.Check(util.NewError("Could not convert Control Plane to Kubernetes Control Plane"))
 					}
+					util.Check(k8sControlPlane.ValidateKubeConfig())
 					k8sExecute(k8sControlPlane.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
 				case *rsc.RemoteController:
-					// TODO: replace this with member func
-					if controller.Host == "" || controller.SSH.User == "" || controller.SSH.KeyFile == "" || controller.SSH.Port == 0 {
-						util.Check(util.NewNoConfigError("Controller"))
-					}
+					util.Check(controller.ValidateSSH())
 					remoteExec(controller.SSH.User, controller.Host, controller.SSH.KeyFile, controller.SSH.Port, "sudo iofog-controller", args[2:])
 				case *rsc.LocalController:
 					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
@@ -144,9 +142,7 @@ iofogctl legacy agent NAME status`,
 					return
 				case *rsc.RemoteAgent:
 					// SSH connect
-					if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-						util.Check(util.NewNoConfigError("Agent"))
-					}
+					util.Check(agent.ValidateSSH())
 					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
 				}
 			default:

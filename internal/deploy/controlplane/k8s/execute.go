@@ -139,7 +139,7 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	// Create controller pods for config
 	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
 		if err := exe.controlPlane.AddController(&rsc.KubernetesController{
-			PodName:  fmt.Sprintf("kubernetes-%d", idx+1), // TODO: use actual pod name
+			PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
 			Created:  util.NowUTC(),
 			Endpoint: endpoint,
 		}); err != nil {

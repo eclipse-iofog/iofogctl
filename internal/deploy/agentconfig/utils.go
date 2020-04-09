@@ -71,21 +71,6 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
 func Process(agentConfig rsc.AgentConfiguration, name, agentIP string, otherAgents []client.AgentInfo) (rsc.AgentConfiguration, error) {
-	// If local agent, set fixed config
-	if agentConfig.Host != nil && util.IsLocalHost(*agentConfig.Host) {
-		upstreamRouters := []string{}
-		routerMode := "interior"
-		edgeRouterPort := 56721
-		interRouterPort := 56722
-		agentConfig.UpstreamRouters = &upstreamRouters
-		agentConfig.RouterConfig = client.RouterConfig{
-			RouterMode:      &routerMode,
-			EdgeRouterPort:  &edgeRouterPort,
-			InterRouterPort: &interRouterPort,
-		}
-		return agentConfig, nil
-	}
-
 	routerMode := getRouterMode(agentConfig)
 
 	if agentConfig.UpstreamRouters != nil {

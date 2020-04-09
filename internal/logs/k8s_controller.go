@@ -34,11 +34,14 @@ func newKubernetesControllerExecutor(controlPlane *rsc.KubernetesControlPlane, n
 	}
 }
 
-func (ctrl *kubernetesControllerExecutor) GetName() string {
-	return ctrl.name
+func (exe *kubernetesControllerExecutor) GetName() string {
+	return exe.name
 }
 
 func (exe *kubernetesControllerExecutor) Execute() error {
+	if err := exe.controlPlane.ValidateKubeConfig(); err != nil {
+		return err
+	}
 	out, err := util.Exec("KUBECONFIG="+exe.controlPlane.KubeConfig, "kubectl", "logs", "-l", "name=controller", "-n", exe.namespace)
 	if err != nil {
 		return err

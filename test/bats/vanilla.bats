@@ -9,6 +9,10 @@ NS2="$NS"_2
   iofogctl create namespace "$NS"
 }
 
+@test "Test no executors" {
+  testNoExecutors
+}
+
 @test "Set default namespace" {
   iofogctl configure default-namespace "$NS"
 }
@@ -17,7 +21,7 @@ NS2="$NS"_2
   initVanillaController
   echo "---
 apiVersion: iofog.org/v2
-kind: RemoteControlPlane
+kind: ControlPlane
 metadata:
   name: func-controlplane
 spec:
@@ -214,6 +218,11 @@ spec:
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS2" legacy agent "$AGENT_NAME" status
   done
+}
+
+@test "Test you can access logs in other namespace" {
+  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --key "$KEY_FILE"
+  iofogctl -v -n "$NS2" logs controller "$NAME"
 }
 
 @test "Disconnect other namespace" {

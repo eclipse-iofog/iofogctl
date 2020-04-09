@@ -132,3 +132,17 @@ function testDefaultProxyConfig(){
   echo "Wanted IP: $ACTUAL_IP"
   [ "$ACTUAL_IP" == "$IP" ]
 }
+
+function testNoExecutors(){
+  run runNoExecutors
+  [ $status -ne 0 ]
+  echo "$output"
+  [[ "$output" == *"not decode any valid resources"* ]]
+}
+
+function testWrongNamespace(){
+  run runWrongNamespace
+  [ $status -ne 0 ]
+  echo "$output"
+  [[ "$output" == *"does not match the Namespace"* ]]
+}

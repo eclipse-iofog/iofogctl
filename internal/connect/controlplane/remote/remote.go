@@ -14,11 +14,12 @@
 package connectremotecontrolplane
 
 import (
+	"net/url"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -28,7 +29,15 @@ type remoteExecutor struct {
 }
 
 func NewManualExecutor(namespace, name, endpoint, email, password string) (execute.Executor, error) {
-	fmtEndpoint := formatEndpoint(endpoint)
+	fmtEndpoint, err := formatEndpoint(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	host := fmtEndpoint.Hostname()
+	formatedEndpoint, err := util.GetControllerEndpoint(host)
+	if err != nil {
+		return nil, err
+	}
 	controlPlane := &rsc.RemoteControlPlane{
 		IofogUser: rsc.IofogUser{
 			Email:    email,
@@ -37,8 +46,8 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 		Controllers: []rsc.RemoteController{
 			{
 				Name:     name,
-				Endpoint: fmtEndpoint,
-				Host:     util.Before(fmtEndpoint, ":"),
+				Endpoint: formatedEndpoint,
+				Host:     host,
 			},
 		},
 	}
@@ -63,7 +72,17 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		if !ok {
 			return nil, util.NewError("Could not convert Controller to Remote Controller")
 		}
-		controller.Endpoint = formatEndpoint(controlPlane.Controllers[0].Host)
+		fmtEndpoint, err := formatEndpoint(controlPlane.Controllers[0].Host)
+		if err != nil {
+			return nil, err
+		}
+		host := fmtEndpoint.Hostname()
+		formatedEndpoint, err := util.GetControllerEndpoint(host)
+		if err != nil {
+			return nil, err
+		}
+		controller.Endpoint = formatedEndpoint
+		controller.Host = host
 		if err := controlPlane.UpdateController(controller); err != nil {
 			return nil, err
 		}
@@ -132,14 +151,12 @@ func connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string) error {
 	return nil
 }
 
-// TODO: remove duplication
-func formatEndpoint(endpoint string) string {
-	before := util.Before(endpoint, ":")
-	after := util.After(endpoint, ":")
-	if after == "" {
-		after = iofog.ControllerPortString
+func formatEndpoint(endpoint string) (*url.URL, error) {
+	URL, err := url.Parse(endpoint)
+	if err != nil || URL.Host == "" {
+		URL, err = url.Parse("//" + endpoint)
 	}
-	return before + ":" + after
+	return URL, err
 }
 
 func validate(controlPlane rsc.ControlPlane) (err error) {

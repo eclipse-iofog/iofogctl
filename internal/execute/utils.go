@@ -44,9 +44,9 @@ func NewEmptyExecutor(name string) Executor {
 }
 
 func generateExecutor(header config.Header, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
-	// Check namespace exists
-	if len(header.Metadata.Namespace) > 0 {
-		namespace = header.Metadata.Namespace
+	if len(header.Metadata.Namespace) > 0 && namespace != header.Metadata.Namespace {
+		msg := "The Namespace provided by the %s named '%s' does not match the Namespace '%s'. You must pass '--namespace %s' to perform this command"
+		return nil, util.NewInputError(fmt.Sprintf(msg, header.Kind, header.Metadata.Name, namespace, header.Metadata.Namespace))
 	}
 
 	if _, err := config.GetNamespace(namespace); err != nil {
@@ -99,6 +99,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 	}
 
 	// Generate all executors
+	empty := true
 	executorsMap = make(map[config.Kind][]Executor)
 	decodeErr := dec.Decode(&header)
 	for decodeErr == nil {
@@ -107,12 +108,17 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 			return nil, err
 		}
 		if exe != nil {
+			empty = false
 			executorsMap[header.Kind] = append(executorsMap[header.Kind], exe)
 		}
 		decodeErr = dec.Decode(&header)
 	}
 	if decodeErr != io.EOF && decodeErr != nil {
 		return nil, decodeErr
+	}
+
+	if empty {
+		err = util.NewInputError("Could not decode any valid resources from input YAML file")
 	}
 
 	return

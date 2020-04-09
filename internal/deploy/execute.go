@@ -23,11 +23,11 @@ import (
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	deployapplication "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/application"
 	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalogitem"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/local"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
+	deploylocalcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
+	deployremotecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
+	deployk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"
+	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/local"
+	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
@@ -154,13 +154,26 @@ func Execute(opt *Options) (err error) {
 			}
 		}
 		if !found {
+			agentConfig := client.AgentConfiguration{
+				Host: &host,
+			}
+			if util.IsLocalHost(host) { // Set de default local config to interior standalone
+				upstreamRouters := []string{}
+				routerMode := "interior"
+				edgeRouterPort := 56721
+				interRouterPort := 56722
+				agentConfig.UpstreamRouters = &upstreamRouters
+				agentConfig.RouterConfig = client.RouterConfig{
+					RouterMode:      &routerMode,
+					EdgeRouterPort:  &edgeRouterPort,
+					InterRouterPort: &interRouterPort,
+				}
+			}
 			executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
 				agentExecutor.GetName(),
 				rsc.AgentConfiguration{
-					Name: agentExecutor.GetName(),
-					AgentConfiguration: client.AgentConfiguration{
-						Host: &host,
-					},
+					Name:               agentExecutor.GetName(),
+					AgentConfiguration: agentConfig,
 				},
 				opt.Namespace,
 			))

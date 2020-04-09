@@ -126,7 +126,6 @@ func (exe *remoteExecutor) Execute() error {
 	if exe.agentConfig.Host != nil {
 		host = *exe.agentConfig.Host
 	}
-	// TODO: Endpoint might not work, was host previously
 	endpoint, err := controlPlane.GetEndpoint()
 	if err != nil {
 		return err

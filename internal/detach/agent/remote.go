@@ -22,7 +22,7 @@ import (
 )
 
 func (exe executor) remoteDeprovision(agent *rsc.RemoteAgent) error {
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
+	if agent.ValidateSSH() != nil {
 		util.PrintNotify("Could not deprovision daemon for Agent " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
 	} else {
 		sshAgent := install.NewRemoteAgent(
