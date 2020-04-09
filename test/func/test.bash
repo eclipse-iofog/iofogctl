@@ -139,3 +139,10 @@ function testNoExecutors(){
   echo "$output"
   [[ "$output" == *"not decode any valid resources"* ]]
 }
+
+function testWrongNamespace(){
+  run runWrongNamespace
+  [ $status -ne 0 ]
+  echo "$output"
+  [[ "$output" == *"does not match the Namespace"* ]]
+}

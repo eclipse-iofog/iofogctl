@@ -12,6 +12,10 @@ NS="$NAMESPACE"
   testNoExecutors
 }
 
+@test "Test wrong namespace metadata " {
+  testWrongNamespace
+}
+
 @test "Deploy local Controller" {
   initLocalControllerFile
   iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
