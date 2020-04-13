@@ -25,9 +25,11 @@ spec:
   for IDX in 1 2 3; do
     echo "test$IDX" > "$SRC/test$IDX"
   done
-  [ ! -d $SRC/testdir ] && mkdir $SRC/testdir
-  for IDX in 1 2 3; do
-    echo "test$IDX" > "$SRC/testdir/test$IDX"
+  for DIR_IDX in 1 2 3; do
+    [ ! -d $SRC/testdir$DIR_IDX ] && mkdir $SRC/testdir$DIR_IDX
+    for FILE_IDX in 1 2 3; do
+      echo "test$FILE_IDX" > "$SRC/testdir$DIR_IDX/test$FILE_IDX"
+    done
   done
   iofogctl -v -n "$NS" deploy -f test/conf/volume.yaml
 
@@ -37,10 +39,12 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   for IDX in "${!AGENTS[@]}"; do
-    for FILE_IDX in 1 2 3; do
-      SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
-      $SSH_COMMAND -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
-      $SSH_COMMAND -- cat $DST/testdir/test$FILE_IDX | grep "test$FILE_IDX"
+    for DIR_IDX in 1 2 3; do
+      for FILE_IDX in 1 2 3; do
+        SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
+        $SSH_COMMAND -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
+        $SSH_COMMAND -- cat $DST/testdir$DIR_IDX/test$FILE_IDX | grep "test$FILE_IDX"
+      done
     done
   done
 }
@@ -113,9 +117,11 @@ function testMountVolume(){
   SSH_COMMAND="ssh -S -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[0]}@${HOSTS[0]}"
   CONTAINER=$($SSH_COMMAND -- sudo docker ps | grep "heart-rate-ui" | awk '{print $1}')
   $SSH_COMMAND -- sudo docker exec $CONTAINER ls $VOL_CONT_DEST
-  for FILE_IDX in 1 2 3; do
-    $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/test$FILE_IDX | grep test$FILE_IDX
-    $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/testdir/test$FILE_IDX | grep test$FILE_IDX
+  for DIR_IDX in 1 2 3; do
+    for FILE_IDX in 1 2 3; do
+      $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/test$FILE_IDX | grep test$FILE_IDX
+      $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/testdir$DIR_IDX/test$FILE_IDX | grep test$FILE_IDX
+    done
   done
 }
 

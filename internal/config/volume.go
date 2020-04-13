@@ -33,6 +33,28 @@ func AddVolume(namespace string, volume rsc.Volume) error {
 	return nil
 }
 
+func UpdateVolume(namespace string, volume rsc.Volume) error {
+	ns, err := getNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	// Replace if exists
+	for idx := range ns.Volumes {
+		if ns.Volumes[idx].Name == volume.Name {
+			mux.Lock()
+			ns.Volumes[idx] = volume
+			mux.Unlock()
+			return nil
+		}
+	}
+
+	// Add new
+	mux.Lock()
+	ns.Volumes = append(ns.Volumes, volume)
+	mux.Unlock()
+	return nil
+}
+
 func DeleteVolume(namespace, name string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {

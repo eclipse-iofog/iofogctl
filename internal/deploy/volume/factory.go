@@ -52,7 +52,7 @@ func (exe remoteExecutor) Execute() error {
 		}
 	}
 	// Update config
-	if err := config.AddVolume(exe.namespace, exe.volume); err != nil {
+	if err := config.UpdateVolume(exe.namespace, exe.volume); err != nil {
 		return err
 	}
 	return config.Flush()

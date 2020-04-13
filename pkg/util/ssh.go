@@ -259,12 +259,14 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 				return err
 			}
 			// Copy contents of dir
-			return cl.CopyFolderTo(
+			if err = cl.CopyFolderTo(
 				AddTrailingSlash(srcPath)+file.Name(),
 				AddTrailingSlash(destPath)+file.Name(),
 				permissions,
 				true,
-			)
+			); err != nil {
+				return err
+			}
 		} else {
 			// Read the file
 			openFile, err := os.Open(AddTrailingSlash(srcPath) + file.Name())
