@@ -71,6 +71,10 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		application.Name = opt.Name
 	}
 
+	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
+		return nil, err
+	}
+
 	// Update default msvc values
 	for idx := range application.Microservices {
 		if application.Microservices[idx].Images.Registry == "" {

@@ -67,7 +67,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	// Check Name is lowercase
+	// Check Name
 	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
 		return nil, err
 	}

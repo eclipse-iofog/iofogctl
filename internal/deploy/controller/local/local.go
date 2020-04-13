@@ -46,9 +46,6 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err != nil {
 		return
 	}
-	if err := Validate(&controller); err != nil {
-		return nil, err
-	}
 
 	if len(opt.Name) > 0 {
 		controller.Name = opt.Name
@@ -76,6 +73,9 @@ func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, 
 	_, err = config.GetNamespace(namespace)
 	if err != nil {
 		return
+	}
+	if err := util.IsLowerAlphanumeric(controller.GetName()); err != nil {
+		return nil, err
 	}
 	cli, err := install.NewLocalContainerClient()
 	if err != nil {
