@@ -96,6 +96,10 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
+	// Check Name
+	if err := util.IsLowerAlphanumeric(volume.Name); err != nil {
+		return nil, err
+	}
 	// Check agents exist
 	agents := make([]rsc.Agent, 0)
 	for _, agentName := range volume.Agents {

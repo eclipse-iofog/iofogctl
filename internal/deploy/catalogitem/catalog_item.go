@@ -144,6 +144,9 @@ func validate(opt apps.CatalogItem) error {
 	if opt.Name == "" {
 		return util.NewInputError("Name must be specified")
 	}
+	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
+		return err
+	}
 
 	if opt.ARM == "" && opt.X86 == "" {
 		return util.NewInputError("At least one image must be specified")

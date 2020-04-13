@@ -38,9 +38,6 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err != nil {
 		return
 	}
-	if err := Validate(&controller); err != nil {
-		return nil, err
-	}
 
 	if len(opt.Name) > 0 {
 		controller.Name = opt.Name
@@ -88,6 +85,10 @@ func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.RemoteControl
 	}
 
 	if err = controller.Sanitize(); err != nil {
+		return nil, err
+	}
+
+	if err := util.IsLowerAlphanumeric(controller.GetName()); err != nil {
 		return nil, err
 	}
 
