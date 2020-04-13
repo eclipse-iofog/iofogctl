@@ -39,17 +39,13 @@ import (
 )
 
 var kindOrder = []config.Kind{
-	// Deploy Agents after Control Plane
-	// rsc.ControlPlaneKind,
-	// config.ControllerKind,
-	// config.AgentConfigKind,
 	config.RemoteAgentKind,
 	config.LocalAgentKind,
+	config.VolumeKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
 	config.ApplicationKind,
 	config.MicroserviceKind,
-	config.VolumeKind,
 }
 
 type Options struct {
