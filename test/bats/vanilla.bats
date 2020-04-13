@@ -90,15 +90,18 @@ spec:
 
 @test "Deploy Volumes" {
   testDeployVolume
+  testGetDescribeVolume
 }
 
-@test "Get and Describe Volumes" {
+@test "Deploy Volumes Idempotent" {
+  testDeployVolume
   testGetDescribeVolume
 }
 
 @test "Delete Volumes and Redeploy" {
   testDeleteVolume
   testDeployVolume
+  testGetDescribeVolume
 }
 
 @test "Agent legacy commands" {
