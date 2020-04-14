@@ -146,7 +146,7 @@ func (ctrl *Controller) Install() (err error) {
 		"check_prereqs.sh",
 		"controller_install_node.sh",
 		"controller_install_iofog.sh",
-		"controller_set_env_variables.sh",
+		"controller_set_env.sh",
 	}
 	for _, script := range scripts {
 		if err = ctrl.CopyScript("", script); err != nil {
@@ -178,16 +178,16 @@ func (ctrl *Controller) Install() (err error) {
 	}
 	systemImages := []string{}
 	if ctrl.SystemMicroservices.Proxy.X86 != "" {
-		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Proxy_1=%s", ctrl.SystemMicroservices.Proxy.X86))
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Proxy_1=%s\"", ctrl.SystemMicroservices.Proxy.X86))
 	}
 	if ctrl.SystemMicroservices.Proxy.ARM != "" {
-		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Proxy_2=%s", ctrl.SystemMicroservices.Proxy.ARM))
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Proxy_2=%s\"", ctrl.SystemMicroservices.Proxy.ARM))
 	}
 	if ctrl.SystemMicroservices.Router.X86 != "" {
-		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Router_1=%s", ctrl.SystemMicroservices.Router.X86))
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Router_1=%s\"", ctrl.SystemMicroservices.Router.X86))
 	}
 	if ctrl.SystemMicroservices.Router.ARM != "" {
-		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Router_2=%s", ctrl.SystemMicroservices.Router.ARM))
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Router_2=%s\"", ctrl.SystemMicroservices.Router.ARM))
 	}
 
 	envVariables := fmt.Sprintf("%s %s", dbArgs, strings.Join(systemImages, " "))
@@ -201,7 +201,7 @@ func (ctrl *Controller) Install() (err error) {
 			msg: "Installing Node.js on Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_set_env_variables.sh %s", envVariables),
+			cmd: fmt.Sprintf("sudo /tmp/controller_set_env.sh %s", envVariables),
 			msg: "Setting up environment variables for Controller " + ctrl.Host,
 		},
 		{
