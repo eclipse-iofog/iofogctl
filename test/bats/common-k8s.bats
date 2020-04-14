@@ -70,7 +70,7 @@
 }
 
 @test "Set default namespace" {
-  iofogctl -v configure default-namespace "$NS"
+  testDefaultNamespace "$NS"
 }
 
 @test "Deploy application" {
