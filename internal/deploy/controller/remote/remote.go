@@ -102,13 +102,14 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 	// Instantiate deployer
 	controllerOptions := &install.ControllerOptions{
-		User:            exe.controller.SSH.User,
-		Host:            exe.controller.Host,
-		Port:            exe.controller.SSH.Port,
-		PrivKeyFilename: exe.controller.SSH.KeyFile,
-		Version:         exe.controller.Package.Version,
-		Repo:            exe.controller.Package.Repo,
-		Token:           exe.controller.Package.Token,
+		User:                exe.controller.SSH.User,
+		Host:                exe.controller.Host,
+		Port:                exe.controller.SSH.Port,
+		PrivKeyFilename:     exe.controller.SSH.KeyFile,
+		Version:             exe.controller.Package.Version,
+		Repo:                exe.controller.Package.Repo,
+		Token:               exe.controller.Package.Token,
+		SystemMicroservices: exe.controller.SystemMicroservices,
 	}
 	deployer := install.NewController(controllerOptions)
 

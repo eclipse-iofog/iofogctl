@@ -20,18 +20,20 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type ControllerOptions struct {
-	User            string
-	Host            string
-	Port            int
-	PrivKeyFilename string
-	Version         string
-	Repo            string
-	Token           string
+	User                string
+	Host                string
+	Port                int
+	PrivKeyFilename     string
+	Version             string
+	Repo                string
+	Token               string
+	SystemMicroservices rsc.RemoteSystemMicroservices
 }
 
 type database struct {
@@ -144,6 +146,7 @@ func (ctrl *Controller) Install() (err error) {
 		"check_prereqs.sh",
 		"controller_install_node.sh",
 		"controller_install_iofog.sh",
+		"controller_set_env_variables.sh",
 	}
 	for _, script := range scripts {
 		if err = ctrl.CopyScript("", script); err != nil {
@@ -171,8 +174,23 @@ func (ctrl *Controller) Install() (err error) {
 	dbArgs := ""
 	if ctrl.db.host != "" {
 		db := ctrl.db
-		dbArgs = fmt.Sprintf(" %s %s %s %s %d %s", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
+		dbArgs = fmt.Sprintf("\"DB_PROVIDER=%s\" \"DB_HOST=%s\" \"DB_USER=%s\" \"DB_PASSWORD=%s\" \"DB_PORT=%d\" \"DB_NAME=%s\"", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
 	}
+	systemImages := []string{}
+	if ctrl.SystemMicroservices.Proxy.X86 != "" {
+		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Proxy_1=%s", ctrl.SystemMicroservices.Proxy.X86))
+	}
+	if ctrl.SystemMicroservices.Proxy.ARM != "" {
+		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Proxy_2=%s", ctrl.SystemMicroservices.Proxy.ARM))
+	}
+	if ctrl.SystemMicroservices.Router.X86 != "" {
+		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Router_1=%s", ctrl.SystemMicroservices.Router.X86))
+	}
+	if ctrl.SystemMicroservices.Router.ARM != "" {
+		systemImages = append(systemImages, fmt.Sprintf("SystemImages_Router_2=%s", ctrl.SystemMicroservices.Router.ARM))
+	}
+
+	envVariables := fmt.Sprintf("%s %s", dbArgs, strings.Join(systemImages, " "))
 	cmds := []command{
 		{
 			cmd: "/tmp/check_prereqs.sh",
@@ -183,7 +201,11 @@ func (ctrl *Controller) Install() (err error) {
 			msg: "Installing Node.js on Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
+			cmd: fmt.Sprintf("sudo /tmp/controller_set_env_variables.sh %s", envVariables),
+			msg: "Setting up environment variables for Controller " + ctrl.Host,
+		},
+		{
+			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token),
 			msg: "Installing ioFog on Controller " + ctrl.Host,
 		},
 	}

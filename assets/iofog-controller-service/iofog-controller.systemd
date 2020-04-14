@@ -5,6 +5,7 @@ Description=ioFog Controller
 Type=forking
 ExecStart=/usr/local/bin/iofog-controller start
 ExecStop=/usr/local/bin/iofog-controller stop
+EnvironmentFile=/opt/iofog/config/controller/env.env
 
 [Install]
 WantedBy=multi-user.target
