@@ -231,6 +231,7 @@ spec:
 @test "Disconnect other namespace" {
   iofogctl -v -n "$NS2" disconnect
   checkNamespaceExistsNegative "$NS2"
+  iofogctl -v -n "$NS2" disconnect # Idempotent
 }
 
 @test "Connect in other namespace using flags" {

@@ -59,6 +59,7 @@
   initAgents
   iofogctl -v -n "$NS" disconnect
   checkNamespaceExistsNegative "$NS"
+  iofogctl -v -n "$NS2" disconnect # Idempotent
 }
 
 @test "Connect to cluster using flags" {
