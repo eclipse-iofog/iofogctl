@@ -47,7 +47,7 @@ func (exe executor) GetName() string {
 	return exe.opt.Name
 }
 
-func (exe executor) Execute() error {
+func (exe executor) Execute() (err error) {
 	util.SpinStart("Attaching Agent")
 
 	ns, err := config.GetNamespace(exe.opt.Namespace)
@@ -63,14 +63,22 @@ func (exe executor) Execute() error {
 	var baseAgent rsc.Agent
 	if exe.opt.UseDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.opt.Name)
+		if err != nil {
+			return err
+		}
 	} else {
-		switch baseAgent.(type) {
-		case *rsc.LocalAgent:
-			baseAgent = &rsc.LocalAgent{
-				Name: exe.opt.Name,
-				Host: exe.opt.Host,
-			}
-		case *rsc.RemoteAgent:
+		// Determine type of ECN
+		ns, err := config.GetNamespace(exe.opt.Namespace)
+		if err != nil {
+			return err
+		}
+		controlPlane, err := ns.GetControlPlane()
+		if err != nil {
+			return err
+		}
+		switch controlPlane.(type) {
+		case *rsc.KubernetesControlPlane:
+		case *rsc.RemoteControlPlane:
 			baseAgent = &rsc.RemoteAgent{
 				Name: exe.opt.Name,
 				Host: exe.opt.Host,
@@ -80,14 +88,20 @@ func (exe executor) Execute() error {
 					Port:    exe.opt.Port,
 				},
 			}
+		case *rsc.LocalControlPlane:
+			baseAgent = &rsc.LocalAgent{
+				Name: exe.opt.Name,
+				Host: exe.opt.Host,
+			}
+		default:
+			return util.NewInternalError("Failed to cast ControlPlane down")
 		}
 	}
-
-	if err != nil {
-		return err
+	if baseAgent == nil {
+		return util.NewInternalError("Failed to convert options to Agent")
 	}
 
-	// Create fog
+	// Create Agent
 	host := baseAgent.GetHost()
 	configExecutor := deployagentconfig.NewRemoteExecutor(
 		exe.opt.Name,
@@ -97,7 +111,7 @@ func (exe executor) Execute() error {
 				Host: &host,
 			},
 		}, exe.opt.Namespace)
-	if err = configExecutor.Execute(); err != nil {
+	if err := configExecutor.Execute(); err != nil {
 		return err
 	}
 
@@ -105,11 +119,14 @@ func (exe executor) Execute() error {
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
 		executor, err = deploy.NewLocalExecutor(exe.opt.Namespace, agent, false)
+		if err != nil {
+			return err
+		}
 	case *rsc.RemoteAgent:
 		executor, err = deploy.NewRemoteExecutor(exe.opt.Namespace, agent, false)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	deployExecutor, ok := executor.(execute.ProvisioningExecutor)
 	if !ok {
