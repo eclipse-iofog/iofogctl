@@ -67,11 +67,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 }
 
 func newExecutor(namespace string, controlPlane *rsc.RemoteControlPlane, controller *rsc.RemoteController) *remoteExecutor {
-	return &remoteExecutor{
+	executor := &remoteExecutor{
 		namespace:    namespace,
 		controlPlane: controlPlane,
 		controller:   controller,
 	}
+
+	// Set default values
+	executor.setDefaultValues()
+	return executor
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -100,9 +104,6 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if exe.controller.ValidateSSH() != nil {
 		return util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
-
-	// Set default values
-	exe.setDefaultValues()
 
 	// Instantiate deployer
 	controllerOptions := &install.ControllerOptions{
