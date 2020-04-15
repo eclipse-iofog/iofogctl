@@ -20,6 +20,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -127,9 +128,11 @@ iofogctl legacy agent NAME status`,
 					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				}
 			case "agent":
+				// Update local cache based on Controller
+				err := iutil.UpdateAgentCache(namespace)
+				util.Check(err)
 				// Get config
 				var baseAgent rsc.Agent
-				var err error
 				if useDetached {
 					baseAgent, err = config.GetDetachedAgent(name)
 				} else {

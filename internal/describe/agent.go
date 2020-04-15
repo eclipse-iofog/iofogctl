@@ -42,6 +42,11 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() (err error) {
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		return err
+	}
+
 	var agent rsc.Agent
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)

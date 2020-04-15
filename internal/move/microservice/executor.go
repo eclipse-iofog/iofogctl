@@ -24,6 +24,11 @@ import (
 func Execute(namespace, name, agent string) error {
 	util.SpinStart(fmt.Sprintf("Moving microservice %s", name))
 
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(namespace); err != nil {
+		return err
+	}
+
 	// Init remote resources
 	clt, err := iutil.NewControllerClient(namespace)
 	if err != nil {
