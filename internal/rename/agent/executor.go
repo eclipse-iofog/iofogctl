@@ -34,6 +34,10 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 	}
 
 	// Get config
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(namespace); err != nil {
+		return err
+	}
 	agent, err := config.GetAgent(namespace, name)
 	if err != nil {
 		return err

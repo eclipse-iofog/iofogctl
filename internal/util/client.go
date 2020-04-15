@@ -16,14 +16,16 @@ package util
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
-var ioClient *client.Client
+var cachedClient *client.Client
+var cachedAgents []client.AgentInfo
 
 // NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
-func NewControllerClient(namespace string) (clt *client.Client, err error) {
-	if ioClient != nil {
-		return ioClient, nil
+func NewControllerClient(namespace string) (*client.Client, error) {
+	if cachedClient != nil {
+		return cachedClient, nil
 	}
 	// Get endpoint
 	ns, err := config.GetNamespace(namespace)
@@ -40,10 +42,66 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 	}
 
 	user := controlPlane.GetUser()
-	ioClient, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.Password)
+	cachedClient, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.Password)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	return ioClient, nil
+	return cachedClient, nil
+}
+
+func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
+	if cachedAgents != nil {
+		return cachedAgents, nil
+	}
+	ioClient, err := NewControllerClient(namespace)
+	if err != nil {
+		return nil, err
+	}
+	agentList, err := ioClient.ListAgents(client.ListAgentsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	cachedAgents = agentList.Agents
+	return cachedAgents, nil
+}
+
+func UpdateAgentCache(namespace string) error {
+	// Get local cache Agents
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
+	for idx := range ns.RemoteAgents {
+		agentsMap[ns.RemoteAgents[idx].GetName()] = &ns.RemoteAgents[idx]
+	}
+	// Get backend Agents
+	backendAgents, err := GetBackendAgents(namespace)
+	if err != nil {
+		return err
+	}
+
+	// Generate cache types
+	agents := make([]rsc.RemoteAgent, 0)
+	for _, backendAgent := range backendAgents {
+		agent := rsc.RemoteAgent{
+			Name: backendAgent.Name,
+			UUID: backendAgent.UUID,
+			Host: backendAgent.IPAddressExternal,
+		}
+		// Update additional info if local cache contains it
+		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
+			agent.Created = cachedAgent.GetCreatedTime()
+			agent.SSH = cachedAgent.SSH
+		}
+
+		agents = append(agents, agent)
+	}
+
+	// Overwrite the Agents
+	ns.RemoteAgents = append(make([]rsc.RemoteAgent, 0), agents...)
+	config.UpdateNamespace(ns)
+
+	return config.Flush()
 }
