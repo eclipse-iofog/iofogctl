@@ -110,10 +110,10 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Host:                exe.controller.Host,
 		Port:                exe.controller.SSH.Port,
 		PrivKeyFilename:     exe.controller.SSH.KeyFile,
-		Version:             exe.controller.Package.Version,
-		Repo:                exe.controller.Package.Repo,
-		Token:               exe.controller.Package.Token,
-		SystemMicroservices: exe.controller.SystemMicroservices,
+		Version:             exe.controlPlane.Package.Version,
+		Repo:                exe.controlPlane.Package.Repo,
+		Token:               exe.controlPlane.Package.Token,
+		SystemMicroservices: exe.controlPlane.SystemMicroservices,
 	}
 	deployer := install.NewController(controllerOptions)
 
@@ -136,17 +136,17 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func (exe *remoteExecutor) setDefaultValues() {
-	if exe.controller.SystemMicroservices.Proxy.X86 == "" {
-		exe.controller.SystemMicroservices.Proxy.X86 = util.GetProxyImage()
+	if exe.controlPlane.SystemMicroservices.Proxy.X86 == "" {
+		exe.controlPlane.SystemMicroservices.Proxy.X86 = util.GetProxyImage()
 	}
-	if exe.controller.SystemMicroservices.Proxy.ARM == "" {
-		exe.controller.SystemMicroservices.Proxy.ARM = util.GetProxyARMImage()
+	if exe.controlPlane.SystemMicroservices.Proxy.ARM == "" {
+		exe.controlPlane.SystemMicroservices.Proxy.ARM = util.GetProxyARMImage()
 	}
-	if exe.controller.SystemMicroservices.Router.X86 == "" {
-		exe.controller.SystemMicroservices.Router.X86 = util.GetRouterImage()
+	if exe.controlPlane.SystemMicroservices.Router.X86 == "" {
+		exe.controlPlane.SystemMicroservices.Router.X86 = util.GetRouterImage()
 	}
-	if exe.controller.SystemMicroservices.Router.ARM == "" {
-		exe.controller.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
+	if exe.controlPlane.SystemMicroservices.Router.ARM == "" {
+		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
 	}
 }
 

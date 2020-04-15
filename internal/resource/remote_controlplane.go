@@ -17,10 +17,23 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
+type RemoteSystemImages struct {
+	ARM string `yaml:"arm,omitempty"`
+	X86 string `yaml:"x86,omitempty"`
+}
+
+type RemoteSystemMicroservices struct {
+	Router RemoteSystemImages `yaml:"router,omitempty"`
+	Proxy  RemoteSystemImages `yaml:"proxy,omitempty"`
+}
+
 type RemoteControlPlane struct {
-	IofogUser   IofogUser          `yaml:"iofogUser"`
-	Controllers []RemoteController `yaml:"controllers"`
-	Database    Database           `yaml:"database,omitempty"`
+	IofogUser           IofogUser                 `yaml:"iofogUser"`
+	Controllers         []RemoteController        `yaml:"controllers"`
+	Database            Database                  `yaml:"database,omitempty"`
+	Package             Package                   `yaml:"package,omitempty"`
+	SystemAgent         Package                   `yaml:"systemAgent,omitempty"`
+	SystemMicroservices RemoteSystemMicroservices `yaml:"systemMicroservices,omitempty"`
 }
 
 func (cp RemoteControlPlane) GetUser() IofogUser {

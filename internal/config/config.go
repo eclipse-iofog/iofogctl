@@ -456,6 +456,7 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 	for _, controllerV1 := range nsV1.ControlPlane.Controllers {
 		if ns.RemoteControlPlane == nil {
 			ns.RemoteControlPlane = new(rsc.RemoteControlPlane)
+			ns.RemoteControlPlane.Package = rsc.Package(controllerV1.Package)
 		}
 		ctrl := rsc.RemoteController{
 			Name:     controllerV1.Name,
@@ -463,7 +464,6 @@ func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
 			SSH:      rsc.SSH(controllerV1.SSH),
 			Endpoint: controllerV1.Endpoint,
 			Created:  controllerV1.Created,
-			Package:  rsc.Package(controllerV1.Package),
 		}
 		if err := ns.RemoteControlPlane.AddController(&ctrl); err != nil {
 			return header, err

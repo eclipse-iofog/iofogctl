@@ -17,25 +17,12 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type RemoteSystemImages struct {
-	ARM string `yaml:"arm,omitempty"`
-	X86 string `yaml:"x86,omitempty"`
-}
-
-type RemoteSystemMicroservices struct {
-	Router RemoteSystemImages `yaml:"router,omitempty"`
-	Proxy  RemoteSystemImages `yaml:"proxy,omitempty"`
-}
-
 type RemoteController struct {
-	Name                string                    `yaml:"name"`
-	Host                string                    `yaml:"host"`
-	SSH                 SSH                       `yaml:"ssh,omitempty"`
-	Endpoint            string                    `yaml:"endpoint,omitempty"`
-	Created             string                    `yaml:"created,omitempty"`
-	Package             Package                   `yaml:"package,omitempty"`
-	SystemAgent         Package                   `yaml:"systemAgent,omitempty"`
-	SystemMicroservices RemoteSystemMicroservices `yaml:"systemMicroservices,omitempty"`
+	Name     string `yaml:"name"`
+	Host     string `yaml:"host"`
+	SSH      SSH    `yaml:"ssh,omitempty"`
+	Endpoint string `yaml:"endpoint,omitempty"`
+	Created  string `yaml:"created,omitempty"`
 }
 
 func (ctrl RemoteController) GetName() string {
