@@ -14,12 +14,8 @@
 package util
 
 import (
-	"fmt"
-
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 var clientByNamespace map[string]*client.Client = make(map[string]*client.Client)
@@ -51,34 +47,4 @@ func NewControllerClient(namespace string) (clt *client.Client, err error) {
 		clientByNamespace[namespace] = clt
 	}
 	return
-}
-
-const APIVersionGroup = "iofog.org"
-const LatestAPIVersion = APIVersionGroup + "/v2"
-
-var supportedAPIVersionsMap = map[string]bool{
-	LatestAPIVersion: true,
-}
-
-func ValidateHeader(header config.Header) error {
-	if _, found := supportedAPIVersionsMap[header.APIVersion]; found == false {
-		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
-	}
-	return nil
-}
-
-func IsSystemAgent(agentConfig rsc.AgentConfiguration) bool {
-	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
-}
-
-func MakeIntPtr(value int) *int {
-	return &value
-}
-
-func MakeStrPtr(value string) *string {
-	return &value
-}
-
-func MakeBoolPtr(value bool) *bool {
-	return &value
 }
