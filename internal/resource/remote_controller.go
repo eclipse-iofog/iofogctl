@@ -24,7 +24,7 @@ type RemoteSystemImages struct {
 
 type RemoteSystemMicroservices struct {
 	Router RemoteSystemImages `yaml:"router,omitempty"`
-	Proxy  RemoteSystemImages `yaml:"router,omitempty"`
+	Proxy  RemoteSystemImages `yaml:"proxy,omitempty"`
 }
 
 type RemoteController struct {

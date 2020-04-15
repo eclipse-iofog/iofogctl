@@ -110,7 +110,7 @@ deploy_controller() {
 	controller_service
 
 	# Run controller
-	. /opt/iofog/controller/env.sh
+	. /opt/iofog/config/controller/env.sh
 	iofog-controller start
 }
 
