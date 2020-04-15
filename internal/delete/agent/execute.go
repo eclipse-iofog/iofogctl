@@ -16,10 +16,10 @@ package deleteagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -77,7 +77,7 @@ func (exe executor) Execute() error {
 
 	if !exe.useDetached {
 		// Try to get a Controller client to talk to the REST API
-		ctrl, err := internal.NewControllerClient(exe.namespace)
+		ctrl, err := iutil.NewControllerClient(exe.namespace)
 		if err == nil {
 			// Does agent exists on Controller
 			agent, err := ctrl.GetAgentByName(exe.name, false)

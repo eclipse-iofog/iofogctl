@@ -14,9 +14,9 @@
 package describe
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -73,7 +73,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 
 func (exe *controlPlaneExecutor) generateControlPlaneHeader(kind config.Kind, controlPlane rsc.ControlPlane) config.Header {
 	return config.Header{
-		APIVersion: internal.LatestAPIVersion,
+		APIVersion: iutil.LatestAPIVersion,
 		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

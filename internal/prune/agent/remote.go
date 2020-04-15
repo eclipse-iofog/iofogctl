@@ -17,14 +17,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func (exe executor) remoteAgentPrune(agent rsc.Agent) error {
-	ctrl, err := internal.NewControllerClient(exe.namespace)
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

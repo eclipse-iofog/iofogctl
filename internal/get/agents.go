@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -86,7 +86,7 @@ func generateAgentOutput(namespace string, printNS bool) error {
 	// Connect to Controller if it is ready
 	// Instantiate client
 	// Log into Controller
-	ctrl, err := internal.NewControllerClient(namespace)
+	ctrl, err := iutil.NewControllerClient(namespace)
 	if err != nil {
 		return tabulateAgents(agentsToPrint)
 	}

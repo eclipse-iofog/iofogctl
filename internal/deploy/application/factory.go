@@ -17,9 +17,9 @@ import (
 	"fmt"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -87,7 +87,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	clt, err := internal.NewControllerClient(opt.Namespace)
+	clt, err := iutil.NewControllerClient(opt.Namespace)
 	if err != nil {
 		return
 	}

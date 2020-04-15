@@ -14,7 +14,7 @@
 package describe
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -60,7 +60,7 @@ func (exe *agentExecutor) Execute() (err error) {
 		kind = config.RemoteAgentKind
 	}
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
+		APIVersion: iutil.LatestAPIVersion,
 		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

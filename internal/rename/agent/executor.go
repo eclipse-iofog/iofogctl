@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -40,7 +40,7 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 	}
 
 	// Init remote resources
-	clt, err := internal.NewControllerClient(namespace)
+	clt, err := iutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

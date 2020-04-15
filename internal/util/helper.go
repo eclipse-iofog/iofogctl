@@ -11,7 +11,7 @@
  *
  */
 
-package internal
+package util
 
 import (
 	"fmt"

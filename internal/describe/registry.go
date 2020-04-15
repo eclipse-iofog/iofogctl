@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -48,7 +48,7 @@ func (exe *registryExecutor) GetName() string {
 
 func (exe *registryExecutor) Execute() error {
 	// Connect to controller
-	ctrl, err := internal.NewControllerClient(exe.namespace)
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (exe *registryExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
+		APIVersion: iutil.LatestAPIVersion,
 		Kind:       config.RegistryKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
