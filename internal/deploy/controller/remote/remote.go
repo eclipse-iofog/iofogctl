@@ -100,6 +100,10 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if exe.controller.ValidateSSH() != nil {
 		return util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
+
+	// Set default values
+	exe.setDefaultValues()
+
 	// Instantiate deployer
 	controllerOptions := &install.ControllerOptions{
 		User:                exe.controller.SSH.User,
@@ -129,6 +133,21 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return err
 	}
 	return exe.controlPlane.UpdateController(exe.controller)
+}
+
+func (exe *remoteExecutor) setDefaultValues() {
+	if exe.controller.SystemMicroservices.Proxy.X86 == "" {
+		exe.controller.SystemMicroservices.Proxy.X86 = util.GetProxyImage()
+	}
+	if exe.controller.SystemMicroservices.Proxy.ARM == "" {
+		exe.controller.SystemMicroservices.Proxy.ARM = util.GetProxyARMImage()
+	}
+	if exe.controller.SystemMicroservices.Router.X86 == "" {
+		exe.controller.SystemMicroservices.Router.X86 = util.GetRouterImage()
+	}
+	if exe.controller.SystemMicroservices.Router.ARM == "" {
+		exe.controller.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
+	}
 }
 
 func Validate(ctrl rsc.Controller) error {
