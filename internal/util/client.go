@@ -72,6 +72,16 @@ func UpdateAgentCache(namespace string) error {
 	if err != nil {
 		return err
 	}
+	// Check the Control Plane type
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+	switch controlPlane.(type) {
+	case *rsc.LocalControlPlane:
+		// Do not update local Agents
+		return nil
+	}
 	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
 	for idx := range ns.RemoteAgents {
 		agentsMap[ns.RemoteAgents[idx].GetName()] = &ns.RemoteAgents[idx]
