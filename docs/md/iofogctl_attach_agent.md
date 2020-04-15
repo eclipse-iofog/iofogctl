@@ -19,7 +19,7 @@ iofogctl attach agent NAME [flags]
 
 ```
 iofogctl attach agent NAME --detached
-		iofogctl attach agent NAME --host AGENT_HOST --user SSH_USER --port SSH_PORT --key SSH_PRIVATE_KEY_PATH
+iofogctl attach agent NAME --host AGENT_HOST --user SSH_USER --port SSH_PORT --key SSH_PRIVATE_KEY_PATH
 ```
 
 ### Options

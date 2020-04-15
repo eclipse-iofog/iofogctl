@@ -31,7 +31,7 @@ The Agent will be provisioned with the Controller within the Namespace.
 Can be used after detach command to re-provision the Agent. Can also be used with Agents that have not been detached.
 `,
 		Example: `iofogctl attach agent NAME --detached
-		iofogctl attach agent NAME --host AGENT_HOST --user SSH_USER --port SSH_PORT --key SSH_PRIVATE_KEY_PATH`,
+iofogctl attach agent NAME --host AGENT_HOST --user SSH_USER --port SSH_PORT --key SSH_PRIVATE_KEY_PATH`,
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent
