@@ -64,21 +64,13 @@ func (exe executor) Execute() (err error) {
 		switch agent := baseAgent.(type) {
 		case *rsc.LocalAgent:
 			if err = exe.deleteLocalContainer(); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
+				util.PrintInfo(fmt.Sprintf("Could not remove Agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
 			}
 		case *rsc.RemoteAgent:
 			if err = exe.deleteRemoteAgent(agent); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
+				util.PrintInfo(fmt.Sprintf("Could not remove Agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
 			}
 		}
-	}
-	if exe.useDetached {
-		return config.DeleteDetachedAgent(exe.name)
-	}
-	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
-		util.PrintInfo(fmt.Sprintf("Could not remove iofog-agent from iofogctl config. Error: %s\n", err.Error()))
-	} else {
-		defer config.Flush()
 	}
 
 	// Remove from Controller
@@ -86,7 +78,7 @@ func (exe executor) Execute() (err error) {
 		// Try to get a Controller client to talk to the REST API
 		ctrl, err := iutil.NewControllerClient(exe.namespace)
 		if err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not delete agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
+			util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
 		}
 		// Perform deletion of Agent through Controller
 		if err = ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
@@ -94,5 +86,15 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
-	return
+	// Update config
+	if exe.useDetached {
+		if err = config.DeleteDetachedAgent(exe.name); err != nil {
+			return err
+		}
+	}
+	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
+		return err
+	}
+
+	return config.Flush()
 }
