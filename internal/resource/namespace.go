@@ -1,76 +1,88 @@
 package resource
 
-import "github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+import (
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"sync"
+)
 
 type Namespace struct {
 	Name                   string                  `yaml:"name,omitempty"`
-	kubernetesControlPlane *KubernetesControlPlane `yaml:"k8sControlPlane,omitempty"`
-	remoteControlPlane     *RemoteControlPlane     `yaml:"remoteControlPlane,omitempty"`
-	localControlPlane      *LocalControlPlane      `yaml:"localControlPlane,omitempty"`
-	localAgents            []LocalAgent            `yaml:"localAgents,omitempty"`
-	remoteAgents           []RemoteAgent           `yaml:"remoteAgents,omitempty"`
+	KubernetesControlPlane *KubernetesControlPlane `yaml:"k8sControlPlane,omitempty"`
+	RemoteControlPlane     *RemoteControlPlane     `yaml:"remoteControlPlane,omitempty"`
+	LocalControlPlane      *LocalControlPlane      `yaml:"localControlPlane,omitempty"`
+	LocalAgents            []LocalAgent            `yaml:"localAgents,omitempty"`
+	RemoteAgents           []RemoteAgent           `yaml:"remoteAgents,omitempty"`
 	Volumes                []Volume                `yaml:"volumes,omitempty"`
 	Created                string                  `yaml:"created,omitempty"`
+	mux                    sync.Mutex
 }
 
 func (ns *Namespace) GetControlPlane() (ControlPlane, error) {
-	if ns.kubernetesControlPlane != nil {
-		return ns.kubernetesControlPlane.Clone(), nil
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	if ns.KubernetesControlPlane != nil {
+		return ns.KubernetesControlPlane.Clone(), nil
 	}
-	if ns.remoteControlPlane != nil {
-		return ns.remoteControlPlane.Clone(), nil
+	if ns.RemoteControlPlane != nil {
+		return ns.RemoteControlPlane.Clone(), nil
 	}
-	if ns.localControlPlane != nil {
-		return ns.localControlPlane.Clone(), nil
+	if ns.LocalControlPlane != nil {
+		return ns.LocalControlPlane.Clone(), nil
 	}
 	return nil, NewNoControlPlaneError(ns.Name)
 }
 
 func (ns *Namespace) SetControlPlane(baseControlPlane ControlPlane) {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	switch controlPlane := baseControlPlane.(type) {
 	case *KubernetesControlPlane:
-		ns.kubernetesControlPlane = controlPlane
-		ns.remoteControlPlane = nil
-		ns.localControlPlane = nil
+		ns.KubernetesControlPlane = controlPlane
+		ns.RemoteControlPlane = nil
+		ns.LocalControlPlane = nil
 	case *RemoteControlPlane:
-		ns.remoteControlPlane = controlPlane
-		ns.kubernetesControlPlane = nil
-		ns.localControlPlane = nil
+		ns.RemoteControlPlane = controlPlane
+		ns.KubernetesControlPlane = nil
+		ns.LocalControlPlane = nil
 	case *LocalControlPlane:
-		ns.localControlPlane = controlPlane
-		ns.kubernetesControlPlane = nil
-		ns.remoteControlPlane = nil
+		ns.LocalControlPlane = controlPlane
+		ns.KubernetesControlPlane = nil
+		ns.RemoteControlPlane = nil
 	}
 }
 
 func (ns *Namespace) DeleteControlPlane() {
-	ns.kubernetesControlPlane = nil
-	ns.remoteControlPlane = nil
-	ns.localControlPlane = nil
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	ns.KubernetesControlPlane = nil
+	ns.RemoteControlPlane = nil
+	ns.LocalControlPlane = nil
 }
 
 func (ns *Namespace) GetControllers() []Controller {
-	if ns.kubernetesControlPlane != nil {
-		return ns.kubernetesControlPlane.GetControllers()
+	if ns.KubernetesControlPlane != nil {
+		return ns.KubernetesControlPlane.GetControllers()
 	}
-	if ns.remoteControlPlane != nil {
-		return ns.remoteControlPlane.GetControllers()
+	if ns.RemoteControlPlane != nil {
+		return ns.RemoteControlPlane.GetControllers()
 	}
-	if ns.localControlPlane != nil {
-		return ns.localControlPlane.GetControllers()
+	if ns.LocalControlPlane != nil {
+		return ns.LocalControlPlane.GetControllers()
 	}
 	return []Controller{}
 }
 
 func (ns *Namespace) DeleteController(name string) (err error) {
-	if err = ns.kubernetesControlPlane.DeleteController(name); err == nil {
-		return
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	if ns.KubernetesControlPlane != nil {
+		return ns.KubernetesControlPlane.DeleteController(name)
 	}
-	if err = ns.remoteControlPlane.DeleteController(name); err == nil {
-		return
+	if ns.RemoteControlPlane != nil {
+		return ns.RemoteControlPlane.DeleteController(name)
 	}
-	if err = ns.localControlPlane.DeleteController(name); err == nil {
-		return
+	if ns.LocalControlPlane != nil {
+		return ns.LocalControlPlane.DeleteController(name)
 	}
 	return
 }
@@ -87,45 +99,47 @@ func (ns *Namespace) GetAgent(name string) (Agent, error) {
 
 func (ns *Namespace) GetAgents() (agents []Agent) {
 	// K8s / Remote
-	for idx := range ns.remoteAgents {
-		agents = append(agents, ns.remoteAgents[idx].Clone())
+	for idx := range ns.RemoteAgents {
+		agents = append(agents, ns.RemoteAgents[idx].Clone())
 	}
 	// Local
-	for idx := range ns.localAgents {
-		agents = append(agents, ns.localAgents[idx].Clone())
+	for idx := range ns.LocalAgents {
+		agents = append(agents, ns.LocalAgents[idx].Clone())
 	}
 	return
 }
 
 func (ns *Namespace) UpdateAgent(baseAgent Agent) error {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	switch agent := baseAgent.(type) {
 	case *LocalAgent:
-		for idx := range ns.localAgents {
-			if ns.localAgents[idx].GetName() == baseAgent.GetName() {
+		for idx := range ns.LocalAgents {
+			if ns.LocalAgents[idx].GetName() == baseAgent.GetName() {
 				agent, ok := baseAgent.(*LocalAgent)
 				if !ok {
 					return util.NewError("Could not convert Agent to Local Agent during update")
 				}
 
-				ns.localAgents[idx] = *agent
+				ns.LocalAgents[idx] = *agent
 				return nil
 			}
 		}
-		ns.localAgents = append(ns.localAgents, *agent)
+		ns.LocalAgents = append(ns.LocalAgents, *agent)
 		return nil
 	case *RemoteAgent:
-		for idx := range ns.remoteAgents {
-			if ns.remoteAgents[idx].GetName() == baseAgent.GetName() {
+		for idx := range ns.RemoteAgents {
+			if ns.RemoteAgents[idx].GetName() == baseAgent.GetName() {
 				agent, ok := baseAgent.(*RemoteAgent)
 				if !ok {
 					return util.NewError("Could not convert Agent to Remote Agent during update")
 				}
 
-				ns.remoteAgents[idx] = *agent
+				ns.RemoteAgents[idx] = *agent
 				return nil
 			}
 		}
-		ns.remoteAgents = append(ns.remoteAgents, *agent)
+		ns.RemoteAgents = append(ns.RemoteAgents, *agent)
 		return nil
 	}
 
@@ -133,6 +147,8 @@ func (ns *Namespace) UpdateAgent(baseAgent Agent) error {
 }
 
 func (ns *Namespace) AddAgent(baseAgent Agent) error {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	agents := ns.GetAgents()
 	for idx := range agents {
 		if agents[idx].GetName() == baseAgent.GetName() {
@@ -141,23 +157,25 @@ func (ns *Namespace) AddAgent(baseAgent Agent) error {
 	}
 	switch agent := baseAgent.(type) {
 	case *LocalAgent:
-		ns.localAgents = append(ns.localAgents, *agent)
+		ns.LocalAgents = append(ns.LocalAgents, *agent)
 	case *RemoteAgent:
-		ns.remoteAgents = append(ns.remoteAgents, *agent)
+		ns.RemoteAgents = append(ns.RemoteAgents, *agent)
 	}
 	return nil
 }
 
 func (ns *Namespace) DeleteAgent(name string) error {
-	for idx := range ns.localAgents {
-		if ns.localAgents[idx].Name == name {
-			ns.localAgents = append(ns.localAgents[:idx], ns.localAgents[idx+1:]...)
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	for idx := range ns.LocalAgents {
+		if ns.LocalAgents[idx].Name == name {
+			ns.LocalAgents = append(ns.LocalAgents[:idx], ns.LocalAgents[idx+1:]...)
 			return nil
 		}
 	}
-	for idx := range ns.remoteAgents {
-		if ns.remoteAgents[idx].Name == name {
-			ns.remoteAgents = append(ns.remoteAgents[:idx], ns.remoteAgents[idx+1:]...)
+	for idx := range ns.RemoteAgents {
+		if ns.RemoteAgents[idx].Name == name {
+			ns.RemoteAgents = append(ns.RemoteAgents[:idx], ns.RemoteAgents[idx+1:]...)
 			return nil
 		}
 	}
@@ -165,38 +183,40 @@ func (ns *Namespace) DeleteAgent(name string) error {
 }
 
 func (ns *Namespace) DeleteAgents() {
-	ns.remoteAgents = make([]RemoteAgent, 0)
-	ns.localAgents = make([]LocalAgent, 0)
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	ns.RemoteAgents = make([]RemoteAgent, 0)
+	ns.LocalAgents = make([]LocalAgent, 0)
 }
 
 func (ns *Namespace) Clone() *Namespace {
 	var cpK8s *KubernetesControlPlane
 	var cpRemote *RemoteControlPlane
 	var cpLocal *LocalControlPlane
-	if ns.kubernetesControlPlane != nil {
-		cpK8s = ns.kubernetesControlPlane.Clone().(*KubernetesControlPlane)
+	if ns.KubernetesControlPlane != nil {
+		cpK8s = ns.KubernetesControlPlane.Clone().(*KubernetesControlPlane)
 	}
-	if ns.remoteControlPlane != nil {
-		cpRemote = ns.remoteControlPlane.Clone().(*RemoteControlPlane)
+	if ns.RemoteControlPlane != nil {
+		cpRemote = ns.RemoteControlPlane.Clone().(*RemoteControlPlane)
 	}
-	if ns.localControlPlane != nil {
-		cpLocal = ns.localControlPlane.Clone().(*LocalControlPlane)
+	if ns.LocalControlPlane != nil {
+		cpLocal = ns.LocalControlPlane.Clone().(*LocalControlPlane)
 	}
 	agentsRemote := make([]RemoteAgent, 0)
-	for idx := range ns.remoteAgents {
-		agentsRemote = append(agentsRemote, ns.remoteAgents[idx])
+	for idx := range ns.RemoteAgents {
+		agentsRemote = append(agentsRemote, ns.RemoteAgents[idx])
 	}
 	agentsLocal := make([]LocalAgent, 0)
-	for idx := range ns.localAgents {
-		agentsLocal = append(agentsLocal, ns.localAgents[idx])
+	for idx := range ns.LocalAgents {
+		agentsLocal = append(agentsLocal, ns.LocalAgents[idx])
 	}
 	return &Namespace{
 		Name:                   ns.Name,
-		kubernetesControlPlane: cpK8s,
-		remoteControlPlane:     cpRemote,
-		localControlPlane:      cpLocal,
-		localAgents:            agentsLocal,
-		remoteAgents:           agentsRemote,
+		KubernetesControlPlane: cpK8s,
+		RemoteControlPlane:     cpRemote,
+		LocalControlPlane:      cpLocal,
+		LocalAgents:            agentsLocal,
+		RemoteAgents:           agentsRemote,
 		Volumes:                ns.Volumes,
 	}
 }

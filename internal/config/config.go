@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sync"
 
 	configv1 "github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -35,7 +34,6 @@ var (
 	namespaceDirectory string // Path of namespace directory
 	namespaces         map[string]*rsc.Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
-	mux = &sync.Mutex{}
 )
 
 const (

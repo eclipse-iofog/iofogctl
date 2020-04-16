@@ -135,8 +135,6 @@ func DeleteNamespace(name string) error {
 		return util.NewNotFoundError("Could not delete namespace file " + filename)
 	}
 
-	mux.Lock()
-	defer mux.Unlock()
 	delete(namespaces, name)
 
 	return nil
@@ -166,8 +164,6 @@ func ClearNamespace(namespace string) error {
 	if err != nil {
 		return err
 	}
-	mux.Lock()
-	defer mux.Unlock()
 
 	nsClear := &rsc.Namespace{
 		Name:    ns.Name,
