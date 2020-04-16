@@ -18,12 +18,12 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -49,15 +49,15 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	install.Verbose("Deploying system agent")
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
-		RouterMode:      internal.MakeStrPtr("interior"),
-		MessagingPort:   internal.MakeIntPtr(5672),
-		EdgeRouterPort:  internal.MakeIntPtr(56721),
-		InterRouterPort: internal.MakeIntPtr(56722),
+		RouterMode:      iutil.MakeStrPtr("interior"),
+		MessagingPort:   iutil.MakeIntPtr(5672),
+		EdgeRouterPort:  iutil.MakeIntPtr(56721),
+		InterRouterPort: iutil.MakeIntPtr(56722),
 	}
 	deployAgentConfig := rsc.AgentConfiguration{
 		Name: iofog.VanillaRouterAgentName,
 		AgentConfiguration: client.AgentConfiguration{
-			IsSystem:     internal.MakeBoolPtr(true),
+			IsSystem:     iutil.MakeBoolPtr(true),
 			Host:         &host,
 			RouterConfig: RouterConfig,
 		},

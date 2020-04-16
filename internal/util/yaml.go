@@ -11,38 +11,25 @@
  *
  */
 
-package application
+package util
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func Execute(namespace, name, newName string) error {
-	util.SpinStart(fmt.Sprintf("Renaming Application %s", name))
+const APIVersionGroup = "iofog.org"
+const LatestAPIVersion = APIVersionGroup + "/v2"
 
-	// Init remote resources
-	clt, err := iutil.NewControllerClient(namespace)
-	if err != nil {
-		return err
-	}
+var supportedAPIVersionsMap = map[string]bool{
+	LatestAPIVersion: true,
+}
 
-	flow, err := clt.GetFlowByName(name)
-	if err != nil {
-		return err
+func ValidateHeader(header config.Header) error {
+	if _, found := supportedAPIVersionsMap[header.APIVersion]; found == false {
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
-
-	flow.Name = newName
-	_, err = clt.UpdateFlow(&client.FlowUpdateRequest{
-		ID:   flow.ID,
-		Name: &newName,
-	})
-	if err != nil {
-		return err
-	}
-	config.Flush()
 	return nil
 }

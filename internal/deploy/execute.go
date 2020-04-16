@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
@@ -33,6 +32,7 @@ import (
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/twmb/algoimpl/go/graph"
@@ -243,7 +243,7 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 
 	for namespace, executors := range executorsByNamespace {
 		// List agents on Controller
-		ctrlClient, err := internal.NewControllerClient(namespace)
+		ctrlClient, err := iutil.NewControllerClient(namespace)
 		if err != nil {
 			return err
 		}

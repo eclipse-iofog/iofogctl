@@ -18,6 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
@@ -48,6 +49,11 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
+
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
+		return err
+	}
 
 	var baseAgent rsc.Agent
 	var err error

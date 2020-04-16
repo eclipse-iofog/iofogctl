@@ -18,8 +18,8 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -66,7 +66,7 @@ func (exe *agentConfigExecutor) Execute() error {
 	}
 
 	// Connect to controller
-	ctrl, err := internal.NewControllerClient(exe.namespace)
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (exe *agentConfigExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
+		APIVersion: iutil.LatestAPIVersion,
 		Kind:       config.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

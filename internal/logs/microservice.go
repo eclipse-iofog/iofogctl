@@ -19,9 +19,9 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -139,7 +139,7 @@ func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.Sec
 }
 
 func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, agentInfo client.AgentInfo, msvc client.MicroserviceInfo, err error) {
-	ctrlClient, err := internal.NewControllerClient(namespace)
+	ctrlClient, err := iutil.NewControllerClient(namespace)
 	if err != nil {
 		return
 	}

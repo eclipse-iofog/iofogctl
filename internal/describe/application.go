@@ -16,8 +16,8 @@ package describe
 import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -40,7 +40,7 @@ func newApplicationExecutor(namespace, name, filename string) *applicationExecut
 }
 
 func (exe *applicationExecutor) init() (err error) {
-	exe.client, err = internal.NewControllerClient(exe.namespace)
+	exe.client, err = iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}
@@ -105,7 +105,7 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
+		APIVersion: iutil.LatestAPIVersion,
 		Kind:       config.ApplicationKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

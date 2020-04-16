@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -34,13 +34,17 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 	}
 
 	// Get config
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(namespace); err != nil {
+		return err
+	}
 	agent, err := config.GetAgent(namespace, name)
 	if err != nil {
 		return err
 	}
 
 	// Init remote resources
-	clt, err := internal.NewControllerClient(namespace)
+	clt, err := iutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}
