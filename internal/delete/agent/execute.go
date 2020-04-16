@@ -95,6 +95,5 @@ func (exe executor) Execute() (err error) {
 	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
 		return err
 	}
-
 	return config.Flush()
 }

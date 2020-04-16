@@ -66,6 +66,17 @@ func (agent *RemoteAgent) Sanitize() (err error) {
 	return
 }
 
+func (agent *RemoteAgent) Clone() Agent {
+	return &RemoteAgent{
+		Name:    agent.Name,
+		Host:    agent.Host,
+		SSH:     agent.SSH,
+		UUID:    agent.UUID,
+		Created: agent.Created,
+		Package: agent.Package,
+	}
+}
+
 func (agent *RemoteAgent) ValidateSSH() error {
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {
 		return NewNoSSHConfigError("Agent")

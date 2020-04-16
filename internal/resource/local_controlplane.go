@@ -30,7 +30,7 @@ func (cp LocalControlPlane) GetControllers() []Controller {
 	if cp.Controller == nil {
 		return []Controller{}
 	}
-	return []Controller{cp.Controller}
+	return []Controller{cp.Controller.Clone()}
 }
 
 func (cp LocalControlPlane) GetController(name string) (Controller, error) {
@@ -75,4 +75,11 @@ func (cp *LocalControlPlane) Sanitize() error {
 		cp.Controller.Endpoint = "localhost"
 	}
 	return nil
+}
+
+func (cp *LocalControlPlane) Clone() ControlPlane {
+	return &LocalControlPlane{
+		IofogUser:  cp.IofogUser,
+		Controller: cp.Controller.Clone().(*LocalController),
+	}
 }

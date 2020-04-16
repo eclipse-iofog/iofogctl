@@ -59,3 +59,13 @@ func (agent *LocalAgent) Sanitize() error {
 	}
 	return nil
 }
+
+func (agent *LocalAgent) Clone() Agent {
+	return &LocalAgent{
+		Name:      agent.Name,
+		Host:      agent.Host,
+		UUID:      agent.UUID,
+		Created:   agent.Created,
+		Container: agent.Container,
+	}
+}

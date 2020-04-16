@@ -42,7 +42,7 @@ func (cp RemoteControlPlane) GetUser() IofogUser {
 
 func (cp RemoteControlPlane) GetControllers() (controllers []Controller) {
 	for idx := range cp.Controllers {
-		controllers = append(controllers, &cp.Controllers[idx])
+		controllers = append(controllers, cp.Controllers[idx].Clone())
 	}
 	return
 }
@@ -115,4 +115,19 @@ func (cp *RemoteControlPlane) Sanitize() (err error) {
 		}
 	}
 	return nil
+}
+
+func (cp *RemoteControlPlane) Clone() ControlPlane {
+	controllers := make([]RemoteController, 0)
+	for idx := range cp.Controllers {
+		controllers = append(controllers, *cp.Controllers[idx].Clone().(*RemoteController))
+	}
+	return &RemoteControlPlane{
+		IofogUser:           cp.IofogUser,
+		Controllers:         controllers,
+		Database:            cp.Database,
+		Package:             cp.Package,
+		SystemAgent:         cp.SystemAgent,
+		SystemMicroservices: cp.SystemMicroservices,
+	}
 }

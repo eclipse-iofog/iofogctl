@@ -42,3 +42,12 @@ func (ctrl *LocalController) Sanitize() error {
 	}
 	return nil
 }
+
+func (ctrl *LocalController) Clone() Controller {
+	return &LocalController{
+		Name:      ctrl.Name,
+		Endpoint:  ctrl.Endpoint,
+		Container: ctrl.Container,
+		Created:   ctrl.Created,
+	}
+}

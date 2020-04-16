@@ -180,11 +180,11 @@ func ClearNamespace(namespace string) error {
 	}
 	mux.Lock()
 	defer mux.Unlock()
-	ns.KubernetesControlPlane = nil
-	ns.RemoteControlPlane = nil
-	ns.LocalControlPlane = nil
-	ns.LocalAgents = []rsc.LocalAgent{}
-	ns.RemoteAgents = []rsc.RemoteAgent{}
-	ns.Volumes = []rsc.Volume{}
+
+	nsClear := &rsc.Namespace{
+		Name:    ns.Name,
+		Created: ns.Created,
+	}
+	ns = nsClear
 	return nil
 }

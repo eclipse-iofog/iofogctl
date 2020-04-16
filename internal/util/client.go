@@ -83,8 +83,8 @@ func UpdateAgentCache(namespace string) error {
 		return nil
 	}
 	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
-	for idx := range ns.RemoteAgents {
-		agentsMap[ns.RemoteAgents[idx].GetName()] = &ns.RemoteAgents[idx]
+	for _, baseAgent := range ns.GetAgents() {
+		agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
 	}
 	// Get backend Agents
 	backendAgents, err := GetBackendAgents(namespace)
@@ -110,7 +110,12 @@ func UpdateAgentCache(namespace string) error {
 	}
 
 	// Overwrite the Agents
-	ns.RemoteAgents = append(make([]rsc.RemoteAgent, 0), agents...)
+	ns.DeleteAgents()
+	for idx := range agents {
+		if err := ns.AddAgent(&agents[idx]); err != nil {
+			return err
+		}
+	}
 	config.UpdateNamespace(ns)
 
 	return config.Flush()
