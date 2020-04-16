@@ -55,6 +55,14 @@
   checkAgents
 }
 
+@test "Generate connection string" {
+  local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
+  testGenerateConnectionString "http://$IP:51121"
+  CNCT=$(iofogctl -n "$NS" connect --generate)
+  eval "$CNCT -n ${NS}_2"
+  iofogctl disconnect -n "${NS}_2"
+}
+
 @test "Disconnect from cluster again" {
   initAgents
   iofogctl -v -n "$NS" disconnect
@@ -68,6 +76,7 @@
   checkControllerK8s "${K8S_POD}1"
   checkAgents
 }
+
 
 @test "Set default namespace" {
   testDefaultNamespace "$NS"

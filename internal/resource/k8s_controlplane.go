@@ -92,6 +92,7 @@ func (cp *KubernetesControlPlane) DeleteController(name string) error {
 }
 
 func (cp *KubernetesControlPlane) Sanitize() (err error) {
+	cp.IofogUser.EncodePassword()
 	if cp.KubeConfig, err = util.FormatPath(cp.KubeConfig); err != nil {
 		return
 	}

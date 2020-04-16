@@ -14,12 +14,14 @@
 package connect
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
 	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -32,6 +34,8 @@ type Options struct {
 	KubeConfig         string
 	IofogUserEmail     string
 	IofogUserPass      string
+	Generate           bool
+	Base64Encoded      bool
 }
 
 var kindOrder = []config.Kind{
@@ -49,6 +53,18 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 }
 
 func Execute(opt Options) error {
+	if opt.Generate {
+		return generateConnectionString(opt.Namespace)
+	}
+
+	if opt.Base64Encoded {
+		buf, err := base64.StdEncoding.DecodeString(opt.IofogUserPass)
+		if err != nil {
+			return util.NewInputError("Could not decode password. Are you sure it is b64 encoded?")
+		}
+		opt.IofogUserPass = string(buf)
+	}
+
 	// Check inputs
 	if opt.InputFile != "" && (opt.ControllerEndpoint != "" || opt.KubeConfig != "") {
 		return util.NewInputError("Either use a YAML file or provide Controller endpoint or Kube config to connect")
@@ -137,5 +153,27 @@ func hasAllFlags(opt Options) error {
 			return util.NewInputError("Cannot specify Controller Name and Endpoint for Kubernetes Control Plane")
 		}
 	}
+	return nil
+}
+
+func generateConnectionString(namespace string) error {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return util.NewInputError("Cannot generate Connection String for non-existent Namespace")
+	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+	switch controlPlane.(type) {
+	case *rsc.LocalControlPlane:
+		return util.NewInputError("Cannot generate Connection String for Local Control Plane")
+	}
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		return util.NewError("Could not get Control Plane endpoint")
+	}
+	msg := fmt.Sprintf("iofogctl connect --ecn-addr %s --name remote --email %s --pass %s --b64", endpoint, controlPlane.GetUser().Email, controlPlane.GetUser().Password)
+	fmt.Println(msg)
 	return nil
 }

@@ -34,8 +34,6 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	opclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	b64 "encoding/base64"
 )
 
 const (
@@ -220,9 +218,6 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 			},
 		}
 	}
-
-	// Encode credentials
-	user.Password = b64.StdEncoding.EncodeToString([]byte(user.Password))
 
 	// Set specification
 	cp.Spec.Replicas.Controller = int32(replicas)

@@ -103,13 +103,14 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 	}
 	// Create new user
 	exe.ctrlClient = client.New(client.Options{Endpoint: endpoint})
-	if err = exe.ctrlClient.CreateUser(client.User(exe.controlPlane.GetUser())); err != nil {
+	user := client.User(exe.controlPlane.GetUser())
+	user.Password = exe.controlPlane.GetUser().GetRawPassword()
+	if err = exe.ctrlClient.CreateUser(user); err != nil {
 		// If not error about account existing, fail
 		if !strings.Contains(err.Error(), "already an account associated") {
 			return err
 		}
 		// Try to log in
-		user := exe.controlPlane.GetUser()
 		if err = exe.ctrlClient.Login(client.LoginRequest{
 			Email:    user.Email,
 			Password: user.Password,

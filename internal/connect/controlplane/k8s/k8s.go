@@ -43,10 +43,7 @@ func (exe *kubernetesExecutor) GetName() string {
 
 func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
 	controlPlane := &rsc.KubernetesControlPlane{
-		IofogUser: rsc.IofogUser{
-			Email:    email,
-			Password: password,
-		},
+		IofogUser:  rsc.IofogUser{Email: email, Password: password},
 		KubeConfig: kubeConfig,
 		Endpoint:   formatEndpoint(endpoint),
 	}

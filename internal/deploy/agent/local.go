@@ -90,7 +90,9 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(endpoint, install.IofogUser(controlPlane.GetUser()))
+	user := install.IofogUser(controlPlane.GetUser())
+	user.Password = controlPlane.GetUser().GetRawPassword()
+	return agent.Configure(endpoint, user)
 }
 
 func (exe *localExecutor) GetName() string {

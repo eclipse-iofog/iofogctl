@@ -154,7 +154,14 @@ function testWrongNamespace(){
 }
 
 function testDefaultNamespace(){
-  SET_NS="$1"
+  local SET_NS="$1"
   iofogctl configure default-namespace "$NS"
   iofogctl get all | grep "$NS"
+}
+
+function testGenerateConnectionString(){
+  local ADDR="$1"
+  local CNCT=$(iofogctl -n "$NS" connect --generate)
+  echo "$CNCT"
+  [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email "$USER_EMAIL" --pass $USER_PW_B64 --b64" ]
 }

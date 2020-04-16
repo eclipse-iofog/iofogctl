@@ -42,7 +42,7 @@ func NewControllerClient(namespace string) (*client.Client, error) {
 	}
 
 	user := controlPlane.GetUser()
-	cachedClient, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.Password)
+	cachedClient, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.GetRawPassword())
 	if err != nil {
 		return nil, err
 	}

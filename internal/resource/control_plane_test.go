@@ -9,10 +9,7 @@ func TestKubernetesControlPlane(t *testing.T) {
 	cp := KubernetesControlPlane{
 		Endpoint:   "123.123.123.123",
 		KubeConfig: "~/.kube/config",
-		IofogUser: IofogUser{
-			Email:    "user@domain.com",
-			Password: "password",
-		},
+		IofogUser:  IofogUser{Email: "user@domain.com", Password: "password"},
 	}
 	if endpoint, err := cp.GetEndpoint(); err != nil || endpoint != "123.123.123.123" {
 		t.Error("Wrong endpoint")
@@ -85,10 +82,7 @@ func TestKubernetesControlPlane(t *testing.T) {
 
 func TestRemoteControlPlane(t *testing.T) {
 	cp := RemoteControlPlane{
-		IofogUser: IofogUser{
-			Email:    "user@domain.com",
-			Password: "password",
-		},
+		IofogUser: IofogUser{Email: "user@domain.com", Password: "password"},
 	}
 	if err := cp.AddController(&RemoteController{
 		Name:     "ctrl1",
@@ -161,10 +155,7 @@ func TestRemoteControlPlane(t *testing.T) {
 
 func TestLocalControlPlane(t *testing.T) {
 	cp := LocalControlPlane{
-		IofogUser: IofogUser{
-			Email:    "user@domain.com",
-			Password: "password",
-		},
+		IofogUser: IofogUser{Email: "user@domain.com", Password: "password"},
 	}
 	if err := cp.AddController(&LocalController{
 		Name:    "ctrl1",

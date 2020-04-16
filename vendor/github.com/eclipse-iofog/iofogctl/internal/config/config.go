@@ -437,13 +437,3 @@ func Flush() (err error) {
 	}
 	return
 }
-
-// NewRandomUser creates a new config user
-func NewRandomUser() IofogUser {
-	return IofogUser{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
-		Password: util.RandomString(10, util.AlphaNum),
-	}
-}

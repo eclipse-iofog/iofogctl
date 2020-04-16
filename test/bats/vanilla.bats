@@ -219,6 +219,14 @@ spec:
   hitMsvcEndpoint "$EXT_IP"
 }
 
+@test "Generate connection string" {
+  initVanillaController
+  testGenerateConnectionString "http://$VANILLA_HOST:51121"
+  CNCT=$(iofogctl -n "$NS" connect --generate)
+  eval "$CNCT -n ${NS}_2"
+  iofogctl disconnect -n "${NS}_2"
+}
+
 @test "Connect in another namespace using file" {
   iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
   checkControllerAfterConnect "$NS2"
