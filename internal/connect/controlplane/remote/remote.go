@@ -113,11 +113,17 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	err = agents.Connect(exe.controlPlane, endpoint, exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
 	}
-	return nil
+	err = agents.Connect(exe.controlPlane, endpoint, ns)
+	if err != nil {
+		return err
+	}
+
+	ns.SetControlPlane(exe.controlPlane)
+	return config.Flush()
 }
 
 func formatEndpoint(endpoint string) (*url.URL, error) {

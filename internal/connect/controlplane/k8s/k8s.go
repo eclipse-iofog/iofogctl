@@ -87,7 +87,11 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 
 	// Establish connection
-	err = agents.Connect(exe.controlPlane, endpoint, exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	err = agents.Connect(exe.controlPlane, endpoint, ns)
 	if err != nil {
 		return err
 	}
@@ -98,6 +102,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	exe.controlPlane.Endpoint = endpoint
 
 	// Save changes
+	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
 }
 
