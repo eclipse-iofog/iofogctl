@@ -47,11 +47,15 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return util.NewConflictError(fmt.Sprintf(msg, exe.name, exe.name, exe.name, exe.namespace, exe.name, exe.name, exe.namespace))
 	}
 
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
 	// Update local cache based on Controller
 	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
 	}
-	baseAgent, err := config.GetAgent(exe.namespace, exe.name)
+	baseAgent, err := ns.GetAgent(exe.name)
 	if err == nil {
 		// Deprovision agent
 		switch agent := baseAgent.(type) {

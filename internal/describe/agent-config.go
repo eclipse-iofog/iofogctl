@@ -59,8 +59,12 @@ func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid strin
 }
 
 func (exe *agentConfigExecutor) Execute() error {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
 	// Get config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	agent, err := ns.GetAgent(exe.name)
 	if err != nil {
 		return err
 	}

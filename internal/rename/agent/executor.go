@@ -38,7 +38,11 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 	if err := iutil.UpdateAgentCache(namespace); err != nil {
 		return err
 	}
-	agent, err := config.GetAgent(namespace, name)
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	agent, err := ns.GetAgent(name)
 	if err != nil {
 		return err
 	}
@@ -49,20 +53,17 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 		return err
 	}
 
-	ag, err := config.GetAgent(namespace, name)
-	if err != nil {
-		return err
-	}
-	config.DeleteAgent(namespace, name)
-	ag.SetName(newName)
-	config.AddAgent(namespace, ag)
-
-	_, err = clt.UpdateAgent(&client.AgentUpdateRequest{
+	if _, err = clt.UpdateAgent(&client.AgentUpdateRequest{
 		UUID: agent.GetUUID(),
 		Name: newName,
-	})
-
-	if err != nil {
+	}); err != nil {
+		return err
+	}
+	if err := ns.DeleteAgent(name); err != nil {
+		return err
+	}
+	agent.SetName(newName)
+	if err := ns.AddAgent(agent); err != nil {
 		return err
 	}
 

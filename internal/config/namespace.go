@@ -80,12 +80,12 @@ func getNamespace(name string) (*rsc.Namespace, error) {
 }
 
 // GetNamespace returns the namespace
-func GetNamespace(namespace string) (rsc.Namespace, error) {
+func GetNamespace(namespace string) (*rsc.Namespace, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
-		return rsc.Namespace{}, err
+		return nil, err
 	}
-	return *ns, nil
+	return ns, nil
 }
 
 // AddNamespace adds a new namespace to the config
@@ -159,18 +159,6 @@ func RenameNamespace(name, newName string) error {
 		return err
 	}
 	return nil
-}
-
-func UpdateNamespace(newNamespace rsc.Namespace) {
-	mux.Lock()
-	defer mux.Unlock()
-	namespaces[newNamespace.Name] = &newNamespace
-}
-
-func UpdateControlPlane(namespace string, controlPlane rsc.ControlPlane) {
-	mux.Lock()
-	defer mux.Unlock()
-	namespaces[namespace].SetControlPlane(controlPlane)
 }
 
 func ClearNamespace(namespace string) error {

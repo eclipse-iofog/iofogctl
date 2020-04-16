@@ -39,7 +39,7 @@ func (exe *namespaceExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		namespaces = append(namespaces, ns)
+		namespaces = append(namespaces, *ns)
 	}
 
 	// Generate table and headers

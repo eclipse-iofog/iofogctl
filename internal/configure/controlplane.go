@@ -73,8 +73,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 		return util.NewInputError("Cannot configure a Local Control Plane")
 	}
 
-	config.UpdateControlPlane(exe.namespace, baseControlPlane)
-
+	ns.SetControlPlane(baseControlPlane)
 	return config.Flush()
 }
 

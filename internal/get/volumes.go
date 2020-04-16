@@ -36,8 +36,12 @@ func (exe *volumeExecutor) Execute() error {
 }
 
 func generateVolumeOutput(namespace string, printNS bool) error {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return err
+	}
 	// Get volume config details
-	volumes, err := config.GetVolumes(namespace)
+	volumes := ns.GetVolumes()
 	if err != nil {
 		return err
 	}

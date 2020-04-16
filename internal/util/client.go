@@ -116,7 +116,6 @@ func UpdateAgentCache(namespace string) error {
 			return err
 		}
 	}
-	config.UpdateNamespace(ns)
 
 	return config.Flush()
 }
