@@ -22,7 +22,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
+	deployremotecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -44,14 +44,14 @@ type remoteControlPlaneExecutor struct {
 	name                string
 }
 
-func deploySystemAgent(namespace string, ctrl *rsc.RemoteController) (err error) {
+func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent rsc.Package) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
 	agent := rsc.RemoteAgent{
 		Name:    iofog.VanillaRouterAgentName,
 		Host:    ctrl.Host,
 		SSH:     ctrl.SSH,
-		Package: ctrl.SystemAgent,
+		Package: systemAgent,
 	}
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
@@ -91,7 +91,11 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 		if !ok {
 			return util.NewInternalError("Could not convert Controller to Remote Controller")
 		}
-		if err = deploySystemAgent(exe.namespace, controller); err != nil {
+		remoteControlPlane, ok := exe.controlPlane.(*rsc.RemoteControlPlane)
+		if !ok {
+			return util.NewInternalError("Could not convert ControlPlane to Remote ControlPlane")
+		}
+		if err = deploySystemAgent(exe.namespace, controller, remoteControlPlane.SystemAgent); err != nil {
 			return err
 		}
 	}

@@ -68,12 +68,6 @@ function checkController() {
   echo "$DESC" | grep "host: $VANILLA_HOST"
   echo "$DESC" | grep "port: $VANILLA_PORT"
   echo "$DESC" | grep "keyFile:.*$(echo $KEY_FILE | tr -d '~')"
-  echo "$DESC" | grep "repo: $CONTROLLER_REPO"
-  echo "$DESC" | grep "version: $CONTROLLER_VANILLA_VERSION"
-  echo "$DESC" | grep "token: $CONTROLLER_PACKAGE_CLOUD_TOKEN"
-  echo "$DESC" | grep "repo: $AGENT_REPO"
-  echo "$DESC" | grep "version: $AGENT_VANILLA_VERSION"
-  echo "$DESC" | grep "token: $AGENT_PACKAGE_CLOUD_TOKEN"
   echo "$DESC" | grep "kind: Controller"
 
   DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)

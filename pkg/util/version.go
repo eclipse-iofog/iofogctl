@@ -43,7 +43,9 @@ const (
 	kubeletImage     = "kubelet"
 	portManagerImage = "port-manager"
 	proxyImage       = "proxy"
+	proxyARMImage    = "proxy-arm"
 	routerImage      = "router"
+	routerARMImage   = "router-arm"
 )
 
 type Version struct {
@@ -70,7 +72,9 @@ func GetAgentImage() string      { return fmt.Sprintf("%s/%s:%s", repo, agentIma
 func GetOperatorImage() string   { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
 func GetKubeletImage() string    { return fmt.Sprintf("%s/%s:%s", repo, kubeletImage, kubeletTag) }
 func GetRouterImage() string     { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
+func GetRouterARMImage() string  { return fmt.Sprintf("%s/%s:%s", repo, routerARMImage, routerTag) }
 func GetPortManagerImage() string {
 	return fmt.Sprintf("%s/%s:%s", repo, portManagerImage, portManagerTag)
 }
-func GetProxyImage() string { return fmt.Sprintf("%s/%s:%s", repo, proxyImage, proxyTag) }
+func GetProxyImage() string    { return fmt.Sprintf("%s/%s:%s", repo, proxyImage, proxyTag) }
+func GetProxyARMImage() string { return fmt.Sprintf("%s/%s:%s", repo, proxyARMImage, proxyTag) }

@@ -32,14 +32,21 @@ spec:
       user: $VANILLA_USER
       port: $VANILLA_PORT
       keyFile: $KEY_FILE
-    package:
-      repo: $CONTROLLER_REPO
-      version: $CONTROLLER_VANILLA_VERSION
-      token: $CONTROLLER_PACKAGE_CLOUD_TOKEN
-    systemAgent:
-      repo: $AGENT_REPO
-      version: $AGENT_VANILLA_VERSION
-      token: $AGENT_PACKAGE_CLOUD_TOKEN
+  package:
+    repo: $CONTROLLER_REPO
+    version: $CONTROLLER_VANILLA_VERSION
+    token: $CONTROLLER_PACKAGE_CLOUD_TOKEN
+  systemAgent:
+    repo: $AGENT_REPO
+    version: $AGENT_VANILLA_VERSION
+    token: $AGENT_PACKAGE_CLOUD_TOKEN
+  systemMicroservices:
+    router:
+      x86: $ROUTER_IMG
+      arm: $ROUTER_ARM_IMG
+    proxy:
+      x86: $PROXY_IMG
+      arm: $PROXY_ARM_IMG
   iofogUser:
     name: Testing
     surname: Functional

@@ -67,11 +67,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 }
 
 func newExecutor(namespace string, controlPlane *rsc.RemoteControlPlane, controller *rsc.RemoteController) *remoteExecutor {
-	return &remoteExecutor{
+	executor := &remoteExecutor{
 		namespace:    namespace,
 		controlPlane: controlPlane,
 		controller:   controller,
 	}
+
+	// Set default values
+	executor.setDefaultValues()
+	return executor
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -100,15 +104,17 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if exe.controller.ValidateSSH() != nil {
 		return util.NewInputError("Must specify user, host, and key file flags for remote deployment")
 	}
+
 	// Instantiate deployer
 	controllerOptions := &install.ControllerOptions{
-		User:            exe.controller.SSH.User,
-		Host:            exe.controller.Host,
-		Port:            exe.controller.SSH.Port,
-		PrivKeyFilename: exe.controller.SSH.KeyFile,
-		Version:         exe.controller.Package.Version,
-		Repo:            exe.controller.Package.Repo,
-		Token:           exe.controller.Package.Token,
+		User:                exe.controller.SSH.User,
+		Host:                exe.controller.Host,
+		Port:                exe.controller.SSH.Port,
+		PrivKeyFilename:     exe.controller.SSH.KeyFile,
+		Version:             exe.controlPlane.Package.Version,
+		Repo:                exe.controlPlane.Package.Repo,
+		Token:               exe.controlPlane.Package.Token,
+		SystemMicroservices: exe.controlPlane.SystemMicroservices,
 	}
 	deployer := install.NewController(controllerOptions)
 
@@ -128,6 +134,21 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return err
 	}
 	return exe.controlPlane.UpdateController(exe.controller)
+}
+
+func (exe *remoteExecutor) setDefaultValues() {
+	if exe.controlPlane.SystemMicroservices.Proxy.X86 == "" {
+		exe.controlPlane.SystemMicroservices.Proxy.X86 = util.GetProxyImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Proxy.ARM == "" {
+		exe.controlPlane.SystemMicroservices.Proxy.ARM = util.GetProxyARMImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Router.X86 == "" {
+		exe.controlPlane.SystemMicroservices.Router.X86 = util.GetRouterImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Router.ARM == "" {
+		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
+	}
 }
 
 func Validate(ctrl rsc.Controller) error {

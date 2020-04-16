@@ -18,13 +18,11 @@ import (
 )
 
 type RemoteController struct {
-	Name        string  `yaml:"name"`
-	Host        string  `yaml:"host"`
-	SSH         SSH     `yaml:"ssh,omitempty"`
-	Endpoint    string  `yaml:"endpoint,omitempty"`
-	Created     string  `yaml:"created,omitempty"`
-	Package     Package `yaml:"package,omitempty"`
-	SystemAgent Package `yaml:"systemAgent,omitempty"`
+	Name     string `yaml:"name"`
+	Host     string `yaml:"host"`
+	SSH      SSH    `yaml:"ssh,omitempty"`
+	Endpoint string `yaml:"endpoint,omitempty"`
+	Created  string `yaml:"created,omitempty"`
 }
 
 func (ctrl RemoteController) GetName() string {
