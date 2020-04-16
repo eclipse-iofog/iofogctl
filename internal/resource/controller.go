@@ -19,4 +19,5 @@ type Controller interface {
 	GetCreatedTime() string
 	SetName(string)
 	Sanitize() error
+	Clone() Controller
 }

@@ -39,7 +39,11 @@ func (exe *volumeExecutor) GetName() string {
 }
 
 func (exe *volumeExecutor) Execute() (err error) {
-	volume, err := config.GetVolume(exe.namespace, exe.name)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	volume, err := ns.GetVolume(exe.name)
 	if err != nil {
 		return err
 	}

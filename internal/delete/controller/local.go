@@ -45,6 +45,10 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
 	client, err := install.NewLocalContainerClient()
 	if err != nil {
 		return err
@@ -56,10 +60,9 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Update config
-	if err := exe.controlPlane.DeleteController(exe.name); err != nil {
+	if err := ns.DeleteController(exe.name); err != nil {
 		return err
 	}
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
-
-	return nil
+	ns.SetControlPlane(exe.controlPlane)
+	return config.Flush()
 }

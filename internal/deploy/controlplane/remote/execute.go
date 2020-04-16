@@ -40,7 +40,7 @@ type remoteControlPlaneExecutor struct {
 	ctrlClient          *client.Client
 	controllerExecutors []execute.Executor
 	controlPlane        rsc.ControlPlane
-	namespace           string
+	ns                  *rsc.Namespace
 	name                string
 }
 
@@ -95,7 +95,7 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 		if !ok {
 			return util.NewInternalError("Could not convert ControlPlane to Remote ControlPlane")
 		}
-		if err = deploySystemAgent(exe.namespace, controller, remoteControlPlane.SystemAgent); err != nil {
+		if err = deploySystemAgent(exe.ns.Name, controller, remoteControlPlane.SystemAgent); err != nil {
 			return err
 		}
 	}
@@ -133,7 +133,7 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 	// Update config
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
+	exe.ns.SetControlPlane(exe.controlPlane)
 	if err = config.Flush(); err != nil {
 		return err
 	}
@@ -145,10 +145,10 @@ func (exe remoteControlPlaneExecutor) GetName() string {
 	return exe.name
 }
 
-func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
+func newControlPlaneExecutor(executors []execute.Executor, namespace *rsc.Namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
 	return remoteControlPlaneExecutor{
 		controllerExecutors: executors,
-		namespace:           namespace,
+		ns:                  namespace,
 		controlPlane:        controlPlane,
 		name:                name,
 	}
@@ -156,7 +156,7 @@ func newControlPlaneExecutor(executors []execute.Executor, namespace, name strin
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Check the namespace exists
-	_, err = config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return
 	}
@@ -183,7 +183,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		controllerExecutors = append(controllerExecutors, exe)
 	}
 
-	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, &controlPlane), nil
+	return newControlPlaneExecutor(controllerExecutors, ns, opt.Name, &controlPlane), nil
 }
 
 func runExecutors(executors []execute.Executor) error {

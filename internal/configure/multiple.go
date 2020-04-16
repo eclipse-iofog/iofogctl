@@ -58,15 +58,15 @@ func (exe *multipleExecutor) Execute() (err error) {
 }
 
 func (exe *multipleExecutor) AddAgentExecutors(executors []execute.Executor) ([]execute.Executor, error) {
+	ns, err := config.GetNamespace(exe.opt.Namespace)
+	if err != nil {
+		return nil, err
+	}
 	var agents []rsc.Agent
-	var err error
 	if exe.opt.UseDetached {
 		agents = config.GetDetachedAgents()
 	} else {
-		agents, err = config.GetAgents(exe.opt.Namespace)
-	}
-	if err != nil {
-		return nil, err
+		agents = ns.GetAgents()
 	}
 	for _, agent := range agents {
 		opt := exe.opt

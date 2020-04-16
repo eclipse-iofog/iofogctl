@@ -41,6 +41,11 @@ func (exe executor) GetName() string {
 func (exe executor) Execute() (err error) {
 	util.SpinStart("Deleting Agent")
 
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+
 	// Update Agent cache
 	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
@@ -55,7 +60,7 @@ func (exe executor) Execute() (err error) {
 			return err
 		}
 	} else {
-		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = ns.GetAgent(exe.name)
 		if err != nil {
 			return err
 		}
@@ -92,9 +97,8 @@ func (exe executor) Execute() (err error) {
 			return err
 		}
 	}
-	if err = config.DeleteAgent(exe.namespace, exe.name); err != nil {
+	if err = ns.DeleteAgent(exe.name); err != nil {
 		return err
 	}
-
 	return config.Flush()
 }

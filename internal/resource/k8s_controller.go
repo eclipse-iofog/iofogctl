@@ -38,3 +38,11 @@ func (ctrl *KubernetesController) SetName(name string) {
 func (ctrl *KubernetesController) Sanitize() error {
 	return nil
 }
+
+func (ctrl *KubernetesController) Clone() Controller {
+	return &KubernetesController{
+		PodName:  ctrl.PodName,
+		Endpoint: ctrl.Endpoint,
+		Created:  ctrl.Created,
+	}
+}

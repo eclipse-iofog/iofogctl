@@ -44,6 +44,6 @@ func Execute(namespace, name, newName string) error {
 	if err = controlPlane.DeleteController(name); err != nil {
 		return err
 	}
-	config.UpdateControlPlane(namespace, controlPlane)
+	ns.SetControlPlane(controlPlane)
 	return config.Flush()
 }

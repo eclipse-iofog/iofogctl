@@ -37,9 +37,12 @@ func (exe executor) GetName() string {
 
 func (exe executor) Execute() error {
 	util.SpinStart("Pruning Agent")
-	// Update local cache based on Controller
-	err := iutil.UpdateAgentCache(exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
+		return err
+	}
+	// Update local cache based on Controller
+	if err = iutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
 	}
 
@@ -47,7 +50,7 @@ func (exe executor) Execute() error {
 	if exe.useDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = ns.GetAgent(exe.name)
 	}
 	if err != nil {
 		return err

@@ -118,7 +118,11 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 	// Update config
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	ns.SetControlPlane(exe.controlPlane)
 	if err = config.Flush(); err != nil {
 		return err
 	}

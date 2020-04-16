@@ -30,9 +30,9 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	volume    rsc.Volume
-	namespace string
-	agents    []rsc.Agent
+	volume rsc.Volume
+	ns     *rsc.Namespace
+	agents []rsc.Agent
 }
 
 func (exe remoteExecutor) GetName() string {
@@ -52,9 +52,7 @@ func (exe remoteExecutor) Execute() error {
 		}
 	}
 	// Update config
-	if err := config.UpdateVolume(exe.namespace, exe.volume); err != nil {
-		return err
-	}
+	exe.ns.UpdateVolume(exe.volume)
 	return config.Flush()
 }
 
@@ -100,10 +98,14 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err := util.IsLowerAlphanumeric(volume.Name); err != nil {
 		return nil, err
 	}
+	ns, err := config.GetNamespace(opt.Namespace)
+	if err != nil {
+		return nil, err
+	}
 	// Check agents exist
 	agents := make([]rsc.Agent, 0)
 	for _, agentName := range volume.Agents {
-		baseAgent, err := config.GetAgent(opt.Namespace, agentName)
+		baseAgent, err := ns.GetAgent(agentName)
 		if err != nil {
 			return nil, err
 		}
@@ -123,8 +125,8 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		agents = append(agents, agent)
 	}
 	return remoteExecutor{
-		agents:    agents,
-		volume:    volume,
-		namespace: opt.Namespace,
+		agents: agents,
+		volume: volume,
+		ns:     ns,
 	}, nil
 }

@@ -50,13 +50,17 @@ func (exe executor) GetName() string {
 func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
+	ns, err := config.GetNamespace(exe.opt.Namespace)
+	if err != nil {
+		return err
+	}
+
 	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
+	if err = iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
 		return err
 	}
 
 	var baseAgent rsc.Agent
-	var err error
 	if exe.opt.UseDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.opt.Name)
 	} else {
@@ -127,7 +131,7 @@ func (exe executor) Execute() error {
 			return err
 		}
 	} else {
-		if err = config.UpdateAgent(exe.opt.Namespace, baseAgent); err != nil {
+		if err = ns.UpdateAgent(baseAgent); err != nil {
 			return err
 		}
 	}
