@@ -20,15 +20,18 @@ iofogctl connect [flags]
 iofogctl connect -f controlplane.yaml
 iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
 iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
+iofogctl connect --generate
 ```
 
 ### Options
 
 ```
+      --b64               Indicate whether input password (--pass) is base64 encoded or not
       --ecn-addr string   URL of Edge Compute Network to connect to
       --email string      ioFog user email address
   -f, --file string       YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
       --force             Overwrite existing namespace
+      --generate          Generate a connection string that can be used to connect to this ECN
   -h, --help              help for connect
       --kube string       Kubernetes config file. Typically ~/.kube/config
       --name string       Name you would like to assign to Controller

@@ -39,10 +39,7 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 		return nil, err
 	}
 	controlPlane := &rsc.RemoteControlPlane{
-		IofogUser: rsc.IofogUser{
-			Email:    email,
-			Password: password,
-		},
+		IofogUser: rsc.IofogUser{Email: email, Password: password},
 		Controllers: []rsc.RemoteController{
 			{
 				Name:     name,

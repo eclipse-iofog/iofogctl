@@ -7,7 +7,7 @@ import (
 
 func Connect(ctrlPlane rsc.ControlPlane, endpoint string, ns *rsc.Namespace) error {
 	// Connect to Controller
-	ctrl, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().Password)
+	ctrl, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().GetRawPassword())
 	if err != nil {
 		return err
 	}

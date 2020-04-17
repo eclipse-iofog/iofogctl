@@ -83,7 +83,7 @@ function checkController() {
   echo "$DESC" | grep "version: $AGENT_VANILLA_VERSION"
   echo "$DESC" | grep "token: $AGENT_PACKAGE_CLOUD_TOKEN"
   echo "$DESC" | grep "email: $USER_EMAIL"
-  echo "$DESC" | grep "password: $USER_PW"
+  echo "$DESC" | grep "password: $USER_PW_B64"
   echo "$DESC" | grep "kind: ControlPlane"
 }
 
@@ -92,6 +92,7 @@ function checkControllerLocal() {
   [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
 
   local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+  echo "$DESC"
   echo "$DESC" | grep "name: $NAME"
   echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
 
@@ -99,7 +100,7 @@ function checkControllerLocal() {
   echo "$DESC" | grep "name: $NAME"
   echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
   echo "$DESC" | grep "email: $USER_EMAIL"
-  echo "$DESC" | grep "password: $USER_PW"
+  echo "$DESC" | grep "password: $USER_PW_B64"
   echo "$DESC" | grep "kind: LocalControlPlane"
 }
 
