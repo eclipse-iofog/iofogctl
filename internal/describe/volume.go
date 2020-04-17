@@ -14,8 +14,6 @@
 package describe
 
 import (
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
-
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -49,7 +47,7 @@ func (exe *volumeExecutor) Execute() (err error) {
 	}
 
 	header := config.Header{
-		APIVersion: iutil.LatestAPIVersion,
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.VolumeKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

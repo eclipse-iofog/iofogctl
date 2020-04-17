@@ -37,7 +37,10 @@ var (
 )
 
 const (
-	defaultDirname       = ".iofog/"
+	apiVersionGroup      = "iofog.org"
+	latestVersion        = "v2"
+	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
+	defaultDirname       = ".iofog/" + latestVersion
 	namespaceDirname     = "namespaces/"
 	defaultFilename      = "config.yaml"
 	configV2             = "iofogctl/v2"
@@ -86,14 +89,7 @@ func Init(configFolderArg string) {
 	// Unmarshall the config file
 	confHeader := iofogctlConfig{}
 	err = util.UnmarshalYAML(configFilename, &confHeader)
-	// Warn user about possible update
-	if err != nil {
-		if err = updateConfigToK8sStyle(); err != nil {
-			util.Check(util.NewInternalError(fmt.Sprintf("Failed to update iofogctl configuration. Error: %v", err)))
-		}
-		err = util.UnmarshalYAML(configFilename, &confHeader)
-		util.Check(err)
-	}
+	util.Check(err)
 
 	conf, err = getConfigFromHeader(confHeader)
 	util.Check(err)
@@ -157,7 +153,7 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	if err != nil {
 		return
 	}
-	if err = yaml.UnmarshalStrict(bytes, &c); err != nil {
+	if err = yaml.Unmarshal(bytes, &c); err != nil {
 		return
 	}
 	return
@@ -175,11 +171,6 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err erro
 			err = util.NewError("Namespace file is out of date.")
 			return
 		}
-	// Example for further maintenance
-	// case PreviousConfigVersion {
-	// 	updateFromPreviousVersion()
-	// 	break
-	// }
 	default:
 		return n, util.NewInputError("Invalid iofogctl config version")
 	}
@@ -187,7 +178,7 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err erro
 	if err != nil {
 		return
 	}
-	if err = yaml.UnmarshalStrict(bytes, &n); err != nil {
+	if err = yaml.Unmarshal(bytes, &n); err != nil {
 		return
 	}
 	return
@@ -267,66 +258,9 @@ type v1NamespaceSpecContent struct {
 	Connectors   []configv1.Connector  `yaml:"connectors,omitempty"`
 }
 
-func updateConfigToK8sStyle() error {
-	// Previous config structure
-	type OldConfig struct {
-		Namespaces []v1NamespaceSpecContent `yaml:"namespaces"`
+func ValidateHeader(header Header) error {
+	if header.APIVersion != LatestAPIVersion {
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
-
-	// Get config files
-	configFileName := path.Join(configFolder, "config.yaml")
-	configSaveFileName := path.Join(configFolder, "config.yaml.save")
-
-	// Create namespaces folder
-	namespaceDirectory := path.Join(configFolder, "namespaces")
-	err := os.MkdirAll(namespaceDirectory, 0755)
-	util.Check(err)
-
-	// Read previous config
-	r, err := ioutil.ReadFile(configFileName)
-	util.Check(err)
-
-	oldConfig := OldConfig{}
-	newConfig := configuration{DefaultNamespace: "default"}
-	configHeader := iofogctlConfig{}
-	err = yaml.UnmarshalStrict(r, &oldConfig)
-	if err != nil {
-		if err2 := yaml.UnmarshalStrict(r, &configHeader); err2 != nil {
-			util.Check(err)
-		}
-		return nil
-	}
-
-	// Map old config to new config file system
-	for _, ns := range oldConfig.Namespaces {
-		// Write namespace config file
-		namespaceHeader := iofogctlNamespace{
-			Header{
-				Kind:       IofogctlNamespaceKind,
-				APIVersion: configV1,
-				Metadata: HeaderMetadata{
-					Name: ns.Name,
-				},
-				Spec: ns,
-			},
-		}
-		bytes, err := yaml.Marshal(namespaceHeader)
-		util.Check(err)
-		configFile := getNamespaceFile(ns.Name)
-		err = ioutil.WriteFile(configFile, bytes, 0644)
-		util.Check(err)
-	}
-
-	// Write old config save file
-	err = ioutil.WriteFile(configSaveFileName, r, 0644)
-	util.Check(err)
-
-	// Write new config file
-	bytes, err := getConfigYAMLFile(newConfig)
-	util.Check(err)
-	err = ioutil.WriteFile(configFileName, bytes, 0644)
-	util.Check(err)
-
-	util.PrintInfo(fmt.Sprintf("Your config file has successfully been updated, the previous config file has been saved under %s", configSaveFileName))
 	return nil
 }

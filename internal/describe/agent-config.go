@@ -155,7 +155,7 @@ func (exe *agentConfigExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: iutil.LatestAPIVersion,
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

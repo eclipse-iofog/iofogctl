@@ -105,7 +105,7 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: iutil.LatestAPIVersion,
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.ApplicationKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

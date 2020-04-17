@@ -16,7 +16,6 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -79,7 +78,7 @@ func (exe *controllerExecutor) Execute() error {
 
 func (exe *controllerExecutor) generateControllerHeader(kind config.Kind, controller rsc.Controller) config.Header {
 	return config.Header{
-		APIVersion: iutil.LatestAPIVersion,
+		APIVersion: config.LatestAPIVersion,
 		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
