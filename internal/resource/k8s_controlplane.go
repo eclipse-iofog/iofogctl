@@ -110,18 +110,16 @@ func (cp *KubernetesControlPlane) ValidateKubeConfig() error {
 }
 
 func (cp *KubernetesControlPlane) Clone() ControlPlane {
-	pods := make([]KubernetesController, 0)
-	for idx := range cp.ControllerPods {
-		pods = append(pods, *cp.ControllerPods[idx].Clone().(*KubernetesController))
-	}
+	controllerPods := make([]KubernetesController, len(cp.ControllerPods))
+	copy(controllerPods, cp.ControllerPods)
 	return &KubernetesControlPlane{
 		KubeConfig:     cp.KubeConfig,
 		IofogUser:      cp.IofogUser,
-		ControllerPods: pods,
 		Database:       cp.Database,
 		Services:       cp.Services,
 		Replicas:       cp.Replicas,
 		Images:         cp.Images,
 		Endpoint:       cp.Endpoint,
+		ControllerPods: controllerPods,
 	}
 }

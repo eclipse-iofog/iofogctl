@@ -202,21 +202,17 @@ func (ns *Namespace) Clone() *Namespace {
 	if ns.LocalControlPlane != nil {
 		cpLocal = ns.LocalControlPlane.Clone().(*LocalControlPlane)
 	}
-	agentsRemote := make([]RemoteAgent, 0)
-	for idx := range ns.RemoteAgents {
-		agentsRemote = append(agentsRemote, ns.RemoteAgents[idx])
-	}
-	agentsLocal := make([]LocalAgent, 0)
-	for idx := range ns.LocalAgents {
-		agentsLocal = append(agentsLocal, ns.LocalAgents[idx])
-	}
+	remoteAgents := make([]RemoteAgent, len(ns.RemoteAgents))
+	copy(remoteAgents, ns.RemoteAgents)
+	localAgents := make([]LocalAgent, len(ns.LocalAgents))
+	copy(localAgents, ns.LocalAgents)
 	return &Namespace{
 		Name:                   ns.Name,
 		KubernetesControlPlane: cpK8s,
 		RemoteControlPlane:     cpRemote,
 		LocalControlPlane:      cpLocal,
-		LocalAgents:            agentsLocal,
-		RemoteAgents:           agentsRemote,
+		LocalAgents:            localAgents,
+		RemoteAgents:           remoteAgents,
 		Volumes:                ns.Volumes,
 	}
 }

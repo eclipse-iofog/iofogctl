@@ -119,16 +119,14 @@ func (cp *RemoteControlPlane) Sanitize() (err error) {
 }
 
 func (cp *RemoteControlPlane) Clone() ControlPlane {
-	controllers := make([]RemoteController, 0)
-	for idx := range cp.Controllers {
-		controllers = append(controllers, *cp.Controllers[idx].Clone().(*RemoteController))
-	}
+	controllers := make([]RemoteController, len(cp.Controllers))
+	copy(controllers, cp.Controllers)
 	return &RemoteControlPlane{
 		IofogUser:           cp.IofogUser,
-		Controllers:         controllers,
 		Database:            cp.Database,
 		Package:             cp.Package,
 		SystemAgent:         cp.SystemAgent,
 		SystemMicroservices: cp.SystemMicroservices,
+		Controllers:         controllers,
 	}
 }
