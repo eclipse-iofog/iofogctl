@@ -77,8 +77,12 @@ func (exe executor) Execute() (err error) {
 			return err
 		}
 		switch controlPlane.(type) {
-		case *rsc.KubernetesControlPlane:
-		case *rsc.RemoteControlPlane:
+		case *rsc.LocalControlPlane:
+			baseAgent = &rsc.LocalAgent{
+				Name: exe.opt.Name,
+				Host: exe.opt.Host,
+			}
+		default:
 			baseAgent = &rsc.RemoteAgent{
 				Name: exe.opt.Name,
 				Host: exe.opt.Host,
@@ -88,13 +92,6 @@ func (exe executor) Execute() (err error) {
 					Port:    exe.opt.Port,
 				},
 			}
-		case *rsc.LocalControlPlane:
-			baseAgent = &rsc.LocalAgent{
-				Name: exe.opt.Name,
-				Host: exe.opt.Host,
-			}
-		default:
-			return util.NewInternalError("Failed to cast ControlPlane down")
 		}
 	}
 	if baseAgent == nil {

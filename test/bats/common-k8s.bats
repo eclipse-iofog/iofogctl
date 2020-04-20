@@ -229,3 +229,7 @@
   checkAgent "$AGENT_NAME"
   checkDetachedAgentNegative "$AGENT_NAME"
 }
+
+@test "Attach external Agent" {
+  testAttachExternalAgent
+}
