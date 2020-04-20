@@ -142,12 +142,17 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 		return
 	}
 	// Create controller pods for config
-	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
-		if err := exe.controlPlane.AddController(&rsc.KubernetesController{
-			PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
-			Created:  util.NowUTC(),
+	pods, err := installer.GetControllerPods()
+	if err != nil {
+		return
+	}
+	for idx := range pods {
+		k8sPod := rsc.KubernetesController{
 			Endpoint: endpoint,
-		}); err != nil {
+			PodName:  pods[idx].Name,
+			Created:  util.NowUTC(),
+		}
+		if err := exe.controlPlane.AddController(&k8sPod); err != nil {
 			return err
 		}
 	}

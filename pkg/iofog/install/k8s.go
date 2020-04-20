@@ -498,3 +498,22 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	}
 	return util.GetControllerEndpoint(fmt.Sprintf("%s:%d", ip, port))
 }
+
+func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
+	podNames = make([]Pod, 0)
+	// List pods
+	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	// Find Controller pods
+	for idx := range pods.Items {
+		if pods.Items[idx].Labels["name"] == controller {
+			podNames = append(podNames, Pod{
+				Name:   pods.Items[idx].Name,
+				Status: string(pods.Items[idx].Status.Phase),
+			})
+		}
+	}
+	return
+}

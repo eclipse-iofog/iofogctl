@@ -55,7 +55,7 @@ spec:
     kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  checkControllerK8s "${K8S_POD}1"
+  checkControllerK8s
 }
 
 @test "Get endpoint" {
@@ -131,12 +131,12 @@ spec:
     kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
-  checkControllerK8s "${K8S_POD}1"
+  checkControllerK8s
 }
 
 @test "Delete all" {
   iofogctl -v -n "$NS" delete all
-  checkControllerNegativeK8s "${K8S_POD}1"
+  checkControllerNegativeK8s
   checkAgentsNegative
 }
 
