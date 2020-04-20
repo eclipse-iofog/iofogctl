@@ -91,9 +91,12 @@ func (exe executor) Execute() (err error) {
 		if err = ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
 			return err
 		}
+		if err = ns.DeleteAgent(baseAgent.GetName()); err != nil {
+			return err
+		}
 	} else {
 		// Update config
-		if err = config.DeleteDetachedAgent(exe.name); err != nil {
+		if err = config.DeleteDetachedAgent(baseAgent.GetName()); err != nil {
 			return err
 		}
 	}
