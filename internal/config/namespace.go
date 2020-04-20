@@ -119,10 +119,6 @@ func AddNamespace(name, created string) error {
 
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
-	if name == "default" {
-		return util.NewInputError("Cannot delete namespace named \"default\"")
-	}
-
 	// Reset default namespace if required
 	if name == conf.DefaultNamespace {
 		if err := SetDefaultNamespace("default"); err != nil {
@@ -156,19 +152,5 @@ func RenameNamespace(name, newName string) error {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func ClearNamespace(namespace string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	nsClear := &rsc.Namespace{
-		Name:    ns.Name,
-		Created: ns.Created,
-	}
-	ns = nsClear
 	return nil
 }

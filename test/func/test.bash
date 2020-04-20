@@ -165,3 +165,15 @@ function testGenerateConnectionString(){
   echo "$CNCT"
   [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email "$USER_EMAIL" --pass $USER_PW_B64 --b64" ]
 }
+
+function testAttachExternalAgent(){
+  initAgents
+  local AGENT_NAME="${NAME}-0"
+  iofogctl -v -n "$NS" detach agent "$AGENT_NAME"
+  iofogctl delete agent "$AGENT_NAME" --detached --soft
+  local OUTPUT=$(iofogctl get agents)
+  [ -z "$(echo $OUTPUT | grep $AGENT_NAME)" ]
+  iofogctl -v -n "$NS" attach agent "$AGENT_NAME" --host ${HOSTS[0]} --user ${USERS[0]} --port ${PORTS[0]} --key $KEY_FILE
+  OUTPUT=$(iofogctl -n "$NS" get agents)
+  echo $OUTPUT | grep $AGENT_NAME
+}

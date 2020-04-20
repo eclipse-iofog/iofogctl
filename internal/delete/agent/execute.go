@@ -47,8 +47,10 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Update Agent cache
-	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
-		return err
+	if !exe.useDetached {
+		if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+			return err
+		}
 	}
 
 	// Delete agent software first, so it can properly deprovision itself before being removed
@@ -89,16 +91,15 @@ func (exe executor) Execute() (err error) {
 		if err = ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
 			return err
 		}
-	}
-
-	// Update config
-	if exe.useDetached {
-		if err = config.DeleteDetachedAgent(exe.name); err != nil {
+		if err = ns.DeleteAgent(baseAgent.GetName()); err != nil {
+			return err
+		}
+	} else {
+		// Update config
+		if err = config.DeleteDetachedAgent(baseAgent.GetName()); err != nil {
 			return err
 		}
 	}
-	if err = ns.DeleteAgent(exe.name); err != nil {
-		return err
-	}
+
 	return config.Flush()
 }

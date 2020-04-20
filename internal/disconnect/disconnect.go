@@ -23,25 +23,19 @@ type Options struct {
 }
 
 func Execute(opt *Options) error {
-	if opt.Namespace == "default" {
-		if err := config.ClearNamespace(opt.Namespace); err != nil {
+	// Check Namespace exists
+	if _, err := config.GetNamespace(opt.Namespace); err != nil {
+		if util.IsNotFoundError(err) {
+			// Not found, disconnection is idempotent
+			return nil
+		} else {
+			// Error was not 'not found'
 			return err
 		}
-	} else {
-		// Check Namespace exists
-		if _, err := config.GetNamespace(opt.Namespace); err != nil {
-			if util.IsNotFoundError(err) {
-				// Not found, disconnection is idempotent
-				return nil
-			} else {
-				// Error was not 'not found'
-				return err
-			}
-		}
+	}
 
-		if err := config.DeleteNamespace(opt.Namespace); err != nil {
-			return err
-		}
+	if err := config.DeleteNamespace(opt.Namespace); err != nil {
+		return err
 	}
 	return config.Flush()
 }
