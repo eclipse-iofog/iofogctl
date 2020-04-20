@@ -1,25 +1,28 @@
 #!/usr/bin/env bash
 
 function checkControllerK8s {
-  local NAME="$1"
-  local NS_CHECK=${2:-$NS}
-  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME"
+  local NS_CHECK=${1:-$NS}
+  for NAME in $(kubectl get pods -n "$NS_CHECK" | grep controller | awk '{print $1}'); do
+    [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+    iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME"
 
-  local DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
-  echo "$DESC" | grep "podName: $NAME"
-  echo "$DESC" | grep "config:.*$(echo $KUBE_CONFIG | tr -d '~')"
-  echo "$DESC" | grep "kind: KubernetesControlPlane"
+    local DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+    echo "$DESC" | grep "podName: $NAME"
+    echo "$DESC" | grep "config:.*$(echo $KUBE_CONFIG | tr -d '~')"
+    echo "$DESC" | grep "kind: KubernetesControlPlane"
 
-  DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
-  echo "$DESC" | grep "podName: $NAME"
-  echo "$DESC" | grep "kind: KubernetesController"
+    DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+    echo "$DESC" | grep "podName: $NAME"
+    echo "$DESC" | grep "kind: KubernetesController"
+  done
 }
 
 function checkControllerNegativeK8s {
   local NAME="$1"
   local NS_CHECK=${2:-$NS}
-  [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  for NAME in $(kubectl get pods -n "$NS_CHECK" | grep controller | awk '{print $1}'); do
+    [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  done
 }
 
 function checkControllerAfterConfigure() {

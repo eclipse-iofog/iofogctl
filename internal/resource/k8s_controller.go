@@ -17,6 +17,7 @@ type KubernetesController struct {
 	PodName  string `yaml:"podName"`
 	Endpoint string `yaml:"endpoint"`
 	Created  string `yaml:"created,omitempty"`
+	Status   string `yaml:"status,omitempty"`
 }
 
 func (ctrl KubernetesController) GetName() string {
