@@ -266,8 +266,12 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	if err != nil {
 		return
 	}
-	_, err = ioClient.GetDefaultRouter()
+	router, err := ioClient.GetDefaultRouter()
 	if err != nil {
+		return
+	}
+	if router.Host == "" {
+		err = util.NewInternalError("Default Router has an empty host address")
 		return
 	}
 
