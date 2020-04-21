@@ -15,6 +15,7 @@ package install
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -177,7 +178,7 @@ func (k8s *Kubernetes) enableOperatorClient() (err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Database) error {
+func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Database) (endpoint string, err error) {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
 	ns := &corev1.Namespace{
@@ -185,16 +186,16 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 			Name: k8s.ns,
 		},
 	}
-	if _, err := k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
+	if _, err = k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
-			return err
+			return
 		}
 	}
 
 	// Set up CRDs if required
 	Verbose("Enabling CRDs")
-	if err := k8s.enableCustomResources(); err != nil {
-		return err
+	if err = k8s.enableCustomResources(); err != nil {
+		return
 	}
 
 	// Check if Control Plane exists
@@ -205,9 +206,9 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	}
 	var cp iofogv2.ControlPlane
 	found := true
-	if err := k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
+	if err = k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
 		if !k8serrors.IsNotFound(err) {
-			return err
+			return
 		}
 		// Not found, set basic info
 		found = false
@@ -229,17 +230,47 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	// Create or update Control Plane
 	if found {
 		Verbose("Updating existing Control Plane")
-		if err := k8s.opClient.Update(context.Background(), &cp); err != nil {
-			return err
+		if err = k8s.opClient.Update(context.Background(), &cp); err != nil {
+			return
 		}
 	} else {
 		Verbose("Deploying new Control Plane")
-		if err := k8s.opClient.Create(context.Background(), &cp); err != nil {
-			return err
+		if err = k8s.opClient.Create(context.Background(), &cp); err != nil {
+			return
 		}
 	}
 
-	return nil
+	// Get endpoint of deployed Controller
+	endpoint, err = k8s.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
+
+	// Wait for Default Router to be registered by Port Manager
+	buf, err := base64.StdEncoding.DecodeString(user.Password)
+	if err == nil {
+		user.Password = string(buf)
+	}
+	opt := ioclient.Options{
+		Endpoint: endpoint,
+		Retries: &ioclient.Retries{
+			CustomMessage: map[string]int{
+				"timeout":    20,
+				"refuse":     20,
+				"credential": 20,
+			},
+		},
+	}
+	ioClient, err := ioclient.NewAndLogin(opt, user.Email, user.Password)
+	if err != nil {
+		return
+	}
+	_, err = ioClient.GetDefaultRouter()
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (k8s *Kubernetes) deleteOperator() (err error) {

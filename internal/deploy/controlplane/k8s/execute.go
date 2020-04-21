@@ -14,12 +14,9 @@
 package deployk8scontrolplane
 
 import (
-	"encoding/base64"
 	"fmt"
-	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -46,31 +43,6 @@ func (exe kubernetesControlPlaneExecutor) Execute() (err error) {
 		return err
 	}
 
-	// Make sure Controller API is ready
-	endpoint, err := exe.controlPlane.GetEndpoint()
-	if err != nil {
-		return
-	}
-	if err = install.WaitForControllerAPI(endpoint); err != nil {
-		return err
-	}
-	// Create new user
-	exe.ctrlClient = client.New(client.Options{Endpoint: endpoint})
-	user := client.User(exe.controlPlane.GetUser())
-	user.Password = exe.controlPlane.GetUser().GetRawPassword()
-	if err = exe.ctrlClient.CreateUser(user); err != nil {
-		// If not error about account existing, fail
-		if !strings.Contains(err.Error(), "already an account associated") {
-			return err
-		}
-		// Try to log in
-		if err = exe.ctrlClient.Login(client.LoginRequest{
-			Email:    user.Email,
-			Password: user.Password,
-		}); err != nil {
-			return err
-		}
-	}
 	// Update config
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
@@ -135,15 +107,11 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	}
 	// Create controller on cluster
 	user := install.IofogUser(exe.controlPlane.IofogUser)
-	if err = installer.CreateController(user, replicas, install.Database(exe.controlPlane.Database)); err != nil {
-		return
-	}
-
-	// Get service endpoint
-	endpoint, err := installer.GetControllerEndpoint()
+	endpoint, err := installer.CreateController(user, replicas, install.Database(exe.controlPlane.Database))
 	if err != nil {
 		return
 	}
+
 	// Create controller pods for config
 	pods, err := installer.GetControllerPods()
 	if err != nil {
@@ -162,30 +130,6 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 
 	// Assign control plane endpoint
 	exe.controlPlane.Endpoint = endpoint
-
-	// Wait for Default Router to be registered by Port Manager
-	buf, err := base64.StdEncoding.DecodeString(user.Password)
-	if err == nil {
-		user.Password = string(buf)
-	}
-	opt := ioclient.Options{
-		Endpoint: endpoint,
-		Retries: &ioclient.Retries{
-			CustomMessage: map[string]int{
-				"timeout":    20,
-				"refuse":     20,
-				"credential": 20,
-			},
-		},
-	}
-	ioClient, err := ioclient.NewAndLogin(opt, user.Email, user.Password)
-	if err != nil {
-		return err
-	}
-	_, err = ioClient.GetDefaultRouter()
-	if err != nil {
-		return err
-	}
 
 	return
 }
