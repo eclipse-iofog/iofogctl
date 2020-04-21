@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
@@ -247,9 +248,21 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	}
 
 	// Wait for Default Router to be registered by Port Manager
-	buf, err := base64.StdEncoding.DecodeString(user.Password)
+	routerCh := make(chan struct{}, 1)
+	go k8s.getDefaultRouter(endpoint, user.Email, user.Password, routerCh)
+	select {
+	case <-routerCh:
+	case <-time.After(120 * time.Second):
+		err = util.NewInternalError("Failed to wait for Default Router registration")
+	}
+
+	return
+}
+
+func (k8s *Kubernetes) getDefaultRouter(endpoint, email, password string, stopCh chan struct{}) {
+	buf, err := base64.StdEncoding.DecodeString(password)
 	if err == nil {
-		user.Password = string(buf)
+		password = string(buf)
 	}
 	opt := ioclient.Options{
 		Endpoint: endpoint,
@@ -262,20 +275,22 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 			},
 		},
 	}
-	ioClient, err := ioclient.NewAndLogin(opt, user.Email, user.Password)
-	if err != nil {
+	for {
+		time.Sleep(2 * time.Second)
+		ioClient, err := ioclient.NewAndLogin(opt, email, password)
+		if err != nil {
+			continue
+		}
+		router, err := ioClient.GetDefaultRouter()
+		if err != nil {
+			continue
+		}
+		if router.Host == "" {
+			continue
+		}
+		close(stopCh)
 		return
 	}
-	router, err := ioClient.GetDefaultRouter()
-	if err != nil {
-		return
-	}
-	if router.Host == "" {
-		err = util.NewInternalError("Default Router has an empty host address")
-		return
-	}
-
-	return
 }
 
 func (k8s *Kubernetes) deleteOperator() (err error) {
