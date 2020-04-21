@@ -78,3 +78,11 @@ func GetPortManagerImage() string {
 }
 func GetProxyImage() string    { return fmt.Sprintf("%s/%s:%s", repo, proxyImage, proxyTag) }
 func GetProxyARMImage() string { return fmt.Sprintf("%s/%s:%s", repo, proxyARMImage, proxyTag) }
+
+// Used for Vanilla deploy (repo needs to be public, even when iofogctl is in dev mode)
+func GetPublicProxyImage() string    { return fmt.Sprintf("%s/%s:%s", "iofog", proxyImage, proxyTag) }
+func GetPublicProxyARMImage() string { return fmt.Sprintf("%s/%s:%s", "iofog", proxyARMImage, proxyTag) }
+func GetPublicRouterImage() string   { return fmt.Sprintf("%s/%s:%s", "iofog", routerImage, routerTag) }
+func GetPublicRouterARMImage() string {
+	return fmt.Sprintf("%s/%s:%s", "iofog", routerARMImage, routerTag)
+}
