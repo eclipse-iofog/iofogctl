@@ -255,9 +255,10 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 		Endpoint: endpoint,
 		Retries: &ioclient.Retries{
 			CustomMessage: map[string]int{
-				"timeout":    20,
-				"refuse":     20,
-				"credential": 20,
+				"timeout":           20,
+				"failed to respond": 20,
+				"refuse":            20,
+				"credential":        20,
 			},
 		},
 	}
