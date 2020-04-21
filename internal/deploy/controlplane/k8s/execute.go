@@ -14,10 +14,12 @@
 package deployk8scontrolplane
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -132,7 +134,8 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 		replicas = exe.controlPlane.Replicas.Controller
 	}
 	// Create controller on cluster
-	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {
+	user := install.IofogUser(exe.controlPlane.IofogUser)
+	if err = installer.CreateController(user, replicas, install.Database(exe.controlPlane.Database)); err != nil {
 		return
 	}
 
@@ -159,6 +162,30 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 
 	// Assign control plane endpoint
 	exe.controlPlane.Endpoint = endpoint
+
+	// Wait for Default Router to be registered by Port Manager
+	buf, err := base64.StdEncoding.DecodeString(user.Password)
+	if err == nil {
+		user.Password = string(buf)
+	}
+	opt := ioclient.Options{
+		Endpoint: endpoint,
+		Retries: &ioclient.Retries{
+			CustomMessage: map[string]int{
+				"timeout":    20,
+				"refuse":     20,
+				"credential": 20,
+			},
+		},
+	}
+	ioClient, err := ioclient.NewAndLogin(opt, user.Email, user.Password)
+	if err != nil {
+		return err
+	}
+	_, err = ioClient.GetDefaultRouter()
+	if err != nil {
+		return err
+	}
 
 	return
 }
