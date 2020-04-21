@@ -427,7 +427,7 @@ func (lc *LocalContainer) GetContainerIP(name string) (IP string, err error) {
 }
 
 func (lc *LocalContainer) WaitForCommand(containerName string, condition *regexp.Regexp, command ...string) error {
-	for iteration := 0; iteration < 60; iteration++ {
+	for iteration := 0; iteration < 120; iteration++ {
 		output, err := lc.ExecuteCmd(containerName, command)
 		if err != nil {
 			Verbose(fmt.Sprintf("Container command %v failed with error %v\n", command, err.Error()))
