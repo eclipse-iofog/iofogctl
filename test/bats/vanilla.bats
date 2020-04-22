@@ -42,11 +42,11 @@ spec:
     token: $AGENT_PACKAGE_CLOUD_TOKEN
   systemMicroservices:
     router:
-      x86: $ROUTER_IMG
-      arm: $ROUTER_ARM_IMG
+      x86: $ROUTER_IMAGE
+      arm: $ROUTER_ARM_IMAGE
     proxy:
-      x86: $PROXY_IMG
-      arm: $PROXY_ARM_IMG
+      x86: $PROXY_IMAGE
+      arm: $PROXY_ARM_IMAGE
   iofogUser:
     name: Testing
     surname: Functional
