@@ -274,7 +274,7 @@ type LoginResponse struct {
 }
 
 type ListAgentsRequest struct {
-	System bool `json:"system"`
+	System  bool              `json:"system"`
 	Filters []AgentListFilter `json:"filters"`
 }
 
