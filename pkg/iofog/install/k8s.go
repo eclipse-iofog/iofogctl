@@ -252,7 +252,7 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	go k8s.getDefaultRouter(endpoint, user.Email, user.Password, routerCh)
 	select {
 	case <-routerCh:
-	case <-time.After(120 * time.Second):
+	case <-time.After(240 * time.Second):
 		err = util.NewInternalError("Failed to wait for Default Router registration")
 	}
 
@@ -421,14 +421,14 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string, nodePort int32, err error) {
+func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr string, nodePort int32, err error) {
 	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(metav1.ListOptions{})
 	if err != nil {
 		return
 	}
 
-	// Wait for Services to have IPs allocated
+	// Wait for Services to have addresses allocated
 	for event := range watch.ResultChan() {
 		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
@@ -448,7 +448,17 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 				continue
 			}
 			nodePort = targetPort
-			ip = svc.Status.LoadBalancer.Ingress[0].IP
+			ip := svc.Status.LoadBalancer.Ingress[0].IP
+			host := svc.Status.LoadBalancer.Ingress[0].Hostname
+			if ip != "" {
+				addr = ip
+			}
+			if host != "" {
+				addr = host
+			}
+			if addr == "" {
+				continue
+			}
 
 		case corev1.ServiceTypeNodePort:
 			// Get a list of K8s nodes and return one of their external IPs
@@ -462,22 +472,22 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 					for _, node := range nodeList.Items {
 						for _, addrs := range node.Status.Addresses {
 							if addrs.Type == corev1.NodeExternalIP {
-								ip = addrs.Address
+								addr = addrs.Address
 								break
 							}
 						}
 					}
-					if ip == "" {
+					if addr == "" {
 						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
 						for _, node := range nodeList.Items {
 							for _, addrs := range node.Status.Addresses {
 								if addrs.Type == corev1.NodeInternalIP {
-									ip = addrs.Address
+									addr = addrs.Address
 									break
 								}
 							}
 						}
-						if ip == "" {
+						if addr == "" {
 							err = util.NewError("Could not get an external or internal IP address of any Kubernetes nodes for NodePort service " + name)
 						}
 					}
