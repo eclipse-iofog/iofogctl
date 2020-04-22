@@ -138,16 +138,16 @@ func (exe *remoteExecutor) Execute() (err error) {
 
 func (exe *remoteExecutor) setDefaultValues() {
 	if exe.controlPlane.SystemMicroservices.Proxy.X86 == "" {
-		exe.controlPlane.SystemMicroservices.Proxy.X86 = util.GetPublicProxyImage()
+		exe.controlPlane.SystemMicroservices.Proxy.X86 = util.GetProxyImage()
 	}
 	if exe.controlPlane.SystemMicroservices.Proxy.ARM == "" {
-		exe.controlPlane.SystemMicroservices.Proxy.ARM = util.GetPublicProxyARMImage()
+		exe.controlPlane.SystemMicroservices.Proxy.ARM = util.GetProxyARMImage()
 	}
 	if exe.controlPlane.SystemMicroservices.Router.X86 == "" {
-		exe.controlPlane.SystemMicroservices.Router.X86 = util.GetPublicRouterImage()
+		exe.controlPlane.SystemMicroservices.Router.X86 = util.GetRouterImage()
 	}
 	if exe.controlPlane.SystemMicroservices.Router.ARM == "" {
-		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetPublicRouterARMImage()
+		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
 	}
 }
 
