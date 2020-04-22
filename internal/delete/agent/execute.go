@@ -28,9 +28,10 @@ type executor struct {
 	namespace   string
 	useDetached bool
 	soft        bool
+	force       bool
 }
 
-func NewExecutor(namespace, name string, useDetached, soft bool) (execute.Executor, error) {
+func NewExecutor(namespace, name string, useDetached, soft, force bool) (execute.Executor, error) {
 	return executor{name: name, namespace: namespace, useDetached: useDetached, soft: soft}, nil
 }
 
@@ -67,6 +68,25 @@ func (exe executor) Execute() (err error) {
 			return err
 		}
 	}
+
+	// Check if it has microservices running on it
+	if !exe.useDetached && !exe.force {
+		// Try to get a Controller client to talk to the REST API
+		ctrl, err := iutil.NewControllerClient(exe.namespace)
+		if err != nil {
+			return err
+		}
+		msvcList, err := ctrl.GetAllMicroservices()
+		if err != nil {
+			return err
+		}
+		for _, msvc := range msvcList.Microservices {
+			if msvc.AgentUUID == baseAgent.GetUUID() {
+				return util.NewInputError(fmt.Sprintf("Could not delete Agent %s because it still has microservices running. Remove the microservices first, or use the --force option.", baseAgent.GetName()))
+			}
+		}
+	}
+
 	if !exe.soft {
 		switch agent := baseAgent.(type) {
 		case *rsc.LocalAgent:

@@ -42,7 +42,7 @@ func Execute(name string, force, soft bool) error {
 
 	// Handle delete all
 	if force && (hasAgents || hasControllers) {
-		if err = delete.Execute(name, false, soft); err != nil {
+		if err = delete.Execute(name, false, soft, force); err != nil {
 			return err
 		}
 	}

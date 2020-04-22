@@ -23,8 +23,9 @@ iofogctl delete all -n NAMESPACE
 ### Options
 
 ```
-  -h, --help   help for all
-      --soft   Don't delete ioFog stack from remote hosts
+      --force   Force deletion of Agents
+  -h, --help    help for all
+      --soft    Don't delete ioFog stack from remote hosts
 ```
 
 ### Options inherited from parent commands
