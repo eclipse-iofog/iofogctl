@@ -23,6 +23,10 @@ variables:
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.0-beta2'
   agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.0-beta2'
   operator_image: 'gcr.io/focal-freedom-236620/operator:2.0.0-beta2'
+  router_image: 'gcr.io/focal-freedom-236620/router:2.0.0-beta'
+  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:2.0.0-beta'
+  proxy_image: 'gcr.io/focal-freedom-236620/proxy:2.0.0-beta'
+  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:2.0.0-beta'
   iofog_agent_version: '2.0.0-beta2'
   controller_version: '2.0.0-beta2'
   version:
