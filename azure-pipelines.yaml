@@ -23,6 +23,7 @@ variables:
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
+  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:develop'
   router_image: 'gcr.io/focal-freedom-236620/router:develop'
   router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:develop'
   proxy_image: 'gcr.io/focal-freedom-236620/proxy:develop'
