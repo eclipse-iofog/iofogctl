@@ -14,23 +14,25 @@
 package deployvolume
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type localExecutor struct {
+type remoteExecutor struct {
 	volume rsc.Volume
 	ns     *rsc.Namespace
-	agents []*rsc.LocalAgent
+	agents []*rsc.RemoteAgent
 }
 
-func (exe localExecutor) GetName() string {
+func (exe remoteExecutor) GetName() string {
 	return "deploying Volume " + exe.volume.Name
 }
 
-func (exe localExecutor) Execute() error {
+func (exe remoteExecutor) Execute() error {
 	util.SpinStart("Pushing volumes to Agents")
 	// Transfer files
 	ch := make(chan error, len(exe.volume.Agents))
@@ -47,15 +49,32 @@ func (exe localExecutor) Execute() error {
 	return config.Flush()
 }
 
-func (exe localExecutor) execute(agentIdx int, ch chan error) {
-	// Docker cp
-	client, err := install.NewLocalContainerClient()
-	if err != nil {
-		ch <- err
-	}
+func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
+	agent := exe.agents[agentIdx]
 
-	if err = client.CopyToContainer(install.GetLocalContainerName("agent", false), exe.volume.Source, exe.volume.Destination); err != nil {
-		ch <- err
+	// Connect
+	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	if err := ssh.Connect(); err != nil {
+		msg := `Failed to Connect to Agent %s.
+%s`
+		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
+		return
+	}
+	defer ssh.Disconnect()
+
+	// Create base path
+	if err := ssh.CreateFolder(exe.volume.Destination); err != nil {
+		msg := `Failed to create base directory %s on Agent %s.
+%s`
+		ch <- errors.New(fmt.Sprintf(msg, exe.volume.Destination, agent.Name, err.Error()))
+		return
+	}
+	// Copy volume
+	if err := ssh.CopyFolderTo(exe.volume.Source, exe.volume.Destination, exe.volume.Permissions, true); err != nil {
+		msg := `Failed to copy volume to Agent %s.
+%s`
+		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
+		return
 	}
 
 	ch <- nil

@@ -14,6 +14,8 @@
 package deployvolume
 
 import (
+	"os"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -55,6 +57,14 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err != nil {
 		return nil, err
 	}
+	// Check if source is a folder
+	info, err := os.Stat(volume.Source)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsDir() {
+		return nil, util.NewInputError("Source must be a directory")
+	}
 	// Check agents exist
 	remoteAgents := make([]*rsc.RemoteAgent, 0)
 	localAgents := make([]*rsc.LocalAgent, 0)
@@ -73,10 +83,14 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 			if util.IsLocalHost(agent.Host) {
 				return nil, util.NewError("Volume deployment is not supported for local Agents")
 			}
-			return nil, util.NewInputError("Cannot push Volumes to Local Agents")
 			remoteAgents = append(remoteAgents, agent)
 		} else {
-
+			agent, ok := baseAgent.(*rsc.LocalAgent)
+			if ok {
+				localAgents = append(localAgents, agent)
+			} else {
+				return nil, util.NewInternalError("Could not convert Agent type")
+			}
 		}
 	}
 	return executor{

@@ -76,25 +76,19 @@ func (exe *Executor) execute(volume rsc.Volume, agentIdx int, ch chan error) {
 		ch <- err
 	}
 	agent, ok := baseAgent.(*rsc.RemoteAgent)
-	if !ok {
-		ch <- util.NewInputError("Cannot delete Volumes from Local Agents")
-	}
-	// Check SSH details
-	if err := agent.ValidateSSH(); err != nil {
-		ch <- err
-	}
-	// Check agent is not local
-	if util.IsLocalHost(agent.Host) {
-		ch <- util.NewError("Volume deletion is not supported for local Agents")
-	}
-	// Connect
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
-	if err := ssh.Connect(); err != nil {
-		ch <- err
-	}
-	// Delete
-	if _, err := ssh.Run("rm -rf " + util.AddTrailingSlash(volume.Destination) + "*"); err != nil {
-		ch <- err
+	if ok {
+		if err = deleteRemote(agent, volume); err != nil {
+			ch <- err
+		}
+	} else {
+		agent, ok := baseAgent.(*rsc.LocalAgent)
+		if ok {
+			if err = deleteLocal(agent, volume); err != nil {
+				ch <- err
+			}
+		} else {
+			ch <- util.NewError("Could not convert Agent")
+		}
 	}
 
 	ch <- nil
