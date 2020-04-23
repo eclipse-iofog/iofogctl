@@ -21,6 +21,7 @@ steps:
     sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
     sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_version)\"|g" test/env.sh
     sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"$(operator_image)\"|g" test/env.sh
+    sed -i "s|PORT_MANAGER_IMAGE=.*|PORT_MANAGER_IMAGE=\"$(port_manager_image)\"|g" test/env.sh
     sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
     sed -i "s|ROUTER_IMAGE=.*|ROUTER_IMAGE=\"$(router_image)\"|g" test/env.sh
     sed -i "s|ROUTER_ARM_IMAGE=.*|ROUTER_ARM_IMAGE=\"$(router_arm_image)\"|g" test/env.sh
