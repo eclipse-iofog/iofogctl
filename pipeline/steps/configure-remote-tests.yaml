@@ -22,6 +22,10 @@ steps:
     sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_version)\"|g" test/env.sh
     sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"$(operator_image)\"|g" test/env.sh
     sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+    sed -i "s|ROUTER_IMAGE=.*|ROUTER_IMAGE=\"$(router_image)\"|g" test/env.sh
+    sed -i "s|ROUTER_ARM_IMAGE=.*|ROUTER_ARM_IMAGE=\"$(router_arm_image)\"|g" test/env.sh
+    sed -i "s|PROXY_IMAGE=.*|PROXY_IMAGE=\"$(proxy_image)\"|g" test/env.sh
+    sed -i "s|PROXY_ARM_IMAGE=.*|PROXY_ARM_IMAGE=\"$(proxy_arm_image)\"|g" test/env.sh
     sed -i "s|AGENT_VANILLA_VERSION=.*|AGENT_VANILLA_VERSION=\"$(iofog_agent_version)\"|g" test/env.sh
     sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
     sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh

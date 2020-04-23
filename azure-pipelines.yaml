@@ -23,6 +23,10 @@ variables:
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:develop'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
+  router_image: 'gcr.io/focal-freedom-236620/router:develop'
+  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:develop'
+  proxy_image: 'gcr.io/focal-freedom-236620/proxy:develop'
+  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:develop'
   iofog_agent_version: '0.0.0-dev'
   controller_version: '0.0.0-dev'
   version:
