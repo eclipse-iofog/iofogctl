@@ -14,14 +14,11 @@
 package deployvolume
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Options struct {
@@ -29,62 +26,18 @@ type Options struct {
 	Yaml      []byte
 }
 
-type remoteExecutor struct {
-	volume rsc.Volume
-	ns     *rsc.Namespace
-	agents []rsc.Agent
+type executor struct {
+	localExecutor  execute.Executor
+	remoteExecutor execute.Executor
+	Name           string
 }
 
-func (exe remoteExecutor) GetName() string {
-	return "deploying Volume " + exe.volume.Name
+func (exe executor) GetName() string {
+	return "deploying Volume " + exe.Name
 }
 
-func (exe remoteExecutor) Execute() error {
-	util.SpinStart("Pushing volumes to Agents")
-	// Transfer files
-	ch := make(chan error, len(exe.volume.Agents))
-	for idx := range exe.volume.Agents {
-		go exe.execute(idx, ch)
-	}
-	for idx := 0; idx < len(exe.volume.Agents); idx++ {
-		if err := <-ch; err != nil {
-			return err
-		}
-	}
-	// Update config
-	exe.ns.UpdateVolume(exe.volume)
-	return config.Flush()
-}
-
-func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
-	agent := exe.agents[agentIdx].(*rsc.RemoteAgent)
-
-	// Connect
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
-	if err := ssh.Connect(); err != nil {
-		msg := `Failed to Connect to Agent %s.
-%s`
-		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
-		return
-	}
-	defer ssh.Disconnect()
-
-	// Create base path
-	if err := ssh.CreateFolder(exe.volume.Destination); err != nil {
-		msg := `Failed to create base directory %s on Agent %s.
-%s`
-		ch <- errors.New(fmt.Sprintf(msg, exe.volume.Destination, agent.Name, err.Error()))
-		return
-	}
-	// Copy volume
-	if err := ssh.CopyFolderTo(exe.volume.Source, exe.volume.Destination, exe.volume.Permissions, true); err != nil {
-		msg := `Failed to copy volume to Agent %s.
-%s`
-		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
-		return
-	}
-
-	ch <- nil
+func (exe executor) Execute() error {
+	return execute.RunExecutors([]execute.Executor{exe.localExecutor, exe.remoteExecutor}, exe.GetName())
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -103,30 +56,40 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return nil, err
 	}
 	// Check agents exist
-	agents := make([]rsc.Agent, 0)
+	remoteAgents := make([]*rsc.RemoteAgent, 0)
+	localAgents := make([]*rsc.LocalAgent, 0)
 	for _, agentName := range volume.Agents {
 		baseAgent, err := ns.GetAgent(agentName)
 		if err != nil {
 			return nil, err
 		}
 		agent, ok := baseAgent.(*rsc.RemoteAgent)
-		if !ok {
+		if ok {
+			// Check SSH details
+			if err = agent.ValidateSSH(); err != nil {
+				return nil, err
+			}
+			// Check agent is not local
+			if util.IsLocalHost(agent.Host) {
+				return nil, util.NewError("Volume deployment is not supported for local Agents")
+			}
 			return nil, util.NewInputError("Cannot push Volumes to Local Agents")
+			remoteAgents = append(remoteAgents, agent)
+		} else {
+
 		}
-		// Check SSH details
-		if err = agent.ValidateSSH(); err != nil {
-			return nil, err
-		}
-		// Check agent is not local
-		if util.IsLocalHost(agent.Host) {
-			return nil, util.NewError("Volume deployment is not supported for local Agents")
-		}
-		// Record all agent details
-		agents = append(agents, agent)
 	}
-	return remoteExecutor{
-		agents: agents,
-		volume: volume,
-		ns:     ns,
+	return executor{
+		Name: volume.Name,
+		localExecutor: localExecutor{
+			agents: localAgents,
+			volume: volume,
+			ns:     ns,
+		},
+		remoteExecutor: remoteExecutor{
+			agents: remoteAgents,
+			volume: volume,
+			ns:     ns,
+		},
 	}, nil
 }
