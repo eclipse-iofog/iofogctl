@@ -19,7 +19,6 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -53,7 +52,7 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[c
 		return nil, err
 	}
 
-	if err = internal.ValidateHeader(header); err != nil {
+	if err = config.ValidateHeader(header); err != nil {
 		return nil, err
 	}
 

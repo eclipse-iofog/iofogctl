@@ -17,8 +17,10 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -46,6 +48,24 @@ func generateControllerOutput(namespace string, printNS bool) error {
 	if err != nil {
 		return err
 	}
+
+	podStatuses := make([]string, 0)
+	// Handle k8s
+	baseControlPlane, err := ns.GetControlPlane()
+	if controlPlane, ok := baseControlPlane.(*rsc.KubernetesControlPlane); ok {
+		if err := updateControllerPods(controlPlane, namespace); err != nil {
+			return err
+		}
+		ns.SetControlPlane(controlPlane)
+		if err := config.Flush(); err != nil {
+			return err
+		}
+		for idx := range controlPlane.ControllerPods {
+			podStatuses = append(podStatuses, controlPlane.ControllerPods[idx].Status)
+		}
+	}
+
+	// Handle remote and local
 	controllers := ns.GetControllers()
 
 	// Generate table and headers
@@ -56,7 +76,7 @@ func generateControllerOutput(namespace string, printNS bool) error {
 	// Populate rows
 	for idx, ctrlConfig := range controllers {
 		// Instantiate connection to controller
-		ctrl, err := internal.NewControllerClient(namespace)
+		ctrl, err := iutil.NewControllerClient(namespace)
 		if err != nil {
 			return err
 		}
@@ -68,6 +88,10 @@ func generateControllerOutput(namespace string, printNS bool) error {
 		if err == nil {
 			uptime = util.FormatDuration(time.Duration(int64(ctrlStatus.UptimeSeconds)) * time.Second)
 			status = ctrlStatus.Status
+		}
+		// Handle k8s pod statuses
+		if len(podStatuses) != 0 && idx < len(podStatuses) {
+			status = podStatuses[idx]
 		}
 
 		// Get age
@@ -97,4 +121,30 @@ func generateControllerOutput(namespace string, printNS bool) error {
 	}
 
 	return nil
+}
+
+func updateControllerPods(controlPlane *rsc.KubernetesControlPlane, namespace string) (err error) {
+	// Clear existing
+	controlPlane.ControllerPods = make([]rsc.KubernetesController, 0)
+	// Get pods
+	installer, err := install.NewKubernetes(controlPlane.KubeConfig, namespace)
+	if err != nil {
+		return
+	}
+	pods, err := installer.GetControllerPods()
+	if err != nil {
+		return
+	}
+	// Add pods
+	for idx := range pods {
+		k8sPod := rsc.KubernetesController{
+			Endpoint: controlPlane.Endpoint,
+			PodName:  pods[idx].Name,
+			Status:   pods[idx].Status,
+		}
+		if err := controlPlane.AddController(&k8sPod); err != nil {
+			return err
+		}
+	}
+	return
 }

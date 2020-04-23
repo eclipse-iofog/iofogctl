@@ -18,6 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
@@ -46,21 +47,42 @@ func (exe executor) GetName() string {
 	return exe.opt.Name
 }
 
-func (exe executor) Execute() error {
+func (exe executor) Execute() (err error) {
 	util.SpinStart("Attaching Agent")
 
+	ns, err := config.GetNamespace(exe.opt.Namespace)
+	if err != nil {
+		return err
+	}
+
+	// Update local cache based on Controller
+	if err = iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
+		return err
+	}
+
 	var baseAgent rsc.Agent
-	var err error
 	if exe.opt.UseDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.opt.Name)
+		if err != nil {
+			return err
+		}
 	} else {
-		switch baseAgent.(type) {
-		case *rsc.LocalAgent:
+		// Determine type of ECN
+		ns, err := config.GetNamespace(exe.opt.Namespace)
+		if err != nil {
+			return err
+		}
+		controlPlane, err := ns.GetControlPlane()
+		if err != nil {
+			return err
+		}
+		switch controlPlane.(type) {
+		case *rsc.LocalControlPlane:
 			baseAgent = &rsc.LocalAgent{
 				Name: exe.opt.Name,
 				Host: exe.opt.Host,
 			}
-		case *rsc.RemoteAgent:
+		default:
 			baseAgent = &rsc.RemoteAgent{
 				Name: exe.opt.Name,
 				Host: exe.opt.Host,
@@ -72,12 +94,11 @@ func (exe executor) Execute() error {
 			}
 		}
 	}
-
-	if err != nil {
-		return err
+	if baseAgent == nil {
+		return util.NewInternalError("Failed to convert options to Agent")
 	}
 
-	// Create fog
+	// Create Agent
 	host := baseAgent.GetHost()
 	configExecutor := deployagentconfig.NewRemoteExecutor(
 		exe.opt.Name,
@@ -87,7 +108,7 @@ func (exe executor) Execute() error {
 				Host: &host,
 			},
 		}, exe.opt.Namespace)
-	if err = configExecutor.Execute(); err != nil {
+	if err := configExecutor.Execute(); err != nil {
 		return err
 	}
 
@@ -95,11 +116,14 @@ func (exe executor) Execute() error {
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
 		executor, err = deploy.NewLocalExecutor(exe.opt.Namespace, agent, false)
+		if err != nil {
+			return err
+		}
 	case *rsc.RemoteAgent:
 		executor, err = deploy.NewRemoteExecutor(exe.opt.Namespace, agent, false)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	deployExecutor, ok := executor.(execute.ProvisioningExecutor)
 	if !ok {
@@ -121,7 +145,7 @@ func (exe executor) Execute() error {
 			return err
 		}
 	} else {
-		if err = config.UpdateAgent(exe.opt.Namespace, baseAgent); err != nil {
+		if err = ns.UpdateAgent(baseAgent); err != nil {
 			return err
 		}
 	}

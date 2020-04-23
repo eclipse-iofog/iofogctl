@@ -1,35 +1,119 @@
 #!/usr/bin/env bash
 
 function checkControllerK8s {
-  # TODO: Replace this one controller pod name is returned
-  OLD_NAME="$NAME"
-  NAME="$1"
-  checkController
-  NAME="$OLD_NAME"
+  local NS_CHECK=${1:-$NS}
+  for NAME in $(kubectl get pods -n "$NS_CHECK" | grep controller | awk '{print $1}'); do
+    [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+    iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME"
+
+    local DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+    echo "$DESC" | grep "podName: $NAME"
+    echo "$DESC" | grep "config:.*$(echo $KUBE_CONFIG | tr -d '~')"
+    echo "$DESC" | grep "kind: KubernetesControlPlane"
+
+    DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+    echo "$DESC" | grep "podName: $NAME"
+    echo "$DESC" | grep "kind: KubernetesController"
+  done
 }
 
 function checkControllerNegativeK8s {
-  # TODO: Replace this one controller pod name is returned
-  OLD_NAME="$NAME"
-  NAME="$1"
-  checkControllerNegative
-  NAME="$OLD_NAME"
+  local NAME="$1"
+  local NS_CHECK=${2:-$NS}
+  for NAME in $(kubectl get pods -n "$NS_CHECK" | grep controller | awk '{print $1}'); do
+    [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+  done
+}
+
+function checkControllerAfterConfigure() {
+  local NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+
+  local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "user: $VANILLA_USER"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "port: $VANILLA_PORT"
+  echo "$DESC" | grep "keyFile:.*$(echo $KEY_FILE | tr -d '~')"
+  echo "$DESC" | grep "kind: Controller"
+
+  DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "user: $VANILLA_USER"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "port: $VANILLA_PORT"
+  echo "$DESC" | grep "keyFile:.*$(echo $KEY_FILE | tr -d '~')"
+  echo "$DESC" | grep "kind: ControlPlane"
+}
+
+function checkControllerAfterConnect() {
+  local NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+
+  local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "kind: Controller"
+
+  DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "kind: ControlPlane"
 }
 
 function checkController() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME") ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe controlplane | grep "ame: $NAME") ]]
+
+  local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "user: $VANILLA_USER"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "port: $VANILLA_PORT"
+  echo "$DESC" | grep "keyFile:.*$(echo $KEY_FILE | tr -d '~')"
+  echo "$DESC" | grep "kind: Controller"
+
+  DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "user: $VANILLA_USER"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "port: $VANILLA_PORT"
+  echo "$DESC" | grep "keyFile:.*$(echo $KEY_FILE | tr -d '~')"
+  echo "$DESC" | grep "repo: $CONTROLLER_REPO"
+  echo "$DESC" | grep "version: $CONTROLLER_VANILLA_VERSION"
+  echo "$DESC" | grep "token: $CONTROLLER_PACKAGE_CLOUD_TOKEN"
+  echo "$DESC" | grep "repo: $AGENT_REPO"
+  echo "$DESC" | grep "version: $AGENT_VANILLA_VERSION"
+  echo "$DESC" | grep "token: $AGENT_PACKAGE_CLOUD_TOKEN"
+  echo "$DESC" | grep "email: $USER_EMAIL"
+  echo "$DESC" | grep "password: $USER_PW_B64"
+  echo "$DESC" | grep "kind: ControlPlane"
+}
+
+function checkControllerLocal() {
+  local NS_CHECK=${1:-$NS}
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+
+  local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+  echo "$DESC"
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
+
+  DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
+  echo "$DESC" | grep "email: $USER_EMAIL"
+  echo "$DESC" | grep "password: $USER_PW_B64"
+  echo "$DESC" | grep "kind: LocalControlPlane"
 }
 
 function checkControllerNegative() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
 }
 
 function checkMicroservice() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
@@ -71,7 +155,7 @@ function checkMicroservice() {
 }
 
 function checkUpdatedMicroservice() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" | grep "name: $MICROSERVICE_NAME") ]]
   # Check config
@@ -122,12 +206,12 @@ function checkUpdatedMicroservice() {
 }
 
 function checkMicroserviceNegative() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ "$MICROSERVICE_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
 }
 
 function checkApplication() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   iofogctl -v -n "$NS_CHECK" get applications
   [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
@@ -179,23 +263,23 @@ function checkApplication() {
 }
 
 function checkApplicationNegative() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
   [[ "$MSVC1_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $1}') ]]
   [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC2_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgent() {
-  NS_CHECK=${2:-$NS}
-  OPTIONS=$3
-  AGENT_NAME=$1
+  local NS_CHECK=${2:-$NS}
+  local OPTIONS=$3
+  local AGENT_NAME=$1
   [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents $OPTIONS | grep "$AGENT_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" $OPTIONS | grep "name: $AGENT_NAME") ]]
 }
 
 function checkDetachedAgent() {
-  AGENT_NAME=$1
-  NS_CHECK=${2:-$NS}
+  local AGENT_NAME=$1
+  local NS_CHECK=${2:-$NS}
   # Check agent is accessible using ssh, and is not provisioned
   [[ "not" == $(iofogctl -v legacy agent $AGENT_NAME status --detached | grep 'Connection to Controller' | awk '{print $5}') ]]
   # Check agent is listed in detached resources
@@ -203,19 +287,19 @@ function checkDetachedAgent() {
 }
 
 function checkDetachedAgentNegative() {
-  AGENT_NAME=$1
+  local AGENT_NAME=$1
   # Check agent is not listed in detached resources
   [[ "$AGENT_NAME" != $(iofogctl -v get agents --detached | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgentNegative() {
-  NS_CHECK=${2:-$NS}
-  AGENT_NAME=$1
+  local NS_CHECK=${2:-$NS}
+  local AGENT_NAME=$1
   [[ "$AGENT_NAME" != $(iofogctl -v -n "$NS_CHECK" get agents | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
 function checkAgents() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-$(((IDX++)))"
     checkAgent "$AGENT_NAME" "$NS_CHECK"
@@ -223,7 +307,7 @@ function checkAgents() {
 }
 
 function checkAgentsNegative() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-$(((IDX++)))"
     checkAgentNegative "$AGENT_NAME" "$NS_CHECK"
@@ -257,56 +341,56 @@ function checkAgentPruneController(){
 }
 
 function checkLegacyController() {
-  NS_CHECK=${1:-$NS}
+  local NS_CHECK=${1:-$NS}
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy controller $NAME status | grep 'ioFogController') ]]
 }
 
 function checkLegacyAgent() {
-  NS_CHECK=${2:-$NS}
+  local NS_CHECK=${2:-$NS}
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'RUNNING') ]]
   [[ "ok" == $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'Connection to Controller' | awk '{print $5}') ]]
 }
 
 function checkMovedMicroservice() {
-  MSVC="$1"
-  NEW_AGENT="$2"
+  local MSVC="$1"
+  local NEW_AGENT="$2"
   [[ ! -z $(iofogctl -v get microservices | grep $MSVC | grep $NEW_AGENT) ]]
 }
 
 function checkRenamedResource() {
-  RSRC=$1
-  OLDNAME=$2
-  NEWNAME=$3
-  NAMESPACE=$4
+  local RSRC=$1
+  local OLDNAME=$2
+  local NEWNAME=$3
+  local NAMESPACE=$4
   [[ -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${OLDNAME}) ]]
   [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${NEWNAME}) ]]
 }
 
 function checkRenamedApplication() {
-  OLDNAME=$1
-  NEWNAME=$2
-  NAMESPACE=$3
+  local OLDNAME=$1
+  local NEWNAME=$2
+  local NAMESPACE=$3
 
   [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${OLDNAME}) ]]
   [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print $1}' | grep ${NEWNAME}) ]]
 }
 
 function checkNamespaceExistsNegative() {
-  CHECK_NS="$1"
+  local CHECK_NS="$1"
   [ -z "$(iofogctl get namespaces | grep $CHECK_NS)" ]
 }
 
 function checkRenamedNamespace() {
-  OLDNAME=$1
-  NEWNAME=$2
+  local OLDNAME=$1
+  local NEWNAME=$2
   [[ -z $(iofogctl -v get namespaces | grep -w ${OLDNAME}) ]]
   [[ ! -z $(iofogctl -v get namespaces | grep -w ${NEWNAME}) ]]
 }
 
 function hitMsvcEndpoint() {
-  IP="$1"
-  ITER=0
-  COUNT=0
+  local IP="$1"
+  local ITER=0
+  local COUNT=0
   while [ $COUNT -eq 0 ] && [ $ITER -lt 24 ]; do
     sleep 10
     run curlMsvc "$IP"
@@ -325,11 +409,11 @@ function hitMsvcEndpoint() {
 }
 
 function checkVanillaResourceDeleted() {
-  USER=$1
-  HOST=$2
-  PORT=$3
-  KEY_FILE=$4
-  RESOURCE=$5
+  local USER=$1
+  local HOST=$2
+  local PORT=$3
+  local KEY_FILE=$4
+  local RESOURCE=$5
 
   [[ -z $(ssh -oStrictHostKeyChecking=no $USER@$HOST:$PORT -i $KEY_FILE sudo which ${RESOURCE}) ]]
 }

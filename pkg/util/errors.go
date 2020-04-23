@@ -16,6 +16,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Check error and exit
@@ -42,6 +43,7 @@ func (err *Error) Error() string {
 
 // NotFoundError export
 type NotFoundError struct {
+	header  string
 	message string
 }
 
@@ -49,12 +51,18 @@ type NotFoundError struct {
 func NewNotFoundError(message string) *NotFoundError {
 	return &NotFoundError{
 		message: message,
+		header:  "Unknown resource error",
 	}
 }
 
 // Error export
 func (err *NotFoundError) Error() string {
-	return fmt.Sprintf("Unknown resource error\n%s", err.message)
+	return fmt.Sprintf("%s\n%s", err.header, err.message)
+}
+
+func IsNotFoundError(err error) bool {
+	notFoundErr := NewNotFoundError("")
+	return err != nil && strings.Contains(err.Error(), notFoundErr.header)
 }
 
 //ConflictError export

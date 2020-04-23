@@ -23,4 +23,5 @@ type Agent interface {
 	SetHost(string)
 	SetCreatedTime(string)
 	Sanitize() error
+	Clone() Agent
 }

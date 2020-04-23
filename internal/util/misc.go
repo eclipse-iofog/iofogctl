@@ -11,18 +11,24 @@
  *
  */
 
-package resource
+package util
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
-// NewRandomUser creates a new config user
-func NewRandomUser() IofogUser {
-	return IofogUser{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
-		Password: util.RandomString(10, util.AlphaNum),
-	}
+func IsSystemAgent(agentConfig rsc.AgentConfiguration) bool {
+	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
+}
+
+func MakeIntPtr(value int) *int {
+	return &value
+}
+
+func MakeStrPtr(value string) *string {
+	return &value
+}
+
+func MakeBoolPtr(value bool) *bool {
+	return &value
 }

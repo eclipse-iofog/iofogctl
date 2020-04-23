@@ -34,7 +34,7 @@ func (cp KubernetesControlPlane) GetUser() IofogUser {
 
 func (cp KubernetesControlPlane) GetControllers() (controllers []Controller) {
 	for idx := range cp.ControllerPods {
-		controllers = append(controllers, &cp.ControllerPods[idx])
+		controllers = append(controllers, cp.ControllerPods[idx].Clone())
 	}
 	return
 }
@@ -92,6 +92,7 @@ func (cp *KubernetesControlPlane) DeleteController(name string) error {
 }
 
 func (cp *KubernetesControlPlane) Sanitize() (err error) {
+	cp.IofogUser.EncodePassword()
 	if cp.KubeConfig, err = util.FormatPath(cp.KubeConfig); err != nil {
 		return
 	}
@@ -106,4 +107,19 @@ func (cp *KubernetesControlPlane) ValidateKubeConfig() error {
 		return NewNoKubeConfigError("Control Plane")
 	}
 	return nil
+}
+
+func (cp *KubernetesControlPlane) Clone() ControlPlane {
+	controllerPods := make([]KubernetesController, len(cp.ControllerPods))
+	copy(controllerPods, cp.ControllerPods)
+	return &KubernetesControlPlane{
+		KubeConfig:     cp.KubeConfig,
+		IofogUser:      cp.IofogUser,
+		Database:       cp.Database,
+		Services:       cp.Services,
+		Replicas:       cp.Replicas,
+		Images:         cp.Images,
+		Endpoint:       cp.Endpoint,
+		ControllerPods: controllerPods,
+	}
 }

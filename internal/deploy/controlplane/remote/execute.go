@@ -18,13 +18,13 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
+	deployremotecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -40,30 +40,30 @@ type remoteControlPlaneExecutor struct {
 	ctrlClient          *client.Client
 	controllerExecutors []execute.Executor
 	controlPlane        rsc.ControlPlane
-	namespace           string
+	ns                  *rsc.Namespace
 	name                string
 }
 
-func deploySystemAgent(namespace string, ctrl *rsc.RemoteController) (err error) {
+func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent rsc.Package) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
 	agent := rsc.RemoteAgent{
 		Name:    iofog.VanillaRouterAgentName,
 		Host:    ctrl.Host,
 		SSH:     ctrl.SSH,
-		Package: ctrl.SystemAgent,
+		Package: systemAgent,
 	}
 	// Configure agent to be system agent with default router
 	RouterConfig := client.RouterConfig{
-		RouterMode:      internal.MakeStrPtr("interior"),
-		MessagingPort:   internal.MakeIntPtr(5672),
-		EdgeRouterPort:  internal.MakeIntPtr(56721),
-		InterRouterPort: internal.MakeIntPtr(56722),
+		RouterMode:      iutil.MakeStrPtr("interior"),
+		MessagingPort:   iutil.MakeIntPtr(5672),
+		EdgeRouterPort:  iutil.MakeIntPtr(56721),
+		InterRouterPort: iutil.MakeIntPtr(56722),
 	}
 	deployAgentConfig := rsc.AgentConfiguration{
 		Name: iofog.VanillaRouterAgentName,
 		AgentConfiguration: client.AgentConfiguration{
-			IsSystem:     internal.MakeBoolPtr(true),
+			IsSystem:     iutil.MakeBoolPtr(true),
 			Host:         &ctrl.Host,
 			RouterConfig: RouterConfig,
 		},
@@ -91,7 +91,11 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 		if !ok {
 			return util.NewInternalError("Could not convert Controller to Remote Controller")
 		}
-		if err = deploySystemAgent(exe.namespace, controller); err != nil {
+		remoteControlPlane, ok := exe.controlPlane.(*rsc.RemoteControlPlane)
+		if !ok {
+			return util.NewInternalError("Could not convert ControlPlane to Remote ControlPlane")
+		}
+		if err = deploySystemAgent(exe.ns.Name, controller, remoteControlPlane.SystemAgent); err != nil {
 			return err
 		}
 	}
@@ -114,13 +118,14 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 	}
 	// Create new user
 	exe.ctrlClient = client.New(client.Options{Endpoint: endpoint})
-	if err = exe.ctrlClient.CreateUser(client.User(exe.controlPlane.GetUser())); err != nil {
+	user := client.User(exe.controlPlane.GetUser())
+	user.Password = exe.controlPlane.GetUser().GetRawPassword()
+	if err = exe.ctrlClient.CreateUser(user); err != nil {
 		// If not error about account existing, fail
 		if !strings.Contains(err.Error(), "already an account associated") {
 			return err
 		}
 		// Try to log in
-		user := exe.controlPlane.GetUser()
 		if err = exe.ctrlClient.Login(client.LoginRequest{
 			Email:    user.Email,
 			Password: user.Password,
@@ -129,7 +134,7 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 	// Update config
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
+	exe.ns.SetControlPlane(exe.controlPlane)
 	if err = config.Flush(); err != nil {
 		return err
 	}
@@ -141,10 +146,10 @@ func (exe remoteControlPlaneExecutor) GetName() string {
 	return exe.name
 }
 
-func newControlPlaneExecutor(executors []execute.Executor, namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
+func newControlPlaneExecutor(executors []execute.Executor, namespace *rsc.Namespace, name string, controlPlane rsc.ControlPlane) execute.Executor {
 	return remoteControlPlaneExecutor{
 		controllerExecutors: executors,
-		namespace:           namespace,
+		ns:                  namespace,
 		controlPlane:        controlPlane,
 		name:                name,
 	}
@@ -152,7 +157,7 @@ func newControlPlaneExecutor(executors []execute.Executor, namespace, name strin
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Check the namespace exists
-	_, err = config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return
 	}
@@ -179,7 +184,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		controllerExecutors = append(controllerExecutors, exe)
 	}
 
-	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, &controlPlane), nil
+	return newControlPlaneExecutor(controllerExecutors, ns, opt.Name, &controlPlane), nil
 }
 
 func runExecutors(executors []execute.Executor) error {

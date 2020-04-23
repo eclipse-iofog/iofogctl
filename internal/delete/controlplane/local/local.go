@@ -64,7 +64,5 @@ func (exe *Executor) Execute() (err error) {
 
 	// Delete Control Plane in config
 	ns.DeleteControlPlane()
-	config.UpdateNamespace(ns)
-
 	return config.Flush()
 }

@@ -15,7 +15,6 @@ package deployk8scontrolplane
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
@@ -44,32 +43,12 @@ func (exe kubernetesControlPlaneExecutor) Execute() (err error) {
 		return err
 	}
 
-	// Make sure Controller API is ready
-	endpoint, err := exe.controlPlane.GetEndpoint()
+	// Update config
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return
 	}
-	if err = install.WaitForControllerAPI(endpoint); err != nil {
-		return err
-	}
-	// Create new user
-	exe.ctrlClient = client.New(client.Options{Endpoint: endpoint})
-	if err = exe.ctrlClient.CreateUser(client.User(exe.controlPlane.IofogUser)); err != nil {
-		// If not error about account existing, fail
-		if !strings.Contains(err.Error(), "already an account associated") {
-			return err
-		}
-		// Try to log in
-		user := exe.controlPlane.GetUser()
-		if err = exe.ctrlClient.Login(client.LoginRequest{
-			Email:    user.Email,
-			Password: user.Password,
-		}); err != nil {
-			return err
-		}
-	}
-	// Update config
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
+	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
 }
 
@@ -127,22 +106,24 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 		replicas = exe.controlPlane.Replicas.Controller
 	}
 	// Create controller on cluster
-	if err = installer.CreateController(install.IofogUser(exe.controlPlane.IofogUser), replicas, install.Database(exe.controlPlane.Database)); err != nil {
-		return
-	}
-
-	// Get service endpoint
-	endpoint, err := installer.GetControllerEndpoint()
+	user := install.IofogUser(exe.controlPlane.IofogUser)
+	endpoint, err := installer.CreateController(user, replicas, install.Database(exe.controlPlane.Database))
 	if err != nil {
 		return
 	}
+
 	// Create controller pods for config
-	for idx := int32(0); idx < exe.controlPlane.Replicas.Controller; idx++ {
-		if err := exe.controlPlane.AddController(&rsc.KubernetesController{
-			PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
-			Created:  util.NowUTC(),
+	pods, err := installer.GetControllerPods()
+	if err != nil {
+		return
+	}
+	for idx := range pods {
+		k8sPod := rsc.KubernetesController{
 			Endpoint: endpoint,
-		}); err != nil {
+			PodName:  pods[idx].Name,
+			Created:  util.NowUTC(),
+		}
+		if err := exe.controlPlane.AddController(&k8sPod); err != nil {
 			return err
 		}
 	}

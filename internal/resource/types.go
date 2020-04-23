@@ -58,14 +58,6 @@ type Replicas struct {
 	Controller int32 `yaml:"controller"`
 }
 
-// IofogUser contains information about users registered against a controller
-type IofogUser struct {
-	Name     string `yaml:"name,omitempty"`
-	Surname  string `yaml:"surname,omitempty"`
-	Email    string `yaml:"email,omitempty"`
-	Password string `yaml:"password,omitempty"`
-}
-
 // Credentials credentials used to log into docker when deploying a local stack
 type Credentials struct {
 	User     string `yaml:"user,omitempty"`

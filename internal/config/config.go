@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sync"
 
 	configv1 "github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -35,11 +34,13 @@ var (
 	namespaceDirectory string // Path of namespace directory
 	namespaces         map[string]*rsc.Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
-	mux = &sync.Mutex{}
 )
 
 const (
-	defaultDirname       = ".iofog/"
+	apiVersionGroup      = "iofog.org"
+	latestVersion        = "v2"
+	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
+	defaultDirname       = ".iofog/" + latestVersion
 	namespaceDirname     = "namespaces/"
 	defaultFilename      = "config.yaml"
 	configV2             = "iofogctl/v2"
@@ -88,14 +89,7 @@ func Init(configFolderArg string) {
 	// Unmarshall the config file
 	confHeader := iofogctlConfig{}
 	err = util.UnmarshalYAML(configFilename, &confHeader)
-	// Warn user about possible update
-	if err != nil {
-		if err = updateConfigToK8sStyle(); err != nil {
-			util.Check(util.NewInternalError(fmt.Sprintf("Failed to update iofogctl configuration. Error: %v", err)))
-		}
-		err = util.UnmarshalYAML(configFilename, &confHeader)
-		util.Check(err)
-	}
+	util.Check(err)
 
 	conf, err = getConfigFromHeader(confHeader)
 	util.Check(err)
@@ -159,7 +153,7 @@ func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
 	if err != nil {
 		return
 	}
-	if err = yaml.UnmarshalStrict(bytes, &c); err != nil {
+	if err = yaml.Unmarshal(bytes, &c); err != nil {
 		return
 	}
 	return
@@ -174,21 +168,9 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err erro
 		}
 	case configV1:
 		{
-			msg := `An older YAML version has been detected in Namespace %s.
-  You will only be able to view this Namespace from your current version of iofogctl.
-  Redeploy the corresponding ECN with your current version of iofogctl to gain full control.`
-			util.PrintNotify(fmt.Sprintf(msg, header.Metadata.Name))
-			headerV2, err := updateNamespaceToV2(header)
-			if err != nil {
-				return n, err
-			}
-			return getNamespaceFromHeader(headerV2)
+			err = util.NewError("Namespace file is out of date.")
+			return
 		}
-	// Example for further maintenance
-	// case PreviousConfigVersion {
-	// 	updateFromPreviousVersion()
-	// 	break
-	// }
 	default:
 		return n, util.NewInputError("Invalid iofogctl config version")
 	}
@@ -196,7 +178,7 @@ func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err erro
 	if err != nil {
 		return
 	}
-	if err = yaml.UnmarshalStrict(bytes, &n); err != nil {
+	if err = yaml.Unmarshal(bytes, &n); err != nil {
 		return
 	}
 	return
@@ -276,200 +258,9 @@ type v1NamespaceSpecContent struct {
 	Connectors   []configv1.Connector  `yaml:"connectors,omitempty"`
 }
 
-func updateConfigToK8sStyle() error {
-	// Previous config structure
-	type OldConfig struct {
-		Namespaces []v1NamespaceSpecContent `yaml:"namespaces"`
+func ValidateHeader(header Header) error {
+	if header.APIVersion != LatestAPIVersion {
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
-
-	// Get config files
-	configFileName := path.Join(configFolder, "config.yaml")
-	configSaveFileName := path.Join(configFolder, "config.yaml.save")
-
-	// Create namespaces folder
-	namespaceDirectory := path.Join(configFolder, "namespaces")
-	err := os.MkdirAll(namespaceDirectory, 0755)
-	util.Check(err)
-
-	// Read previous config
-	r, err := ioutil.ReadFile(configFileName)
-	util.Check(err)
-
-	oldConfig := OldConfig{}
-	newConfig := configuration{DefaultNamespace: "default"}
-	configHeader := iofogctlConfig{}
-	err = yaml.UnmarshalStrict(r, &oldConfig)
-	if err != nil {
-		if err2 := yaml.UnmarshalStrict(r, &configHeader); err2 != nil {
-			util.Check(err)
-		}
-		return nil
-	}
-
-	// Map old config to new config file system
-	for _, ns := range oldConfig.Namespaces {
-		// Write namespace config file
-		namespaceHeader := iofogctlNamespace{
-			Header{
-				Kind:       IofogctlNamespaceKind,
-				APIVersion: configV1,
-				Metadata: HeaderMetadata{
-					Name: ns.Name,
-				},
-				Spec: ns,
-			},
-		}
-		bytes, err := yaml.Marshal(namespaceHeader)
-		util.Check(err)
-		configFile := getNamespaceFile(ns.Name)
-		err = ioutil.WriteFile(configFile, bytes, 0644)
-		util.Check(err)
-	}
-
-	// Write old config save file
-	err = ioutil.WriteFile(configSaveFileName, r, 0644)
-	util.Check(err)
-
-	// Write new config file
-	bytes, err := getConfigYAMLFile(newConfig)
-	util.Check(err)
-	err = ioutil.WriteFile(configFileName, bytes, 0644)
-	util.Check(err)
-
-	util.PrintInfo(fmt.Sprintf("Your config file has successfully been updated, the previous config file has been saved under %s", configSaveFileName))
 	return nil
-}
-
-func updateNamespaceToV2(header iofogctlNamespace) (iofogctlNamespace, error) {
-	header.APIVersion = configV2
-	bytes, err := yaml.Marshal(header.Spec)
-	nsV1 := configv1.Namespace{}
-	if err != nil {
-		return header, err
-	}
-	if err = yaml.UnmarshalStrict(bytes, &nsV1); err != nil {
-		return header, err
-	}
-
-	// Namespace
-	ns := rsc.Namespace{
-		Name:    nsV1.Name,
-		Created: nsV1.Created,
-	}
-
-	// Finish
-	if len(nsV1.ControlPlane.Controllers) == 0 {
-		header.Spec = ns
-		return header, nil
-	}
-
-	// Get Controller to determine Control Plane type
-	controllerV1 := nsV1.ControlPlane.Controllers[0]
-
-	// Local Agents
-	if util.IsLocalHost(controllerV1.Host) {
-		for _, agentV1 := range nsV1.Agents {
-			agent := rsc.LocalAgent{
-				Name:    agentV1.Name,
-				UUID:    agentV1.UUID,
-				Created: agentV1.Created,
-				Container: rsc.Container{
-					Image:       agentV1.Container.Image,
-					Credentials: rsc.Credentials(agentV1.Container.Credentials),
-				},
-			}
-			if err := ns.AddAgent(&agent); err != nil {
-				return header, err
-			}
-		}
-	} else {
-		// Remote Agents
-		for _, agentV1 := range nsV1.Agents {
-			agent := rsc.RemoteAgent{
-				Name:    agentV1.Name,
-				Host:    agentV1.Host,
-				SSH:     rsc.SSH(agentV1.SSH),
-				UUID:    agentV1.UUID,
-				Created: agentV1.Created,
-				Package: rsc.Package(agentV1.Package),
-			}
-			if err := ns.AddAgent(&agent); err != nil {
-				return header, err
-			}
-		}
-	}
-
-	// Local Control Plane
-	if util.IsLocalHost(controllerV1.Host) {
-		ns.LocalControlPlane = &rsc.LocalControlPlane{
-			Controller: &rsc.LocalController{
-				Name:     controllerV1.Name,
-				Endpoint: controllerV1.Endpoint,
-				Created:  controllerV1.Created,
-				Container: rsc.Container{
-					Image:       controllerV1.Container.Image,
-					Credentials: rsc.Credentials(controllerV1.Container.Credentials),
-				},
-			},
-		}
-		header.Spec = ns
-		return header, nil
-	}
-
-	// K8s control plane
-	if controllerV1.Kube.Config != "" {
-		for idx, controllerV1 := range nsV1.ControlPlane.Controllers {
-			if ns.KubernetesControlPlane == nil {
-				ns.KubernetesControlPlane = &rsc.KubernetesControlPlane{
-					KubeConfig: controllerV1.Kube.Config,
-					Services: rsc.Services{
-						Controller: rsc.Service{
-							Type: controllerV1.Kube.ServiceType,
-							IP:   controllerV1.Kube.StaticIP,
-						},
-					},
-					Replicas: rsc.Replicas{
-						Controller: int32(controllerV1.Kube.Replicas),
-					},
-					Images: rsc.KubeImages{
-						Controller: controllerV1.Container.Image,
-						Operator:   controllerV1.Kube.Images.Operator,
-						Kubelet:    controllerV1.Kube.Images.Kubelet,
-					},
-					Endpoint: controllerV1.Endpoint,
-				}
-				pod := rsc.KubernetesController{
-					PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
-					Endpoint: controllerV1.Endpoint,
-					Created:  controllerV1.Created,
-				}
-				if err := ns.KubernetesControlPlane.AddController(&pod); err != nil {
-					return header, err
-				}
-			}
-		}
-		header.Spec = ns
-		return header, nil
-	}
-
-	// Remote Control Plane
-	for _, controllerV1 := range nsV1.ControlPlane.Controllers {
-		if ns.RemoteControlPlane == nil {
-			ns.RemoteControlPlane = new(rsc.RemoteControlPlane)
-		}
-		ctrl := rsc.RemoteController{
-			Name:     controllerV1.Name,
-			Host:     controllerV1.Host,
-			SSH:      rsc.SSH(controllerV1.SSH),
-			Endpoint: controllerV1.Endpoint,
-			Created:  controllerV1.Created,
-			Package:  rsc.Package(controllerV1.Package),
-		}
-		if err := ns.RemoteControlPlane.AddController(&ctrl); err != nil {
-			return header, err
-		}
-	}
-
-	header.Spec = ns
-	return header, nil
 }

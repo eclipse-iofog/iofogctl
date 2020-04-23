@@ -21,6 +21,7 @@ import (
 
 func newDeleteAgentCommand() *cobra.Command {
 	var soft bool
+	var force bool
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
 		Short: "Delete an Agent",
@@ -42,7 +43,7 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 			util.Check(err)
 
 			// Run the command
-			exe, err := delete.NewExecutor(namespace, name, useDetached, soft)
+			exe, err := delete.NewExecutor(namespace, name, useDetached, soft, force)
 			util.Check(err)
 			err = exe.Execute()
 			util.Check(err)
@@ -52,6 +53,7 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 	}
 
 	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete iofog-agent from remote host")
+	cmd.Flags().BoolVar(&force, "force", false, "Remove even if there are still resource running on the Agent")
 
 	return cmd
 }

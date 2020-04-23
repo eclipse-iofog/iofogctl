@@ -25,9 +25,11 @@ spec:
   for IDX in 1 2 3; do
     echo "test$IDX" > "$SRC/test$IDX"
   done
-  [ ! -d $SRC/testdir ] && mkdir $SRC/testdir
-  for IDX in 1 2 3; do
-    echo "test$IDX" > "$SRC/testdir/test$IDX"
+  for DIR_IDX in 1 2 3; do
+    [ ! -d $SRC/testdir$DIR_IDX ] && mkdir $SRC/testdir$DIR_IDX
+    for FILE_IDX in 1 2 3; do
+      echo "test$FILE_IDX" > "$SRC/testdir$DIR_IDX/test$FILE_IDX"
+    done
   done
   iofogctl -v -n "$NS" deploy -f test/conf/volume.yaml
 
@@ -37,10 +39,12 @@ spec:
     SSH_KEY_PATH=$WSL_KEY_FILE
   fi
   for IDX in "${!AGENTS[@]}"; do
-    for FILE_IDX in 1 2 3; do
-      SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
-      $SSH_COMMAND -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
-      $SSH_COMMAND -- cat $DST/testdir/test$FILE_IDX | grep "test$FILE_IDX"
+    for DIR_IDX in 1 2 3; do
+      for FILE_IDX in 1 2 3; do
+        SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
+        $SSH_COMMAND -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
+        $SSH_COMMAND -- cat $DST/testdir$DIR_IDX/test$FILE_IDX | grep "test$FILE_IDX"
+      done
     done
   done
 }
@@ -113,9 +117,11 @@ function testMountVolume(){
   SSH_COMMAND="ssh -S -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[0]}@${HOSTS[0]}"
   CONTAINER=$($SSH_COMMAND -- sudo docker ps | grep "heart-rate-ui" | awk '{print $1}')
   $SSH_COMMAND -- sudo docker exec $CONTAINER ls $VOL_CONT_DEST
-  for FILE_IDX in 1 2 3; do
-    $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/test$FILE_IDX | grep test$FILE_IDX
-    $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/testdir/test$FILE_IDX | grep test$FILE_IDX
+  for DIR_IDX in 1 2 3; do
+    for FILE_IDX in 1 2 3; do
+      $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/test$FILE_IDX | grep test$FILE_IDX
+      $SSH_COMMAND -- sudo docker exec $CONTAINER cat $VOL_CONT_DEST/testdir$DIR_IDX/test$FILE_IDX | grep test$FILE_IDX
+    done
   done
 }
 
@@ -145,4 +151,29 @@ function testWrongNamespace(){
   [ $status -ne 0 ]
   echo "$output"
   [[ "$output" == *"does not match the Namespace"* ]]
+}
+
+function testDefaultNamespace(){
+  local SET_NS="$1"
+  iofogctl configure default-namespace "$NS"
+  iofogctl get all | grep "$NS"
+}
+
+function testGenerateConnectionString(){
+  local ADDR="$1"
+  local CNCT=$(iofogctl -n "$NS" connect --generate)
+  echo "$CNCT"
+  [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email "$USER_EMAIL" --pass $USER_PW_B64 --b64" ]
+}
+
+function testAttachExternalAgent(){
+  initAgents
+  local AGENT_NAME="${NAME}-0"
+  iofogctl -v -n "$NS" detach agent "$AGENT_NAME"
+  iofogctl delete agent "$AGENT_NAME" --detached --soft
+  local OUTPUT=$(iofogctl get agents)
+  [ -z "$(echo $OUTPUT | grep $AGENT_NAME)" ]
+  iofogctl -v -n "$NS" attach agent "$AGENT_NAME" --host ${HOSTS[0]} --user ${USERS[0]} --port ${PORTS[0]} --key $KEY_FILE
+  OUTPUT=$(iofogctl -n "$NS" get agents)
+  echo $OUTPUT | grep $AGENT_NAME
 }

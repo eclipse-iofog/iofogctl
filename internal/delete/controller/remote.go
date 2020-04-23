@@ -81,10 +81,12 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	// Update config
-	if err = exe.controlPlane.DeleteController(exe.name); err != nil {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
 		return err
 	}
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
-
-	return nil
+	if err = ns.DeleteController(exe.name); err != nil {
+		return err
+	}
+	return config.Flush()
 }

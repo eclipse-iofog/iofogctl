@@ -18,9 +18,9 @@ import (
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -96,7 +96,7 @@ func (exe remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
 func (exe remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying catalog item %s", exe.GetName()))
 	// Init remote resources
-	clt, err := internal.NewControllerClient(exe.namespace)
+	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -143,6 +143,9 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 func validate(opt apps.CatalogItem) error {
 	if opt.Name == "" {
 		return util.NewInputError("Name must be specified")
+	}
+	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
+		return err
 	}
 
 	if opt.ARM == "" && opt.X86 == "" {

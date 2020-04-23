@@ -15,7 +15,9 @@ package install
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
@@ -34,8 +36,6 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	opclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	b64 "encoding/base64"
 )
 
 const (
@@ -179,7 +179,7 @@ func (k8s *Kubernetes) enableOperatorClient() (err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Database) error {
+func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Database) (endpoint string, err error) {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
 	ns := &corev1.Namespace{
@@ -187,16 +187,16 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 			Name: k8s.ns,
 		},
 	}
-	if _, err := k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
+	if _, err = k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
-			return err
+			return
 		}
 	}
 
 	// Set up CRDs if required
 	Verbose("Enabling CRDs")
-	if err := k8s.enableCustomResources(); err != nil {
-		return err
+	if err = k8s.enableCustomResources(); err != nil {
+		return
 	}
 
 	// Check if Control Plane exists
@@ -207,9 +207,9 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	}
 	var cp iofogv2.ControlPlane
 	found := true
-	if err := k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
+	if err = k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
 		if !k8serrors.IsNotFound(err) {
-			return err
+			return
 		}
 		// Not found, set basic info
 		found = false
@@ -221,9 +221,6 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 		}
 	}
 
-	// Encode credentials
-	user.Password = b64.StdEncoding.EncodeToString([]byte(user.Password))
-
 	// Set specification
 	cp.Spec.Replicas.Controller = int32(replicas)
 	cp.Spec.Database = iofogv2.Database(db)
@@ -234,17 +231,66 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	// Create or update Control Plane
 	if found {
 		Verbose("Updating existing Control Plane")
-		if err := k8s.opClient.Update(context.Background(), &cp); err != nil {
-			return err
+		if err = k8s.opClient.Update(context.Background(), &cp); err != nil {
+			return
 		}
 	} else {
 		Verbose("Deploying new Control Plane")
-		if err := k8s.opClient.Create(context.Background(), &cp); err != nil {
-			return err
+		if err = k8s.opClient.Create(context.Background(), &cp); err != nil {
+			return
 		}
 	}
 
-	return nil
+	// Get endpoint of deployed Controller
+	endpoint, err = k8s.GetControllerEndpoint()
+	if err != nil {
+		return
+	}
+
+	// Wait for Default Router to be registered by Port Manager
+	routerCh := make(chan struct{}, 1)
+	go k8s.getDefaultRouter(endpoint, user.Email, user.Password, routerCh)
+	select {
+	case <-routerCh:
+	case <-time.After(240 * time.Second):
+		err = util.NewInternalError("Failed to wait for Default Router registration")
+	}
+
+	return
+}
+
+func (k8s *Kubernetes) getDefaultRouter(endpoint, email, password string, stopCh chan struct{}) {
+	buf, err := base64.StdEncoding.DecodeString(password)
+	if err == nil {
+		password = string(buf)
+	}
+	opt := ioclient.Options{
+		Endpoint: endpoint,
+		Retries: &ioclient.Retries{
+			CustomMessage: map[string]int{
+				"timeout":           20,
+				"failed to respond": 20,
+				"refuse":            20,
+				"credential":        20,
+			},
+		},
+	}
+	for {
+		time.Sleep(2 * time.Second)
+		ioClient, err := ioclient.NewAndLogin(opt, email, password)
+		if err != nil {
+			continue
+		}
+		router, err := ioClient.GetDefaultRouter()
+		if err != nil {
+			continue
+		}
+		if router.Host == "" {
+			continue
+		}
+		close(stopCh)
+		return
+	}
 }
 
 func (k8s *Kubernetes) deleteOperator() (err error) {
@@ -375,14 +421,14 @@ func (k8s *Kubernetes) DeleteController() error {
 	return nil
 }
 
-func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string, nodePort int32, err error) {
+func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr string, nodePort int32, err error) {
 	// Get watch handler to observe changes to services
 	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(metav1.ListOptions{})
 	if err != nil {
 		return
 	}
 
-	// Wait for Services to have IPs allocated
+	// Wait for Services to have addresses allocated
 	for event := range watch.ResultChan() {
 		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
@@ -402,7 +448,17 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 				continue
 			}
 			nodePort = targetPort
-			ip = svc.Status.LoadBalancer.Ingress[0].IP
+			ip := svc.Status.LoadBalancer.Ingress[0].IP
+			host := svc.Status.LoadBalancer.Ingress[0].Hostname
+			if ip != "" {
+				addr = ip
+			}
+			if host != "" {
+				addr = host
+			}
+			if addr == "" {
+				continue
+			}
 
 		case corev1.ServiceTypeNodePort:
 			// Get a list of K8s nodes and return one of their external IPs
@@ -416,22 +472,22 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (ip string,
 					for _, node := range nodeList.Items {
 						for _, addrs := range node.Status.Addresses {
 							if addrs.Type == corev1.NodeExternalIP {
-								ip = addrs.Address
+								addr = addrs.Address
 								break
 							}
 						}
 					}
-					if ip == "" {
+					if addr == "" {
 						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
 						for _, node := range nodeList.Items {
 							for _, addrs := range node.Status.Addresses {
 								if addrs.Type == corev1.NodeInternalIP {
-									ip = addrs.Address
+									addr = addrs.Address
 									break
 								}
 							}
 						}
-						if ip == "" {
+						if addr == "" {
 							err = util.NewError("Could not get an external or internal IP address of any Kubernetes nodes for NodePort service " + name)
 						}
 					}
@@ -502,4 +558,23 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 		return
 	}
 	return util.GetControllerEndpoint(fmt.Sprintf("%s:%d", ip, port))
+}
+
+func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
+	podNames = make([]Pod, 0)
+	// List pods
+	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	// Find Controller pods
+	for idx := range pods.Items {
+		if pods.Items[idx].Labels["name"] == controller {
+			podNames = append(podNames, Pod{
+				Name:   pods.Items[idx].Name,
+				Status: string(pods.Items[idx].Status.Phase),
+			})
+		}
+	}
+	return
 }

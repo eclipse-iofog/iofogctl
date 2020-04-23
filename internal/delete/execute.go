@@ -74,10 +74,10 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
 	},
 	config.RemoteAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false, false)
 	},
 	config.LocalAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)

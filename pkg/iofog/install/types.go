@@ -28,3 +28,8 @@ type Database struct {
 	Password     string
 	DatabaseName string
 }
+
+type Pod struct {
+	Name   string
+	Status string
+}

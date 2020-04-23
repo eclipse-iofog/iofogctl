@@ -20,6 +20,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -102,11 +103,11 @@ iofogctl legacy agent NAME status`,
 			useDetached, err := cmd.Flags().GetBool("detached")
 			util.Check(err)
 
+			ns, err := config.GetNamespace(namespace)
+			util.Check(err)
 			switch resource {
 			case "controller":
 				// Get config
-				ns, err := config.GetNamespace(namespace)
-				util.Check(err)
 				controlPlane, err := ns.GetControlPlane()
 				util.Check(err)
 				baseController, err := controlPlane.GetController(name)
@@ -127,13 +128,15 @@ iofogctl legacy agent NAME status`,
 					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				}
 			case "agent":
+				// Update local cache based on Controller
+				err := iutil.UpdateAgentCache(namespace)
+				util.Check(err)
 				// Get config
 				var baseAgent rsc.Agent
-				var err error
 				if useDetached {
 					baseAgent, err = config.GetDetachedAgent(name)
 				} else {
-					baseAgent, err = config.GetAgent(namespace, name)
+					baseAgent, err = ns.GetAgent(name)
 				}
 				util.Check(err)
 				switch agent := baseAgent.(type) {

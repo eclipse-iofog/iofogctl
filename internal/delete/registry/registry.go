@@ -16,8 +16,8 @@ package deleteregistry
 import (
 	"strconv"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -48,7 +48,7 @@ func (exe *Executor) GetName() string {
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Registry")
 	// Init remote resources
-	clt, err := internal.NewControllerClient(exe.namespace)
+	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

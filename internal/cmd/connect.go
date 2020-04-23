@@ -34,7 +34,8 @@ All resources provisioned with the corresponding Control Plane will become visib
 Visit iofog.org to view all YAML specifications usable with this command.`,
 		Example: `iofogctl connect -f controlplane.yaml
 iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
-iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
+iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
+iofogctl connect --generate`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
@@ -43,7 +44,9 @@ iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 			err = connect.Execute(opt)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully connected resources to namespace " + opt.Namespace)
+			if !opt.Generate {
+				util.PrintSuccess("Successfully connected resources to namespace " + opt.Namespace)
+			}
 		},
 	}
 	// Register flags
@@ -54,6 +57,8 @@ iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD`,
 	cmd.Flags().StringVar(&opt.IofogUserEmail, "email", "", "ioFog user email address")
 	cmd.Flags().StringVar(&opt.IofogUserPass, "pass", "", "ioFog user password")
 	cmd.Flags().BoolVar(&opt.OverwriteNamespace, "force", false, "Overwrite existing namespace")
+	cmd.Flags().BoolVar(&opt.Generate, "generate", false, "Generate a connection string that can be used to connect to this ECN")
+	cmd.Flags().BoolVar(&opt.Base64Encoded, "b64", false, "Indicate whether input password (--pass) is base64 encoded or not")
 
 	return cmd
 }

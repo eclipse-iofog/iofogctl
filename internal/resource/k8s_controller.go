@@ -17,6 +17,7 @@ type KubernetesController struct {
 	PodName  string `yaml:"podName"`
 	Endpoint string `yaml:"endpoint"`
 	Created  string `yaml:"created,omitempty"`
+	Status   string `yaml:"status,omitempty"`
 }
 
 func (ctrl KubernetesController) GetName() string {
@@ -37,4 +38,12 @@ func (ctrl *KubernetesController) SetName(name string) {
 
 func (ctrl *KubernetesController) Sanitize() error {
 	return nil
+}
+
+func (ctrl *KubernetesController) Clone() Controller {
+	return &KubernetesController{
+		PodName:  ctrl.PodName,
+		Endpoint: ctrl.Endpoint,
+		Created:  ctrl.Created,
+	}
 }

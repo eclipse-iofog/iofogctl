@@ -14,10 +14,8 @@
 package connectk8scontrolplane
 
 import (
-	"fmt"
-
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -43,10 +41,7 @@ func (exe *kubernetesExecutor) GetName() string {
 
 func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
 	controlPlane := &rsc.KubernetesControlPlane{
-		IofogUser: rsc.IofogUser{
-			Email:    email,
-			Password: password,
-		},
+		IofogUser:  rsc.IofogUser{Email: email, Password: password},
 		KubeConfig: kubeConfig,
 		Endpoint:   formatEndpoint(endpoint),
 	}
@@ -72,63 +67,48 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	// Instantiate Kubernetes cluster object
 	k8s, err := install.NewKubernetes(exe.controlPlane.KubeConfig, exe.namespace)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Check the resources exist in K8s namespace
 	if err = k8s.ExistsInNamespace(exe.namespace); err != nil {
-		return err
+		return
 	}
 
 	// Get Controller endpoint
 	endpoint, err := k8s.GetControllerEndpoint()
 	if err != nil {
-		return err
+		return
 	}
 
 	// Establish connection
-	err = connect(exe.controlPlane, endpoint, exe.namespace)
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
-		return err
+		return
+	}
+	err = agents.Connect(exe.controlPlane, endpoint, ns)
+	if err != nil {
+		return
 	}
 
-	if err := addPods(exe.controlPlane, endpoint); err != nil {
-		return err
+	pods, err := k8s.GetControllerPods()
+	if err != nil {
+		return
+	}
+	for idx := range pods {
+		k8sPod := rsc.KubernetesController{
+			Endpoint: endpoint,
+			PodName:  pods[idx].Name,
+		}
+		if err := exe.controlPlane.AddController(&k8sPod); err != nil {
+			return err
+		}
 	}
 	exe.controlPlane.Endpoint = endpoint
 
 	// Save changes
-	config.UpdateControlPlane(exe.namespace, exe.controlPlane)
+	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
-}
-
-// TODO: remove duplication
-func connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string) error {
-	// Connect to Controller
-	ctrl, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().Password)
-	if err != nil {
-		return err
-	}
-
-	// Get Agents
-	listAgentsResponse, err := ctrl.ListAgents(client.ListAgentsRequest{})
-	if err != nil {
-		return err
-	}
-
-	// Update Agents config
-	for _, agent := range listAgentsResponse.Agents {
-		agentConfig := rsc.RemoteAgent{
-			Name: agent.Name,
-			UUID: agent.UUID,
-			Host: agent.IPAddressExternal,
-		}
-		if err = config.AddAgent(namespace, &agentConfig); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func formatEndpoint(endpoint string) string {
@@ -148,18 +128,4 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 	}
 
 	return
-}
-
-func addPods(controlPlane *rsc.KubernetesControlPlane, endpoint string) error {
-	for idx := int32(0); idx < controlPlane.Replicas.Controller; idx++ {
-		k8sPod := rsc.KubernetesController{
-			Endpoint: endpoint,
-			PodName:  fmt.Sprintf("kubernetes-%d", idx+1),
-			Created:  util.NowUTC(),
-		}
-		if err := controlPlane.AddController(&k8sPod); err != nil {
-			return err
-		}
-	}
-	return nil
 }

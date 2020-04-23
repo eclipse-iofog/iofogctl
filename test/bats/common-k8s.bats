@@ -1,14 +1,17 @@
 @test "Deploy Volumes" {
   testDeployVolume
+  testGetDescribeVolume
 }
 
-@test "Get and Describe Volumes" {
+@test "Deploy Volumes Idempotent" {
+  testDeployVolume
   testGetDescribeVolume
 }
 
 @test "Delete Volumes and Redeploy" {
   testDeleteVolume
   testDeployVolume
+  testGetDescribeVolume
 }
 
 @test "Agent legacy commands" {
@@ -48,25 +51,35 @@
 @test "Connect to cluster using deploy file" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
-  checkControllerK8s "${K8S_POD}1"
+  checkControllerK8s
   checkAgents
+}
+
+@test "Generate connection string" {
+  local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
+  testGenerateConnectionString "http://$IP:51121"
+  CNCT=$(iofogctl -n "$NS" connect --generate)
+  eval "$CNCT -n ${NS}_2"
+  iofogctl disconnect -n "${NS}_2"
 }
 
 @test "Disconnect from cluster again" {
   initAgents
   iofogctl -v -n "$NS" disconnect
   checkNamespaceExistsNegative "$NS"
+  iofogctl -v -n "$NS2" disconnect # Idempotent
 }
 
 @test "Connect to cluster using flags" {
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkControllerK8s "${K8S_POD}1"
+  checkControllerK8s
   checkAgents
 }
 
+
 @test "Set default namespace" {
-  iofogctl -v configure default-namespace "$NS"
+  testDefaultNamespace "$NS"
 }
 
 @test "Deploy application" {
@@ -215,4 +228,8 @@
   iofogctl -v attach agent "$AGENT_NAME"
   checkAgent "$AGENT_NAME"
   checkDetachedAgentNegative "$AGENT_NAME"
+}
+
+@test "Attach external Agent" {
+  testAttachExternalAgent
 }

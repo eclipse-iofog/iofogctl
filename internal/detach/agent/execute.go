@@ -16,10 +16,10 @@ package detachagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -47,7 +47,15 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return util.NewConflictError(fmt.Sprintf(msg, exe.name, exe.name, exe.name, exe.namespace, exe.name, exe.name, exe.namespace))
 	}
 
-	baseAgent, err := config.GetAgent(exe.namespace, exe.name)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		return err
+	}
+	baseAgent, err := ns.GetAgent(exe.name)
 	if err == nil {
 		// Deprovision agent
 		switch agent := baseAgent.(type) {
@@ -63,7 +71,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Try to get a Controller client to talk to the REST API
-	ctrl, err := internal.NewControllerClient(exe.namespace)
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

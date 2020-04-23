@@ -16,6 +16,7 @@ package configure
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -44,12 +45,20 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		return err
+	}
+
 	var baseAgent rsc.Agent
-	var err error
 	if exe.useDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.name)
 	} else {
-		baseAgent, err = config.GetAgent(exe.namespace, exe.name)
+		baseAgent, err = ns.GetAgent(exe.name)
 	}
 	if err != nil {
 		return err
@@ -79,7 +88,7 @@ func (exe *agentExecutor) Execute() error {
 			config.UpdateDetachedAgent(agent)
 			return nil
 		}
-		if err = config.UpdateAgent(exe.namespace, agent); err != nil {
+		if err = ns.UpdateAgent(agent); err != nil {
 			return err
 		}
 		return config.Flush()

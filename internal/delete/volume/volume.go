@@ -21,18 +21,18 @@ import (
 )
 
 type Executor struct {
-	namespace string
-	volume    rsc.Volume
+	ns         *rsc.Namespace
+	volumeName string
 }
 
 func NewExecutor(namespace, name string) (execute.Executor, error) {
-	volume, err := config.GetVolume(namespace, name)
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
 	}
 	exe := &Executor{
-		namespace: namespace,
-		volume:    volume,
+		ns:         ns,
+		volumeName: name,
 	}
 
 	return exe, nil
@@ -40,34 +40,38 @@ func NewExecutor(namespace, name string) (execute.Executor, error) {
 
 // GetName returns application name
 func (exe *Executor) GetName() string {
-	return exe.volume.Name
+	return "Delete Volume " + exe.volumeName
 }
 
 // Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Volume")
+	volume, err := exe.ns.GetVolume(exe.volumeName)
+	if err != nil {
+		return err
+	}
 
 	// Delete files
-	ch := make(chan error, len(exe.volume.Agents))
-	for idx := range exe.volume.Agents {
-		go exe.execute(idx, ch)
+	ch := make(chan error, len(volume.Agents))
+	for idx := range volume.Agents {
+		go exe.execute(volume, idx, ch)
 	}
-	for idx := 0; idx < len(exe.volume.Agents); idx++ {
+	for idx := 0; idx < len(volume.Agents); idx++ {
 		if err := <-ch; err != nil {
 			return err
 		}
 	}
 
 	// Delete from config
-	if err := config.DeleteVolume(exe.namespace, exe.volume.Name); err != nil {
+	if err := exe.ns.DeleteVolume(exe.volumeName); err != nil {
 		return err
 	}
 	return config.Flush()
 }
 
-func (exe *Executor) execute(agentIdx int, ch chan error) {
-	agentName := exe.volume.Agents[agentIdx]
-	baseAgent, err := config.GetAgent(exe.namespace, agentName)
+func (exe *Executor) execute(volume rsc.Volume, agentIdx int, ch chan error) {
+	agentName := volume.Agents[agentIdx]
+	baseAgent, err := exe.ns.GetAgent(agentName)
 	if err != nil {
 		ch <- err
 	}
@@ -89,7 +93,7 @@ func (exe *Executor) execute(agentIdx int, ch chan error) {
 		ch <- err
 	}
 	// Delete
-	if _, err := ssh.Run("rm -rf " + util.AddTrailingSlash(exe.volume.Destination) + "*"); err != nil {
+	if _, err := ssh.Run("rm -rf " + util.AddTrailingSlash(volume.Destination) + "*"); err != nil {
 		ch <- err
 	}
 

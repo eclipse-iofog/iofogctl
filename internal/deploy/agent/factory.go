@@ -65,7 +65,7 @@ func (facade *facadeExecutor) Execute() (err error) {
 
 	// Don't add system agent to the namespace config file
 	if !facade.isSystem {
-		if err = config.UpdateAgent(facade.namespace, facade.agent); err != nil {
+		if err = ns.UpdateAgent(facade.agent); err != nil {
 			return
 		}
 	}

@@ -14,7 +14,7 @@ NS2="$NS"_2
 }
 
 @test "Set default namespace" {
-  iofogctl configure default-namespace "$NS"
+  testDefaultNamespace "$NS"
 }
 
 @test "Deploy vanilla Controller" {
@@ -32,14 +32,21 @@ spec:
       user: $VANILLA_USER
       port: $VANILLA_PORT
       keyFile: $KEY_FILE
-    package:
-      repo: $CONTROLLER_REPO
-      version: $CONTROLLER_VANILLA_VERSION
-      token: $CONTROLLER_PACKAGE_CLOUD_TOKEN
-    systemAgent:
-      version: $AGENT_VANILLA_VERSION
-      repo: $AGENT_REPO
-      token: $AGENT_PACKAGE_CLOUD_TOKEN
+  package:
+    repo: $CONTROLLER_REPO
+    version: $CONTROLLER_VANILLA_VERSION
+    token: $CONTROLLER_PACKAGE_CLOUD_TOKEN
+  systemAgent:
+    repo: $AGENT_REPO
+    version: $AGENT_VANILLA_VERSION
+    token: $AGENT_PACKAGE_CLOUD_TOKEN
+  systemMicroservices:
+    router:
+      x86: $ROUTER_IMAGE
+      arm: $ROUTER_ARM_IMAGE
+    proxy:
+      x86: $PROXY_IMAGE
+      arm: $PROXY_ARM_IMAGE
   iofogUser:
     name: Testing
     surname: Functional
@@ -90,15 +97,18 @@ spec:
 
 @test "Deploy Volumes" {
   testDeployVolume
+  testGetDescribeVolume
 }
 
-@test "Get and Describe Volumes" {
+@test "Deploy Volumes Idempotent" {
+  testDeployVolume
   testGetDescribeVolume
 }
 
 @test "Delete Volumes and Redeploy" {
   testDeleteVolume
   testDeployVolume
+  testGetDescribeVolume
 }
 
 @test "Agent legacy commands" {
@@ -148,6 +158,10 @@ spec:
   iofogctl -v attach agent "$AGENT_NAME"
   checkAgent "$AGENT_NAME"
   checkDetachedAgentNegative "$AGENT_NAME"
+}
+
+@test "Attach external Agent" {
+  testAttachExternalAgent
 }
 
 @test "Deploy application" {
@@ -209,9 +223,17 @@ spec:
   hitMsvcEndpoint "$EXT_IP"
 }
 
+@test "Generate connection string" {
+  initVanillaController
+  testGenerateConnectionString "http://$VANILLA_HOST:51121"
+  CNCT=$(iofogctl -n "$NS" connect --generate)
+  eval "$CNCT -n ${NS}_2"
+  iofogctl disconnect -n "${NS}_2"
+}
+
 @test "Connect in another namespace using file" {
   iofogctl -v -n "$NS2" connect -f test/conf/vanilla.yaml
-  checkController "$NS2"
+  checkControllerAfterConnect "$NS2"
   checkAgents "$NS2"
   checkApplication "$NS2"
   for IDX in "${!AGENTS[@]}"; do
@@ -221,28 +243,34 @@ spec:
 }
 
 @test "Test you can access logs in other namespace" {
-  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --key "$KEY_FILE"
+  initVanillaController
+  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --key "$KEY_FILE" --port $VANILLA_PORT
+  checkControllerAfterConfigure "$NS2"
   iofogctl -v -n "$NS2" logs controller "$NAME"
 }
 
 @test "Disconnect other namespace" {
   iofogctl -v -n "$NS2" disconnect
   checkNamespaceExistsNegative "$NS2"
+  iofogctl -v -n "$NS2" disconnect # Idempotent
 }
 
 @test "Connect in other namespace using flags" {
   initVanillaController
   CONTROLLER_ENDPOINT="$VANILLA_HOST:51121"
   iofogctl -v -n "$NS2" connect --name "$NAME" --ecn-addr "$CONTROLLER_ENDPOINT" --email "$USER_EMAIL" --pass "$USER_PW"
-  checkController "$NS2"
+  checkControllerAfterConnect "$NS2"
   checkAgents "$NS2"
 }
 
-@test "Configure Controller and Connector" {
+@test "Configure Controller" {
   initVanillaController
-  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+  iofogctl -v -n "$NS2" configure controller "$NAME" --user "$VANILLA_USER" --port $VANILLA_PORT --key "$KEY_FILE"
+  checkControllerAfterConfigure "$NS2"
   iofogctl -v -n "$NS2" logs controller "$NAME"
-  iofogctl -v -n "$NS2" configure controllers "$NAME" --user "$VANILLA_USER" --port "$VANILLA_PORT" --key "$KEY_FILE"
+
+  iofogctl -v -n "$NS2" configure controllers "$NAME" --user "$VANILLA_USER" --port $VANILLA_PORT --key "$KEY_FILE"
+  checkControllerAfterConfigure "$NS2"
   iofogctl -v -n "$NS2" logs controller "$NAME"
 }
 
@@ -294,12 +322,10 @@ spec:
   checkRenamedApplication "application-name" "$APPLICATION_NAME" "$NS"
 }
 
-
 @test "Disconnect other namespace again" {
   iofogctl -v -n "$NS2" disconnect
   checkNamespaceExistsNegative "$NS2"
 }
-
 
 @test "Deploy again to check it doesn't lose database" {
   iofogctl -v deploy -f test/conf/vanilla.yaml

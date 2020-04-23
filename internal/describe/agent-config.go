@@ -18,8 +18,8 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -59,14 +59,18 @@ func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid strin
 }
 
 func (exe *agentConfigExecutor) Execute() error {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
 	// Get config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	agent, err := ns.GetAgent(exe.name)
 	if err != nil {
 		return err
 	}
 
 	// Connect to controller
-	ctrl, err := internal.NewControllerClient(exe.namespace)
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -151,7 +155,7 @@ func (exe *agentConfigExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.AgentConfigKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

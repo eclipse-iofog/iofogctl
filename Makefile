@@ -14,9 +14,9 @@ COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/v2/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).portManagerTag=2.0.0-beta2
+LDFLAGS += -X $(PREFIX).portManagerTag=2.0.0-beta3
 LDFLAGS += -X $(PREFIX).kubeletTag=2.0.0-beta
-LDFLAGS += -X $(PREFIX).operatorTag=2.0.0-beta2
+LDFLAGS += -X $(PREFIX).operatorTag=2.0.0-beta3
 LDFLAGS += -X $(PREFIX).proxyTag=2.0.0-beta
 LDFLAGS += -X $(PREFIX).routerTag=2.0.0-beta
 LDFLAGS += -X $(PREFIX).controllerTag=2.0.0-beta2
@@ -24,8 +24,8 @@ LDFLAGS += -X $(PREFIX).agentTag=2.0.0-beta2
 LDFLAGS += -X $(PREFIX).controllerVersion=2.0.0-beta2
 LDFLAGS += -X $(PREFIX).agentVersion=2.0.0-beta2
 LDFLAGS += -X $(PREFIX).repo=iofog
-GO_SDK_MODULE = iofog-go-sdk/v2@v2.0.0-beta2
-OPERATOR_MODULE = iofog-operator/v2@v2.0.0-beta2
+GO_SDK_MODULE = iofog-go-sdk/v2@v2.0.0-beta3
+OPERATOR_MODULE = iofog-operator/v2@v2.0.0-beta3
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -87,7 +87,7 @@ fmt: ## Format the source
 test: ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; find ./internal -name '*_test.go' -not -path vendor/ | sed -E "s|(/.*/).*_test.go|\1|g" | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; find ./internal -name '*_test.go' -not -path vendor/ | sed -E "s|(/.*/).*_test.go|\1|g" | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -coverprofile=$(REPORTS_DIR)/coverage.txt -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list

@@ -80,12 +80,12 @@ func getNamespace(name string) (*rsc.Namespace, error) {
 }
 
 // GetNamespace returns the namespace
-func GetNamespace(namespace string) (rsc.Namespace, error) {
+func GetNamespace(namespace string) (*rsc.Namespace, error) {
 	ns, err := getNamespace(namespace)
 	if err != nil {
-		return rsc.Namespace{}, err
+		return nil, err
 	}
-	return *ns, nil
+	return ns, nil
 }
 
 // AddNamespace adds a new namespace to the config
@@ -119,10 +119,6 @@ func AddNamespace(name, created string) error {
 
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
-	if name == "default" {
-		return util.NewInputError("Cannot delete namespace named \"default\"")
-	}
-
 	// Reset default namespace if required
 	if name == conf.DefaultNamespace {
 		if err := SetDefaultNamespace("default"); err != nil {
@@ -135,8 +131,6 @@ func DeleteNamespace(name string) error {
 		return util.NewNotFoundError("Could not delete namespace file " + filename)
 	}
 
-	mux.Lock()
-	defer mux.Unlock()
 	delete(namespaces, name)
 
 	return nil
@@ -158,33 +152,5 @@ func RenameNamespace(name, newName string) error {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func UpdateNamespace(newNamespace rsc.Namespace) {
-	mux.Lock()
-	defer mux.Unlock()
-	namespaces[newNamespace.Name] = &newNamespace
-}
-
-func UpdateControlPlane(namespace string, controlPlane rsc.ControlPlane) {
-	mux.Lock()
-	defer mux.Unlock()
-	namespaces[namespace].SetControlPlane(controlPlane)
-}
-
-func ClearNamespace(namespace string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	mux.Lock()
-	defer mux.Unlock()
-	ns.KubernetesControlPlane = nil
-	ns.RemoteControlPlane = nil
-	ns.LocalControlPlane = nil
-	ns.LocalAgents = []rsc.LocalAgent{}
-	ns.RemoteAgents = []rsc.RemoteAgent{}
-	ns.Volumes = []rsc.Volume{}
 	return nil
 }

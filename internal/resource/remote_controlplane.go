@@ -17,10 +17,23 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
+type RemoteSystemImages struct {
+	ARM string `yaml:"arm,omitempty"`
+	X86 string `yaml:"x86,omitempty"`
+}
+
+type RemoteSystemMicroservices struct {
+	Router RemoteSystemImages `yaml:"router,omitempty"`
+	Proxy  RemoteSystemImages `yaml:"proxy,omitempty"`
+}
+
 type RemoteControlPlane struct {
-	IofogUser   IofogUser          `yaml:"iofogUser"`
-	Controllers []RemoteController `yaml:"controllers"`
-	Database    Database           `yaml:"database,omitempty"`
+	IofogUser           IofogUser                 `yaml:"iofogUser"`
+	Controllers         []RemoteController        `yaml:"controllers"`
+	Database            Database                  `yaml:"database,omitempty"`
+	Package             Package                   `yaml:"package,omitempty"`
+	SystemAgent         Package                   `yaml:"systemAgent,omitempty"`
+	SystemMicroservices RemoteSystemMicroservices `yaml:"systemMicroservices,omitempty"`
 }
 
 func (cp RemoteControlPlane) GetUser() IofogUser {
@@ -29,7 +42,7 @@ func (cp RemoteControlPlane) GetUser() IofogUser {
 
 func (cp RemoteControlPlane) GetControllers() (controllers []Controller) {
 	for idx := range cp.Controllers {
-		controllers = append(controllers, &cp.Controllers[idx])
+		controllers = append(controllers, cp.Controllers[idx].Clone())
 	}
 	return
 }
@@ -96,10 +109,24 @@ func (cp *RemoteControlPlane) DeleteController(name string) error {
 }
 
 func (cp *RemoteControlPlane) Sanitize() (err error) {
+	cp.IofogUser.EncodePassword()
 	for idx := range cp.Controllers {
 		if err = cp.Controllers[idx].Sanitize(); err != nil {
 			return
 		}
 	}
 	return nil
+}
+
+func (cp *RemoteControlPlane) Clone() ControlPlane {
+	controllers := make([]RemoteController, len(cp.Controllers))
+	copy(controllers, cp.Controllers)
+	return &RemoteControlPlane{
+		IofogUser:           cp.IofogUser,
+		Database:            cp.Database,
+		Package:             cp.Package,
+		SystemAgent:         cp.SystemAgent,
+		SystemMicroservices: cp.SystemMicroservices,
+		Controllers:         controllers,
+	}
 }

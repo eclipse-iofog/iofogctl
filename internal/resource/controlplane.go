@@ -22,4 +22,5 @@ type ControlPlane interface {
 	AddController(Controller) error
 	DeleteController(string) error
 	Sanitize() error
+	Clone() ControlPlane
 }

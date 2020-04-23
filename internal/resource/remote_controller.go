@@ -18,13 +18,11 @@ import (
 )
 
 type RemoteController struct {
-	Name        string  `yaml:"name"`
-	Host        string  `yaml:"host"`
-	SSH         SSH     `yaml:"ssh,omitempty"`
-	Endpoint    string  `yaml:"endpoint,omitempty"`
-	Created     string  `yaml:"created,omitempty"`
-	Package     Package `yaml:"package,omitempty"`
-	SystemAgent Package `yaml:"systemAgent,omitempty"`
+	Name     string `yaml:"name"`
+	Host     string `yaml:"host"`
+	SSH      SSH    `yaml:"ssh,omitempty"`
+	Endpoint string `yaml:"endpoint,omitempty"`
+	Created  string `yaml:"created,omitempty"`
 }
 
 func (ctrl RemoteController) GetName() string {
@@ -55,8 +53,18 @@ func (ctrl *RemoteController) Sanitize() (err error) {
 	return
 }
 
-func (controller *RemoteController) ValidateSSH() error {
-	if controller.Host == "" || controller.SSH.User == "" || controller.SSH.Port == 0 || controller.SSH.KeyFile == "" {
+func (ctrl *RemoteController) Clone() Controller {
+	return &RemoteController{
+		Name:     ctrl.Name,
+		Host:     ctrl.Host,
+		SSH:      ctrl.SSH,
+		Endpoint: ctrl.Endpoint,
+		Created:  ctrl.Created,
+	}
+}
+
+func (ctrl *RemoteController) ValidateSSH() error {
+	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.Port == 0 || ctrl.SSH.KeyFile == "" {
 		return NewNoSSHConfigError("Agent")
 	}
 	return nil

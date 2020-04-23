@@ -17,8 +17,8 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -50,7 +50,7 @@ func (exe *applicationExecutor) Execute() error {
 }
 
 func (exe *applicationExecutor) init() (err error) {
-	exe.client, err = internal.NewControllerClient(exe.namespace)
+	exe.client, err = iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		if rsc.IsNoControlPlaneError(err) {
 			return nil
@@ -82,29 +82,33 @@ func (exe *applicationExecutor) init() (err error) {
 func (exe *applicationExecutor) generateApplicationOutput() error {
 	// Generate table and headers
 	table := make([][]string, len(exe.flows)+1)
-	headers := []string{"APPLICATION", "STATUS", "MICROSERVICES"}
+	headers := []string{"APPLICATION", "RUNNING", "MICROSERVICES"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
 	for idx, flow := range exe.flows {
-		status := "INACTIVE"
-		if flow.IsActivated == true {
-			status = "RUNNING"
-		}
+		nbMsvcs := len(exe.msvcsPerFlow[flow.ID])
+		runningMsvcs := 0
 		msvcs := ""
 		first := true
-		if len(exe.msvcsPerFlow[flow.ID]) > 5 {
-			msvcs = fmt.Sprintf("%d microservices", len(exe.msvcsPerFlow[flow.ID]))
-		} else {
-			for _, msvc := range exe.msvcsPerFlow[flow.ID] {
-				if first == true {
-					msvcs += fmt.Sprintf("%s", msvc.Name)
-				} else {
-					msvcs += fmt.Sprintf(", %s", msvc.Name)
-				}
-				first = false
+		for _, msvc := range exe.msvcsPerFlow[flow.ID] {
+			if first == true {
+				msvcs += fmt.Sprintf("%s", msvc.Name)
+			} else {
+				msvcs += fmt.Sprintf(", %s", msvc.Name)
+			}
+			first = false
+			if msvc.Status.Status == "RUNNING" {
+				runningMsvcs++
 			}
 		}
+
+		if nbMsvcs > 5 {
+			msvcs = fmt.Sprintf("%d microservices", len(exe.msvcsPerFlow[flow.ID]))
+		}
+
+		status := fmt.Sprintf("%d/%d", runningMsvcs, nbMsvcs)
+
 		row := []string{
 			flow.Name,
 			status,

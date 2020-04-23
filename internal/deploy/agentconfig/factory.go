@@ -18,8 +18,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"gopkg.in/yaml.v2"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -101,13 +101,13 @@ func isOverridingSystemAgent(controllerHost, agentHost string, isSystem bool) (e
 }
 
 func (exe *remoteExecutor) Execute() error {
-	isSystem := internal.IsSystemAgent(exe.agentConfig)
+	isSystem := iutil.IsSystemAgent(exe.agentConfig)
 	if !isSystem || install.IsVerbose() {
 		util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
 	}
 
 	// Check controller is reachable
-	clt, err := internal.NewControllerClient(exe.namespace)
+	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
