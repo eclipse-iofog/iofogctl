@@ -15,6 +15,7 @@ package deploycatalogitem
 
 import (
 	"fmt"
+	"strconv"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -54,7 +55,14 @@ func (exe remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
 	}
 
 	if exe.catalogItem.Registry != "" {
-		request.RegistryID = client.RegistryTypeRegistryTypeIDDict[exe.catalogItem.Registry]
+		registryID, ok := client.RegistryTypeRegistryTypeIDDict[exe.catalogItem.Registry]
+		if !ok {
+			registryID, err = strconv.Atoi(exe.catalogItem.Registry)
+			if err != nil {
+				return err
+			}
+		}
+		request.RegistryID = registryID
 	}
 
 	if exe.catalogItem.X86 != "" {
