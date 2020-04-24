@@ -50,6 +50,22 @@ NS="$NAMESPACE"
   checkAgent "${NAME}-0"
 }
 
+@test "Deploy Volumes" {
+  testDeployLocalVolume
+  testGetDescribeLocalVolume
+}
+
+@test "Deploy Volumes Idempotent" {
+  testDeployLocalVolume
+  testGetDescribeLocalVolume
+}
+
+@test "Delete Volumes and Redeploy" {
+  testDeleteLocalVolume
+  testDeployLocalVolume
+  testGetDescribeLocalVolume
+}
+
 @test "Deploy application" {
   initApplicationFiles
   iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
