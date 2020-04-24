@@ -1,5 +1,95 @@
 #!/usr/bin/env bash
 
+function testDeployLocalVolume(){
+  SRC="$VOL_SRC"
+  DST="$VOL_DEST"
+  YAML_SRC="$SRC"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    YAML_SRC="$WIN_VOL_SRC"
+    SRC=$(wslpath $YAML_SRC)
+  fi
+  echo "---
+apiVersion: iofog.org/v2
+kind: Volume
+spec:
+  name: $VOL_NAME
+  source: $YAML_SRC
+  destination: $DST
+  permissions: 666
+  agents:
+  - $NAME-0" > test/conf/volume.yaml
+
+  [ ! -d $SRC ] && mkdir $SRC
+  for IDX in 1 2 3; do
+    echo "test$IDX" > "$SRC/test$IDX"
+  done
+  for DIR_IDX in 1 2 3; do
+    [ ! -d $SRC/testdir$DIR_IDX ] && mkdir $SRC/testdir$DIR_IDX
+    for FILE_IDX in 1 2 3; do
+      echo "test$FILE_IDX" > "$SRC/testdir$DIR_IDX/test$FILE_IDX"
+    done
+  done
+  iofogctl -v -n "$NS" deploy -f test/conf/volume.yaml
+
+  # Check files
+  for DIR_IDX in 1 2 3; do
+    for FILE_IDX in 1 2 3; do
+      SSH_COMMAND="docker exec iofog-agent"
+      $SSH_COMMAND sh -c "cat $DST/test$FILE_IDX && cat $DST/test$FILE_IDX | grep test$FILE_IDX"
+      $SSH_COMMAND sh -c "cat $DST/testdir$DIR_IDX/test$FILE_IDX && cat $DST/testdir$DIR_IDX/test$FILE_IDX | grep test$FILE_IDX"
+    done
+  done
+}
+
+function testGetDescribeLocalVolume(){
+  SRC="$VOL_SRC"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SRC="$WIN_VOL_SRC"
+  fi
+
+  # Describe
+  DESC=$(iofogctl -v -n "$NS" describe volume "$VOL_NAME")
+  echo "$DESC"
+  [ ! -z "$(echo $DESC | grep $VOL_NAME)" ]
+  [ ! -z "$(echo $DESC | grep $NAME-0)" ]
+  [ ! -z "$(echo $DESC | grep $SRC)" ]
+  [ ! -z "$(echo $DESC | grep $VOL_DEST)" ]
+  [ ! -z "$(echo $DESC | grep 666)" ]
+
+  # Get
+  GET=$(iofogctl -v -n "$NS" get volumes)
+  echo "$GET"
+  [ ! -z "$(echo $GET | grep $VOL_NAME)" ]
+  [ ! -z "$(echo $GET | grep $NAME-0)" ]
+  [ ! -z "$(echo $GET | grep $SRC)" ]
+  [ ! -z "$(echo $GET | grep $VOL_DEST)" ]
+  [ ! -z "$(echo $GET | grep 666)" ]
+}
+
+function testDeleteLocalVolume(){
+  SRC="$VOL_SRC"
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SRC="$WIN_VOL_SRC"
+  fi
+
+  iofogctl -v -n "$NS" delete volume "$VOL_NAME"
+  GET=$(iofogctl -v -n "$NS" get volumes)
+  echo "$GET"
+  [ ! -z "$(echo $GET | grep VOLUME)" ]
+  [ ! -z "$(echo $GET | grep SOURCE)" ]
+  [ -z "$(echo $GET | grep $VOL_NAME)" ]
+  [ -z "$(echo $GET | grep $NAME-0)" ]
+  [ -z "$(echo $GET | grep $SRC)" ]
+  [ -z "$(echo $GET | grep $VOL_DEST)" ]
+  [ -z "$(echo $GET | grep 666)" ]
+
+  # Check files
+  for FILE_IDX in 1 2 3; do
+    SSH_COMMAND="docker exec iofog-agent"
+    [ -z "$($SSH_COMMAND ls $VOL_DEST | xargs echo)" ]
+  done
+}
+
 function testDeployVolume(){
   SRC="$VOL_SRC"
   DST="$VOL_DEST"
@@ -42,7 +132,9 @@ spec:
     for DIR_IDX in 1 2 3; do
       for FILE_IDX in 1 2 3; do
         SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
+        $SSH_COMMAND -- cat $DST/test$FILE_IDX
         $SSH_COMMAND -- cat $DST/test$FILE_IDX | grep "test$FILE_IDX"
+        $SSH_COMMAND -- cat $DST/testdir$DIR_IDX/test$FILE_IDX
         $SSH_COMMAND -- cat $DST/testdir$DIR_IDX/test$FILE_IDX | grep "test$FILE_IDX"
       done
     done

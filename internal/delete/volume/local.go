@@ -26,7 +26,7 @@ func deleteLocal(agent *rsc.LocalAgent, volume rsc.Volume) error {
 	}
 
 	// Delete
-	if _, err := client.ExecuteCmd(install.GetLocalContainerName("agent", false), []string{"rm", "-rf", util.AddTrailingSlash(volume.Destination) + "*"}); err != nil {
+	if _, err := client.ExecuteCmd(install.GetLocalContainerName("agent", false), []string{"sh", "-c", "rm -rf " + util.AddTrailingSlash(volume.Destination) + "*"}); err != nil {
 		return err
 	}
 	return nil

@@ -35,11 +35,12 @@ func (exe remoteExecutor) GetName() string {
 func (exe remoteExecutor) Execute() error {
 	util.SpinStart("Pushing volumes to Agents")
 	// Transfer files
-	ch := make(chan error, len(exe.volume.Agents))
-	for idx := range exe.volume.Agents {
+	nbAgents := len(exe.agents)
+	ch := make(chan error, nbAgents)
+	for idx := range exe.agents {
 		go exe.execute(idx, ch)
 	}
-	for idx := 0; idx < len(exe.volume.Agents); idx++ {
+	for idx := 0; idx < nbAgents; idx++ {
 		if err := <-ch; err != nil {
 			return err
 		}

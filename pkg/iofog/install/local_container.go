@@ -521,17 +521,23 @@ func compress(src string, buf io.Writer) error {
 	zr := gzip.NewWriter(buf)
 	tw := tar.NewWriter(zr)
 
+	srcLength := len(filepath.ToSlash(src))
+
 	// walk through every file in the folder
 	filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+		if file == src {
+			// Skip root folder
+			return nil
+		}
 		// generate tar header
 		header, err := tar.FileInfoHeader(fi, file)
 		if err != nil {
 			return err
 		}
 
-		// must provide real name
-		// (see https://golang.org/src/archive/tar/common.go?#L626)
-		header.Name = filepath.ToSlash(file)
+		// must provide relative name. Get everything after the source
+		name := string([]rune(filepath.ToSlash(file))[srcLength+1:])
+		header.Name = name
 
 		// write header
 		if err := tw.WriteHeader(header); err != nil {
@@ -573,7 +579,12 @@ func (lc *LocalContainer) CopyToContainer(name, source, dest string) (err error)
 	// content must be a Reader to a TAR
 	// tar + gzip
 	var content bytes.Buffer
-	_ = compress("./folderToCompress", &content)
+	_ = compress(source, &content)
+
+	// Create dest folder in container if not exists
+	if _, err = lc.ExecuteCmd(name, []string{"mkdir", "-p", dest}); err != nil {
+		return err
+	}
 
 	return lc.client.CopyToContainer(ctx, container.ID, dest, &content, types.CopyToContainerOptions{})
 }
