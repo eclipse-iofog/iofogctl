@@ -536,7 +536,7 @@ func compress(src string, buf io.Writer) error {
 		}
 
 		// must provide relative name. Get everything after the source
-		name := string([]rune(filepath.ToSlash(file))[srcLength+1:])
+		name := string([]rune(filepath.ToSlash(file))[srcLength:])
 		header.Name = name
 
 		// write header
