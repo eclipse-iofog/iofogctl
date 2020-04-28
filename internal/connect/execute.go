@@ -57,12 +57,8 @@ func Execute(opt Options) error {
 		return generateConnectionString(opt.Namespace)
 	}
 
-	if opt.Base64Encoded {
-		buf, err := base64.StdEncoding.DecodeString(opt.IofogUserPass)
-		if err != nil {
-			return util.NewInputError("Could not decode password. Are you sure it is b64 encoded?")
-		}
-		opt.IofogUserPass = string(buf)
+	if !opt.Base64Encoded {
+		opt.IofogUserPass = base64.StdEncoding.EncodeToString([]byte(opt.IofogUserPass))
 	}
 
 	// Check inputs

@@ -12,6 +12,7 @@ func UnmarshallKubernetesControlPlane(file []byte) (controlPlane KubernetesContr
 		return
 	}
 
+	controlPlane.IofogUser.EncodePassword()
 	if err = controlPlane.Sanitize(); err != nil {
 		return
 	}
@@ -30,6 +31,7 @@ func UnmarshallRemoteControlPlane(file []byte) (controlPlane RemoteControlPlane,
 		return
 	}
 
+	controlPlane.IofogUser.EncodePassword()
 	if err = controlPlane.Sanitize(); err != nil {
 		return
 	}
@@ -48,6 +50,7 @@ func UnmarshallLocalControlPlane(file []byte) (controlPlane LocalControlPlane, e
 		return
 	}
 
+	controlPlane.IofogUser.EncodePassword()
 	if err = controlPlane.Sanitize(); err != nil {
 		return
 	}
