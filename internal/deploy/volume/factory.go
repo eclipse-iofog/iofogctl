@@ -39,7 +39,11 @@ func (exe executor) GetName() string {
 }
 
 func (exe executor) Execute() error {
-	return execute.RunExecutors([]execute.Executor{exe.localExecutor, exe.remoteExecutor}, exe.GetName())
+	errs := execute.RunExecutors([]execute.Executor{exe.localExecutor, exe.remoteExecutor}, exe.GetName())
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

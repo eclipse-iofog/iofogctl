@@ -132,8 +132,8 @@ func executeWithYAML(yamlFile, namespace string) error {
 	}
 
 	for idx := range kindOrder {
-		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("connect %s", kindOrder[idx])); err != nil {
-			return err
+		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("connect %s", kindOrder[idx])); len(errs) > 0 {
+			return errs[0]
 		}
 	}
 

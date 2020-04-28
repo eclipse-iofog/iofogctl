@@ -118,6 +118,16 @@ NS="$NAMESPACE"
   checkGCRRegistryNegative
 }
 
+@test "Delete agent should fail because of running msvc" {
+  run iofogctl -v -n "$NS" delete agent ${NAME}-0
+  [ "$status" -eq 1 ]
+  echo "$output" | grep "because it still has microservices running. Remove the microservices first, or use the --force option."
+}
+
+@test "Delete agent should work with --force option" {
+  iofogctl -v -n "$NS" delete agent ${NAME}-0 --force
+}
+
 @test "Delete all using file" {
   initAllLocalDeleteFile
   iofogctl -v -n "$NS" delete -f test/conf/all-local.yaml

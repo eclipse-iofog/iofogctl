@@ -32,7 +32,7 @@ type executor struct {
 }
 
 func NewExecutor(namespace, name string, useDetached, soft, force bool) (execute.Executor, error) {
-	return executor{name: name, namespace: namespace, useDetached: useDetached, soft: soft}, nil
+	return executor{name: name, namespace: namespace, useDetached: useDetached, soft: soft, force: force}, nil
 }
 
 func (exe executor) GetName() string {

@@ -49,6 +49,26 @@ func Execute(namespace string, useDetached, soft, force bool) error {
 		}
 	}
 
+	if !useDetached {
+		// Delete applications
+		util.SpinStart("Deleting Flows")
+		clt, err := iutil.NewControllerClient(namespace)
+		if err != nil {
+			return err
+		}
+
+		flows, err := clt.GetAllFlows()
+		if err != nil {
+			return err
+		}
+
+		for _, flow := range flows.Flows {
+			if err = clt.DeleteFlow(flow.ID); err != nil {
+				return err
+			}
+		}
+	}
+
 	// Delete Agents
 	if len(ns.GetAgents()) > 0 {
 		util.SpinStart("Deleting Agents")
@@ -63,37 +83,6 @@ func Execute(namespace string, useDetached, soft, force bool) error {
 		}
 		if err := runExecutors(executors); err != nil {
 			return err
-		}
-	}
-
-	if !useDetached {
-		controlPlane, err := ns.GetControlPlane()
-		if err != nil {
-			return err
-		}
-		// Delete routes
-		if len(controlPlane.GetControllers()) > 0 {
-			// Get list of microservices from backend
-			clt, err := iutil.NewControllerClient(namespace)
-			if err != nil {
-				return err
-			}
-			msvcs, err := clt.GetAllMicroservices()
-			if err != nil {
-				return err
-			}
-			// Delete routes
-			if len(msvcs.Microservices) > 0 {
-				util.SpinStart("Deleting Routes")
-
-				for _, msvc := range msvcs.Microservices {
-					for _, destUUID := range msvc.Routes {
-						if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
-							return err
-						}
-					}
-				}
-			}
 		}
 	}
 

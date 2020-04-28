@@ -28,6 +28,7 @@ import (
 	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
 	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {
@@ -98,8 +99,14 @@ func Execute(opt *Options) error {
 
 	// Microservice, Application, Agent, Controller, ControlPlane
 	for idx := range kindOrder {
-		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); err != nil {
-			return err
+		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); len(errs) > 0 {
+			for _, err := range errs {
+				_, ok := err.(*util.NotFoundError)
+				if !ok {
+					return err
+				}
+				util.PrintNotify(fmt.Sprintf("%s: %s. Skipping...", kindOrder[idx], err.Error()))
+			}
 		}
 	}
 
