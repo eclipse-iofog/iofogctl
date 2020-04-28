@@ -109,7 +109,6 @@ func (cp *RemoteControlPlane) DeleteController(name string) error {
 }
 
 func (cp *RemoteControlPlane) Sanitize() (err error) {
-	cp.IofogUser.EncodePassword()
 	for idx := range cp.Controllers {
 		if err = cp.Controllers[idx].Sanitize(); err != nil {
 			return
