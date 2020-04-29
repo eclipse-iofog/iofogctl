@@ -60,25 +60,25 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletek8scontrolplane.NewExecutor(opt.Namespace, false)
+		return deletek8scontrolplane.NewExecutor(opt.Namespace)
 	},
 	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteremotecontrolplane.NewExecutor(opt.Namespace, false)
+		return deleteremotecontrolplane.NewExecutor(opt.Namespace)
 	},
 	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletelocalcontrolplane.NewExecutor(opt.Namespace, false)
+		return deletelocalcontrolplane.NewExecutor(opt.Namespace)
 	},
 	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.LocalControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(opt.Namespace, opt.Name, false)
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.RemoteAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false, false)
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	config.LocalAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false, false)
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
 	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
@@ -101,8 +101,7 @@ func Execute(opt *Options) error {
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); len(errs) > 0 {
 			for _, err := range errs {
-				_, ok := err.(*util.NotFoundError)
-				if !ok {
+				if _, ok := err.(*util.NotFoundError); !ok {
 					return err
 				}
 				util.PrintNotify(fmt.Sprintf("%s: %s. Skipping...", kindOrder[idx], err.Error()))

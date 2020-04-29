@@ -25,11 +25,12 @@ import (
 
 type executor struct {
 	name      string
+	force     bool
 	namespace string
 }
 
-func NewExecutor(namespace, name string) (execute.Executor, error) {
-	return executor{name: name, namespace: namespace}, nil
+func NewExecutor(namespace, name string, force bool) (execute.Executor, error) {
+	return executor{name: name, namespace: namespace, force: force}, nil
 }
 
 func (exe executor) GetName() string {
@@ -51,22 +52,43 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	if err != nil {
 		return err
 	}
+
 	// Update local cache based on Controller
 	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
 	}
 	baseAgent, err := ns.GetAgent(exe.name)
-	if err == nil {
-		// Deprovision agent
-		switch agent := baseAgent.(type) {
-		case *rsc.LocalAgent:
-			if err = exe.localDeprovision(); err != nil {
-				return err
+	if err != nil {
+		return err
+	}
+
+	// Check if it has microservices running on it
+	if !exe.force {
+		// Try to get a Controller client to talk to the REST API
+		ctrl, err := iutil.NewControllerClient(exe.namespace)
+		if err != nil {
+			return err
+		}
+		msvcList, err := ctrl.GetAllMicroservices()
+		if err != nil {
+			return err
+		}
+		for _, msvc := range msvcList.Microservices {
+			if msvc.AgentUUID == baseAgent.GetUUID() {
+				return util.NewInputError(fmt.Sprintf("Could not detach Agent %s because it still has microservices running. Remove the microservices first, or use the --force option.", baseAgent.GetName()))
 			}
-		case *rsc.RemoteAgent:
-			if err = exe.remoteDeprovision(agent); err != nil {
-				return err
-			}
+		}
+	}
+
+	// Deprovision agent
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		if err = exe.localDeprovision(); err != nil {
+			return err
+		}
+	case *rsc.RemoteAgent:
+		if err = exe.remoteDeprovision(agent); err != nil {
+			return err
 		}
 	}
 

@@ -59,7 +59,6 @@ delete application NAME`,
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to delete")
-	cmd.Flags().BoolVar(&opt.Soft, "soft", false, "Don't delete ioFog stack from remote hosts")
 
 	return cmd
 }

@@ -97,11 +97,6 @@ NS="$NAMESPACE"
   checkMicroservice
 }
 
-@test "Deploy application from file and test application update" {
-  iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
-  checkApplication
-}
-
 @test "Get local logs" {
   [[ ! -z $(iofogctl -v -n "$NS" logs controller $NAME) ]]
   [[ ! -z $(iofogctl -v -n "$NS" logs agent ${NAME}-0) ]]
@@ -116,6 +111,22 @@ NS="$NAMESPACE"
   checkUpdatedGCRRegistry
   iofogctl -v -n "$NS" delete registry 3
   checkGCRRegistryNegative
+}
+
+@test "Detach should fail because of running msvc" {
+  run iofogctl -v -n "$NS" detach agent ${NAME}-0
+  [ "$status" -eq 1 ]
+  echo "$output" | grep "because it still has microservices running. Remove the microservices first, or use the --force option."
+}
+
+@test "Detach/attach agent" {
+  iofogctl -v -n "$NS" detach agent ${NAME}-0 --force
+  iofogctl -v -n "$NS" attach agent ${NAME}-0
+}
+
+@test "Deploy application from file and test application update" {
+  iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
+  checkApplication
 }
 
 @test "Delete agent should fail because of running msvc" {

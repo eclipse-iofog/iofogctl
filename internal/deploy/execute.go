@@ -102,7 +102,7 @@ func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error
 }
 
 func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML})
+	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
@@ -214,7 +214,7 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Agents, CatalogItem, Application, Microservice
+	// Agents, Volumes, CatalogItem, Application, Microservice
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
 			return errs[0]

@@ -25,6 +25,7 @@ import (
 
 type Options struct {
 	Namespace string
+	Name      string
 	Yaml      []byte
 }
 
@@ -54,6 +55,9 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 	// Check Name
+	if opt.Name != "" {
+		volume.Name = opt.Name
+	}
 	if err := util.IsLowerAlphanumeric(volume.Name); err != nil {
 		return nil, err
 	}

@@ -23,7 +23,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func Execute(namespace string, useDetached, soft, force bool) error {
+func Execute(namespace string, useDetached, force bool) error {
 	// Make sure to update config despite failure
 	defer config.Flush()
 
@@ -75,7 +75,7 @@ func Execute(namespace string, useDetached, soft, force bool) error {
 
 		var executors []execute.Executor
 		for _, agent := range ns.GetAgents() {
-			exe, err := deleteagent.NewExecutor(namespace, agent.GetName(), useDetached, soft, force)
+			exe, err := deleteagent.NewExecutor(namespace, agent.GetName(), useDetached, force)
 			if err != nil {
 				return err
 			}
@@ -89,7 +89,7 @@ func Execute(namespace string, useDetached, soft, force bool) error {
 	if !useDetached {
 		// Delete Controllers
 		util.SpinStart("Deleting Control Plane")
-		exe, err := deletecontrolplane.NewExecutor(namespace, soft)
+		exe, err := deletecontrolplane.NewExecutor(namespace)
 		if err != nil {
 			return err
 		}
