@@ -131,6 +131,7 @@ type MicroserviceVolumeMapping struct {
 	HostDestination      string `yaml:"hostDestination" json:"hostDestination"`
 	ContainerDestination string `yaml:"containerDestination" json:"containerDestination"`
 	AccessMode           string `yaml:"accessMode" json:"accessMode"`
+	Type                 string `yaml:"type,omitempty" json:"type,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
