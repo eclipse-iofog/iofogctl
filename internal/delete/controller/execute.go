@@ -18,11 +18,11 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func Execute(namespace, name string, soft bool) error {
+func Execute(namespace, name string) error {
 	util.SpinStart("Deleting Controller")
 
 	// Get executor
-	exe, err := NewExecutor(namespace, name, soft)
+	exe, err := NewExecutor(namespace, name)
 	if err != nil {
 		return err
 	}

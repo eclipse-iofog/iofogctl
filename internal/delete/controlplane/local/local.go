@@ -25,12 +25,9 @@ type Executor struct {
 	namespace string
 }
 
-func NewExecutor(namespace string, soft bool) (execute.Executor, error) {
+func NewExecutor(namespace string) (execute.Executor, error) {
 	exe := &Executor{
 		namespace: namespace,
-	}
-	if soft {
-		return nil, util.NewInputError("Cannot soft delete a ControlPlane")
 	}
 	return exe, nil
 }

@@ -1,8 +1,9 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"sync"
+
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Namespace struct {
@@ -94,7 +95,7 @@ func (ns *Namespace) GetAgent(name string) (Agent, error) {
 			return agents[idx], nil
 		}
 	}
-	return nil, util.NewError("Could not find Agent " + name)
+	return nil, util.NewNotFoundError(name)
 }
 
 func (ns *Namespace) GetAgents() (agents []Agent) {

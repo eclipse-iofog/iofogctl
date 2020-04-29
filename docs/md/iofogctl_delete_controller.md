@@ -20,7 +20,6 @@ iofogctl delete controller NAME
 
 ```
   -h, --help   help for controller
-      --soft   Don't delete iofog-controller from remote host
 ```
 
 ### Options inherited from parent commands

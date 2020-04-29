@@ -23,7 +23,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func Execute(namespace string, useDetached, soft, force bool) error {
+func Execute(namespace string, useDetached, force bool) error {
 	// Make sure to update config despite failure
 	defer config.Flush()
 
@@ -49,13 +49,33 @@ func Execute(namespace string, useDetached, soft, force bool) error {
 		}
 	}
 
+	if !useDetached {
+		// Delete applications
+		util.SpinStart("Deleting Flows")
+		clt, err := iutil.NewControllerClient(namespace)
+		if err != nil {
+			return err
+		}
+
+		flows, err := clt.GetAllFlows()
+		if err != nil {
+			return err
+		}
+
+		for _, flow := range flows.Flows {
+			if err = clt.DeleteFlow(flow.ID); err != nil {
+				return err
+			}
+		}
+	}
+
 	// Delete Agents
 	if len(ns.GetAgents()) > 0 {
 		util.SpinStart("Deleting Agents")
 
 		var executors []execute.Executor
 		for _, agent := range ns.GetAgents() {
-			exe, err := deleteagent.NewExecutor(namespace, agent.GetName(), useDetached, soft, force)
+			exe, err := deleteagent.NewExecutor(namespace, agent.GetName(), useDetached, force)
 			if err != nil {
 				return err
 			}
@@ -67,40 +87,9 @@ func Execute(namespace string, useDetached, soft, force bool) error {
 	}
 
 	if !useDetached {
-		controlPlane, err := ns.GetControlPlane()
-		if err != nil {
-			return err
-		}
-		// Delete routes
-		if len(controlPlane.GetControllers()) > 0 {
-			// Get list of microservices from backend
-			clt, err := iutil.NewControllerClient(namespace)
-			if err != nil {
-				return err
-			}
-			msvcs, err := clt.GetAllMicroservices()
-			if err != nil {
-				return err
-			}
-			// Delete routes
-			if len(msvcs.Microservices) > 0 {
-				util.SpinStart("Deleting Routes")
-
-				for _, msvc := range msvcs.Microservices {
-					for _, destUUID := range msvc.Routes {
-						if err = clt.DeleteMicroserviceRoute(msvc.UUID, destUUID); err != nil {
-							return err
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if !useDetached {
 		// Delete Controllers
 		util.SpinStart("Deleting Control Plane")
-		exe, err := deletecontrolplane.NewExecutor(namespace, soft)
+		exe, err := deletecontrolplane.NewExecutor(namespace)
 		if err != nil {
 			return err
 		}

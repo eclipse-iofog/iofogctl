@@ -26,7 +26,8 @@ iofogctl detach agent NAME
 ### Options
 
 ```
-  -h, --help   help for agent
+      --force   Detach agent, even if it still uses resources
+  -h, --help    help for agent
 ```
 
 ### Options inherited from parent commands

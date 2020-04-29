@@ -25,6 +25,7 @@ import (
 
 type Options struct {
 	Namespace string
+	Name      string
 	Yaml      []byte
 }
 
@@ -39,7 +40,11 @@ func (exe executor) GetName() string {
 }
 
 func (exe executor) Execute() error {
-	return execute.RunExecutors([]execute.Executor{exe.localExecutor, exe.remoteExecutor}, exe.GetName())
+	errs := execute.RunExecutors([]execute.Executor{exe.localExecutor, exe.remoteExecutor}, exe.GetName())
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -50,6 +55,9 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 	// Check Name
+	if opt.Name != "" {
+		volume.Name = opt.Name
+	}
 	if err := util.IsLowerAlphanumeric(volume.Name); err != nil {
 		return nil, err
 	}

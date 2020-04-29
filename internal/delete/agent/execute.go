@@ -27,12 +27,11 @@ type executor struct {
 	name        string
 	namespace   string
 	useDetached bool
-	soft        bool
 	force       bool
 }
 
-func NewExecutor(namespace, name string, useDetached, soft, force bool) (execute.Executor, error) {
-	return executor{name: name, namespace: namespace, useDetached: useDetached, soft: soft}, nil
+func NewExecutor(namespace, name string, useDetached, force bool) (execute.Executor, error) {
+	return executor{name: name, namespace: namespace, useDetached: useDetached, force: force}, nil
 }
 
 func (exe executor) GetName() string {
@@ -87,16 +86,14 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
-	if !exe.soft {
-		switch agent := baseAgent.(type) {
-		case *rsc.LocalAgent:
-			if err = exe.deleteLocalContainer(); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove Agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
-			}
-		case *rsc.RemoteAgent:
-			if err = exe.deleteRemoteAgent(agent); err != nil {
-				util.PrintInfo(fmt.Sprintf("Could not remove Agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
-			}
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		if err = exe.deleteLocalContainer(); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not remove Agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
+		}
+	case *rsc.RemoteAgent:
+		if err = exe.deleteRemoteAgent(agent); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not remove Agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
 		}
 	}
 

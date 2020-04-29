@@ -10,7 +10,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func NewExecutor(namespace string, soft bool) (execute.Executor, error) {
+func NewExecutor(namespace string) (execute.Executor, error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
@@ -21,11 +21,11 @@ func NewExecutor(namespace string, soft bool) (execute.Executor, error) {
 	}
 	switch baseControlPlane.(type) {
 	case *rsc.KubernetesControlPlane:
-		return deletek8scontrolplane.NewExecutor(namespace, soft)
+		return deletek8scontrolplane.NewExecutor(namespace)
 	case *rsc.RemoteControlPlane:
-		return deleteremotecontrolplane.NewExecutor(namespace, soft)
+		return deleteremotecontrolplane.NewExecutor(namespace)
 	case *rsc.LocalControlPlane:
-		return deletelocalcontrolplane.NewExecutor(namespace, soft)
+		return deletelocalcontrolplane.NewExecutor(namespace)
 	}
 	return nil, util.NewError("Could not convert Control Plane to dynamic type")
 }

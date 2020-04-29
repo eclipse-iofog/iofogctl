@@ -20,6 +20,7 @@ import (
 )
 
 func newDetachAgentCommand() *cobra.Command {
+	force := false
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
 		Short: "Detaches an Agent",
@@ -40,13 +41,15 @@ The Agent stack will not be uninstalled from the host.`,
 			util.Check(err)
 
 			// Run the command
-			exe, _ := detach.NewExecutor(namespace, name)
+			exe, _ := detach.NewExecutor(namespace, name, force)
 			err = exe.Execute()
 			util.Check(err)
 
 			util.PrintSuccess("Successfully detached " + name)
 		},
 	}
+
+	cmd.Flags().BoolVar(&force, "force", false, "Detach agent, even if it still uses resources")
 
 	return cmd
 }
