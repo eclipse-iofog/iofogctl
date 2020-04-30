@@ -195,7 +195,8 @@ function testDeleteVolume(){
   for IDX in "${!AGENTS[@]}"; do
     for FILE_IDX in 1 2 3; do
       SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
-      $SSH_COMMAND -- [ -z "$(ls $VOL_DEST | xargs echo)" ]
+      RESULT=$($SSH_COMMAND -- ls $VOL_DEST)
+      [ -z "$RESULT" ]
     done
   done
 }
