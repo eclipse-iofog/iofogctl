@@ -15,19 +15,8 @@ package deletevolume
 
 import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func deleteLocal(agent *rsc.LocalAgent, volume rsc.Volume) error {
-	client, err := install.NewLocalContainerClient()
-	if err != nil {
-		return err
-	}
-
-	// Delete
-	if _, err := client.ExecuteCmd(install.GetLocalContainerName("agent", false), []string{"sh", "-c", "rm -rf " + util.AddTrailingSlash(volume.Destination) + "*"}); err != nil {
-		return err
-	}
 	return nil
 }

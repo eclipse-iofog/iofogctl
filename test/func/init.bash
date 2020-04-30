@@ -108,10 +108,6 @@ function initApplicationFiles() {
         registry: remote # public docker
       container:
         rootHostAccess: false
-        volumes:
-          - hostDestination: /tmp/msvc
-            containerDestination: /tmp
-            accessMode: z
         ports: []
       config:
         test_mode: true
