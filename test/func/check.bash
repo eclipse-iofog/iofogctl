@@ -127,7 +127,7 @@ function checkMicroservice() {
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5005:443")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/microservice:/tmp")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$VOL_DEST:$VOL_CONT_DEST")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
@@ -233,8 +233,8 @@ function checkApplication() {
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/msvc:/tmp")
-  [[ "$MSVC1_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$VOL_DEST:$VOL_CONT_DEST")
+  [[ "$MSVC2_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
   # TODO: Use another testing framework to verify proper output of yaml file
@@ -248,9 +248,7 @@ function checkApplication() {
   cat test/conf/app_output.yaml | grep "ports:"
   cat test/conf/app_output.yaml | grep "external: 5000"
   cat test/conf/app_output.yaml | grep "\- internal: 80"
-  cat test/conf/app_output.yaml | grep "volumes:"
-  cat test/conf/app_output.yaml | grep "\- hostDestination: /tmp/msvc"
-  cat test/conf/app_output.yaml | grep "containerDestination: /tmp"
+  cat test/conf/app_output.yaml | grep "volumes: \[\]"
   cat test/conf/app_output.yaml | grep "images:"
   cat test/conf/app_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:x86-v1"
   cat test/conf/app_output.yaml | grep "arm: edgeworx/healthcare-heart-rate:arm-v1"
