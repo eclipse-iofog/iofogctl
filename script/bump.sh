@@ -36,7 +36,7 @@ rm Makefile.bkp
 for file in azure-pipelines.yaml test/env.sh; do
     sed -i.bkp -E "s/(gcr\.io\/focal-freedom.*:).*/\1$version'/g" $file
     sed -i.bkp -E "s/(_version: ).*/\1'$version'/g" $file
-    sed -i.bkp -E "s/(_VERSION= ).*/\1'$version'/g" $file
+    sed -i.bkp -E "s/(_VERSION=').*/\1$version'/g" $file
     rm $file.bkp
 done
 
