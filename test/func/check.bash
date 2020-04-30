@@ -127,7 +127,7 @@ function checkMicroservice() {
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5005:443")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
-  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$VOL_DEST:$VOL_CONT_DEST")
+  msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "/tmp/microservice:/tmp")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithVolume" | awk '{print $1}') ]]
 
   # Check describe
