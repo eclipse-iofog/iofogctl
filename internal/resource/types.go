@@ -79,7 +79,7 @@ type Registry struct {
 	Username     *string `yaml:"username"`
 	Password     *string `yaml:"password"`
 	Email        *string `yaml:"email"`
-	RequiresCert *bool   `yaml:"requireCert"`
+	RequiresCert *bool   `yaml:"requiresCert"`
 	Certificate  *string `yaml:"certificate,omitempty"`
 	ID           int     `yaml:"id"`
 }

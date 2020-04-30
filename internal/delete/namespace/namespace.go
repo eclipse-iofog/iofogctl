@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func Execute(name string, force, soft bool) error {
+func Execute(name string, force bool) error {
 	// Disallow deletion of default
 	if name == "default" {
 		return util.NewInputError("Cannot delete namespace named \"default\"")
@@ -42,7 +42,7 @@ func Execute(name string, force, soft bool) error {
 
 	// Handle delete all
 	if force && (hasAgents || hasControllers) {
-		if err = delete.Execute(name, false, soft, force); err != nil {
+		if err = delete.Execute(name, false, force); err != nil {
 			return err
 		}
 	}

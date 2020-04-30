@@ -102,7 +102,7 @@ func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error
 }
 
 func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML})
+	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
@@ -180,8 +180,8 @@ func Execute(opt *Options) (err error) {
 	cpCount := 0
 	errMsg := "Specified multiple Control Planes in a single Namespace"
 	if exe, exists := executorsMap[config.KubernetesControlPlaneKind]; exists {
-		if err = execute.RunExecutors(exe, "deploy Kubernetes Control Plane"); err != nil {
-			return
+		if errs := execute.RunExecutors(exe, "deploy Kubernetes Control Plane"); len(errs) > 0 {
+			return errs[0]
 		}
 		cpCount++
 	}
@@ -189,8 +189,8 @@ func Execute(opt *Options) (err error) {
 		if cpCount > 0 {
 			err = util.NewInputError(errMsg)
 		}
-		if err = execute.RunExecutors(exe, "deploy Remote Control Plane"); err != nil {
-			return
+		if errs := execute.RunExecutors(exe, "deploy Remote Control Plane"); len(errs) > 0 {
+			return errs[0]
 		}
 		cpCount++
 	}
@@ -198,14 +198,14 @@ func Execute(opt *Options) (err error) {
 		if cpCount > 0 {
 			err = util.NewInputError(errMsg)
 		}
-		if err = execute.RunExecutors(exe, "deploy Local Control Plane"); err != nil {
-			return
+		if errs := execute.RunExecutors(exe, "deploy Local Control Plane"); len(errs) > 0 {
+			return errs[0]
 		}
 	}
 
 	// Controllers
-	if err = execute.RunExecutors(executorsMap[config.LocalControllerKind], "deploy local controller"); err != nil {
-		return
+	if errs := execute.RunExecutors(executorsMap[config.LocalControllerKind], "deploy local controller"); len(errs) > 0 {
+		return errs[0]
 	}
 
 	// Agent config
@@ -214,10 +214,10 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Agents, CatalogItem, Application, Microservice
+	// Agents, Volumes, CatalogItem, Application, Microservice
 	for idx := range kindOrder {
-		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); err != nil {
-			return
+		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
+			return errs[0]
 		}
 	}
 

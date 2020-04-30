@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function testDeployLocalVolume(){
-  SRC="$VOL_SRC"
+  SRC="$VOL_DEST"
   DST="$VOL_DEST"
   YAML_SRC="$SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
@@ -30,21 +30,12 @@ spec:
     done
   done
   iofogctl -v -n "$NS" deploy -f test/conf/volume.yaml
-
-  # Check files
-  for DIR_IDX in 1 2 3; do
-    for FILE_IDX in 1 2 3; do
-      SSH_COMMAND="docker exec iofog-agent"
-      $SSH_COMMAND sh -c "cat $DST/test$FILE_IDX && cat $DST/test$FILE_IDX | grep test$FILE_IDX"
-      $SSH_COMMAND sh -c "cat $DST/testdir$DIR_IDX/test$FILE_IDX && cat $DST/testdir$DIR_IDX/test$FILE_IDX | grep test$FILE_IDX"
-    done
-  done
 }
 
 function testGetDescribeLocalVolume(){
-  SRC="$VOL_SRC"
+  SRC="$VOL_DEST"
   if [[ ! -z $WSL_KEY_FILE ]]; then
-    SRC="$WIN_VOL_SRC"
+    SRC=wsl "$SRC"
   fi
 
   # Describe
@@ -82,12 +73,6 @@ function testDeleteLocalVolume(){
   [ -z "$(echo $GET | grep $SRC)" ]
   [ -z "$(echo $GET | grep $VOL_DEST)" ]
   [ -z "$(echo $GET | grep 666)" ]
-
-  # Check files
-  for FILE_IDX in 1 2 3; do
-    SSH_COMMAND="docker exec iofog-agent"
-    [ -z "$($SSH_COMMAND ls $VOL_DEST | xargs echo)" ]
-  done
 }
 
 function testDeployVolume(){
@@ -195,7 +180,8 @@ function testDeleteVolume(){
   for IDX in "${!AGENTS[@]}"; do
     for FILE_IDX in 1 2 3; do
       SSH_COMMAND="ssh -oStrictHostKeyChecking=no -i $SSH_KEY_PATH ${USERS[IDX]}@${HOSTS[IDX]}"
-      $SSH_COMMAND -- [ -z "$(ls $VOL_DEST | xargs echo)" ]
+      RESULT=$($SSH_COMMAND -- ls $VOL_DEST)
+      [ -z "$RESULT" ]
     done
   done
 }
@@ -262,7 +248,6 @@ function testAttachExternalAgent(){
   initAgents
   local AGENT_NAME="${NAME}-0"
   iofogctl -v -n "$NS" detach agent "$AGENT_NAME"
-  iofogctl delete agent "$AGENT_NAME" --detached --soft
   local OUTPUT=$(iofogctl get agents)
   [ -z "$(echo $OUTPUT | grep $AGENT_NAME)" ]
   iofogctl -v -n "$NS" attach agent "$AGENT_NAME" --host ${HOSTS[0]} --user ${USERS[0]} --port ${PORTS[0]} --key $KEY_FILE

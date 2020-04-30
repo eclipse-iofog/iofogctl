@@ -14,9 +14,10 @@
 package deployvolume
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -32,32 +33,11 @@ func (exe localExecutor) GetName() string {
 
 func (exe localExecutor) Execute() error {
 	util.SpinStart("Pushing volumes to Agents")
-	// Transfer files
-	nbAgents := len(exe.agents)
-	ch := make(chan error, nbAgents)
-	for idx := range exe.agents {
-		go exe.execute(idx, ch)
-	}
-	for idx := 0; idx < nbAgents; idx++ {
-		if err := <-ch; err != nil {
-			return err
-		}
+	util.PrintNotify("Local Agent uses the host filesystem when mounting/binding volumes to the microservices. Therefore deploying a Volume to a Local Agent is unecessary.")
+	if exe.volume.Source != exe.volume.Destination {
+		util.PrintNotify(fmt.Sprintf("[WARNING]: Source [%s] is different from destination [&s]\nThis may result in a bug, as the microservices running on the Local Agent will use the host filesystem to bind/mount volumes.", exe.volume.Source, exe.volume.Destination))
 	}
 	// Update config
 	exe.ns.UpdateVolume(exe.volume)
 	return config.Flush()
-}
-
-func (exe localExecutor) execute(agentIdx int, ch chan error) {
-	// Docker cp
-	client, err := install.NewLocalContainerClient()
-	if err != nil {
-		ch <- err
-	}
-
-	if err = client.CopyToContainer(install.GetLocalContainerName("agent", false), exe.volume.Source, exe.volume.Destination); err != nil {
-		ch <- err
-	}
-
-	ch <- nil
 }

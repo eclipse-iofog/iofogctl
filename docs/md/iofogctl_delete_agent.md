@@ -27,7 +27,6 @@ iofogctl delete agent NAME
 ```
       --force   Remove even if there are still resource running on the Agent
   -h, --help    help for agent
-      --soft    Don't delete iofog-agent from remote host
 ```
 
 ### Options inherited from parent commands

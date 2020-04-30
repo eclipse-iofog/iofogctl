@@ -22,7 +22,6 @@ iofogctl delete volume NAME
 
 ```
   -h, --help   help for volume
-      --soft   Don't delete iofog-volume from remote host
 ```
 
 ### Options inherited from parent commands

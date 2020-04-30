@@ -20,7 +20,6 @@ import (
 )
 
 func newDeleteAllCommand() *cobra.Command {
-	var soft bool
 	var force bool
 	cmd := &cobra.Command{
 		Use:   "all",
@@ -37,14 +36,13 @@ If you don't want to tear down the deployments but would like to free up the Nam
 			util.Check(err)
 			useDetached, err := cmd.Flags().GetBool("detached")
 			util.Check(err)
-			err = delete.Execute(namespace, useDetached, soft, force)
+			err = delete.Execute(namespace, useDetached, force)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
 		},
 	}
 
-	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete ioFog stack from remote hosts")
 	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of Agents")
 	return cmd
 }

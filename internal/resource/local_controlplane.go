@@ -71,7 +71,6 @@ func (cp *LocalControlPlane) DeleteController(string) error {
 }
 
 func (cp *LocalControlPlane) Sanitize() error {
-	cp.IofogUser.EncodePassword()
 	if cp.Controller != nil && !util.IsLocalHost(cp.Controller.Endpoint) {
 		cp.Controller.Endpoint = "localhost"
 	}

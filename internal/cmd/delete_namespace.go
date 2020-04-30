@@ -21,7 +21,6 @@ import (
 
 func newDeleteNamespaceCommand() *cobra.Command {
 	force := false
-	soft := false
 	cmd := &cobra.Command{
 		Use:   "namespace NAME",
 		Short: "Delete a Namespace",
@@ -37,14 +36,13 @@ If you would like to delete all resources in the Namespace, use the --force flag
 			name := args[0]
 
 			// Execute command
-			err := delete.Execute(name, force, soft)
+			err := delete.Execute(name, force)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted namespace " + name)
 		},
 	}
 
-	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete ioFog stack from remote hosts")
 	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of all resources within the namespace")
 
 	return cmd

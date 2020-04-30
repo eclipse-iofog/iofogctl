@@ -20,7 +20,6 @@ import (
 )
 
 func newDeleteVolumeCommand() *cobra.Command {
-	var soft bool
 	cmd := &cobra.Command{
 		Use:   "volume NAME",
 		Short: "Delete an Volume",
@@ -44,8 +43,6 @@ The Volume will be deleted from the Agents that it is stored on.`,
 			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
-
-	cmd.Flags().BoolVar(&soft, "soft", false, "Don't delete iofog-volume from remote host")
 
 	return cmd
 }

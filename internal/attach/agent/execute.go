@@ -52,26 +52,26 @@ func (exe executor) Execute() (err error) {
 
 	ns, err := config.GetNamespace(exe.opt.Namespace)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Update local cache based on Controller
 	if err = iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
-		return err
+		return
 	}
 
 	var baseAgent rsc.Agent
 	if exe.opt.UseDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.opt.Name)
 		if err != nil {
-			return err
+			return
 		}
 	} else {
-		// Determine type of ECN
-		ns, err := config.GetNamespace(exe.opt.Namespace)
-		if err != nil {
-			return err
+		// Check Agent does not exist
+		if _, err := ns.GetAgent(exe.opt.Name); err == nil {
+			return util.NewConflictError(exe.opt.Namespace + "/" + exe.opt.Name)
 		}
+		// Determine type of ECN
 		controlPlane, err := ns.GetControlPlane()
 		if err != nil {
 			return err
@@ -108,8 +108,8 @@ func (exe executor) Execute() (err error) {
 				Host: &host,
 			},
 		}, exe.opt.Namespace)
-	if err := configExecutor.Execute(); err != nil {
-		return err
+	if err = configExecutor.Execute(); err != nil {
+		return
 	}
 
 	var executor execute.Executor
@@ -117,12 +117,12 @@ func (exe executor) Execute() (err error) {
 	case *rsc.LocalAgent:
 		executor, err = deploy.NewLocalExecutor(exe.opt.Namespace, agent, false)
 		if err != nil {
-			return err
+			return
 		}
 	case *rsc.RemoteAgent:
 		executor, err = deploy.NewRemoteExecutor(exe.opt.Namespace, agent, false)
 		if err != nil {
-			return err
+			return
 		}
 	}
 	deployExecutor, ok := executor.(execute.ProvisioningExecutor)
@@ -132,7 +132,7 @@ func (exe executor) Execute() (err error) {
 
 	UUID, err := deployExecutor.ProvisionAgent()
 	if err != nil {
-		return err
+		return
 	}
 
 	baseAgent.SetUUID(UUID)
@@ -142,11 +142,11 @@ func (exe executor) Execute() (err error) {
 
 	if exe.opt.UseDetached {
 		if err = config.AttachAgent(exe.opt.Namespace, exe.opt.Name, UUID); err != nil {
-			return err
+			return
 		}
 	} else {
 		if err = ns.UpdateAgent(baseAgent); err != nil {
-			return err
+			return
 		}
 	}
 
