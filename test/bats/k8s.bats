@@ -15,7 +15,6 @@
 # SCHEDULER_IMAGE
 # OPERATOR_IMAGE
 # KUBELET_IMAGE
-# VANILLA_VERSION
 
 . test/func/include.bash
 

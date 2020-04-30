@@ -9,7 +9,6 @@ export AGENT_LIST="user@host user2@host2"
 export VANILLA_CONTROLLER="user@host"
 
 ######################################################################
-export VANILLA_VERSION="latest"
 
 ######## These variables can be left with their defaults if necessary
 
@@ -82,7 +81,6 @@ echo "${!PROXY_IMAGE*}: " "$PROXY_IMAGE"
 echo "${!AGENT_IMAGE*}: " "$AGENT_IMAGE"
 echo "${!OPERATOR_IMAGE*}: " "$OPERATOR_IMAGE"
 echo "${!KUBELET_IMAGE*}: " "$KUBELET_IMAGE"
-echo "${!VANILLA_VERSION*}: " "$VANILLA_VERSION"
 echo "${!DB_PROVIDER*}: " "$DB_PROVIDER"
 echo "${!DB_USER*}: " "$DB_USER"
 echo "${!DB_HOST*}: " "$DB_HOST"
