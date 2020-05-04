@@ -13,11 +13,19 @@
 
 package client
 
+import "fmt"
+
 // Toggle HTTP output
-var Verbose bool
+var verbose bool
 
 func SetVerbosity(verbose bool) {
-	Verbose = verbose
+	verbose = verbose
+}
+
+func Verbose(msg string) {
+	if verbose {
+		fmt.Sprintf("[HTTP]: %s", msg)
+	}
 }
 
 var GlobalRetriesPolicy Retries

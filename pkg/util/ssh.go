@@ -219,7 +219,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 
 func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int64) error {
 	// Check permissions string
-	SSHVerbose("Copying file...")
+	SSHVerbose(fmt.Sprintf("Copying file %s...", destPath+destFilename))
 	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
 		return NewError("Invalid file permission specified: " + permissions)
 	}
