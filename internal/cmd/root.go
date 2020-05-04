@@ -60,7 +60,7 @@ func NewRootCommand() *cobra.Command {
 
 	// Global flags
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
-	cmd.PersistentFlags().BoolVar(&httpVerbose, "http-verbose", false, "Toggle for displaying verbose output of API client")
+	cmd.PersistentFlags().BoolVar(&debug, "debug", false, "Toggle for displaying verbose output of API clients (HTTP and SSH)")
 	cmd.PersistentFlags().StringP("namespace", "n", config.GetDefaultNamespaceName(), "Namespace to execute respective command within")
 	cmd.PersistentFlags().Bool("detached", false, "Use/Show detached resources")
 
@@ -95,8 +95,8 @@ func NewRootCommand() *cobra.Command {
 // Toggle set by --verbose persistent flag
 var verbose bool
 
-// Toggle set by --http-verbose persistent flag
-var httpVerbose bool
+// Toggle set by --debug persistent flag
+var debug bool
 
 // Callback for cobra on initialization
 func initialize() {
@@ -106,7 +106,8 @@ func initialize() {
 			"failed to respond": 10, // Windows
 		},
 	})
-	client.SetVerbosity(httpVerbose)
+	client.SetVerbosity(debug)
 	install.SetVerbosity(verbose)
-	util.SpinEnable(!verbose && !httpVerbose)
+	util.SpinEnable(!verbose && !debug)
+	util.SetDebug(debug)
 }
