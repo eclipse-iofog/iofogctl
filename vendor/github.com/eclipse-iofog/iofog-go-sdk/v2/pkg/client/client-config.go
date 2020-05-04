@@ -16,15 +16,15 @@ package client
 import "fmt"
 
 // Toggle HTTP output
-var verbose bool
+var IsVerbose bool
 
 func SetVerbosity(verbose bool) {
-	verbose = verbose
+	IsVerbose = verbose
 }
 
 func Verbose(msg string) {
-	if verbose {
-		fmt.Sprintf("[HTTP]: %s", msg)
+	if IsVerbose {
+		fmt.Println(fmt.Sprintf("[HTTP]: %s", msg))
 	}
 }
 

@@ -218,6 +218,10 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504013445-fb861c886
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504013445-fb861c886229/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504013829-a9738d7af5aa h1:JENvZyEYLbzH5nWCACM+sE4pjl4V9SvRGy3SqubDSkI=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504013829-a9738d7af5aa/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504023508-05593da2b588 h1:ypZWNTNecJX+Ga0208WuQ2jml6m1YuaJfXpvGo4M1wI=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504023508-05593da2b588/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504030550-2dcd29e11925 h1:5SOhLESE2mWJ6jUYpFYSJV86i/RPYhQGRktPE6QzJoY=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200504030550-2dcd29e11925/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-rc1 h1:t+jyi0SrEcYzckAmlP/rNsWBywCYTOb6ZH5fRsG+svk=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0 h1:Y+Du5W3kwbGqjlYise6UQkDYLLta046Cv2Lgs3c7eiU=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
@@ -613,6 +617,7 @@ github.com/stretchr/testify v0.0.0-20151208002404-e3a8ff8ce365/go.mod h1:a8OnRci
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
 github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245/go.mod h1:O1c8HleITsZqzNZDjSNzirUGsMT0oGu9LhHKoJrqO+A=
