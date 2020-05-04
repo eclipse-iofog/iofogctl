@@ -48,22 +48,26 @@ func NewSecureShellClient(user, host, privKeyFilename string) *SecureShellClient
 }
 
 func (cl *SecureShellClient) SetPort(port int) {
+	SSHVerbose(fmt.Sprintf("Setting port to %v", port))
 	cl.port = port
 }
 
 func (cl *SecureShellClient) Connect() (err error) {
 	// Don't bother connecting twice
+	SSHVerbose("Initialiasing connection")
 	if cl.conn != nil {
 		return nil
 	}
 
 	// Parse keys
+	SSHVerbose("Parsing keys")
 	key, err := cl.getPublicKey()
 	if err != nil {
 		return err
 	}
 
 	// Instantiate config
+	SSHVerbose("Configuring SSH client")
 	cl.config = &ssh.ClientConfig{
 		User: cl.user,
 		Auth: []ssh.AuthMethod{
@@ -71,9 +75,13 @@ func (cl *SecureShellClient) Connect() (err error) {
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
+	SSHVerbose("Config:")
+	SSHVerbose(fmt.Sprintf("User: %s", cl.user))
+	SSHVerbose(fmt.Sprintf("Auth method: %v", key))
 
 	// Connect
 	endpoint := cl.host + ":" + strconv.Itoa(cl.port)
+	SSHVerbose(fmt.Sprintf("TCP dialing %s", endpoint))
 	cl.conn, err = ssh.Dial("tcp", endpoint, cl.config)
 	if err != nil {
 		return err
@@ -83,6 +91,7 @@ func (cl *SecureShellClient) Connect() (err error) {
 }
 
 func (cl *SecureShellClient) Disconnect() error {
+	SSHVerbose("Disconnecting...")
 	if cl.conn == nil {
 		return nil
 	}
@@ -91,12 +100,15 @@ func (cl *SecureShellClient) Disconnect() error {
 	if err != nil {
 		return err
 	}
+
+	SSHVerbose("Connection closed")
 	cl.conn = nil
 	return nil
 }
 
 func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Establish the session
+	SSHVerbose("Creating session...")
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return
@@ -111,6 +123,7 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	}
 
 	// Run the command
+	SSHVerbose(fmt.Sprintf("Running: %s", cmd))
 	err = session.Run(cmd)
 	if err != nil {
 		stderrBuf := new(bytes.Buffer)
@@ -132,18 +145,21 @@ func format(err error, stdout, stderr *bytes.Buffer) error {
 
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {
 	// Read priv key file, MUST BE RSA
+	SSHVerbose(fmt.Sprintf("Reading private key: %s", cl.privKeyFilename))
 	key, err := ioutil.ReadFile(cl.privKeyFilename)
 	if err != nil {
 		return
 	}
 
 	// Parse key
+	SSHVerbose("Parsing key")
 	signer, err := ssh.ParsePrivateKey(key)
 	if err != nil {
 		return
 	}
 
 	// Return pubkey obj
+	SSHVerbose("Creating auth method based on key pair")
 	authMeth = ssh.PublicKeys(signer)
 
 	return
@@ -152,8 +168,10 @@ func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error)
 func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, ignoredErrors []string) (err error) {
 	// Retry until string condition matches
 	for iter := 0; iter < 30; iter++ {
+		SSHVerbose(fmt.Sprintf("Try %v", iter))
 		// Establish the session
 		var session *ssh.Session
+		SSHVerbose("Creating session...")
 		session, err = cl.conn.NewSession()
 		if err != nil {
 			return
@@ -171,6 +189,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 		session.Stdout = &stdoutBuffer
 
 		// Run the command
+		SSHVerbose(fmt.Sprintf("Running: %s", cmd))
 		err = session.Run(cmd)
 		// Ignore specified errors
 		if err != nil {
@@ -178,6 +197,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			for _, toIgnore := range ignoredErrors {
 				if strings.Contains(errMsg, toIgnore) {
 					// ignore error
+					SSHVerbose(fmt.Sprintf("Ignored error: %s", errMsg))
 					err = nil
 					break
 				}
@@ -199,11 +219,13 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 
 func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int64) error {
 	// Check permissions string
+	SSHVerbose(fmt.Sprintf("Copying file %s...", destPath+destFilename))
 	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
 		return NewError("Invalid file permission specified: " + permissions)
 	}
 
 	// Establish the session
+	SSHVerbose("Creating session...")
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return err
@@ -231,6 +253,7 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 	}()
 
 	// Start the scp command
+	SSHVerbose(fmt.Sprintf("Running: %s", "/usr/bin/scp -t "+destPath))
 	session.Run("/usr/bin/scp -t " + destPath)
 
 	// Wait for completion
@@ -248,6 +271,7 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 }
 
 func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string, recurse bool) error {
+	SSHVerbose("Copying folder...")
 	files, err := ioutil.ReadDir(srcPath)
 	if err != nil {
 		return err
@@ -283,6 +307,8 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 }
 
 func (cl *SecureShellClient) CreateFolder(path string) error {
+	SSHVerbose(fmt.Sprintf("Creating folder %s", path))
+	SSHVerbose(fmt.Sprintf("Running: %s", "mkdir -p "+AddTrailingSlash(path)))
 	if _, err := cl.Run("mkdir -p " + AddTrailingSlash(path)); err != nil {
 		if !strings.Contains(err.Error(), "exists") {
 			return err
@@ -303,4 +329,10 @@ func AddTrailingSlash(in string) string {
 		in = in + "/"
 	}
 	return in
+}
+
+func SSHVerbose(msg string) {
+	if IsDebug() {
+		fmt.Println(fmt.Sprintf("[SSH]: %s", msg))
+	}
 }

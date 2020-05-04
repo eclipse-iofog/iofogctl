@@ -141,6 +141,7 @@ type MicroserviceVolumeMapping struct {
 	HostDestination      string `json:"hostDestination"`
 	ContainerDestination string `json:"containerDestination"`
 	AccessMode           string `json:"accessMode"`
+	Type                 string `json:"type,omitempty"`
 }
 
 type MicroserviceEnvironment struct {

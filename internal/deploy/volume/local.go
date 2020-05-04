@@ -32,6 +32,9 @@ func (exe localExecutor) GetName() string {
 }
 
 func (exe localExecutor) Execute() error {
+	if len(exe.agents) == 0 {
+		return nil
+	}
 	util.SpinStart("Pushing volumes to Agents")
 	util.PrintNotify("Local Agent uses the host filesystem when mounting/binding volumes to the microservices. Therefore deploying a Volume to a Local Agent is unecessary.")
 	if exe.volume.Source != exe.volume.Destination {
