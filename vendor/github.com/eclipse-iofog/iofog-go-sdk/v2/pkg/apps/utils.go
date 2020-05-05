@@ -47,16 +47,48 @@ func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.Ag
 	}
 
 	// Validate microservice
-	if _, foundAgent := agentsByName[msvc.Agent.Name]; !foundAgent {
+	var agent *client.AgentInfo
+	var catalogItem *client.CatalogItemInfo
+	var foundAgent, foundCatalogItem bool
+	if agent, foundAgent = agentsByName[msvc.Agent.Name]; !foundAgent {
 		return NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
 	}
-	if _, foundCatalogItem := catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
+	if catalogItem, foundCatalogItem = catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
 		return NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
 	}
 	registryID, _ := strconv.Atoi(msvc.Images.Registry)
 	if _, foundRegistry := registryByID[registryID]; msvc.Images.Registry != "" && !foundRegistry {
 		if _, foundRegistry := client.RegistryTypeRegistryTypeIDDict[msvc.Images.Registry]; msvc.Images.Registry != "" && !foundRegistry {
 			return NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
+		}
+	}
+
+	// Check if msvc image for the agent type is provided
+	if msvc.Images.CatalogID > 0 {
+		found := false
+		for _, img := range catalogItem.Images {
+			if img.AgentTypeID == agent.FogType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
+		}
+	} else {
+		switch agent.FogType {
+		case 1:
+			if msvc.Images.X86 == "" {
+				return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
+			}
+			break
+		case 2:
+			if msvc.Images.ARM == "" {
+				return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
+			}
+			break
+		default:
+			break
 		}
 	}
 
