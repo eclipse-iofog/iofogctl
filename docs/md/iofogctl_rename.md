@@ -10,11 +10,10 @@ Rename the iofog resources that are currently deployed
 
 ```
 iofogctl rename namespace NAME NEW_NAME
-				iofogctl rename controlplane NAME NEW_NAME
-				iofogctl rename controller NAME NEW_NAME
-				iofogctl rename agent NAME NEW_NAME
-				iofogctl rename microservice NAME NEW_NAME
-				iofogctl rename application NAME NEW_NAME
+iofogctl rename controller NAME NEW_NAME
+iofogctl rename agent NAME NEW_NAME
+iofogctl rename microservice NAME NEW_NAME
+iofogctl rename application NAME NEW_NAME
 ```
 
 ### Options

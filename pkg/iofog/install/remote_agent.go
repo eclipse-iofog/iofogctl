@@ -172,14 +172,18 @@ func (agent *RemoteAgent) Stop() (err error) {
 			cmd: "sudo iofog-agent deprovision",
 			msg: "Deprovisioning Agent " + agent.name,
 		},
+	}
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
+		return err
+	}
+
+	cmds = []command{
 		{
 			cmd: "sudo -S service iofog-agent stop",
 			msg: "Stopping Agent " + agent.name,
 		},
 	}
-
-	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
+	if err = agent.run(cmds); err != nil {
 		return err
 	}
 

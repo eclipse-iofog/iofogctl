@@ -124,7 +124,7 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 				agent.DaemonStatus,
 				age,
 				util.FormatDuration(uptime),
-				agent.IPAddressExternal,
+				agent.Host,
 				agent.Version,
 			}
 			table[idx+1] = append(table[idx+1], row...)

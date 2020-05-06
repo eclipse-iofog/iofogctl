@@ -295,6 +295,7 @@ type GetAgentProvisionKeyResponse struct {
 type AgentInfo struct {
 	UUID                      string    `json:"uuid" yaml:"uuid"`
 	Name                      string    `json:"name" yaml:"name"`
+	Host                      string    `json:"host" yaml:"host"`
 	Location                  string    `json:"location" yaml:"location"`
 	Latitude                  float64   `json:"latitude" yaml:"latitude"`
 	Longitude                 float64   `json:"longitude" yaml:"longitude"`

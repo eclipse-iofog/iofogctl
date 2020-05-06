@@ -98,7 +98,7 @@ func UpdateAgentCache(namespace string) error {
 		agent := rsc.RemoteAgent{
 			Name: backendAgent.Name,
 			UUID: backendAgent.UUID,
-			Host: backendAgent.IPAddressExternal,
+			Host: backendAgent.Host,
 		}
 		// Update additional info if local cache contains it
 		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
