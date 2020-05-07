@@ -53,7 +53,6 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
-	// Delete agent software first, so it can properly deprovision itself before being removed
 	// Get Agent from config
 	var baseAgent rsc.Agent
 	if exe.useDetached {
@@ -68,8 +67,16 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
+	if exe.useDetached {
+		// Update config
+		if err = config.DeleteDetachedAgent(baseAgent.GetName()); err != nil {
+			return err
+		}
+		return config.Flush()
+	}
+
 	// Check if it has microservices running on it
-	if !exe.useDetached && !exe.force {
+	if !exe.force {
 		// Try to get a Controller client to talk to the REST API
 		ctrl, err := iutil.NewControllerClient(exe.namespace)
 		if err != nil {
@@ -86,6 +93,7 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
+	// Remove from Controller
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
 		if err = exe.deleteLocalContainer(); err != nil {
@@ -97,25 +105,17 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
-	// Remove from Controller
-	if !exe.useDetached {
-		// Try to get a Controller client to talk to the REST API
-		ctrl, err := iutil.NewControllerClient(exe.namespace)
-		if err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
-		}
-		// Perform deletion of Agent through Controller
-		if err = ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
-			return err
-		}
-		if err = ns.DeleteAgent(baseAgent.GetName()); err != nil {
-			return err
-		}
-	} else {
-		// Update config
-		if err = config.DeleteDetachedAgent(baseAgent.GetName()); err != nil {
-			return err
-		}
+	// Try to get a Controller client to talk to the REST API
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
+	if err != nil {
+		util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
+	}
+	// Perform deletion of Agent through Controller
+	if err = ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
+		return err
+	}
+	if err = ns.DeleteAgent(baseAgent.GetName()); err != nil {
+		return err
 	}
 
 	return config.Flush()
