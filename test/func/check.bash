@@ -101,7 +101,7 @@ function checkControllerLocal() {
 
   DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
   echo "$DESC" | grep "name: $NAME"
-  echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
+  [ ! -z "$CONTROLLER_IMAGE" ] && echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
   echo "$DESC" | grep "email: $USER_EMAIL"
   echo "$DESC" | grep "password: $USER_PW_B64"
   echo "$DESC" | grep "kind: LocalControlPlane"
