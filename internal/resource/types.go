@@ -14,6 +14,7 @@
 package resource
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
@@ -102,6 +103,8 @@ type AgentConfiguration struct {
 	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
 }
+
+type Route = apps.Route
 
 // FogTypeStringMap map human readable fog type to Controller fog type
 var FogTypeStringMap = map[string]int64{

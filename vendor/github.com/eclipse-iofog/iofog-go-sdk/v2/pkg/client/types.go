@@ -14,7 +14,6 @@
 package client
 
 // Flows
-
 type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -420,4 +419,15 @@ func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 		Key:   "default-proxy-host",
 		Value: address,
 	}
+}
+
+type RouteListResponse struct {
+	Routes []RouteInfo `json:"routes"`
+}
+
+type RouteInfo struct {
+	ID                     int    `json:"id"`
+	Name                   string `json:"name"`
+	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
+	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`
 }

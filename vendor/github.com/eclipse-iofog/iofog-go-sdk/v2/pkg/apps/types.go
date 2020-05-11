@@ -32,6 +32,7 @@ type Kind string
 const (
 	ApplicationKind  Kind = "Application"
 	MicroserviceKind Kind = "Microservice"
+	RouteKind        Kind = "Route"
 )
 
 // Header contains k8s yaml header
