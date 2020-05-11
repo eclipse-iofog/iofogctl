@@ -422,11 +422,10 @@ func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 }
 
 type RouteListResponse struct {
-	Routes []RouteInfo `json:"routes"`
+	Routes []Route `json:"routes"`
 }
 
-type RouteInfo struct {
-	ID                     int    `json:"id"`
+type Route struct {
 	Name                   string `json:"name"`
 	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
 	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`

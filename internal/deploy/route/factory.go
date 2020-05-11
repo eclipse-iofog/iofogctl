@@ -14,6 +14,7 @@
 package deployroute
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -49,7 +50,11 @@ func (exe executor) Execute() (err error) {
 		return
 	}
 
-	if _, err = clt.CreateRoute(exe.name, exe.route.From, exe.route.To); err != nil {
+	if err = clt.CreateRoute(client.Route{
+		Name:                   exe.name,
+		SourceMicroserviceUUID: exe.route.From,
+		DestMicroserviceUUID:   exe.route.To,
+	}); err != nil {
 		return
 	}
 	return

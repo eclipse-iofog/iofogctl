@@ -33,7 +33,7 @@ func (clt *Client) ListRoutes() (response RouteListResponse, err error) {
 	return
 }
 
-func (clt *Client) GetRoute(name string) (response RouteInfo, err error) {
+func (clt *Client) GetRoute(name string) (route Route, err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Get Route request")
 		return
@@ -46,38 +46,28 @@ func (clt *Client) GetRoute(name string) (response RouteInfo, err error) {
 	}
 
 	// Return body
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err = json.Unmarshal(body, &route); err != nil {
 		return
 	}
 
 	return
 }
 
-func (clt *Client) CreateRoute(name, srcMsvcUUID, destMsvcUUID string) (response RouteInfo, err error) {
+func (clt *Client) CreateRoute(route Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Create Route request")
 		return
 	}
 
 	// Send request
-	body, err := clt.doRequest("POST", "/routes", &RouteInfo{
-		Name:                   name,
-		SourceMicroserviceUUID: srcMsvcUUID,
-		DestMicroserviceUUID:   destMsvcUUID,
-	})
-	if err != nil {
-		return
-	}
-
-	// Return body
-	if err = json.Unmarshal(body, &response); err != nil {
+	if _, err = clt.doRequest("POST", "/routes", &route); err != nil {
 		return
 	}
 
 	return
 }
 
-func (clt *Client) UpdateRoute(name string, route RouteInfo) (err error) {
+func (clt *Client) UpdateRoute(name string, route Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Update Route request")
 		return
