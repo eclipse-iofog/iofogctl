@@ -14,6 +14,7 @@
 package deployroute
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
@@ -77,6 +78,20 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 		err = util.NewUnmarshalError(err.Error())
 		return nil, err
 	}
+	// Validate input
+	if route.Name == "" && opt.Name == "" {
+		return nil, util.NewInputError("Did not specify metadata.name or spec.name")
+	}
+	if route.Name == "" {
+		route.Name = opt.Name
+	}
+	if opt.Name == "" {
+		opt.Name = route.Name
+	}
+	if route.Name != opt.Name {
+		return nil, util.NewInputError(fmt.Sprintf("Mismatch between metadata.name [%s] and spec.name [%s]", opt.Name, route.Name))
+	}
+
 	return executor{
 		namespace: opt.Namespace,
 		name:      opt.Name,

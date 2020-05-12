@@ -90,6 +90,12 @@
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
+@test "Deploy route" {
+  initRouteFile
+  iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
+  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+}
+
 @test "Volumes are mounted" {
   testMountVolume
 }

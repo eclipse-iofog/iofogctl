@@ -99,8 +99,18 @@ spec:
     data_label: 'Anonymous_Person_3'" > test/conf/updatedMicroservice.yaml
 }
 
+function initApplicationFileWithRoutes() {
+  initApplicationFiles
+  ROUTES="
+    routes:
+    - name: $ROUTE_NAME
+      from: $MSVC1_NAME
+      to: $MSVC2_NAME"
+  echo "$ROUTES" >> test/conf/application.yaml
+}
+
 function initApplicationFiles() {
-  local MSVCS="
+  MSVCS="
     microservices:
     - name: $MSVC1_NAME
       agent:
@@ -140,7 +150,6 @@ function initApplicationFiles() {
         env:
           - key: BASE_URL
             value: http://localhost:8080/data"
-
   echo -n "---
   apiVersion: iofog.org/v2
   kind: Application

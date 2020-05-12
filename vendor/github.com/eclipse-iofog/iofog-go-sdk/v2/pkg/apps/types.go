@@ -178,6 +178,7 @@ type Microservices struct {
 // Route contains information about a route from one microservice to another
 // +k8s:deepcopy-gen=true
 type Route struct {
+	Name string `yaml:"name" json:"name"`
 	From string `yaml:"from" json:"from"`
 	To   string `yaml:"to" json:"to"`
 }
