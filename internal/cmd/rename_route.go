@@ -14,28 +14,30 @@
 package cmd
 
 import (
-	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/namespace"
+	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/route"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newRenameNamespaceCommand() *cobra.Command {
+func newRenameRouteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace NAME NEW_NAME",
-		Short:   "Rename a Namespace",
-		Long:    `Rename a Namespace`,
-		Example: `iofogctl rename namespace NAME NEW_NAME`,
+		Use:     "route NAME NEW_NAME",
+		Short:   "Rename a Route",
+		Long:    `Rename a Route`,
+		Example: `iofogctl rename route NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get name and new name of the namespace
+			// Get name and new name of the route
 			name := args[0]
 			newName := args[1]
-
-			// Get an executor for the command
-			err := rename.Execute(name, newName)
+			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed namespace " + name + " to " + newName)
+			// Get an executor for the command
+			err = rename.Execute(namespace, name, newName)
+			util.Check(err)
+
+			util.PrintSuccess("Successfully renamed route " + name + " to " + newName)
 		},
 	}
 

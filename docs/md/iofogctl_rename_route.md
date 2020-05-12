@@ -1,25 +1,25 @@
-## iofogctl rename namespace
+## iofogctl rename route
 
-Rename a Namespace
+Rename a Route
 
 ### Synopsis
 
-Rename a Namespace
+Rename a Route
 
 ```
-iofogctl rename namespace NAME NEW_NAME [flags]
+iofogctl rename route NAME NEW_NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl rename namespace NAME NEW_NAME
+iofogctl rename route NAME NEW_NAME
 ```
 
 ### Options
 
 ```
-  -h, --help   help for namespace
+  -h, --help   help for route
 ```
 
 ### Options inherited from parent commands
