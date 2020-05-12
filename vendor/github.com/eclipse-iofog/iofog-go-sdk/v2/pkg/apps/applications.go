@@ -152,7 +152,7 @@ func (exe *applicationExecutor) validate() (err error) {
 
 func (exe *applicationExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
 	for _, route := range exe.app.Routes {
-		if err = exe.client.CreateRoute(client.Route{
+		if err = exe.client.UpdateRoute(client.Route{
 			Name:                   route.Name,
 			SourceMicroserviceUUID: microserviceByName[route.From].UUID,
 			DestMicroserviceUUID:   microserviceByName[route.To].UUID,

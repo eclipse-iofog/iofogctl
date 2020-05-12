@@ -67,7 +67,20 @@ func (clt *Client) CreateRoute(route Route) (err error) {
 	return
 }
 
-func (clt *Client) UpdateRoute(name string, route Route) (err error) {
+func (clt *Client) UpdateRoute(route Route) (err error) {
+	if !clt.isLoggedIn() {
+		err = NewError("Controller client must be logged into perform Update Route request")
+		return
+	}
+
+	if _, err = clt.GetRoute(route.Name); err == nil {
+		return clt.PatchRoute(route.Name, route)
+	}
+
+	return clt.CreateRoute(route)
+}
+
+func (clt *Client) PatchRoute(name string, route Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Update Route request")
 		return
