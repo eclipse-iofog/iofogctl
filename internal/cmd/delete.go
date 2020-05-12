@@ -26,9 +26,15 @@ func newDeleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "delete",
 		Example: `delete all
+delete namespace NAME
 delete controller NAME
 delete agent NAME
-delete application NAME`,
+delete application NAME
+delete microservice NAME
+delete registry NAME
+delete volume NAME
+delete route NAME
+`,
 		Short: "Delete an existing ioFog resource",
 		Long:  `Delete an existing ioFog resource.`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -55,6 +61,7 @@ delete application NAME`,
 		newDeleteRegistryCommand(),
 		newDeleteMicroserviceCommand(),
 		newDeleteVolumeCommand(),
+		newDeleteRouteCommand(),
 	)
 
 	// Register flags
