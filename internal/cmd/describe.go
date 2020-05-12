@@ -24,7 +24,7 @@ import (
 
 func newDescribeCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"namespace", "controlplane", "controller", "agent", "agent-config", "microservice", "application", "volume"}
+	var validResources = []string{"namespace", "controlplane", "controller", "agent", "agent-config", "microservice", "application", "volume", "route"}
 	filename := ""
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",

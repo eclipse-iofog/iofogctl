@@ -22,7 +22,7 @@ iofogctl describe agent NAME
 iofogctl describe agent-config NAME
 iofogctl describe microservice NAME
 
-Valid resources are: namespace, controlplane, controller, agent, agent-config, microservice, application, volume
+Valid resources are: namespace, controlplane, controller, agent, agent-config, microservice, application, volume, route
 
 ```
 

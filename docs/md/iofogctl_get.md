@@ -19,7 +19,7 @@ iofogctl get all
 iofogctl get namespaces
 iofogctl get controllers
 
-Valid resources are: all, namespaces, controllers, agents, applications, microservices, catalog, registries, volumes
+Valid resources are: all, namespaces, controllers, agents, applications, microservices, catalog, registries, volumes, routes
 
 ```
 
