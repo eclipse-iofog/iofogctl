@@ -132,8 +132,6 @@ function checkMicroservice() {
   # TODO: Use another testing framework to verify proper output of yaml file
   iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC2_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "ports:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5005") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 443") ]]
@@ -174,8 +172,6 @@ function checkUpdatedMicroservice() {
   # TODO: Use another testing framework to verify proper output of yaml file
   iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
-  [[ -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC2_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "ports:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5443") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 443") ]]
