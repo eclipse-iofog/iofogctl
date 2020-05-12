@@ -43,12 +43,17 @@ spec:
       - key: TEST
         value: 42
   application: ${APPLICATION_NAME}
-  routes:
-    - ${MSVC1_NAME}
-    - ${MSVC2_NAME}
   config:
     test_mode: true
-    data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
+    data_label: 'Anonymous_Person_2'
+---
+apiVersion: iofog.org/v2
+kind: Route
+metadata:
+  name: route-1
+spec:
+  from: ${MSVC1_NAME}
+  to: ${MSVC2_NAME}" > test/conf/microservice.yaml
 }
 
 function initMicroserviceUpdateFile() {
@@ -84,8 +89,6 @@ spec:
       - key: TEST_2
         value: 42
   application: ${APPLICATION_NAME}
-  routes:
-    - ${MSVC1_NAME}
   config:
     test_mode: true
     test_data:
