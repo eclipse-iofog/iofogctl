@@ -10,21 +10,6 @@ Delete an existing ioFog resource.
 iofogctl delete [flags]
 ```
 
-### Examples
-
-```
-delete all
-delete namespace NAME
-delete controller NAME
-delete agent NAME
-delete application NAME
-delete microservice NAME
-delete registry NAME
-delete volume NAME
-delete route NAME
-
-```
-
 ### Options
 
 ```

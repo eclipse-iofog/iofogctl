@@ -16,16 +16,14 @@ iofogctl describe resource NAME [flags]
 
 ```
 iofogctl describe namespace
-iofogctl describe controlplane
-iofogctl describe controller NAME
-iofogctl describe agent NAME
-iofogctl describe agent-config NAME
-iofogctl describe microservice NAME
-iofogctl describe volume NAME
-iofogctl describe route NAME
-
-Valid resources are: namespace, controlplane, controller, agent, agent-config, microservice, application, volume, route
-
+                  controlplane
+                  controller   NAME
+                  agent        NAME
+                  agent-config NAME
+                  application  NAME
+                  microservice NAME
+                  volume       NAME
+                  route        NAME
 ```
 
 ### Options

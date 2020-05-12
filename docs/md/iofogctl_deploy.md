@@ -15,6 +15,11 @@ iofogctl deploy [flags]
 
 ```
 deploy -f platform.yaml
+          application.yaml
+          microservice.yaml
+          catalog.yaml
+          volume.yaml
+          route.yaml
 ```
 
 ### Options

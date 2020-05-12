@@ -18,8 +18,10 @@ iofogctl connect [flags]
 
 ```
 iofogctl connect -f controlplane.yaml
-iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
-iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
+
+iofogctl connect --email EMAIL --pass PASSWORD --kube     FILE 
+                 --email EMAIL --pass PASSWORD --ecn-addr ENDPOINT --name NAME
+
 iofogctl connect --generate
 ```
 

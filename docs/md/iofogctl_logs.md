@@ -13,9 +13,9 @@ iofogctl logs RESOURCE NAME [flags]
 ### Examples
 
 ```
-iofogctl logs controller NAME
-iofogctl logs agent NAME
-iofogctl logs microservice NAME
+iofogctl logs controller   NAME
+              agent        NAME
+              microservice NAME
 ```
 
 ### Options

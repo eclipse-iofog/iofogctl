@@ -6,12 +6,6 @@ Starts a resource
 
 Starts a resource
 
-### Examples
-
-```
-iofogctl start application NAME
-```
-
 ### Options
 
 ```

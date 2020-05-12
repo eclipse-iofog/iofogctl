@@ -25,9 +25,14 @@ func newDeployCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:     "deploy",
-		Example: `deploy -f platform.yaml`,
-		Short:   "Deploy Edge Compute Network components on existing infrastructure",
+		Use: "deploy",
+		Example: `deploy -f platform.yaml
+          application.yaml
+          microservice.yaml
+          catalog.yaml
+          volume.yaml
+          route.yaml`,
+		Short: "Deploy Edge Compute Network components on existing infrastructure",
 		Long: `Deploy Edge Compute Network components on existing infrastructure.
 Visit iofog.org to view all YAML specifications usable with this command.`,
 		Run: func(cmd *cobra.Command, args []string) {

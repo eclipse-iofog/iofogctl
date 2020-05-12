@@ -6,12 +6,6 @@ Stops a resource
 
 Stops a resource
 
-### Examples
-
-```
-iofogctl stop application NAME
-```
-
 ### Options
 
 ```
