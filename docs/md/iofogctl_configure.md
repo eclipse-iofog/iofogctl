@@ -16,11 +16,13 @@ iofogctl configure resource NAME [flags]
 
 ```
 iofogctl configure default-namespace NAME
-                   controller        NAME --user USER --key KEYFILE --port PORTNUM
-                   agent             NAME --user USER --key KEYFILE --port PORTNUM
-                   controllers       NAME --user USER --key KEYFILE --port PORTNUM
-                   agents            NAME --user USER --key KEYFILE --port PORTNUM
-                   controlplane           --kube FILE
+
+iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+                   controllers NAME --user USER --key KEYFILE --port PORTNUM
+                   agent       NAME --user USER --key KEYFILE --port PORTNUM
+                   agents      NAME --user USER --key KEYFILE --port PORTNUM
+
+iofogctl configure controlplane --kube FILE
 ```
 
 ### Options

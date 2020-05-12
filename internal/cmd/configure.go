@@ -31,11 +31,13 @@ func newConfigureCommand() *cobra.Command {
 
 If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.`,
 		Example: `iofogctl configure default-namespace NAME
-                   controller        NAME --user USER --key KEYFILE --port PORTNUM
-                   agent             NAME --user USER --key KEYFILE --port PORTNUM
-                   controllers       NAME --user USER --key KEYFILE --port PORTNUM
-                   agents            NAME --user USER --key KEYFILE --port PORTNUM
-                   controlplane           --kube FILE`,
+
+iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+                   controllers NAME --user USER --key KEYFILE --port PORTNUM
+                   agent       NAME --user USER --key KEYFILE --port PORTNUM
+                   agents      NAME --user USER --key KEYFILE --port PORTNUM
+
+iofogctl configure controlplane --kube FILE`,
 		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
