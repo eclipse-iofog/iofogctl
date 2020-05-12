@@ -119,3 +119,33 @@ func UpdateAgentCache(namespace string) error {
 
 	return config.Flush()
 }
+
+func GetMicroserviceName(namespace, uuid string) (name string, err error) {
+	clt, err := NewControllerClient(namespace)
+	if err != nil {
+		return
+	}
+
+	response, err := clt.GetMicroserviceByID(uuid)
+	if err != nil {
+		return
+	}
+
+	name = response.Name
+	return
+}
+
+func GetMicroserviceUUID(namespace, name string) (uuid string, err error) {
+	clt, err := NewControllerClient(namespace)
+	if err != nil {
+		return
+	}
+
+	response, err := clt.GetMicroserviceByName(name)
+	if err != nil {
+		return
+	}
+
+	uuid = response.AgentUUID
+	return
+}

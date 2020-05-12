@@ -61,11 +61,20 @@ func generateRouteOutput(namespace string, printNS bool) error {
 
 	// Populate rows
 	for idx, route := range routes {
+		// Convert route details
+		from, err := iutil.GetMicroserviceName(namespace, route.SourceMicroserviceUUID)
+		if err != nil {
+			return err
+		}
+		to, err := iutil.GetMicroserviceName(namespace, route.DestMicroserviceUUID)
+		if err != nil {
+			return err
+		}
 		// Store values
 		row := []string{
 			route.Name,
-			route.SourceMicroserviceUUID,
-			route.DestMicroserviceUUID,
+			from,
+			to,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}

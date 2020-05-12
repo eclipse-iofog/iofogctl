@@ -50,11 +50,23 @@ func (exe *routeExecutor) Execute() error {
 		return err
 	}
 
+	// Get Route
 	route, err := clt.GetRoute(exe.name)
 	if err != nil {
 		return err
 	}
 
+	// Convert route details
+	from, err := iutil.GetMicroserviceName(exe.namespace, route.SourceMicroserviceUUID)
+	if err != nil {
+		return err
+	}
+	to, err := iutil.GetMicroserviceName(exe.namespace, route.DestMicroserviceUUID)
+	if err != nil {
+		return err
+	}
+
+	// Convert to YAML
 	header := config.Header{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       config.RouteKind,
@@ -63,8 +75,8 @@ func (exe *routeExecutor) Execute() error {
 			Name:      exe.name,
 		},
 		Spec: rsc.Route{
-			From: route.SourceMicroserviceUUID,
-			To:   route.DestMicroserviceUUID,
+			From: from,
+			To:   to,
 		},
 	}
 

@@ -50,10 +50,20 @@ func (exe executor) Execute() (err error) {
 		return
 	}
 
+	// Convert route details
+	srcMsvcUUID, err := iutil.GetMicroserviceUUID(exe.namespace, exe.route.From)
+	if err != nil {
+		return
+	}
+	destMsvcUUID, err := iutil.GetMicroserviceUUID(exe.namespace, exe.route.To)
+	if err != nil {
+		return
+	}
+
 	if err = clt.CreateRoute(client.Route{
 		Name:                   exe.name,
-		SourceMicroserviceUUID: exe.route.From,
-		DestMicroserviceUUID:   exe.route.To,
+		SourceMicroserviceUUID: srcMsvcUUID,
+		DestMicroserviceUUID:   destMsvcUUID,
 	}); err != nil {
 		return
 	}
