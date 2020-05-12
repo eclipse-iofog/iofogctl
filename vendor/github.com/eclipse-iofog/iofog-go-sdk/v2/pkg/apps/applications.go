@@ -206,7 +206,6 @@ func (exe *applicationExecutor) update() (err error) {
 	// Deploy microservices
 	for _, msvc := range yamlMicroservicesPerName {
 		// Force deletion of all routes
-		msvc.Routes = []string{}
 		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
 			*msvc,

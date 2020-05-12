@@ -18,6 +18,10 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
+type Route = apps.Route
+type Microservice = apps.Microservice
+type Application = apps.Application
+
 type Container struct {
 	Image       string      `yaml:"image,omitempty"`
 	Credentials Credentials `yaml:"credentials,omitempty"` // Optional credentials if needed to pull images
@@ -103,8 +107,6 @@ type AgentConfiguration struct {
 	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
 	client.AgentConfiguration `yaml:",inline"`
 }
-
-type Route = apps.Route
 
 // FogTypeStringMap map human readable fog type to Controller fog type
 var FogTypeStringMap = map[string]int64{

@@ -148,7 +148,6 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	result.Container.Volumes = &volumes
 	result.Container.Env = &envs
 	result.Container.ExtraHosts = &extraHosts
-	result.Routes = routes
 	result.Flow = &application.Name
 	return
 }

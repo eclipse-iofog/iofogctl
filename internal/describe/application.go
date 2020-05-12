@@ -14,9 +14,9 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -77,8 +77,8 @@ func (exe *applicationExecutor) Execute() error {
 		return err
 	}
 
-	yamlMsvcs := []apps.Microservice{}
-	yamlRoutes := []apps.Route{}
+	yamlMsvcs := []rsc.Microservice{}
+	yamlRoutes := []rsc.Route{}
 
 	for _, msvc := range exe.msvcs {
 		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(&msvc, exe.client)
@@ -86,18 +86,17 @@ func (exe *applicationExecutor) Execute() error {
 			return err
 		}
 		for _, route := range msvc.Routes {
-			yamlRoutes = append(yamlRoutes, apps.Route{
+			yamlRoutes = append(yamlRoutes, rsc.Route{
 				From: yamlMsvc.Name,
 				To:   exe.msvcPerID[route].Name,
 			})
 		}
 		// Remove fields
-		yamlMsvc.Routes = nil
 		yamlMsvc.Flow = nil
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 
-	application := apps.Application{
+	application := rsc.Application{
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
 		Routes:        yamlRoutes,
