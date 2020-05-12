@@ -33,7 +33,14 @@ func newGetCommand() *cobra.Command {
 Resources like Agents will require a working Controller in the namespace to display all information.`,
 		Example: `iofogctl get all
 iofogctl get namespaces
-iofogctl get controllers` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+iofogctl get controllers
+iofogctl get agents
+iofogctl get applications
+iofogctl get microservices
+iofogctl get catalog
+iofogctl get registries
+iofogctl get volumes
+iofogctl get routes` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
 		ValidArgs: validResources,
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

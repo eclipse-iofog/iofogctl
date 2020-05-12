@@ -37,7 +37,9 @@ iofogctl describe controlplane
 iofogctl describe controller NAME
 iofogctl describe agent NAME
 iofogctl describe agent-config NAME
-iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+iofogctl describe microservice NAME
+iofogctl describe volume NAME
+iofogctl describe route NAME` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				util.Check(util.NewInputError("Must specify a resource to describe"))
