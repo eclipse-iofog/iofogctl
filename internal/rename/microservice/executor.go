@@ -41,8 +41,7 @@ func Execute(namespace, name, newName string) error {
 		// Bug in Controller, fails if empty because images should be an array
 		Images: msvc.Images,
 		// Ports and Routes get automatically updated by the SDK, to avoid deletion of port mapping or route, those fields are mandatory
-		Ports:  msvc.Ports,
-		Routes: msvc.Routes,
+		Ports: msvc.Ports,
 	}); err != nil {
 		return err
 	}

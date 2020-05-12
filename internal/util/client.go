@@ -146,6 +146,6 @@ func GetMicroserviceUUID(namespace, name string) (uuid string, err error) {
 		return
 	}
 
-	uuid = response.AgentUUID
+	uuid = response.UUID
 	return
 }

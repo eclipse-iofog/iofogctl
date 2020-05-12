@@ -56,7 +56,7 @@ func generateRouteOutput(namespace string, printNS bool) error {
 
 	// Generate table and headers
 	table := make([][]string, len(routes)+1)
-	headers := []string{"NAME", "SOURCE MSVC", "DEST MSVC"}
+	headers := []string{"ROUTE", "SOURCE MSVC", "DEST MSVC"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows

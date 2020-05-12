@@ -249,7 +249,6 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 		ExtraHosts:     *extraHosts,
 		RegistryID:     registryID,
 		AgentUUID:      agentUUID,
-		Routes:         exe.routes,
 		Commands:       exe.msvc.Container.Commands,
 		Images:         images,
 	})
@@ -278,7 +277,6 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		ExtraHosts:     mapExtraHosts(exe.msvc.Container.ExtraHosts),
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
-		Routes:         exe.routes,
 		Commands:       cmdPointer,
 		Images:         images,
 		Rebuild:        exe.msvc.Rebuild,

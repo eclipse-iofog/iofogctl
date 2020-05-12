@@ -85,12 +85,6 @@ func (exe *applicationExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		for _, route := range msvc.Routes {
-			yamlRoutes = append(yamlRoutes, rsc.Route{
-				From: yamlMsvc.Name,
-				To:   exe.msvcPerID[route].Name,
-			})
-		}
 		// Remove fields
 		yamlMsvc.Flow = nil
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
