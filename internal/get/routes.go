@@ -14,7 +14,9 @@
 package get
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 )
 
@@ -44,16 +46,28 @@ func generateRouteOutput(namespace string, printNS bool) error {
 
 	// Connect to Controller
 	clt, err := iutil.NewControllerClient(namespace)
-	if err != nil {
+	if err != nil && !rsc.IsNoControlPlaneError(err) {
 		return err
 	}
 
-	listResponse, err := clt.ListRoutes()
-	if err != nil {
-		return err
+	routes := make([]client.Route, 0)
+	if err == nil {
+		// Populate table
+		listResponse, err := clt.ListRoutes()
+		if err != nil {
+			return err
+		}
+		routes = listResponse.Routes
 	}
-	routes := listResponse.Routes
 
+	if printNS {
+		printNamespace(namespace)
+	}
+
+	return tabulateRoutes(namespace, routes)
+}
+
+func tabulateRoutes(namespace string, routes []client.Route) error {
 	// Generate table and headers
 	table := make([][]string, len(routes)+1)
 	headers := []string{"ROUTE", "SOURCE MSVC", "DEST MSVC"}
@@ -79,14 +93,9 @@ func generateRouteOutput(namespace string, printNS bool) error {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	if printNS {
-		printNamespace(namespace)
-	}
 	// Print table
-	err = print(table)
-	if err != nil {
+	if err := print(table); err != nil {
 		return err
 	}
-
 	return nil
 }
