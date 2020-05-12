@@ -60,12 +60,12 @@ func (exe executor) Execute() (err error) {
 	return
 }
 
-func NewExecutor(opt Options) (exe execute.Executor, err error) {
+func NewExecutor(opt Options) (execute.Executor, error) {
 	// Unmarshal file
 	var route rsc.Route
-	if err = yaml.UnmarshalStrict(opt.Yaml, &route); err != nil {
+	if err := yaml.UnmarshalStrict(opt.Yaml, &route); err != nil {
 		err = util.NewUnmarshalError(err.Error())
-		return
+		return nil, err
 	}
 	return executor{
 		namespace: opt.Namespace,

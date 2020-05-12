@@ -14,9 +14,15 @@ iofogctl delete [flags]
 
 ```
 delete all
+delete namespace NAME
 delete controller NAME
 delete agent NAME
 delete application NAME
+delete microservice NAME
+delete registry NAME
+delete volume NAME
+delete route NAME
+
 ```
 
 ### Options
@@ -46,6 +52,7 @@ delete application NAME
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace
 * [iofogctl delete registry](iofogctl_delete_registry.md)	 - Delete a registry
+* [iofogctl delete route](iofogctl_delete_route.md)	 - Delete a Route
 * [iofogctl delete volume](iofogctl_delete_volume.md)	 - Delete an Volume
 
 
