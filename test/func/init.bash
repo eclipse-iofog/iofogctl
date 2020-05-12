@@ -45,15 +45,18 @@ spec:
   application: ${APPLICATION_NAME}
   config:
     test_mode: true
-    data_label: 'Anonymous_Person_2'
----
+    data_label: 'Anonymous_Person_2'" > test/conf/microservice.yaml
+}
+
+function initRouteFile() {
+  echo "---
 apiVersion: iofog.org/v2
 kind: Route
 metadata:
-  name: route-1
+  name: $ROUTE_NAME
 spec:
-  from: ${MSVC1_NAME}
-  to: ${MSVC2_NAME}" > test/conf/microservice.yaml
+  from: $MSVC1_NAME
+  to: $MSVC2_NAME" > test/conf/route.yaml
 }
 
 function initMicroserviceUpdateFile() {
@@ -97,7 +100,7 @@ spec:
 }
 
 function initApplicationFiles() {
-  MSVCS="
+  local MSVCS="
     microservices:
     - name: $MSVC1_NAME
       agent:
@@ -137,12 +140,6 @@ function initApplicationFiles() {
         env:
           - key: BASE_URL
             value: http://localhost:8080/data"
-  ROUTES="
-    routes:
-    # Use this section to configure route between microservices
-    # Use microservice name
-    - from: $MSVC1_NAME
-      to: $MSVC2_NAME"
 
   echo -n "---
   apiVersion: iofog.org/v2
@@ -151,7 +148,6 @@ function initApplicationFiles() {
     name: $APPLICATION_NAME
   spec:" > test/conf/application.yaml
   echo -n "$MSVCS" >> test/conf/application.yaml
-  echo "$ROUTES" >> test/conf/application.yaml
 }
 
 function initLocalAgentFile() {
