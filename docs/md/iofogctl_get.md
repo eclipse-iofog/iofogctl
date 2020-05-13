@@ -16,11 +16,15 @@ iofogctl get RESOURCE [flags]
 
 ```
 iofogctl get all
-iofogctl get namespaces
-iofogctl get controllers
-
-Valid resources are: all, namespaces, controllers, agents, applications, microservices, catalog, registries, volumes
-
+             namespaces
+             controllers
+             agents
+             applications
+             microservices
+             catalog
+             registries
+             volumes
+             routes
 ```
 
 ### Options

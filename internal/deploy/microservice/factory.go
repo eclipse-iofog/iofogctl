@@ -19,6 +19,7 @@ import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -31,7 +32,7 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	microservice apps.Microservice
+	microservice rsc.Microservice
 	controller   apps.IofogController
 }
 
@@ -61,7 +62,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Unmarshal file
-	var microservice apps.Microservice
+	var microservice rsc.Microservice
 	if err = yaml.UnmarshalStrict(opt.Yaml, &microservice); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return

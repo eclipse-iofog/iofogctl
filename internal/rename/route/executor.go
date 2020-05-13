@@ -11,11 +11,10 @@
  *
  */
 
-package microservice
+package route
 
 import (
 	"fmt"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -28,21 +27,15 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
-	msvc, err := clt.GetMicroserviceByName(name)
+	route, err := clt.GetRoute(name)
 	if err != nil {
 		return err
 	}
 
-	util.SpinStart(fmt.Sprintf("Renaming microservice %s", name))
+	util.SpinStart(fmt.Sprintf("Renaming route %s", name))
+	route.Name = newName
 
-	if _, err = clt.UpdateMicroservice(client.MicroserviceUpdateRequest{
-		UUID: msvc.UUID,
-		Name: &newName,
-		// Bug in Controller, fails if empty because images should be an array
-		Images: msvc.Images,
-		// Ports and Routes get automatically updated by the SDK, to avoid deletion of port mapping or route, those fields are mandatory
-		Ports: msvc.Ports,
-	}); err != nil {
+	if err := clt.PatchRoute(name, route); err != nil {
 		return err
 	}
 

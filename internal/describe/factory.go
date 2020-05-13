@@ -30,14 +30,16 @@ func NewExecutor(resourceType, namespace, name, filename string, useDetached boo
 		return newAgentExecutor(namespace, name, filename, useDetached), nil
 	case "registry":
 		return newRegistryExecutor(namespace, name, filename, useDetached)
-	case "volume":
-		return newVolumeExecutor(namespace, name, filename), nil
 	case "agent-config":
 		return newAgentConfigExecutor(namespace, name, filename), nil
 	case "microservice":
 		return newMicroserviceExecutor(namespace, name, filename), nil
 	case "application":
 		return newApplicationExecutor(namespace, name, filename), nil
+	case "volume":
+		return newVolumeExecutor(namespace, name, filename), nil
+	case "route":
+		return newRouteExecutor(namespace, name, filename), nil
 	default:
 		msg := "Unknown resourceType: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

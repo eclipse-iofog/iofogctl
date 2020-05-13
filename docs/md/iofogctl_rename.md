@@ -6,16 +6,6 @@ Rename the iofog resources that are currently deployed
 
 Rename the iofog resources that are currently deployed
 
-### Examples
-
-```
-iofogctl rename namespace NAME NEW_NAME
-iofogctl rename controller NAME NEW_NAME
-iofogctl rename agent NAME NEW_NAME
-iofogctl rename microservice NAME NEW_NAME
-iofogctl rename application NAME NEW_NAME
-```
-
 ### Options
 
 ```
@@ -38,6 +28,7 @@ iofogctl rename application NAME NEW_NAME
 * [iofogctl rename application](iofogctl_rename_application.md)	 - Rename a Application
 * [iofogctl rename controller](iofogctl_rename_controller.md)	 - Rename a Controller
 * [iofogctl rename microservice](iofogctl_rename_microservice.md)	 - Rename a Microservice
-* [iofogctl rename namespace](iofogctl_rename_namespace.md)	 - Rename the Namespace of your ECN
+* [iofogctl rename namespace](iofogctl_rename_namespace.md)	 - Rename a Namespace
+* [iofogctl rename route](iofogctl_rename_route.md)	 - Rename a Route
 
 

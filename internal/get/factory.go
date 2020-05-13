@@ -19,7 +19,6 @@ import (
 )
 
 func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Executor, error) {
-
 	switch resourceType {
 	case "namespaces":
 		return newNamespaceExecutor(), nil
@@ -39,6 +38,8 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newRegistryExecutor(namespace), nil
 	case "volumes":
 		return newVolumeExecutor(namespace), nil
+	case "routes":
+		return newRouteExecutor(namespace), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

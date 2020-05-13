@@ -152,9 +152,11 @@ func (exe *applicationExecutor) validate() (err error) {
 
 func (exe *applicationExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
 	for _, route := range exe.app.Routes {
-		fromMsvc, _ := microserviceByName[route.From]
-		toMsvc, _ := microserviceByName[route.To]
-		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
+		if err = exe.client.UpdateRoute(client.Route{
+			Name:                   route.Name,
+			SourceMicroserviceUUID: microserviceByName[route.From].UUID,
+			DestMicroserviceUUID:   microserviceByName[route.To].UUID,
+		}); err != nil {
 			return err
 		}
 	}
@@ -206,7 +208,6 @@ func (exe *applicationExecutor) update() (err error) {
 	// Deploy microservices
 	for _, msvc := range yamlMicroservicesPerName {
 		// Force deletion of all routes
-		msvc.Routes = []string{}
 		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
 			*msvc,

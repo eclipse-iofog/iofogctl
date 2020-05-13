@@ -19,6 +19,7 @@ import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -31,7 +32,7 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	application apps.Application
+	application rsc.Application
 	controller  apps.IofogController
 }
 
@@ -61,7 +62,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Unmarshal file
-	application := apps.Application{}
+	application := rsc.Application{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &application); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return

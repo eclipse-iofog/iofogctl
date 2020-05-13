@@ -49,8 +49,7 @@ func Execute(namespace, name, agent string) error {
 		UUID:      msvc.UUID,
 		AgentUUID: &destAgent.UUID,
 		// Ports and Routes get automatically updated by the SDK, to avoid deletion of port mapping or route, those fields are mandatory
-		Ports:  msvc.Ports,
-		Routes: msvc.Routes,
+		Ports: msvc.Ports,
 	})
 
 	return err

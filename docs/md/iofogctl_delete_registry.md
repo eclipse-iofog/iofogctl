@@ -1,10 +1,10 @@
 ## iofogctl delete registry
 
-Delete a registry
+Delete a Registry
 
 ### Synopsis
 
-Delete a registry from the Controller.
+Delete a Registry from the Controller.
 
 ```
 iofogctl delete registry ID [flags]

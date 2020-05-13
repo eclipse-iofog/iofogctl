@@ -91,12 +91,12 @@ func (exe executor) Execute() error {
 	return nil
 }
 
-func NewExecutor(opt Options) (exe execute.Executor, err error) {
+func NewExecutor(opt Options) (execute.Executor, error) {
 	// Unmarshal file
 	var volume rsc.Volume
-	if err = yaml.UnmarshalStrict(opt.Yaml, &volume); err != nil {
+	if err := yaml.UnmarshalStrict(opt.Yaml, &volume); err != nil {
 		err = util.NewUnmarshalError(err.Error())
-		return
+		return nil, err
 	}
 	// Check Name
 	if opt.Name != "" {

@@ -6,12 +6,6 @@ Move an existing resources inside the current Namespace
 
 Move an existing resources inside the current Namespace
 
-### Examples
-
-```
-iofogctl move microservice NAME AGENT_NAME
-```
-
 ### Options
 
 ```

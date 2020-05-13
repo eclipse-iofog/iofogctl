@@ -6,12 +6,6 @@ prune ioFog resources
 
 prune ioFog resources
 
-### Examples
-
-```
-Iofogctl prune agent NAME
-```
-
 ### Options
 
 ```

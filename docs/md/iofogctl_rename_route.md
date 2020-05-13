@@ -1,15 +1,25 @@
-## iofogctl stop
+## iofogctl rename route
 
-Stops a resource
+Rename a Route
 
 ### Synopsis
 
-Stops a resource
+Rename a Route
+
+```
+iofogctl rename route NAME NEW_NAME [flags]
+```
+
+### Examples
+
+```
+iofogctl rename route NAME NEW_NAME
+```
 
 ### Options
 
 ```
-  -h, --help   help for stop
+  -h, --help   help for route
 ```
 
 ### Options inherited from parent commands
@@ -23,7 +33,6 @@ Stops a resource
 
 ### SEE ALSO
 
-* [iofogctl](iofogctl.md)	 - 
-* [iofogctl stop application](iofogctl_stop_application.md)	 - Stop an application
+* [iofogctl rename](iofogctl_rename.md)	 - Rename the iofog resources that are currently deployed
 
 

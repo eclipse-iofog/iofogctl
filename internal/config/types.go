@@ -23,6 +23,7 @@ const (
 	LocalControllerKind        Kind = "LocalController"
 	MicroserviceKind           Kind = Kind(apps.MicroserviceKind)
 	ApplicationKind            Kind = Kind(apps.ApplicationKind)
+	RouteKind                  Kind = Kind(apps.RouteKind)
 )
 
 // Header contains k8s yaml header

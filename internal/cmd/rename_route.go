@@ -14,34 +14,30 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/logs"
+	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/route"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newLogsCommand() *cobra.Command {
+func newRenameRouteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "logs RESOURCE NAME",
-		Short: "Get log contents of deployed resource",
-		Long:  `Get log contents of deployed resource`,
-		Example: `iofogctl logs controller   NAME
-              agent        NAME
-              microservice NAME`,
-		Args: cobra.ExactValidArgs(2),
+		Use:     "route NAME NEW_NAME",
+		Short:   "Rename a Route",
+		Long:    `Rename a Route`,
+		Example: `iofogctl rename route NAME NEW_NAME`,
+		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get Resource type and name
-			resource := args[0]
-			name := args[1]
+			// Get name and new name of the route
+			name := args[0]
+			newName := args[1]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Instantiate logs executor
-			exe, err := logs.NewExecutor(resource, namespace, name)
+			// Get an executor for the command
+			err = rename.Execute(namespace, name, newName)
 			util.Check(err)
 
-			// Run the logs command
-			err = exe.Execute()
-			util.Check(err)
+			util.PrintSuccess("Successfully renamed route " + name + " to " + newName)
 		},
 	}
 

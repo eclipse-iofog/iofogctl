@@ -1,15 +1,27 @@
-## iofogctl stop
+## iofogctl delete route
 
-Stops a resource
+Delete a Route
 
 ### Synopsis
 
-Stops a resource
+Delete a Route.
+
+The corresponding Microservices will no longer be able to reach each other using ioMessages.
+
+```
+iofogctl delete route NAME [flags]
+```
+
+### Examples
+
+```
+iofogctl delete route NAME
+```
 
 ### Options
 
 ```
-  -h, --help   help for stop
+  -h, --help   help for route
 ```
 
 ### Options inherited from parent commands
@@ -23,7 +35,6 @@ Stops a resource
 
 ### SEE ALSO
 
-* [iofogctl](iofogctl.md)	 - 
-* [iofogctl stop application](iofogctl_stop_application.md)	 - Stop an application
+* [iofogctl delete](iofogctl_delete.md)	 - Delete an existing ioFog resource
 
 

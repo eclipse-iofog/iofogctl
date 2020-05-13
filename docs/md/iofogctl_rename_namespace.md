@@ -1,10 +1,10 @@
 ## iofogctl rename namespace
 
-Rename the Namespace of your ECN
+Rename a Namespace
 
 ### Synopsis
 
-Rename the Namespace of your ECN
+Rename a Namespace
 
 ```
 iofogctl rename namespace NAME NEW_NAME [flags]

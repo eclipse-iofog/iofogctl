@@ -14,7 +14,6 @@
 package client
 
 // Flows
-
 type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -173,7 +172,6 @@ type MicroserviceInfo struct {
 	RegistryID        int                         `json:"registryId"`
 	Ports             []MicroservicePortMapping   `json:"ports"`
 	Volumes           []MicroserviceVolumeMapping `json:"volumeMappings"`
-	Routes            []string                    `json:"routes"`
 	Commands          []string                    `json:"cmd"`
 	Env               []MicroserviceEnvironment   `json:"env"`
 	ExtraHosts        []MicroserviceExtraHost     `json:"extraHosts"`
@@ -198,7 +196,6 @@ type MicroserviceCreateRequest struct {
 	RegistryID     int                         `json:"registryId"`
 	Ports          []MicroservicePortMapping   `json:"ports"`
 	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
-	Routes         []string                    `json:"routes"`
 	Commands       []string                    `json:"cmd,omitempty"`
 	Env            []MicroserviceEnvironment   `json:"env"`
 	Images         []CatalogImage              `json:"images,omitempty"`
@@ -221,7 +218,6 @@ type MicroserviceUpdateRequest struct {
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Commands          *[]string                    `json:"cmd,omitempty"`
-	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
 	ExtraHosts        *[]MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 	Images            []CatalogImage               `json:"images,omitempty"`
@@ -420,4 +416,14 @@ func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 		Key:   "default-proxy-host",
 		Value: address,
 	}
+}
+
+type RouteListResponse struct {
+	Routes []Route `json:"routes"`
+}
+
+type Route struct {
+	Name                   string `json:"name"`
+	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
+	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`
 }

@@ -17,15 +17,12 @@ iofogctl configure resource NAME [flags]
 ```
 iofogctl configure default-namespace NAME
 
-iofogctl configure controlplane --kube KUBECONFIGFILE
-iofogctl configure controller NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+                   controllers NAME --user USER --key KEYFILE --port PORTNUM
+                   agent       NAME --user USER --key KEYFILE --port PORTNUM
+                   agents      NAME --user USER --key KEYFILE --port PORTNUM
 
-iofogctl configure controllers NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agents NAME --user USER --key KEYFILE --port PORTNUM
-
-Valid resources are: controlplane, controller, agent, controllers, agents, default-namespace
-
+iofogctl configure controlplane --kube FILE
 ```
 
 ### Options

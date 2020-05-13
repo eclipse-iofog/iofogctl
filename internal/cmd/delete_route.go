@@ -14,34 +14,32 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/logs"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/route"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newLogsCommand() *cobra.Command {
+func newDeleteRouteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "logs RESOURCE NAME",
-		Short: "Get log contents of deployed resource",
-		Long:  `Get log contents of deployed resource`,
-		Example: `iofogctl logs controller   NAME
-              agent        NAME
-              microservice NAME`,
-		Args: cobra.ExactValidArgs(2),
+		Use:   "route NAME",
+		Short: "Delete a Route",
+		Long: `Delete a Route.
+
+The corresponding Microservices will no longer be able to reach each other using ioMessages.`,
+		Example: `iofogctl delete route NAME`,
+		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get Resource type and name
-			resource := args[0]
-			name := args[1]
+			// Get name and namespace of route
+			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Instantiate logs executor
-			exe, err := logs.NewExecutor(resource, namespace, name)
-			util.Check(err)
-
-			// Run the logs command
+			// Run the command
+			exe := delete.NewExecutor(namespace, name)
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

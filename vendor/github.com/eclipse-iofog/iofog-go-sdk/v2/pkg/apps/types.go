@@ -32,6 +32,7 @@ type Kind string
 const (
 	ApplicationKind  Kind = "Application"
 	MicroserviceKind Kind = "Microservice"
+	RouteKind        Kind = "Route"
 )
 
 // Header contains k8s yaml header
@@ -90,7 +91,6 @@ type Microservice struct {
 	Images    *MicroserviceImages   `yaml:"images,omitempty" json:"images,omitempty"`
 	Container MicroserviceContainer `yaml:"container,omitempty" json:"container,omitempty"`
 	Config    NestedMap             `yaml:"config" json:"config"`
-	Routes    []string              `yaml:"routes,omitempty" json:"routes,omitempty"`
 	Flow      *string               `yaml:"application,omitempty" json:"application,omitempty"`
 	Created   string                `yaml:"created,omitempty" json:"created,omitempty"`
 	Rebuild   bool                  `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
@@ -172,12 +172,13 @@ type AgentConfiguration struct {
 // Microservices is a list of Microservice
 // +k8s:deepcopy-gen=true
 type Microservices struct {
-	Microservices []Microservices `yaml:"microservices" json:"microservices"`
+	Microservices []Microservice `yaml:"microservices" json:"microservices"`
 }
 
 // Route contains information about a route from one microservice to another
 // +k8s:deepcopy-gen=true
 type Route struct {
+	Name string `yaml:"name" json:"name"`
 	From string `yaml:"from" json:"from"`
 	To   string `yaml:"to" json:"to"`
 }
