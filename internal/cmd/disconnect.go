@@ -31,9 +31,7 @@ func newDisconnectCommand() *cobra.Command {
 
 This will remove all client-side information for this Namespace. The Namespace will itself be deleted.
 Use the connect command to reconnect after a disconnect.
-If you would like to uninstall the Control Plane and/or Agents, use the delete command instead.
-
-This will leave the corresponding namespace empty.`,
+If you would like to uninstall the Control Plane and/or Agents, use the delete command instead.`,
 		Example: `iofogctl disconnect -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
