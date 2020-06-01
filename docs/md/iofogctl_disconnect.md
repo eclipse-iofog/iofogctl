@@ -10,8 +10,6 @@ This will remove all client-side information for this Namespace. The Namespace w
 Use the connect command to reconnect after a disconnect.
 If you would like to uninstall the Control Plane and/or Agents, use the delete command instead.
 
-This will leave the corresponding namespace empty.
-
 ```
 iofogctl disconnect [flags]
 ```
