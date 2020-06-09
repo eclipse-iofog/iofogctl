@@ -24,14 +24,23 @@ type Replicas struct {
 }
 
 type Services struct {
-	Controller Service `json:"controller,omitempty"`
-	Router     Service `json:"router,omitempty"`
-	Proxy      Service `json:"proxy,omitempty"`
+	Controller Service       `json:"controller,omitempty"`
+	Router     RouterService `json:"router,omitempty"`
+	Proxy      Service       `json:"proxy,omitempty"`
 }
 
 type Service struct {
 	Type string `json:"type,omitempty"`
 	IP   string `json:"ip,omitempty"`
+}
+
+type RouterService struct {
+	Type         string `json:"type,omitempty"`
+	IP           string `json:"ip,omitempty"`
+	HttpPort     int    `json:"httpPort,omitempty"`
+	NormalPort   int    `json:"normalPort,omitempty"`
+	InteriorPort int    `json:"interiorPort,omitempty"`
+	EdgePort     int    `json:"edgePort,omitempty"`
 }
 
 type Images struct {

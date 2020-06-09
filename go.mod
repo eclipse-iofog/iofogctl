@@ -16,7 +16,7 @@ require (
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/eclipse-iofog/iofog-go-sdk v1.3.0 // indirect
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200512235533-286fe62fab61
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200506020941-de41f683215e
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200609045946-8f88ab45cb21
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/json-iterator/go v1.1.8
@@ -40,7 +40,8 @@ require (
 
 // Pinned to kubernetes-1.13.4
 replace (
-	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+	//git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.0 // indirect
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 	github.com/sirupsen/logrus => github.com/sirupsen/logrus v1.0.1

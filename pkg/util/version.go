@@ -67,12 +67,14 @@ func GetVersion() Version {
 func GetControllerVersion() string { return controllerVersion }
 func GetAgentVersion() string      { return agentVersion }
 
-func GetControllerImage() string { return fmt.Sprintf("%s/%s:%s", repo, controllerImage, controllerTag) }
-func GetAgentImage() string      { return fmt.Sprintf("%s/%s:%s", repo, agentImage, agentTag) }
-func GetOperatorImage() string   { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
-func GetKubeletImage() string    { return fmt.Sprintf("%s/%s:%s", repo, kubeletImage, kubeletTag) }
-func GetRouterImage() string     { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
-func GetRouterARMImage() string  { return fmt.Sprintf("%s/%s:%s", repo, routerARMImage, routerTag) }
+func GetControllerImage() string {
+	return fmt.Sprintf("%s/%s:%s", repo, controllerImage, controllerTag)
+}
+func GetAgentImage() string     { return fmt.Sprintf("%s/%s:%s", repo, agentImage, agentTag) }
+func GetOperatorImage() string  { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
+func GetKubeletImage() string   { return fmt.Sprintf("%s/%s:%s", repo, kubeletImage, kubeletTag) }
+func GetRouterImage() string    { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
+func GetRouterARMImage() string { return fmt.Sprintf("%s/%s:%s", repo, routerARMImage, routerTag) }
 func GetPortManagerImage() string {
 	return fmt.Sprintf("%s/%s:%s", repo, portManagerImage, portManagerTag)
 }

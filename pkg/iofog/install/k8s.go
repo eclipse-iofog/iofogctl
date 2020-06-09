@@ -88,7 +88,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 			Controller: iofogv2.Service{
 				Type: string(corev1.ServiceTypeLoadBalancer),
 			},
-			Router: iofogv2.Service{
+			Router: iofogv2.RouterService{
 				Type: string(corev1.ServiceTypeLoadBalancer),
 			},
 		},

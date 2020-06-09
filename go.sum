@@ -295,6 +295,8 @@ github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200422230807-cea6f3366ff3 h1
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200422230807-cea6f3366ff3/go.mod h1:jRRd7Y/hERs5UvB6zO2ZBhz3Zk7t4tVUS0HKJjX6k0Y=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200506020941-de41f683215e h1:D+cJu5HkygiK4K+yZWyPhmdArRFXxSfED4jOSAWUv5s=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200506020941-de41f683215e/go.mod h1:jRRd7Y/hERs5UvB6zO2ZBhz3Zk7t4tVUS0HKJjX6k0Y=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200609045946-8f88ab45cb21 h1:WqVBF0vddgsbH3wpbuCmB++qrrzeMPuOZRwZFAHXvOY=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200609045946-8f88ab45cb21/go.mod h1:jRRd7Y/hERs5UvB6zO2ZBhz3Zk7t4tVUS0HKJjX6k0Y=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta h1:g42QLdjoIV249U1HVRpnOM44mFF9azmD6gvkD1bPFek=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta2 h1:7u4h5lxn5NCGRokVYM2Am0a+otne/8QxvZlVItLb3jg=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-rc1 h1:w4qLqhC9Xgv6nnDd/Z1ZpMmxtvpTonyLzVqwAMPZfzk=
@@ -418,8 +420,11 @@ github.com/googleapis/gnostic v0.2.0 h1:l6N3VoaVzTncYYW+9yOz2LJJammFZGBO13sqgEhp
 github.com/googleapis/gnostic v0.2.0/go.mod h1:sJBsCZ4ayReDTBIg8b9dl28c5xFWyhBTVRp3pOg5EKY=
 github.com/googleapis/gnostic v0.3.0 h1:CcQijm0XKekKjP/YCz28LXVSpgguuB+nCxaSjCe09y0=
 github.com/googleapis/gnostic v0.3.0/go.mod h1:sJBsCZ4ayReDTBIg8b9dl28c5xFWyhBTVRp3pOg5EKY=
+github.com/googleapis/gnostic v0.4.0 h1:BXDUo8p/DaxC+4FJY/SSx3gvnx9C1VdHNgaUkiEL5mk=
+github.com/googleapis/gnostic v0.4.0/go.mod h1:on+2t9HRStVgn95RSsFWFz+6Q0Snyqv1awfrALZdbtU=
 github.com/googleapis/gnostic v0.4.1 h1:DLJCy1n/vrD4HPjOvYcT8aYQXpPIzoRZONaYwyycI+I=
 github.com/googleapis/gnostic v0.4.1/go.mod h1:LRhVm6pbyptWbWbuZ38d1eyptfvIytN3ir6b65WBswg=
+github.com/googleapis/gnostic v0.4.2 h1:uh5EXM/5/ki6d0p/FoUxuiN8KHpo1w572UXQdB2MnTg=
 github.com/gophercloud/gophercloud v0.0.0-20180330165814-781450b3c4fc/go.mod h1:3WdhXV3rUYy9p6AUW8d94kr+HS62Y4VL9mBnFxsD8q4=
 github.com/gophercloud/gophercloud v0.0.0-20190408160324-6c7ac67f8855/go.mod h1:vxM41WHh5uqHVBMZHzuwNOHh8XEoIEcSTewFxm1c5g8=
 github.com/gophercloud/gophercloud v0.4.0/go.mod h1:vxM41WHh5uqHVBMZHzuwNOHh8XEoIEcSTewFxm1c5g8=
