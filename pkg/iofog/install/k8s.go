@@ -88,7 +88,7 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 			Controller: iofogv2.Service{
 				Type: string(corev1.ServiceTypeLoadBalancer),
 			},
-			Router: iofogv2.RouterService{
+			Router: iofogv2.Service{
 				Type: string(corev1.ServiceTypeLoadBalancer),
 			},
 		},
@@ -519,15 +519,15 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr strin
 
 func (k8s *Kubernetes) SetControllerService(svcType, ip string) {
 	k8s.services.Controller.Type = svcType
-	k8s.services.Controller.IP = ip
+	k8s.services.Controller.Address = ip
 }
 func (k8s *Kubernetes) SetRouterService(svcType, ip string) {
 	k8s.services.Router.Type = svcType
-	k8s.services.Router.IP = ip
+	k8s.services.Router.Address = ip
 }
 func (k8s *Kubernetes) SetProxyService(svcType, ip string) {
 	k8s.services.Proxy.Type = svcType
-	k8s.services.Proxy.IP = ip
+	k8s.services.Proxy.Address = ip
 }
 
 func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {

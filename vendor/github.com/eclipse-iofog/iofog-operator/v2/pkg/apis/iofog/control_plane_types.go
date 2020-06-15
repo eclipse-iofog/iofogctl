@@ -17,6 +17,7 @@ type ControlPlaneSpec struct {
 	Services Services `json:"services,omitempty"`
 	Replicas Replicas `json:"replicas,omitempty"`
 	Images   Images   `json:"images,omitempty"`
+	Proxies  Proxies  `json:"proxies,omitempty"`
 }
 
 type Replicas struct {
@@ -24,23 +25,14 @@ type Replicas struct {
 }
 
 type Services struct {
-	Controller Service       `json:"controller,omitempty"`
-	Router     RouterService `json:"router,omitempty"`
-	Proxy      Service       `json:"proxy,omitempty"`
+	Controller Service `json:"controller,omitempty"`
+	Router     Service `json:"router,omitempty"`
+	Proxy      Service `json:"proxy,omitempty"`
 }
 
 type Service struct {
-	Type string `json:"type,omitempty"`
-	IP   string `json:"ip,omitempty"`
-}
-
-type RouterService struct {
-	Type         string `json:"type,omitempty"`
-	IP           string `json:"ip,omitempty"`
-	HttpPort     int    `json:"httpPort,omitempty"`
-	NormalPort   int    `json:"normalPort,omitempty"`
-	InteriorPort int    `json:"interiorPort,omitempty"`
-	EdgePort     int    `json:"edgePort,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Address string `json:"address,omitempty"`
 }
 
 type Images struct {
@@ -66,6 +58,18 @@ type User struct {
 	Surname  string `json:"surname"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type RouterProxy struct {
+	Address      string `json:"address,omitempty"`
+	HttpPort     int    `json:"httpPort,omitempty"`
+	MessagePort  int    `json:"messagePort,omitempty"`
+	InteriorPort int    `json:"interiorPort,omitempty"`
+	EdgePort     int    `json:"edgePort,omitempty"`
+}
+
+type Proxies struct {
+	Router RouterProxy `json:"router,omitempty"`
 }
 
 // ControlPlaneStatus defines the observed state of ControlPlane
