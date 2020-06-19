@@ -12,12 +12,12 @@ type ControlPlaneSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	User     User     `json:"user"`
-	Database Database `json:"database,omitempty"`
-	Services Services `json:"services,omitempty"`
-	Replicas Replicas `json:"replicas,omitempty"`
-	Images   Images   `json:"images,omitempty"`
-	Proxies  Proxies  `json:"proxies,omitempty"`
+	User      User      `json:"user"`
+	Database  Database  `json:"database,omitempty"`
+	Services  Services  `json:"services,omitempty"`
+	Replicas  Replicas  `json:"replicas,omitempty"`
+	Images    Images    `json:"images,omitempty"`
+	Ingresses Ingresses `json:"ingresses,omitempty"`
 }
 
 type Replicas struct {
@@ -60,16 +60,22 @@ type User struct {
 	Password string `json:"password"`
 }
 
-type RouterProxy struct {
-	Address      string `json:"address,omitempty"`
-	HttpPort     int    `json:"httpPort,omitempty"`
-	MessagePort  int    `json:"messagePort,omitempty"`
-	InteriorPort int    `json:"interiorPort,omitempty"`
-	EdgePort     int    `json:"edgePort,omitempty"`
+type RouterIngress struct {
+	Ingress
+	HttpPort     int `json:"httpPort,omitempty"`
+	MessagePort  int `json:"messagePort,omitempty"`
+	InteriorPort int `json:"interiorPort,omitempty"`
+	EdgePort     int `json:"edgePort,omitempty"`
 }
 
-type Proxies struct {
-	Router RouterProxy `json:"router,omitempty"`
+type Ingress struct {
+	Address string `json:"address,omitempty"`
+}
+
+type Ingresses struct {
+	Router    RouterIngress `json:"router,omitempty"`
+	HttpProxy Ingress       `json:"httpProxy,omitempty"`
+	TcpProxy  Ingress       `json:"tcpProxy,omitempty"`
 }
 
 // ControlPlaneStatus defines the observed state of ControlPlane
