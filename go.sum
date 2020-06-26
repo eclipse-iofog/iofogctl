@@ -242,6 +242,8 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200512231627-2f64d906a
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200512231627-2f64d906a3e6/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200512235533-286fe62fab61 h1:KqePAqnfvTfKGRp1SEt7Rg3FtQMvmjIO6vBrXt6o/6w=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200512235533-286fe62fab61/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200624014839-eabf7f9dbb1f h1:NJ5tfnEUs1JAdv0YLDxTJWPNYiKLeNH12EzU5PgSOqs=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200624014839-eabf7f9dbb1f/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-rc1 h1:t+jyi0SrEcYzckAmlP/rNsWBywCYTOb6ZH5fRsG+svk=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0 h1:Y+Du5W3kwbGqjlYise6UQkDYLLta046Cv2Lgs3c7eiU=
 github.com/eclipse-iofog/iofog-operator v0.0.0-20191111001716-136e255accc0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
@@ -303,6 +305,8 @@ github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200615063312-77d71d125a83 h1
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200615063312-77d71d125a83/go.mod h1:jRRd7Y/hERs5UvB6zO2ZBhz3Zk7t4tVUS0HKJjX6k0Y=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200619034615-e985167526c5 h1:QyXv292msd+RsAmy7XTU6unSuSkFIK9x3xdaf3bl5WE=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200619034615-e985167526c5/go.mod h1:jRRd7Y/hERs5UvB6zO2ZBhz3Zk7t4tVUS0HKJjX6k0Y=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200626042846-8f0a4cc45c7f h1:hsQIkhkrpb5QKBxcp5cwcJwxK45wn4plfk4+DyuaRL0=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20200626042846-8f0a4cc45c7f/go.mod h1:q74c+iAHMa4S9xQ1ahSFjgw24B0+PYeJV5ec4J3P22E=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta h1:g42QLdjoIV249U1HVRpnOM44mFF9azmD6gvkD1bPFek=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-beta2 h1:7u4h5lxn5NCGRokVYM2Am0a+otne/8QxvZlVItLb3jg=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-rc1 h1:w4qLqhC9Xgv6nnDd/Z1ZpMmxtvpTonyLzVqwAMPZfzk=

@@ -68,6 +68,13 @@ type RouterIngress struct {
 	EdgePort     int `json:"edgePort,omitempty"`
 }
 
+type TcpIngress struct {
+	Ingress
+	TcpAllocatorHost string `json:"tcpAllocatorHost,omitempty"`
+	TcpAllocatorPort int    `json:"tcpAllocatorPort,omitempty"`
+	EcnId            int    `json:"ecnId,omitempty"`
+}
+
 type Ingress struct {
 	Address string `json:"address,omitempty"`
 }
@@ -75,7 +82,7 @@ type Ingress struct {
 type Ingresses struct {
 	Router    RouterIngress `json:"router,omitempty"`
 	HttpProxy Ingress       `json:"httpProxy,omitempty"`
-	TcpProxy  Ingress       `json:"tcpProxy,omitempty"`
+	TcpProxy  TcpIngress    `json:"tcpProxy,omitempty"`
 }
 
 // ControlPlaneStatus defines the observed state of ControlPlane

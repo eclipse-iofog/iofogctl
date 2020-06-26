@@ -418,6 +418,13 @@ func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 	}
 }
 
+func newPublicPortHostRequest(protocol Protocol, host string) *UpdateConfigRequest {
+	return &UpdateConfigRequest{
+		Key:   string(protocol) + "-public-port-host",
+		Value: host,
+	}
+}
+
 type RouteListResponse struct {
 	Routes []Route `json:"routes"`
 }
