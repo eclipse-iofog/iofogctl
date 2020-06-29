@@ -26,10 +26,7 @@ type IofogUser struct {
 }
 
 func (user *IofogUser) EncodePassword() {
-	_, err := decodeBase64(user.Password)
-	if err != nil {
-		user.Password = encodeBase64(user.Password)
-	}
+	user.Password = encodeBase64(user.Password)
 }
 
 func (user IofogUser) GetRawPassword() string {
