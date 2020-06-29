@@ -99,7 +99,7 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	installer.SetControllerImage(exe.controlPlane.Images.Controller)
 	installer.SetControllerService(exe.controlPlane.Services.Controller.Type, exe.controlPlane.Services.Controller.IP)
 	installer.SetRouterService(exe.controlPlane.Services.Router.Type, exe.controlPlane.Services.Router.IP)
-	installer.SetRouterService(exe.controlPlane.Services.Proxy.Type, exe.controlPlane.Services.Proxy.IP)
+	installer.SetProxyService(exe.controlPlane.Services.Proxy.Type, exe.controlPlane.Services.Proxy.IP)
 
 	replicas := int32(1)
 	if exe.controlPlane.Replicas.Controller != 0 {
