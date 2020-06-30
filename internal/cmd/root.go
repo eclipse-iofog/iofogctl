@@ -104,7 +104,7 @@ func initialize() {
 		CustomMessage: map[string]int{
 			"timeout":           10, // Linux
 			"failed to respond": 10, // Windows
-			"Bad Gateway": 10, // K8s
+			"Bad Gateway":       10, // K8s
 		},
 	})
 	client.SetVerbosity(debug)
