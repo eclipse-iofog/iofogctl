@@ -98,8 +98,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 		"STATUS",
 		"AGE",
 		"UPTIME",
-		"ADDR",
 		"VERSION",
+		"ADDR",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
@@ -112,8 +112,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 				"not provisioned",
 				"-",
 				"-",
-				agent.IPAddressExternal,
 				"-",
+				agent.IPAddressExternal,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
@@ -124,8 +124,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 				agent.DaemonStatus,
 				age,
 				util.FormatDuration(uptime),
-				agent.Host,
 				agent.Version,
+				agent.Host,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}
