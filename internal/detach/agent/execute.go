@@ -29,8 +29,8 @@ type executor struct {
 	namespace string
 }
 
-func NewExecutor(namespace, name string, force bool) (execute.Executor, error) {
-	return executor{name: name, namespace: namespace, force: force}, nil
+func NewExecutor(namespace, name string, force bool) execute.Executor {
+	return executor{name: name, namespace: namespace, force: force}
 }
 
 func (exe executor) GetName() string {

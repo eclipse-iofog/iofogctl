@@ -26,6 +26,7 @@ func newMoveCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		newMoveMicroserviceCommand(),
+		newMoveAgentCommand(),
 	)
 
 	return cmd

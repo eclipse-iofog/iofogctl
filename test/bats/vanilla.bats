@@ -160,10 +160,6 @@ spec:
   checkDetachedAgentNegative "$AGENT_NAME"
 }
 
-@test "Attach external Agent" {
-  testAttachExternalAgent
-}
-
 @test "Deploy application" {
   initApplicationFileWithRoutes
   iofogctl -v deploy -f test/conf/application.yaml

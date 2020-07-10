@@ -1,25 +1,26 @@
-## iofogctl move microservice
+## iofogctl move agent
 
-Move a Microservice to another Agent in the same Namespace
+Move an Agent to another Namespace
 
 ### Synopsis
 
-Move a Microservice to another Agent in the same Namespace
+Move an Agent to another Namespace
 
 ```
-iofogctl move microservice NAME AGENT_NAME [flags]
+iofogctl move agent NAME DEST_NAMESPACE [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl move microservice NAME AGENT_NAME
+iofogctl move agent NAME DEST_NAMESPACE
 ```
 
 ### Options
 
 ```
-  -h, --help   help for microservice
+      --force   Move Agent, even if it still uses resources
+  -h, --help    help for agent
 ```
 
 ### Options inherited from parent commands

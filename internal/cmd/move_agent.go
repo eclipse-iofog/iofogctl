@@ -14,42 +14,41 @@
 package cmd
 
 import (
+	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/agent"
 	detach "github.com/eclipse-iofog/iofogctl/v2/internal/detach/agent"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newDetachAgentCommand() *cobra.Command {
+func newMoveAgentCommand() *cobra.Command {
 	force := false
 	cmd := &cobra.Command{
-		Use:   "agent NAME",
-		Short: "Detaches an Agent",
-		Long: `Detaches an Agent.
-
-The Agent will be deprovisioned from the Controller within the namespace.
-The Agent will be removed from Controller.
-
-You cannot detach unprovisioned Agents.
-
-The Agent stack will not be uninstalled from the host.`,
-		Example: `iofogctl detach agent NAME`,
-		Args:    cobra.ExactArgs(1),
+		Use:     "agent NAME DEST_NAMESPACE",
+		Short:   "Move an Agent to another Namespace",
+		Long:    `Move an Agent to another Namespace`,
+		Example: `iofogctl move agent NAME DEST_NAMESPACE`,
+		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get name and namespace of agent
+			// Get args
 			name := args[0]
+			destNamespace := args[1]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Run the command
+			// Detach
 			exe := detach.NewExecutor(namespace, name, force)
 			err = exe.Execute()
 			util.Check(err)
+			// Attach
+			exe = attach.NewExecutor(attach.Options{Name: name, Namespace: destNamespace})
+			err = exe.Execute()
+			util.Check(err)
 
-			util.PrintSuccess("Successfully detached " + name)
+			util.PrintSuccess("Successfully moved Agent " + name + " to Namespace " + destNamespace)
 		},
 	}
 
-	cmd.Flags().BoolVar(&force, "force", false, "Detach Agent, even if it still uses resources")
+	cmd.Flags().BoolVar(&force, "force", false, "Move Agent, even if it still uses resources")
 
 	return cmd
 }
