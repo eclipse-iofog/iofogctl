@@ -236,6 +236,8 @@
   checkDetachedAgentNegative "$AGENT_NAME"
 }
 
-@test "Attach external Agent" {
-  testAttachExternalAgent
+@test "Move Agent" {
+  local AGENT_NAME="${NAME}-0"
+  iofogctl -v -n "$NS" move "$AGENT_NAME" "$NS"
+  iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME"
 }

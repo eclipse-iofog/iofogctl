@@ -24,6 +24,7 @@ Move an existing resources inside the current Namespace
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl move microservice](iofogctl_move_microservice.md)	 - Move a Microservice to another agent in the same Namespace
+* [iofogctl move agent](iofogctl_move_agent.md)	 - Move an Agent to another Namespace
+* [iofogctl move microservice](iofogctl_move_microservice.md)	 - Move a Microservice to another Agent in the same Namespace
 
 
