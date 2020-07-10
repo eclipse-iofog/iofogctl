@@ -70,7 +70,7 @@ func generateControllerOutput(namespace string, printNS bool) error {
 
 	// Generate table and headers
 	table := make([][]string, len(controllers)+1)
-	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "ADDR", "PORT"}
+	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "ADDR", "PORT", "VERSION"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -107,6 +107,7 @@ func generateControllerOutput(namespace string, printNS bool) error {
 			uptime,
 			addr,
 			port,
+			ctrlStatus.Versions.Controller,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}

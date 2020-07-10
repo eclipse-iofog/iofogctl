@@ -256,9 +256,15 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type ControllerVersions struct {
+	Controller string `json:"controller"`
+	EcnViewer  string `json:"ecnViewer"`
+}
+
 type ControllerStatus struct {
-	Status        string  `json:"status"`
-	UptimeSeconds float64 `json:"uptimeSec"`
+	Status        string             `json:"status"`
+	UptimeSeconds float64            `json:"uptimeSec"`
+	Versions      ControllerVersions `json:"versions"`
 }
 
 type LoginRequest struct {
