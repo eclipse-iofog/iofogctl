@@ -3,10 +3,12 @@ set -x
 set -e
 
 do_check_install() {
-	local VERSION=$(sudo iofog-agent version | head -n1 | sed "s/ioFog//g" | tr -d ' ' | tr -d "\n")
-	if [ "$VERSION" = "$agent_version" ]; then
-		echo "Agent $VERSION already installed."
-		exit 0
+	if command_exists iofog-agent; then
+		local VERSION=$(sudo iofog-agent version | head -n1 | sed "s/ioFog//g" | tr -d ' ' | tr -d "\n")
+		if [ "$VERSION" = "$agent_version" ]; then
+			echo "Agent $VERSION already installed."
+			exit 0
+		fi
 	fi
 }
 
