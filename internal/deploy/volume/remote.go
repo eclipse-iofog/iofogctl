@@ -63,18 +63,42 @@ func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
 	}
 	defer ssh.Disconnect()
 
-	// Create base path
+	// Create dest dir
 	if err := ssh.CreateFolder(exe.volume.Destination); err != nil {
 		msg := `Failed to create base directory %s on Agent %s.
 %s`
 		ch <- errors.New(fmt.Sprintf(msg, exe.volume.Destination, agent.Name, err.Error()))
 		return
 	}
-	// Copy volume
-	if err := ssh.CopyFolderTo(exe.volume.Source, exe.volume.Destination, exe.volume.Permissions, true); err != nil {
+	// Create tmp dir
+	tmp := "/tmp/iofogctlssh" + exe.volume.Destination
+	if err := ssh.CreateFolder(tmp); err != nil {
+		msg := `Failed to create base directory %s on Agent %s.
+		%s`
+		ch <- errors.New(fmt.Sprintf(msg, exe.volume.Destination, agent.Name, err.Error()))
+		return
+	}
+	// Copy volume to tmp
+	if err := ssh.CopyFolderTo(exe.volume.Source, tmp, exe.volume.Permissions, true); err != nil {
 		msg := `Failed to copy volume to Agent %s.
 %s`
 		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
+		return
+	}
+	// Move volume from tmp to dest
+	if stdout, err := ssh.Run(fmt.Sprintf("sudo -S cp -pR %s/* %s", tmp, exe.volume.Destination)); err != nil {
+		msg := `Failed to move volume to from %s to %s on Agent %s.
+	%s
+	%s`
+		ch <- errors.New(fmt.Sprintf(msg, tmp, exe.volume.Destination, agent.Name, err.Error(), stdout))
+		return
+	}
+	// Remove tmp
+	if stdout, err := ssh.Run(fmt.Sprintf("rm -rf %s", tmp)); err != nil {
+		msg := `Failed clearing tmp volume data %s from Agent %s.
+	%s
+	%s`
+		ch <- errors.New(fmt.Sprintf(msg, tmp, agent.Name, err.Error(), stdout))
 		return
 	}
 

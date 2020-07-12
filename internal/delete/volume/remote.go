@@ -33,7 +33,7 @@ func deleteRemote(agent *rsc.RemoteAgent, volume rsc.Volume) error {
 		return err
 	}
 	// Delete
-	if _, err := ssh.Run("rm -rf " + util.AddTrailingSlash(volume.Destination) + "*"); err != nil {
+	if _, err := ssh.Run("sudo -S rm -rf " + util.AddTrailingSlash(volume.Destination) + "*"); err != nil {
 		return err
 	}
 	return nil

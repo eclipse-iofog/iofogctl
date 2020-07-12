@@ -253,18 +253,28 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 	}()
 
 	// Start the scp command
-	SSHVerbose(fmt.Sprintf("Running: %s", "/usr/bin/scp -t "+destPath))
-	session.Run("/usr/bin/scp -t " + destPath)
+	cmd := "/usr/bin/scp -t "
+	SSHVerbose(fmt.Sprintf("Running: %s", cmd+destPath))
+	err = session.Run(cmd + destPath)
 
 	// Wait for completion
 	wg.Wait()
 
 	// Check for errors
 	close(errChan)
-	for err := range errChan {
-		if err != nil {
-			return err
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+	for copyErr := range errChan {
+		if copyErr != nil {
+			msg := `%s
+%s`
+			errMsg = fmt.Sprintf(msg, errMsg, copyErr.Error())
 		}
+	}
+	if errMsg != "" {
+		return errors.New(errMsg)
 	}
 
 	return nil
@@ -310,9 +320,18 @@ func (cl *SecureShellClient) CreateFolder(path string) error {
 	SSHVerbose(fmt.Sprintf("Creating folder %s", path))
 	SSHVerbose(fmt.Sprintf("Running: %s", "mkdir -p "+AddTrailingSlash(path)))
 	if _, err := cl.Run("mkdir -p " + AddTrailingSlash(path)); err != nil {
-		if !strings.Contains(err.Error(), "exists") {
-			return err
+		if strings.Contains(err.Error(), "exists") {
+			return nil
 		}
+		// Retry with sudo
+		if strings.Contains(err.Error(), "Permission denied") {
+			if _, sudoErr := cl.Run("sudo -S mkdir -p " + AddTrailingSlash(path)); sudoErr != nil {
+				if !strings.Contains(sudoErr.Error(), "exists") {
+					return sudoErr
+				}
+			}
+		}
+		return err
 	}
 	return nil
 }
