@@ -30,11 +30,9 @@ type Options struct {
 }
 
 type executor struct {
-	localExecutor  execute.Executor
-	remoteExecutor execute.Executor
-	Name           string
-	namespace      string
-	volume         rsc.Volume
+	Name      string
+	namespace string
+	volume    rsc.Volume
 }
 
 func (exe executor) GetName() string {
@@ -74,17 +72,22 @@ func (exe executor) Execute() error {
 			}
 		}
 	}
-	exe.localExecutor = localExecutor{
-		agents: localAgents,
-		volume: exe.volume,
-		ns:     ns,
+	executors := []execute.Executor{}
+	if len(localAgents) > 0 {
+		executors = append(executors, localExecutor{
+			agents: localAgents,
+			volume: exe.volume,
+			ns:     ns,
+		})
 	}
-	exe.remoteExecutor = remoteExecutor{
-		agents: remoteAgents,
-		volume: exe.volume,
-		ns:     ns,
+	if len(remoteAgents) > 0 {
+		executors = append(executors, remoteExecutor{
+			agents: remoteAgents,
+			volume: exe.volume,
+			ns:     ns,
+		})
 	}
-	errs := execute.RunExecutors([]execute.Executor{exe.localExecutor, exe.remoteExecutor}, exe.GetName())
+	errs := execute.RunExecutors(executors, exe.GetName())
 	if len(errs) > 0 {
 		return errs[0]
 	}
