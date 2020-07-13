@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"errors"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
@@ -39,6 +40,11 @@ Visit iofog.org to view all YAML specifications usable with this command.`,
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+
+			// Check file
+			if opt.InputFile == "" {
+				util.Check(errors.New("Provided empty value for input file via the -f flag"))
+			}
 
 			// Execute command
 			err = deploy.Execute(opt)

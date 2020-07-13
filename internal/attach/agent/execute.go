@@ -50,12 +50,28 @@ func (exe executor) GetName() string {
 	return exe.opt.Name
 }
 
-func (exe executor) Execute() (err error) {
+func (exe executor) onFailure(inErr error) error {
+	// Get a client
+	iofogclient, err := iutil.NewControllerClient(exe.opt.Namespace)
+	if err != nil {
+		return errors.New(fmt.Sprintf("%s\nFailed to create Controller API client: %s", inErr.Error(), err.Error()))
+	}
+	agent, err := iofogclient.GetAgentByName(exe.opt.Name, false)
+	if err != nil {
+		return errors.New(fmt.Sprintf("%s\nFailed to get newly created Agent by name: %s", inErr.Error(), err.Error()))
+	}
+	if err := iofogclient.DeleteAgent(agent.UUID); err != nil {
+		return errors.New(fmt.Sprintf("%s\nFailed to delete newly created Agent: %s", inErr.Error(), err.Error()))
+	}
+	return inErr
+}
+
+func (exe executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
 	// Update local cache based on Controller
-	if err = iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
-		return
+	if err := iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
+		return err
 	}
 
 	baseAgent, err := config.GetDetachedAgent(exe.opt.Name)
@@ -74,7 +90,7 @@ func (exe executor) Execute() (err error) {
 			},
 		}, exe.opt.Namespace)
 	if err = configExecutor.Execute(); err != nil {
-		return
+		return err
 	}
 
 	// Create executor to provision the Agent w/ Controller
@@ -83,21 +99,21 @@ func (exe executor) Execute() (err error) {
 	case *rsc.LocalAgent:
 		executor, err = deploy.NewLocalExecutor(exe.opt.Namespace, agent, false)
 		if err != nil {
-			return
+			return exe.onFailure(err)
 		}
 	case *rsc.RemoteAgent:
 		executor, err = deploy.NewRemoteExecutor(exe.opt.Namespace, agent, false)
 		if err != nil {
-			return
+			return exe.onFailure(err)
 		}
 	}
 	deployExecutor, ok := executor.(execute.ProvisioningExecutor)
 	if !ok {
-		return util.NewInternalError("Attach: Could not convert executor")
+		return exe.onFailure(errors.New("Attach: Could not convert executor"))
 	}
 	UUID, err := deployExecutor.ProvisionAgent()
 	if err != nil {
-		return
+		return exe.onFailure(err)
 	}
 
 	// Update config
@@ -106,7 +122,7 @@ func (exe executor) Execute() (err error) {
 		baseAgent.SetCreatedTime(util.NowUTC())
 	}
 	if err = config.AttachAgent(exe.opt.Namespace, exe.opt.Name, UUID); err != nil {
-		return
+		return exe.onFailure(err)
 	}
 
 	return config.Flush()

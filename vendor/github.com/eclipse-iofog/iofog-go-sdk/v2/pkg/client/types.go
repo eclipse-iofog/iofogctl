@@ -316,8 +316,8 @@ type AgentInfo struct {
 	BluetoothEnabled          bool      `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
 	WatchdogEnabled           bool      `json:"watchdogEnabled" yaml:"watchdogEnabled"`
 	AbstractedHardwareEnabled bool      `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
-	CreatedTimeRFC3339        string    `json:"created_at" yaml:"created"`
-	UpdatedTimeRFC3339        string    `json:"updated_at" yaml:"updated"`
+	CreatedTimeRFC3339        string    `json:"createdAt" yaml:"created"`
+	UpdatedTimeRFC3339        string    `json:"updatedAt" yaml:"updated"`
 	LastActive                int64     `json:"lastActive" yaml:"lastActive"`
 	DaemonStatus              string    `json:"daemonStatus" yaml:"daemonStatus"`
 	UptimeMs                  int64     `json:"daemonOperatingDuration" yaml:"uptime"`
