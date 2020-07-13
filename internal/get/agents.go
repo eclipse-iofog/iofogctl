@@ -117,7 +117,10 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
-			age, _ := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC())
+			age := "-"
+			if backendAge, err := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC()); err == nil {
+				age = backendAge
+			}
 			uptime := time.Duration(agent.UptimeMs) * time.Millisecond
 			row := []string{
 				agent.Name,
