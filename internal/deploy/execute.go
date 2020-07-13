@@ -334,7 +334,7 @@ func makeEdges(g *graph.Graph, node graph.Node, nodeMap, agentNodeMap map[string
 			// This means agent is not getting deployed with this file, so it must already exist on Controller
 			agent, found := agentByName[dep]
 			if !found {
-				return util.NewNotFoundError(fmt.Sprintf("Could not find agent %s while establishing agent dependency graph\n", dep))
+				return util.NewNotFoundError(fmt.Sprintf("Could not find Agent %s while establishing agent dependency graph\n", dep))
 			}
 			dependsOnNode, found = agentNodeMap[dep]
 			if !found {

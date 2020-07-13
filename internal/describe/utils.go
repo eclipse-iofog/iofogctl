@@ -51,7 +51,7 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 			hostAgent, err := clt.GetAgentByID(port.Host)
 			var name string
 			if err != nil {
-				util.PrintNotify(fmt.Sprintf("Could not find agent with UUID %s\n", port.Host))
+				util.PrintNotify(fmt.Sprintf("Could not find Agent with UUID %s\n", port.Host))
 				name = "UNKNOWN_" + port.Host
 			} else {
 				name = hostAgent.Name
