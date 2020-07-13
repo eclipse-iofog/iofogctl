@@ -69,7 +69,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Check Name
-	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
+	if err := util.IsLowerAlphanumeric("Microservice", opt.Name); err != nil {
 		return nil, err
 	}
 

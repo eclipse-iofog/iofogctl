@@ -67,12 +67,17 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
+	for _, route := range application.Routes {
+		if err := util.IsLowerAlphanumeric("Route", route.Name); err != nil {
+			return nil, err
+		}
+	}
 
 	if len(opt.Name) > 0 {
 		application.Name = opt.Name
 	}
 
-	if err := util.IsLowerAlphanumeric(opt.Name); err != nil {
+	if err := util.IsLowerAlphanumeric("Application", opt.Name); err != nil {
 		return nil, err
 	}
 

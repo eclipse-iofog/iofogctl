@@ -19,7 +19,7 @@ import (
 )
 
 func Execute(name string) error {
-	if err := util.IsLowerAlphanumeric(name); err != nil {
+	if err := util.IsLowerAlphanumeric("Namespace", name); err != nil {
 		return err
 	}
 	// Update configuration

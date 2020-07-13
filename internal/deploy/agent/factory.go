@@ -95,7 +95,7 @@ func newFacadeExecutor(exe execute.Executor, namespace string, agent rsc.Agent, 
 }
 
 func NewRemoteExecutor(namespace string, agent *rsc.RemoteAgent, isSystem bool) (execute.Executor, error) {
-	if err := util.IsLowerAlphanumeric(agent.GetName()); err != nil {
+	if err := util.IsLowerAlphanumeric("Agent", agent.GetName()); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func NewRemoteExecutor(namespace string, agent *rsc.RemoteAgent, isSystem bool) 
 }
 
 func NewLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (execute.Executor, error) {
-	if err := util.IsLowerAlphanumeric(agent.GetName()); err != nil {
+	if err := util.IsLowerAlphanumeric("Agent", agent.GetName()); err != nil {
 		return nil, err
 	}
 

@@ -105,7 +105,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	if opt.Name != "" {
 		volume.Name = opt.Name
 	}
-	if err := util.IsLowerAlphanumeric(volume.Name); err != nil {
+	if err := util.IsLowerAlphanumeric("Volume", volume.Name); err != nil {
 		return nil, err
 	}
 	// Check if source is a folder
