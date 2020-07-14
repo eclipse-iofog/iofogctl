@@ -6,12 +6,6 @@ Move an existing resources inside the current Namespace
 
 Move an existing resources inside the current Namespace
 
-### Examples
-
-```
-iofogctl move microservice NAME AGENT_NAME
-```
-
 ### Options
 
 ```
@@ -21,8 +15,8 @@ iofogctl move microservice NAME AGENT_NAME
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
@@ -30,6 +24,7 @@ iofogctl move microservice NAME AGENT_NAME
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl move microservice](iofogctl_move_microservice.md)	 - Move a Microservice to another agent in the same Namespace
+* [iofogctl move agent](iofogctl_move_agent.md)	 - Move an Agent to another Namespace
+* [iofogctl move microservice](iofogctl_move_microservice.md)	 - Move a Microservice to another Agent in the same Namespace
 
 

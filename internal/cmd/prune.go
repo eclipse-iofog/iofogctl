@@ -19,10 +19,9 @@ import (
 
 func newDockerPruneCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "prune",
-		Example: `Iofogctl prune agent NAME`,
-		Short:   "prune ioFog resources",
-		Long:    `prune ioFog resources`,
+		Use:   "prune",
+		Short: "prune ioFog resources",
+		Long:  `prune ioFog resources`,
 	}
 
 	// Add subcommands

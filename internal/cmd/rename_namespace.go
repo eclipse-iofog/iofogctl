@@ -22,8 +22,8 @@ import (
 func newRenameNamespaceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "namespace NAME NEW_NAME",
-		Short:   "Rename the Namespace of your ECN",
-		Long:    `Rename the Namespace of your ECN`,
+		Short:   "Rename a Namespace",
+		Long:    `Rename a Namespace`,
 		Example: `iofogctl rename namespace NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {

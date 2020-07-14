@@ -69,6 +69,7 @@ func (exe *Executor) Execute() error {
 	return config.Flush()
 }
 
+// TODO: Parallelize this
 func (exe *Executor) execute(volume rsc.Volume, agentIdx int, ch chan error) {
 	agentName := volume.Agents[agentIdx]
 	baseAgent, err := exe.ns.GetAgent(agentName)

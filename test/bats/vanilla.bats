@@ -160,16 +160,13 @@ spec:
   checkDetachedAgentNegative "$AGENT_NAME"
 }
 
-@test "Attach external Agent" {
-  testAttachExternalAgent
-}
-
 @test "Deploy application" {
-  initApplicationFiles
+  initApplicationFileWithRoutes
   iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
   waitForMsvc "$MSVC1_NAME" "$NS"
   waitForMsvc "$MSVC2_NAME" "$NS"
+  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
 }
 
 @test "Volumes are mounted" {

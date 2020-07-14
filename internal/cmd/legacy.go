@@ -88,9 +88,8 @@ func newLegacyCommand() *cobra.Command {
 		Use:   "legacy resource NAME COMMAND ARGS...",
 		Short: "Execute commands using legacy CLI",
 		Long:  `Execute commands using legacy CLI`,
-		Example: `iofogctl get all
-iofogctl legacy controller NAME iofog
-iofogctl legacy agent NAME status`,
+		Example: `iofogctl legacy controller NAME COMMAND
+iofogctl legacy agent      NAME COMMAND`,
 		Args: cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg

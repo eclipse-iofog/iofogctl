@@ -240,11 +240,6 @@ func (in *Microservice) DeepCopyInto(out *Microservice) {
 	}
 	in.Container.DeepCopyInto(&out.Container)
 	out.Config = in.Config.DeepCopy()
-	if in.Routes != nil {
-		in, out := &in.Routes, &out.Routes
-		*out = make([]string, len(*in))
-		copy(*out, *in)
-	}
 	if in.Flow != nil {
 		in, out := &in.Flow, &out.Flow
 		*out = new(string)
@@ -418,7 +413,7 @@ func (in *Microservices) DeepCopyInto(out *Microservices) {
 	*out = *in
 	if in.Microservices != nil {
 		in, out := &in.Microservices, &out.Microservices
-		*out = make([]Microservices, len(*in))
+		*out = make([]Microservice, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}

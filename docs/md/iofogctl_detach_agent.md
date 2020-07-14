@@ -26,15 +26,15 @@ iofogctl detach agent NAME
 ### Options
 
 ```
-      --force   Detach agent, even if it still uses resources
+      --force   Detach Agent, even if it still uses resources
   -h, --help    help for agent
 ```
 
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

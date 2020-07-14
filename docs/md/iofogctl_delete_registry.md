@@ -1,10 +1,10 @@
 ## iofogctl delete registry
 
-Delete a registry
+Delete a Registry
 
 ### Synopsis
 
-Delete a registry from the Controller.
+Delete a Registry from the Controller.
 
 ```
 iofogctl delete registry ID [flags]
@@ -25,8 +25,8 @@ iofogctl delete registry ID
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

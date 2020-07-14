@@ -15,16 +15,12 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/eclipse-iofog/iofogctl/v2/internal/configure"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newConfigureCommand() *cobra.Command {
-	// Values accepted in resource type argument
-	var validResources = []string{"controlplane", "controller", "agent", "controllers", "agents", "default-namespace"}
 	// Instantiate options
 	var opt configure.Options
 
@@ -36,13 +32,12 @@ func newConfigureCommand() *cobra.Command {
 If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.`,
 		Example: `iofogctl configure default-namespace NAME
 
-iofogctl configure controlplane --kube KUBECONFIGFILE
-iofogctl configure controller NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+                   controllers
+                   agent
+                   agents
 
-iofogctl configure controllers NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agents NAME --user USER --key KEYFILE --port PORTNUM
-` + fmt.Sprintf("\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+iofogctl configure controlplane --kube FILE`,
 		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {

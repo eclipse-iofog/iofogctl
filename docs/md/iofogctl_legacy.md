@@ -13,9 +13,8 @@ iofogctl legacy resource NAME COMMAND ARGS... [flags]
 ### Examples
 
 ```
-iofogctl get all
-iofogctl legacy controller NAME iofog
-iofogctl legacy agent NAME status
+iofogctl legacy controller NAME COMMAND
+iofogctl legacy agent      NAME COMMAND
 ```
 
 ### Options
@@ -27,8 +26,8 @@ iofogctl legacy agent NAME status
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

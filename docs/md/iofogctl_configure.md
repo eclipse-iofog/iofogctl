@@ -17,15 +17,12 @@ iofogctl configure resource NAME [flags]
 ```
 iofogctl configure default-namespace NAME
 
-iofogctl configure controlplane --kube KUBECONFIGFILE
-iofogctl configure controller NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
+iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+                   controllers
+                   agent
+                   agents
 
-iofogctl configure controllers NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agents NAME --user USER --key KEYFILE --port PORTNUM
-
-Valid resources are: controlplane, controller, agent, controllers, agents, default-namespace
-
+iofogctl configure controlplane --kube FILE
 ```
 
 ### Options
@@ -41,8 +38,8 @@ Valid resources are: controlplane, controller, agent, controllers, agents, defau
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

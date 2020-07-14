@@ -16,14 +16,14 @@ iofogctl describe resource NAME [flags]
 
 ```
 iofogctl describe namespace
-iofogctl describe controlplane
-iofogctl describe controller NAME
-iofogctl describe agent NAME
-iofogctl describe agent-config NAME
-iofogctl describe microservice NAME
-
-Valid resources are: namespace, controlplane, controller, agent, agent-config, microservice, application, volume
-
+                  controlplane
+                  controller   NAME
+                  agent        NAME
+                  agent-config NAME
+                  application  NAME
+                  microservice NAME
+                  volume       NAME
+                  route        NAME
 ```
 
 ### Options
@@ -36,8 +36,8 @@ Valid resources are: namespace, controlplane, controller, agent, agent-config, m
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

@@ -14,9 +14,6 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/get"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -24,7 +21,7 @@ import (
 )
 
 func newGetCommand() *cobra.Command {
-	validResources := []string{"all", "namespaces", "controllers", "agents", "applications", "microservices", "catalog", "registries", "volumes"}
+	validResources := []string{"all", "namespaces", "controllers", "agents", "applications", "microservices", "catalog", "registries", "volumes", "routes"}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",
@@ -32,8 +29,15 @@ func newGetCommand() *cobra.Command {
 
 Resources like Agents will require a working Controller in the namespace to display all information.`,
 		Example: `iofogctl get all
-iofogctl get namespaces
-iofogctl get controllers` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+             namespaces
+             controllers
+             agents
+             applications
+             microservices
+             catalog
+             registries
+             volumes
+             routes`,
 		ValidArgs: validResources,
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

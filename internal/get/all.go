@@ -85,6 +85,11 @@ func (exe *allExecutor) Execute() error {
 		return err
 	}
 
+	// Print routes
+	if err := generateRouteOutput(exe.namespace, false); err != nil {
+		return err
+	}
+
 	return nil
 }
 

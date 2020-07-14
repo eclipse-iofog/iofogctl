@@ -81,18 +81,6 @@ func (agent *RemoteAgent) Bootstrap() error {
 			cmd: "sudo -S /tmp/agent_install_iofog.sh " + installArgs,
 			msg: "Installing ioFog daemon on Agent " + agent.name,
 		},
-		{
-			cmd: "sudo -S service iofog-agent start",
-			msg: "Starting Agent " + agent.name,
-		},
-		{
-			cmd: "/tmp/agent_wait.sh",
-			msg: "Waiting for Agent " + agent.name,
-		},
-		{
-			cmd: "sudo -S iofog-agent config -cf 10 -sf 10",
-			msg: "Configuring Agent frequencies",
-		},
 	}
 
 	// Execute commands on remote server
@@ -172,14 +160,18 @@ func (agent *RemoteAgent) Stop() (err error) {
 			cmd: "sudo iofog-agent deprovision",
 			msg: "Deprovisioning Agent " + agent.name,
 		},
+	}
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
+		return err
+	}
+
+	cmds = []command{
 		{
 			cmd: "sudo -S service iofog-agent stop",
 			msg: "Stopping Agent " + agent.name,
 		},
 	}
-
-	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
+	if err = agent.run(cmds); err != nil {
 		return err
 	}
 
@@ -265,7 +257,6 @@ func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 		"agent_install_java.sh",
 		"agent_install_docker.sh",
 		"agent_install_iofog.sh",
-		"agent_wait.sh",
 	}
 	return agent.copyScriptsToAgent(scripts)
 }

@@ -12,11 +12,12 @@ type ControlPlaneSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	User     User     `json:"user"`
-	Database Database `json:"database,omitempty"`
-	Services Services `json:"services,omitempty"`
-	Replicas Replicas `json:"replicas,omitempty"`
-	Images   Images   `json:"images,omitempty"`
+	User      User      `json:"user"`
+	Database  Database  `json:"database,omitempty"`
+	Services  Services  `json:"services,omitempty"`
+	Replicas  Replicas  `json:"replicas,omitempty"`
+	Images    Images    `json:"images,omitempty"`
+	Ingresses Ingresses `json:"ingresses,omitempty"`
 }
 
 type Replicas struct {
@@ -30,8 +31,8 @@ type Services struct {
 }
 
 type Service struct {
-	Type string `json:"type,omitempty"`
-	IP   string `json:"ip,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Address string `json:"address,omitempty"`
 }
 
 type Images struct {
@@ -57,6 +58,31 @@ type User struct {
 	Surname  string `json:"surname"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type RouterIngress struct {
+	Ingress
+	HttpPort     int `json:"httpPort,omitempty"`
+	MessagePort  int `json:"messagePort,omitempty"`
+	InteriorPort int `json:"interiorPort,omitempty"`
+	EdgePort     int `json:"edgePort,omitempty"`
+}
+
+type TcpIngress struct {
+	Ingress
+	TcpAllocatorHost string `json:"tcpAllocatorHost,omitempty"`
+	TcpAllocatorPort int    `json:"tcpAllocatorPort,omitempty"`
+	EcnId            int    `json:"ecnId,omitempty"`
+}
+
+type Ingress struct {
+	Address string `json:"address,omitempty"`
+}
+
+type Ingresses struct {
+	Router    RouterIngress `json:"router,omitempty"`
+	HttpProxy Ingress       `json:"httpProxy,omitempty"`
+	TcpProxy  TcpIngress    `json:"tcpProxy,omitempty"`
 }
 
 // ControlPlaneStatus defines the observed state of ControlPlane

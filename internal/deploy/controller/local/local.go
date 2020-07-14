@@ -74,7 +74,7 @@ func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, 
 	if err != nil {
 		return
 	}
-	if err := util.IsLowerAlphanumeric(controller.GetName()); err != nil {
+	if err := util.IsLowerAlphanumeric("Controller", controller.GetName()); err != nil {
 		return nil, err
 	}
 	cli, err := install.NewLocalContainerClient()
@@ -169,8 +169,8 @@ func (exe *localExecutor) Execute() error {
 }
 
 func Validate(ctrl rsc.Controller) error {
-	if ctrl.GetName() == "" {
-		return util.NewInputError("You must specify a non-empty value for name value of Controllers")
+	if err := util.IsLowerAlphanumeric("Controller", ctrl.GetName()); err != nil {
+		return err
 	}
 	return nil
 }

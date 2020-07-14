@@ -10,15 +10,6 @@ Delete an existing ioFog resource.
 iofogctl delete [flags]
 ```
 
-### Examples
-
-```
-delete all
-delete controller NAME
-delete agent NAME
-delete application NAME
-```
-
 ### Options
 
 ```
@@ -29,8 +20,8 @@ delete application NAME
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
@@ -45,7 +36,8 @@ delete application NAME
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace
-* [iofogctl delete registry](iofogctl_delete_registry.md)	 - Delete a registry
+* [iofogctl delete registry](iofogctl_delete_registry.md)	 - Delete a Registry
+* [iofogctl delete route](iofogctl_delete_route.md)	 - Delete a Route
 * [iofogctl delete volume](iofogctl_delete_volume.md)	 - Delete an Volume
 
 

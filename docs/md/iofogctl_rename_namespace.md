@@ -1,10 +1,10 @@
 ## iofogctl rename namespace
 
-Rename the Namespace of your ECN
+Rename a Namespace
 
 ### Synopsis
 
-Rename the Namespace of your ECN
+Rename a Namespace
 
 ```
 iofogctl rename namespace NAME NEW_NAME [flags]
@@ -25,8 +25,8 @@ iofogctl rename namespace NAME NEW_NAME
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

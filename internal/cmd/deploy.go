@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"errors"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
@@ -25,15 +26,25 @@ func newDeployCommand() *cobra.Command {
 
 	// Instantiate command
 	cmd := &cobra.Command{
-		Use:     "deploy",
-		Example: `deploy -f platform.yaml`,
-		Short:   "Deploy Edge Compute Network components on existing infrastructure",
+		Use: "deploy",
+		Example: `deploy -f platform.yaml
+          application.yaml
+          microservice.yaml
+          catalog.yaml
+          volume.yaml
+          route.yaml`,
+		Short: "Deploy Edge Compute Network components on existing infrastructure",
 		Long: `Deploy Edge Compute Network components on existing infrastructure.
 Visit iofog.org to view all YAML specifications usable with this command.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+
+			// Check file
+			if opt.InputFile == "" {
+				util.Check(errors.New("Provided empty value for input file via the -f flag"))
+			}
 
 			// Execute command
 			err = deploy.Execute(opt)

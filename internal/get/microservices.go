@@ -81,7 +81,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 
 	// Generate table and headers
 	table := make([][]string, len(exe.msvcPerID)+1)
-	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "ROUTES", "VOLUMES", "PORTS"}
+	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "VOLUMES", "PORTS"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -91,19 +91,6 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 			continue
 		}
 
-		routes := ""
-		for idx, route := range ms.Routes {
-			routeDestName := "unknown"
-			routeDest, ok := exe.msvcPerID[route]
-			if ok == true {
-				routeDestName = routeDest.Name
-			}
-			if idx == 0 {
-				routes += routeDestName
-			} else {
-				routes += fmt.Sprintf(", %s", routeDestName)
-			}
-		}
 		volumes := ""
 		for idx, volume := range ms.Volumes {
 			if idx == 0 {
@@ -135,7 +122,6 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 			ms.Name,
 			status,
 			agentName,
-			routes,
 			volumes,
 			ports,
 		}

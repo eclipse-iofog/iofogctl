@@ -14,7 +14,6 @@
 package client
 
 // Flows
-
 type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -173,7 +172,6 @@ type MicroserviceInfo struct {
 	RegistryID        int                         `json:"registryId"`
 	Ports             []MicroservicePortMapping   `json:"ports"`
 	Volumes           []MicroserviceVolumeMapping `json:"volumeMappings"`
-	Routes            []string                    `json:"routes"`
 	Commands          []string                    `json:"cmd"`
 	Env               []MicroserviceEnvironment   `json:"env"`
 	ExtraHosts        []MicroserviceExtraHost     `json:"extraHosts"`
@@ -198,7 +196,6 @@ type MicroserviceCreateRequest struct {
 	RegistryID     int                         `json:"registryId"`
 	Ports          []MicroservicePortMapping   `json:"ports"`
 	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
-	Routes         []string                    `json:"routes"`
 	Commands       []string                    `json:"cmd,omitempty"`
 	Env            []MicroserviceEnvironment   `json:"env"`
 	Images         []CatalogImage              `json:"images,omitempty"`
@@ -221,7 +218,6 @@ type MicroserviceUpdateRequest struct {
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Commands          *[]string                    `json:"cmd,omitempty"`
-	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
 	ExtraHosts        *[]MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 	Images            []CatalogImage               `json:"images,omitempty"`
@@ -260,9 +256,15 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type ControllerVersions struct {
+	Controller string `json:"controller"`
+	EcnViewer  string `json:"ecnViewer"`
+}
+
 type ControllerStatus struct {
-	Status        string  `json:"status"`
-	UptimeSeconds float64 `json:"uptimeSec"`
+	Status        string             `json:"status"`
+	UptimeSeconds float64            `json:"uptimeSec"`
+	Versions      ControllerVersions `json:"versions"`
 }
 
 type LoginRequest struct {
@@ -295,6 +297,7 @@ type GetAgentProvisionKeyResponse struct {
 type AgentInfo struct {
 	UUID                      string    `json:"uuid" yaml:"uuid"`
 	Name                      string    `json:"name" yaml:"name"`
+	Host                      string    `json:"host" yaml:"host"`
 	Location                  string    `json:"location" yaml:"location"`
 	Latitude                  float64   `json:"latitude" yaml:"latitude"`
 	Longitude                 float64   `json:"longitude" yaml:"longitude"`
@@ -313,8 +316,8 @@ type AgentInfo struct {
 	BluetoothEnabled          bool      `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
 	WatchdogEnabled           bool      `json:"watchdogEnabled" yaml:"watchdogEnabled"`
 	AbstractedHardwareEnabled bool      `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
-	CreatedTimeRFC3339        string    `json:"created_at" yaml:"created"`
-	UpdatedTimeRFC3339        string    `json:"updated_at" yaml:"updated"`
+	CreatedTimeRFC3339        string    `json:"createdAt" yaml:"created"`
+	UpdatedTimeRFC3339        string    `json:"updatedAt" yaml:"updated"`
 	LastActive                int64     `json:"lastActive" yaml:"lastActive"`
 	DaemonStatus              string    `json:"daemonStatus" yaml:"daemonStatus"`
 	UptimeMs                  int64     `json:"daemonOperatingDuration" yaml:"uptime"`
@@ -419,4 +422,21 @@ func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 		Key:   "default-proxy-host",
 		Value: address,
 	}
+}
+
+func newPublicPortHostRequest(protocol Protocol, host string) *UpdateConfigRequest {
+	return &UpdateConfigRequest{
+		Key:   string(protocol) + "-public-port-host",
+		Value: host,
+	}
+}
+
+type RouteListResponse struct {
+	Routes []Route `json:"routes"`
+}
+
+type Route struct {
+	Name                   string `json:"name"`
+	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
+	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`
 }

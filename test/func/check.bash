@@ -79,12 +79,12 @@ function checkController() {
   echo "$DESC" | grep "host: $VANILLA_HOST"
   echo "$DESC" | grep "port: $VANILLA_PORT"
   echo "$DESC" | grep "keyFile:.*$(echo $KEY_FILE | tr -d '~')"
-  echo "$DESC" | grep "repo: $CONTROLLER_REPO"
-  echo "$DESC" | grep "version: $CONTROLLER_VANILLA_VERSION"
-  echo "$DESC" | grep "token: $CONTROLLER_PACKAGE_CLOUD_TOKEN"
-  echo "$DESC" | grep "repo: $AGENT_REPO"
-  echo "$DESC" | grep "version: $AGENT_VANILLA_VERSION"
-  echo "$DESC" | grep "token: $AGENT_PACKAGE_CLOUD_TOKEN"
+  [ ! -z "$CONTROLLER_REPO" ] && echo "$DESC" | grep "repo: $CONTROLLER_REPO"
+  [ ! -z "$CONTROLLER_VANILLA_VERSION" ] && echo "$DESC" | grep "version: $CONTROLLER_VANILLA_VERSION"
+  [ ! -z "$CONTROLLER_PACKAGE_CLOUD_TOKEN" ] && echo "$DESC" | grep "token: $CONTROLLER_PACKAGE_CLOUD_TOKEN"
+  [ ! -z "$AGENT_REPO" ] && echo "$DESC" | grep "repo: $AGENT_REPO"
+  [ ! -z "$AGENT_VANILLA_VERSION" ] && echo "$DESC" | grep "version: $AGENT_VANILLA_VERSION"
+  [ ! -z "$AGENT_PACKAGE_CLOUD_TOKEN" ] && echo "$DESC" | grep "token: $AGENT_PACKAGE_CLOUD_TOKEN"
   echo "$DESC" | grep "email: $USER_EMAIL"
   echo "$DESC" | grep "password: $USER_PW_B64"
   echo "$DESC" | grep "kind: ControlPlane"
@@ -97,11 +97,11 @@ function checkControllerLocal() {
   local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
   echo "$DESC"
   echo "$DESC" | grep "name: $NAME"
-  echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
+  [ ! -z "$CONTROLLER_IMAGE" ] && echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
 
   DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
   echo "$DESC" | grep "name: $NAME"
-  echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
+  [ ! -z "$CONTROLLER_IMAGE" ] && echo "$DESC" | grep "image: $CONTROLLER_IMAGE"
   echo "$DESC" | grep "email: $USER_EMAIL"
   echo "$DESC" | grep "password: $USER_PW_B64"
   echo "$DESC" | grep "kind: LocalControlPlane"
@@ -121,8 +121,6 @@ function checkMicroservice() {
   echo "${DESC_MSVC}" | grep "test_mode: true"
   echo "${DESC_MSVC}" | grep "data_label: Anonymous_Person_2"
   [[ "memoryLimit: 8192" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
-  # Check route
-  [[ "$MSVC1_NAME, $MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $5}') ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5005:443")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
@@ -134,9 +132,6 @@ function checkMicroservice() {
   # TODO: Use another testing framework to verify proper output of yaml file
   iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC2_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "ports:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5005") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 443") ]]
@@ -166,8 +161,6 @@ function checkUpdatedMicroservice() {
   echo "${DESC_MSVC}" | grep "key: 42"
   [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
   [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
-  # Check route
-  [[ "$MSVC1_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk -F '\t' '{print $5}') ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5443:443, 5080:80")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
@@ -179,9 +172,6 @@ function checkUpdatedMicroservice() {
   # TODO: Use another testing framework to verify proper output of yaml file
   iofogctl -v -n "$NS_CHECK" describe microservice "$MICROSERVICE_NAME" -o "test/conf/msvc_output.yaml"
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "name: $MICROSERVICE_NAME") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "routes:") ]]
-  [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC1_NAME") ]]
-  [[ -z $(cat test/conf/msvc_output.yaml | grep "\- $MSVC2_NAME") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "ports:") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "external: 5443") ]]
   [[ ! -z $(cat test/conf/msvc_output.yaml | grep "\- internal: 443") ]]
@@ -227,8 +217,6 @@ function checkApplication() {
   echo "${DESC_MSVC}" | grep "test_mode: true"
   echo "${DESC_MSVC}" | grep "data_label: Anonymous_Person"
   [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
-  # Check route
-  [[ "$MSVC2_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MSVC1_NAME" | awk '{print $4}') ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
@@ -242,9 +230,6 @@ function checkApplication() {
   cat test/conf/app_output.yaml | grep "name: $APPLICATION_NAME"
   cat test/conf/app_output.yaml | grep "name: $MSVC1_NAME"
   cat test/conf/app_output.yaml | grep "name: $MSVC2_NAME"
-  cat test/conf/app_output.yaml | grep "routes:"
-  cat test/conf/app_output.yaml | grep "\- from: $MSVC1_NAME"
-  cat test/conf/app_output.yaml | grep "to: $MSVC2_NAME"
   cat test/conf/app_output.yaml | grep "ports:"
   cat test/conf/app_output.yaml | grep "external: 5000"
   cat test/conf/app_output.yaml | grep "\- internal: 80"
@@ -439,4 +424,40 @@ function checkUpdatedGCRRegistry() {
 
 function checkGCRRegistryNegative() {
   [[ -z $(iofogctl get -n "$NS" registries | grep gcr.io | awk '{print $1}') ]]
+}
+
+function checkRoute() {
+  local NAME="$1"
+  local FROM="$2"
+  local TO="$3"
+
+  local ALL=$(iofogctl -v -n "$NS" get all)
+  echo "$ALL"
+  echo "$ALL" | grep "ROUTE"
+  echo "$ALL" | grep "$NAME"
+
+  local GET=$(iofogctl -v -n "$NS" get routes)
+  echo "$GET"
+  echo "$GET" | grep "ROUTE"
+  echo "$GET" | grep "$NAME"
+
+  local DESC=$(iofogctl -v -n "$NS" describe route "$NAME")
+  echo "$DESC"
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "from: $FROM"
+  echo "$DESC" | grep "to: $TO"
+}
+
+function checkRouteNegative() {
+  local NAME="$1"
+  local FROM="$2"
+  local TO="$3"
+
+  local ALL=$(iofogctl -v -n "$NS" get all)
+  echo "$ALL"
+  [ -z "$(echo $ALL | grep $NAME)" ]
+
+  local GET=$(iofogctl -v -n "$NS" get routes)
+  echo "$GET"
+  [ -z "$(echo $GET | grep $NAME)" ]
 }

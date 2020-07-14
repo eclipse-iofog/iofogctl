@@ -80,10 +80,25 @@ NS="$NAMESPACE"
   checkMicroservice
 }
 
+@test "Deploy route" {
+  initRouteFile
+  iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
+  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+}
+
 @test "Update microservice" {
   initMicroserviceUpdateFile
   iofogctl -v -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
   checkUpdatedMicroservice
+  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+}
+
+@test "Rename and Delete route" {
+  local NEW_ROUTE_NAME="route-2"
+  iofogctl -v -n "$NS" rename route "$ROUTE_NAME" "$NEW_ROUTE_NAME"
+  iofogctl -v -n "$NS" delete route "$NEW_ROUTE_NAME"
+  checkRouteNegative "$NEW_ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+  checkRouteNegative "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
 }
 
 @test "Delete microservice using file option" {

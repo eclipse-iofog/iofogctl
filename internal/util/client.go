@@ -19,12 +19,20 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
-var cachedClient *client.Client
-var cachedAgents []client.AgentInfo
+var clientCache map[string]*client.Client
+var agentCache map[string][]client.AgentInfo
 
-// NewControllerClient returns an iofog-go-sdk/client configured for the current namespace
+func init() {
+	InvalidateCache()
+}
+
+func InvalidateCache() {
+	clientCache = make(map[string]*client.Client, 0)
+	agentCache = make(map[string][]client.AgentInfo, 0)
+}
+
 func NewControllerClient(namespace string) (*client.Client, error) {
-	if cachedClient != nil {
+	if cachedClient, exists := clientCache[namespace]; exists {
 		return cachedClient, nil
 	}
 	// Get endpoint
@@ -42,16 +50,17 @@ func NewControllerClient(namespace string) (*client.Client, error) {
 	}
 
 	user := controlPlane.GetUser()
-	cachedClient, err = client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.GetRawPassword())
+	cachedClient, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.GetRawPassword())
 	if err != nil {
 		return nil, err
 	}
+	clientCache[namespace] = cachedClient
 
 	return cachedClient, nil
 }
 
 func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
-	if cachedAgents != nil {
+	if cachedAgents, exist := agentCache[namespace]; exist {
 		return cachedAgents, nil
 	}
 	ioClient, err := NewControllerClient(namespace)
@@ -62,8 +71,8 @@ func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachedAgents = agentList.Agents
-	return cachedAgents, nil
+	agentCache[namespace] = agentList.Agents
+	return agentList.Agents, nil
 }
 
 func UpdateAgentCache(namespace string) error {
@@ -82,6 +91,7 @@ func UpdateAgentCache(namespace string) error {
 		// Do not update local Agents
 		return nil
 	}
+	// Generate map of config Agents
 	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
 	for _, baseAgent := range ns.GetAgents() {
 		agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
@@ -98,7 +108,7 @@ func UpdateAgentCache(namespace string) error {
 		agent := rsc.RemoteAgent{
 			Name: backendAgent.Name,
 			UUID: backendAgent.UUID,
-			Host: backendAgent.IPAddressExternal,
+			Host: backendAgent.Host,
 		}
 		// Update additional info if local cache contains it
 		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
@@ -118,4 +128,34 @@ func UpdateAgentCache(namespace string) error {
 	}
 
 	return config.Flush()
+}
+
+func GetMicroserviceName(namespace, uuid string) (name string, err error) {
+	clt, err := NewControllerClient(namespace)
+	if err != nil {
+		return
+	}
+
+	response, err := clt.GetMicroserviceByID(uuid)
+	if err != nil {
+		return
+	}
+
+	name = response.Name
+	return
+}
+
+func GetMicroserviceUUID(namespace, name string) (uuid string, err error) {
+	clt, err := NewControllerClient(namespace)
+	if err != nil {
+		return
+	}
+
+	response, err := clt.GetMicroserviceByName(name)
+	if err != nil {
+		return
+	}
+
+	uuid = response.UUID
+	return
 }

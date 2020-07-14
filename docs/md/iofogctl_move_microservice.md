@@ -1,10 +1,10 @@
 ## iofogctl move microservice
 
-Move a Microservice to another agent in the same Namespace
+Move a Microservice to another Agent in the same Namespace
 
 ### Synopsis
 
-Move a Microservice to another agent in the same Namespace
+Move a Microservice to another Agent in the same Namespace
 
 ```
 iofogctl move microservice NAME AGENT_NAME [flags]
@@ -25,8 +25,8 @@ iofogctl move microservice NAME AGENT_NAME
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

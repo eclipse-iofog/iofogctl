@@ -143,8 +143,8 @@ func validate(controlPlane rsc.ControlPlane) (err error) {
 		return
 	}
 	for _, ctrl := range controlPlane.GetControllers() {
-		if ctrl.GetName() == "" {
-			return util.NewInputError("You must specify a non-empty value for name value of Controllers")
+		if err = util.IsLowerAlphanumeric("Controller", ctrl.GetName()); err != nil {
+			return
 		}
 	}
 

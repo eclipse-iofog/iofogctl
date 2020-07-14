@@ -58,9 +58,6 @@ func (clt *Client) CreateMicroservice(request MicroserviceCreateRequest) (*Micro
 	if request.Ports == nil {
 		request.Ports = []MicroservicePortMapping{}
 	}
-	if request.Routes == nil {
-		request.Routes = []string{}
-	}
 	if request.Commands == nil {
 		request.Commands = []string{}
 	}
@@ -242,20 +239,9 @@ func (clt *Client) UpdateMicroserviceRoutes(UUID string, currentRoutes, newRoute
 
 // UpdateMicroservice patches a microservice using the Controller REST API
 func (clt *Client) UpdateMicroservice(request MicroserviceUpdateRequest) (*MicroserviceInfo, error) {
-	// Get current routes
-	currentMsvc, err := clt.GetMicroserviceByID(request.UUID)
-	if err != nil {
-		return nil, err
-	}
-
 	// Update microservice
-	_, err = clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s", request.UUID), request)
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s", request.UUID), request)
 	if err != nil {
-		return nil, err
-	}
-
-	// Update routing
-	if err = clt.UpdateMicroserviceRoutes(request.UUID, currentMsvc.Routes, request.Routes); err != nil {
 		return nil, err
 	}
 

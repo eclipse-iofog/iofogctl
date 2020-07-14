@@ -14,8 +14,13 @@
 package resource
 
 import (
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
+
+type Route = apps.Route
+type Microservice = apps.Microservice
+type Application = apps.Application
 
 type Container struct {
 	Image       string      `yaml:"image,omitempty"`

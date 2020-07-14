@@ -116,8 +116,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func ValidateRemoteAgent(agent rsc.RemoteAgent) error {
-	if agent.Name == "" {
-		return util.NewInputError("You must specify a non-empty value for name value of Agents")
+	if err := util.IsLowerAlphanumeric("Agent", agent.Name); err != nil {
+		return err
 	}
 	if agent.Name == iofog.VanillaRouterAgentName {
 		return util.NewInputError(fmt.Sprintf("%s is a reserved name and cannot be used for an Agent", iofog.VanillaRouterAgentName))

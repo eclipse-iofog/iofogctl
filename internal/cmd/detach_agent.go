@@ -41,7 +41,7 @@ The Agent stack will not be uninstalled from the host.`,
 			util.Check(err)
 
 			// Run the command
-			exe, _ := detach.NewExecutor(namespace, name, force)
+			exe := detach.NewExecutor(namespace, name, force)
 			err = exe.Execute()
 			util.Check(err)
 
@@ -49,7 +49,7 @@ The Agent stack will not be uninstalled from the host.`,
 		},
 	}
 
-	cmd.Flags().BoolVar(&force, "force", false, "Detach agent, even if it still uses resources")
+	cmd.Flags().BoolVar(&force, "force", false, "Detach Agent, even if it still uses resources")
 
 	return cmd
 }

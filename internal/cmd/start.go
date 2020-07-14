@@ -19,10 +19,9 @@ import (
 
 func newStartCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "start",
-		Short:   "Starts a resource",
-		Long:    "Starts a resource",
-		Example: `iofogctl start application NAME`,
+		Use:   "start",
+		Short: "Starts a resource",
+		Long:  "Starts a resource",
 	}
 
 	// Add subcommands

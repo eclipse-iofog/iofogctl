@@ -18,8 +18,10 @@ iofogctl connect [flags]
 
 ```
 iofogctl connect -f controlplane.yaml
-iofogctl connect --kube FILE --email EMAIL --pass PASSWORD
-iofogctl connect --ecn-addr ENDPOINT --name NAME --email EMAIL --pass PASSWORD
+
+iofogctl connect --email EMAIL --pass PASSWORD --kube     FILE 
+                 --email EMAIL --pass PASSWORD --ecn-addr ENDPOINT --name NAME
+
 iofogctl connect --generate
 ```
 
@@ -41,8 +43,8 @@ iofogctl connect --generate
 ### Options inherited from parent commands
 
 ```
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
       --detached           Use/Show detached resources
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

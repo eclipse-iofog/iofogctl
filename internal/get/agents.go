@@ -98,8 +98,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 		"STATUS",
 		"AGE",
 		"UPTIME",
-		"ADDR",
 		"VERSION",
+		"ADDR",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
@@ -112,20 +112,23 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 				"not provisioned",
 				"-",
 				"-",
-				agent.IPAddressExternal,
 				"-",
+				agent.IPAddressExternal,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
-			age, _ := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC())
+			age := "-"
+			if backendAge, err := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC()); err == nil {
+				age = backendAge
+			}
 			uptime := time.Duration(agent.UptimeMs) * time.Millisecond
 			row := []string{
 				agent.Name,
 				agent.DaemonStatus,
 				age,
 				util.FormatDuration(uptime),
-				agent.IPAddressExternal,
 				agent.Version,
+				agent.Host,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}

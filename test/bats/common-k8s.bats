@@ -90,6 +90,12 @@
   waitForMsvc "$MSVC2_NAME" "$NS"
 }
 
+@test "Deploy route" {
+  initRouteFile
+  iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
+  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+}
+
 @test "Volumes are mounted" {
   testMountVolume
 }
@@ -230,6 +236,8 @@
   checkDetachedAgentNegative "$AGENT_NAME"
 }
 
-@test "Attach external Agent" {
-  testAttachExternalAgent
+@test "Move Agent" {
+  local AGENT_NAME="${NAME}-0"
+  iofogctl -v -n "$NS" move "$AGENT_NAME" "$NS"
+  iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME"
 }

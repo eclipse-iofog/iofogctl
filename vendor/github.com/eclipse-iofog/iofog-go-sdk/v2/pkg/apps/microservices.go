@@ -156,14 +156,6 @@ func (exe *microserviceExecutor) init() (err error) {
 }
 
 func (exe *microserviceExecutor) validate() error {
-	// Validate routes
-	routes, err := validateRoutes(exe.msvc.Routes, exe.microserviceByName)
-	if err != nil {
-		return err
-	}
-
-	exe.routes = routes
-
 	// Validate microservice
 	if err := validateMicroservice(&exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
@@ -257,7 +249,6 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 		ExtraHosts:     *extraHosts,
 		RegistryID:     registryID,
 		AgentUUID:      agentUUID,
-		Routes:         exe.routes,
 		Commands:       exe.msvc.Container.Commands,
 		Images:         images,
 	})
@@ -286,7 +277,6 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		ExtraHosts:     mapExtraHosts(exe.msvc.Container.ExtraHosts),
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
-		Routes:         exe.routes,
 		Commands:       cmdPointer,
 		Images:         images,
 		Rebuild:        exe.msvc.Rebuild,

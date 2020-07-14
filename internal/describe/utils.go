@@ -45,23 +45,13 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 		return
 	}
 
-	routes := []string{}
-
-	for _, msvcUUID := range msvc.Routes {
-		destMsvc, err := clt.GetMicroserviceByID(msvcUUID)
-		if err != nil {
-			return nil, err
-		}
-		routes = append(routes, destMsvc.Name)
-	}
-
 	// Map port host to agent name
 	for idx, port := range msvc.Ports {
 		if port.Host != "" && port.Host != iofog.VanillaRouterAgentName {
 			hostAgent, err := clt.GetAgentByID(port.Host)
 			var name string
 			if err != nil {
-				util.PrintNotify(fmt.Sprintf("Could not find agent with UUID %s\n", port.Host))
+				util.PrintNotify(fmt.Sprintf("Could not find Agent with UUID %s\n", port.Host))
 				name = "UNKNOWN_" + port.Host
 			} else {
 				name = hostAgent.Name
@@ -148,7 +138,6 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	result.Container.Volumes = &volumes
 	result.Container.Env = &envs
 	result.Container.ExtraHosts = &extraHosts
-	result.Routes = routes
 	result.Flow = &application.Name
 	return
 }

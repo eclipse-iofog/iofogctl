@@ -29,6 +29,7 @@ import (
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
+	deployroute "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/route"
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -46,6 +47,7 @@ var kindOrder = []config.Kind{
 	config.CatalogItemKind,
 	config.ApplicationKind,
 	config.MicroserviceKind,
+	config.RouteKind,
 }
 
 type Options struct {
@@ -105,6 +107,10 @@ func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) 
 	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
+func deployRoute(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployroute.NewExecutor(deployroute.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
 	config.ApplicationKind:            deployApplication,
 	config.MicroserviceKind:           deployMicroservice,
@@ -119,6 +125,7 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	config.AgentConfigKind:            deployAgentConfig,
 	config.RegistryKind:               deployRegistry,
 	config.VolumeKind:                 deployVolume,
+	config.RouteKind:                  deployRoute,
 }
 
 // Execute deploy from yaml file
@@ -214,7 +221,7 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Agents, Volumes, CatalogItem, Application, Microservice
+	// Agents, Volumes, CatalogItem, Application, Microservice, Route
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
 			return errs[0]
@@ -327,7 +334,7 @@ func makeEdges(g *graph.Graph, node graph.Node, nodeMap, agentNodeMap map[string
 			// This means agent is not getting deployed with this file, so it must already exist on Controller
 			agent, found := agentByName[dep]
 			if !found {
-				return util.NewNotFoundError(fmt.Sprintf("Could not find agent %s while establishing agent dependency graph\n", dep))
+				return util.NewNotFoundError(fmt.Sprintf("Could not find Agent %s while establishing agent dependency graph\n", dep))
 			}
 			dependsOnNode, found = agentNodeMap[dep]
 			if !found {

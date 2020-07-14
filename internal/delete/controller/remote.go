@@ -54,7 +54,19 @@ func (exe *remoteExecutor) Execute() error {
 		return util.NewInternalError("Could not assert Controller type to Remote Controller")
 	}
 
-	// Instantiate installer
+	// Try to remove default router
+	sshAgent := install.NewRemoteAgent(
+		ctrl.SSH.User,
+		ctrl.Host,
+		ctrl.SSH.Port,
+		ctrl.SSH.KeyFile,
+		iofog.VanillaRouterAgentName,
+		"")
+	if err = sshAgent.Uninstall(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
+	}
+
+	// Instantiate Controller uninstaller
 	controllerOptions := &install.ControllerOptions{
 		User:            ctrl.SSH.User,
 		Host:            ctrl.Host,
@@ -66,18 +78,6 @@ func (exe *remoteExecutor) Execute() error {
 	// Uninstall Controller
 	if err = installer.Uninstall(); err != nil {
 		return err
-	}
-
-	// Try to remove default router
-	sshAgent := install.NewRemoteAgent(
-		ctrl.SSH.User,
-		ctrl.Host,
-		ctrl.SSH.Port,
-		ctrl.SSH.KeyFile,
-		iofog.VanillaRouterAgentName,
-		"")
-	if err = sshAgent.Uninstall(); err != nil {
-		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
 	}
 
 	// Update config

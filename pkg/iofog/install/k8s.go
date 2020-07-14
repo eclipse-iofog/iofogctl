@@ -77,58 +77,55 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 		clientset:     clientset,
 		extsClientset: extsClientset,
 		ns:            namespace,
-		images: iofogv2.Images{
-			Controller:  util.GetControllerImage(),
-			PortManager: util.GetPortManagerImage(),
-			Router:      util.GetRouterImage(),
-			Proxy:       util.GetProxyImage(),
-			Kubelet:     util.GetKubeletImage(),
-		},
-		services: iofogv2.Services{
-			Controller: iofogv2.Service{
-				Type: string(corev1.ServiceTypeLoadBalancer),
-			},
-			Router: iofogv2.Service{
-				Type: string(corev1.ServiceTypeLoadBalancer),
-			},
-		},
-		operator: newOperatorMicroservice(),
+		operator:      newOperatorMicroservice(),
 	}, nil
 }
 
 func (k8s *Kubernetes) SetKubeletImage(image string) {
 	if image != "" {
 		k8s.images.Kubelet = image
+	} else {
+		k8s.images.Kubelet = util.GetKubeletImage()
 	}
 }
 
 func (k8s *Kubernetes) SetOperatorImage(image string) {
 	if image != "" {
 		k8s.operator.containers[0].image = image
+	} else {
+		k8s.operator.containers[0].image = util.GetOperatorImage()
 	}
 }
 
 func (k8s *Kubernetes) SetPortManagerImage(image string) {
 	if image != "" {
 		k8s.images.PortManager = image
+	} else {
+		k8s.images.PortManager = util.GetPortManagerImage()
 	}
 }
 
 func (k8s *Kubernetes) SetRouterImage(image string) {
 	if image != "" {
 		k8s.images.Router = image
+	} else {
+		k8s.images.Router = util.GetRouterImage()
 	}
 }
 
 func (k8s *Kubernetes) SetProxyImage(image string) {
 	if image != "" {
 		k8s.images.Proxy = image
+	} else {
+		k8s.images.Proxy = util.GetProxyImage()
 	}
 }
 
 func (k8s *Kubernetes) SetControllerImage(image string) {
 	if image != "" {
 		k8s.images.Controller = image
+	} else {
+		k8s.images.Controller = util.GetControllerImage()
 	}
 }
 
@@ -518,16 +515,30 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr strin
 }
 
 func (k8s *Kubernetes) SetControllerService(svcType, ip string) {
-	k8s.services.Controller.Type = svcType
-	k8s.services.Controller.IP = ip
+	if svcType != "" {
+		k8s.services.Controller.Type = svcType
+	} else {
+		k8s.services.Controller.Type = string(corev1.ServiceTypeLoadBalancer)
+	}
+	k8s.services.Controller.Address = ip
 }
+
 func (k8s *Kubernetes) SetRouterService(svcType, ip string) {
-	k8s.services.Router.Type = svcType
-	k8s.services.Router.IP = ip
+	if svcType != "" {
+		k8s.services.Router.Type = svcType
+	} else {
+		k8s.services.Router.Type = string(corev1.ServiceTypeLoadBalancer)
+	}
+	k8s.services.Router.Address = ip
 }
+
 func (k8s *Kubernetes) SetProxyService(svcType, ip string) {
-	k8s.services.Proxy.Type = svcType
-	k8s.services.Proxy.IP = ip
+	if svcType != "" {
+		k8s.services.Proxy.Type = svcType
+	} else {
+		k8s.services.Proxy.Type = string(corev1.ServiceTypeLoadBalancer)
+	}
+	k8s.services.Proxy.Address = ip
 }
 
 func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
