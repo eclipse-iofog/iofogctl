@@ -48,14 +48,17 @@ do_install_iofog() {
 	case "$lsb_dist" in
 		ubuntu)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
+			$sh_c "apt-get update"
 			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			;;
 		fedora|centos)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | $sh_c "bash"
+			$sh_c "yum update"
 			$sh_c "yum install -y iofog-agent-"$agent_version"-1.noarch"
 			;;
 		debian|raspbian)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" | $sh_c "bash"
+			$sh_c "apt-get update"
 			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 			;;
 	esac
