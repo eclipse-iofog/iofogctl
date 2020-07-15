@@ -129,7 +129,7 @@ func executeWithYAML(yamlFile, namespace string) error {
 
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("connect %s", kindOrder[idx])); len(errs) > 0 {
-			return errs[0]
+			return execute.CoalesceErrors(errs)
 		}
 	}
 

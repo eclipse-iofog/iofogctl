@@ -14,9 +14,9 @@
 package execute
 
 import (
+	"errors"
+	"fmt"
 	"sync"
-
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type jobResult struct {
@@ -24,11 +24,20 @@ type jobResult struct {
 	exe Executor
 }
 
-func RunExecutors(executors []Executor, execType string) []error {
-	if errs, failedExes := ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
+func CoalesceErrors(errs []error) error {
+	msg := ""
+	for idx := range errs {
+		if msg == "" {
+			msg = errs[idx].Error()
+		} else {
+			msg = fmt.Sprintf("%s\n%s", errs[idx].Error())
 		}
+	}
+	return errors.New(msg)
+}
+
+func RunExecutors(executors []Executor, execType string) []error {
+	if errs, _ := ForParallel(executors); len(errs) > 0 {
 		return errs
 	}
 	return []error{}

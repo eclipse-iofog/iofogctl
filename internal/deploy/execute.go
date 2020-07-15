@@ -188,7 +188,7 @@ func Execute(opt *Options) (err error) {
 	errMsg := "Specified multiple Control Planes in a single Namespace"
 	if exe, exists := executorsMap[config.KubernetesControlPlaneKind]; exists {
 		if errs := execute.RunExecutors(exe, "deploy Kubernetes Control Plane"); len(errs) > 0 {
-			return errs[0]
+			return execute.CoalesceErrors(errs)
 		}
 		cpCount++
 	}
@@ -197,7 +197,7 @@ func Execute(opt *Options) (err error) {
 			err = util.NewInputError(errMsg)
 		}
 		if errs := execute.RunExecutors(exe, "deploy Remote Control Plane"); len(errs) > 0 {
-			return errs[0]
+			return execute.CoalesceErrors(errs)
 		}
 		cpCount++
 	}
@@ -206,13 +206,13 @@ func Execute(opt *Options) (err error) {
 			err = util.NewInputError(errMsg)
 		}
 		if errs := execute.RunExecutors(exe, "deploy Local Control Plane"); len(errs) > 0 {
-			return errs[0]
+			return execute.CoalesceErrors(errs)
 		}
 	}
 
 	// Controllers
 	if errs := execute.RunExecutors(executorsMap[config.LocalControllerKind], "deploy local controller"); len(errs) > 0 {
-		return errs[0]
+		return execute.CoalesceErrors(errs)
 	}
 
 	// Agent config
@@ -224,7 +224,7 @@ func Execute(opt *Options) (err error) {
 	// Agents, Volumes, CatalogItem, Application, Microservice, Route
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
-			return errs[0]
+			return execute.CoalesceErrors(errs)
 		}
 	}
 
