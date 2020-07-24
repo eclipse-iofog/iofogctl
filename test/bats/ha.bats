@@ -94,14 +94,12 @@ spec:
   local CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
   local SAFE_CTRL=$(echo "$CTRL_LIST" | tail -n 1)
   for IDX in 0 1 2 3 4; do
-    CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
-    while read -r line; do
-      if [ "$line" != "$SAFE_CTRL" ]; then
-        kctl delete pods/"$line" -n "$NS" &
-      fi
-    done <<< "$CTRL_LIST"
+    REPLICAS=$(($((i%2))+1))
+    kctl scale deployment controller --replicas $REPLICAS
     checkAgentListFromController
+    kctl rollout status deployment controller
   done
+  kctl scale deployment controller --replicas 2
 }
 
 @test "Deploy Agents again" {
