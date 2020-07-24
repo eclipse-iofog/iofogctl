@@ -36,7 +36,7 @@ var multipleResources = map[string]bool{
 
 func NewExecutor(opt Options) (execute.Executor, error) {
 	switch opt.ResourceType {
-	case "default-namespace":
+	case "current-namespace":
 		return newDefaultNamespaceExecutor(opt), nil
 	case "controlplane":
 		return newControlPlaneExecutor(opt), nil
