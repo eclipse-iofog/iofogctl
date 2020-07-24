@@ -47,7 +47,11 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
+			printName := name
+			if !useDetached {
+				printName = namespace + "/" + name
+			}
+			util.PrintSuccess("Successfully deleted " + printName)
 		},
 	}
 
