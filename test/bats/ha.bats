@@ -91,15 +91,13 @@ spec:
 @test "Delete Controller Instances and List Agents multiple times" {
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  local CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
-  local SAFE_CTRL=$(echo "$CTRL_LIST" | tail -n 1)
   for IDX in 0 1 2 3 4; do
     REPLICAS=$(($((i%2))+1))
-    kctl scale deployment controller --replicas $REPLICAS
+    kctl scale deployment controller --replicas $REPLICAS -n $NS
     checkAgentListFromController
-    kctl rollout status deployment controller
+    kctl rollout status deployment controller -n $NS
   done
-  kctl scale deployment controller --replicas 2
+  kctl scale deployment controller --replicas 2 -n $NS
 }
 
 @test "Deploy Agents again" {
