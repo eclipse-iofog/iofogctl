@@ -83,7 +83,7 @@ spec:
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   login "$CONTROLLER_ENDPOINT" "$USER_EMAIL" "$USER_PW"
-  for IDX in 0 1 2 3 4 5; do
+  for IDX in $(seq 1 5); do
     checkAgentListFromController
   done
 }
@@ -91,13 +91,13 @@ spec:
 @test "Delete Controller Instances and List Agents multiple times" {
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  for IDX in 0 1 2 3 4; do
-    REPLICAS=$(($((i%2))+1))
+  for REPLICAS in $(seq 3 5); do
     kctl scale deployment controller --replicas $REPLICAS -n $NS
-    checkAgentListFromController
     kctl rollout status deployment controller -n $NS
+    checkAgentListFromController
   done
   kctl scale deployment controller --replicas 2 -n $NS
+  kctl rollout status deployment controller -n $NS
 }
 
 @test "Deploy Agents again" {
