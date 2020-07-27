@@ -61,6 +61,8 @@ func (ns *Namespace) DeleteControlPlane() {
 }
 
 func (ns *Namespace) GetControllers() []Controller {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	if ns.KubernetesControlPlane != nil {
 		return ns.KubernetesControlPlane.GetControllers()
 	}
@@ -89,7 +91,9 @@ func (ns *Namespace) DeleteController(name string) (err error) {
 }
 
 func (ns *Namespace) GetAgent(name string) (Agent, error) {
-	agents := ns.GetAgents()
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	agents := ns.getAgents()
 	for idx := range agents {
 		if agents[idx].GetName() == name {
 			return agents[idx], nil
@@ -99,6 +103,11 @@ func (ns *Namespace) GetAgent(name string) (Agent, error) {
 }
 
 func (ns *Namespace) GetAgents() (agents []Agent) {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	return ns.getAgents()
+}
+func (ns *Namespace) getAgents() (agents []Agent) {
 	// K8s / Remote
 	for idx := range ns.RemoteAgents {
 		agents = append(agents, ns.RemoteAgents[idx].Clone())
@@ -150,7 +159,7 @@ func (ns *Namespace) UpdateAgent(baseAgent Agent) error {
 func (ns *Namespace) AddAgent(baseAgent Agent) error {
 	ns.mux.Lock()
 	defer ns.mux.Unlock()
-	agents := ns.GetAgents()
+	agents := ns.getAgents()
 	for idx := range agents {
 		if agents[idx].GetName() == baseAgent.GetName() {
 			return util.NewConflictError(baseAgent.GetName())
@@ -191,6 +200,8 @@ func (ns *Namespace) DeleteAgents() {
 }
 
 func (ns *Namespace) Clone() *Namespace {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	var cpK8s *KubernetesControlPlane
 	var cpRemote *RemoteControlPlane
 	var cpLocal *LocalControlPlane
@@ -219,7 +230,9 @@ func (ns *Namespace) Clone() *Namespace {
 }
 
 func (ns *Namespace) AddVolume(volume Volume) error {
-	if _, err := ns.GetVolume(volume.Name); err == nil {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	if _, err := ns.getVolume(volume.Name); err == nil {
 		return util.NewConflictError(ns.Name + "/" + volume.Name)
 	}
 
@@ -228,6 +241,8 @@ func (ns *Namespace) AddVolume(volume Volume) error {
 }
 
 func (ns *Namespace) UpdateVolume(volume Volume) {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	// Replace if exists
 	for idx := range ns.Volumes {
 		if ns.Volumes[idx].Name == volume.Name {
@@ -242,6 +257,8 @@ func (ns *Namespace) UpdateVolume(volume Volume) {
 }
 
 func (ns *Namespace) DeleteVolume(name string) error {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
 	for idx := range ns.Volumes {
 		if ns.Volumes[idx].Name == name {
 			ns.Volumes = append(ns.Volumes[:idx], ns.Volumes[idx+1:]...)
@@ -251,14 +268,22 @@ func (ns *Namespace) DeleteVolume(name string) error {
 	return util.NewNotFoundError(ns.Name + "/" + name)
 }
 
-func (ns *Namespace) GetVolumes() []Volume {
-	return ns.Volumes
+func (ns *Namespace) GetVolumes() (volumes []Volume) {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	return append(volumes, ns.Volumes...)
 }
 
-func (ns *Namespace) GetVolume(name string) (agent Volume, err error) {
-	for _, ag := range ns.Volumes {
-		if ag.Name == name {
-			agent = ag
+func (ns *Namespace) GetVolume(name string) (volume Volume, err error) {
+	ns.mux.Lock()
+	defer ns.mux.Unlock()
+	return ns.getVolume(name)
+}
+
+func (ns *Namespace) getVolume(name string) (volume Volume, err error) {
+	for _, vol := range ns.Volumes {
+		if vol.Name == name {
+			volume = vol
 			return
 		}
 	}
