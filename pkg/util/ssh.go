@@ -135,11 +135,17 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 }
 
 func format(err error, stdout, stderr *bytes.Buffer) error {
-	if err == nil || stdout == nil || stderr == nil {
+	if err == nil {
 		return err
 	}
+	msg := "Error during SSH Session"
+	if stdout != nil && stdout.String() != "" {
+		msg = fmt.Sprintf("%s\n%s", msg, stdout.String())
+	}
+	if stderr != nil && stderr.String() != "" {
+		msg = fmt.Sprintf("%s\n%s", msg, stderr.String())
+	}
 
-	msg := fmt.Sprintf("Error during SSH session\nstderr:\n%s\nstdout:\n%s", stderr.String(), stdout.String())
 	return errors.New(msg)
 }
 
