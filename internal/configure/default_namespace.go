@@ -40,5 +40,5 @@ func (exe *defaultNamespaceExecutor) Execute() error {
 		return err
 	}
 
-	return config.Flush()
+	return config.FlushShared()
 }
