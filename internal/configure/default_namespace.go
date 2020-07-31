@@ -36,9 +36,5 @@ func (exe *defaultNamespaceExecutor) Execute() error {
 	if exe.name == "" {
 		return util.NewInputError("Must specify Namespace")
 	}
-	if err := config.SetDefaultNamespace(exe.name); err != nil {
-		return err
-	}
-
-	return config.FlushShared()
+	return config.SetDefaultNamespace(exe.name)
 }

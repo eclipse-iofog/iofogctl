@@ -31,7 +31,7 @@ func SetDefaultNamespace(name string) (err error) {
 	for _, n := range GetNamespaces() {
 		if n == name {
 			conf.DefaultNamespace = name
-			return
+			return flushShared()
 		}
 	}
 	return util.NewNotFoundError(name)

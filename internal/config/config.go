@@ -245,10 +245,6 @@ func Flush() error {
 	return flushNamespaces()
 }
 
-func FlushShared() error {
-	return flushShared()
-}
-
 type v1NamespaceSpecContent struct {
 	Name         string                `yaml:"name,omitempty"`
 	ControlPlane configv1.ControlPlane `yaml:"controlPlane,omitempty"`

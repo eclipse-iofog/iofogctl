@@ -39,7 +39,7 @@ If you would like to delete all resources in the Namespace, use the --force flag
 			err := delete.Execute(name, force)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted namespace " + name)
+			util.PrintSuccess("Successfully deleted Namespace " + name)
 		},
 	}
 
