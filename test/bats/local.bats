@@ -4,6 +4,10 @@
 
 NS="$NAMESPACE"
 
+@test "Initialize tests" {
+  stopTest
+}
+
 @test "Create namespace" {
   startTest
   iofogctl create namespace "$NS"

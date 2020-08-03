@@ -20,6 +20,10 @@
 
 NS="$NAMESPACE"
 
+@test "Initialize tests" {
+  stopTest
+}
+
 @test "Verify kubectl works" {
   startTest
   kctl get ns
