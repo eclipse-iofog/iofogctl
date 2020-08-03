@@ -21,18 +21,25 @@
 NS="$NAMESPACE"
 
 @test "Verify kubectl works" {
+  startTest
   kctl get ns
+  stopTest
 }
 
 @test "Create namespace" {
+  startTest
   iofogctl create namespace "$NS"
+  stopTest
 }
 
 @test "Test no executors" {
+  startTest
   testNoExecutors
+  stopTest
 }
 
 @test "Deploy Control Plane" {
+  startTest
   echo "---
 apiVersion: iofog.org/v2
 kind: KubernetesControlPlane
@@ -55,19 +62,25 @@ spec:
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
+  stopTest
 }
 
 @test "Get endpoint" {
+  startTest
   CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
+  stopTest
 }
 
 @test "Get Controller logs on K8s after deploy" {
+  startTest
   iofogctl -v -n "$NS" logs controller "$NAME" | grep "api/v3"
+  stopTest
 }
 
 @test "Configure kube config file" {
+  startTest
   local NEW_KUBE="/tmp/new-kubeconfig"
   local TEST_KUBE="$NEW_KUBE"
   if [[ ! -z $WSL_KEY_FILE ]]; then
@@ -80,9 +93,11 @@ spec:
   echo $DESC
   iofogctl -v -n "$NS" describe controlplane | grep $TEST_KUBE
   iofogctl -v -n "$NS" configure controlplane --kube "$KUBE_CONFIG"
+  stopTest
 }
 
 @test "Deploy Agents" {
+  startTest
   initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
@@ -95,20 +110,24 @@ spec:
     # Wait for router microservice
     waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
+  stopTest
 } 
 
 # LOAD: test/bats/common-k8s.bats
 
 @test "Delete Agents" {
+  startTest
   initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
   done
   checkAgentsNegative
+  stopTest
 }
 
 @test "Deploy Controller for idempotence" {
+  startTest
   echo "---
 apiVersion: iofog.org/v2
 kind: KubernetesControlPlane
@@ -131,15 +150,20 @@ spec:
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
+  stopTest
 }
 
 @test "Delete all" {
+  startTest
   iofogctl -v -n "$NS" delete all
   checkControllerNegativeK8s
   checkAgentsNegative
+  stopTest
 }
 
 @test "Delete namespace" {
+  startTest
   iofogctl delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  stopTest
 }

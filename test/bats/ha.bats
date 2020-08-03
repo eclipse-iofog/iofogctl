@@ -25,14 +25,19 @@
 NS="$NAMESPACE"
 
 @test "Verify kubectl works" {
+  startTest
   kctl get ns
+  stopTest
 }
 
 @test "Create namespace" {
+  startTest
   iofogctl create namespace "$NS"
+  stopTest
 }
 
 @test "Deploy Control Plane" {
+  startTest
   echo "---
 apiVersion: iofog.org/v2
 kind: KubernetesControlPlane
@@ -65,30 +70,38 @@ spec:
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
   checkControllerK8s
+  stopTest
 }
 
 @test "Get endpoint" {
+  startTest
   CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | head -n 1 | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
+  stopTest
 }
 
 @test "Deploy Agents" {
+  startTest
   initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
+  stopTest
 }
 
 @test "List Agents multiple times" {
+  startTest
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   login "$CONTROLLER_ENDPOINT" "$USER_EMAIL" "$USER_PW"
   for IDX in $(seq 1 3); do
     checkAgentListFromController
   done
+  stopTest
 }
 
 @test "Delete Controller Instances and List Agents multiple times" {
+  startTest
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   for REPLICAS in $(seq 3 4); do
@@ -98,9 +111,11 @@ spec:
   done
   kctl scale deployment controller --replicas 2 -n $NS
   kctl rollout status deployment controller -n $NS
+  stopTest
 }
 
 @test "Deploy Agents again" {
+  startTest
   initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
@@ -113,27 +128,34 @@ spec:
     # Wait for router microservice
     waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
+  stopTest
 }
 
 # LOAD: test/bats/common-k8s.bats
 
 @test "Delete Agents" {
+  startTest
   initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
   done
   checkAgentsNegative
+  stopTest
 }
 
 @test "Delete all" {
+  startTest
   iofogctl -v -n "$NS" delete all
   checkControllerNegativeK8s
   checkControllerNegativeK8s
   checkAgentsNegative
+  stopTest
 }
 
 @test "Delete namespace" {
+  startTest
   iofogctl delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  stopTest
 }
