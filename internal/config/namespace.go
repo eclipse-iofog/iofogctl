@@ -31,7 +31,7 @@ func SetDefaultNamespace(name string) (err error) {
 	for _, n := range GetNamespaces() {
 		if n == name {
 			conf.DefaultNamespace = name
-			return
+			return flushShared()
 		}
 	}
 	return util.NewNotFoundError(name)
@@ -138,19 +138,18 @@ func DeleteNamespace(name string) error {
 
 // RenameNamespace renames a namespace
 func RenameNamespace(name, newName string) error {
-	if name == conf.DefaultNamespace {
-		util.PrintError("Cannot rename default namespaces, please choose a different namespace to rename")
-		return util.NewInputError("Cannot find valid namespace with name: " + name)
-	}
 	ns, err := getNamespace(name)
 	if err != nil {
 		util.PrintError("Could not find namespace " + name)
 		return err
 	}
 	ns.Name = newName
-	err = os.Rename(getNamespaceFile(name), getNamespaceFile(newName))
-	if err != nil {
+	if err = os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
 		return err
 	}
+	if name == conf.DefaultNamespace {
+		return SetDefaultNamespace(newName)
+	}
+
 	return nil
 }

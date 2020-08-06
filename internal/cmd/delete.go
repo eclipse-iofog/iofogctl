@@ -28,6 +28,7 @@ func newDeleteCommand() *cobra.Command {
 		Use:   "delete",
 		Short: "Delete an existing ioFog resource",
 		Long:  `Delete an existing ioFog resource.`,
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")

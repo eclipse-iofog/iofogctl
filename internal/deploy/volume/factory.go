@@ -87,9 +87,8 @@ func (exe executor) Execute() error {
 			ns:     ns,
 		})
 	}
-	errs := execute.RunExecutors(executors, exe.GetName())
-	if len(errs) > 0 {
-		return errs[0]
+	if errs := execute.RunExecutors(executors, exe.GetName()); len(errs) > 0 {
+		return execute.CoalesceErrors(errs)
 	}
 	return nil
 }

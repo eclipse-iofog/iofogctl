@@ -233,7 +233,7 @@ function testWrongNamespace(){
 
 function testDefaultNamespace(){
   local SET_NS="$1"
-  iofogctl configure default-namespace "$NS"
+  iofogctl configure current-namespace "$NS"
   iofogctl get all | grep "$NS"
 }
 

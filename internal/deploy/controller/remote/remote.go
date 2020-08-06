@@ -101,8 +101,8 @@ func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.RemoteControl
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
-	if exe.controller.ValidateSSH() != nil {
-		return util.NewInputError("Must specify user, host, and key file flags for remote deployment")
+	if err = exe.controller.ValidateSSH(); err != nil {
+		return
 	}
 
 	// Instantiate deployer

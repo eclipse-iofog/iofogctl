@@ -30,7 +30,7 @@ func newConfigureCommand() *cobra.Command {
 		Long: `Configure iofogctl or ioFog resources
 
 If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.`,
-		Example: `iofogctl configure default-namespace NAME
+		Example: `iofogctl configure current-namespace NAME
 
 iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
                    controllers

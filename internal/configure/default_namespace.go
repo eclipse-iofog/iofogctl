@@ -15,6 +15,7 @@ package configure
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type defaultNamespaceExecutor struct {
@@ -32,9 +33,8 @@ func (exe *defaultNamespaceExecutor) GetName() string {
 }
 
 func (exe *defaultNamespaceExecutor) Execute() error {
-	if err := config.SetDefaultNamespace(exe.name); err != nil {
-		return err
+	if exe.name == "" {
+		return util.NewInputError("Must specify Namespace")
 	}
-
-	return config.Flush()
+	return config.SetDefaultNamespace(exe.name)
 }

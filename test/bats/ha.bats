@@ -24,15 +24,24 @@
 
 NS="$NAMESPACE"
 
+@test "Initialize tests" {
+  stopTest
+}
+
 @test "Verify kubectl works" {
+  startTest
   kctl get ns
+  stopTest
 }
 
 @test "Create namespace" {
+  startTest
   iofogctl create namespace "$NS"
+  stopTest
 }
 
 @test "Deploy Control Plane" {
+  startTest
   echo "---
 apiVersion: iofog.org/v2
 kind: KubernetesControlPlane
@@ -65,46 +74,52 @@ spec:
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
   checkControllerK8s
+  stopTest
 }
 
 @test "Get endpoint" {
+  startTest
   CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | head -n 1 | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
+  stopTest
 }
 
 @test "Deploy Agents" {
+  startTest
   initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
+  stopTest
 }
 
 @test "List Agents multiple times" {
+  startTest
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   login "$CONTROLLER_ENDPOINT" "$USER_EMAIL" "$USER_PW"
-  for IDX in 0 1 2 3 4 5; do
+  for IDX in $(seq 1 3); do
     checkAgentListFromController
   done
+  stopTest
 }
 
 @test "Delete Controller Instances and List Agents multiple times" {
+  startTest
   initAgents
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-  local CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
-  local SAFE_CTRL=$(echo "$CTRL_LIST" | tail -n 1)
-  for IDX in 0 1 2 3 4; do
-    CTRL_LIST=$(kctl get pods -l name=controller -n "$NS" | tail -n +2 | awk '{print $1}')
-    while read -r line; do
-      if [ "$line" != "$SAFE_CTRL" ]; then
-        kctl delete pods/"$line" -n "$NS" &
-      fi
-    done <<< "$CTRL_LIST"
+  for REPLICAS in $(seq 3 4); do
+    kctl scale deployment controller --replicas $REPLICAS -n $NS
+    kctl rollout status deployment controller -n $NS
     checkAgentListFromController
   done
+  kctl scale deployment controller --replicas 2 -n $NS
+  kctl rollout status deployment controller -n $NS
+  stopTest
 }
 
 @test "Deploy Agents again" {
+  startTest
   initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
@@ -117,27 +132,34 @@ spec:
     # Wait for router microservice
     waitForSystemMsvc "router" ${HOSTS[IDX]} ${USERS[IDX]} $SSH_KEY_PATH 
   done
+  stopTest
 }
 
 # LOAD: test/bats/common-k8s.bats
 
 @test "Delete Agents" {
+  startTest
   initAgents
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
   done
   checkAgentsNegative
+  stopTest
 }
 
 @test "Delete all" {
+  startTest
   iofogctl -v -n "$NS" delete all
   checkControllerNegativeK8s
   checkControllerNegativeK8s
   checkAgentsNegative
+  stopTest
 }
 
 @test "Delete namespace" {
+  startTest
   iofogctl delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  stopTest
 }

@@ -1,35 +1,46 @@
 @test "Deploy Volumes" {
+  startTest
   testDeployVolume
   testGetDescribeVolume
+  stopTest
 }
 
 @test "Deploy Volumes Idempotent" {
+  startTest
   testDeployVolume
   testGetDescribeVolume
+  stopTest
 }
 
 @test "Delete Volumes and Redeploy" {
+  startTest
   testDeleteVolume
   testDeployVolume
   testGetDescribeVolume
+  stopTest
 }
 
 @test "Agent legacy commands" {
+  startTest
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
     checkLegacyAgent "$AGENT_NAME"
   done
+  stopTest
 }
 
 @test "Get Agent logs" {
+  startTest
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
   done
+  stopTest
 }
 
 @test "Prune Agent" {
+  startTest
   initAgents
   local AGENT_NAME="${NAME}-0"
   iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
@@ -40,67 +51,87 @@
   fi
   # TODO: Enable check that is not flake
   #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
+  stopTest
 }
 
 @test "Disconnect from cluster" {
+  startTest
   initAgents
   iofogctl -v -n "$NS" disconnect
   checkNamespaceExistsNegative "$NS"
+  stopTest
 }
 
 @test "Connect to cluster using deploy file" {
+  startTest
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
   checkControllerK8s
   checkAgents
+  stopTest
 }
 
 @test "Generate connection string" {
+  startTest
   local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
   testGenerateConnectionString "http://$IP:51121"
   CNCT=$(iofogctl -n "$NS" connect --generate)
   eval "$CNCT -n ${NS}_2"
   iofogctl disconnect -n "${NS}_2"
+  stopTest
 }
 
 @test "Disconnect from cluster again" {
+  startTest
   initAgents
   iofogctl -v -n "$NS" disconnect
   checkNamespaceExistsNegative "$NS"
   iofogctl -v -n "$NS2" disconnect # Idempotent
+  stopTest
 }
 
 @test "Connect to cluster using flags" {
+  startTest
   CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
   iofogctl -v -n "$NS" connect --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
   checkControllerK8s
   checkAgents
+  stopTest
 }
 
 
 @test "Set default namespace" {
+  startTest
   testDefaultNamespace "$NS"
+  stopTest
 }
 
 @test "Deploy application" {
+  startTest
   initApplicationFiles
   iofogctl -v deploy -f test/conf/application.yaml
   checkApplication
   waitForMsvc "$MSVC1_NAME" "$NS"
   waitForMsvc "$MSVC2_NAME" "$NS"
+  stopTest
 }
 
 @test "Deploy route" {
+  startTest
   initRouteFile
   iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
   checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+  stopTest
 }
 
 @test "Volumes are mounted" {
+  startTest
   testMountVolume
+  stopTest
 }
 
 @test "Test Public Ports w/ Microservices on same Agent" {
+  startTest
   initAgents
   local SSH_KEY_PATH=$KEY_FILE
   if [[ ! -z $WSL_KEY_FILE ]]; then
@@ -112,9 +143,11 @@
   testDefaultProxyConfig "$EXT_IP"
   # Hit the endpoint
   hitMsvcEndpoint "$EXT_IP"
+  stopTest
 }
 
 @test "Move microservice to another agent" {
+  startTest
   iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
   checkMovedMicroservice $MSVC2_NAME ${NAME}-1
   initAgents
@@ -124,16 +157,20 @@
   fi
   waitForProxyMsvc ${HOSTS[1]} ${USERS[1]} $SSH_KEY_PATH
   waitForMsvc "$MSVC2_NAME" "$NS"
+  stopTest
 }
 
 @test "Test Public Ports w/ Microservice on different Agents" {
+  startTest
   # Wait for k8s service
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   testDefaultProxyConfig "$EXT_IP"
   hitMsvcEndpoint "$EXT_IP"
+  stopTest
 }
 
 @test "Change Microservice Ports" {
+  startTest
   initApplicationFiles
   EXT_IP=$(waitForSvc "$NS" http-proxy)
   # Change port
@@ -151,9 +188,11 @@
   # Check what happened in the loop above
   [ $SECS -lt $MAX ]
   waitForSvc "$NS" http-proxy
+  stopTest
 }
 
 @test "Delete Public Port" {
+  startTest
   initApplicationFiles
   # Remove port info from the file
   sed -i.bak "s/.*ports:.*//g" test/conf/application.yaml
@@ -174,21 +213,27 @@
   done
   # Check what happened in the loop above
   [ $SECS -lt 30 ]
+  stopTest
 }
 
 # Delete all does not delete application
 @test "Delete application" {
+  startTest
   iofogctl -v delete application "$APPLICATION_NAME"
   checkApplicationNegative
+  stopTest
 }
 
 @test "Deploy Agents for idempotence" {
+  startTest
   initRemoteAgentsFile
   iofogctl -v -n "$NS" deploy -f test/conf/agents.yaml
   checkAgents
+  stopTest
 }
 
 @test "Configure Agents" {
+  startTest
   initAgents
   iofogctl -v -n "$NS" configure agents --port "${PORTS[IDX]}" --key "$KEY_FILE" --user "${USERS[IDX]}"
   for IDX in "${!AGENTS[@]}"; do
@@ -196,16 +241,20 @@
     iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
     checkLegacyAgent "$AGENT_NAME"
   done
+  stopTest
 }
 
 @test "Detach agent" {
+  startTest
   local AGENT_NAME="${NAME}-0"
   iofogctl -v detach agent "$AGENT_NAME"
   checkAgentNegative "$AGENT_NAME"
   checkDetachedAgent "$AGENT_NAME"
+  stopTest
 }
 
 @test "Detach with same name" {
+  startTest
   local A0="${NAME}-0"
   local A1="${NAME}-1"
   # Rename and fail
@@ -227,17 +276,22 @@
   iofogctl -v attach agent $A0
   iofogctl -v rename agent $A0 $A1
   iofogctl -v rename agent albert $A0 --detached
+  stopTest
 }
 
 @test "Attach agent" {
+  startTest
   local AGENT_NAME="${NAME}-0"
   iofogctl -v attach agent "$AGENT_NAME"
   checkAgent "$AGENT_NAME"
   checkDetachedAgentNegative "$AGENT_NAME"
+  stopTest
 }
 
 @test "Move Agent" {
+  startTest
   local AGENT_NAME="${NAME}-0"
   iofogctl -v -n "$NS" move "$AGENT_NAME" "$NS"
   iofogctl -v -n "$NS" get agents | grep "$AGENT_NAME"
+  stopTest
 }

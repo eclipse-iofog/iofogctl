@@ -14,9 +14,11 @@
 package install
 
 import (
+	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -245,10 +247,10 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	}
 
 	// Wait for Default Router to be registered by Port Manager
-	routerCh := make(chan struct{}, 1)
-	go k8s.getDefaultRouter(endpoint, user.Email, user.Password, routerCh)
+	errCh := make(chan error, 1)
+	go k8s.monitorOperator(errCh)
 	select {
-	case <-routerCh:
+	case err = <-errCh:
 	case <-time.After(240 * time.Second):
 		err = util.NewInternalError("Failed to wait for Default Router registration")
 	}
@@ -256,37 +258,77 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	return
 }
 
-func (k8s *Kubernetes) getDefaultRouter(endpoint, email, password string, stopCh chan struct{}) {
-	buf, err := base64.StdEncoding.DecodeString(password)
-	if err == nil {
-		password = string(buf)
-	}
-	opt := ioclient.Options{
-		Endpoint: endpoint,
-		Retries: &ioclient.Retries{
-			CustomMessage: map[string]int{
-				"timeout":           20,
-				"failed to respond": 20,
-				"refuse":            20,
-				"credential":        20,
-			},
-		},
-	}
+// Watch Operator logs
+// Report error from Operator if found in logs
+// Operator Pods are deleted and created when Control Plane redeployed
+func (k8s *Kubernetes) monitorOperator(errCh chan error) {
+	defer close(errCh)
+	errSuffix := "while awaiting finalization of Control Plane"
 	for {
 		time.Sleep(2 * time.Second)
-		ioClient, err := ioclient.NewAndLogin(opt, email, password)
+		// Check operator logs
+		pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{
+			LabelSelector: "name=iofog-operator", // TODO: Decouple this
+		})
 		if err != nil {
+			errCh <- err
+			return
+		}
+		if len(pods.Items) == 0 {
+			errCh <- util.NewInternalError("Could not find any Operator Pods " + errSuffix)
+			return
+		}
+		// Find ready Pod
+		var pod *corev1.Pod
+		for podIdx := range pods.Items {
+			for _, condition := range pods.Items[podIdx].Status.Conditions {
+				if condition.Type == corev1.PodReady {
+					if condition.Status == corev1.ConditionTrue {
+						pod = &pods.Items[podIdx]
+						break
+					}
+				}
+			}
+			if pod != nil {
+				break
+			}
+		}
+		// Could not find ready Operator Pod
+		if pod == nil {
 			continue
 		}
-		router, err := ioClient.GetDefaultRouter()
+		// Get the logs of ready Pod
+		req := k8s.clientset.CoreV1().Pods(k8s.ns).GetLogs(pod.Name, &corev1.PodLogOptions{})
+		podLogs, err := req.Stream()
 		if err != nil {
-			continue
+			errCh <- util.NewInternalError("Error opening Operator Pod log stream " + errSuffix)
+			return
 		}
-		if router.Host == "" {
-			continue
+		defer podLogs.Close()
+		buf := new(bytes.Buffer)
+		if _, err = io.Copy(buf, podLogs); err != nil {
+			errCh <- util.NewInternalError("Error reading Operator Pod log stream " + errSuffix)
+			return
 		}
-		close(stopCh)
-		return
+		podLogsStr := buf.String()
+		if strings.Contains(podLogsStr, `"msg":"Completed Reconciliation","Request.Namespace":"`+k8s.ns) { // TODO: Decouple iofogctl-operator succ string
+			errCh <- nil
+			return
+		}
+		errDelim := `"level":"error"` // TODO: Decouple iofogctl-operator err string
+		if strings.Contains(podLogsStr, errDelim) {
+			msg := ""
+			logLines := strings.Split(podLogsStr, "\n")
+			for _, line := range logLines {
+				if strings.Contains(line, errDelim) {
+					msg = fmt.Sprintf("%s\n%s", msg, line)
+				}
+			}
+			errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
+			return
+		}
+
+		// Continue loop, wait for Router registration or error...
 	}
 }
 

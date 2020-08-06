@@ -102,9 +102,9 @@ func Execute(opt *Options) error {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); len(errs) > 0 {
 			for _, err := range errs {
 				if _, ok := err.(*util.NotFoundError); !ok {
-					return err
+					return execute.CoalesceErrors(errs)
 				}
-				util.PrintNotify(fmt.Sprintf("%s: %s. Skipping...", kindOrder[idx], err.Error()))
+				util.PrintNotify(fmt.Sprintf("Warning: %s %s.", kindOrder[idx], err.Error()))
 			}
 		}
 	}

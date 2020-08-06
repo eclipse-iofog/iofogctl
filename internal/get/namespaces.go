@@ -43,7 +43,7 @@ func (exe *namespaceExecutor) Execute() error {
 	}
 
 	// Generate table and headers
-	table := make([][]string, len(namespaces)+1)
+	table := make([][]string, len(namespaces))
 	headers := []string{"NAMESPACE", "AGE"}
 	table[0] = append(table[0], headers...)
 
@@ -57,7 +57,14 @@ func (exe *namespaceExecutor) Execute() error {
 			ns.Name,
 			age,
 		}
-		table[idx+1] = append(table[idx+1], row...)
+		if ns.Name == config.GetDefaultNamespaceName() {
+			row[0] = ns.Name + "*"
+			prepend := [][]string{table[0]}
+			table = append(prepend, table...)
+			table[1] = row
+		} else {
+			table[idx+1] = append(table[idx+1], row...)
+		}
 	}
 
 	// Print the table

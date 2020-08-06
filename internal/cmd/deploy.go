@@ -33,6 +33,7 @@ func newDeployCommand() *cobra.Command {
           catalog.yaml
           volume.yaml
           route.yaml`,
+		Args:  cobra.ExactArgs(0),
 		Short: "Deploy Edge Compute Network components on existing infrastructure",
 		Long: `Deploy Edge Compute Network components on existing infrastructure.
 Visit iofog.org to view all YAML specifications usable with this command.`,

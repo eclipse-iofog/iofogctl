@@ -9,19 +9,18 @@ if [ ! -f "version" ]; then
     exit 1
 fi
 
-version="$1"
-
 # Extract version numbers and suffix
-major=$(echo $version | sed 's/\..*\..*-.*//g')
-minor=$(echo $version | sed -E 's/.*\.(.*)\..*/\1/g')
-patch=$(echo $version | sed -E 's/.*\..*\.(.*)-.*/\1/g')
-suffix=$(echo $version | sed 's/.*-//g')
+major=$1
+minor=$2
+patch=$3
+suffix=$4
+version=$1.$2.$3$4
 
 # Update version file
 sed -i.bkp "s/MAJOR=.*/MAJOR=$major/g" "version"
 sed -i.bkp "s/MINOR=.*/MINOR=$minor/g" "version"
 sed -i.bkp "s/PATCH=.*/PATCH=$patch/g" "version"
-sed -i.bkp "s/SUFFIX=.*/SUFFIX=-$suffix/g" "version"
+sed -i.bkp "s/SUFFIX=.*/SUFFIX=$suffix/g" "version"
 rm "version.bkp"
 
 # Update Makefile

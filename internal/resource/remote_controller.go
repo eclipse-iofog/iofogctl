@@ -65,7 +65,7 @@ func (ctrl *RemoteController) Clone() Controller {
 
 func (ctrl *RemoteController) ValidateSSH() error {
 	if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.Port == 0 || ctrl.SSH.KeyFile == "" {
-		return NewNoSSHConfigError("Agent")
+		return util.NewInputError("Must specify user, host, and key file fields for Controller resource")
 	}
 	return nil
 }

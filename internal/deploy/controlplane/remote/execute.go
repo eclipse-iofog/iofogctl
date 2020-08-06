@@ -188,11 +188,8 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 }
 
 func runExecutors(executors []execute.Executor) error {
-	if errs, failedExes := execute.ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
-		}
-		return util.NewError("Failed to deploy")
+	if errs, _ := execute.ForParallel(executors); len(errs) > 0 {
+		return execute.CoalesceErrors(errs)
 	}
 	return nil
 }

@@ -82,7 +82,7 @@ func Init(configFolderArg string) {
 
 		// Create default config file
 		conf.DefaultNamespace = "default"
-		err = flushConfig()
+		err = flushShared()
 		util.Check(err)
 	}
 
@@ -226,7 +226,7 @@ func flushNamespaces() error {
 	return nil
 }
 
-func flushConfig() error {
+func flushShared() error {
 	// Marshal the runtime data
 	marshal, err := getConfigYAMLFile(conf)
 	if err != nil {
@@ -240,14 +240,9 @@ func flushConfig() error {
 	return nil
 }
 
-// Flush will write namespace and configuration files to disk
-func Flush() (err error) {
-	// Flush namespace files
-	if err = flushNamespaces(); err != nil {
-		return
-	}
-	// Flush configuration e.g. default namespace
-	return flushConfig()
+// Flush will write namespace files to disk
+func Flush() error {
+	return flushNamespaces()
 }
 
 type v1NamespaceSpecContent struct {

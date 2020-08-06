@@ -15,7 +15,7 @@ iofogctl configure resource NAME [flags]
 ### Examples
 
 ```
-iofogctl configure default-namespace NAME
+iofogctl configure current-namespace NAME
 
 iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
                    controllers

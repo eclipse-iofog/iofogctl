@@ -118,5 +118,33 @@ func (exe executor) Execute() (err error) {
 		return err
 	}
 
+	// Update and/or Delete Volumes pertaining to deleted Agent
+	vols := ns.GetVolumes()
+	var rmVols []rsc.Volume
+	var updateVols []rsc.Volume
+	for _, vol := range vols {
+		for idx, volAgent := range vol.Agents {
+			if volAgent == baseAgent.GetName() {
+				if len(vol.Agents) == 1 {
+					// Remove the Volume
+					rmVols = append(rmVols, vol)
+				} else {
+					// Remove the Agent from Volume
+					vol.Agents = append(vol.Agents[:idx], vol.Agents[idx+1:]...)
+					updateVols = append(updateVols, vol)
+				}
+				break
+			}
+		}
+	}
+	for idx := range rmVols {
+		if err := ns.DeleteVolume(rmVols[idx].Name); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not delete Volume %s", rmVols[idx].Name))
+		}
+	}
+	for idx := range updateVols {
+		ns.UpdateVolume(updateVols[idx])
+	}
+
 	return config.Flush()
 }

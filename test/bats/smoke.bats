@@ -79,7 +79,7 @@
 }
 
 @test "Set Default Namespace" {
-  iofogctl configure default-namespace smoketestsnamespace1234
+  iofogctl configure current-namespace smoketestsnamespace1234
   iofogctl get all
 }
 

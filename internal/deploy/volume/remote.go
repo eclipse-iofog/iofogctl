@@ -56,8 +56,7 @@ func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
 	// Connect
 	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
 	if err := ssh.Connect(); err != nil {
-		msg := `Failed to Connect to Agent %s.
-%s`
+		msg := "Failed to Connect to Agent %s.\n%s"
 		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
 		return
 	}
@@ -65,40 +64,36 @@ func (exe remoteExecutor) execute(agentIdx int, ch chan error) {
 
 	// Create dest dir
 	if err := ssh.CreateFolder(exe.volume.Destination); err != nil {
-		msg := `Failed to create base directory %s on Agent %s.
-%s`
+		msg := "Failed to create base directory %s on Agent %s.\n%s"
 		ch <- errors.New(fmt.Sprintf(msg, exe.volume.Destination, agent.Name, err.Error()))
 		return
 	}
 	// Create tmp dir
 	tmp := "/tmp/iofogctlssh" + exe.volume.Destination
 	if err := ssh.CreateFolder(tmp); err != nil {
-		msg := `Failed to create base directory %s on Agent %s.
-		%s`
+		msg := "Failed to create base directory %s on Agent %s.\n%s"
 		ch <- errors.New(fmt.Sprintf(msg, exe.volume.Destination, agent.Name, err.Error()))
 		return
 	}
 	// Copy volume to tmp
 	if err := ssh.CopyFolderTo(exe.volume.Source, tmp, exe.volume.Permissions, true); err != nil {
-		msg := `Failed to copy volume to Agent %s.
-%s`
+		msg := "Failed to copy volume to Agent %s.\n%s"
 		ch <- errors.New(fmt.Sprintf(msg, agent.Name, err.Error()))
 		return
 	}
 	// Move volume from tmp to dest
-	if stdout, err := ssh.Run(fmt.Sprintf("sudo -S cp -pR %s/* %s", tmp, exe.volume.Destination)); err != nil {
-		msg := `Failed to move volume to from %s to %s on Agent %s.
-	%s
-	%s`
-		ch <- errors.New(fmt.Sprintf(msg, tmp, exe.volume.Destination, agent.Name, err.Error(), stdout))
+	ifStr := fmt.Sprintf(`[ -z "$(ls -A %s)" ]`, tmp)
+	mkdirStr := fmt.Sprintf(`mkdir -p %s`, exe.volume.Destination)
+	cpStr := fmt.Sprintf(`sudo -S cp -pR %s/* %s`, tmp, exe.volume.Destination)
+	if _, err := ssh.Run(fmt.Sprintf("%s && %s || %s", ifStr, mkdirStr, cpStr)); err != nil {
+		msg := "Failed to move volume from %s to %s on Agent %s.\n%s"
+		ch <- errors.New(fmt.Sprintf(msg, tmp, exe.volume.Destination, agent.Name, err.Error()))
 		return
 	}
 	// Remove tmp
-	if stdout, err := ssh.Run(fmt.Sprintf("rm -rf %s", tmp)); err != nil {
-		msg := `Failed clearing tmp volume data %s from Agent %s.
-	%s
-	%s`
-		ch <- errors.New(fmt.Sprintf(msg, tmp, agent.Name, err.Error(), stdout))
+	if _, err := ssh.Run(fmt.Sprintf("rm -rf %s", tmp)); err != nil {
+		msg := "Failed clearing tmp volume data %s from Agent %s.\n%s"
+		ch <- errors.New(fmt.Sprintf(msg, tmp, agent.Name, err.Error()))
 		return
 	}
 
