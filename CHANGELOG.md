@@ -1,6 +1,24 @@
 # Changelog
 
-## [Unreleased]
+## [v2.0.0] - 2020-08-06
+
+### Features
+
+* Add `iofogctl move AGENT NAMESPACE` command
+* Show current Namespace with asterisk in `iofogctl get namespaces` output
+* Rename `default-namespace` to `current-namespace` for `iofogctl configure` command
+* Improve error handling when deploying K8s Control Plane. Operator failures are detected and reported
+* Print Controller version on `iofogctl get controllers`
+
+### Bugs
+
+* Fix K8s Control Plane deployment to be idempotent
+* Fix volume deploy not working when src dir is empty
+* Fix parallel processes running iofogctl trampling over `~/.iofog/v2/config.yaml`
+* Fix SSH error output
+* Fix success output when detaching Agents
+* Fix renaming current Namespace
+* No longer reinstall Agent and its deps on remote host during Agent deployment
 
 
 ## [v2.0.0-rc1] - 2020-04-30
