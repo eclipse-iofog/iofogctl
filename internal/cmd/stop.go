@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,10 +19,9 @@ import (
 
 func newStopCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "stop",
-		Short:   "Stops a resource",
-		Long:    "Stops a resource",
-		Example: `iofogctl stop application meerkat`,
+		Use:   "stop",
+		Short: "Stops a resource",
+		Long:  "Stops a resource",
 	}
 
 	// Add subcommands

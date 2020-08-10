@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,10 +16,12 @@ package deploymicroservice
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,7 +32,7 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	microservice apps.Microservice
+	microservice rsc.Microservice
 	controller   apps.IofogController
 }
 
@@ -49,24 +51,42 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err != nil {
 		return exe, err
 	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return exe, err
+	}
 
 	// Check Controller exists
-	if len(ns.ControlPlane.Controllers) == 0 {
+	if len(controlPlane.GetControllers()) == 0 {
 		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
 	// Unmarshal file
-	var microservice apps.Microservice
+	var microservice rsc.Microservice
 	if err = yaml.UnmarshalStrict(opt.Yaml, &microservice); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
+	}
+
+	// Check Name
+	if err := util.IsLowerAlphanumeric("Microservice", opt.Name); err != nil {
+		return nil, err
 	}
 
 	if len(opt.Name) > 0 {
 		microservice.Name = opt.Name
 	}
 
-	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
+	if microservice.Images.Registry == "" {
+		microservice.Images.Registry = "remote"
+	}
+
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		return
+	}
+
+	clt, err := iutil.NewControllerClient(opt.Namespace)
 	if err != nil {
 		return
 	}
@@ -74,8 +94,9 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	return remoteExecutor{
 		controller: apps.IofogController{
 			Endpoint: endpoint,
-			Email:    ns.ControlPlane.IofogUser.Email,
-			Password: ns.ControlPlane.IofogUser.Password,
+			Email:    controlPlane.GetUser().Email,
+			Password: controlPlane.GetUser().Password,
+			Token:    clt.GetAccessToken(),
 		},
 		microservice: microservice}, nil
 }

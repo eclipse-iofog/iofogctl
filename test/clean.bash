@@ -1,16 +1,13 @@
 #!/bin/bash
 
-if [[ -z "$1" ]]; then
-    echo "Please specify a namespace to clean as an argument to this script"
-    exit 1
-fi
+. test/conf/env.sh
 
-NAMESPACE="$1"
 echo "Cleaning namespace $NAMESPACE"
 
 iofogctl delete all -n "$NAMESPACE" -v
-kubectl delete kogs/iokog -n "$NAMESPACE"
+kubectl delete controlplanes/iofog -n "$NAMESPACE"
 kubectl delete all --all -n "$NAMESPACE"
+kubectl delete clusterrolebinding "${NAMESPACE}-iofog-operator"
 kubectl delete ns "$NAMESPACE"
 iofogctl disconnect -n "$NAMESPACE" -v
 iofogctl delete namespace "$NAMESPACE" -v

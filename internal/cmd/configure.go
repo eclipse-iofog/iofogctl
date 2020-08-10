@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,36 +15,29 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/eclipse-iofog/iofogctl/internal/configure"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/configure"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newConfigureCommand() *cobra.Command {
-	// Values accepted in resource type argument
-	var validResources = []string{"controller", "connector", "agent", "all", "agents", "controllers", "connectors"}
 	// Instantiate options
 	var opt configure.Options
 
 	cmd := &cobra.Command{
 		Use:   "configure resource NAME",
-		Short: "Configure SSH details for an existing resource",
-		Long: `Configure SSH details for an existing resource.
+		Short: "Configure iofogctl or ioFog resources",
+		Long: `Configure iofogctl or ioFog resources
 
-Note that you cannot (and shouldn't need to) configure the host value of Agents.`,
-		Example: `iofogctl configure controller NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure connector NAME --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controller NAME --kube KUBECONFIG
-iofogctl configure connector NAME --kube KUBECONFIG
-iofogctl configure agent NAME --user USER --key KEYFILE --port PORTNUM
+If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.`,
+		Example: `iofogctl configure current-namespace NAME
 
-iofogctl configure all --user USER --key KEYFILE --port PORTNUM
-iofogctl configure controllers --host HOST NAME --user USER --key KEYFILE --port PORTNUM
-iofogctl configure connectors --host HOST --user USER --key KEYFILE --port PORTNUM
-iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
-` + fmt.Sprintf("\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+                   controllers
+                   agent
+                   agents
+
+iofogctl configure controlplane --kube FILE`,
 		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
@@ -55,7 +48,7 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			if len(args) > 1 {
 				opt.Name = args[1]
 			} else {
-				if opt.ResourceType != "all" && opt.ResourceType != "controllers" && opt.ResourceType != "connectors" && opt.ResourceType != "agents" {
+				if opt.ResourceType == "all" && opt.ResourceType != "agents" && opt.ResourceType != "controlplane" {
 					util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
 				}
 			}
@@ -65,6 +58,8 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			// Get namespace option
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+			opt.UseDetached, err = cmd.Flags().GetBool("detached")
+			util.Check(err)
 
 			// Get executor for configure command
 			exe, err := configure.NewExecutor(opt)
@@ -73,9 +68,10 @@ iofogctl configure agents --user USER --key KEYFILE --port PORTNUM
 			// Execute the command
 			err = exe.Execute()
 			util.Check(err)
+
+			util.PrintSuccess(fmt.Sprintf("Succesfully configured %s %s", opt.ResourceType, opt.Name))
 		},
 	}
-	cmd.Flags().StringVar(&opt.Host, "host", "", "Hostname of remote host")
 	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host")
 	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key")
 	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Path to Kubernetes configuration file")

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,16 +14,19 @@
 package get
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"fmt"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 )
 
 type allExecutor struct {
-	namespace string
+	namespace    string
+	showDetached bool
 }
 
-func newAllExecutor(namespace string) *allExecutor {
+func newAllExecutor(namespace string, showDetached bool) *allExecutor {
 	exe := &allExecutor{}
 	exe.namespace = namespace
+	exe.showDetached = showDetached
 	return exe
 }
 
@@ -33,35 +36,63 @@ func (exe *allExecutor) GetName() string {
 
 func (exe *allExecutor) Execute() error {
 	// Check namespace exists
-	if _, err := config.GetNamespace(exe.namespace); err != nil {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
 		return err
 	}
-	printNamespace(exe.namespace)
+
+	if exe.showDetached {
+		printDetached()
+		// Print agents
+		if err := generateDetachedAgentOutput(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+	printNamespace(ns.Name)
 
 	// Print controllers
-	if err := generateControllerOutput(exe.namespace); err != nil {
-		return err
-	}
-
-	// Print connectors
-	if err := generateConnectorOutput(exe.namespace); err != nil {
+	if err := generateControllerOutput(exe.namespace, false); err != nil {
 		return err
 	}
 
 	// Print agents
-	if err := generateAgentOutput(exe.namespace); err != nil {
+	if err := generateAgentOutput(exe.namespace, false); err != nil {
 		return err
 	}
 
 	// Print applications
-	if err := newApplicationExecutor(exe.namespace).Execute(); err != nil {
+	appExe := newApplicationExecutor(exe.namespace)
+	if err := appExe.init(); err != nil {
+		return err
+	}
+	if err := appExe.generateApplicationOutput(); err != nil {
 		return err
 	}
 
 	// Print microservices
-	if err := newMicroserviceExecutor(exe.namespace).Execute(); err != nil {
+	msvcExe := newMicroserviceExecutor(exe.namespace)
+	if err := msvcExe.init(); err != nil {
+		return err
+	}
+	if err := msvcExe.generateMicroserviceOutput(); err != nil {
 		return err
 	}
 
-	return config.Flush()
+	// Print volumes
+	if err := generateVolumeOutput(exe.namespace, false); err != nil {
+		return err
+	}
+
+	// Print routes
+	if err := generateRouteOutput(exe.namespace, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func printDetached() {
+	fmt.Printf("DETACHED RESOURCES\n\n")
 }

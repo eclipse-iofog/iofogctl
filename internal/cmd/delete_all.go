@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,12 +14,13 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/iofogctl/internal/delete/all"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/all"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newDeleteAllCommand() *cobra.Command {
+	var force bool
 	cmd := &cobra.Command{
 		Use:   "all",
 		Short: "Delete all resources within a namespace",
@@ -27,18 +28,21 @@ func newDeleteAllCommand() *cobra.Command {
 
 Tears down all components of an Edge Compute Network.
 
-If you don't want to tear down the deployments but would like to free up the namespace, use the disconnect command instead.`,
+If you don't want to tear down the deployments but would like to free up the Namespace, use the disconnect command instead.`,
 		Example: `iofogctl delete all -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
+			// Execute command
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			// Execute command
-			err = delete.Execute(namespace)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
+			err = delete.Execute(namespace, useDetached, force)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)
 		},
 	}
 
+	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of Agents")
 	return cmd
 }

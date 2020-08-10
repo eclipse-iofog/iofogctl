@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,11 +14,11 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type applicationExecutor struct {
@@ -40,7 +40,7 @@ func newApplicationExecutor(namespace, name, filename string) *applicationExecut
 }
 
 func (exe *applicationExecutor) init() (err error) {
-	exe.client, err = internal.NewControllerClient(exe.namespace)
+	exe.client, err = iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}
@@ -77,27 +77,20 @@ func (exe *applicationExecutor) Execute() error {
 		return err
 	}
 
-	yamlMsvcs := []apps.Microservice{}
-	yamlRoutes := []apps.Route{}
+	yamlMsvcs := []rsc.Microservice{}
+	yamlRoutes := []rsc.Route{}
 
 	for _, msvc := range exe.msvcs {
 		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(&msvc, exe.client)
 		if err != nil {
 			return err
 		}
-		for _, route := range msvc.Routes {
-			yamlRoutes = append(yamlRoutes, apps.Route{
-				From: yamlMsvc.Name,
-				To:   exe.msvcPerID[route].Name,
-			})
-		}
 		// Remove fields
-		yamlMsvc.Routes = nil
 		yamlMsvc.Flow = nil
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 
-	application := apps.Application{
+	application := rsc.Application{
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
 		Routes:        yamlRoutes,
@@ -105,8 +98,8 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
-		Kind:       apps.ApplicationKind,
+		APIVersion: config.LatestAPIVersion,
+		Kind:       config.ApplicationKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

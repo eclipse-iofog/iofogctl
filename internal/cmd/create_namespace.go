@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,16 +14,20 @@
 package cmd
 
 import (
-	create "github.com/eclipse-iofog/iofogctl/internal/create/namespace"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	create "github.com/eclipse-iofog/iofogctl/v2/internal/create/namespace"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newCreateNamespaceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace NAME",
-		Short:   "Create a Namespace",
-		Long:    `Create a Namespace`,
+		Use:   "namespace NAME",
+		Short: "Create a Namespace",
+		Long: `Create a Namespace.
+
+A Namespace contains all components of an Edge Compute Network.
+
+A single instance of iofogctl can be used to manage any number of Edge Compute Networks.`,
 		Example: `iofogctl create namespace NAME`,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package stopapplication
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 )
 
 type Options struct {
@@ -40,7 +40,7 @@ func (exe *executor) GetName() string {
 }
 
 func (exe *executor) Execute() (err error) {
-	clt, err := internal.NewControllerClient(exe.namespace)
+	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

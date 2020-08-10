@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,12 +15,13 @@ package cmd
 
 import (
 	"fmt"
+	"net"
+	"net/url"
 	"os"
-	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )
@@ -30,26 +31,34 @@ func newViewCommand() *cobra.Command {
 		Use:   "view",
 		Short: "Open ECN Viewer",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get namespace
+			// Get Control Plane
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
-			// Get Control Plane
-			controlPlane, err := config.GetControlPlane(namespace)
-			if err != nil || len(controlPlane.Controllers) == 0 {
-				util.PrintError("You must deploy a Controller to a namespace to see an ECN Viewer")
+			ns, err := config.GetNamespace(namespace)
+			util.Check(err)
+			if len(ns.GetControllers()) == 0 {
+				util.PrintError("You must deploy a Control Plane to a namespace to see an ECN Viewer")
 				os.Exit(1)
 			}
-			ctrl := controlPlane.Controllers[0]
-			url := ctrl.Host
-			if !strings.HasPrefix(url, "http") {
-				url = "http://" + url
+			ctrl := ns.GetControllers()[0]
+			URL, err := url.Parse(ctrl.GetEndpoint())
+			if err != nil || URL.Host == "" {
+				URL, err = url.Parse("//" + ctrl.GetEndpoint()) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
 			}
-			if util.IsLocalHost(ctrl.Host) {
-				url += ":" + iofog.ControllerHostECNViewerPortString
+			util.Check(err)
+			if URL.Scheme == "" {
+				URL.Scheme = "http"
 			}
-			if err := browser.OpenURL(url); err != nil {
+			host, _, err := net.SplitHostPort(URL.Host)
+			util.Check(err)
+			if util.IsLocalHost(host) {
+				host += ":" + iofog.ControllerHostECNViewerPortString
+			}
+			URL.Host = host
+			ecnViewer := URL.String()
+			if err := browser.OpenURL(ecnViewer); err != nil {
 				util.PrintInfo("To see the ECN Viewer, open your browser and go to:\n")
-				util.PrintInfo(fmt.Sprintf("%s\n", url))
+				util.PrintInfo(fmt.Sprintf("%s\n", URL))
 			}
 		},
 	}

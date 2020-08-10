@@ -1,0 +1,16 @@
+steps:
+# Publish Test Results
+# Publish test results to Azure Pipelines
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
+    testResultsFiles: 'results-*.xml' 
+    searchFolder: './test/conf' # Optional
+    #mergeTestResults: false # Optional
+    #failTaskOnFailedTests: false # Optional
+    #testRunTitle: # Optional
+    #buildPlatform: # Optional
+    #buildConfiguration: # Optional
+    #publishRunAttachments: true # Optional
+  displayName: 'Publish test results'

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,8 +16,7 @@ package install
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // LocalAgent uses Container exec commands
@@ -27,10 +26,10 @@ type LocalAgent struct {
 	localAgentConfig *LocalAgentConfig
 }
 
-func NewLocalAgent(agentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
+func NewLocalAgent(localAgentConfig *LocalAgentConfig, client *LocalContainer) *LocalAgent {
 	return &LocalAgent{
-		defaultAgent:     defaultAgent{name: agentConfig.Name},
-		localAgentConfig: agentConfig,
+		defaultAgent:     defaultAgent{name: localAgentConfig.Name},
+		localAgentConfig: localAgentConfig,
 		client:           client,
 	}
 }
@@ -40,37 +39,41 @@ func (agent *LocalAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *LocalAgent) Configure(ctrl *config.Controller, user IofogUser) (uuid string, err error) {
-	key, uuid, err := agent.getProvisionKey(ctrl.Endpoint, user)
+func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (string, error) {
+	provisioningEndpoint := controllerEndpoint
+	if controllerEndpoint == "" || util.IsLocalHost(controllerEndpoint) {
+		localControllerEndpoint, err := agent.client.GetLocalControllerEndpoint()
+		if err != nil {
+			return "", err
+		}
+		provisioningEndpoint = "localhost"
+		controllerEndpoint = localControllerEndpoint
+	}
+
+	key, err := agent.getProvisionKey(provisioningEndpoint, user)
 	if err != nil {
 		return "", err
 	}
 
-	controllerEndpoint := ctrl.Endpoint
-	if util.IsLocalHost(ctrl.Host) {
-		controllerEndpoint, err = agent.client.GetLocalControllerEndpoint()
-		if err != nil {
-			return uuid, err
-		}
-	}
-
 	// Instantiate provisioning commands
-	controllerBaseURL := fmt.Sprintf("http://%s/api/v3", controllerEndpoint)
+	controllerBaseURL := fmt.Sprintf("%s/api/v3", controllerEndpoint)
 	cmds := [][]string{
 		{"iofog-agent", "config", "-idc", "off"},
 		{"iofog-agent", "config", "-a", controllerBaseURL},
 		{"iofog-agent", "provision", key},
+		{"iofog-agent", "config", "-sf", "10", "-cf", "10"},
 	}
-
-	// TODO: Verify provisioning succeeded
 
 	// Execute commands
 	for _, cmd := range cmds {
-		_, err = agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
+		result, err := agent.client.ExecuteCmd(agent.localAgentConfig.ContainerName, cmd)
+		if result.ExitCode != 0 {
+			return "", util.NewError(fmt.Sprintf("Command: %v failed with exit code %d\nStdout: %s\n Stderr: %s\n", cmd, result.ExitCode, result.StdOut, result.StdErr))
+		}
 		if err != nil {
-			return
+			return "", err
 		}
 	}
 
-	return
+	return agent.uuid, nil
 }

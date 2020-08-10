@@ -1,0 +1,22 @@
+parameters:
+  windows: 'false'
+
+steps:
+- task: DownloadSecureFile@1
+  displayName: 'Download secure file'
+  inputs:
+    secureFile: 'azure-gcp.json'
+- bash: |
+    keyFilePath="$(Agent.TempDirectory)/azure-gcp.json"
+    if [[ ${{ parameters.windows }} == "true" ]]; then
+      keyFilePath=$(wslpath "${keyFilePath}")
+    fi
+    if [[ -z $(which gcloud) ]]; then
+      CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+      echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+      curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+    fi
+    gcloud --quiet auth activate-service-account --key-file="${keyFilePath}"
+    gcloud --quiet config set project $(gcp.project.name)
+  displayName: 'set up gcloud'

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/iofogctl/internal/delete/application"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -30,12 +30,13 @@ func newDeleteApplicationCommand() *cobra.Command {
 			// Get microservice name
 			name := args[0]
 			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
 
 			// Execute command
 			err = delete.Execute(namespace, name)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + name)
+			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)
 		},
 	}
 

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,7 +13,7 @@
 
 package iofog
 
-import "github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+import "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 
 // String and numeric values of TCP ports used accross ioFog
 const (
@@ -28,4 +28,6 @@ const (
 
 	ConnectorPort       = 8080
 	ConnectorPortString = "8080"
+
+	VanillaRouterAgentName string = client.DefaultRouterName
 )

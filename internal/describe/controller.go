@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,10 +14,9 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type controllerExecutor struct {
@@ -39,19 +38,30 @@ func (exe *controllerExecutor) GetName() string {
 }
 
 func (exe *controllerExecutor) Execute() error {
-	controller, err := config.GetController(exe.namespace, exe.name)
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+	baseController, err := controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
 	}
 
-	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
-		Kind:       apps.ControllerKind,
-		Metadata: config.HeaderMetadata{
-			Namespace: exe.namespace,
-			Name:      exe.name,
-		},
-		Spec: controller,
+	// Generate header
+	var header config.Header
+	switch controller := baseController.(type) {
+	case *rsc.KubernetesController:
+		header = exe.generateControllerHeader(config.KubernetesControllerKind, controller)
+	case *rsc.RemoteController:
+		header = exe.generateControllerHeader(config.RemoteControllerKind, controller)
+	case *rsc.LocalController:
+		header = exe.generateControllerHeader(config.LocalControllerKind, controller)
+	default:
+		return util.NewInternalError("Could not convert Control Plane to dynamic type")
 	}
 
 	if exe.filename == "" {
@@ -64,4 +74,16 @@ func (exe *controllerExecutor) Execute() error {
 		}
 	}
 	return nil
+}
+
+func (exe *controllerExecutor) generateControllerHeader(kind config.Kind, controller rsc.Controller) config.Header {
+	return config.Header{
+		APIVersion: config.LatestAPIVersion,
+		Kind:       kind,
+		Metadata: config.HeaderMetadata{
+			Namespace: exe.namespace,
+			Name:      controller.GetName(),
+		},
+		Spec: controller,
+	}
 }

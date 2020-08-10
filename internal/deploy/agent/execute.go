@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,18 +14,20 @@
 package deployagent
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
 type Options struct {
 	Namespace string
 	Name      string
 	Yaml      []byte
+	IsSystem  bool
 }
 
-func NewExecutor(opt Options) (exe execute.Executor, err error) {
+func NewRemoteExecutorYAML(opt Options) (exe execute.Executor, err error) {
 	// Read the input file
-	agent, err := UnmarshallYAML(opt.Yaml)
+	agent, err := rsc.UnmarshallRemoteAgent(opt.Yaml)
 	if err != nil {
 		return exe, err
 	}
@@ -35,9 +37,28 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Validate
-	if err = Validate(agent); err != nil {
+	if err = ValidateRemoteAgent(agent); err != nil {
 		return
 	}
 
-	return newExecutor(opt.Namespace, &agent)
+	remoteExe := newRemoteExecutor(opt.Namespace, &agent)
+	return newFacadeExecutor(remoteExe, opt.Namespace, &agent, opt.IsSystem), nil
+}
+
+func NewLocalExecutorYAML(opt Options) (exe execute.Executor, err error) {
+	// Read the input file
+	agent, err := rsc.UnmarshallLocalAgent(opt.Yaml)
+	if err != nil {
+		return exe, err
+	}
+
+	if len(opt.Name) > 0 {
+		agent.Name = opt.Name
+	}
+
+	localExe, err := newLocalExecutor(opt.Namespace, &agent, opt.IsSystem)
+	if err != nil {
+		return nil, err
+	}
+	return newFacadeExecutor(localExe, opt.Namespace, &agent, opt.IsSystem), nil
 }

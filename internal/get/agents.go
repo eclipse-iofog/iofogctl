@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,18 +16,22 @@ package get
 import (
 	"time"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type agentExecutor struct {
-	namespace string
+	namespace    string
+	showDetached bool
 }
 
-func newAgentExecutor(namespace string) *agentExecutor {
+func newAgentExecutor(namespace string, showDetached bool) *agentExecutor {
 	a := &agentExecutor{}
 	a.namespace = namespace
+	a.showDetached = showDetached
 	return a
 }
 
@@ -36,71 +40,57 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
-	printNamespace(exe.namespace)
-	if err := generateAgentOutput(exe.namespace); err != nil {
-		return err
-	}
-	return config.Flush()
-}
-
-func generateAgentOutput(namespace string) error {
-	// Get Config
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	// Make an index of agents the client knows about and pre-process any info
-	agentsToPrint := make(map[string]client.AgentInfo)
-	for _, agent := range ns.Agents {
-		agentsToPrint[agent.Name] = client.AgentInfo{
-			Name:              agent.Name,
-			IPAddressExternal: agent.Host,
-		}
-	}
-
-	// Connect to Controller if it is ready
-	endpoint, err := ns.ControlPlane.GetControllerEndpoint()
-	if err == nil {
-		// Instantiate client
-		// Log into Controller
-		ctrl, err := client.NewAndLogin(endpoint, ns.ControlPlane.IofogUser.Email, ns.ControlPlane.IofogUser.Password)
-		if err != nil {
-			return tabulateAgents(agentsToPrint)
-		}
-
-		// Get Agents from Controller
-		listAgentsResponse, err := ctrl.ListAgents()
-		if err != nil {
+	if exe.showDetached {
+		printDetached()
+		if err := generateDetachedAgentOutput(); err != nil {
 			return err
 		}
-
-		// Process Agents
-		for _, remoteAgent := range listAgentsResponse.Agents {
-			// Server may have agents that the client is not aware of, update config if so
-			if _, exists := agentsToPrint[remoteAgent.Name]; !exists {
-				newAgentConf := config.Agent{
-					Name: remoteAgent.Name,
-					UUID: remoteAgent.UUID,
-					Host: remoteAgent.IPAddressExternal,
-				}
-				config.AddAgent(namespace, newAgentConf)
-			}
-
-			// Use the pre-processed default info if necessary
-			if remoteAgent.IPAddressExternal == "0.0.0.0" {
-				remoteAgent.IPAddressExternal = agentsToPrint[remoteAgent.Name].IPAddressExternal
-			}
-
-			// Add details for output
-			agentsToPrint[remoteAgent.Name] = remoteAgent
-		}
+		return nil
 	}
+	if err := generateAgentOutput(exe.namespace, true); err != nil {
+		return err
+	}
+	// Flush occurs in generateAgentOutput
+	return nil
+}
 
+func generateDetachedAgentOutput() error {
+	detachedAgents := config.GetDetachedAgents()
+	// Make an index of agents the client knows about and pre-process any info
+	agentsToPrint := make([]client.AgentInfo, 0)
+	for _, agent := range detachedAgents {
+		agentsToPrint = append(agentsToPrint, client.AgentInfo{
+			Name:              agent.GetName(),
+			IPAddressExternal: agent.GetHost(),
+		})
+	}
 	return tabulateAgents(agentsToPrint)
 }
 
-func tabulateAgents(agentInfos map[string]client.AgentInfo) error {
+func generateAgentOutput(namespace string, printNS bool) error {
+	agents := make([]client.AgentInfo, 0)
+	// Update local cache based on Controller
+	err := iutil.UpdateAgentCache(namespace)
+	if err != nil && !rsc.IsNoControlPlaneError(err) {
+		return err
+	}
+
+	// Get Agents from Controller
+	if err == nil {
+		agents, err = iutil.GetBackendAgents(namespace)
+		if err != nil {
+			return err
+		}
+	}
+
+	if printNS {
+		printNamespace(namespace)
+	}
+
+	return tabulateAgents(agents)
+}
+
+func tabulateAgents(agentInfos []client.AgentInfo) error {
 	// Generate table and headers
 	table := make([][]string, len(agentInfos)+1)
 	headers := []string{
@@ -108,34 +98,37 @@ func tabulateAgents(agentInfos map[string]client.AgentInfo) error {
 		"STATUS",
 		"AGE",
 		"UPTIME",
-		"ADDR",
 		"VERSION",
+		"ADDR",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
 	idx := 0
 	for _, agent := range agentInfos {
-		// if UUID is empty, we assume the agent is not provided
+		// if UUID is empty, we assume the agent is not provisioned
 		if agent.UUID == "" {
 			row := []string{
 				agent.Name,
-				"offline",
+				"not provisioned",
+				"-",
 				"-",
 				"-",
 				agent.IPAddressExternal,
-				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
-			age, _ := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC())
+			age := "-"
+			if backendAge, err := util.ElapsedRFC(agent.CreatedTimeRFC3339, util.NowRFC()); err == nil {
+				age = backendAge
+			}
 			uptime := time.Duration(agent.UptimeMs) * time.Millisecond
 			row := []string{
 				agent.Name,
 				agent.DaemonStatus,
 				age,
 				util.FormatDuration(uptime),
-				agent.IPAddressExternal,
 				agent.Version,
+				agent.Host,
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}

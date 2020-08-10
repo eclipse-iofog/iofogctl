@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,9 @@
 package get
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type namespaceExecutor struct {
@@ -31,10 +32,18 @@ func (exe *namespaceExecutor) GetName() string {
 }
 
 func (exe *namespaceExecutor) Execute() error {
-	namespaces := config.GetNamespaces()
+	namespacesNames := config.GetNamespaces()
+	var namespaces []rsc.Namespace
+	for _, n := range namespacesNames {
+		ns, err := config.GetNamespace(n)
+		if err != nil {
+			return err
+		}
+		namespaces = append(namespaces, *ns)
+	}
 
 	// Generate table and headers
-	table := make([][]string, len(namespaces)+1)
+	table := make([][]string, len(namespaces))
 	headers := []string{"NAMESPACE", "AGE"}
 	table[0] = append(table[0], headers...)
 
@@ -48,7 +57,14 @@ func (exe *namespaceExecutor) Execute() error {
 			ns.Name,
 			age,
 		}
-		table[idx+1] = append(table[idx+1], row...)
+		if ns.Name == config.GetDefaultNamespaceName() {
+			row[0] = ns.Name + "*"
+			prepend := [][]string{table[0]}
+			table = append(prepend, table...)
+			table[1] = row
+		} else {
+			table[idx+1] = append(table[idx+1], row...)
+		}
 	}
 
 	// Print the table

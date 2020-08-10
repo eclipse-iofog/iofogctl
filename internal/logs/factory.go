@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,32 +14,39 @@
 package logs
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func NewExecutor(resourceType, namespace, name string) (execute.Executor, error) {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return nil, err
+	}
 	switch resourceType {
 	case "controller":
-		return newControllerExecutor(namespace, name), nil
-	case "agent":
-		return newAgentExecutor(namespace, name), nil
-	case "microservice":
-		controlPlane, err := config.GetControlPlane(namespace)
+		baseControlPlane, err := ns.GetControlPlane()
 		if err != nil {
 			return nil, util.NewError("Could not get Control Plane for namespace " + namespace)
 		}
-		if len(controlPlane.Controllers) == 0 {
+		switch controlPlane := baseControlPlane.(type) {
+		case *rsc.KubernetesControlPlane:
+			return newKubernetesControllerExecutor(controlPlane, namespace, name), nil
+		case *rsc.RemoteControlPlane:
+			return newRemoteControllerExecutor(controlPlane, namespace, name), nil
+		case *rsc.LocalControlPlane:
+			return newLocalControllerExecutor(controlPlane, namespace, name), nil
+		}
+	case "agent":
+		return newAgentExecutor(namespace, name), nil
+	case "microservice":
+		if len(ns.GetControllers()) == 0 {
 			return nil, util.NewError("No Controllers found in namespace " + namespace)
 		}
-		endpoint, _ := controlPlane.GetControllerEndpoint()
-		if util.IsLocalHost(endpoint) {
-			return nil, util.NewInputError("Microservice logs for local deploys is not supported. Use docker logs directly instead.")
-		}
 		return newRemoteMicroserviceExecutor(namespace, name), nil
-	default:
-		msg := "Unknown resource: '" + resourceType + "'"
-		return nil, util.NewInputError(msg)
 	}
+	msg := "Unknown resource: '" + resourceType + "'"
+	return nil, util.NewInputError(msg)
 }

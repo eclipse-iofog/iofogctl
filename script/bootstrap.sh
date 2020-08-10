@@ -36,22 +36,42 @@ if ! checkForInstallation "go"; then
     exit 1
 fi
 
-# Is dep installed?
-if ! checkForInstallation "dep"; then
-    echoInfo " Attempting to install 'go dep'"
-    go get -u github.com/golang/dep/cmd/dep
+# Is mercurial installed?
+if [ -z $(command -v hg) ]; then
+    echo " Attempting to install 'mercurial'"
+    if [ "$(uname -s)" = "Darwin" ]; then
+        brew install mercurial
+    else
+        sudo apt install mercurial
+    fi
 fi
 
 # Is go-junit-report installed?
 if ! checkForInstallation "go-junit-report"; then
     echoInfo " Attempting to install 'go-junit-report'"
-    go get -u github.com/jstemmer/go-junit-report
+    go install -mod=vendor github.com/jstemmer/go-junit-report
+fi
+
+# Is rice installed?
+if [ -z $(command -v rice) ]; then
+    echo " Attempting to install 'rice'"
+    go install -mod=vendor github.com/GeertJohan/go.rice/rice
 fi
 
 # Is bats installed?
 if ! checkForInstallation "bats"; then
     echoInfo " Attempting to install 'bats'"
-    git clone https://github.com/cats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
+    git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
+fi
+
+# Is jq installed?
+if ! checkForInstallation "jq"; then
+    echoInfo " Attempting to install 'jq'"
+    if [ "$(uname -s)" = "Darwin" ]; then
+        brew install jq
+    else
+        sudo apt install jq
+    fi
 fi
 
 #
@@ -66,3 +86,5 @@ if ! checkForInstallation "kubectl"; then
 	chmod +x kubectl
 	sudo mv kubectl /usr/local/bin/
 fi
+
+## TODO: gcloud

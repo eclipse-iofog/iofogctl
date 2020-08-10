@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,10 +16,12 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -45,9 +47,11 @@ func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string)
 	kubeArgs := []string{"exec", podName, "-n", namespace, "--"}
 	kubeArgs = append(kubeArgs, cliCmd...)
 	kubeArgs = append(kubeArgs, cmd...)
-	out, err := util.Exec("KUBECONFIG="+kubeConfig, "kubectl", kubeArgs...)
-	util.Check(err)
-	fmt.Print(out.String())
+	kubectlCmd := "kubectl"
+	for _, kArg := range kubeArgs {
+		kubectlCmd = kubectlCmd + " " + kArg
+	}
+	util.PrintNotify("Cannot use legacy command against a Kubernetes Controller. Use the following command instead: \n\n  " + kubectlCmd)
 }
 
 func localExecute(container string, localCLI, localCmd []string) {
@@ -84,65 +88,64 @@ func newLegacyCommand() *cobra.Command {
 		Use:   "legacy resource NAME COMMAND ARGS...",
 		Short: "Execute commands using legacy CLI",
 		Long:  `Execute commands using legacy CLI`,
-		Example: `iofogctl get all
-iofogctl legacy controller NAME iofog
-iofogctl legacy connector NAME status
-iofogctl legacy agent NAME status`,
+		Example: `iofogctl legacy controller NAME COMMAND
+iofogctl legacy agent      NAME COMMAND`,
 		Args: cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg
 			resource := args[0]
 			// Get resource name
 			name := args[1]
-
-			// Get namespace option
+			// Get namespace
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
 
+			ns, err := config.GetNamespace(namespace)
+			util.Check(err)
 			switch resource {
 			case "controller":
 				// Get config
-				ctrl, err := config.GetController(namespace, name)
+				controlPlane, err := ns.GetControlPlane()
+				util.Check(err)
+				baseController, err := controlPlane.GetController(name)
 				util.Check(err)
 				cliCommand := []string{"iofog-controller"}
-				if ctrl.Kube.Config != "" {
-					k8sExecute(ctrl.Kube.Config, namespace, "name=controller", cliCommand, args[2:])
-				} else if util.IsLocalHost(ctrl.Host) {
-					localExecute(install.GetLocalContainerName("controller"), cliCommand, args[2:])
-				} else {
-					if ctrl.Host == "" || ctrl.SSH.User == "" || ctrl.SSH.KeyFile == "" || ctrl.SSH.Port == 0 {
-						util.Check(util.NewNoConfigError("Controller"))
+				switch controller := baseController.(type) {
+				case *rsc.KubernetesController:
+					k8sControlPlane, ok := controlPlane.(*rsc.KubernetesControlPlane)
+					if !ok {
+						util.Check(util.NewError("Could not convert Control Plane to Kubernetes Control Plane"))
 					}
-					remoteExec(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile, ctrl.SSH.Port, "sudo iofog-controller", args[2:])
+					util.Check(k8sControlPlane.ValidateKubeConfig())
+					k8sExecute(k8sControlPlane.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
+				case *rsc.RemoteController:
+					util.Check(controller.ValidateSSH())
+					remoteExec(controller.SSH.User, controller.Host, controller.SSH.KeyFile, controller.SSH.Port, "sudo iofog-controller", args[2:])
+				case *rsc.LocalController:
+					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
 				}
 			case "agent":
-				// Get config
-				agent, err := config.GetAgent(namespace, name)
+				// Update local cache based on Controller
+				err := iutil.UpdateAgentCache(namespace)
 				util.Check(err)
-				if util.IsLocalHost(agent.Host) {
-					localExecute(install.GetLocalContainerName("agent"), []string{"iofog-agent"}, args[2:])
-					return
+				// Get config
+				var baseAgent rsc.Agent
+				if useDetached {
+					baseAgent, err = config.GetDetachedAgent(name)
 				} else {
-					// SSH connect
-					if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-						util.Check(util.NewNoConfigError("Agent"))
-					}
-					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
+					baseAgent, err = ns.GetAgent(name)
 				}
-			case "connector":
-				// Get config
-				connector, err := config.GetConnector(namespace, name)
 				util.Check(err)
-				cliCommand := []string{"sudo", "iofog-connector"}
-				if connector.Kube.Config != "" {
-					k8sExecute(connector.Kube.Config, namespace, "name=connector-"+name, cliCommand, args[2:])
-				} else if util.IsLocalHost(connector.Host) {
-					localExecute(install.GetLocalContainerName("connector"), cliCommand, args[2:])
-				} else {
-					if connector.Host == "" || connector.SSH.User == "" || connector.SSH.KeyFile == "" || connector.SSH.Port == 0 {
-						util.Check(util.NewNoConfigError("Connector"))
-					}
-					remoteExec(connector.SSH.User, connector.Host, connector.SSH.KeyFile, connector.SSH.Port, "sudo iofog-connector", args[2:])
+				switch agent := baseAgent.(type) {
+				case *rsc.LocalAgent:
+					localExecute(install.GetLocalContainerName("agent", false), []string{"iofog-agent"}, args[2:])
+					return
+				case *rsc.RemoteAgent:
+					// SSH connect
+					util.Check(agent.ValidateSSH())
+					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
 				}
 			default:
 				util.Check(util.NewInputError("Unknown legacy CLI " + resource))

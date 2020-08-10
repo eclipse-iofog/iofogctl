@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/disconnect"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/disconnect"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -29,12 +29,11 @@ func newDisconnectCommand() *cobra.Command {
 		Short: "Disconnect from an ioFog cluster",
 		Long: `Disconnect from an ioFog cluster.
 
-This will not teardown any components of the cluster. If you would like to tear down deployments, use the delete command.
-
-This will leave the corresponding namespace empty.`,
+This will remove all client-side information for this Namespace. The Namespace will itself be deleted.
+Use the connect command to reconnect after a disconnect.
+If you would like to uninstall the Control Plane and/or Agents, use the delete command instead.`,
 		Example: `iofogctl disconnect -n NAMESPACE`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get namespace option
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)

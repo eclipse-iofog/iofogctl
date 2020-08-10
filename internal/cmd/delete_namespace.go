@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/iofogctl/internal/delete/namespace"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/namespace"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,9 @@ func newDeleteNamespaceCommand() *cobra.Command {
 		Short: "Delete a Namespace",
 		Long: `Delete a Namespace.
 
-The namespace must not have any resources within it.`,
+The Namespace must be empty.
+
+If you would like to delete all resources in the Namespace, use the --force flag.`,
 		Example: `iofogctl delete namespace NAME`,
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -37,7 +39,7 @@ The namespace must not have any resources within it.`,
 			err := delete.Execute(name, force)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + name)
+			util.PrintSuccess("Successfully deleted Namespace " + name)
 		},
 	}
 

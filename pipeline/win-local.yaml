@@ -1,0 +1,104 @@
+jobs:
+- job: Windows_Local
+  pool: 'Azure Windows'
+  steps:
+  - bash: |
+      rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+    displayName: 'Clean up Windows env'
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: windows
+      downloadPath: $(System.DefaultWorkingDirectory)
+  - bash: |
+      dir=/mnt/c/Users/$(azure.windows.user)/AppData/Local/Microsoft/WindowsApps/
+      echo moving
+      mv windows/iofogctl $dir
+
+      echo chmodding
+      chmod +x $dir/iofogctl
+
+      echo version
+      $dir/iofogctl version
+      iofogctl version
+    displayName: 'Prepare iofogctl binary'
+  - bash: |
+      if [[ -z $(which docker) ]]; then
+        apt-get update -y
+        apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        add-apt-repository \
+        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) \
+        stable"
+        apt-get update -y
+        apt-get install -y docker-ce
+        usermod -aG docker $USER
+      fi
+    displayName: Install docker if necessary
+  - template: steps/init-gcloud-steps.yaml
+    parameters:
+      windows: "true"
+  - bash: |
+      if [[ -z $(echo $DOCKER_HOST) ]]; then
+        export DOCKER_HOST="tcp://localhost:2375"
+      fi
+      gcloud --quiet auth configure-docker
+      echo "$DOCKER_HOST"
+      docker info
+      docker "pull" "$(controller_image)"
+      docker "pull" "$(agent_image)"
+    displayName: 'Pull develop gcr docker image'
+    failOnStderr: false
+  - template: steps/configure-remote-tests.yaml
+  - bash: |
+      tempBashPath=$(wslpath "$(Agent.TempDirectory)")
+      cd $tempBashPath
+      git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && ./install.sh /usr
+      bats --version
+    displayName: 'Install Bats'
+  - bash: |
+      for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
+      for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
+      for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+    displayName: 'Format test files'
+  - bash: |
+      if [[ -z $(echo $DOCKER_HOST) ]]; then
+        export DOCKER_HOST="tcp://localhost:2375"
+      fi
+      set -o pipefail
+      echo "$DOCKER_HOST"
+      docker images
+      export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
+      echo $WSL_KEY_FILE
+      test/run.bash local | tee test/conf/results-local.tap
+    displayName: 'Run Functional Tests'
+  - script: |
+      RD /S /Q "C:\Users\$(azure.windows.user)\.iofog\"
+    condition: always()
+    displayName: 'Clean local .iofog environment'
+  - bash: |
+      if [[ -z $(echo $DOCKER_HOST) ]]; then
+        export DOCKER_HOST="tcp://localhost:2375"
+      fi
+      docker rm -f $(docker ps -aq)
+      docker "system" "prune" "-af"
+    condition: always()
+    displayName: 'Clean local docker environment'
+  
+- job: Vanilla_Xenial
+  condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: steps/vanilla.yaml
+    parameters:
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.xenial)
+      repo: $(gcp.vm.repo.ubuntu)
+      agent_count: 2
+      controller_count: 1
