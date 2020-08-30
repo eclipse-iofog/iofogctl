@@ -44,9 +44,6 @@ The Agent will be provisioned with the Controller within the Namespace.`,
 			util.PrintSuccess("Successfully attached Agent " + opt.Name + " to namespace " + opt.Namespace)
 		},
 	}
-	cmd.Flags().StringVar(&opt.Host, "host", "", "Hostname of remote host")
-	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host")
-	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key")
 	cmd.Flags().IntVar(&opt.Port, "port", 22, "Port number that iofogctl uses to SSH into remote hosts")
 
 	return cmd
