@@ -35,6 +35,9 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
+	if err := util.IsLowerAlphanumeric("Controller", newName); err != nil {
+		return err
+	}
 	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
 	controller.SetName(newName)
 	// Add first to fail on name clash

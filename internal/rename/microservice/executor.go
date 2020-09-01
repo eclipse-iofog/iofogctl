@@ -21,7 +21,9 @@ import (
 )
 
 func Execute(namespace, name, newName string) error {
-
+	if err := util.IsLowerAlphanumeric("Microservice", newName); err != nil {
+		return err
+	}
 	// Init remote resources
 	clt, err := iutil.NewControllerClient(namespace)
 	if err != nil {

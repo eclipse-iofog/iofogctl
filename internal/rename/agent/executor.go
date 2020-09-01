@@ -24,6 +24,9 @@ import (
 )
 
 func Execute(namespace, name, newName string, useDetached bool) error {
+	if err := util.IsLowerAlphanumeric("Agent", newName); err != nil {
+		return err
+	}
 	util.SpinStart(fmt.Sprintf("Renaming Agent %s", name))
 
 	if useDetached {

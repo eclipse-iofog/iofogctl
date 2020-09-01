@@ -22,6 +22,9 @@ import (
 )
 
 func Execute(namespace, name, newName string) error {
+	if err := util.IsLowerAlphanumeric("Application", newName); err != nil {
+		return err
+	}
 	util.SpinStart(fmt.Sprintf("Renaming Application %s", name))
 
 	// Init remote resources

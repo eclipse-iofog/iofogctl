@@ -23,6 +23,9 @@ func Execute(name, newName string) error {
 	if name == "" || name == "default" {
 		return util.NewError("Cannot rename default or nonexistant namespaces")
 	}
+	if err := util.IsLowerAlphanumeric("Namespace", newName); err != nil {
+		return err
+	}
 
 	util.SpinStart(fmt.Sprintf("Renaming Namespace %s", name))
 

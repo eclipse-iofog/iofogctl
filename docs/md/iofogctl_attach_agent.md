@@ -21,11 +21,8 @@ iofogctl attach agent NAME
 ### Options
 
 ```
-  -h, --help          help for agent
-      --host string   Hostname of remote host
-      --key string    Path to private SSH key
-      --port int      Port number that iofogctl uses to SSH into remote hosts (default 22)
-      --user string   Username of remote host
+  -h, --help       help for agent
+      --port int   Port number that iofogctl uses to SSH into remote hosts (default 22)
 ```
 
 ### Options inherited from parent commands

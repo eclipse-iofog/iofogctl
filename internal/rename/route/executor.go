@@ -32,6 +32,9 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
+	if err := util.IsLowerAlphanumeric("Route", newName); err != nil {
+		return err
+	}
 	util.SpinStart(fmt.Sprintf("Renaming route %s", name))
 	route.Name = newName
 
