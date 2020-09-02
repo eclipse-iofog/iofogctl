@@ -76,8 +76,8 @@
   local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
   testGenerateConnectionString "http://$IP:51121"
   CNCT=$(iofogctl -n "$NS" connect --generate)
-  eval "$CNCT -n ${NS}_2"
-  iofogctl disconnect -n "${NS}_2"
+  eval "$CNCT -n ${NS}-2"
+  iofogctl disconnect -n "${NS}-2"
   stopTest
 }
 

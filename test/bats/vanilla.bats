@@ -3,7 +3,7 @@
 . test/func/include.bash
 
 NS="$NAMESPACE"
-NS2="$NS"_2
+NS2="$NS"-2
 
 @test "Initialize tests" {
   stopTest
@@ -273,8 +273,8 @@ spec:
   initVanillaController
   testGenerateConnectionString "http://$VANILLA_HOST:51121"
   CNCT=$(iofogctl -n "$NS" connect --generate)
-  eval "$CNCT -n ${NS}_2"
-  iofogctl disconnect -n "${NS}_2"
+  eval "$CNCT -n ${NS}-2"
+  iofogctl disconnect -n "${NS}-2"
   stopTest
 }
 
