@@ -20,6 +20,7 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"math"
 )
 
 type microserviceExecutor struct {
@@ -118,6 +119,10 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 		if status == "" {
 			status = "Not Supported"
 		}
+		if status == "PULLING" {
+			status = fmt.Sprintf("%s (%d%s)", ms.Status.Status, int(math.Round(ms.Status.Percentage)), "%")
+		}
+
 		row := []string{
 			ms.Name,
 			status,
