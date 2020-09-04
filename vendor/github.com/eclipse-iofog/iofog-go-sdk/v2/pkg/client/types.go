@@ -155,6 +155,7 @@ type MicroserviceStatus struct {
 	MemoryUsage       float64 `json:"memoryUsage"`
 	CpuUsage          float64 `json:"cpuUsage"`
 	ContainerId       string  `json:"containerId"`
+	Percentage        float64 `json:"percentage"`
 }
 
 type MicroserviceInfo struct {

@@ -137,6 +137,9 @@ func (exe *applicationExecutor) validate() (err error) {
 		if _, foundTo := exe.microserviceByName[route.To]; !foundTo {
 			return NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
 		}
+		if route.Name == "" {
+			route.Name = route.From + "-to-" + route.To
+		}
 	}
 
 	// Validate microservice
