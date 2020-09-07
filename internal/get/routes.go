@@ -35,19 +35,24 @@ func (exe *routeExecutor) GetName() string {
 }
 
 func (exe *routeExecutor) Execute() error {
-	return generateRouteOutput(exe.namespace, true)
-}
-
-func generateRouteOutput(namespace string, printNS bool) error {
-	_, err := config.GetNamespace(namespace)
+	printNamespace(exe.namespace)
+	table, err := generateRouteOutput(exe.namespace)
 	if err != nil {
 		return err
+	}
+	return print(table)
+}
+
+func generateRouteOutput(namespace string) (table [][]string, err error) {
+	_, err = config.GetNamespace(namespace)
+	if err != nil {
+		return
 	}
 
 	// Connect to Controller
 	clt, err := iutil.NewControllerClient(namespace)
 	if err != nil && !rsc.IsNoControlPlaneError(err) {
-		return err
+		return
 	}
 
 	routes := make([]client.Route, 0)
@@ -55,21 +60,17 @@ func generateRouteOutput(namespace string, printNS bool) error {
 		// Populate table
 		listResponse, err := clt.ListRoutes()
 		if err != nil {
-			return err
+			return table, err
 		}
 		routes = listResponse.Routes
-	}
-
-	if printNS {
-		printNamespace(namespace)
 	}
 
 	return tabulateRoutes(namespace, routes)
 }
 
-func tabulateRoutes(namespace string, routes []client.Route) error {
+func tabulateRoutes(namespace string, routes []client.Route) (table [][]string, err error) {
 	// Generate table and headers
-	table := make([][]string, len(routes)+1)
+	table = make([][]string, len(routes)+1)
 	headers := []string{"ROUTE", "SOURCE MSVC", "DEST MSVC"}
 	table[0] = append(table[0], headers...)
 
@@ -78,11 +79,11 @@ func tabulateRoutes(namespace string, routes []client.Route) error {
 		// Convert route details
 		from, err := iutil.GetMicroserviceName(namespace, route.SourceMicroserviceUUID)
 		if err != nil {
-			return err
+			return table, err
 		}
 		to, err := iutil.GetMicroserviceName(namespace, route.DestMicroserviceUUID)
 		if err != nil {
-			return err
+			return table, err
 		}
 		// Store values
 		row := []string{
@@ -92,10 +93,5 @@ func tabulateRoutes(namespace string, routes []client.Route) error {
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
-
-	// Print table
-	if err := print(table); err != nil {
-		return err
-	}
-	return nil
+	return
 }

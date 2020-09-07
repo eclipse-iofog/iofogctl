@@ -32,22 +32,27 @@ func (exe *volumeExecutor) GetName() string {
 }
 
 func (exe *volumeExecutor) Execute() error {
-	return generateVolumeOutput(exe.namespace, true)
-}
-
-func generateVolumeOutput(namespace string, printNS bool) error {
-	ns, err := config.GetNamespace(namespace)
+	printNamespace(exe.namespace)
+	table, err := generateVolumeOutput(exe.namespace)
 	if err != nil {
 		return err
+	}
+	return print(table)
+}
+
+func generateVolumeOutput(namespace string) (table [][]string, err error) {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return
 	}
 	// Get volume config details
 	volumes := ns.GetVolumes()
 	if err != nil {
-		return err
+		return
 	}
 
 	// Generate table and headers
-	table := make([][]string, len(volumes)+1)
+	table = make([][]string, len(volumes)+1)
 	headers := []string{"VOLUME", "SOURCE", "DESTINATION", "PERMISSIONS", "AGENTS"}
 	table[0] = append(table[0], headers...)
 
@@ -73,14 +78,5 @@ func generateVolumeOutput(namespace string, printNS bool) error {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	if printNS {
-		printNamespace(namespace)
-	}
-	// Print table
-	err = print(table)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }

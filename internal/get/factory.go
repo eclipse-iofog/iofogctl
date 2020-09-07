@@ -23,7 +23,7 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 	case "namespaces":
 		return newNamespaceExecutor(), nil
 	case "all":
-		return newAllExecutor(namespace, showDetached), nil
+		return newAllExecutor(namespace), nil
 	case "controllers":
 		return newControllerExecutor(namespace), nil
 	case "agents":

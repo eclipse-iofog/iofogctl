@@ -75,13 +75,16 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 	printNamespace(exe.namespace)
-	return exe.generateMicroserviceOutput()
+	table, err := exe.generateMicroserviceOutput()
+	if err != nil {
+		return err
+	}
+	return print(table)
 }
 
-func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
-
+func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string, err error) {
 	// Generate table and headers
-	table := make([][]string, len(exe.msvcPerID)+1)
+	table = make([][]string, len(exe.msvcPerID)+1)
 	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "VOLUMES", "PORTS"}
 	table[0] = append(table[0], headers...)
 
@@ -134,11 +137,5 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (err error) {
 		count++
 	}
 
-	// Print the table
-	err = print(table)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }

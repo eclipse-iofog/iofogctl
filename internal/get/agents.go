@@ -14,6 +14,7 @@
 package get
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -42,19 +43,22 @@ func (exe *agentExecutor) GetName() string {
 func (exe *agentExecutor) Execute() error {
 	if exe.showDetached {
 		printDetached()
-		if err := generateDetachedAgentOutput(); err != nil {
+		table, err := generateDetachedAgentOutput()
+		if err != nil {
 			return err
 		}
-		return nil
+		return print(table)
 	}
-	if err := generateAgentOutput(exe.namespace, true); err != nil {
+	printNamespace(exe.namespace)
+	table, err := generateAgentOutput(exe.namespace)
+	if err != nil {
 		return err
 	}
 	// Flush occurs in generateAgentOutput
-	return nil
+	return print(table)
 }
 
-func generateDetachedAgentOutput() error {
+func generateDetachedAgentOutput() (table [][]string, err error) {
 	detachedAgents := config.GetDetachedAgents()
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make([]client.AgentInfo, 0)
@@ -67,32 +71,27 @@ func generateDetachedAgentOutput() error {
 	return tabulateAgents(agentsToPrint)
 }
 
-func generateAgentOutput(namespace string, printNS bool) error {
+func generateAgentOutput(namespace string) (table [][]string, err error) {
 	agents := make([]client.AgentInfo, 0)
 	// Update local cache based on Controller
-	err := iutil.UpdateAgentCache(namespace)
-	if err != nil && !rsc.IsNoControlPlaneError(err) {
-		return err
+	if err = iutil.UpdateAgentCache(namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
+		return
 	}
 
 	// Get Agents from Controller
 	if err == nil {
 		agents, err = iutil.GetBackendAgents(namespace)
 		if err != nil {
-			return err
+			return
 		}
-	}
-
-	if printNS {
-		printNamespace(namespace)
 	}
 
 	return tabulateAgents(agents)
 }
 
-func tabulateAgents(agentInfos []client.AgentInfo) error {
+func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error) {
 	// Generate table and headers
-	table := make([][]string, len(agentInfos)+1)
+	table = make([][]string, len(agentInfos)+1)
 	headers := []string{
 		"AGENT",
 		"STATUS",
@@ -134,7 +133,9 @@ func tabulateAgents(agentInfos []client.AgentInfo) error {
 		}
 		idx = idx + 1
 	}
+	return
+}
 
-	// Print table
-	return print(table)
+func printDetached() {
+	fmt.Printf("DETACHED RESOURCES\n\n")
 }

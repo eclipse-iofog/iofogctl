@@ -39,26 +39,31 @@ func (exe *controllerExecutor) GetName() string {
 }
 
 func (exe *controllerExecutor) Execute() error {
-	return generateControllerOutput(exe.namespace, true)
+	table, err := generateControllerOutput(exe.namespace)
+	if err != nil {
+		return err
+	}
+	printNamespace(exe.namespace)
+	return print(table)
 }
 
-func generateControllerOutput(namespace string, printNS bool) error {
+func generateControllerOutput(namespace string) (table [][]string, err error) {
 	// Get controller config details
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
-		return err
+		return
 	}
 
 	podStatuses := make([]string, 0)
 	// Handle k8s
 	baseControlPlane, err := ns.GetControlPlane()
 	if controlPlane, ok := baseControlPlane.(*rsc.KubernetesControlPlane); ok {
-		if err := updateControllerPods(controlPlane, namespace); err != nil {
-			return err
+		if err = updateControllerPods(controlPlane, namespace); err != nil {
+			return
 		}
 		ns.SetControlPlane(controlPlane)
-		if err := config.Flush(); err != nil {
-			return err
+		if err = config.Flush(); err != nil {
+			return
 		}
 		for idx := range controlPlane.ControllerPods {
 			podStatuses = append(podStatuses, controlPlane.ControllerPods[idx].Status)
@@ -69,7 +74,7 @@ func generateControllerOutput(namespace string, printNS bool) error {
 	controllers := ns.GetControllers()
 
 	// Generate table and headers
-	table := make([][]string, len(controllers)+1)
+	table = make([][]string, len(controllers)+1)
 	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "VERSION", "ADDR", "PORT"}
 	table[0] = append(table[0], headers...)
 
@@ -78,7 +83,7 @@ func generateControllerOutput(namespace string, printNS bool) error {
 		// Instantiate connection to controller
 		ctrl, err := iutil.NewControllerClient(namespace)
 		if err != nil {
-			return err
+			return table, err
 		}
 
 		// Ping status
@@ -112,16 +117,7 @@ func generateControllerOutput(namespace string, printNS bool) error {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	if printNS {
-		printNamespace(namespace)
-	}
-	// Print table
-	err = print(table)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
 
 func updateControllerPods(controlPlane *rsc.KubernetesControlPlane, namespace string) (err error) {

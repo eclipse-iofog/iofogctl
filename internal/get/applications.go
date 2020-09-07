@@ -46,7 +46,11 @@ func (exe *applicationExecutor) Execute() error {
 		return err
 	}
 	printNamespace(exe.namespace)
-	return exe.generateApplicationOutput()
+	table, err := exe.generateApplicationOutput()
+	if err != nil {
+		return err
+	}
+	return print(table)
 }
 
 func (exe *applicationExecutor) init() (err error) {
@@ -79,9 +83,9 @@ func (exe *applicationExecutor) init() (err error) {
 	return
 }
 
-func (exe *applicationExecutor) generateApplicationOutput() error {
+func (exe *applicationExecutor) generateApplicationOutput() (table [][]string, err error) {
 	// Generate table and headers
-	table := make([][]string, len(exe.flows)+1)
+	table = make([][]string, len(exe.flows)+1)
 	headers := []string{"APPLICATION", "RUNNING", "MICROSERVICES"}
 	table[0] = append(table[0], headers...)
 
@@ -117,11 +121,5 @@ func (exe *applicationExecutor) generateApplicationOutput() error {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	// Print table
-	err := print(table)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
