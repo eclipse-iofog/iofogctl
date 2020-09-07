@@ -57,6 +57,13 @@ func generateControllerOutput(namespace string) (table [][]string, err error) {
 	podStatuses := make([]string, 0)
 	// Handle k8s
 	baseControlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		if rsc.IsNoControlPlaneError(err) {
+			err = nil
+		} else {
+			return
+		}
+	}
 	if controlPlane, ok := baseControlPlane.(*rsc.KubernetesControlPlane); ok {
 		if err = updateControllerPods(controlPlane, namespace); err != nil {
 			return
