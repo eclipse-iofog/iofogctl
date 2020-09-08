@@ -85,22 +85,14 @@ func (clt *Client) GetMicroservicesPerFlow(flowID int) (response *MicroserviceLi
 	return
 }
 
-// GetAllMicroservices returns all microservices on the Controller by listing all flows,
-// then getting a list of microservices per flow.
+// GetAllMicroservices returns all microservices on the Controller across all (non-system) flows
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	flows, err := clt.GetAllFlows()
+	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices"), nil)
 	if err != nil {
-		return nil, err
+		return
 	}
 	response = new(MicroserviceListResponse)
-
-	for _, flow := range flows.Flows {
-		listPerFlow, err := clt.GetMicroservicesPerFlow(flow.ID)
-		if err != nil {
-			continue
-		}
-		response.Microservices = append(response.Microservices, listPerFlow.Microservices...)
-	}
+	err = json.Unmarshal(body, response)
 	return
 }
 
