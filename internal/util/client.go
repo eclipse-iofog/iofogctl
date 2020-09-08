@@ -17,21 +17,29 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"sync"
 )
 
 var clientCache map[string]*client.Client
 var agentCache map[string][]client.AgentInfo
+var mux sync.Mutex
 
 func init() {
 	InvalidateCache()
 }
 
 func InvalidateCache() {
+	mux.Lock()
+	defer mux.Unlock()
+
 	clientCache = make(map[string]*client.Client, 0)
 	agentCache = make(map[string][]client.AgentInfo, 0)
 }
 
 func NewControllerClient(namespace string) (*client.Client, error) {
+	mux.Lock()
+	defer mux.Unlock()
+
 	if cachedClient, exists := clientCache[namespace]; exists {
 		return cachedClient, nil
 	}
