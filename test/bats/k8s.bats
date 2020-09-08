@@ -30,6 +30,12 @@ NS="$NAMESPACE"
   stopTest
 }
 
+@test "Create namespace" {
+  startTest
+  iofogctl create namespace "$NS"
+  stopTest
+}
+
 @test "Test no executors" {
   startTest
   testNoExecutors
@@ -71,6 +77,12 @@ spec:
   stopTest
 }
 
+@test "Get Controller logs on K8s after deploy" {
+  startTest
+  iofogctl -v -n "$NS" logs controller "$NAME" | grep "api/v3"
+  stopTest
+}
+
 @test "Configure kube config file" {
   startTest
   local NEW_KUBE="/tmp/new-kubeconfig"
@@ -106,3 +118,56 @@ spec:
 } 
 
 # LOAD: test/bats/common-k8s.bats
+
+@test "Delete Agents" {
+  startTest
+  initAgents
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS" delete agent "$AGENT_NAME"
+  done
+  checkAgentsNegative
+  stopTest
+}
+
+@test "Deploy Controller for idempotence" {
+  startTest
+  echo "---
+apiVersion: iofog.org/v2
+kind: KubernetesControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $USER_PW
+  config: $KUBE_CONFIG
+  images:
+    controller: $CONTROLLER_IMAGE
+    operator: $OPERATOR_IMAGE
+    portManager: $PORT_MANAGER_IMAGE
+    proxy: $PROXY_IMAGE
+    router: $ROUTER_IMAGE
+    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+
+  iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
+  checkControllerK8s
+  stopTest
+}
+
+@test "Delete all" {
+  startTest
+  iofogctl -v -n "$NS" delete all
+  checkControllerNegativeK8s
+  checkAgentsNegative
+  stopTest
+}
+
+@test "Delete namespace" {
+  startTest
+  iofogctl delete namespace "$NS"
+  [[ -z $(iofogctl get namespaces | grep "$NS") ]]
+  stopTest
+}
