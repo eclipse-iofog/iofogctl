@@ -159,7 +159,7 @@ function checkUpdatedMicroservice() {
   echo "${DESC_MSVC}" | grep "data_label: Anonymous_Person_3"
   echo "${DESC_MSVC}" | grep "test_data:"
   echo "${DESC_MSVC}" | grep "key: 42"
-  [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
+  echo "${DESC_MSVC}" | grep "memoryLimit: "
   [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5443:443, 5080:80")
