@@ -17,10 +17,10 @@ LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -
 LDFLAGS += -X $(PREFIX).portManagerTag=2.0.0
 LDFLAGS += -X $(PREFIX).kubeletTag=2.0.0
 LDFLAGS += -X $(PREFIX).operatorTag=2.0.0
-LDFLAGS += -X $(PREFIX).proxyTag=2.0.0
-LDFLAGS += -X $(PREFIX).routerTag=2.0.0
+LDFLAGS += -X $(PREFIX).proxyTag=2.0.1
+LDFLAGS += -X $(PREFIX).routerTag=2.0.1
 LDFLAGS += -X $(PREFIX).controllerTag=2.0.0
-LDFLAGS += -X $(PREFIX).agentTag=2.0.0
+LDFLAGS += -X $(PREFIX).agentTag=2.0.1
 LDFLAGS += -X $(PREFIX).controllerVersion=2.0.0
 LDFLAGS += -X $(PREFIX).agentVersion=2.0.0
 LDFLAGS += -X $(PREFIX).repo=iofog
