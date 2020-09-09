@@ -5,6 +5,10 @@
 * Add Docker pull percentage to `iofogctl get microservices` output
 * Parallelize `iofogctl get all` command to hide latency
 
+## [v2.0.1] - 2020-09-10
+
+* Update default versions of Agent, Router, and Proxy to 2.0.1
+
 ## [v2.0.0] - 2020-08-06
 
 ### Features
