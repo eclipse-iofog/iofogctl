@@ -101,11 +101,11 @@ var debug bool
 // Callback for cobra on initialization
 func initialize() {
 	client.SetGlobalRetries(client.Retries{
-		Timeout:       0,
+		Timeout: 2,
 		CustomMessage: map[string]int{
-			//			"timeout":           1, // Linux
-			//			"failed to respond": 1, // Windows
-			//			"Bad Gateway":       1, // K8s
+			"timeout":           2, // Linux
+			"failed to respond": 2, // Windows
+			"Bad Gateway":       2, // K8s
 		},
 	})
 	client.SetVerbosity(debug)
