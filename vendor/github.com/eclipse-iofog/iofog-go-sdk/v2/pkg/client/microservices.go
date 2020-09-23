@@ -117,7 +117,7 @@ func (clt *Client) getAllMicroservices() (response *MicroserviceListResponse, er
 }
 
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	if strings.Contains(clt.status.version, "dev") || clt.status.versionNum >= 210 {
+	if strings.Contains(clt.status.version, "dev") || clt.status.versionNum >= 201 {
 		return clt.getAllMicroservices()
 	}
 	return clt.getAllMicroservicesDeprecated()
