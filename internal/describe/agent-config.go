@@ -151,6 +151,7 @@ func (exe *agentConfigExecutor) Execute() error {
 			UpstreamRouters:           upstreamRoutersPtr,
 			NetworkRouter:             networkRouterPtr,
 			RouterConfig:              routerConfig,
+			Tags:                      &getAgentResponse.Tags,
 		},
 	}
 

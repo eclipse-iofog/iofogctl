@@ -391,6 +391,7 @@ type AgentInfo struct {
 	IsReadyToRollback         bool      `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                    string    `json:"tunnel" yaml:"tunnel"`
 	FogType                   int       `json:"fogTypeId" yaml:"fogTypeId"`
+	Tags                   		[]Tag     `json:"tags" yaml:"tags"`
 	RouterMode                string    `json:"routerMode" yaml:"routerMode"`
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
@@ -432,6 +433,14 @@ type AgentConfiguration struct {
 	LogLevel                  *string  `json:"logLevel,omitempty" yaml:"logLevel"`
 	DockerPruningFrequency    *float64 `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
 	AvailableDiskThreshold    *float64 `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
+	Tags 											*[]Tag `json:"tags,omitempty" yaml:"tags,omitempty"`
+}
+
+type Tag struct {
+	Name string `json:"name" yaml:"name"`
+	Icon string `json:"icon" yaml:"icon"`
+	Color string `json:"color" yaml:"color"`
+	ID int64 `json:"id" yaml:"-"`
 }
 
 type AgentUpdateRequest struct {

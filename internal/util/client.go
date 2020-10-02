@@ -101,8 +101,13 @@ func UpdateAgentCache(namespace string) error {
 	}
 	// Generate map of config Agents
 	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
+	var localAgent *rsc.LocalAgent
 	for _, baseAgent := range ns.GetAgents() {
-		agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
+		if v, ok := baseAgent.(*rsc.LocalAgent); ok {
+			localAgent = v
+		} else {
+			agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
+		}
 	}
 	// Get backend Agents
 	backendAgents, err := GetBackendAgents(namespace)
@@ -113,6 +118,11 @@ func UpdateAgentCache(namespace string) error {
 	// Generate cache types
 	agents := make([]rsc.RemoteAgent, 0)
 	for _, backendAgent := range backendAgents {
+		if localAgent != nil && backendAgent.Name == localAgent.Name {
+			localAgent.UUID = backendAgent.UUID
+			continue
+		}
+
 		agent := rsc.RemoteAgent{
 			Name: backendAgent.Name,
 			UUID: backendAgent.UUID,
@@ -131,6 +141,12 @@ func UpdateAgentCache(namespace string) error {
 	ns.DeleteAgents()
 	for idx := range agents {
 		if err := ns.AddAgent(&agents[idx]); err != nil {
+			return err
+		}
+	}
+
+	if localAgent != nil {
+		if err := ns.AddAgent(localAgent); err != nil {
 			return err
 		}
 	}
