@@ -57,7 +57,7 @@ func (in *Application) DeepCopyObject() runtime.Object {
 func (in *ApplicationList) DeepCopyInto(out *ApplicationList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]Application, len(*in))
@@ -167,7 +167,7 @@ func (in *ControlPlane) DeepCopyObject() runtime.Object {
 func (in *ControlPlaneList) DeepCopyInto(out *ControlPlaneList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]ControlPlane, len(*in))
