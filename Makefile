@@ -25,7 +25,7 @@ LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
 GO_SDK_MODULE = iofog-go-sdk/v2@develop
-OPERATOR_MODULE = iofog-operator/v2@develop
+OPERATOR_MODULE = iofog-operator/v2@2e26a369080226b5599518d0fea5d621cae197f1
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -64,7 +64,7 @@ modules: get vendor ## Get modules and vendor them
 
 .PHONY: get
 get: ## Pull modules
-	@for module in $(GO_SDK_MODULE) $(OPERATOR_MODULE); do \
+	@for module in $(OPERATOR_MODULE) $(GO_SDK_MODULE); do \
 		go get github.com/eclipse-iofog/$$module; \
 	done
 	@go get github.com/eclipse-iofog/iofogctl@v1.3
