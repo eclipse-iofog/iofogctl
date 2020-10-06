@@ -132,10 +132,11 @@ $>echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 
 This project uses go modules so it must be built from outside of your $GOPATH.
 
-Go 1.12.1+ is a prerequisite. Install all other dependancies with:
+Go 1.13+ is a prerequisite. Install all other dependancies with:
 ```
 script/bootstrap.sh
 ```
+Make sure that your `$PATH` contains `$GOBIN`, otherwise `make build` will fail on the basis that command `rice` is not found.
 
 See all `make` commands by running:
 ```

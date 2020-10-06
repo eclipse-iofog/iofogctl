@@ -56,6 +56,9 @@ fi
 if [ -z $(command -v rice) ]; then
     echo " Attempting to install 'rice'"
     go install -mod=vendor github.com/GeertJohan/go.rice/rice
+    if [ -z $(command -v rice) ]; then
+        echo ' Could not find command rice after installation - is $GOBIN in $PATH?'
+    fi
 fi
 
 # Is bats installed?
