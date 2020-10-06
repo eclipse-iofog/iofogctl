@@ -7,7 +7,7 @@ steps:
   displayName: 'Set up the Go workspace'
 - task: GoTool@0
   inputs:
-    version: '1.12.1'
+    version: '1.13'
     goPath: $(GOPATH)
     goBin: $(GOBIN)
   displayName: 'Install Golang'
