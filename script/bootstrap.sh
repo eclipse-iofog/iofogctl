@@ -58,7 +58,7 @@ if ! checkForInstallation "jq"; then
 fi
 
 # CI deps
-if [ ! -z "$PIPELINE" ]
+if [ ! -z "$PIPELINE" ]; then
     ## Is kubernetes-cli installed?
     if [ ! checkForInstallation "kubectl" ]; then
         OS=$(uname -s | tr A-Z a-z)
