@@ -79,14 +79,11 @@ func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	agentCache[namespace] = agentList.Agents
+	agentCache[namespace] = agentList.Agents // TODO: Fix concurrent writes issue here
 	return agentList.Agents, nil
 }
 
 func UpdateAgentCache(namespace string) error {
-	mux.Lock()
-	defer mux.Unlock()
-
 	// Get local cache Agents
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
