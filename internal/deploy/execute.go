@@ -88,15 +88,15 @@ func deployLocalController(opt execute.KindHandlerOpt) (exe execute.Executor, er
 }
 
 func deployRemoteAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployagent.NewRemoteExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+	return deployagent.NewRemoteExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Tags: opt.Tags, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployLocalAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployagent.NewLocalExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+	return deployagent.NewLocalExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Tags: opt.Tags, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Tags: opt.Tags, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -145,6 +145,7 @@ func Execute(opt *Options) (err error) {
 		}
 		found := false
 		host := agentExecutor.GetHost()
+		tags := agentExecutor.GetTags()
 		for _, configGenericExecutor := range executorsMap[config.AgentConfigKind] {
 			configExecutor, ok := configGenericExecutor.(deployagentconfig.AgentConfigExecutor)
 			if !ok {
@@ -153,6 +154,7 @@ func Execute(opt *Options) (err error) {
 			if agentExecutor.GetName() == configExecutor.GetName() {
 				found = true
 				configExecutor.SetHost(host)
+				configExecutor.SetTags(tags)
 				break
 			}
 		}
@@ -179,6 +181,7 @@ func Execute(opt *Options) (err error) {
 					AgentConfiguration: agentConfig,
 				},
 				opt.Namespace,
+				tags,
 			))
 		}
 	}

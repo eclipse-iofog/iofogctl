@@ -88,7 +88,7 @@ func (exe executor) Execute() error {
 			AgentConfiguration: client.AgentConfiguration{
 				Host: &host,
 			},
-		}, exe.opt.Namespace)
+		}, exe.opt.Namespace, nil)
 	if err = configExecutor.Execute(); err != nil {
 		return err
 	}

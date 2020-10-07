@@ -67,11 +67,21 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[c
 		return nil, nil
 	}
 
+	// Prevent tags slice memory sharing
+	var tagsPtr *[]string
+	if header.Metadata.Tags != nil {
+		tags := append([]string{}, *header.Metadata.Tags...)
+		tagsPtr = &tags
+	} else {
+		tagsPtr = nil
+	}
+
 	return createExecutorFunc(KindHandlerOpt{
 		Kind:      header.Kind,
 		Namespace: namespace,
 		Name:      header.Metadata.Name,
 		YAML:      subYamlBytes,
+		Tags:      tagsPtr,
 	})
 }
 
@@ -80,6 +90,7 @@ type KindHandlerOpt struct {
 	Namespace string
 	Name      string
 	YAML      []byte
+	Tags      *[]string
 }
 
 func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
@@ -93,8 +104,10 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 	dec.SetStrict(true)
 
 	var raw yaml.MapSlice
-	header := config.Header{
-		Spec: raw,
+	var header config.Header
+	header = config.Header{
+		Spec:     raw,
+		Metadata: config.HeaderMetadata{},
 	}
 
 	// Generate all executors

@@ -61,6 +61,19 @@ func (exe *agentExecutor) Execute() (err error) {
 		return err
 	}
 
+	var tags *[]string
+	if agent.GetUUID() != "" {
+		// Connect to controller
+		ctrl, err := iutil.NewControllerClient(exe.namespace)
+		if err != nil {
+			return err
+		}
+		getAgentResponse, err := ctrl.GetAgentByID(agent.GetUUID())
+		if err == nil {
+			tags = getAgentResponse.Tags
+		}
+	}
+
 	var kind config.Kind
 	switch agent.(type) {
 	case *rsc.LocalAgent:
@@ -74,6 +87,7 @@ func (exe *agentExecutor) Execute() (err error) {
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,
+			Tags:      tags,
 		},
 		Spec: agent,
 	}

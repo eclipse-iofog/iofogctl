@@ -49,6 +49,7 @@ type iofogctlNamespace struct {
 
 // HeaderMetadata contains k8s metadata
 type HeaderMetadata struct {
-	Name      string `yaml:"name" json:"name"`
-	Namespace string `yaml:"namespace" json:"namespace"`
+	Name      string    `yaml:"name" json:"name"`
+	Namespace string    `yaml:"namespace" json:"namespace"`
+	Tags      *[]string `yaml:"tags,omitempty" json:"tags,omitempty"`
 }

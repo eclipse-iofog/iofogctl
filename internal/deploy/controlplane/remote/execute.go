@@ -70,7 +70,7 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 	}
 
 	// Get Agentconfig executor
-	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace)
+	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace, nil)
 	// If there already is a system fog, ignore error
 	if err = deployAgentConfigExecutor.Execute(); err != nil {
 		return err

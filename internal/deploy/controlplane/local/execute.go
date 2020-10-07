@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
+	deploylocalcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
@@ -64,7 +64,7 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	}
 
 	// Get Agentconfig executor
-	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace)
+	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace, nil)
 	// If there already is a system fog, ignore error
 	if err = deployAgentConfigExecutor.Execute(); err != nil {
 		return err

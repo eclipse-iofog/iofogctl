@@ -151,7 +151,6 @@ func (exe *agentConfigExecutor) Execute() error {
 			UpstreamRouters:           upstreamRoutersPtr,
 			NetworkRouter:             networkRouterPtr,
 			RouterConfig:              routerConfig,
-			Tags:                      &getAgentResponse.Tags,
 		},
 	}
 
@@ -161,6 +160,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,
+			Tags:      getAgentResponse.Tags,
 		},
 		Spec: agentConfig,
 	}
