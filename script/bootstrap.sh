@@ -14,10 +14,6 @@ set -e
 prettyTitle "Installing iofogctl Dependencies"
 echo
 
-# What platform are we on?
-OS=$(uname -s | tr A-Z a-z)
-K8S_VERSION=1.13.4
-
 # Check whether Brew is installed
 # TODO: Current installation method is macos centric, make it work for linux too.
 #if ! checkForInstallation "brew"; then
@@ -34,22 +30,6 @@ K8S_VERSION=1.13.4
 if ! checkForInstallation "go"; then
     echoNotify "\nYou do not have Go installed. Please install and re-run bootstrap."
     exit 1
-fi
-
-# Is mercurial installed?
-if [ -z $(command -v hg) ]; then
-    echo " Attempting to install 'mercurial'"
-    if [ "$(uname -s)" = "Darwin" ]; then
-        brew install mercurial
-    else
-        sudo apt install mercurial
-    fi
-fi
-
-# Is go-junit-report installed?
-if ! checkForInstallation "go-junit-report"; then
-    echoInfo " Attempting to install 'go-junit-report'"
-    go install -mod=vendor github.com/jstemmer/go-junit-report
 fi
 
 # Is rice installed?
@@ -77,17 +57,21 @@ if ! checkForInstallation "jq"; then
     fi
 fi
 
-#
-# All our Kubernetes related stuff
-##
-#
-
-## Is kubernetes-cli installed?
-if ! checkForInstallation "kubectl"; then
-    echoInfo " Attempting to install kubernetes-cli"
-	curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v"$K8S_VERSION"/bin/"$OS"/amd64/kubectl
-	chmod +x kubectl
-	sudo mv kubectl /usr/local/bin/
+# CI deps
+if [ ! -z "$PIPELINE" ]
+    ## Is kubernetes-cli installed?
+    if [ ! checkForInstallation "kubectl" ]; then
+        OS=$(uname -s | tr A-Z a-z)
+        K8S_VERSION=1.13.4
+        echoInfo " Attempting to install kubernetes-cli"
+        curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v"$K8S_VERSION"/bin/"$OS"/amd64/kubectl
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+    fi
+    # Is go-junit-report installed?
+    if ! checkForInstallation "go-junit-report"; then
+        echoInfo " Attempting to install 'go-junit-report'"
+        go install -mod=vendor github.com/jstemmer/go-junit-report
+    fi
+    ## TODO: gcloud
 fi
-
-## TODO: gcloud

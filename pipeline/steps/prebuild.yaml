@@ -12,10 +12,10 @@ steps:
     goBin: $(GOBIN)
   displayName: 'Install Golang'
 - script: |
-    ./script/check_fmt.sh
+    script/check_fmt.sh
   displayName: 'Check Source Format'
 - script: |
-    script/bootstrap.sh
+    PIPELINE=1 script/bootstrap.sh
   displayName: 'Bootstrap'
 - script: |
     make test

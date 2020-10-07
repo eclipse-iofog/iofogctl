@@ -134,18 +134,18 @@ This project uses go modules so it must be built from outside of your $GOPATH.
 
 Go 1.13+ is a prerequisite. Install all other dependancies with:
 ```
-script/bootstrap.sh
+make bootstrap
 ```
 Make sure that your `$PATH` contains `$GOBIN`, otherwise `make build` will fail on the basis that command `rice` is not found.
 
 See all `make` commands by running:
 ```
-make help
+make
 ```
 
 To build and install, go ahead and run:
 ```
-make all
+make build install
 iofogctl --help
 ```
 

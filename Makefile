@@ -38,16 +38,26 @@ GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
-all: init build install ## Build, and install binary
+all: bootstrap build install ## Bootstrap env, build and install binary
 
-.PHONY: clean
-clean: ## Clean the working area and the project
-	rm -rf $(BUILD_DIR)/
-	rm -rf $(REPORTS_DIR)
-
-.PHONY: init
-init: ## Init git repository
+.PHONY: bootstrap
+bootstrap: ## Bootstrap environment
 	@cp gitHooks/* .git/hooks/
+	@script/bootstrap.sh
+
+.PHONY: build
+build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
+build: fmt ## Build the binary
+ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
+	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
+endif
+	@cd pkg/util && rice embed-go
+	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
+
+.PHONY: install
+install: ## Install the iofogctl binary to /usr/local/bin
+	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
+
 
 .PHONY: modules
 modules: get vendor ## Get modules and vendor them
@@ -66,19 +76,6 @@ vendor: ## Vendor all modules
 		git checkout -- vendor/github.com/$$module; \
 	done
 
-.PHONY: build
-build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
-build: fmt ## Build the binary
-ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
-	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
-endif
-	@cd pkg/util && rice embed-go
-	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
-
-.PHONY: install
-install: ## Install the iofogctl binary to /usr/local/bin
-	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
-
 .PHONY: fmt
 fmt: ## Format the source
 	@gofmt -s -w $(GOFILES_NOVENDOR)
@@ -93,6 +90,11 @@ test: ## Run unit tests
 .PHONY: list
 list: ## List all make targets
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
+
+.PHONY: clean
+clean: ## Clean working env
+	rm -rf $(BUILD_DIR)/
+	rm -rf $(REPORTS_DIR)
 
 .PHONY: help
 .DEFAULT_GOAL := help
