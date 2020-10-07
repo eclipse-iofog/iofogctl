@@ -84,6 +84,9 @@ func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
 }
 
 func UpdateAgentCache(namespace string) error {
+	mux.Lock()
+	defer mux.Unlock()
+
 	// Get local cache Agents
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
