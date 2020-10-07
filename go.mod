@@ -9,7 +9,7 @@ require (
 	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200923215434-198fc1eae726
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005194419-2e26a3690802
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005233041-dd2f47e80670
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/json-iterator/go v1.1.8
@@ -29,6 +29,7 @@ require (
 
 // Pinned to kubernetes-1.16.2
 replace (
+	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.0
 	k8s.io/api => k8s.io/api v0.0.0-20191016110408-35e52d86657a
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8

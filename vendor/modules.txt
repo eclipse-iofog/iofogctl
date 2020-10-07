@@ -51,7 +51,7 @@ github.com/eclipse-iofog/iofog-go-sdk/pkg/client
 # github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20200923215434-198fc1eae726
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client
-# github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005194419-2e26a3690802
+# github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005233041-dd2f47e80670
 github.com/eclipse-iofog/iofog-operator/v2/pkg/apis
 github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog
 # github.com/eclipse-iofog/iofogctl v1.3.2
@@ -73,7 +73,7 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.4.1
+# github.com/googleapis/gnostic v0.4.1 => github.com/googleapis/gnostic v0.4.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
