@@ -119,13 +119,13 @@ Then follow the instructions output by the command.
 
 Example:
 ```bash
-$> iofogctl autocomplete bash
+iofogctl autocomplete bash
 ✔ $HOME/.iofog/completion.bash.sh generated
 Run `source $HOME/.iofog/completion.bash.sh` to update your current session
 Add `source $HOME/.iofog/completion.bash.sh` to your bash profile to have it saved
 
-$>source $HOME/.iofog/completion.bash.sh
-$>echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
+source $HOME/.iofog/completion.bash.sh
+echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 ```
 
 ## Build from Source
