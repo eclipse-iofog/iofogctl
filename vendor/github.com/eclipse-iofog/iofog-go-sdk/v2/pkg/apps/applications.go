@@ -111,10 +111,14 @@ func (exe *applicationExecutor) create() (err error) {
 	if err != nil {
 		return err
 	}
+	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
+	if routes == nil {
+		routes = []client.ApplicationRouteCreateRequest{}
+	}
 	request := &client.ApplicationCreateRequest{
 		Name:          exe.app.Name,
 		Microservices: microservices,
-		Routes:        mapRoutesToClientRouteRequests(exe.app.Routes),
+		Routes:        routes,
 	}
 
 	if _, err = exe.client.CreateApplication(request); err != nil {
