@@ -111,6 +111,9 @@ func (exe *applicationExecutor) create() (err error) {
 	if err != nil {
 		return err
 	}
+	if microservices == nil {
+		microservices = []client.MicroserviceCreateRequest{}
+	}
 	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
 	if routes == nil {
 		routes = []client.ApplicationRouteCreateRequest{}
@@ -134,9 +137,14 @@ func (exe *applicationExecutor) update() (err error) {
 	}
 	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
 	request := &client.ApplicationUpdateRequest{
-		Name:          &exe.app.Name,
-		Microservices: &microservices,
-		Routes:        &routes,
+		Name: &exe.app.Name,
+	}
+
+	if routes != nil {
+		request.Routes = &routes
+	}
+	if microservices != nil {
+		request.Microservices = &microservices
 	}
 
 	if _, err = exe.client.UpdateApplication(exe.app.Name, request); err != nil {
