@@ -301,6 +301,9 @@ func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice, 
 }
 
 func mapRoutesToClientRouteRequests(routes []Route) (result []client.ApplicationRouteCreateRequest) {
+	if routes != nil && len(routes) == 0 {
+		return []client.ApplicationRouteCreateRequest{}
+	}
 	for _, route := range routes {
 		result = append(result, mapRouteToClientRouteRequest(route))
 	}

@@ -40,9 +40,17 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 			}
 		}
 	}
-	application, err := clt.GetFlowByID(msvc.FlowID)
-	if err != nil {
-		return
+
+	applicationName := msvc.Application
+	if msvc.Application == "" {
+		if msvc.FlowID > 0 {
+			// Legacy
+			flow, err := clt.GetFlowByID(msvc.FlowID)
+			if err != nil {
+				return nil, err
+			}
+			applicationName = flow.Name
+		}
 	}
 
 	// Map port host to agent name
@@ -138,7 +146,7 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	result.Container.Volumes = &volumes
 	result.Container.Env = &envs
 	result.Container.ExtraHosts = &extraHosts
-	result.Flow = &application.Name
+	result.Application = &applicationName
 	return
 }
 

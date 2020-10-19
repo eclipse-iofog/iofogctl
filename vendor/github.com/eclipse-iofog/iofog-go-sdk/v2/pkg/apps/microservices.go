@@ -53,7 +53,7 @@ func newMicroserviceExecutor(controller IofogController, msvc Microservice) *mic
 	return exe
 }
 
-// newMicroserviceExecutorWithApplicationDataAndClient used by application deployment in order to reuse already initialised data
+// newMicroserviceExecutorWithApplicationDataAndClient (DEPRECATED) used by application deployment in order to reuse already initialised data
 func newMicroserviceExecutorWithApplicationDataAndClient(controller IofogController, msvc Microservice, appData ApplicationData, clt *client.Client) *microserviceExecutor {
 	exe := &microserviceExecutor{
 		controller:         controller,
@@ -97,19 +97,28 @@ func (exe *microserviceExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
-	if exe.msvc.Flow == nil {
+	if exe.msvc.Flow == nil && exe.msvc.Application == nil {
 		return NewInputError("You must specify an application in order to deploy a microservice")
 	}
-	exe.flowInfo, err = exe.client.GetFlowByName(*exe.msvc.Flow)
-	if err != nil {
-		return err
-	}
-	if exe.flowInfo == nil {
-		return NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
-	}
-	listMsvcs, err := exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
-	if err != nil {
-		return
+	var listMsvcs *client.MicroserviceListResponse
+	if exe.msvc.Application != nil {
+		listMsvcs, err = exe.client.GetMicroservicesByApplication(*exe.msvc.Application)
+		if err != nil {
+			return
+		}
+	} else {
+		// Legacy
+		exe.flowInfo, err = exe.client.GetFlowByName(*exe.msvc.Flow)
+		if err != nil {
+			return err
+		}
+		if exe.flowInfo == nil {
+			return NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
+		}
+		listMsvcs, err = exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
+		if err != nil {
+			return
+		}
 	}
 	exe.microserviceByName = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(listMsvcs.Microservices); i++ {
@@ -167,7 +176,10 @@ func (exe *microserviceExecutor) validate() error {
 		if exe.msvc.Images.CatalogID != 0 && exe.msvc.Images.CatalogID != existingMsvc.CatalogItemID {
 			return NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
 		}
-		if exe.flowInfo != nil && exe.flowInfo.ID != existingMsvc.FlowID {
+		if exe.flowInfo != nil && exe.flowInfo.ID != existingMsvc.FlowID { // Legacy
+			return NewInputError(fmt.Sprintf("Cannot update a microservice application"))
+		}
+		if exe.msvc.Application != nil && *exe.msvc.Application != existingMsvc.Application {
 			return NewInputError(fmt.Sprintf("Cannot update a microservice application"))
 		}
 	}
@@ -237,10 +249,20 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 	if extraHosts == nil {
 		extraHosts = &[]client.MicroserviceExtraHost{}
 	}
+	// Handle flow vs application
+	application := ""
+	flowId := 0
+	if exe.msvc.Application != nil {
+		application = *exe.msvc.Application
+	}
+	if exe.flowInfo != nil {
+		flowId = exe.flowInfo.ID
+	}
 	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
-		FlowID:         exe.flowInfo.ID,
+		FlowID:         flowId,
+		Application:    application,
 		Name:           exe.msvc.Name,
 		RootHostAccess: exe.msvc.Container.RootHostAccess,
 		Ports:          mapPorts(exe.msvc.Container.Ports),
@@ -283,11 +305,12 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 	})
 }
 
-func mapPorts(in []MicroservicePortMapping) (out []client.MicroservicePortMapping) {
+func mapPorts(in []MicroservicePortMapping) []client.MicroservicePortMapping {
+	out := []client.MicroservicePortMapping{}
 	for _, port := range in {
 		out = append(out, client.MicroservicePortMapping(port))
 	}
-	return
+	return out
 }
 
 func mapVolumes(in *[]MicroserviceVolumeMapping) *[]client.MicroserviceVolumeMapping {

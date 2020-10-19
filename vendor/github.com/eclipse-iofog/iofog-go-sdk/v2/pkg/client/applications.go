@@ -44,9 +44,9 @@ func (clt *Client) CreateApplication(request *ApplicationCreateRequest) (*Applic
 	return clt.GetApplicationByName(request.Name)
 }
 
-// UpdateApplication patches an application using the Controller REST API
+// UpdateApplication updates an application using the Controller REST API
 func (clt *Client) UpdateApplication(name string, request *ApplicationUpdateRequest) (*ApplicationInfo, error) {
-	_, err := clt.doRequest("PATCH", fmt.Sprintf("/application/%s", name), *request)
+	_, err := clt.doRequest("PUT", fmt.Sprintf("/application/%s", name), *request)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (clt *Client) UpdateApplication(name string, request *ApplicationUpdateRequ
 }
 
 // UpdateApplication patches an application using the Controller REST API
-func (clt *Client) PatchApplication(name string, request *ApplicationUpdateRequest) (*ApplicationInfo, error) {
+func (clt *Client) PatchApplication(name string, request *ApplicationPatchRequest) (*ApplicationInfo, error) {
 	_, err := clt.doRequest("PATCH", fmt.Sprintf("/application/%s", name), *request)
 	if err != nil {
 		return nil, err
@@ -65,13 +65,13 @@ func (clt *Client) PatchApplication(name string, request *ApplicationUpdateReque
 // StartApplication set the application as active using the Controller REST API
 func (clt *Client) StartApplication(name string) (*ApplicationInfo, error) {
 	active := true
-	return clt.PatchApplication(name, &ApplicationUpdateRequest{IsActivated: &active})
+	return clt.PatchApplication(name, &ApplicationPatchRequest{IsActivated: &active})
 }
 
 // StopApplication set the application as inactive using the Controller REST API
 func (clt *Client) StopApplication(name string) (*ApplicationInfo, error) {
 	active := false
-	return clt.PatchApplication(name, &ApplicationUpdateRequest{IsActivated: &active})
+	return clt.PatchApplication(name, &ApplicationPatchRequest{IsActivated: &active})
 }
 
 // GetAllApplications retrieve all flows information from the Controller REST API

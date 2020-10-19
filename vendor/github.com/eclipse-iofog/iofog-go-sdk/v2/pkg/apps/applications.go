@@ -153,7 +153,7 @@ func (exe *applicationExecutor) deploy() (err error) {
 	}
 
 	// Start application
-	if _, err = exe.client.StartApplication(exe.applicationInfo.Name); err != nil {
+	if _, err = exe.client.StartApplication(exe.app.Name); err != nil {
 		return err
 	}
 	return nil

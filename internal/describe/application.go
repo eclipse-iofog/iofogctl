@@ -44,25 +44,38 @@ func (exe *applicationExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
-	exe.flow, err = exe.client.GetFlowByName(exe.name)
-	if err != nil {
-		return
-	}
-	msvcListResponse, err := exe.client.GetMicroservicesPerFlow(exe.flow.ID)
-	if err != nil {
-		return
-	}
-
-	// Filter system microservices
-	for _, msvc := range msvcListResponse.Microservices {
-		if util.IsSystemMsvc(msvc) {
-			continue
+	application, err := exe.client.GetApplicationByName(exe.name)
+	// If notfound error, try legacy
+	if _, ok := err.(*client.NotFoundError); err != nil && ok {
+		if err = exe.initLegacy(); err != nil {
+			return err
 		}
-		exe.msvcs = append(exe.msvcs, msvc)
-	}
-	exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
-	for i := 0; i < len(exe.msvcs); i++ {
-		exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
+	} else {
+		// TODO: Use Application instead of flow
+		exe.flow = &client.FlowInfo{
+			Name:        application.Name,
+			IsActivated: application.IsActivated,
+			Description: application.Description,
+			IsSystem:    application.IsSystem,
+			UserID:      application.UserID,
+			ID:          application.ID,
+		}
+		msvcListResponse, err := exe.client.GetMicroservicesByApplication(exe.name)
+		if err != nil {
+			return err
+		}
+
+		// Filter system microservices
+		for _, msvc := range msvcListResponse.Microservices {
+			if util.IsSystemMsvc(msvc) {
+				continue
+			}
+			exe.msvcs = append(exe.msvcs, msvc)
+		}
+		exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
+		for i := 0; i < len(exe.msvcs); i++ {
+			exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
+		}
 	}
 	return
 }

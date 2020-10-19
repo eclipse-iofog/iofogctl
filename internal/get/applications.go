@@ -23,16 +23,16 @@ import (
 )
 
 type applicationExecutor struct {
-	namespace    string
-	client       *client.Client
-	flows        []client.FlowInfo
-	msvcsPerFlow map[int][]client.MicroserviceInfo
+	namespace           string
+	client              *client.Client
+	flows               []client.FlowInfo
+	msvcsPerApplication map[int][]client.MicroserviceInfo
 }
 
 func newApplicationExecutor(namespace string) *applicationExecutor {
 	c := &applicationExecutor{}
 	c.namespace = namespace
-	c.msvcsPerFlow = make(map[int][]client.MicroserviceInfo)
+	c.msvcsPerApplication = make(map[int][]client.MicroserviceInfo)
 	return c
 }
 
@@ -61,23 +61,37 @@ func (exe *applicationExecutor) init() (err error) {
 		}
 		return err
 	}
-	flows, err := exe.client.GetAllFlows()
-	if err != nil {
-		return
-	}
-	exe.flows = flows.Flows
-	for _, flow := range exe.flows {
-		listMsvcs, err := exe.client.GetMicroservicesPerFlow(flow.ID)
-		if err != nil {
+	applications, err := exe.client.GetAllApplications()
+	// If notfound error, try legacy
+	if _, ok := err.(*client.NotFoundError); err != nil && ok {
+		if err = exe.initLegacy(); err != nil {
 			return err
 		}
-
-		// Filter System microservices
-		for _, ms := range listMsvcs.Microservices {
-			if util.IsSystemMsvc(ms) {
-				continue
+	} else {
+		// Map applications to flow
+		// TODO: Use Application instead of flow
+		exe.flows = []client.FlowInfo{}
+		for _, application := range applications.Applications {
+			exe.flows = append(exe.flows, client.FlowInfo{
+				Name:        application.Name,
+				IsActivated: application.IsActivated,
+				Description: application.Description,
+				IsSystem:    application.IsSystem,
+				UserID:      application.UserID,
+				ID:          application.ID,
+			})
+			listMsvcs, err := exe.client.GetMicroservicesByApplication(application.Name)
+			if err != nil {
+				return err
 			}
-			exe.msvcsPerFlow[flow.ID] = append(exe.msvcsPerFlow[flow.ID], ms)
+
+			// Filter System microservices
+			for _, ms := range listMsvcs.Microservices {
+				if util.IsSystemMsvc(ms) {
+					continue
+				}
+				exe.msvcsPerApplication[application.ID] = append(exe.msvcsPerApplication[application.ID], ms)
+			}
 		}
 	}
 	return
@@ -91,11 +105,11 @@ func (exe *applicationExecutor) generateApplicationOutput() (table [][]string, e
 
 	// Populate rows
 	for idx, flow := range exe.flows {
-		nbMsvcs := len(exe.msvcsPerFlow[flow.ID])
+		nbMsvcs := len(exe.msvcsPerApplication[flow.ID])
 		runningMsvcs := 0
 		msvcs := ""
 		first := true
-		for _, msvc := range exe.msvcsPerFlow[flow.ID] {
+		for _, msvc := range exe.msvcsPerApplication[flow.ID] {
 			if first == true {
 				msvcs += fmt.Sprintf("%s", msvc.Name)
 			} else {
@@ -108,7 +122,7 @@ func (exe *applicationExecutor) generateApplicationOutput() (table [][]string, e
 		}
 
 		if nbMsvcs > 5 {
-			msvcs = fmt.Sprintf("%d microservices", len(exe.msvcsPerFlow[flow.ID]))
+			msvcs = fmt.Sprintf("%d microservices", len(exe.msvcsPerApplication[flow.ID]))
 		}
 
 		status := fmt.Sprintf("%d/%d", runningMsvcs, nbMsvcs)
