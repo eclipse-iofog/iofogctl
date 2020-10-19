@@ -14,6 +14,8 @@
 package describe
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -28,6 +30,7 @@ type applicationExecutor struct {
 	flow      *client.FlowInfo
 	client    *client.Client
 	msvcs     []client.MicroserviceInfo
+	routes    []client.Route
 	msvcPerID map[string]*client.MicroserviceInfo
 }
 
@@ -44,39 +47,44 @@ func (exe *applicationExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
+
+	routeList, err := exe.client.ListRoutes()
+	if err != nil {
+		return err
+	}
+	exe.routes = routeList.Routes
+
 	application, err := exe.client.GetApplicationByName(exe.name)
 	// If notfound error, try legacy
 	if _, ok := err.(*client.NotFoundError); err != nil && ok {
-		if err = exe.initLegacy(); err != nil {
-			return err
-		}
-	} else {
-		// TODO: Use Application instead of flow
-		exe.flow = &client.FlowInfo{
-			Name:        application.Name,
-			IsActivated: application.IsActivated,
-			Description: application.Description,
-			IsSystem:    application.IsSystem,
-			UserID:      application.UserID,
-			ID:          application.ID,
-		}
-		msvcListResponse, err := exe.client.GetMicroservicesByApplication(exe.name)
-		if err != nil {
-			return err
-		}
-
-		// Filter system microservices
-		for _, msvc := range msvcListResponse.Microservices {
-			if util.IsSystemMsvc(msvc) {
-				continue
-			}
-			exe.msvcs = append(exe.msvcs, msvc)
-		}
-		exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
-		for i := 0; i < len(exe.msvcs); i++ {
-			exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
-		}
+		return exe.initLegacy()
 	}
+	// TODO: Use Application instead of flow
+	exe.flow = &client.FlowInfo{
+		Name:        application.Name,
+		IsActivated: application.IsActivated,
+		Description: application.Description,
+		IsSystem:    application.IsSystem,
+		UserID:      application.UserID,
+		ID:          application.ID,
+	}
+	msvcListResponse, err := exe.client.GetMicroservicesByApplication(exe.name)
+	if err != nil {
+		return err
+	}
+
+	// Filter system microservices
+	for _, msvc := range msvcListResponse.Microservices {
+		if util.IsSystemMsvc(msvc) {
+			continue
+		}
+		exe.msvcs = append(exe.msvcs, msvc)
+	}
+	exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
+	for i := 0; i < len(exe.msvcs); i++ {
+		exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
+	}
+
 	return
 }
 
@@ -101,6 +109,21 @@ func (exe *applicationExecutor) Execute() error {
 		// Remove fields
 		yamlMsvc.Flow = nil
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
+	}
+
+	for _, route := range exe.routes {
+		from, okSrc := exe.msvcPerID[route.SourceMicroserviceUUID]
+		to, okDest := exe.msvcPerID[route.DestMicroserviceUUID]
+		if okSrc {
+			if !okDest {
+				return util.NewNotFoundError(fmt.Sprintf("Route %s contains a destination microservice that could not be found in the application", route.Name))
+			}
+			yamlRoutes = append(yamlRoutes, rsc.Route{
+				Name: route.Name,
+				From: from.Name,
+				To:   to.Name,
+			})
+		}
 	}
 
 	application := rsc.Application{
