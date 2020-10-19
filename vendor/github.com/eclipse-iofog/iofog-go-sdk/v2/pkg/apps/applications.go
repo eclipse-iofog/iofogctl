@@ -70,10 +70,7 @@ func (exe *applicationExecutor) execute() (err error) {
 	}
 
 	// Deploy application
-	if err = exe.deploy(); err != nil {
-		return
-	}
-
+	err = exe.deploy()
 	// If notfound error, try legacy
 	if _, ok := err.(*client.NotFoundError); err != nil && ok {
 		return exe.deployLegacy()
