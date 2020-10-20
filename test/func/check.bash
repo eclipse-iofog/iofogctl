@@ -216,7 +216,9 @@ function checkApplication() {
   DESC_MSVC=$(iofogctl -v -n "$NS_CHECK" describe microservice "$MSVC1_NAME")
   echo "${DESC_MSVC}" | grep "test_mode: true"
   echo "${DESC_MSVC}" | grep "data_label: Anonymous_Person"
-  [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
+  # Deploying an application should not update Agent config. This is a legacy overload of the functionality.
+  # Use a separate AgentConfig Kind to update the required config.
+  # [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5000:80")
   [[ "$MSVC2_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]

@@ -13,7 +13,7 @@
 
 package client
 
-// Flows
+// Flows - Keep for legacy
 type FlowInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -42,6 +42,49 @@ type FlowUpdateRequest struct {
 
 type FlowListResponse struct {
 	Flows []FlowInfo `json:"flows"`
+}
+
+// Applications
+type ApplicationInfo struct {
+	Name          string             `json:"name"`
+	Description   string             `json:"description"`
+	IsActivated   bool               `json:"isActivated"`
+	IsSystem      bool               `json:"isSystem"`
+	UserID        int                `json:"userId"`
+	ID            int                `json:"id"`
+	Microservices []MicroserviceInfo `json:"microservices"`
+	Routes        []Route            `json:"routes"`
+}
+
+type ApplicationCreateRequest struct {
+	Name          string                          `json:"name"`
+	Description   string                          `json:"description,omitempty"`
+	Microservices []MicroserviceCreateRequest     `json:"microservices"`
+	Routes        []ApplicationRouteCreateRequest `json:"routes"`
+}
+
+type ApplicationCreateResponse struct {
+	ID int `json:"id"`
+}
+
+type ApplicationUpdateRequest struct {
+	Name          *string                          `json:"name,omitempty"`
+	Description   *string                          `json:"description,omitempty"`
+	IsActivated   *bool                            `json:"isActivated,omitempty"`
+	IsSystem      *bool                            `json:"isSystem,omitempty"`
+	Microservices *[]MicroserviceCreateRequest     `json:"microservices,omitempty"`
+	Routes        *[]ApplicationRouteCreateRequest `json:"routes,omitempty"`
+}
+
+type ApplicationPatchRequest struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	IsActivated *bool   `json:"isActivated,omitempty"`
+	IsSystem    *bool   `json:"isSystem,omitempty"`
+}
+
+type ApplicationListResponse struct {
+	Applications []ApplicationInfo `json:"applications"`
 }
 
 // Registries
@@ -167,6 +210,8 @@ type MicroserviceInfo struct {
 	Delete            bool                        `json:"delete"`
 	DeleteWithCleanup bool                        `json:"deleteWithCleanup"`
 	FlowID            int                         `json:"flowId"`
+	ApplicationID     int                         `json:"applicationID"`
+	Application       string                      `json:"application"`
 	CatalogItemID     int                         `json:"catalogItemId"`
 	AgentUUID         string                      `json:"iofogUuid"`
 	UserID            int                         `json:"userId"`
@@ -192,6 +237,7 @@ type MicroserviceCreateRequest struct {
 	RootHostAccess bool                        `json:"rootHostAccess"`
 	LogSize        int                         `json:"logSize"`
 	FlowID         int                         `json:"flowId"`
+	Application    string                      `json:"application"`
 	CatalogItemID  int                         `json:"catalogItemId,omitempty"`
 	AgentUUID      string                      `json:"iofogUuid"`
 	RegistryID     int                         `json:"registryId"`
@@ -212,6 +258,7 @@ type MicroserviceUpdateRequest struct {
 	Delete            *bool                        `json:"delete,omitempty"`
 	DeleteWithCleanup *bool                        `json:"deleteWithCleanup,omitempty"`
 	FlowID            *int                         `json:"flowId,omitempty"`
+	Application       *string                      `json:"application,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
 	RegistryID        *int                         `json:"registryId,omitempty"`
@@ -438,6 +485,13 @@ type RouteListResponse struct {
 
 type Route struct {
 	Name                   string `json:"name"`
+	Application            string `json:"application"`
 	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
 	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`
+}
+
+type ApplicationRouteCreateRequest struct {
+	Name string `json:"name"`
+	From string `json:"from"`
+	To   string `json:"to"`
 }

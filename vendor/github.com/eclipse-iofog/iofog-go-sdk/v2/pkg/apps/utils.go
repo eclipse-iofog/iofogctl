@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
@@ -222,4 +223,89 @@ func catalogItemNeedsUpdate(catalogItem *client.CatalogItemInfo, catalogImages [
 	}
 
 	return false
+}
+
+func mapMicroserviceToClientMicroserviceRequest(microservice Microservice, agentsByName map[string]*client.AgentInfo) (request client.MicroserviceCreateRequest, err error) {
+	agent, ok := agentsByName[microservice.Agent.Name]
+	if !ok {
+		agent = &client.AgentInfo{UUID: ""}
+	}
+
+	// Transform msvc config to JSON string
+	config := ""
+	if microservice.Config != nil {
+		byteconfig, err := jsoniter.Marshal(microservice.Config)
+		if err != nil {
+			return client.MicroserviceCreateRequest{}, err
+		}
+		config = string(byteconfig)
+	}
+
+	var registryID int
+	if microservice.Images.Registry != "" {
+		registryID, err = strconv.Atoi(microservice.Images.Registry)
+		if err != nil {
+			registryID = client.RegistryTypeRegistryTypeIDDict[microservice.Images.Registry]
+		}
+	}
+
+	images := []client.CatalogImage{
+		{ContainerImage: microservice.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
+		{ContainerImage: microservice.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
+	}
+	volumes := mapVolumes(microservice.Container.Volumes)
+	if volumes == nil {
+		volumes = &[]client.MicroserviceVolumeMapping{}
+	}
+	envs := mapEnvs(microservice.Container.Env)
+	if envs == nil {
+		envs = &[]client.MicroserviceEnvironment{}
+	}
+	extraHosts := mapExtraHosts(microservice.Container.ExtraHosts)
+	if extraHosts == nil {
+		extraHosts = &[]client.MicroserviceExtraHost{}
+	}
+	return client.MicroserviceCreateRequest{
+		Config:         config,
+		CatalogItemID:  microservice.Images.CatalogID,
+		Name:           microservice.Name,
+		RootHostAccess: microservice.Container.RootHostAccess,
+		Ports:          mapPorts(microservice.Container.Ports),
+		Volumes:        *volumes,
+		Env:            *envs,
+		ExtraHosts:     *extraHosts,
+		RegistryID:     registryID,
+		AgentUUID:      agent.UUID,
+		Commands:       microservice.Container.Commands,
+		Images:         images,
+	}, nil
+}
+
+func mapRouteToClientRouteRequest(route Route) client.ApplicationRouteCreateRequest {
+	return client.ApplicationRouteCreateRequest{
+		From: route.From,
+		To:   route.To,
+		Name: route.Name,
+	}
+}
+
+func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice, agentsByName map[string]*client.AgentInfo) (result []client.MicroserviceCreateRequest, err error) {
+	for _, microservice := range microservices {
+		m, err := mapMicroserviceToClientMicroserviceRequest(microservice, agentsByName)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, m)
+	}
+	return
+}
+
+func mapRoutesToClientRouteRequests(routes []Route) (result []client.ApplicationRouteCreateRequest) {
+	if routes != nil && len(routes) == 0 {
+		return []client.ApplicationRouteCreateRequest{}
+	}
+	for _, route := range routes {
+		result = append(result, mapRouteToClientRouteRequest(route))
+	}
+	return
 }

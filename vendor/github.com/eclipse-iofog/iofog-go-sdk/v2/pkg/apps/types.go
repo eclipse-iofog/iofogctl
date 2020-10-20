@@ -85,15 +85,16 @@ type MicroserviceContainer struct {
 // Microservice contains information for configuring a microservice
 // +k8s:deepcopy-gen=true
 type Microservice struct {
-	UUID      string                `yaml:"uuid" json:"uuid"`
-	Name      string                `yaml:"name" json:"name"`
-	Agent     MicroserviceAgent     `yaml:"agent" json:"agent"`
-	Images    *MicroserviceImages   `yaml:"images,omitempty" json:"images,omitempty"`
-	Container MicroserviceContainer `yaml:"container,omitempty" json:"container,omitempty"`
-	Config    NestedMap             `yaml:"config" json:"config"`
-	Flow      *string               `yaml:"application,omitempty" json:"application,omitempty"`
-	Created   string                `yaml:"created,omitempty" json:"created,omitempty"`
-	Rebuild   bool                  `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
+	UUID        string                `yaml:"uuid" json:"uuid"`
+	Name        string                `yaml:"name" json:"name"`
+	Agent       MicroserviceAgent     `yaml:"agent" json:"agent"`
+	Images      *MicroserviceImages   `yaml:"images,omitempty" json:"images,omitempty"`
+	Container   MicroserviceContainer `yaml:"container,omitempty" json:"container,omitempty"`
+	Config      NestedMap             `yaml:"config" json:"config"`
+	Flow        *string               `yaml:"flow,omitempty" json:"flow,omitempty"`
+	Application *string               `yaml:"application,omitempty" json:"application,omitempty"`
+	Created     string                `yaml:"created,omitempty" json:"created,omitempty"`
+	Rebuild     bool                  `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
 }
 
 type NestedMap map[string]interface{}

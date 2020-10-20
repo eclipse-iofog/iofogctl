@@ -75,9 +75,20 @@ func (clt *Client) CreateMicroservice(request MicroserviceCreateRequest) (*Micro
 	return clt.GetMicroserviceByID(response.UUID)
 }
 
-// GetMicroservicesPerFlow returns a list of microservices in a specific flow using Controller REST API
+// GetMicroservicesPerFlow (DEPRECATED) returns a list of microservices in a specific flow using Controller REST API
 func (clt *Client) GetMicroservicesPerFlow(flowID int) (response *MicroserviceListResponse, err error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices?flowId=%d", flowID), nil)
+	if err != nil {
+		return
+	}
+	response = new(MicroserviceListResponse)
+	err = json.Unmarshal(body, response)
+	return
+}
+
+// GetMicroservicesByApplication returns a list of microservices in a specific application using Controller REST API
+func (clt *Client) GetMicroservicesByApplication(application string) (response *MicroserviceListResponse, err error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices?application=%s", application), nil)
 	if err != nil {
 		return
 	}
