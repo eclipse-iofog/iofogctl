@@ -41,31 +41,26 @@ func (exe *Executor) GetName() string {
 	return exe.name
 }
 
-// Execute deletes application by deleting its associated flow
-func (exe *Executor) Execute() (err error) {
-	util.SpinStart("Deleting Application")
-	// Init remote resources
-	if err = exe.init(); err != nil {
-		return
-	}
-
-	// Delete flow
-	if err = exe.client.DeleteFlow(exe.flow.ID); err != nil {
-		return
-	}
-
-	return nil
-}
-
 func (exe *Executor) init() (err error) {
 	exe.client, err = iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}
-	flow, err := exe.client.GetFlowByName(exe.name)
-	if err != nil {
-		return
-	}
-	exe.flow = flow
 	return
+}
+
+// Execute deletes application by deleting its associated flow
+func (exe *Executor) Execute() (err error) {
+	util.SpinStart("Deleting Application")
+	if err = exe.init(); err != nil {
+		return err
+	}
+
+	err = exe.client.DeleteApplication(exe.name)
+	// If notfound error, try legacy
+	if _, ok := err.(*client.NotFoundError); err != nil && ok {
+		return exe.deleteLegacy()
+	}
+
+	return nil
 }
