@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.2] - 2020-10-23
+
+* Update Controller to 2.0.1 as default
+* Update Agent to 2.0.2 as default
+
 ## [2.0.1] - 2020-09-10
 
 * Update default versions of Agent, Router, and Proxy to 2.0.1

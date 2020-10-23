@@ -20,9 +20,9 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.0'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.0'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.1'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.1'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.3'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.2'
   operator_image: 'gcr.io/focal-freedom-236620/operator:2.0.0'
   kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:2.0.0'
   port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:2.0.0'
@@ -30,8 +30,8 @@ variables:
   router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:2.0.1'
   proxy_image: 'gcr.io/focal-freedom-236620/proxy:2.0.1'
   proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:2.0.1'
-  iofog_agent_version: '2.0.1'
-  controller_version: '2.0.0'
+  iofog_agent_version: '2.0.2'
+  controller_version: '2.0.1'
   version:
   agent_vm_list:
   controller_vm:
