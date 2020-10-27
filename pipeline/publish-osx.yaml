@@ -13,7 +13,7 @@ jobs:
   - template: steps/init-ssh.yaml
   - script: |
       . version
-      short_version=$MAJOR.$MINOR
+      short_version=$MAJOR.$MINOR.$PATCH
       tar -zcf iofogctl.tar.gz darwin/iofogctl
       checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
       gsutil cp iofogctl.tar.gz gs://$(gcp.bucket.osx)/$short_version/
