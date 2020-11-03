@@ -245,6 +245,11 @@ func (in *Microservice) DeepCopyInto(out *Microservice) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.Application != nil {
+		in, out := &in.Application, &out.Application
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

@@ -9,6 +9,7 @@ type Kind string
 const (
 	AgentConfigKind            Kind = "AgentConfig"
 	CatalogItemKind            Kind = "CatalogItem"
+	EdgeResourceKind           Kind = "EdgeResource"
 	IofogctlConfigKind         Kind = "IofogctlConfig"
 	IofogctlNamespaceKind      Kind = "Namespace"
 	RegistryKind               Kind = "Registry"

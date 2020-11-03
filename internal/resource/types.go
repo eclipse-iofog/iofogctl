@@ -108,6 +108,20 @@ type AgentConfiguration struct {
 	client.AgentConfiguration `yaml:",inline"`
 }
 
+type EdgeResource struct {
+	Name              string
+	Version           string                 `yaml:"version"`
+	Description       string                 `yaml:"description"`
+	InterfaceProtocol string                 `yaml:"interfaceProtocol"`
+	Endpoints         *[]HttpEndpoint        `yaml:"endpoints,omitempty"`
+	Display           *Display               `yaml:"display,omitempty"`
+	OrchestrationTags []string               `yaml:"orchestrationTags"`
+	Custom            map[string]interface{} `yaml:"custom"`
+}
+
+type Display = client.EdgeResourceDisplay
+type HttpEndpoint = client.HttpEndpoint
+
 // FogTypeStringMap map human readable fog type to Controller fog type
 var FogTypeStringMap = map[string]int64{
 	"auto": 0,

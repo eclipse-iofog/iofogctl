@@ -27,6 +27,7 @@ import (
 	deployk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/k8s"
 	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/local"
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controlplane/remote"
+	deployedgeresource "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/edgeresource"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/microservice"
 	deployregistry "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/registry"
 	deployroute "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/route"
@@ -53,6 +54,10 @@ var kindOrder = []config.Kind{
 type Options struct {
 	Namespace string
 	InputFile string
+}
+
+func deployEdgeResource(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployedgeresource.NewExecutor(deployedgeresource.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployCatalogItem(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -115,6 +120,7 @@ var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executo
 	config.ApplicationKind:            deployApplication,
 	config.MicroserviceKind:           deployMicroservice,
 	config.CatalogItemKind:            deployCatalogItem,
+	config.EdgeResourceKind:           deployEdgeResource,
 	config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
 	config.RemoteControlPlaneKind:     deployRemoteControlPlane,
 	config.LocalControlPlaneKind:      deployLocalControlPlane,

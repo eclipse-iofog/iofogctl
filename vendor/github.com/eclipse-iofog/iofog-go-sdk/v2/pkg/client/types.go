@@ -504,21 +504,21 @@ type EdgeResourceDisplay struct {
 	Color string `json:"color,omitempty"`
 }
 
-type EdgeResourceMetaData struct {
-	Name              string              `json:"name,omitempty"`
-	Description       string              `json:"description,omitempty"`
-	Version           string              `json:"version,omitempty"`
-	InterfaceProtocol string              `json:"interfaceProtocol,omitempty"`
-	Display           EdgeResourceDisplay `json:"display,omitempty"`
-	OrchestrationTags []string            `json:"orchestrationTags,omitempty"`
+type EdgeResourceMetadata struct {
+	Name              string               `json:"name,omitempty"`
+	Description       string               `json:"description,omitempty"`
+	Version           string               `json:"version,omitempty"`
+	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
+	Display           *EdgeResourceDisplay `json:"display,omitempty"`
+	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
 }
 
-type HTTPBasedEdgeResourceCreateRequest struct {
-	EdgeResourceMetaData `json:""`
-	Endpoints            []HTTPBasedEndpoints `json:"endpoints,omitempty"`
+type HttpEdgeResource struct {
+	EdgeResourceMetadata `json:""`
+	Endpoints            []HttpEndpoint `json:"endpoints,omitempty"`
 }
 
-type HTTPBasedEndpoints struct {
+type HttpEndpoint struct {
 	Name   string `json:"name,omitempty"`
 	Method string `json:"method,omitempty"`
 	URL    string `json:"url,omitempty"`
@@ -530,10 +530,6 @@ type LinkEdgeResourceRequest struct {
 	EdgeResourceVersion string `json:"-"`
 }
 
-type GetEdgeResourceResponse struct {
-	EdgeResourceMetaData `json:""`
-}
-
 type ListEdgeResourceResponse struct {
-	EdgeResources []EdgeResourceMetaData `json:"edgeResources"`
+	EdgeResources []EdgeResourceMetadata `json:"edgeResources"`
 }

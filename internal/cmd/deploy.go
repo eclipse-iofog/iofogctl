@@ -30,6 +30,7 @@ func newDeployCommand() *cobra.Command {
 		Example: `deploy -f platform.yaml
           application.yaml
           microservice.yaml
+          edge-resource.yaml
           catalog.yaml
           volume.yaml
           route.yaml`,
@@ -56,7 +57,7 @@ Visit iofog.org to view all YAML specifications usable with this command.`,
 	}
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing specifications for ioFog resources to deploy")
 
 	return cmd
 }
