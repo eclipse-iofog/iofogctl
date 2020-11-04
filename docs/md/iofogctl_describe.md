@@ -17,13 +17,14 @@ iofogctl describe resource NAME [flags]
 ```
 iofogctl describe namespace
                   controlplane
-                  controller   NAME
-                  agent        NAME
-                  agent-config NAME
-                  application  NAME
-                  microservice NAME
-                  volume       NAME
-                  route        NAME
+                  controller     NAME
+                  agent          NAME
+                  agent-config   NAME
+                  application    NAME
+                  microservice   NAME
+                  volume         NAME
+                  route          NAME
+                  edge-resource  NAME/VERSION
 ```
 
 ### Options
