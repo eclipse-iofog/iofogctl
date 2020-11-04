@@ -19,6 +19,7 @@ iofogctl get all
              namespaces
              controllers
              agents
+             edge-resources
              applications
              microservices
              catalog

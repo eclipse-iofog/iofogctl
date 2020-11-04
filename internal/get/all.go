@@ -17,6 +17,18 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 )
 
+var (
+	routines = []func(string, tableChannel){
+		getControllerTable,
+		getAgentTable,
+		getEdgeResourceTable,
+		getApplicationTable,
+		getMicroserviceTable,
+		getVolumeTable,
+		getRouteTable,
+	}
+)
+
 type tableQuery struct {
 	table [][]string
 	err   error
@@ -45,16 +57,14 @@ func (exe *allExecutor) Execute() error {
 	}
 
 	// Get tables in parallel
-	tableChans := make([]tableChannel, 6)
+	resourceCount := len(routines)
+	tableChans := make([]tableChannel, resourceCount)
 	for idx := range tableChans {
 		tableChans[idx] = make(tableChannel, 1)
 	}
-	go getControllerTable(exe.namespace, tableChans[0])
-	go getAgentTable(exe.namespace, tableChans[1])
-	go getApplicationTable(exe.namespace, tableChans[2])
-	go getMicroserviceTable(exe.namespace, tableChans[3])
-	go getVolumeTable(exe.namespace, tableChans[4])
-	go getRouteTable(exe.namespace, tableChans[5])
+	for idx, routine := range routines {
+		go routine(exe.namespace, tableChans[idx])
+	}
 
 	// Start Printing
 	printNamespace(exe.namespace)
@@ -122,6 +132,14 @@ func getVolumeTable(namespace string, tableChan tableChannel) {
 
 func getRouteTable(namespace string, tableChan tableChannel) {
 	table, err := generateRouteOutput(namespace)
+	tableChan <- tableQuery{
+		table: table,
+		err:   err,
+	}
+}
+
+func getEdgeResourceTable(namespace string, tableChan tableChannel) {
+	table, err := generateEdgeResourceOutput(namespace)
 	tableChan <- tableQuery{
 		table: table,
 		err:   err,
