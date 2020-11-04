@@ -21,7 +21,7 @@ iofogctl [flags]
 
 ### SEE ALSO
 
-* [iofogctl attach](iofogctl_attach.md)	 - Attach an existing ioFog resource to Control Plane
+* [iofogctl attach](iofogctl_attach.md)	 - Attach one ioFog resource to another
 * [iofogctl configure](iofogctl_configure.md)	 - Configure iofogctl or ioFog resources
 * [iofogctl connect](iofogctl_connect.md)	 - Connect to an existing Control Plane
 * [iofogctl create](iofogctl_create.md)	 - Create a resource

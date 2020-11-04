@@ -14,24 +14,23 @@
 package cmd
 
 import (
-	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/agent"
+	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/edge-resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newAttachAgentCommand() *cobra.Command {
+func newAttachEdgeResourceCommand() *cobra.Command {
 	opt := attach.Options{}
 	cmd := &cobra.Command{
-		Use:   "agent NAME",
-		Short: "Attach an Agent to an existing Namespace",
-		Long: `Attach a detached Agent to an existing Namespace.
-
-The Agent will be provisioned with the Controller within the Namespace.`,
-		Example: `iofogctl attach agent NAME`,
-		Args:    cobra.ExactArgs(1),
+		Use:     "edge-resource NAME/VERSION AGENT_NAME",
+		Short:   "Attach an Edge Resource to an existing Agent",
+		Long:    `Attach an Edge Resource to an existing Agent.`,
+		Example: `iofogctl attach edge-resource NAME/VERSION AGENT_NAME`,
+		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent
-			opt.Name = args[0]
+			opt.NameVersion = args[0]
+			opt.Agent = args[1]
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
@@ -41,7 +40,7 @@ The Agent will be provisioned with the Controller within the Namespace.`,
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess("Successfully attached Agent " + opt.Name + " to namespace " + opt.Namespace)
+			util.PrintSuccess("Successfully attached EdgeResource " + opt.NameVersion + " to namespace " + opt.Namespace)
 		},
 	}
 

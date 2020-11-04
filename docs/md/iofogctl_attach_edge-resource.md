@@ -1,33 +1,32 @@
-## iofogctl attach agent
+## iofogctl attach edge-resource
 
-Attach an Agent to an existing Namespace
+Attach an Edge Resource to an existing Agent
 
 ### Synopsis
 
-Attach a detached Agent to an existing Namespace.
-
-The Agent will be provisioned with the Controller within the Namespace.
+Attach an Edge Resource to an existing Agent.
 
 ```
-iofogctl attach agent NAME [flags]
+iofogctl attach edge-resource NAME/VERSION AGENT_NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl attach agent NAME
+iofogctl attach edge-resource NAME/VERSION AGENT_NAME
 ```
 
 ### Options
 
 ```
-  -h, --help   help for agent
+  -h, --help   help for edge-resource
 ```
 
 ### Options inherited from parent commands
 
 ```
       --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
+      --detached           Use/Show detached resources
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
