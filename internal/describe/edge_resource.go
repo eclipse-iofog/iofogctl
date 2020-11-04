@@ -14,12 +14,10 @@
 package describe
 
 import (
-	"fmt"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
-	"strings"
 )
 
 type edgeResourceExecutor struct {
@@ -47,12 +45,10 @@ func (exe *edgeResourceExecutor) Execute() error {
 	}
 
 	// Decode nameVersion
-	delim := "/"
-	if !strings.Contains(exe.nameVersion, delim) {
-		return util.NewInputError(fmt.Sprintf("%s is not in format NAME/VERSION", exe.nameVersion))
+	name, version, err := iutil.DecodeNameVersion(exe.nameVersion)
+	if err != nil {
+		return err
 	}
-	name := util.Before(exe.nameVersion, delim)
-	version := util.After(exe.nameVersion, delim)
 
 	// Connect to Controller
 	clt, err := iutil.NewControllerClient(exe.namespace)
