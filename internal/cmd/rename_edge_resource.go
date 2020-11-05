@@ -14,7 +14,7 @@
 package cmd
 
 import (
-	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/edge-resource"
+	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/edgeresource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )

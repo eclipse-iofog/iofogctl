@@ -11,7 +11,7 @@
  *
  */
 
-package attachagent
+package detachedgeresource
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -20,51 +20,47 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type Options struct {
-	NameVersion string
-	Agent       string
-	Namespace   string
-}
-
 type executor struct {
-	opt Options
+	nameVersion string
+	namespace   string
+	agent       string
 }
 
-func NewExecutor(opt Options) execute.Executor {
-	return executor{opt: opt}
+func NewExecutor(namespace, nameVersion, agent string) execute.Executor {
+	return executor{nameVersion: nameVersion, namespace: namespace, agent: agent}
 }
 
 func (exe executor) GetName() string {
-	return exe.opt.NameVersion
+	return exe.nameVersion
 }
 
 func (exe executor) Execute() error {
-	util.SpinStart("Attaching Edge Resource")
+	util.SpinStart("Detaching Edge Resource")
 
 	// Decode name version
-	name, version, err := iutil.DecodeNameVersion(exe.opt.NameVersion)
+	name, version, err := iutil.DecodeNameVersion(exe.nameVersion)
 	if err != nil {
 		return err
 	}
 
 	// Init client
-	clt, err := iutil.NewControllerClient(exe.opt.Namespace)
+	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	// Get Agent UUID
-	agentInfo, err := clt.GetAgentByName(exe.opt.Agent, false)
+	agentInfo, err := clt.GetAgentByName(exe.agent, false)
 	if err != nil {
 		return err
 	}
-	// Attach to agent
+	// Detach from agent
 	req := client.LinkEdgeResourceRequest{
 		AgentUUID:           agentInfo.UUID,
 		EdgeResourceName:    name,
 		EdgeResourceVersion: version,
 	}
-	if err := clt.LinkEdgeResource(req); err != nil {
+	if err := clt.UnlinkEdgeResource(req); err != nil {
 		return err
 	}
 

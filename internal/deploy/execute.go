@@ -43,6 +43,7 @@ import (
 var kindOrder = []config.Kind{
 	config.RemoteAgentKind,
 	config.LocalAgentKind,
+	config.EdgeResourceKind,
 	config.VolumeKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
@@ -230,7 +231,7 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Agents, Volumes, CatalogItem, Application, Microservice, Route
+	// Edge Resources, Agents, Volumes, CatalogItem, Application, Microservice, Route
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
 			return execute.CoalesceErrors(errs)

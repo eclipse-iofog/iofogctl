@@ -14,7 +14,7 @@
 package cmd
 
 import (
-	detach "github.com/eclipse-iofog/iofogctl/v2/internal/detach/edge-resource"
+	detach "github.com/eclipse-iofog/iofogctl/v2/internal/detach/edgeresource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
