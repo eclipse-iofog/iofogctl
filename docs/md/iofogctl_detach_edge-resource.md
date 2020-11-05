@@ -1,39 +1,32 @@
-## iofogctl detach agent
+## iofogctl detach edge-resource
 
-Detaches an Agent
+Detaches an Edge Resource from an Agent
 
 ### Synopsis
 
-Detaches an Agent.
-
-The Agent will be deprovisioned from the Controller within the namespace.
-The Agent will be removed from Controller.
-
-You cannot detach unprovisioned Agents.
-
-The Agent stack will not be uninstalled from the host.
+Detaches an Edge Resource from an Agent.
 
 ```
-iofogctl detach agent NAME [flags]
+iofogctl detach edge-resource NAME/VERSION AGENT_NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl detach agent NAME
+iofogctl detach edge-resource NAME/VERSION AGENT_NAME
 ```
 
 ### Options
 
 ```
-      --force   Detach Agent, even if it still uses resources
-  -h, --help    help for agent
+  -h, --help   help for edge-resource
 ```
 
 ### Options inherited from parent commands
 
 ```
       --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
+      --detached           Use/Show detached resources
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
