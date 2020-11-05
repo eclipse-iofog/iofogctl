@@ -510,12 +510,12 @@ type EdgeResourceMetadata struct {
 	Version           string               `json:"version,omitempty"`
 	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
 	Display           *EdgeResourceDisplay `json:"display,omitempty"`
+	Interface         HttpEdgeResource     `json:"interface,omitempty"` // TODO: Make this generic
 	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
 }
 
 type HttpEdgeResource struct {
-	EdgeResourceMetadata `json:""`
-	Endpoints            []HttpEndpoint `json:"endpoints,omitempty"`
+	Endpoints []HttpEndpoint `json:"endpoints,omitempty"`
 }
 
 type HttpEndpoint struct {

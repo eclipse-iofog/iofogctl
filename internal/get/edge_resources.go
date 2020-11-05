@@ -73,7 +73,7 @@ func generateEdgeResourceOutput(namespace string) (table [][]string, err error) 
 func tabulateEdgeResources(namespace string, edgeResources []client.EdgeResourceMetadata) (table [][]string, err error) {
 	// Generate table and headers
 	table = make([][]string, len(edgeResources)+1)
-	headers := []string{"EDGE RESOURCE", "NAME", "VERSIONS", "PROTOCOL"}
+	headers := []string{"EDGE RESOURCE", "VERSIONS", "PROTOCOL"}
 	table[0] = append(table[0], headers...)
 
 	// Coalesce versions

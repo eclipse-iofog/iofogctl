@@ -45,16 +45,16 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Translate edge resource to client type
-	edge := client.HttpEdgeResource{
-		EdgeResourceMetadata: client.EdgeResourceMetadata{
-			Name:              exe.name,
-			Description:       exe.edge.Description,
-			Version:           exe.edge.Version,
-			InterfaceProtocol: exe.edge.InterfaceProtocol,
-			Display:           exe.edge.Display,
-			OrchestrationTags: exe.edge.OrchestrationTags,
+	edge := client.EdgeResourceMetadata{
+		Name:              exe.name,
+		Description:       exe.edge.Description,
+		Version:           exe.edge.Version,
+		InterfaceProtocol: exe.edge.InterfaceProtocol,
+		Display:           exe.edge.Display,
+		OrchestrationTags: exe.edge.OrchestrationTags,
+		Interface: client.HttpEdgeResource{
+			Endpoints: exe.edge.Interface.Endpoints,
 		},
-		Endpoints: *exe.edge.Endpoints,
 	}
 	// Connect to Controller
 	clt, err := iutil.NewControllerClient(exe.namespace)

@@ -15,6 +15,7 @@ package edgeresource
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -53,10 +54,7 @@ func Execute(namespace, name, newName string) error {
 
 	// Update all versions
 	for _, edge := range renamedResources {
-		httpEdge := client.HttpEdgeResource{
-			EdgeResourceMetadata: edge,
-		}
-		if err := clt.UpdateHttpEdgeResource(name, httpEdge); err != nil {
+		if err := clt.UpdateHttpEdgeResource(name, edge); err != nil {
 			return err
 		}
 	}

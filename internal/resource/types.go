@@ -110,14 +110,16 @@ type AgentConfiguration struct {
 
 type EdgeResource struct {
 	Name              string
-	Version           string                 `yaml:"version"`
-	Description       string                 `yaml:"description"`
-	InterfaceProtocol string                 `yaml:"interfaceProtocol"`
-	Endpoints         *[]HttpEndpoint        `yaml:"endpoints,omitempty"`
-	Display           *Display               `yaml:"display,omitempty"`
-	OrchestrationTags []string               `yaml:"orchestrationTags"`
-	Custom            map[string]interface{} `yaml:"custom"`
+	Version           string                          `yaml:"version"`
+	Description       string                          `yaml:"description"`
+	InterfaceProtocol string                          `yaml:"interfaceProtocol"`
+	Interface         *EdgeResourceHTTPBasedInterface `yaml:"interface,omitempty"` // TODO: Make this generic to support multiple interfaces protocols
+	Display           *Display                        `yaml:"display,omitempty"`
+	OrchestrationTags []string                        `yaml:"orchestrationTags"`
+	Custom            map[string]interface{}          `yaml:"custom"`
 }
+
+type EdgeResourceHTTPBasedInterface = client.HttpEdgeResource
 
 type Display = client.EdgeResourceDisplay
 type HttpEndpoint = client.HttpEndpoint

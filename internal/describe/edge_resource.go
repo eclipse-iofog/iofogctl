@@ -73,7 +73,7 @@ func (exe *edgeResourceExecutor) Execute() error {
 		Spec: rsc.EdgeResource{
 			Description:       edge.Description,
 			Display:           edge.Display,
-			Endpoints:         &edge.Endpoints,
+			Interface:         &edge.Interface,
 			InterfaceProtocol: edge.InterfaceProtocol,
 			Name:              edge.Name,
 			OrchestrationTags: edge.OrchestrationTags,
