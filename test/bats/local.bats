@@ -49,6 +49,12 @@ NS="$NAMESPACE"
   stopTest
 }
 
+@test "Edge Resources" {
+  startTest
+  testEdgeResources
+  stopTest
+}
+
 @test "Agent legacy commands" {
   startTest
   iofogctl -v -n "$NS" legacy agent "${NAME}-0" status
