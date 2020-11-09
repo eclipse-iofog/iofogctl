@@ -282,6 +282,22 @@ function testEdgeResources(){
   [ ! -z "$(iofogctl -n $NS describe agent $AGENT | grep "\- smart")" ]
   [ ! -z "$(iofogctl -n $NS describe agent $AGENT | grep "\- door")" ]
 
+  # Rename
+  local NEW_NAME="smart-car"
+  iofogctl -n "$NS" rename edge-resource "$EDGE_RESOURCE_NAME" "$NEW_NAME"
+  [ -z "$(iofogctl -n $NS get edge-resources | grep $EDGE_RESOURCE_NAME)" ]
+  [ ! -z "$(iofogctl -n $NS get edge-resources | grep $NEW_NAME)" ]
+  [ ! -z "$(iofogctl -n $NS get edge-resources | grep $EDGE_RESOURCE_VERSION)" ]
+  [ ! -z "$(iofogctl -n $NS get edge-resources | grep $EDGE_RESOURCE_PROTOCOL)" ]
+  [ -z "$(iofogctl -n $NS describe edge-resource $NAME_VERS | grep $EDGE_RESOURCE_NAME)" ]
+  [ ! -z "$(iofogctl -n $NS describe edge-resource "$NEW_NAME/$EDGE_RESOURCE_VERSION" | grep "$EDGE_RESOURCE_DESC")" ]
+  [ ! -z "$(iofogctl -n $NS describe edge-resource "$NEW_NAME/$EDGE_RESOURCE_VERSION" | grep $NEW_NAME)" ]
+  [ ! -z "$(iofogctl -n $NS describe edge-resource "$NEW_NAME/$EDGE_RESOURCE_VERSION" | grep $EDGE_RESOURCE_VERSION)" ]
+  [ ! -z "$(iofogctl -n $NS describe edge-resource "$NEW_NAME/$EDGE_RESOURCE_VERSION" | grep $EDGE_RESOURCE_PROTOCOL)" ]
+  iofogctl -n "$NS" rename edge-resource "$NEW_NAME" "$EDGE_RESOURCE_NAME"
+  [ ! -z "$(iofogctl -n $NS get edge-resources | grep $EDGE_RESOURCE_NAME)" ]
+  [ ! -z "$(iofogctl -n $NS describe edge-resource $NAME_VERS | grep $EDGE_RESOURCE_NAME)" ]
+
   # Delete both versions
   iofogctl -n "$NS" delete edge-resource "$NAME_VERS"
   [ -z "$(iofogctl -n $NS get edge-resources | grep $EDGE_RESOURCE_VERSION)" ]
