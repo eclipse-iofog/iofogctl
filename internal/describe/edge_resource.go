@@ -56,6 +56,11 @@ func (exe *edgeResourceExecutor) Execute() error {
 		return err
 	}
 
+	// Check capability
+	if err := iutil.IsEdgeResourceCapable(exe.namespace); err != nil {
+		return err
+	}
+
 	// Get Edge Resource
 	edge, err := clt.GetHttpEdgeResourceByName(name, version)
 	if err != nil {

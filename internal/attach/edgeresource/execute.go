@@ -53,6 +53,11 @@ func (exe executor) Execute() error {
 		return err
 	}
 
+	// Check capability
+	if err := iutil.IsEdgeResourceCapable(exe.opt.Namespace); err != nil {
+		return err
+	}
+
 	// Get Agent UUID
 	agentInfo, err := clt.GetAgentByName(exe.opt.Agent, false)
 	if err != nil {

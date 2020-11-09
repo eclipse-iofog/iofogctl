@@ -24,7 +24,7 @@ LDFLAGS += -X $(PREFIX).agentTag=develop
 LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
-GO_SDK_MODULE = iofog-go-sdk/v2@74b526d6e35bcf827d4b7bb8149bfba7693da027
+GO_SDK_MODULE = iofog-go-sdk/v2@2e24d53d9c2a599e13c270d233cbcdbc306909d6
 OPERATOR_MODULE = iofog-operator/v2@develop
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt

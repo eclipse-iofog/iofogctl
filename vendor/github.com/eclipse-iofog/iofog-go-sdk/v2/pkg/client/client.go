@@ -16,7 +16,6 @@ package client
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -24,7 +23,7 @@ import (
 type controllerStatus struct {
 	version         string
 	versionNoSuffix string
-	versionNum      int
+	versionNums     []string
 }
 
 type Client struct {
@@ -64,13 +63,11 @@ func New(opt Options) *Client {
 	// Get Controller version
 	if status, err := client.GetStatus(); err == nil {
 		versionNoSuffix := before(status.Versions.Controller, "-")
-		trimmedVersionNoSuffix := strings.ReplaceAll(versionNoSuffix, ".", "")
-		versionNum, _ := strconv.Atoi(trimmedVersionNoSuffix)
-
+		versionNums := strings.Split(versionNoSuffix, ".")
 		client.status = controllerStatus{
 			version:         status.Versions.Controller,
 			versionNoSuffix: versionNoSuffix,
-			versionNum:      versionNum,
+			versionNums:     versionNums,
 		}
 	}
 	return client

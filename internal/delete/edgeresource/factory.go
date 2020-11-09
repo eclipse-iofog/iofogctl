@@ -45,6 +45,11 @@ func (exe executor) Execute() (err error) {
 		return
 	}
 
+	// Check capability
+	if err := iutil.IsEdgeResourceCapable(exe.namespace); err != nil {
+		return err
+	}
+
 	if err = clt.DeleteEdgeResource(name, version); err != nil {
 		return
 	}

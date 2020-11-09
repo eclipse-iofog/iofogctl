@@ -37,6 +37,10 @@ func (exe *edgeResourceExecutor) GetName() string {
 }
 
 func (exe *edgeResourceExecutor) Execute() error {
+	// Check capability
+	if err := iutil.IsEdgeResourceCapable(exe.namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
+		return err
+	}
 	printNamespace(exe.namespace)
 	table, err := generateEdgeResourceOutput(exe.namespace)
 	if err != nil {
@@ -73,7 +77,7 @@ func generateEdgeResourceOutput(namespace string) (table [][]string, err error) 
 func tabulateEdgeResources(namespace string, edgeResources []client.EdgeResourceMetadata) (table [][]string, err error) {
 	// Generate table and headers
 	table = make([][]string, len(edgeResources)+1)
-	headers := []string{"EDGE RESOURCE", "VERSIONS", "PROTOCOL"}
+	headers := []string{"EDGE RESOURCE", "PROTOCOL", "VERSIONS"}
 	table[0] = append(table[0], headers...)
 
 	// Coalesce versions
@@ -95,8 +99,8 @@ func tabulateEdgeResources(namespace string, edgeResources []client.EdgeResource
 		// Store values
 		row := []string{
 			edge.Name,
-			edge.Version,
 			edge.InterfaceProtocol,
+			edge.Version,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 		idx = idx + 1
