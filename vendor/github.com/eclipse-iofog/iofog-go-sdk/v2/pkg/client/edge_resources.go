@@ -81,7 +81,7 @@ func (clt *Client) UpdateHttpEdgeResource(name string, request EdgeResourceMetad
 	}
 
 	// Send request
-	if _, err := clt.doRequest("POST", fmt.Sprintf("/edgeResource/%s/%s", name, request.Version), request); err != nil {
+	if _, err := clt.doRequest("PUT", fmt.Sprintf("/edgeResource/%s/%s", name, request.Version), request); err != nil {
 		return err
 	}
 

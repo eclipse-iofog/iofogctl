@@ -16,7 +16,6 @@ package edgeresource
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -44,22 +43,24 @@ func Execute(namespace, name, newName string) error {
 	if err != nil {
 		return err
 	}
-	// Record the resources we want to rename
-	renamedResources := []client.EdgeResourceMetadata{}
-	for _, edge := range listResponse.EdgeResources {
-		if edge.Name == name {
-			edge.Name = newName
-			renamedResources = append(renamedResources, edge)
-		}
-	}
 	// Validate exists
-	if len(renamedResources) == 0 {
+	if len(listResponse.EdgeResources) == 0 {
 		return util.NewNotFoundError(fmt.Sprintf("%s does not exist", name))
 	}
 
-	// Update all versions
-	for _, edge := range renamedResources {
-		if err := clt.UpdateHttpEdgeResource(name, edge); err != nil {
+	// Get full resource contents and update
+	for _, meta := range listResponse.EdgeResources {
+		if meta.Name != name {
+			continue
+		}
+		// Get versioned resource
+		oldEdge, err := clt.GetHttpEdgeResourceByName(meta.Name, meta.Version)
+		if err != nil {
+			return err
+		}
+		// Update versioned resource
+		oldEdge.Name = newName
+		if err := clt.UpdateHttpEdgeResource(name, oldEdge); err != nil {
 			return err
 		}
 	}
