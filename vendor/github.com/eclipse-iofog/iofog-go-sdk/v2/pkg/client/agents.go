@@ -177,3 +177,33 @@ func generateListAgentURL(request ListAgentsRequest) string {
 	}
 	return url
 }
+
+func (clt *Client) UpgradeAgent(name string) error {
+	// Get Agent uuid
+	agent, err := clt.GetAgentByName(name, false)
+	if err != nil {
+		return err
+	}
+
+	// Send request
+	if _, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/upgrade", agent.UUID), nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (clt *Client) RollbackAgent(name string) error {
+	// Get Agent uuid
+	agent, err := clt.GetAgentByName(name, false)
+	if err != nil {
+		return err
+	}
+
+	// Send request
+	if _, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/rollback", agent.UUID), nil); err != nil {
+		return err
+	}
+
+	return nil
+}

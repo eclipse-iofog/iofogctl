@@ -37,8 +37,10 @@ iofogctl [flags]
 * [iofogctl move](iofogctl_move.md)	 - Move an existing resources inside the current Namespace
 * [iofogctl prune](iofogctl_prune.md)	 - prune ioFog resources
 * [iofogctl rename](iofogctl_rename.md)	 - Rename the iofog resources that are currently deployed
+* [iofogctl rollback](iofogctl_rollback.md)	 - Rollback ioFog resources
 * [iofogctl start](iofogctl_start.md)	 - Starts a resource
 * [iofogctl stop](iofogctl_stop.md)	 - Stops a resource
+* [iofogctl upgrade](iofogctl_upgrade.md)	 - Upgrade ioFog resources
 * [iofogctl version](iofogctl_version.md)	 - Get CLI application version
 * [iofogctl view](iofogctl_view.md)	 - Open ECN Viewer
 

@@ -25,7 +25,7 @@ func newConfigureCommand() *cobra.Command {
 	var opt configure.Options
 
 	cmd := &cobra.Command{
-		Use:   "configure resource NAME",
+		Use:   "configure RESOURCE NAME",
 		Short: "Configure iofogctl or ioFog resources",
 		Long: `Configure iofogctl or ioFog resources
 

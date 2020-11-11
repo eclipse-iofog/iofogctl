@@ -9,7 +9,7 @@ Configure iofogctl or ioFog resources
 If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.
 
 ```
-iofogctl configure resource NAME [flags]
+iofogctl configure RESOURCE NAME [flags]
 ```
 
 ### Examples
