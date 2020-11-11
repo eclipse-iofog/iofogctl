@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -27,6 +28,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
+)
+
+const (
+	sshErrMsg = "Legacy commands requires SSH access.\n%s %s SSH details are not available.\nUse `iofogctl configure --help` to find out how to add SSH details"
 )
 
 func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string) {
@@ -87,7 +92,11 @@ func newLegacyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "legacy resource NAME COMMAND ARGS...",
 		Short: "Execute commands using legacy CLI",
-		Long:  `Execute commands using legacy CLI`,
+		Long: `Execute commands using legacy Controller and Agent CLI.
+
+Legacy commands require SSH access to the corresponding Agent or Controller.
+
+Use the configure command to add SSH details to Agents and Controllers if necessary.`,
 		Example: `iofogctl legacy controller NAME COMMAND
 iofogctl legacy agent      NAME COMMAND`,
 		Args: cobra.MinimumNArgs(3),
@@ -121,7 +130,9 @@ iofogctl legacy agent      NAME COMMAND`,
 					util.Check(k8sControlPlane.ValidateKubeConfig())
 					k8sExecute(k8sControlPlane.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
 				case *rsc.RemoteController:
-					util.Check(controller.ValidateSSH())
+					if controller.ValidateSSH() != nil {
+						util.Check(errors.New(fmt.Sprintf(sshErrMsg, "Controller", controller.Name)))
+					}
 					remoteExec(controller.SSH.User, controller.Host, controller.SSH.KeyFile, controller.SSH.Port, "sudo iofog-controller", args[2:])
 				case *rsc.LocalController:
 					localExecute(install.GetLocalContainerName("controller", false), cliCommand, args[2:])
@@ -144,7 +155,9 @@ iofogctl legacy agent      NAME COMMAND`,
 					return
 				case *rsc.RemoteAgent:
 					// SSH connect
-					util.Check(agent.ValidateSSH())
+					if agent.ValidateSSH() != nil {
+						util.Check(errors.New(fmt.Sprintf(sshErrMsg, "Agent", agent.Name)))
+					}
 					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
 				}
 			default:

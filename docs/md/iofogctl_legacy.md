@@ -4,7 +4,11 @@ Execute commands using legacy CLI
 
 ### Synopsis
 
-Execute commands using legacy CLI
+Execute commands using legacy Controller and Agent CLI.
+
+Legacy commands require SSH access to the corresponding Agent or Controller.
+
+Use the configure command to add SSH details to Agents and Controllers if necessary.
 
 ```
 iofogctl legacy resource NAME COMMAND ARGS... [flags]
