@@ -2,6 +2,7 @@
 
 ## [v2.1.0] - unreleased
 
+* Add Agent `upgrade` and `rollback` commands
 * Add Docker pull percentage to `iofogctl get microservices` output
 * Parallelize `iofogctl get all` command to hide latency
 
