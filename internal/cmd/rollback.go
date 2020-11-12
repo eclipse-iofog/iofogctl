@@ -48,7 +48,7 @@ func newRollbackCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully rolled back %s %s", opt.ResourceType, opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Succesfully scheduled rollback for %s %s", opt.ResourceType, opt.Name))
 		},
 	}
 

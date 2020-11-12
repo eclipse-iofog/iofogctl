@@ -48,7 +48,7 @@ func newUpgradeCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully upgraded %s %s", opt.ResourceType, opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Succesfully scheduled upgrade for %s %s", opt.ResourceType, opt.Name))
 		},
 	}
 
