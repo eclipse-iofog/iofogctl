@@ -30,14 +30,14 @@ iofogctl get all
 ### Options
 
 ```
-  -h, --help   help for get
+      --detached   Specify command is to run against detached resources
+  -h, --help       help for get
 ```
 
 ### Options inherited from parent commands
 
 ```
       --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
-      --detached           Use/Show detached resources
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

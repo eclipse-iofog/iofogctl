@@ -43,5 +43,7 @@ func newRenameAgentCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
+
 	return cmd
 }

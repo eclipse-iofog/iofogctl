@@ -61,6 +61,7 @@ Resources such as Agents require a working Controller in the namespace in order 
 		},
 	}
 	cmd.Flags().StringVarP(&filename, "output-file", "o", "", "YAML output file")
+	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
 
 	return cmd
 }
