@@ -23,15 +23,15 @@ iofogctl delete all -n NAMESPACE
 ### Options
 
 ```
-      --force   Force deletion of Agents
-  -h, --help    help for all
+      --detached   Specify command is to run against detached resources
+      --force      Force deletion of Agents
+  -h, --help       help for all
 ```
 
 ### Options inherited from parent commands
 
 ```
       --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
-      --detached           Use/Show detached resources
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```

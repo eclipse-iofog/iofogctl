@@ -56,6 +56,7 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 	}
 
 	cmd.Flags().BoolVar(&force, "force", false, "Remove even if there are still resource running on the Agent")
+	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
 
 	return cmd
 }

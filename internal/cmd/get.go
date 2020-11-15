@@ -62,5 +62,7 @@ Resources like Agents will require a working Controller in the namespace to disp
 		},
 	}
 
+	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
+
 	return cmd
 }

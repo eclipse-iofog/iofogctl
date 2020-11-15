@@ -25,15 +25,15 @@ iofogctl delete agent NAME
 ### Options
 
 ```
-      --force   Remove even if there are still resource running on the Agent
-  -h, --help    help for agent
+      --detached   Specify command is to run against detached resources
+      --force      Remove even if there are still resource running on the Agent
+  -h, --help       help for agent
 ```
 
 ### Options inherited from parent commands
 
 ```
       --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
-      --detached           Use/Show detached resources
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 ```
