@@ -32,8 +32,8 @@ type Options struct {
 }
 
 type remoteExecutor struct {
+	namespace   string
 	application rsc.Application
-	controller  apps.IofogController
 }
 
 func (exe remoteExecutor) GetName() string {
@@ -42,25 +42,45 @@ func (exe remoteExecutor) GetName() string {
 
 func (exe remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying application %s", exe.GetName()))
-	return apps.DeployApplication(exe.controller, exe.application)
-}
 
-func NewExecutor(opt Options) (exe execute.Executor, err error) {
-	// Check the namespace exists
-	ns, err := config.GetNamespace(opt.Namespace)
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
-		return exe, err
+		return err
 	}
 	controlPlane, err := ns.GetControlPlane()
 	if err != nil {
-		return exe, err
+		return err
 	}
 
 	// Check Controller exists
 	if len(controlPlane.GetControllers()) == 0 {
-		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
+		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		return err
+	}
+
+	clt, err := iutil.NewControllerClient(exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	controller := apps.IofogController{
+		Endpoint: endpoint,
+		Email:    controlPlane.GetUser().Email,
+		Password: controlPlane.GetUser().Password,
+		Token:    clt.GetAccessToken(),
+	}
+	return apps.DeployApplication(controller, exe.application)
+}
+
+func NewExecutor(opt Options) (exe execute.Executor, err error) {
+	// Check the namespace exists
+	if _, err = config.GetNamespace(opt.Namespace); err != nil {
+		return exe, err
+	}
 	// Unmarshal file
 	application := rsc.Application{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &application); err != nil {
@@ -88,22 +108,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		}
 	}
 
-	endpoint, err := controlPlane.GetEndpoint()
-	if err != nil {
-		return
-	}
-
-	clt, err := iutil.NewControllerClient(opt.Namespace)
-	if err != nil {
-		return
-	}
-
 	return remoteExecutor{
-		controller: apps.IofogController{
-			Endpoint: endpoint,
-			Email:    controlPlane.GetUser().Email,
-			Password: controlPlane.GetUser().Password,
-			Token:    clt.GetAccessToken(),
-		},
+		namespace:   opt.Namespace,
 		application: application}, nil
 }
