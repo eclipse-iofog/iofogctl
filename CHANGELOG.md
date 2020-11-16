@@ -5,6 +5,8 @@
 * Add Agent `upgrade` and `rollback` commands
 * Add Docker pull percentage to `iofogctl get microservices` output
 * Parallelize `iofogctl get all` command to hide latency
+* Fix bug showing `--detached` as flag for all commands
+* Fix bug preventing deployment of Apps/Microservices in same YAML file as Control Plane
 
 ## [v2.0.1] - 2020-09-10
 
