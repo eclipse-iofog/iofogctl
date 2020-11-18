@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"errors"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/get"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -48,8 +49,14 @@ Resources like Agents will require a working Controller in the namespace to disp
 			showDetached, err := cmd.Flags().GetBool("detached")
 			util.Check(err)
 
+			// TODO: Break out resources as subcommands to avoid this kind of logic and improve --help accuracy
+			if showDetached && resource != "agents" {
+				err = errors.New("Can only use --detached flag with Agents")
+				util.Check(err)
+			}
+
 			if showDetached && namespace != config.GetDefaultNamespaceName() {
-				util.PrintNotify("You are requesting detached resources, namespace will be ignored.")
+				util.PrintNotify("You are requesting detached resources, Namespace will be ignored.")
 			}
 
 			// Get executor for get command
