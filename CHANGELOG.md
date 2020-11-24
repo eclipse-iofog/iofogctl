@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.3] - 2020-11-25
+
+* Update Agent to 2.0.3 as default
+
 ## [2.0.2] - 2020-10-23
 
 * Update Controller to 2.0.1 as default
