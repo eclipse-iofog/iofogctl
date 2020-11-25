@@ -357,13 +357,6 @@ func (k8s *Kubernetes) deleteOperator() (err error) {
 		}
 	}
 
-	// Cluster Role Binding
-	if err = k8s.clientset.RbacV1().ClusterRoleBindings().Delete(getClusterRoleBindingName(k8s.ns, name), &metav1.DeleteOptions{}); err != nil {
-		if !k8serrors.IsNotFound(err) {
-			return
-		}
-	}
-
 	// Deployment
 	if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
@@ -394,14 +387,6 @@ func (k8s *Kubernetes) createOperator() (err error) {
 	// Role Binding
 	rb := newRoleBinding(k8s.ns, k8s.operator)
 	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(rb); err != nil {
-		if !k8serrors.IsAlreadyExists(err) {
-			return
-		}
-	}
-
-	// Cluster Role Binding
-	crb := newClusterRoleBinding(k8s.ns, k8s.operator)
-	if _, err = k8s.clientset.RbacV1().ClusterRoleBindings().Create(crb); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}

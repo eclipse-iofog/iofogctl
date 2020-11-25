@@ -65,6 +65,47 @@ func newOperatorMicroservice() *microservice {
 					"*",
 				},
 			},
+			{
+				APIGroups: []string{
+					"iofog.org",
+				},
+				Resources: []string{
+					"apps",
+					"controlplanes",
+				},
+				Verbs: []string{
+					"list",
+					"get",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"apps",
+				},
+				Resources: []string{
+					"deployments",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"pods",
+					"configmaps",
+					"serviceaccounts",
+					"services",
+					"persistentvolumeclaims",
+					"secrets",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
 		},
 		containers: []container{
 			{
