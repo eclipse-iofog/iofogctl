@@ -258,6 +258,8 @@ function testEdgeResources(){
   [ ! -z "$(iofogctl -n $NS describe edge-resource $NAME_VERS | grep $EDGE_RESOURCE_NAME)" ]
   [ ! -z "$(iofogctl -n $NS describe edge-resource $NAME_VERS | grep $EDGE_RESOURCE_VERSION)" ]
   [ ! -z "$(iofogctl -n $NS describe edge-resource $NAME_VERS | grep $EDGE_RESOURCE_PROTOCOL)" ]
+  # Test idempotence
+  iofogctl -n "$NS" deploy -f test/conf/edge-resource.yaml
 
   # Attach first version
   local AGENT="${NAME}-0"
