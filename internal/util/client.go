@@ -14,13 +14,11 @@
 package util
 
 import (
-	"fmt"
+	"sync"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
-	"strings"
-	"sync"
 )
 
 var clientCache map[string]*client.Client
@@ -77,10 +75,7 @@ func IsEdgeResourceCapable(namespace string) error {
 		return err
 	}
 	if err := clt.IsEdgeResourceCapable(); err != nil {
-		// TODO: Remove orange hack
-		if !strings.Contains(clt.GetVersion(), "orange") {
-			return util.NewUnsupportedApiError(fmt.Sprintf("Controller version %s does not support Edge Resources", clt.GetVersion()))
-		}
+		return err
 	}
 	return nil
 }
