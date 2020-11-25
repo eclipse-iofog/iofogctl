@@ -40,7 +40,7 @@ func newAttachEdgeResourceCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess("Successfully attached EdgeResource " + opt.NameVersion + " to namespace " + opt.Namespace)
+			util.PrintSuccess("Successfully attached EdgeResource " + opt.NameVersion + " to Agent " + opt.Agent)
 		},
 	}
 
