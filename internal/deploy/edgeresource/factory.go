@@ -63,7 +63,7 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Create the resource
-	if err = clt.CreateHttpEdgeResource(edge); err != nil {
+	if err = clt.UpdateHttpEdgeResource(edge.Name, edge); err != nil {
 		return
 	}
 
