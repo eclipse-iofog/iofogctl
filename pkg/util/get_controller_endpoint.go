@@ -14,8 +14,8 @@
 package util
 
 import (
-	"net"
 	"net/url"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
@@ -24,6 +24,11 @@ func GetControllerEndpoint(host string) (endpoint string, err error) {
 	// Generate controller endpoint
 	u, err := url.Parse(host)
 	if err != nil || u.Host == "" {
+
+		if !strings.Contains(host, ":") {
+			host = host + ":" + client.ControllerPortString
+		}
+
 		u, err = url.Parse("//" + host) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
 		if err != nil {
 			return "", err
@@ -31,10 +36,6 @@ func GetControllerEndpoint(host string) (endpoint string, err error) {
 	}
 	if u.Scheme == "" {
 		u.Scheme = "http"
-	}
-	_, _, err = net.SplitHostPort(u.Host) // Returns error if port is not specified
-	if err != nil {
-		u.Host = u.Host + ":" + client.ControllerPortString
 	}
 	return u.String(), nil
 }

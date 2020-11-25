@@ -34,7 +34,7 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 		return nil, err
 	}
 	host := fmtEndpoint.Hostname()
-	formatedEndpoint, err := util.GetControllerEndpoint(host)
+	formatedEndpoint, err := util.GetControllerEndpoint(fmtEndpoint.String())
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 			return nil, err
 		}
 		host := fmtEndpoint.Hostname()
-		formatedEndpoint, err := util.GetControllerEndpoint(host)
+		formatedEndpoint, err := util.GetControllerEndpoint(fmtEndpoint.String())
 		if err != nil {
 			return nil, err
 		}
