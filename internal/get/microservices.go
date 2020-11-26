@@ -119,11 +119,13 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string,
 			agentName = agent.Name
 		}
 		status := ms.Status.Status
-		if status == "" {
-			status = "Not Supported"
-		}
-		if status == "PULLING" {
-			status = fmt.Sprintf("%s (%d%s)", ms.Status.Status, int(math.Round(ms.Status.Percentage)), "%")
+		switch status {
+		case "":
+			status = "-"
+		case "PULLING":
+			if ms.Status.Percentage > 0 {
+				status = fmt.Sprintf("%s (%d%s)", ms.Status.Status, int(math.Round(ms.Status.Percentage)), "%")
+			}
 		}
 
 		row := []string{
