@@ -128,7 +128,12 @@ func (clt *Client) getAllMicroservices() (response *MicroserviceListResponse, er
 }
 
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	if strings.Contains(clt.status.version, "dev") || clt.status.versionNum >= 202 {
+	major, minor, patch, err := clt.GetVersionNumbers()
+	if err != nil {
+		return
+	}
+	isCapable := (major >= 2 && minor >= 0 && patch >= 2)
+	if strings.Contains(clt.status.version, "dev") || isCapable {
 		return clt.getAllMicroservices()
 	}
 	return clt.getAllMicroservicesDeprecated()

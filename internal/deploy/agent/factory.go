@@ -26,6 +26,7 @@ import (
 type AgentDeployExecutor interface {
 	execute.Executor
 	GetHost() string
+	GetTags() *[]string
 }
 
 type facadeExecutor struct {
@@ -33,10 +34,15 @@ type facadeExecutor struct {
 	exe       execute.Executor
 	agent     rsc.Agent
 	namespace string
+	tags      *[]string
 }
 
 func (facade *facadeExecutor) GetHost() string {
 	return facade.agent.GetHost()
+}
+
+func (facade *facadeExecutor) GetTags() *[]string {
+	return facade.tags
 }
 
 func (facade *facadeExecutor) Execute() (err error) {
@@ -85,12 +91,13 @@ func (facade *facadeExecutor) ProvisionAgent() (string, error) {
 	return provisionExecutor.ProvisionAgent()
 }
 
-func newFacadeExecutor(exe execute.Executor, namespace string, agent rsc.Agent, isSystem bool) execute.Executor {
+func newFacadeExecutor(exe execute.Executor, namespace string, agent rsc.Agent, isSystem bool, tags *[]string) execute.Executor {
 	return &facadeExecutor{
 		exe:       exe,
 		namespace: namespace,
 		isSystem:  isSystem,
 		agent:     agent,
+		tags:      tags,
 	}
 }
 
@@ -105,7 +112,7 @@ func NewRemoteExecutor(namespace string, agent *rsc.RemoteAgent, isSystem bool) 
 	if err := agent.ValidateSSH(); err != nil {
 		return nil, err
 	}
-	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent, isSystem), nil
+	return newFacadeExecutor(newRemoteExecutor(namespace, agent), namespace, agent, isSystem, nil), nil
 }
 
 func NewLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (execute.Executor, error) {
@@ -117,5 +124,5 @@ func NewLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (e
 	if err != nil {
 		return nil, err
 	}
-	return newFacadeExecutor(exe, namespace, agent, isSystem), nil
+	return newFacadeExecutor(exe, namespace, agent, isSystem, nil), nil
 }

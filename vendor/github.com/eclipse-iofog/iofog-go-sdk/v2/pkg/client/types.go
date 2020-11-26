@@ -400,6 +400,7 @@ type AgentInfo struct {
 	LogLevel                  *string   `json:"logLevel" yaml:"logLevel"`
 	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency" yaml:"dockerPruningFrequency"`
 	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
+	Tags                      *[]string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
 type RouterConfig struct {
@@ -435,13 +436,14 @@ type AgentConfiguration struct {
 }
 
 type AgentUpdateRequest struct {
-	UUID        string  `json:"-"`
-	Name        string  `json:"name,omitempty" yaml:"name"`
-	Location    string  `json:"location,omitempty" yaml:"location"`
-	Latitude    float64 `json:"latitude,omitempty" yaml:"latitude"`
-	Longitude   float64 `json:"longitude,omitempty" yaml:"longitude"`
-	Description string  `json:"description,omitempty" yaml:"description"`
-	FogType     *int64  `json:"fogType,omitempty" yaml:"agentType"`
+	UUID        string    `json:"-"`
+	Name        string    `json:"name,omitempty" yaml:"name"`
+	Location    string    `json:"location,omitempty" yaml:"location"`
+	Latitude    float64   `json:"latitude,omitempty" yaml:"latitude"`
+	Longitude   float64   `json:"longitude,omitempty" yaml:"longitude"`
+	Description string    `json:"description,omitempty" yaml:"description"`
+	FogType     *int64    `json:"fogType,omitempty" yaml:"agentType"`
+	Tags        *[]string `json:"tags,omitempty" yaml:"tags"`
 	AgentConfiguration
 }
 
@@ -494,4 +496,40 @@ type ApplicationRouteCreateRequest struct {
 	Name string `json:"name"`
 	From string `json:"from"`
 	To   string `json:"to"`
+}
+
+type EdgeResourceDisplay struct {
+	Name  string `json:"name,omitempty"`
+	Icon  string `json:"icon,omitempty"`
+	Color string `json:"color,omitempty"`
+}
+
+type EdgeResourceMetadata struct {
+	Name              string               `json:"name,omitempty"`
+	Description       string               `json:"description,omitempty"`
+	Version           string               `json:"version,omitempty"`
+	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
+	Display           *EdgeResourceDisplay `json:"display,omitempty"`
+	Interface         HttpEdgeResource     `json:"interface,omitempty"` // TODO: Make this generic
+	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
+}
+
+type HttpEdgeResource struct {
+	Endpoints []HttpEndpoint `json:"endpoints,omitempty"`
+}
+
+type HttpEndpoint struct {
+	Name   string `json:"name,omitempty"`
+	Method string `json:"method,omitempty"`
+	URL    string `json:"url,omitempty"`
+}
+
+type LinkEdgeResourceRequest struct {
+	AgentUUID           string `json:"uuid"`
+	EdgeResourceName    string `json:"-"`
+	EdgeResourceVersion string `json:"-"`
+}
+
+type ListEdgeResourceResponse struct {
+	EdgeResources []EdgeResourceMetadata `json:"edgeResources"`
 }

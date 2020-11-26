@@ -160,6 +160,7 @@ func (exe *agentConfigExecutor) Execute() error {
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,
+			Tags:      getAgentResponse.Tags,
 		},
 		Spec: agentConfig,
 	}

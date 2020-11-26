@@ -100,7 +100,7 @@ func Process(agentConfig rsc.AgentConfiguration, name, agentIP string, otherAgen
 	return agentConfig, nil
 }
 
-func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration) (request client.AgentUpdateRequest) {
+func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
 	var fogTypePtr *int64
 	if agentConfig.FogType != nil {
 		fogType, found := rsc.FogTypeStringMap[*agentConfig.FogType]
@@ -116,11 +116,12 @@ func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration) (r
 	request.Name = agentConfig.Name
 	request.FogType = fogTypePtr
 	request.AgentConfiguration = agentConfig.AgentConfiguration
+	request.Tags = tags
 	return
 }
 
-func createAgentFromConfiguration(agentConfig rsc.AgentConfiguration, name string, clt *client.Client) (uuid string, err error) {
-	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig)
+func createAgentFromConfiguration(agentConfig rsc.AgentConfiguration, tags *[]string, name string, clt *client.Client) (uuid string, err error) {
+	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 	createAgentRequest := client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
 	}
@@ -138,9 +139,9 @@ func createAgentFromConfiguration(agentConfig rsc.AgentConfiguration, name strin
 	return agent.UUID, nil
 }
 
-func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, uuid string, clt *client.Client) (err error) {
+func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, uuid string, clt *client.Client) (err error) {
 	if agentConfig != nil {
-		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(*agentConfig)
+		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(*agentConfig, tags)
 		updateAgentConfigRequest.UUID = uuid
 
 		if _, err = clt.UpdateAgent(&updateAgentConfigRequest); err != nil {

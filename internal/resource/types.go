@@ -108,6 +108,22 @@ type AgentConfiguration struct {
 	client.AgentConfiguration `yaml:",inline"`
 }
 
+type EdgeResource struct {
+	Name              string
+	Version           string                     `yaml:"version"`
+	Description       string                     `yaml:"description"`
+	InterfaceProtocol string                     `yaml:"interfaceProtocol"`
+	Interface         *EdgeResourceHTTPInterface `yaml:"interface,omitempty"` // TODO: Make this generic to support multiple interfaces protocols
+	Display           *Display                   `yaml:"display,omitempty"`
+	OrchestrationTags []string                   `yaml:"orchestrationTags"`
+	Custom            map[string]interface{}     `yaml:"custom"`
+}
+
+type EdgeResourceHTTPInterface = client.HttpEdgeResource
+
+type Display = client.EdgeResourceDisplay
+type HttpEndpoint = client.HttpEndpoint
+
 // FogTypeStringMap map human readable fog type to Controller fog type
 var FogTypeStringMap = map[string]int64{
 	"auto": 0,

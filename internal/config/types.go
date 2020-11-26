@@ -9,6 +9,7 @@ type Kind string
 const (
 	AgentConfigKind            Kind = "AgentConfig"
 	CatalogItemKind            Kind = "CatalogItem"
+	EdgeResourceKind           Kind = "EdgeResource"
 	IofogctlConfigKind         Kind = "IofogctlConfig"
 	IofogctlNamespaceKind      Kind = "Namespace"
 	RegistryKind               Kind = "Registry"
@@ -49,6 +50,7 @@ type iofogctlNamespace struct {
 
 // HeaderMetadata contains k8s metadata
 type HeaderMetadata struct {
-	Name      string `yaml:"name" json:"name"`
-	Namespace string `yaml:"namespace" json:"namespace"`
+	Name      string    `yaml:"name" json:"name"`
+	Namespace string    `yaml:"namespace" json:"namespace"`
+	Tags      *[]string `yaml:"tags,omitempty" json:"tags,omitempty"`
 }

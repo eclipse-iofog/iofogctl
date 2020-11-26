@@ -33,12 +33,14 @@ type Options struct {
 	Namespace string
 	Yaml      []byte
 	Name      string
+	Tags      *[]string
 }
 
 type AgentConfigExecutor interface {
 	execute.Executor
 	GetAgentUUID() string
 	SetHost(string)
+	SetTags(*[]string)
 	GetConfiguration() rsc.AgentConfiguration
 	GetNamespace() string
 }
@@ -48,13 +50,15 @@ type remoteExecutor struct {
 	uuid        string
 	agentConfig rsc.AgentConfiguration
 	namespace   string
+	tags        *[]string
 }
 
-func NewRemoteExecutor(name string, config rsc.AgentConfiguration, namespace string) *remoteExecutor {
+func NewRemoteExecutor(name string, config rsc.AgentConfiguration, namespace string, tags *[]string) *remoteExecutor {
 	return &remoteExecutor{
 		name:        name,
 		agentConfig: config,
 		namespace:   namespace,
+		tags:        tags,
 	}
 }
 
@@ -68,6 +72,18 @@ func (exe *remoteExecutor) GetConfiguration() rsc.AgentConfiguration {
 
 func (exe *remoteExecutor) SetHost(host string) {
 	exe.agentConfig.Host = &host
+}
+
+func (exe *remoteExecutor) SetTags(tags *[]string) {
+	// Merge tags
+	if tags != nil {
+		if exe.tags == nil {
+			exe.tags = tags
+		} else {
+			newTagsSlice := append(*exe.tags, *tags...)
+			exe.tags = &newTagsSlice
+		}
+	}
 }
 
 func (exe *remoteExecutor) GetAgentUUID() string {
@@ -157,13 +173,13 @@ func (exe *remoteExecutor) Execute() error {
 
 	// Create if Agent does not exist
 	if agent == nil {
-		uuid, err := createAgentFromConfiguration(exe.agentConfig, exe.name, clt)
+		uuid, err := createAgentFromConfiguration(exe.agentConfig, exe.tags, exe.name, clt)
 		exe.uuid = uuid
 		return err
 	}
 	// Update existing Agent
 	exe.uuid = agent.UUID
-	return updateAgentConfiguration(&exe.agentConfig, agent.UUID, clt)
+	return updateAgentConfiguration(&exe.agentConfig, exe.tags, agent.UUID, clt)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -186,6 +202,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		name:        opt.Name,
 		agentConfig: agentConfig,
 		namespace:   opt.Namespace,
+		tags:        opt.Tags,
 	}, nil
 }
 

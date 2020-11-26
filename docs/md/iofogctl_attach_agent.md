@@ -21,8 +21,7 @@ iofogctl attach agent NAME
 ### Options
 
 ```
-  -h, --help       help for agent
-      --port int   Port number that iofogctl uses to SSH into remote hosts (default 22)
+  -h, --help   help for agent
 ```
 
 ### Options inherited from parent commands
@@ -35,6 +34,6 @@ iofogctl attach agent NAME
 
 ### SEE ALSO
 
-* [iofogctl attach](iofogctl_attach.md)	 - Attach an existing ioFog resource to Control Plane
+* [iofogctl attach](iofogctl_attach.md)	 - Attach one ioFog resource to another
 
 

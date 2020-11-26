@@ -1,3 +1,9 @@
+@test "Edge Resources" {
+  startTest
+  testEdgeResources
+  stopTest
+}
+
 @test "Deploy Volumes" {
   startTest
   testDeployVolume

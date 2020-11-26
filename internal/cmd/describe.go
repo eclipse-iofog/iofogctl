@@ -30,13 +30,14 @@ func newDescribeCommand() *cobra.Command {
 Resources such as Agents require a working Controller in the namespace in order to be described.`,
 		Example: `iofogctl describe namespace
                   controlplane
-                  controller   NAME
-                  agent        NAME
-                  agent-config NAME
-                  application  NAME
-                  microservice NAME
-                  volume       NAME
-                  route        NAME`,
+                  controller     NAME
+                  agent          NAME
+                  agent-config   NAME
+                  application    NAME
+                  microservice   NAME
+                  volume         NAME
+                  route          NAME
+                  edge-resource  NAME/VERSION`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				util.Check(util.NewInputError("Must specify a resource to describe"))

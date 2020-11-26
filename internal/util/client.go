@@ -14,10 +14,11 @@
 package util
 
 import (
+	"sync"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"sync"
 )
 
 var clientCache map[string]*client.Client
@@ -67,6 +68,18 @@ func NewControllerClient(namespace string) (*client.Client, error) {
 	return cachedClient, nil
 }
 
+func IsEdgeResourceCapable(namespace string) error {
+	// Check Controller API handles edge resources
+	clt, err := NewControllerClient(namespace)
+	if err != nil {
+		return err
+	}
+	if err := clt.IsEdgeResourceCapable(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
 	if cachedAgents, exist := agentCache[namespace]; exist {
 		return cachedAgents, nil
@@ -101,8 +114,13 @@ func UpdateAgentCache(namespace string) error {
 	}
 	// Generate map of config Agents
 	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
+	var localAgent *rsc.LocalAgent
 	for _, baseAgent := range ns.GetAgents() {
-		agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
+		if v, ok := baseAgent.(*rsc.LocalAgent); ok {
+			localAgent = v
+		} else {
+			agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
+		}
 	}
 	// Get backend Agents
 	backendAgents, err := GetBackendAgents(namespace)
@@ -113,6 +131,11 @@ func UpdateAgentCache(namespace string) error {
 	// Generate cache types
 	agents := make([]rsc.RemoteAgent, 0)
 	for _, backendAgent := range backendAgents {
+		if localAgent != nil && backendAgent.Name == localAgent.Name {
+			localAgent.UUID = backendAgent.UUID
+			continue
+		}
+
 		agent := rsc.RemoteAgent{
 			Name: backendAgent.Name,
 			UUID: backendAgent.UUID,
@@ -131,6 +154,12 @@ func UpdateAgentCache(namespace string) error {
 	ns.DeleteAgents()
 	for idx := range agents {
 		if err := ns.AddAgent(&agents[idx]); err != nil {
+			return err
+		}
+	}
+
+	if localAgent != nil {
+		if err := ns.AddAgent(localAgent); err != nil {
 			return err
 		}
 	}

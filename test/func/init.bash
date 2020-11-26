@@ -264,3 +264,34 @@ spec:
   private: true
   " > test/conf/gcr.yaml
 }
+
+function initEdgeResourceFile() {
+  local ER_VERSION="$EDGE_RESOURCE_VERSION"
+  if [ ! -z "$1" ]; then
+    ER_VERSION="$1"
+  fi
+  echo "---
+apiVersion: iofog.org/v2
+kind: EdgeResource
+metadata:
+  name: $EDGE_RESOURCE_NAME
+spec:
+  version: $ER_VERSION
+  description: $EDGE_RESOURCE_DESC
+  interfaceProtocol: $EDGE_RESOURCE_PROTOCOL
+  orchestrationTags:
+  - smart
+  - door
+  interface:
+    endpoints:
+    - name: open
+      method: PUT
+      url: '/open'
+    - name: close
+      method: PUT
+      url: '/close'
+  display:
+    name: 'Smart Door'
+    icon: 'icon'
+    color: '#fefefefe'" > test/conf/edge-resource.yaml
+}

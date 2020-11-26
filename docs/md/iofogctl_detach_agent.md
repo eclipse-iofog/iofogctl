@@ -40,6 +40,6 @@ iofogctl detach agent NAME
 
 ### SEE ALSO
 
-* [iofogctl detach](iofogctl_detach.md)	 - Detach an existing ioFog resource from its ECN
+* [iofogctl detach](iofogctl_detach.md)	 - Detach one ioFog resource from another
 
 

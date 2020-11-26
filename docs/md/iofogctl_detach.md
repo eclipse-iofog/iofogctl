@@ -1,10 +1,10 @@
 ## iofogctl detach
 
-Detach an existing ioFog resource from its ECN
+Detach one ioFog resource from another
 
 ### Synopsis
 
-Detach an existing ioFog resource from its ECN.
+Detach one ioFog resource from another.
 
 ### Examples
 
@@ -30,5 +30,6 @@ detach
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl detach agent](iofogctl_detach_agent.md)	 - Detaches an Agent
+* [iofogctl detach edge-resource](iofogctl_detach_edge-resource.md)	 - Detaches an Edge Resource from an Agent
 
 

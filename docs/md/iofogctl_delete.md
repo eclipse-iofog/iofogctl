@@ -33,6 +33,7 @@ iofogctl delete [flags]
 * [iofogctl delete application](iofogctl_delete_application.md)	 - Delete an application
 * [iofogctl delete catalogitem](iofogctl_delete_catalogitem.md)	 - Delete a Catalog item
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
+* [iofogctl delete edge-resource](iofogctl_delete_edge-resource.md)	 - Delete an Edge Resource
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace
 * [iofogctl delete registry](iofogctl_delete_registry.md)	 - Delete a Registry

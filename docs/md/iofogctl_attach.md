@@ -1,10 +1,10 @@
 ## iofogctl attach
 
-Attach an existing ioFog resource to Control Plane
+Attach one ioFog resource to another
 
 ### Synopsis
 
-Attach an existing ioFog resource to Control Plane.
+Attach one ioFog resource to another.
 
 ### Examples
 
@@ -30,5 +30,6 @@ attach
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl attach agent](iofogctl_attach_agent.md)	 - Attach an Agent to an existing Namespace
+* [iofogctl attach edge-resource](iofogctl_attach_edge-resource.md)	 - Attach an Edge Resource to an existing Agent
 
 

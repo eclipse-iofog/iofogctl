@@ -23,6 +23,7 @@ type Options struct {
 	Name      string
 	Yaml      []byte
 	IsSystem  bool
+	Tags      *[]string
 }
 
 func NewRemoteExecutorYAML(opt Options) (exe execute.Executor, err error) {
@@ -42,7 +43,7 @@ func NewRemoteExecutorYAML(opt Options) (exe execute.Executor, err error) {
 	}
 
 	remoteExe := newRemoteExecutor(opt.Namespace, &agent)
-	return newFacadeExecutor(remoteExe, opt.Namespace, &agent, opt.IsSystem), nil
+	return newFacadeExecutor(remoteExe, opt.Namespace, &agent, opt.IsSystem, opt.Tags), nil
 }
 
 func NewLocalExecutorYAML(opt Options) (exe execute.Executor, err error) {
@@ -60,5 +61,5 @@ func NewLocalExecutorYAML(opt Options) (exe execute.Executor, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return newFacadeExecutor(localExe, opt.Namespace, &agent, opt.IsSystem), nil
+	return newFacadeExecutor(localExe, opt.Namespace, &agent, opt.IsSystem, opt.Tags), nil
 }

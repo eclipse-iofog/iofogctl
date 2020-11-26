@@ -40,6 +40,8 @@ func NewExecutor(resourceType, namespace, name, filename string, useDetached boo
 		return newVolumeExecutor(namespace, name, filename), nil
 	case "route":
 		return newRouteExecutor(namespace, name, filename), nil
+	case "edge-resource":
+		return newEdgeResourceExecutor(namespace, name, filename), nil
 	default:
 		msg := "Unknown resourceType: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

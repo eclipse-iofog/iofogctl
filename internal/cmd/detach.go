@@ -21,13 +21,14 @@ func newDetachCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "detach",
 		Example: `detach`,
-		Short:   "Detach an existing ioFog resource from its ECN",
-		Long:    `Detach an existing ioFog resource from its ECN.`,
+		Short:   "Detach one ioFog resource from another",
+		Long:    `Detach one ioFog resource from another.`,
 	}
 
 	// Add subcommands
 	cmd.AddCommand(
 		newDetachAgentCommand(),
+		newDetachEdgeResourceCommand(),
 	)
 
 	return cmd

@@ -17,6 +17,7 @@ iofogctl deploy [flags]
 deploy -f platform.yaml
           application.yaml
           microservice.yaml
+          edge-resource.yaml
           catalog.yaml
           volume.yaml
           route.yaml
@@ -25,7 +26,7 @@ deploy -f platform.yaml
 ### Options
 
 ```
-  -f, --file string   YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
+  -f, --file string   YAML file containing specifications for ioFog resources to deploy
   -h, --help          help for deploy
 ```
 

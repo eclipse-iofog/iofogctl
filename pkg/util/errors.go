@@ -148,3 +148,24 @@ func NewUnmarshalError(message string) *UnmarshalError {
 func (err *UnmarshalError) Error() string {
 	return fmt.Sprintf("Failed to unmarshal input file. \n%s\nMake sure to use camel case field names. E.g. `keyFile: ~/.ssh/id_rsa`", err.message)
 }
+
+type UnsupportedApiError struct {
+	header  string
+	message string
+}
+
+func NewUnsupportedApiError(message string) *UnsupportedApiError {
+	return &UnsupportedApiError{
+		header:  "Unsupported API error",
+		message: message,
+	}
+}
+
+func (err *UnsupportedApiError) Error() string {
+	return fmt.Sprintf("%s\n%s", err.header, err.message)
+}
+
+func IsUnsupportedApiError(err error) bool {
+	apiErr := NewUnsupportedApiError("")
+	return err != nil && strings.Contains(err.Error(), apiErr.header)
+}
