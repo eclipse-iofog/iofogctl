@@ -21,7 +21,7 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:master'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
   kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:develop'
