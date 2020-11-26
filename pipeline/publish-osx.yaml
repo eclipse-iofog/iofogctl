@@ -29,10 +29,10 @@ jobs:
         sed -i "s/<SHA256>/$checksum/g" $brew_file
         sed -i "s/<URL>/$(gcp.bucket.url)/g" $brew_file
         sed -i "s/<BUCKET>/$(gcp.bucket.osx)/g" $brew_file
-        sed -i "s/<VERSION>/$(version)/g" $brew_file
+        sed -i "s/<VERSION>/$(version)-b$(Build.BuildId)/g" $brew_file
       else
         sed -i "s/sha256.*/sha256 \"$checksum\"/g" $brew_file
-        sed -i "s/version.*/version \"$(version)\"/g" $brew_file
+        sed -i "s/version.*/version \"$(version)-b$(Build.BuildId)\"/g" $brew_file
         sed -i "s|url .*|url \"$(gcp.bucket.url)/$(gcp.bucket.osx)/$short_version/iofogctl.tar.gz\"|g" $brew_file
       fi
       git add $brew_file
