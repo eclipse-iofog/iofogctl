@@ -137,3 +137,8 @@ var FogTypeIntMap = map[int]string{
 	1: "x86",
 	2: "arm",
 }
+
+type ControllerConfig struct {
+	PidBaseDir    string `yaml:"pidBaseDir,omitempty"`
+	EcnViewerPort int    `yaml:"ecnViewerPort,omitempty"`
+}

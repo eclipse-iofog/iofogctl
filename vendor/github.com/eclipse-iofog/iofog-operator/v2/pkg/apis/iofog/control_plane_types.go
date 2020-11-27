@@ -12,12 +12,13 @@ type ControlPlaneSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	User      User      `json:"user"`
-	Database  Database  `json:"database,omitempty"`
-	Services  Services  `json:"services,omitempty"`
-	Replicas  Replicas  `json:"replicas,omitempty"`
-	Images    Images    `json:"images,omitempty"`
-	Ingresses Ingresses `json:"ingresses,omitempty"`
+	User       User       `json:"user"`
+	Database   Database   `json:"database,omitempty"`
+	Services   Services   `json:"services,omitempty"`
+	Replicas   Replicas   `json:"replicas,omitempty"`
+	Images     Images     `json:"images,omitempty"`
+	Ingresses  Ingresses  `json:"ingresses,omitempty"`
+	Controller Controller `json:"controller,omitempty"`
 }
 
 type Replicas struct {
@@ -82,6 +83,11 @@ type Ingresses struct {
 	Router    RouterIngress `json:"router,omitempty"`
 	HttpProxy Ingress       `json:"httpProxy,omitempty"`
 	TcpProxy  TcpIngress    `json:"tcpProxy,omitempty"`
+}
+
+type Controller struct {
+	PidBaseDir    string `json:"pidBaseDir,omitempty"`
+	EcnViewerPort int    `json:"ecnViewerPort,omitempty"`
 }
 
 // ControlPlaneStatus defines the observed state of ControlPlane

@@ -107,7 +107,14 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	}
 	// Create controller on cluster
 	user := install.IofogUser(exe.controlPlane.IofogUser)
-	endpoint, err := installer.CreateController(user, replicas, install.Database(exe.controlPlane.Database))
+	conf := install.ControllerConfig{
+		User:          user,
+		Replicas:      replicas,
+		Database:      install.Database(exe.controlPlane.Database),
+		PidBaseDir:    exe.controlPlane.Controller.PidBaseDir,
+		EcnViewerPort: exe.controlPlane.Controller.EcnViewerPort,
+	}
+	endpoint, err := installer.CreateControlPlane(conf)
 	if err != nil {
 		return
 	}

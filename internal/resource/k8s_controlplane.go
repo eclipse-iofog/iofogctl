@@ -26,6 +26,7 @@ type KubernetesControlPlane struct {
 	Replicas       Replicas               `yaml:"replicas,omitempty"`
 	Images         KubeImages             `yaml:"images,omitempty"`
 	Endpoint       string                 `yaml:"endpoint,omitempty"`
+	Controller     ControllerConfig       `yaml:"controller,omitempty"`
 }
 
 func (cp KubernetesControlPlane) GetUser() IofogUser {

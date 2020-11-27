@@ -9,7 +9,7 @@ require (
 	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201125234312-eb5fea40c79a
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005233041-dd2f47e80670
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201126233946-33f6565691a5
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/json-iterator/go v1.1.8

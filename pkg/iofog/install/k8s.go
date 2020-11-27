@@ -178,7 +178,7 @@ func (k8s *Kubernetes) enableOperatorClient() (err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Database) (endpoint string, err error) {
+func (k8s *Kubernetes) CreateControlPlane(conf ControllerConfig) (endpoint string, err error) {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
 	ns := &corev1.Namespace{
@@ -221,11 +221,13 @@ func (k8s *Kubernetes) CreateController(user IofogUser, replicas int32, db Datab
 	}
 
 	// Set specification
-	cp.Spec.Replicas.Controller = int32(replicas)
-	cp.Spec.Database = iofogv2.Database(db)
-	cp.Spec.User = iofogv2.User(user)
+	cp.Spec.Replicas.Controller = conf.Replicas
+	cp.Spec.Database = iofogv2.Database(conf.Database)
+	cp.Spec.User = iofogv2.User(conf.User)
 	cp.Spec.Services = k8s.services
 	cp.Spec.Images = k8s.images
+	cp.Spec.Controller.EcnViewerPort = conf.EcnViewerPort
+	cp.Spec.Controller.PidBaseDir = conf.PidBaseDir
 
 	// Create or update Control Plane
 	if found {
@@ -409,7 +411,7 @@ func (k8s *Kubernetes) createOperator() (err error) {
 	return nil
 }
 
-func (k8s *Kubernetes) DeleteController() error {
+func (k8s *Kubernetes) DeleteControlPlane() error {
 	// Prepare Control Plane client
 	if err := k8s.enableOperatorClient(); err != nil {
 		return err

@@ -61,7 +61,7 @@ func (exe *Executor) Execute() (err error) {
 	}
 
 	// Delete Controller on cluster
-	err = k8s.DeleteController()
+	err = k8s.DeleteControlPlane()
 	if err != nil {
 		return err
 	}

@@ -33,3 +33,11 @@ type Pod struct {
 	Name   string
 	Status string
 }
+
+type ControllerConfig struct {
+	User          IofogUser
+	Replicas      int32
+	Database      Database
+	PidBaseDir    string
+	EcnViewerPort int
+}
