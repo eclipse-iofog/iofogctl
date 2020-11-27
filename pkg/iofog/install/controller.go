@@ -34,6 +34,8 @@ type ControllerOptions struct {
 	Repo                string
 	Token               string
 	SystemMicroservices rsc.RemoteSystemMicroservices
+	PidBaseDir          string
+	EcnViewerPort       int
 }
 
 type database struct {
@@ -170,27 +172,38 @@ func (ctrl *Controller) Install() (err error) {
 		}
 	}
 
-	// Define commands
-	dbArgs := ""
+	// Encode environment variables
+	env := make([]string, 0)
 	if ctrl.db.host != "" {
-		db := ctrl.db
-		dbArgs = fmt.Sprintf("\"DB_PROVIDER=%s\" \"DB_HOST=%s\" \"DB_USER=%s\" \"DB_PASSWORD=%s\" \"DB_PORT=%d\" \"DB_NAME=%s\"", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
+		env = append(env, fmt.Sprintf("\"DB_PROVIDER=%s\"", ctrl.db.provider))
+		env = append(env, fmt.Sprintf("\"DB_HOST=%s\"", ctrl.db.host))
+		env = append(env, fmt.Sprintf("\"DB_USER=%s\"", ctrl.db.user))
+		env = append(env, fmt.Sprintf("\"DB_PASSWORD=%s\"", ctrl.db.password))
+		env = append(env, fmt.Sprintf("\"DB_PORT=%d\"", ctrl.db.port))
+		env = append(env, fmt.Sprintf("\"DB_NAME=%s\"", ctrl.db.databaseName))
 	}
-	systemImages := []string{}
+	if ctrl.PidBaseDir != "" {
+		env = append(env, fmt.Sprintf("\"PID_BASE=%s\"", ctrl.PidBaseDir))
+	}
+	if ctrl.EcnViewerPort != 0 {
+		env = append(env, fmt.Sprintf("\"VIEWER_PORT=%d\"", ctrl.EcnViewerPort))
+	}
 	if ctrl.SystemMicroservices.Proxy.X86 != "" {
-		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Proxy_1=%s\"", ctrl.SystemMicroservices.Proxy.X86))
+		env = append(env, fmt.Sprintf("\"SystemImages_Proxy_1=%s\"", ctrl.SystemMicroservices.Proxy.X86))
 	}
 	if ctrl.SystemMicroservices.Proxy.ARM != "" {
-		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Proxy_2=%s\"", ctrl.SystemMicroservices.Proxy.ARM))
+		env = append(env, fmt.Sprintf("\"SystemImages_Proxy_2=%s\"", ctrl.SystemMicroservices.Proxy.ARM))
 	}
 	if ctrl.SystemMicroservices.Router.X86 != "" {
-		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Router_1=%s\"", ctrl.SystemMicroservices.Router.X86))
+		env = append(env, fmt.Sprintf("\"SystemImages_Router_1=%s\"", ctrl.SystemMicroservices.Router.X86))
 	}
 	if ctrl.SystemMicroservices.Router.ARM != "" {
-		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Router_2=%s\"", ctrl.SystemMicroservices.Router.ARM))
+		env = append(env, fmt.Sprintf("\"SystemImages_Router_2=%s\"", ctrl.SystemMicroservices.Router.ARM))
 	}
 
-	envVariables := fmt.Sprintf("%s %s", dbArgs, strings.Join(systemImages, " "))
+	envString := strings.Join(env, " ")
+
+	// Define commands
 	cmds := []command{
 		{
 			cmd: "/tmp/check_prereqs.sh",
@@ -201,7 +214,7 @@ func (ctrl *Controller) Install() (err error) {
 			msg: "Installing Node.js on Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_set_env.sh %s", envVariables),
+			cmd: fmt.Sprintf("sudo /tmp/controller_set_env.sh %s", envString),
 			msg: "Setting up environment variables for Controller " + ctrl.Host,
 		},
 		{

@@ -111,6 +111,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Host:                exe.controller.Host,
 		Port:                exe.controller.SSH.Port,
 		PrivKeyFilename:     exe.controller.SSH.KeyFile,
+		PidBaseDir:          exe.controller.PidBaseDir,
+		EcnViewerPort:       exe.controller.EcnViewerPort,
 		Version:             exe.controlPlane.Package.Version,
 		Repo:                exe.controlPlane.Package.Repo,
 		Token:               exe.controlPlane.Package.Token,
