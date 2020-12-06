@@ -7,13 +7,13 @@ Get detailed information about an Edge Resource
 Get detailed information about an Edge Resource.
 
 ```
-iofogctl describe edge-resource NAME/VERSION [flags]
+iofogctl describe edge-resource NAME VERSION [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl describe edge-resource NAME/VERSION
+iofogctl describe edge-resource NAME VERSION
 ```
 
 ### Options

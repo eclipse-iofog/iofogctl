@@ -10,13 +10,13 @@ Only the specified version will be deleted.
 Agents that this Edge Resource are attached to will be notified of the deletion.
 
 ```
-iofogctl delete edge-resource NAME/VERSION [flags]
+iofogctl delete edge-resource NAME VERSION [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl delete edge-resource NAME/VERSION
+iofogctl delete edge-resource NAME VERSION
 ```
 
 ### Options

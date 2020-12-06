@@ -25,6 +25,7 @@ type Options struct {
 	Namespace  string
 	Filename   string
 	IsDetached bool
+	Version    string
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {
@@ -50,7 +51,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	case "route":
 		return newRouteExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "edge-resource":
-		return newEdgeResourceExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+		return newEdgeResourceExecutor(opt.Namespace, opt.Name, opt.Version, opt.Filename), nil
 	default:
 		return nil, util.NewInputError(fmt.Sprintf("Unknown resources: %s", opt.Resource))
 	}

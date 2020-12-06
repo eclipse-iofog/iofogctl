@@ -25,15 +25,16 @@ func newDescribeEdgeResourceCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:     "edge-resource NAME/VERSION",
+		Use:     "edge-resource NAME VERSION",
 		Short:   "Get detailed information about an Edge Resource",
 		Long:    `Get detailed information about an Edge Resource.`,
-		Example: `iofogctl describe edge-resource NAME/VERSION`,
-		Args:    cobra.ExactArgs(1),
+		Example: `iofogctl describe edge-resource NAME VERSION`,
+		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name
 			var err error
 			opt.Name = args[0]
+			opt.Version = args[1]
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 

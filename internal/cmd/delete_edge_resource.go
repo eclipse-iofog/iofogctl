@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"fmt"
 	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/edgeresource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
@@ -21,26 +22,28 @@ import (
 
 func newDeleteEdgeResourceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "edge-resource NAME/VERSION",
+		Use:   "edge-resource NAME VERSION",
 		Short: "Delete an Edge Resource",
 		Long: `Delete an Edge Resource.
 
 Only the specified version will be deleted.
 Agents that this Edge Resource are attached to will be notified of the deletion.`,
-		Example: `iofogctl delete edge-resource NAME/VERSION`,
-		Args:    cobra.ExactArgs(1),
+		Example: `iofogctl delete edge-resource NAME VERSION`,
+		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of edge resource
-			nameVersion := args[0]
+			name := args[0]
+			version := args[1]
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 
 			// Run the command
-			exe := delete.NewExecutor(namespace, nameVersion)
+			exe := delete.NewExecutor(namespace, name, version)
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess("Successfully deleted " + namespace + "/" + nameVersion)
+			msg := fmt.Sprintf("Successfully deleted %s/%s", name, version)
+			util.PrintSuccess(msg)
 		},
 	}
 

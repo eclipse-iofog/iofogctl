@@ -14,6 +14,7 @@
 package detachedgeresource
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
@@ -21,27 +22,25 @@ import (
 )
 
 type executor struct {
-	nameVersion string
-	namespace   string
-	agent       string
+	name      string
+	version   string
+	namespace string
+	agent     string
 }
 
-func NewExecutor(namespace, nameVersion, agent string) execute.Executor {
-	return executor{nameVersion: nameVersion, namespace: namespace, agent: agent}
+func NewExecutor(namespace, name, version, agent string) execute.Executor {
+	return executor{name: name,
+		version:   version,
+		namespace: namespace,
+		agent:     agent}
 }
 
 func (exe executor) GetName() string {
-	return exe.nameVersion
+	return fmt.Sprintf("%s/%s", exe.name, exe.version)
 }
 
 func (exe executor) Execute() error {
 	util.SpinStart("Detaching Edge Resource")
-
-	// Decode name version
-	name, version, err := iutil.DecodeNameVersion(exe.nameVersion)
-	if err != nil {
-		return err
-	}
 
 	// Init client
 	clt, err := iutil.NewControllerClient(exe.namespace)
@@ -62,8 +61,8 @@ func (exe executor) Execute() error {
 	// Detach from agent
 	req := client.LinkEdgeResourceRequest{
 		AgentUUID:           agentInfo.UUID,
-		EdgeResourceName:    name,
-		EdgeResourceVersion: version,
+		EdgeResourceName:    exe.name,
+		EdgeResourceVersion: exe.version,
 	}
 	if err := clt.UnlinkEdgeResource(req); err != nil {
 		return err

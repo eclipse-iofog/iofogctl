@@ -14,29 +14,25 @@
 package deleteedgeresource
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 )
 
 type executor struct {
-	namespace   string
-	nameVersion string
+	namespace string
+	name      string
+	version   string
 }
 
 func (exe executor) GetName() string {
-	return "deleting Edge Resource " + exe.nameVersion
+	return fmt.Sprintf("%s/%s", exe.name, exe.version)
 }
 
 func (exe executor) Execute() (err error) {
 	if _, err = config.GetNamespace(exe.namespace); err != nil {
 		return
-	}
-
-	// Decode nameVersion
-	name, version, err := iutil.DecodeNameVersion(exe.nameVersion)
-	if err != nil {
-		return err
 	}
 
 	// Connect to Controller
@@ -50,15 +46,16 @@ func (exe executor) Execute() (err error) {
 		return err
 	}
 
-	if err = clt.DeleteEdgeResource(name, version); err != nil {
+	if err = clt.DeleteEdgeResource(exe.name, exe.version); err != nil {
 		return
 	}
 	return
 }
 
-func NewExecutor(namespace, nameVersion string) (exe execute.Executor) {
+func NewExecutor(namespace, name, version string) (exe execute.Executor) {
 	return executor{
-		namespace:   namespace,
-		nameVersion: nameVersion,
+		namespace: namespace,
+		name:      name,
+		version:   version,
 	}
 }
