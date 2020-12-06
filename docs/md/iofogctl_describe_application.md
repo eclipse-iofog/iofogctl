@@ -1,25 +1,26 @@
-## iofogctl rename application
+## iofogctl describe application
 
-Rename an Application
+Get detailed information about an Application
 
 ### Synopsis
 
-Rename a Application
+Get detailed information about an Application.
 
 ```
-iofogctl rename application NAME NEW_NAME [flags]
+iofogctl describe application NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl rename application NAME NEW_NAME
+iofogctl describe application NAME
 ```
 
 ### Options
 
 ```
-  -h, --help   help for application
+  -h, --help                 help for application
+  -o, --output-file string   YAML output file
 ```
 
 ### Options inherited from parent commands
@@ -32,6 +33,6 @@ iofogctl rename application NAME NEW_NAME
 
 ### SEE ALSO
 
-* [iofogctl rename](iofogctl_rename.md)	 - Rename the iofog resources that are currently deployed
+* [iofogctl describe](iofogctl_describe.md)	 - Get detailed information of an existing resources
 
 

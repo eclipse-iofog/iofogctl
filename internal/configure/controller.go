@@ -69,7 +69,7 @@ func (exe *controllerExecutor) Execute() error {
 		return util.NewInputError("Cannot configure Kubernetes Control Plane as if it is a Remote Control Plane")
 
 	case *rsc.LocalControlPlane:
-		return util.NewInputError("Cannot configure a Local Controlplane")
+		return util.NewInputError("Cannot configure a Local ControlPlane")
 	}
 
 	ns.SetControlPlane(baseControlPlane)
@@ -79,7 +79,7 @@ func (exe *controllerExecutor) Execute() error {
 func (exe *controllerExecutor) remoteConfigure(controlPlane *rsc.RemoteControlPlane) (err error) {
 	// Error if kubernetesConfig is passed
 	if (kubernetesConfig{}) != exe.kubernetesConfig {
-		return util.NewInputError("Cannot edit Kubernetes config of a Remote Controlplane")
+		return util.NewInputError("Cannot edit Kubernetes config of a Remote ControlPlane")
 	}
 
 	baseController, err := controlPlane.GetController(exe.name)
