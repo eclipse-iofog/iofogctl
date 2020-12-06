@@ -7,13 +7,13 @@ Detaches an Edge Resource from an Agent
 Detaches an Edge Resource from an Agent.
 
 ```
-iofogctl detach edge-resource NAME/VERSION AGENT_NAME [flags]
+iofogctl detach edge-resource NAME VERSION AGENT_NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl detach edge-resource NAME/VERSION AGENT_NAME
+iofogctl detach edge-resource NAME VERSION AGENT_NAME
 ```
 
 ### Options

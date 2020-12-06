@@ -27,7 +27,7 @@ iofogctl [flags]
 * [iofogctl create](iofogctl_create.md)	 - Create a resource
 * [iofogctl delete](iofogctl_delete.md)	 - Delete an existing ioFog resource
 * [iofogctl deploy](iofogctl_deploy.md)	 - Deploy Edge Compute Network components on existing infrastructure
-* [iofogctl describe](iofogctl_describe.md)	 - Get detailed information of existing resources
+* [iofogctl describe](iofogctl_describe.md)	 - Get detailed information of an existing resources
 * [iofogctl detach](iofogctl_detach.md)	 - Detach one ioFog resource from another
 * [iofogctl disconnect](iofogctl_disconnect.md)	 - Disconnect from an ioFog cluster
 * [iofogctl get](iofogctl_get.md)	 - Get information of existing resources

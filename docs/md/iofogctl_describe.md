@@ -1,36 +1,16 @@
 ## iofogctl describe
 
-Get detailed information of existing resources
+Get detailed information of an existing resources
 
 ### Synopsis
 
-Get detailed information of existing resources.
-
-Resources such as Agents require a working Controller in the namespace in order to be described.
-
-```
-iofogctl describe resource NAME [flags]
-```
-
-### Examples
-
-```
-iofogctl describe namespace
-                  controlplane
-                  controller     NAME
-                  agent          NAME
-                  agent-config   NAME
-                  application    NAME
-                  microservice   NAME
-                  volume         NAME
-                  route          NAME
-                  edge-resource  NAME/VERSION
-```
+Get detailed information of an existing resources.
+ 
+Most resources require a working Controller in the Namespace in order to be described.
 
 ### Options
 
 ```
-      --detached             Specify command is to run against detached resources
   -h, --help                 help for describe
   -o, --output-file string   YAML output file
 ```
@@ -46,5 +26,16 @@ iofogctl describe namespace
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
+* [iofogctl describe agent](iofogctl_describe_agent.md)	 - Get detailed information about an Agent
+* [iofogctl describe agent-config](iofogctl_describe_agent-config.md)	 - Get detailed information about an Agent's configuration
+* [iofogctl describe application](iofogctl_describe_application.md)	 - Get detailed information about an Application
+* [iofogctl describe controller](iofogctl_describe_controller.md)	 - Get detailed information about a  Controller
+* [iofogctl describe controlplane](iofogctl_describe_controlplane.md)	 - Get detailed information about a  Control Plane
+* [iofogctl describe edge-resource](iofogctl_describe_edge-resource.md)	 - Get detailed information about an Edge Resource
+* [iofogctl describe microservice](iofogctl_describe_microservice.md)	 - Get detailed information about a  Microservice
+* [iofogctl describe namespace](iofogctl_describe_namespace.md)	 - Get detailed information about a  Namespace
+* [iofogctl describe registry](iofogctl_describe_registry.md)	 - Get detailed information about a  Microservice Registry
+* [iofogctl describe route](iofogctl_describe_route.md)	 - Get detailed information about a  Route
+* [iofogctl describe volume](iofogctl_describe_volume.md)	 - Get detailed information about a  Volume
 
 

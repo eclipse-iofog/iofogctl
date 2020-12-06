@@ -7,13 +7,13 @@ Attach an Edge Resource to an existing Agent
 Attach an Edge Resource to an existing Agent.
 
 ```
-iofogctl attach edge-resource NAME/VERSION AGENT_NAME [flags]
+iofogctl attach edge-resource NAME VERSION AGENT_NAME [flags]
 ```
 
 ### Examples
 
 ```
-iofogctl attach edge-resource NAME/VERSION AGENT_NAME
+iofogctl attach edge-resource NAME VERSION AGENT_NAME
 ```
 
 ### Options

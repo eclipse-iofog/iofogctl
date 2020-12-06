@@ -193,7 +193,7 @@ func Execute(opt *Options) (err error) {
 		}
 	}
 
-	// Controlplanes (should only be 1)
+	// ControlPlanes (should only be 1)
 	cpCount := 0
 	errMsg := "Specified multiple Control Planes in a single Namespace"
 	if exe, exists := executorsMap[config.KubernetesControlPlaneKind]; exists {

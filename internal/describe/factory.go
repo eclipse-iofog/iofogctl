@@ -14,36 +14,45 @@
 package describe
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func NewExecutor(resourceType, namespace, name, filename string, useDetached bool) (execute.Executor, error) {
-	switch resourceType {
+type Options struct {
+	Resource   string
+	Name       string
+	Namespace  string
+	Filename   string
+	IsDetached bool
+	Version    string
+}
+
+func NewExecutor(opt Options) (execute.Executor, error) {
+	switch opt.Resource {
 	case "namespace":
-		return newNamespaceExecutor(namespace, filename), nil
+		return newNamespaceExecutor(opt.Namespace, opt.Filename), nil
 	case "controlplane":
-		return newControlPlaneExecutor(namespace, filename), nil
+		return newControlPlaneExecutor(opt.Namespace, opt.Filename), nil
 	case "controller":
-		return newControllerExecutor(namespace, name, filename), nil
+		return newControllerExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "agent":
-		return newAgentExecutor(namespace, name, filename, useDetached), nil
+		return newAgentExecutor(opt.Namespace, opt.Name, opt.Filename, opt.IsDetached), nil
 	case "registry":
-		return newRegistryExecutor(namespace, name, filename, useDetached)
+		return newRegistryExecutor(opt.Namespace, opt.Name, opt.Filename, opt.IsDetached)
 	case "agent-config":
-		return newAgentConfigExecutor(namespace, name, filename), nil
+		return newAgentConfigExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "microservice":
-		return newMicroserviceExecutor(namespace, name, filename), nil
+		return newMicroserviceExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "application":
-		return newApplicationExecutor(namespace, name, filename), nil
+		return newApplicationExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "volume":
-		return newVolumeExecutor(namespace, name, filename), nil
+		return newVolumeExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "route":
-		return newRouteExecutor(namespace, name, filename), nil
+		return newRouteExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "edge-resource":
-		return newEdgeResourceExecutor(namespace, name, filename), nil
+		return newEdgeResourceExecutor(opt.Namespace, opt.Name, opt.Version, opt.Filename), nil
 	default:
-		msg := "Unknown resourceType: '" + resourceType + "'"
-		return nil, util.NewInputError(msg)
+		return nil, util.NewInputError(fmt.Sprintf("Unknown resources: %s", opt.Resource))
 	}
 }

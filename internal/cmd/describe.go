@@ -14,8 +14,6 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/describe"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -23,46 +21,30 @@ func newDescribeCommand() *cobra.Command {
 	// Values accepted in resource type argument
 	filename := ""
 	cmd := &cobra.Command{
-		Use:   "describe resource NAME",
-		Short: "Get detailed information of existing resources",
-		Long: `Get detailed information of existing resources.
-
-Resources such as Agents require a working Controller in the namespace in order to be described.`,
-		Example: `iofogctl describe namespace
-                  controlplane
-                  controller     NAME
-                  agent          NAME
-                  agent-config   NAME
-                  application    NAME
-                  microservice   NAME
-                  volume         NAME
-                  route          NAME
-                  edge-resource  NAME/VERSION`,
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				util.Check(util.NewInputError("Must specify a resource to describe"))
-			}
-			// Get resource type and name
-			resource := args[0]
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
-			useDetached, err := cmd.Flags().GetBool("detached")
-			util.Check(err)
-			name := ""
-			if len(args) > 1 {
-				name = args[1]
-			}
-			// Get executor for describe command
-			exe, err := describe.NewExecutor(resource, namespace, name, filename, useDetached)
-			util.Check(err)
-
-			// Execute the command
-			err = exe.Execute()
-			util.Check(err)
-		},
+		Use:   "describe",
+		Short: "Get detailed information of an existing resources",
+		Long: `Get detailed information of an existing resources.
+ 
+Most resources require a working Controller in the Namespace in order to be described.`,
 	}
+
+	// Add subcommands
+	cmd.AddCommand(
+		newDescribeControlPlaneCommand(),
+		newDescribeControllerCommand(),
+		newDescribeNamespaceCommand(),
+		newDescribeAgentCommand(),
+		newDescribeRegistryCommand(),
+		newDescribeAgentConfigCommand(),
+		newDescribeMicroserviceCommand(),
+		newDescribeApplicationCommand(),
+		newDescribeVolumeCommand(),
+		newDescribeRouteCommand(),
+		newDescribeEdgeResourceCommand(),
+	)
+
+	// Register Flags
 	cmd.Flags().StringVarP(&filename, "output-file", "o", "", "YAML output file")
-	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
 
 	return cmd
 }

@@ -22,7 +22,7 @@ import (
 func newRenameApplicationCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "application NAME NEW_NAME",
-		Short:   "Rename a Application",
+		Short:   "Rename an Application",
 		Long:    `Rename a Application`,
 		Example: `iofogctl rename application NAME NEW_NAME`,
 		Args:    cobra.ExactArgs(2),

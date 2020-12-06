@@ -14,6 +14,7 @@
 package describe
 
 import (
+	"fmt"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
@@ -21,31 +22,27 @@ import (
 )
 
 type edgeResourceExecutor struct {
-	namespace   string
-	nameVersion string
-	filename    string
+	namespace string
+	name      string
+	version   string
+	filename  string
 }
 
-func newEdgeResourceExecutor(namespace, nameVersion, filename string) *edgeResourceExecutor {
+func newEdgeResourceExecutor(namespace, name, version, filename string) *edgeResourceExecutor {
 	return &edgeResourceExecutor{
-		namespace:   namespace,
-		nameVersion: nameVersion,
-		filename:    filename,
+		namespace: namespace,
+		name:      name,
+		version:   version,
+		filename:  filename,
 	}
 }
 
 func (exe *edgeResourceExecutor) GetName() string {
-	return exe.nameVersion
+	return fmt.Sprintf("%s/%s", exe.name, exe.version)
 }
 
 func (exe *edgeResourceExecutor) Execute() error {
 	_, err := config.GetNamespace(exe.namespace)
-	if err != nil {
-		return err
-	}
-
-	// Decode nameVersion
-	name, version, err := iutil.DecodeNameVersion(exe.nameVersion)
 	if err != nil {
 		return err
 	}
@@ -62,7 +59,7 @@ func (exe *edgeResourceExecutor) Execute() error {
 	}
 
 	// Get Edge Resource
-	edge, err := clt.GetHttpEdgeResourceByName(name, version)
+	edge, err := clt.GetHttpEdgeResourceByName(exe.name, exe.version)
 	if err != nil {
 		return err
 	}
@@ -73,7 +70,7 @@ func (exe *edgeResourceExecutor) Execute() error {
 		Kind:       config.EdgeResourceKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
-			Name:      name,
+			Name:      exe.name,
 		},
 		Spec: rsc.EdgeResource{
 			Description:       edge.Description,

@@ -14,38 +14,39 @@
 package cmd
 
 import (
-	"fmt"
-	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/edgeresource"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/describe"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-func newAttachEdgeResourceCommand() *cobra.Command {
-	opt := attach.Options{}
+func newDescribeRouteCommand() *cobra.Command {
+	opt := describe.Options{
+		Resource: "route",
+	}
+
 	cmd := &cobra.Command{
-		Use:     "edge-resource NAME VERSION AGENT_NAME",
-		Short:   "Attach an Edge Resource to an existing Agent",
-		Long:    `Attach an Edge Resource to an existing Agent.`,
-		Example: `iofogctl attach edge-resource NAME VERSION AGENT_NAME`,
-		Args:    cobra.ExactArgs(3),
+		Use:     "route NAME",
+		Short:   "Get detailed information about a  Route",
+		Long:    `Get detailed information about a Route.`,
+		Example: `iofogctl describe route NAME`,
+		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get name and namespace of agent
-			opt.Name = args[0]
-			opt.Version = args[1]
-			opt.Agent = args[2]
+			// Get resource type and name
 			var err error
+			opt.Name = args[0]
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 
-			// Run the command
-			exe := attach.NewExecutor(opt)
-			err = exe.Execute()
+			// Get executor for describe command
+			exe, err := describe.NewExecutor(opt)
 			util.Check(err)
 
-			msg := fmt.Sprintf("Successfully attached EdgeResource %s/%s to Agent %s", opt.Name, opt.Version, opt.Agent)
-			util.PrintSuccess(msg)
+			// Execute the command
+			err = exe.Execute()
+			util.Check(err)
 		},
 	}
+	cmd.Flags().StringVarP(&opt.Filename, "output-file", "o", "", "YAML output file")
 
 	return cmd
 }

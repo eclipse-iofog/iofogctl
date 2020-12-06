@@ -14,10 +14,7 @@
 package util
 
 import (
-	"fmt"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
-	"strings"
 )
 
 func IsSystemAgent(agentConfig rsc.AgentConfiguration) bool {
@@ -34,15 +31,4 @@ func MakeStrPtr(value string) *string {
 
 func MakeBoolPtr(value bool) *bool {
 	return &value
-}
-
-func DecodeNameVersion(nameVersion string) (name, version string, err error) {
-	delim := "/"
-	if !strings.Contains(nameVersion, delim) {
-		err = util.NewInputError(fmt.Sprintf("%s is not in format NAME/VERSION", nameVersion))
-		return
-	}
-	name = util.Before(nameVersion, delim)
-	version = util.After(nameVersion, delim)
-	return
 }
