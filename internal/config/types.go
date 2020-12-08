@@ -24,6 +24,7 @@ const (
 	LocalControllerKind        Kind = "LocalController"
 	MicroserviceKind           Kind = Kind(apps.MicroserviceKind)
 	ApplicationKind            Kind = Kind(apps.ApplicationKind)
+	ApplicationTemplateKind    Kind = Kind(apps.ApplicationTemplateKind)
 	RouteKind                  Kind = Kind(apps.RouteKind)
 )
 

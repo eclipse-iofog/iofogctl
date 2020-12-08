@@ -20,19 +20,15 @@ type HeaderMetadata struct {
 	Namespace string `yaml:"namespace" json:"namespace"`
 }
 
-// Deployable can be deployed using iofogctl deploy
-type Deployable interface {
-	Deploy(namespace string) error
-}
-
 // Kind contains available types
 type Kind string
 
 // Available kind of deploy
 const (
-	ApplicationKind  Kind = "Application"
-	MicroserviceKind Kind = "Microservice"
-	RouteKind        Kind = "Route"
+	ApplicationKind         Kind = "Application"
+	ApplicationTemplateKind Kind = "ApplicationTemplate"
+	MicroserviceKind        Kind = "Microservice"
+	RouteKind               Kind = "Route"
 )
 
 // Header contains k8s yaml header
@@ -191,6 +187,30 @@ type Application struct {
 	Microservices []Microservice `yaml:"microservices" json:"microservices"`
 	Routes        []Route        `yaml:"routes" json:"routes"`
 	ID            int            `yaml:"id" json:"id"`
+}
+
+// ApplicationTemplate contains information for configuring an application template
+// +k8s:deepcopy-gen=true
+type ApplicationTemplate struct {
+	Name        string                  `yaml:"name,omitempty"`
+	Description string                  `yaml:"description,omitempty"`
+	Variables   []TemplateVariable      `yaml:"variables"`
+	Application ApplicationTemplateInfo `yaml:"application"`
+}
+
+// TemplateVariable contains a key-value pair
+// +k8s:deepcopy-gen=true
+type TemplateVariable struct {
+	Key          string `yaml:"key"`
+	Description  string `yaml:"description"`
+	DefaultValue string `yaml:"defaultValue"`
+}
+
+// ApplicationTemplateInfo contains microservice and route details for template
+// +k8s:deepcopy-gen=true
+type ApplicationTemplateInfo struct {
+	Microservices []Microservice `yaml:"microservices"`
+	Routes        []Route        `yaml:"routes"`
 }
 
 // Applications is a list of applications

@@ -38,6 +38,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 		newDescribeAgentConfigCommand(),
 		newDescribeMicroserviceCommand(),
 		newDescribeApplicationCommand(),
+		newDescribeApplicationTemplateCommand(),
 		newDescribeVolumeCommand(),
 		newDescribeRouteCommand(),
 		newDescribeEdgeResourceCommand(),

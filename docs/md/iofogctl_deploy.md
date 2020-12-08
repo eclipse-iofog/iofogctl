@@ -14,7 +14,8 @@ iofogctl deploy [flags]
 ### Examples
 
 ```
-deploy -f platform.yaml
+deploy -f ecn.yaml
+          application-template.yaml
           application.yaml
           microservice.yaml
           edge-resource.yaml

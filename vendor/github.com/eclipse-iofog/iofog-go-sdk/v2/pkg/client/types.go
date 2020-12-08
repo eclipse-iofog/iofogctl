@@ -87,8 +87,52 @@ type ApplicationListResponse struct {
 	Applications []ApplicationInfo `json:"applications"`
 }
 
-// Registries
+// Application Templates
+type ApplicationTemplate struct {
+	Name        string                  `json:"name,omitempty"`
+	Description string                  `json:"description,omitempty"`
+	Variables   []TemplateVariable      `json:"variables"`
+	Application ApplicationTemplateInfo `json:"application"`
+}
 
+type ApplicationTemplateCreateRequest struct {
+	ApplicationTemplate
+}
+
+type TemplateVariable struct {
+	Key          string `json:"key"`
+	Description  string `json:"description"`
+	DefaultValue string `json:"defaultValue"`
+}
+
+type ApplicationTemplateInfo struct {
+	Microservices []MicroserviceCreateRequest     `json:"microservices"`
+	Routes        []ApplicationRouteCreateRequest `json:"routes"`
+}
+
+type ApplicationTemplateCreateResponse struct {
+	Name string `json:"name"`
+	Id   int    `json:"id"`
+}
+
+type ApplicationTemplateUpdateRequest struct {
+	ApplicationTemplate
+}
+
+type ApplicationTemplateUpdateResponse struct {
+	ApplicationTemplateCreateResponse
+}
+
+type ApplicationTemplateMetadataUpdateRequest struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+type ApplicationTemplateListResponse struct {
+	ApplicationTemplates []ApplicationTemplate
+}
+
+// Registries
 type RegistryInfo struct {
 	ID           int    `json:"id"`
 	URL          string `json:"url"`

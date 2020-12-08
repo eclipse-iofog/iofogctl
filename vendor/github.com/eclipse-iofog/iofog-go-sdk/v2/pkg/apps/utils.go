@@ -301,11 +301,26 @@ func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice, 
 }
 
 func mapRoutesToClientRouteRequests(routes []Route) (result []client.ApplicationRouteCreateRequest) {
-	if routes != nil && len(routes) == 0 {
-		return []client.ApplicationRouteCreateRequest{}
+	if len(routes) == 0 {
+		return
 	}
 	for _, route := range routes {
 		result = append(result, mapRouteToClientRouteRequest(route))
+	}
+	return
+}
+
+func mapVariablesToClientVariables(variables []TemplateVariable) (result []client.TemplateVariable) {
+	if len(variables) == 0 {
+		return
+	}
+	for _, variable := range variables {
+		mappedVar := client.TemplateVariable{
+			Key:          variable.Key,
+			DefaultValue: variable.DefaultValue,
+			Description:  variable.Description,
+		}
+		result = append(result, mappedVar)
 	}
 	return
 }

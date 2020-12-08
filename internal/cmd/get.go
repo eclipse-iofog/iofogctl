@@ -22,7 +22,20 @@ import (
 )
 
 func newGetCommand() *cobra.Command {
-	validResources := []string{"all", "namespaces", "controllers", "agents", "edge-resources", "applications", "microservices", "catalog", "registries", "volumes", "routes"}
+	validResources := []string{
+		"all",
+		"namespaces",
+		"controllers",
+		"agents",
+		"edge-resources",
+		"application-templates",
+		"applications",
+		"microservices",
+		"catalog",
+		"registries",
+		"volumes",
+		"routes",
+	}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
 		Short: "Get information of existing resources",
@@ -34,6 +47,7 @@ Resources like Agents will require a working Controller in the namespace to disp
              controllers
              agents
              edge-resources
+             application-templates
              applications
              microservices
              catalog
