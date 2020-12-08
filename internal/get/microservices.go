@@ -21,6 +21,7 @@ import (
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"math"
+	"strings"
 )
 
 type microserviceExecutor struct {
@@ -126,6 +127,15 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string,
 			if ms.Status.Percentage > 0 {
 				status = fmt.Sprintf("%s (%d%s)", ms.Status.Status, int(math.Round(ms.Status.Percentage)), "%")
 			}
+		}
+		if ms.Status.ErrorMessage != "" {
+			msg := ms.Status.ErrorMessage
+			if strings.Contains(msg, "invalid mount config for type \"bind\"") {
+				msg = "Volume missing"
+			} else if strings.Contains(msg, "runtime create failed") {
+				msg = "Error starting container"
+			}
+			status = fmt.Sprintf("%s (%s)", ms.Status.Status, msg)
 		}
 
 		row := []string{

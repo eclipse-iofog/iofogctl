@@ -199,6 +199,7 @@ type MicroserviceStatus struct {
 	CpuUsage          float64 `json:"cpuUsage"`
 	ContainerId       string  `json:"containerId"`
 	Percentage        float64 `json:"percentage"`
+	ErrorMessage      string  `json:"errorMessage"`
 }
 
 type MicroserviceInfo struct {
