@@ -77,15 +77,13 @@ func (exe *applicationTemplateExecutor) deploy() (err error) {
 	routes := mapRoutesToClientRouteRequests(exe.template.Application.Routes)
 	variables := mapVariablesToClientVariables(exe.template.Variables)
 	request := &client.ApplicationTemplateUpdateRequest{
-		ApplicationTemplate: client.ApplicationTemplate{
-			Description: exe.template.Description,
-			Name:        exe.template.Name,
-			Application: client.ApplicationTemplateInfo{
-				Microservices: microservices,
-				Routes:        routes,
-			},
-			Variables: variables,
+		Description: exe.template.Description,
+		Name:        exe.template.Name,
+		Application: &client.ApplicationTemplateInfo{
+			Microservices: microservices,
+			Routes:        routes,
 		},
+		Variables: variables,
 	}
 
 	if _, err = exe.client.UpdateApplicationTemplate(request); err != nil {

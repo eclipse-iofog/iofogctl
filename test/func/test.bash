@@ -314,19 +314,19 @@ function testApplicationTemplates(){
   initAgents
 
   # Deploy and verify
-  iofogctl -n "$NS" deploy -f test/conf/app-template.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
   for CHECK in "$APP_TEMPLATE_NAME" "$APP_TEMPLATE_DESC" "$MSVC1_NAME" "$MSVC2_NAME" "$ROUTE_NAME"; do
-    iofogctl -n "$NS" get application-templates | grep "$CHECK"
-    iofogctl -n "$NS" describe application-template "$APP_TEMPLATE_NAME" | grep "$CHECK"
+    iofogctl -v -n "$NS" get application-templates | grep "$CHECK"
+    iofogctl -v -n "$NS" describe application-template "$APP_TEMPLATE_NAME" | grep "$CHECK"
   done
 
   # Delete and verify
-  iofogctl -n "$NS" delete "$APP_TEMPLATE_NAME"
-  iofogctl -n "$NS" get application-templates | grep "$CHECK"
+  iofogctl -v -n "$NS" delete application-template "$APP_TEMPLATE_NAME"
+  [ -z "$(iofogctl -v -n "$NS" get application-templates | grep "$APP_TEMPLATE_NAME")" ]
 
   # Deploy again and deploy application
-  iofogctl -n "$NS" deploy -f test/conf/app-template.yaml
-  iofogctl -n "$NS" deploy -f test/conf/templated-app.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
+  iofogctl --debug -n "$NS" deploy -f test/conf/templated-app.yaml
   checkApplication
-  iofogctl -n "$NS" delete -f test/conf/templated-app.yaml
+  iofogctl -v -n "$NS" delete -f test/conf/templated-app.yaml
 }

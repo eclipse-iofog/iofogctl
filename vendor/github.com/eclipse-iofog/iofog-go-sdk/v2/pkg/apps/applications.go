@@ -115,10 +115,12 @@ func (exe *applicationExecutor) create() (err error) {
 	if routes == nil {
 		routes = []client.ApplicationRouteCreateRequest{}
 	}
+	template := mapTemplateToClientTemplate(exe.app.Template)
 	request := &client.ApplicationCreateRequest{
 		Name:          exe.app.Name,
 		Microservices: microservices,
-		Routes:        routes,
+		Routes:        &routes,
+		Template:      template,
 	}
 
 	if _, err = exe.client.CreateApplication(request); err != nil {
@@ -128,20 +130,20 @@ func (exe *applicationExecutor) create() (err error) {
 }
 
 func (exe *applicationExecutor) update() (err error) {
+	// Convert Microservices and Routes
 	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices, exe.agentsByName)
 	if err != nil {
 		return err
 	}
 	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
-	request := &client.ApplicationUpdateRequest{
-		Name: &exe.app.Name,
-	}
+	// Convert Template
+	template := mapTemplateToClientTemplate(exe.app.Template)
 
-	if routes != nil {
-		request.Routes = &routes
-	}
-	if microservices != nil {
-		request.Microservices = &microservices
+	request := &client.ApplicationUpdateRequest{
+		Name:          &exe.app.Name,
+		Routes:        &routes,
+		Microservices: &microservices,
+		Template:      template,
 	}
 
 	if _, err = exe.client.UpdateApplication(exe.app.Name, request); err != nil {
@@ -151,6 +153,7 @@ func (exe *applicationExecutor) update() (err error) {
 }
 
 func (exe *applicationExecutor) deploy() (err error) {
+	// Existing app info retrieved in init
 	if exe.applicationInfo == nil {
 		if err = exe.create(); err != nil {
 			return err

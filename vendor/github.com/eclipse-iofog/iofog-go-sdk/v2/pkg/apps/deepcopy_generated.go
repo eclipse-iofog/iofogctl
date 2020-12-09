@@ -145,6 +145,11 @@ func (in *Application) DeepCopyInto(out *Application) {
 		*out = make([]Route, len(*in))
 		copy(*out, *in)
 	}
+	if in.Template != nil {
+		in, out := &in.Template, &out.Template
+		*out = new(ApplicationTemplate)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -166,7 +171,11 @@ func (in *ApplicationTemplate) DeepCopyInto(out *ApplicationTemplate) {
 		*out = make([]TemplateVariable, len(*in))
 		copy(*out, *in)
 	}
-	in.Application.DeepCopyInto(&out.Application)
+	if in.Application != nil {
+		in, out := &in.Application, &out.Application
+		*out = new(ApplicationTemplateInfo)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 

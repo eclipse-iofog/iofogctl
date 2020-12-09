@@ -307,7 +307,7 @@ spec:
     name: $APP_TEMPLATE_NAME
     variables:
     - key: $APP_TEMPLATE_KEY
-      value $APP_TEMPLATE_DEF_VAL" > test/conf/templated-app.yaml
+      value: $APP_TEMPLATE_DEF_VAL" > test/conf/templated-app.yaml
   echo "---
 apiVersion: iofog.org/v2
 kind: ApplicationTemplate

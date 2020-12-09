@@ -290,6 +290,7 @@ func mapRouteToClientRouteRequest(route Route) client.ApplicationRouteCreateRequ
 }
 
 func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice, agentsByName map[string]*client.AgentInfo) (result []client.MicroserviceCreateRequest, err error) {
+	result = make([]client.MicroserviceCreateRequest, 0)
 	for _, microservice := range microservices {
 		m, err := mapMicroserviceToClientMicroserviceRequest(microservice, agentsByName)
 		if err != nil {
@@ -301,6 +302,7 @@ func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice, 
 }
 
 func mapRoutesToClientRouteRequests(routes []Route) (result []client.ApplicationRouteCreateRequest) {
+	result = make([]client.ApplicationRouteCreateRequest, 0)
 	if len(routes) == 0 {
 		return
 	}
@@ -321,6 +323,22 @@ func mapVariablesToClientVariables(variables []TemplateVariable) (result []clien
 			Description:  variable.Description,
 		}
 		result = append(result, mappedVar)
+	}
+	return
+}
+
+func mapTemplateToClientTemplate(template *ApplicationTemplate) (result *client.ApplicationTemplate) {
+	if template != nil {
+		result = &client.ApplicationTemplate{
+			Name: template.Name,
+		}
+		for _, variable := range template.Variables {
+			clientVariable := client.TemplateVariable{
+				Value: variable.Value,
+				Key:   variable.Key,
+			}
+			result.Variables = append(result.Variables, clientVariable)
+		}
 	}
 	return
 }
