@@ -326,7 +326,7 @@ function testApplicationTemplates(){
 
   # Deploy again and deploy application
   iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
-  iofogctl --debug -n "$NS" deploy -f test/conf/templated-app.yaml
+  iofogctl -v -n "$NS" deploy -f test/conf/templated-app.yaml
   checkApplication "$NS" "-${APPLICATION_NAME}"
   iofogctl -v -n "$NS" delete -f test/conf/templated-app.yaml
 }
