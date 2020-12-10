@@ -281,7 +281,8 @@ type MicroserviceCreateRequest struct {
 	FlowID         int                         `json:"flowId"`
 	Application    string                      `json:"application"`
 	CatalogItemID  int                         `json:"catalogItemId,omitempty"`
-	AgentUUID      string                      `json:"iofogUuid"`
+	AgentUUID      string                      `json:"iofogUuid,omitempty"`
+	AgentName      string                      `json:"agentName,omitempty"`
 	RegistryID     int                         `json:"registryId"`
 	Ports          []MicroservicePortMapping   `json:"ports"`
 	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
@@ -302,6 +303,7 @@ type MicroserviceUpdateRequest struct {
 	FlowID            *int                         `json:"flowId,omitempty"`
 	Application       *string                      `json:"application,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
+	AgentName         *string                      `json:"agentName,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
 	RegistryID        *int                         `json:"registryId,omitempty"`
 	CatalogItemID     int                          `json:"catalogItemId,omitempty"`

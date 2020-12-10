@@ -22,7 +22,6 @@ type applicationTemplateExecutor struct {
 	template           ApplicationTemplate
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
-	agentsByName       map[string]*client.AgentInfo
 }
 
 func newApplicationTemplateExecutor(controller IofogController, template ApplicationTemplate) *applicationTemplateExecutor {
@@ -56,21 +55,12 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
-	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
-	if err != nil {
-		return
-	}
-
-	exe.agentsByName = make(map[string]*client.AgentInfo)
-	for i := 0; i < len(listAgents.Agents); i++ {
-		exe.agentsByName[listAgents.Agents[i].Name] = &listAgents.Agents[i]
-	}
 
 	return
 }
 
 func (exe *applicationTemplateExecutor) deploy() (err error) {
-	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.template.Application.Microservices, exe.agentsByName)
+	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.template.Application.Microservices)
 	if err != nil {
 		return err
 	}

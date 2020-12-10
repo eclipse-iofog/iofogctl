@@ -104,7 +104,7 @@ func (exe *applicationExecutor) init() (err error) {
 }
 
 func (exe *applicationExecutor) create() (err error) {
-	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices, exe.agentsByName)
+	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (exe *applicationExecutor) create() (err error) {
 
 func (exe *applicationExecutor) update() (err error) {
 	// Convert Microservices and Routes
-	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices, exe.agentsByName)
+	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices)
 	if err != nil {
 		return err
 	}

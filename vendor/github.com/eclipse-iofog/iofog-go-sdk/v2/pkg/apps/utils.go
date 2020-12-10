@@ -225,12 +225,7 @@ func catalogItemNeedsUpdate(catalogItem *client.CatalogItemInfo, catalogImages [
 	return false
 }
 
-func mapMicroserviceToClientMicroserviceRequest(microservice Microservice, agentsByName map[string]*client.AgentInfo) (request client.MicroserviceCreateRequest, err error) {
-	agent, ok := agentsByName[microservice.Agent.Name]
-	if !ok {
-		agent = &client.AgentInfo{UUID: ""}
-	}
-
+func mapMicroserviceToClientMicroserviceRequest(microservice Microservice) (request client.MicroserviceCreateRequest, err error) {
 	// Transform msvc config to JSON string
 	config := ""
 	if microservice.Config != nil {
@@ -275,7 +270,7 @@ func mapMicroserviceToClientMicroserviceRequest(microservice Microservice, agent
 		Env:            *envs,
 		ExtraHosts:     *extraHosts,
 		RegistryID:     registryID,
-		AgentUUID:      agent.UUID,
+		AgentName:      microservice.Agent.Name,
 		Commands:       microservice.Container.Commands,
 		Images:         images,
 	}, nil
@@ -289,10 +284,10 @@ func mapRouteToClientRouteRequest(route Route) client.ApplicationRouteCreateRequ
 	}
 }
 
-func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice, agentsByName map[string]*client.AgentInfo) (result []client.MicroserviceCreateRequest, err error) {
+func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice) (result []client.MicroserviceCreateRequest, err error) {
 	result = make([]client.MicroserviceCreateRequest, 0)
 	for _, microservice := range microservices {
-		m, err := mapMicroserviceToClientMicroserviceRequest(microservice, agentsByName)
+		m, err := mapMicroserviceToClientMicroserviceRequest(microservice)
 		if err != nil {
 			return result, err
 		}
