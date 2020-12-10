@@ -312,12 +312,7 @@ func mapVariablesToClientVariables(variables []TemplateVariable) (result []clien
 		return
 	}
 	for _, variable := range variables {
-		mappedVar := client.TemplateVariable{
-			Key:          variable.Key,
-			DefaultValue: variable.DefaultValue,
-			Description:  variable.Description,
-		}
-		result = append(result, mappedVar)
+		result = append(result, client.TemplateVariable(variable))
 	}
 	return
 }
@@ -328,11 +323,7 @@ func mapTemplateToClientTemplate(template *ApplicationTemplate) (result *client.
 			Name: template.Name,
 		}
 		for _, variable := range template.Variables {
-			clientVariable := client.TemplateVariable{
-				Value: variable.Value,
-				Key:   variable.Key,
-			}
-			result.Variables = append(result.Variables, clientVariable)
+			result.Variables = append(result.Variables, client.TemplateVariable(variable))
 		}
 	}
 	return
