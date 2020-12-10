@@ -13,6 +13,11 @@
 
 package apps
 
+func DeployApplicationTemplate(controller IofogController, template ApplicationTemplate) error {
+	exe := newApplicationTemplateExecutor(controller, template)
+	return exe.execute()
+}
+
 func DeployApplication(controller IofogController, application Application) error {
 	exe := newApplicationExecutor(controller, application)
 	return exe.execute()

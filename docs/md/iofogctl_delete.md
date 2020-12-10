@@ -31,6 +31,7 @@ iofogctl delete [flags]
 * [iofogctl delete agent](iofogctl_delete_agent.md)	 - Delete an Agent
 * [iofogctl delete all](iofogctl_delete_all.md)	 - Delete all resources within a namespace
 * [iofogctl delete application](iofogctl_delete_application.md)	 - Delete an application
+* [iofogctl delete application-template](iofogctl_delete_application-template.md)	 - Delete an application-template
 * [iofogctl delete catalogitem](iofogctl_delete_catalogitem.md)	 - Delete a Catalog item
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
 * [iofogctl delete edge-resource](iofogctl_delete_edge-resource.md)	 - Delete an Edge Resource

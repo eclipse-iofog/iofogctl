@@ -20,19 +20,15 @@ type HeaderMetadata struct {
 	Namespace string `yaml:"namespace" json:"namespace"`
 }
 
-// Deployable can be deployed using iofogctl deploy
-type Deployable interface {
-	Deploy(namespace string) error
-}
-
 // Kind contains available types
 type Kind string
 
 // Available kind of deploy
 const (
-	ApplicationKind  Kind = "Application"
-	MicroserviceKind Kind = "Microservice"
-	RouteKind        Kind = "Route"
+	ApplicationKind         Kind = "Application"
+	ApplicationTemplateKind Kind = "ApplicationTemplate"
+	MicroserviceKind        Kind = "Microservice"
+	RouteKind               Kind = "Route"
 )
 
 // Header contains k8s yaml header
@@ -187,10 +183,36 @@ type Route struct {
 // Application contains information for configuring an application
 // +k8s:deepcopy-gen=true
 type Application struct {
-	Name          string         `yaml:"name" json:"name"`
-	Microservices []Microservice `yaml:"microservices" json:"microservices"`
-	Routes        []Route        `yaml:"routes" json:"routes"`
-	ID            int            `yaml:"id" json:"id"`
+	Name          string               `yaml:"name" json:"name"`
+	Microservices []Microservice       `yaml:"microservices,omitempty" json:"microservices,omitempty"`
+	Routes        []Route              `yaml:"routes,omitempty" json:"routes,omitempty"`
+	ID            int                  `yaml:"id,omitempty" json:"id,omitempty"`
+	Template      *ApplicationTemplate `yaml:"template,omitempty" json:"template,omitempty"`
+}
+
+// ApplicationTemplate contains information for configuring an application template
+// +k8s:deepcopy-gen=true
+type ApplicationTemplate struct {
+	Name        string                   `yaml:"name,omitempty"`
+	Description string                   `yaml:"description,omitempty"`
+	Variables   []TemplateVariable       `yaml:"variables,omitempty"`
+	Application *ApplicationTemplateInfo `yaml:"application,omitempty"`
+}
+
+// TemplateVariable contains a key-value pair
+// +k8s:deepcopy-gen=true
+type TemplateVariable struct {
+	Key          string `yaml:"key"`
+	Description  string `yaml:"description"`
+	DefaultValue string `yaml:"defaultValue,omitempty"`
+	Value        string `yaml:"value,omitempty"`
+}
+
+// ApplicationTemplateInfo contains microservice and route details for template
+// +k8s:deepcopy-gen=true
+type ApplicationTemplateInfo struct {
+	Microservices []Microservice `yaml:"microservices"`
+	Routes        []Route        `yaml:"routes"`
 }
 
 // Applications is a list of applications

@@ -27,7 +27,8 @@ func newDeployCommand() *cobra.Command {
 	// Instantiate command
 	cmd := &cobra.Command{
 		Use: "deploy",
-		Example: `deploy -f platform.yaml
+		Example: `deploy -f ecn.yaml
+          application-template.yaml
           application.yaml
           microservice.yaml
           edge-resource.yaml

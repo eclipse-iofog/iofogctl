@@ -295,3 +295,73 @@ spec:
     icon: 'icon'
     color: '#fefefefe'" > test/conf/edge-resource.yaml
 }
+
+function initApplicationTemplateFile(){
+  echo -n "---
+apiVersion: iofog.org/v2
+kind: Application
+metadata:
+  name: $APPLICATION_NAME
+spec:
+  template:
+    name: $APP_TEMPLATE_NAME
+    variables:
+    - key: $APP_TEMPLATE_KEY
+      value: $APP_TEMPLATE_DEF_VAL" > test/conf/templated-app.yaml
+  echo "---
+apiVersion: iofog.org/v2
+kind: ApplicationTemplate
+metadata:
+  name: $APP_TEMPLATE_NAME
+spec:
+    name: $APP_TEMPLATE_NAME
+    description: $APP_TEMPLATE_DESC
+    variables:
+    - key: $APP_TEMPLATE_KEY
+      description: $APP_TEMPLATE_KEY_DESC
+      defaultValue: $APP_TEMPLATE_DEF_VAL
+    application:
+      routes:
+      - name: $ROUTE_NAME
+        from: $MSVC1_NAME
+        to: $MSVC2_NAME
+      microservices:
+      - name: $MSVC1_NAME
+        agent:
+          name: \"{{$APP_TEMPLATE_KEY}}\"
+          config:
+            bluetoothEnabled: true # this will install the iofog/restblue microservice
+            abstractedHardwareEnabled: false
+        images:
+          arm: edgeworx/healthcare-heart-rate:arm-v1
+          x86: edgeworx/healthcare-heart-rate:x86-v1
+          registry: remote # public docker
+        container:
+          rootHostAccess: false
+          ports: []
+        config:
+          test_mode: true
+          data_label: 'Anonymous_Person'
+      # Simple JSON viewer for the heart rate output
+      - name: $MSVC2_NAME
+        agent:
+          name: \"{{$APP_TEMPLATE_KEY}}\"
+        images:
+          arm: edgeworx/healthcare-heart-rate-ui:arm
+          x86: edgeworx/healthcare-heart-rate-ui:x86
+          registry: remote
+        container:
+          rootHostAccess: false
+          ports:
+            # The ui will be listening on port 80 (internal).
+            - external: 5000
+              internal: 80
+              public: 5000
+          volumes:
+          - hostDestination: $VOL_DEST
+            containerDestination: $VOL_CONT_DEST
+            accessMode: rw
+          env:
+            - key: BASE_URL
+              value: http://localhost:8080/data" > test/conf/app-template.yaml
+}

@@ -202,6 +202,12 @@ spec:
   stopTest
 }
 
+@test "Deploy application template" {
+  startTest
+  testApplicationTemplates
+  stopTest
+}
+
 @test "Deploy application" {
   startTest
   initApplicationFileWithRoutes

@@ -44,6 +44,8 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 		return newAgentConfigExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "microservice":
 		return newMicroserviceExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "application-template":
+		return newApplicationTemplateExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "application":
 		return newApplicationExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "volume":

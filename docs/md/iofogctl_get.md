@@ -20,6 +20,7 @@ iofogctl get all
              controllers
              agents
              edge-resources
+             application-templates
              applications
              microservices
              catalog

@@ -11,12 +11,12 @@
  *
  */
 
-package deployapplication
+package deployapplicationtemplate
 
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -32,16 +32,16 @@ type Options struct {
 }
 
 type remoteExecutor struct {
-	namespace   string
-	application rsc.Application
+	namespace string
+	template  rsc.ApplicationTemplate
 }
 
 func (exe remoteExecutor) GetName() string {
-	return exe.application.Name
+	return exe.template.Name
 }
 
 func (exe remoteExecutor) Execute() error {
-	util.SpinStart(fmt.Sprintf("Deploying Application %s", exe.GetName()))
+	util.SpinStart(fmt.Sprintf("Deploying Application Template %s", exe.GetName()))
 
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
@@ -62,6 +62,7 @@ func (exe remoteExecutor) Execute() error {
 		return err
 	}
 
+	// Get Controller client
 	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
@@ -73,7 +74,7 @@ func (exe remoteExecutor) Execute() error {
 		Password: controlPlane.GetUser().Password,
 		Token:    clt.GetAccessToken(),
 	}
-	return apps.DeployApplication(controller, exe.application)
+	return apps.DeployApplicationTemplate(controller, exe.template)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -82,33 +83,35 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return exe, err
 	}
 	// Unmarshal file
-	application := rsc.Application{}
-	if err = yaml.UnmarshalStrict(opt.Yaml, &application); err != nil {
+	template := rsc.ApplicationTemplate{}
+	if err = yaml.UnmarshalStrict(opt.Yaml, &template); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
-	for _, route := range application.Routes {
+	// TODO: This is duplicated in internal/deploy/application
+	for _, route := range template.Application.Routes {
 		if err := util.IsLowerAlphanumeric("Route", route.Name); err != nil {
 			return nil, err
 		}
 	}
 
 	if len(opt.Name) > 0 {
-		application.Name = opt.Name
+		template.Name = opt.Name
 	}
 
-	if err := util.IsLowerAlphanumeric("Application", application.Name); err != nil {
+	if err := util.IsLowerAlphanumeric("Application", template.Name); err != nil {
 		return nil, err
 	}
 
+	// TODO: This is duplicated in internal/deploy/application
 	// Update default msvc values
-	for idx := range application.Microservices {
-		if application.Microservices[idx].Images.Registry == "" {
-			application.Microservices[idx].Images.Registry = "remote"
+	for idx := range template.Application.Microservices {
+		if template.Application.Microservices[idx].Images.Registry == "" {
+			template.Application.Microservices[idx].Images.Registry = "remote"
 		}
 	}
 
 	return remoteExecutor{
-		namespace:   opt.Namespace,
-		application: application}, nil
+		namespace: opt.Namespace,
+		template:  template}, nil
 }

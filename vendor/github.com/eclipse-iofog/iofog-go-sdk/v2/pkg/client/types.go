@@ -57,10 +57,11 @@ type ApplicationInfo struct {
 }
 
 type ApplicationCreateRequest struct {
-	Name          string                          `json:"name"`
-	Description   string                          `json:"description,omitempty"`
-	Microservices []MicroserviceCreateRequest     `json:"microservices"`
-	Routes        []ApplicationRouteCreateRequest `json:"routes"`
+	Name          string                           `json:"name"`
+	Description   string                           `json:"description,omitempty"`
+	Microservices []MicroserviceCreateRequest      `json:"microservices"`
+	Routes        *[]ApplicationRouteCreateRequest `json:"routes"`
+	Template      *ApplicationTemplate             `json:"template,omitempty" yaml:"template,omitempty" `
 }
 
 type ApplicationCreateResponse struct {
@@ -74,6 +75,7 @@ type ApplicationUpdateRequest struct {
 	IsSystem      *bool                            `json:"isSystem,omitempty"`
 	Microservices *[]MicroserviceCreateRequest     `json:"microservices,omitempty"`
 	Routes        *[]ApplicationRouteCreateRequest `json:"routes,omitempty"`
+	Template      *ApplicationTemplate             `json:"template,omitempty"`
 }
 
 type ApplicationPatchRequest struct {
@@ -87,8 +89,47 @@ type ApplicationListResponse struct {
 	Applications []ApplicationInfo `json:"applications"`
 }
 
-// Registries
+// Application Templates
+type ApplicationTemplate struct {
+	Name        string                   `json:"name,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Variables   []TemplateVariable       `json:"variables,omitempty"`
+	Application *ApplicationTemplateInfo `json:"application,omitempty"`
+}
 
+type ApplicationTemplateCreateRequest = ApplicationTemplate
+
+type TemplateVariable struct {
+	Key          string `json:"key" yaml:"key,omitempty"`
+	Description  string `json:"description" yaml:"description,omitempty"`
+	DefaultValue string `json:"defaultValue,omitempty" yaml:"defaultValue,omitempty"`
+	Value        string `json:"value,omitempty" yaml:"value,omitempty"`
+}
+
+type ApplicationTemplateInfo struct {
+	Microservices []MicroserviceCreateRequest     `json:"microservices"`
+	Routes        []ApplicationRouteCreateRequest `json:"routes"`
+}
+
+type ApplicationTemplateCreateResponse struct {
+	Name string `json:"name"`
+	Id   int    `json:"id"`
+}
+
+type ApplicationTemplateUpdateRequest = ApplicationTemplate
+
+type ApplicationTemplateUpdateResponse = ApplicationTemplateCreateResponse
+
+type ApplicationTemplateMetadataUpdateRequest struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+type ApplicationTemplateListResponse struct {
+	ApplicationTemplates []ApplicationTemplate
+}
+
+// Registries
 type RegistryInfo struct {
 	ID           int    `json:"id"`
 	URL          string `json:"url"`
@@ -240,7 +281,8 @@ type MicroserviceCreateRequest struct {
 	FlowID         int                         `json:"flowId"`
 	Application    string                      `json:"application"`
 	CatalogItemID  int                         `json:"catalogItemId,omitempty"`
-	AgentUUID      string                      `json:"iofogUuid"`
+	AgentUUID      string                      `json:"iofogUuid,omitempty"`
+	AgentName      string                      `json:"agentName,omitempty"`
 	RegistryID     int                         `json:"registryId"`
 	Ports          []MicroservicePortMapping   `json:"ports"`
 	Volumes        []MicroserviceVolumeMapping `json:"volumeMappings"`
@@ -261,6 +303,7 @@ type MicroserviceUpdateRequest struct {
 	FlowID            *int                         `json:"flowId,omitempty"`
 	Application       *string                      `json:"application,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
+	AgentName         *string                      `json:"agentName,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
 	RegistryID        *int                         `json:"registryId,omitempty"`
 	CatalogItemID     int                          `json:"catalogItemId,omitempty"`

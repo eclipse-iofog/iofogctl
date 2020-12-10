@@ -30,6 +30,8 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newAgentExecutor(namespace, showDetached), nil
 	case "microservices":
 		return newMicroserviceExecutor(namespace), nil
+	case "application-templates":
+		return newApplicationTemplateExecutor(namespace), nil
 	case "applications":
 		return newApplicationExecutor(namespace), nil
 	case "catalog":

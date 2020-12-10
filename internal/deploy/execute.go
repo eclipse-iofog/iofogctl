@@ -21,6 +21,7 @@ import (
 	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	deployapplication "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/application"
+	deployapplicationtemplate "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/applicationtemplate"
 	deploycatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/catalogitem"
 	deploylocalcontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/local"
 	deployremotecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
@@ -44,6 +45,7 @@ var kindOrder = []config.Kind{
 	config.RemoteAgentKind,
 	config.LocalAgentKind,
 	config.EdgeResourceKind,
+	config.ApplicationTemplateKind,
 	config.VolumeKind,
 	config.RegistryKind,
 	config.CatalogItemKind,
@@ -63,6 +65,10 @@ func deployEdgeResource(opt execute.KindHandlerOpt) (exe execute.Executor, err e
 
 func deployCatalogItem(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploycatalogitem.NewExecutor(deploycatalogitem.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployApplicationTemplate(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployapplicationtemplate.NewExecutor(deployapplicationtemplate.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployApplication(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -119,6 +125,7 @@ func deployRoute(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
 
 var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
 	config.ApplicationKind:            deployApplication,
+	config.ApplicationTemplateKind:    deployApplicationTemplate,
 	config.MicroserviceKind:           deployMicroservice,
 	config.CatalogItemKind:            deployCatalogItem,
 	config.EdgeResourceKind:           deployEdgeResource,

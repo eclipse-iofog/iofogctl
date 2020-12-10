@@ -21,6 +21,7 @@ import (
 type Route = apps.Route
 type Microservice = apps.Microservice
 type Application = apps.Application
+type ApplicationTemplate = apps.ApplicationTemplate
 
 type Container struct {
 	Image       string      `yaml:"image,omitempty"`

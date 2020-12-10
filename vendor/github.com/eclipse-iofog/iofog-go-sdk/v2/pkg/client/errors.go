@@ -117,3 +117,20 @@ func NewHTTPError(message string, code int) (err *HTTPError) {
 func (err *HTTPError) Error() string {
 	return "Unexpected HTTP response\n" + err.message
 }
+
+// NotSupported export
+type NotSupportedError struct {
+	capability string
+}
+
+// NewNotSupported export
+func NewNotSupportedError(capability string) (err *NotSupportedError) {
+	err = new(NotSupportedError)
+	err.capability = capability
+	return err
+}
+
+// Error export
+func (err *NotSupportedError) Error() string {
+	return "Controller API does not support " + err.capability
+}

@@ -29,6 +29,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [iofogctl describe agent](iofogctl_describe_agent.md)	 - Get detailed information about an Agent
 * [iofogctl describe agent-config](iofogctl_describe_agent-config.md)	 - Get detailed information about an Agent's configuration
 * [iofogctl describe application](iofogctl_describe_application.md)	 - Get detailed information about an Application
+* [iofogctl describe application-template](iofogctl_describe_application-template.md)	 - Get detailed information about an Application Template
 * [iofogctl describe controller](iofogctl_describe_controller.md)	 - Get detailed information about a  Controller
 * [iofogctl describe controlplane](iofogctl_describe_controlplane.md)	 - Get detailed information about a  Control Plane
 * [iofogctl describe edge-resource](iofogctl_describe_edge-resource.md)	 - Get detailed information about an Edge Resource
