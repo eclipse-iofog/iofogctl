@@ -11,7 +11,7 @@
  *
  */
 
-package deployapplication
+package deployapplicationtemplate
 
 import (
 	"fmt"
