@@ -109,6 +109,7 @@ func (cl *SecureShellClient) Disconnect() error {
 func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Establish the session
 	SSHVerbose("Creating session...")
+	println(cl)
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return
@@ -254,7 +255,13 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 
 		// Write to stdin
 		fmt.Fprintf(remoteStdin, "C%s %d %s\n", permissions, size, destFilename)
-		io.Copy(remoteStdin, reader)
+		written, err := io.Copy(remoteStdin, reader)
+		if err != nil {
+			errChan <- err
+		}
+		if written == 0 {
+			errChan <- errors.New("Wrote 0 bytes during file copy to server")
+		}
 		fmt.Fprint(remoteStdin, "\x00")
 	}()
 

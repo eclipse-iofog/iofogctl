@@ -53,6 +53,7 @@ type Controller struct {
 	db       database
 	ctrlDir  string
 	iofogDir string
+	svcDir   string
 }
 
 func NewController(options *ControllerOptions) *Controller {
@@ -64,8 +65,9 @@ func NewController(options *ControllerOptions) *Controller {
 	return &Controller{
 		ControllerOptions: options,
 		ssh:               ssh,
-		ctrlDir:           "/etc/iofog/controller",
 		iofogDir:          "/etc/iofog",
+		ctrlDir:           "/etc/iofog/controller",
+		svcDir:            "/etc/iofog/controller/service",
 	}
 }
 
@@ -86,10 +88,13 @@ func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, prov
 	}
 }
 
-func (ctrl *Controller) CopyScript(script string) (err error) {
-	staticFile := util.GetStaticFile(script)
+func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error) {
+	if srcDir != "" {
+		srcDir = util.AddTrailingSlash(srcDir)
+	}
+	staticFile := util.GetStaticFile(srcDir + filename)
 	reader := strings.NewReader(staticFile)
-	if err := ctrl.ssh.CopyTo(reader, ctrl.iofogDir, script, "0775", int64(len(staticFile))); err != nil {
+	if err := ctrl.ssh.CopyTo(reader, util.AddTrailingSlash(destDir), filename, "0775", int64(len(staticFile))); err != nil {
 		return err
 	}
 
@@ -112,10 +117,10 @@ func (ctrl *Controller) Uninstall() (err error) {
 	// Copy uninstallation scripts to remote host
 	Verbose("Copying install files to server")
 	scripts := []string{
-		"controller/uninstall_iofog.sh",
+		"uninstall_iofog.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript(script); err != nil {
+		if err = ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
 			return err
 		}
 	}
@@ -148,17 +153,19 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	Verbose("Copying install files to server")
-	if _, err = ctrl.ssh.Run(fmt.Sprintf("sudo mkdir -p %s/service", ctrl.ctrlDir)); err != nil {
+	if _, err = ctrl.ssh.Run(fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s/", ctrl.svcDir, ctrl.iofogDir)); err != nil {
+		return err
+	}
+	if err = ctrl.CopyScript("", "check_prereqs.sh", ctrl.iofogDir); err != nil {
 		return err
 	}
 	scripts := []string{
-		"check_prereqs.sh",
-		"controller/install_node.sh",
-		"controller/install_iofog.sh",
-		"controller/set_env.sh",
+		"install_node.sh",
+		"install_iofog.sh",
+		"set_env.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript(script); err != nil {
+		if err = ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
 			return err
 		}
 	}
@@ -166,12 +173,12 @@ func (ctrl *Controller) Install() (err error) {
 	// Copy service scripts to remote host
 	Verbose("Copying service files to server")
 	scripts = []string{
-		"controller/service/iofog-controller.initctl",
-		"controller/service/iofog-controller.systemd",
-		"controller/service/iofog-controller.update-rc",
+		"iofog-controller.initctl",
+		"iofog-controller.systemd",
+		"iofog-controller.update-rc",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript(script); err != nil {
+		if err = ctrl.CopyScript("controller/service", script, ctrl.svcDir); err != nil {
 			return err
 		}
 	}

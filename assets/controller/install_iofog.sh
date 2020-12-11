@@ -4,7 +4,7 @@ set -e
 
 INSTALL_DIR="/opt/iofog"
 TMP_DIR="/tmp/iofog"
-ETC_DIR="/etc/controller"
+ETC_DIR="/etc/iofog/controller"
 
 controller_service() {
     USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
