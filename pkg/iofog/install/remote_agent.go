@@ -255,7 +255,13 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 
 func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 	Verbose("Copying install scripts to Agent " + agent.name)
-	if _, err := agent.ssh.Run(fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R %s", agent.agentDir, agent.agentDir)); err != nil {
+	cmds := []command{
+		{
+			cmd: fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s", agent.agentDir, agent.agentDir),
+			msg: "Creating Agent etc directory",
+		},
+	}
+	if err := agent.run(cmds); err != nil {
 		return err
 	}
 	// Declare scripts to copy

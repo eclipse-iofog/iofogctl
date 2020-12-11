@@ -109,7 +109,6 @@ func (cl *SecureShellClient) Disconnect() error {
 func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Establish the session
 	SSHVerbose("Creating session...")
-	println(cl)
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return
