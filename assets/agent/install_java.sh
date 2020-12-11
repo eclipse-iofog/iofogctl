@@ -57,7 +57,7 @@ do_install_deps() {
 	fi
 }
 
-. /tmp/agent_init.sh
+. /opt/iofog/init.sh
 init
 do_check_install
 do_install_deps

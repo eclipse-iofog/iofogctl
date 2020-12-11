@@ -49,8 +49,10 @@ type database struct {
 
 type Controller struct {
 	*ControllerOptions
-	ssh *util.SecureShellClient
-	db  database
+	ssh      *util.SecureShellClient
+	db       database
+	ctrlDir  string
+	iofogDir string
 }
 
 func NewController(options *ControllerOptions) *Controller {
@@ -62,6 +64,8 @@ func NewController(options *ControllerOptions) *Controller {
 	return &Controller{
 		ControllerOptions: options,
 		ssh:               ssh,
+		ctrlDir:           "/etc/iofog/controller",
+		iofogDir:          "/etc/iofog",
 	}
 }
 
@@ -82,10 +86,10 @@ func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, prov
 	}
 }
 
-func (ctrl *Controller) CopyScript(path string, name string) (err error) {
-	script := util.GetStaticFile(path + name)
-	reader := strings.NewReader(script)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", int64(len(script))); err != nil {
+func (ctrl *Controller) CopyScript(script string) (err error) {
+	staticFile := util.GetStaticFile(script)
+	reader := strings.NewReader(staticFile)
+	if err := ctrl.ssh.CopyTo(reader, ctrl.iofogDir, script, "0775", int64(len(staticFile))); err != nil {
 		return err
 	}
 
@@ -108,17 +112,17 @@ func (ctrl *Controller) Uninstall() (err error) {
 	// Copy uninstallation scripts to remote host
 	Verbose("Copying install files to server")
 	scripts := []string{
-		"controller_uninstall_iofog.sh",
+		"controller/uninstall_iofog.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("", script); err != nil {
+		if err = ctrl.CopyScript(script); err != nil {
 			return err
 		}
 	}
 
 	cmds := []command{
 		{
-			cmd: "sudo /tmp/controller_uninstall_iofog.sh",
+			cmd: fmt.Sprintf("sudo %s/uninstall_iofog.sh", ctrl.ctrlDir),
 			msg: "Uninstalling controller on host " + ctrl.Host,
 		},
 	}
@@ -144,30 +148,30 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	Verbose("Copying install files to server")
+	if _, err = ctrl.ssh.Run(fmt.Sprintf("sudo mkdir -p %s/service", ctrl.ctrlDir)); err != nil {
+		return err
+	}
 	scripts := []string{
 		"check_prereqs.sh",
-		"controller_install_node.sh",
-		"controller_install_iofog.sh",
-		"controller_set_env.sh",
+		"controller/install_node.sh",
+		"controller/install_iofog.sh",
+		"controller/set_env.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("", script); err != nil {
+		if err = ctrl.CopyScript(script); err != nil {
 			return err
 		}
 	}
 
 	// Copy service scripts to remote host
 	Verbose("Copying service files to server")
-	if _, err = ctrl.ssh.Run("mkdir -p /tmp/iofog-controller-service"); err != nil {
-		return err
-	}
 	scripts = []string{
-		"iofog-controller.initctl",
-		"iofog-controller.systemd",
-		"iofog-controller.update-rc",
+		"controller/service/iofog-controller.initctl",
+		"controller/service/iofog-controller.systemd",
+		"controller/service/iofog-controller.update-rc",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("iofog-controller-service/", script); err != nil {
+		if err = ctrl.CopyScript(script); err != nil {
 			return err
 		}
 	}
@@ -206,19 +210,19 @@ func (ctrl *Controller) Install() (err error) {
 	// Define commands
 	cmds := []command{
 		{
-			cmd: "/tmp/check_prereqs.sh",
+			cmd: fmt.Sprintf("%s/check_prereqs.sh", ctrl.iofogDir),
 			msg: "Checking prerequisites on Controller " + ctrl.Host,
 		},
 		{
-			cmd: "sudo /tmp/controller_install_node.sh",
+			cmd: fmt.Sprintf("sudo %s/install_node.sh", ctrl.ctrlDir),
 			msg: "Installing Node.js on Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_set_env.sh %s", envString),
+			cmd: fmt.Sprintf("sudo %s/set_env.sh %s", ctrl.ctrlDir, envString),
 			msg: "Setting up environment variables for Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token),
+			cmd: fmt.Sprintf("sudo %s/install_iofog.sh %s %s %s", ctrl.ctrlDir, ctrl.Version, ctrl.Repo, ctrl.Token),
 			msg: "Installing ioFog on Controller " + ctrl.Host,
 		},
 	}
