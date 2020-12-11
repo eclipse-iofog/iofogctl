@@ -314,7 +314,7 @@ function testApplicationTemplates(){
   initAgents
 
   # Deploy and verify
-  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml --debug
+  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
   for CHECK in "$APP_TEMPLATE_NAME" "$APP_TEMPLATE_DESC" "$MSVC1_NAME" "$MSVC2_NAME" "$ROUTE_NAME"; do
     iofogctl -v -n "$NS" get application-templates | grep "$CHECK"
     iofogctl -v -n "$NS" describe application-template "$APP_TEMPLATE_NAME" | grep "$CHECK"

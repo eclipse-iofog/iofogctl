@@ -8,97 +8,97 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Create namespace" {
-  startTest
-  iofogctl create namespace "$NS"
-  stopTest
-}
-
-@test "Test no executors" {
-  startTest
-  testNoExecutors
-  stopTest
-}
-
-@test "Test wrong namespace metadata " {
-  startTest
-  testWrongNamespace
-  stopTest
-}
-
-@test "Deploy local Controller" {
-  startTest
-  initLocalControllerFile
-  iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
-  checkControllerLocal
-  stopTest
-}
-
-@test "Controller legacy commands after deploy" {
-  startTest
-  iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
-  checkLegacyController
-  stopTest
-}
-
-@test "Deploy Agents against local Controller" {
-  startTest
-  initLocalAgentFile
-  iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
-  checkAgent "${NAME}-0"
-  stopTest
-}
-
-@test "Edge Resources" {
-  startTest
-  testEdgeResources
-  stopTest
-}
-
-@test "Agent legacy commands" {
-  startTest
-  iofogctl -v -n "$NS" legacy agent "${NAME}-0" status
-  checkLegacyAgent "${NAME}-0"
-  stopTest
-}
-
-@test "Deploy local Controller again for indempotence" {
-  startTest
-  initLocalControllerFile
-  iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
-  checkControllerLocal
-  stopTest
-}
-
-@test "Deploy Agents against local Controller again for indempotence" {
-  startTest
-  initLocalAgentFile
-  iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
-  checkAgent "${NAME}-0"
-  stopTest
-}
-
-@test "Deploy Volumes" {
-  startTest
-  testDeployLocalVolume
-  testGetDescribeLocalVolume
-  stopTest
-}
-
-@test "Deploy Volumes Idempotent" {
-  startTest
-  testDeployLocalVolume
-  testGetDescribeLocalVolume
-  stopTest
-}
-
-@test "Delete Volumes and Redeploy" {
-  startTest
-  testDeleteLocalVolume
-  testDeployLocalVolume
-  testGetDescribeLocalVolume
-  stopTest
-}
+#@test "Create namespace" {
+#  startTest
+#  iofogctl create namespace "$NS"
+#  stopTest
+#}
+#
+#@test "Test no executors" {
+#  startTest
+#  testNoExecutors
+#  stopTest
+#}
+#
+#@test "Test wrong namespace metadata " {
+#  startTest
+#  testWrongNamespace
+#  stopTest
+#}
+#
+#@test "Deploy local Controller" {
+#  startTest
+#  initLocalControllerFile
+#  iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
+#  checkControllerLocal
+#  stopTest
+#}
+#
+#@test "Controller legacy commands after deploy" {
+#  startTest
+#  iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
+#  checkLegacyController
+#  stopTest
+#}
+#
+#@test "Deploy Agents against local Controller" {
+#  startTest
+#  initLocalAgentFile
+#  iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
+#  checkAgent "${NAME}-0"
+#  stopTest
+#}
+#
+#@test "Edge Resources" {
+#  startTest
+#  testEdgeResources
+#  stopTest
+#}
+#
+#@test "Agent legacy commands" {
+#  startTest
+#  iofogctl -v -n "$NS" legacy agent "${NAME}-0" status
+#  checkLegacyAgent "${NAME}-0"
+#  stopTest
+#}
+#
+#@test "Deploy local Controller again for indempotence" {
+#  startTest
+#  initLocalControllerFile
+#  iofogctl -v -n "$NS" deploy -f test/conf/local.yaml
+#  checkControllerLocal
+#  stopTest
+#}
+#
+#@test "Deploy Agents against local Controller again for indempotence" {
+#  startTest
+#  initLocalAgentFile
+#  iofogctl -v -n "$NS" deploy -f test/conf/local-agent.yaml
+#  checkAgent "${NAME}-0"
+#  stopTest
+#}
+#
+#@test "Deploy Volumes" {
+#  startTest
+#  testDeployLocalVolume
+#  testGetDescribeLocalVolume
+#  stopTest
+#}
+#
+#@test "Deploy Volumes Idempotent" {
+#  startTest
+#  testDeployLocalVolume
+#  testGetDescribeLocalVolume
+#  stopTest
+#}
+#
+#@test "Delete Volumes and Redeploy" {
+#  startTest
+#  testDeleteLocalVolume
+#  testDeployLocalVolume
+#  testGetDescribeLocalVolume
+#  stopTest
+#}
 
 @test "Deploy application template" {
   startTest

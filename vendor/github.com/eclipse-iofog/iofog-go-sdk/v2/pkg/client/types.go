@@ -100,10 +100,10 @@ type ApplicationTemplate struct {
 type ApplicationTemplateCreateRequest = ApplicationTemplate
 
 type TemplateVariable struct {
-	Key          string `json:"key" yaml:"key,omitempty"`
-	Description  string `json:"description" yaml:"description,omitempty"`
-	DefaultValue string `json:"defaultValue,omitempty" yaml:"defaultValue,omitempty"`
-	Value        string `json:"value,omitempty" yaml:"value,omitempty"`
+	Key          string      `json:"key" yaml:"key,omitempty"`
+	Description  string      `json:"description" yaml:"description,omitempty"`
+	DefaultValue interface{} `json:"defaultValue,omitempty" yaml:"defaultValue,omitempty"`
+	Value        interface{} `json:"value,omitempty" yaml:"value,omitempty"`
 }
 
 type ApplicationTemplateInfo struct {
