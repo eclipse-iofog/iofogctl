@@ -349,6 +349,9 @@ func (cl *SecureShellClient) CreateFolder(path string) error {
 }
 
 func addLeadingZero(in string) string {
+	if len(in) == 0 {
+		return in
+	}
 	if in[0:0] != "0" {
 		in = "0" + in
 	}
@@ -356,6 +359,9 @@ func addLeadingZero(in string) string {
 }
 
 func AddTrailingSlash(in string) string {
+	if len(in) == 0 {
+		return in
+	}
 	if in[len(in)-1:] != "/" {
 		in = in + "/"
 	}
