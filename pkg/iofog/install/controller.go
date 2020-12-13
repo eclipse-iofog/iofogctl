@@ -49,8 +49,11 @@ type database struct {
 
 type Controller struct {
 	*ControllerOptions
-	ssh *util.SecureShellClient
-	db  database
+	ssh      *util.SecureShellClient
+	db       database
+	ctrlDir  string
+	iofogDir string
+	svcDir   string
 }
 
 func NewController(options *ControllerOptions) *Controller {
@@ -62,6 +65,9 @@ func NewController(options *ControllerOptions) *Controller {
 	return &Controller{
 		ControllerOptions: options,
 		ssh:               ssh,
+		iofogDir:          "/etc/iofog",
+		ctrlDir:           "/etc/iofog/controller",
+		svcDir:            "/etc/iofog/controller/service",
 	}
 }
 
@@ -82,10 +88,13 @@ func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, prov
 	}
 }
 
-func (ctrl *Controller) CopyScript(path string, name string) (err error) {
-	script := util.GetStaticFile(path + name)
-	reader := strings.NewReader(script)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", int64(len(script))); err != nil {
+func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error) {
+	if srcDir != "" {
+		srcDir = util.AddTrailingSlash(srcDir)
+	}
+	staticFile := util.GetStaticFile(srcDir + filename)
+	reader := strings.NewReader(staticFile)
+	if err := ctrl.ssh.CopyTo(reader, util.AddTrailingSlash(destDir), filename, "0775", int64(len(staticFile))); err != nil {
 		return err
 	}
 
@@ -108,17 +117,17 @@ func (ctrl *Controller) Uninstall() (err error) {
 	// Copy uninstallation scripts to remote host
 	Verbose("Copying install files to server")
 	scripts := []string{
-		"controller_uninstall_iofog.sh",
+		"uninstall_iofog.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("", script); err != nil {
+		if err = ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
 			return err
 		}
 	}
 
 	cmds := []command{
 		{
-			cmd: "sudo /tmp/controller_uninstall_iofog.sh",
+			cmd: fmt.Sprintf("sudo %s/uninstall_iofog.sh", ctrl.ctrlDir),
 			msg: "Uninstalling controller on host " + ctrl.Host,
 		},
 	}
@@ -144,30 +153,32 @@ func (ctrl *Controller) Install() (err error) {
 
 	// Copy installation scripts to remote host
 	Verbose("Copying install files to server")
+	if _, err = ctrl.ssh.Run(fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s/", ctrl.svcDir, ctrl.iofogDir)); err != nil {
+		return err
+	}
+	if err = ctrl.CopyScript("", "check_prereqs.sh", ctrl.iofogDir); err != nil {
+		return err
+	}
 	scripts := []string{
-		"check_prereqs.sh",
-		"controller_install_node.sh",
-		"controller_install_iofog.sh",
-		"controller_set_env.sh",
+		"install_node.sh",
+		"install_iofog.sh",
+		"set_env.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("", script); err != nil {
+		if err = ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
 			return err
 		}
 	}
 
 	// Copy service scripts to remote host
 	Verbose("Copying service files to server")
-	if _, err = ctrl.ssh.Run("mkdir -p /tmp/iofog-controller-service"); err != nil {
-		return err
-	}
 	scripts = []string{
 		"iofog-controller.initctl",
 		"iofog-controller.systemd",
 		"iofog-controller.update-rc",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("iofog-controller-service/", script); err != nil {
+		if err = ctrl.CopyScript("controller/service", script, ctrl.svcDir); err != nil {
 			return err
 		}
 	}
@@ -206,19 +217,19 @@ func (ctrl *Controller) Install() (err error) {
 	// Define commands
 	cmds := []command{
 		{
-			cmd: "/tmp/check_prereqs.sh",
+			cmd: fmt.Sprintf("%s/check_prereqs.sh", ctrl.iofogDir),
 			msg: "Checking prerequisites on Controller " + ctrl.Host,
 		},
 		{
-			cmd: "sudo /tmp/controller_install_node.sh",
+			cmd: fmt.Sprintf("sudo %s/install_node.sh", ctrl.ctrlDir),
 			msg: "Installing Node.js on Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_set_env.sh %s", envString),
+			cmd: fmt.Sprintf("sudo %s/set_env.sh %s", ctrl.ctrlDir, envString),
 			msg: "Setting up environment variables for Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token),
+			cmd: fmt.Sprintf("sudo %s/install_iofog.sh %s %s %s", ctrl.ctrlDir, ctrl.Version, ctrl.Repo, ctrl.Token),
 			msg: "Installing ioFog on Controller " + ctrl.Host,
 		},
 	}
