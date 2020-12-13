@@ -279,14 +279,20 @@ func (agent RemoteAgent) copyScriptsToAgent(scripts []string) error {
 	defer agent.ssh.Disconnect()
 
 	// Copy scripts to remote host
-	for _, script := range scripts {
-		staticFile := util.GetStaticFile(script)
-		reader := strings.NewReader(staticFile)
-		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", int64(len(staticFile))); err != nil {
-			return err
+	for _, filename := range filenames {
+		// Read script from assets
+		if srcDir != "" {
+			srcDir = util.AddTrailingSlash(srcDir)
+		}
+		staticFile := util.GetStaticFile(srcDir + filename)
+		// Copy to /tmp for backwards compatability
+		for _, currDestDir := range []string{util.AddTrailingSlash(destDir), "/tmp/"} {
+			reader := strings.NewReader(staticFile)
+			if err := agent.ssh.CopyTo(reader, currDestDir, filename, "0775", int64(len(staticFile))); err != nil {
+				return err
+			}
 		}
 	}
-
 	return nil
 }
 

@@ -82,11 +82,19 @@ func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, prov
 	}
 }
 
-func (ctrl *Controller) CopyScript(path string, name string) (err error) {
-	script := util.GetStaticFile(path + name)
-	reader := strings.NewReader(script)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", int64(len(script))); err != nil {
-		return err
+func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error) {
+	// Read script from assets
+	if srcDir != "" {
+		srcDir = util.AddTrailingSlash(srcDir)
+	}
+	staticFile := util.GetStaticFile(srcDir + filename)
+
+	// Copy to /tmp for backwards compatability
+	for _, currDestDir := range []string{util.AddTrailingSlash(destDir), "/tmp/"} {
+		reader := strings.NewReader(staticFile)
+		if err := ctrl.ssh.CopyTo(reader, currDestDir, filename, "0775", int64(len(staticFile))); err != nil {
+			return err
+		}
 	}
 
 	return nil
