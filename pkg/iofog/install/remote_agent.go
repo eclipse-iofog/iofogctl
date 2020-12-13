@@ -257,7 +257,7 @@ func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 	Verbose("Copying install scripts to Agent " + agent.name)
 	cmds := []command{
 		{
-			cmd: fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s", agent.agentDir, agent.agentDir),
+			cmd: fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s", agent.agentDir, agent.iofogDir),
 			msg: "Creating Agent etc directory",
 		},
 	}
