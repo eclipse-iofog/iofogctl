@@ -60,6 +60,6 @@ do_install_docker() {
 	do_configure_overlay
 }
 
-. /tmp/agent_init.sh
+. /etc/iofog/agent/init.sh
 init
 do_install_docker

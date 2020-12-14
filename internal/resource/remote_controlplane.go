@@ -14,18 +14,11 @@
 package resource
 
 import (
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type RemoteSystemImages struct {
-	ARM string `yaml:"arm,omitempty"`
-	X86 string `yaml:"x86,omitempty"`
-}
-
-type RemoteSystemMicroservices struct {
-	Router RemoteSystemImages `yaml:"router,omitempty"`
-	Proxy  RemoteSystemImages `yaml:"proxy,omitempty"`
-}
+type RemoteSystemMicroservices = install.RemoteSystemMicroservices
 
 type RemoteControlPlane struct {
 	IofogUser           IofogUser                 `yaml:"iofogUser"`

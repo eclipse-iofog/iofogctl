@@ -34,6 +34,7 @@ jobs:
           dos2unix -o $file
         done
       done
+      for file in $(find ./assets/agent -name '*.sh'); do dos2unix -o $file; done
     displayName: 'Format test files'
   - template: steps/init-ssh.yaml
   - template: steps/init-vms.yaml

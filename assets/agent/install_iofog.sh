@@ -97,7 +97,7 @@ echo "version: $agent_version"
 echo "repo: $repo"
 echo "token: $token"
 
-. /tmp/agent_init.sh
+. /etc/iofog/agent/init.sh
 init
 do_check_install
 do_stop_iofog

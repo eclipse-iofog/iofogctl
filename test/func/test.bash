@@ -330,3 +330,10 @@ function testApplicationTemplates(){
   checkApplication "$NS" "-${APPLICATION_NAME}"
   iofogctl -v -n "$NS" delete -f test/conf/templated-app.yaml
 }
+
+# testAgentCount enforces a minimum of 2 Agents to allow for regular and custom installs to be tested simultaneously
+function testAgentCount(){
+  initAgents
+  local AGENT_COUNT=${#AGENTS[@]}
+  [ "$AGENT_COUNT" -gt 1 ]
+}

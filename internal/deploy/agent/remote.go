@@ -94,6 +94,15 @@ func (exe *remoteExecutor) Execute() (err error) {
 		exe.agent.Name,
 		exe.agent.UUID)
 
+	// Set custom scripts
+	if exe.agent.Scripts != nil {
+		if err = agent.CustomizeProcedures(
+			exe.agent.Scripts.Directory,
+			exe.agent.Scripts.AgentProcedures); err != nil {
+			return err
+		}
+	}
+
 	// Set version
 	agent.SetVersion(exe.agent.Package.Version)
 	agent.SetRepository(exe.agent.Package.Repo, exe.agent.Package.Token)

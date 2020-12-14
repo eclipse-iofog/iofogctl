@@ -13,15 +13,24 @@
 
 package resource
 
-import "github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+import (
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+)
+
+type AgentScripts struct {
+	install.AgentProcedures `yaml:",inline"`
+	Directory               string `yaml:"dir"` // Location of scripts
+}
 
 type RemoteAgent struct {
-	Name    string  `yaml:"name"`
-	Host    string  `yaml:"host"`
-	SSH     SSH     `yaml:"ssh"`
-	UUID    string  `yaml:"uuid,omitempty"`
-	Created string  `yaml:"created,omitempty"`
-	Package Package `yaml:"package,omitempty"`
+	Name    string        `yaml:"name"`
+	Host    string        `yaml:"host"`
+	SSH     SSH           `yaml:"ssh"`
+	UUID    string        `yaml:"uuid,omitempty"`
+	Created string        `yaml:"created,omitempty"`
+	Package Package       `yaml:"package,omitempty"`
+	Scripts *AgentScripts `yaml:"scripts,omitempty"`
 }
 
 func (agent RemoteAgent) GetName() string {

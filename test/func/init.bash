@@ -201,14 +201,29 @@ spec:
   host: ${HOSTS[$IDX]}
   ssh:
     user: ${USERS[$IDX]}
-    keyFile: $KEY_FILE
+    keyFile: $KEY_FILE" >> test/conf/agents.yaml
+    # Pairs of Agents, one is regular, other is custom
+    if [ $(($IDX % 2)) -eq 0 ]; then
+      echo "
   package:
     repo: $AGENT_REPO
     version: $AGENT_VANILLA_VERSION
     token: $AGENT_PACKAGE_CLOUD_TOKEN" >> test/conf/agents.yaml
-
-  echo "====> Agent File:"
-  cat test/conf/agents.yaml
+    else
+      echo "
+  scripts:
+    dir: assets/agent
+    deps:
+      entrypoint: install_deps.sh
+    install:
+      entrypoint: install_iofog.sh
+      args:
+      - $AGENT_VANILLA_VERSION
+      - $AGENT_REPO
+      - $AGENT_PACKAGE_CLOUD_TOKEN
+    uninstall:
+      entrypoint: uninstall_iofog.sh" >> test/conf/agents.yaml
+    fi
   done
 }
 
