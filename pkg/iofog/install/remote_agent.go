@@ -14,7 +14,6 @@
 package install
 
 import (
-	"fmt"
 	"net"
 	"net/url"
 	"strings"
@@ -26,12 +25,10 @@ import (
 // Remote agent uses SSH
 type RemoteAgent struct {
 	defaultAgent
-	ssh      *util.SecureShellClient
-	version  string
-	repo     string
-	token    string
-	agentDir string
-	iofogDir string
+	ssh     *util.SecureShellClient
+	version string
+	repo    string
+	token   string
 }
 
 func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) *RemoteAgent {
@@ -41,8 +38,6 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
 		ssh:          ssh,
 		version:      util.GetAgentVersion(),
-		agentDir:     "/etc/iofog/agent",
-		iofogDir:     "/etc/iofog",
 	}
 }
 
@@ -71,19 +66,19 @@ func (agent *RemoteAgent) Bootstrap() error {
 	installArgs := agent.version + " " + agent.repo + " " + agent.token
 	cmds := []command{
 		{
-			cmd: agent.iofogDir + "/check_prereqs.sh ",
+			cmd: "/tmp/check_prereqs.sh ",
 			msg: "Checking prerequisites on Agent " + agent.name,
 		},
 		{
-			cmd: agent.agentDir + "/install_java.sh ",
+			cmd: "/tmp/agent_install_java.sh ",
 			msg: "Installing Java on Agent " + agent.name,
 		},
 		{
-			cmd: agent.agentDir + "/install_docker.sh ",
+			cmd: "/tmp/agent_install_docker.sh ",
 			msg: "Installing Docker on Agent " + agent.name,
 		},
 		{
-			cmd: fmt.Sprintf("sudo -S %s/install_iofog.sh %s", agent.agentDir, installArgs),
+			cmd: "sudo -S /tmp/agent_install_iofog.sh " + installArgs,
 			msg: "Installing ioFog daemon on Agent " + agent.name,
 		},
 	}
@@ -222,7 +217,7 @@ func (agent *RemoteAgent) Uninstall() (err error) {
 		// 	msg: "Deprovisioning Agent " + agent.name,
 		// },
 		{
-			cmd: agent.agentDir + "/uninstall_iofog.sh ",
+			cmd: "/tmp/agent_uninstall_iofog.sh ",
 			msg: "Removing iofog-agent software " + agent.name,
 		},
 	}
@@ -255,39 +250,28 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 
 func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 	Verbose("Copying install scripts to Agent " + agent.name)
-	cmds := []command{
-		{
-			cmd: fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s", agent.agentDir, agent.iofogDir),
-			msg: "Creating Agent etc directory",
-		},
-	}
-	if err := agent.run(cmds); err != nil {
-		return err
-	}
 	// Declare scripts to copy
-	if err := agent.copyScriptsToAgent("", []string{"check_prereqs.sh"}, agent.iofogDir); err != nil {
-		return err
-	}
 	scripts := []string{
-		"init.sh",
-		"install_java.sh",
-		"install_docker.sh",
-		"install_iofog.sh",
+		"check_prereqs.sh",
+		"agent_init.sh",
+		"agent_install_java.sh",
+		"agent_install_docker.sh",
+		"agent_install_iofog.sh",
 	}
-	return agent.copyScriptsToAgent("agent", scripts, agent.agentDir)
+	return agent.copyScriptsToAgent(scripts)
 }
 
 func (agent RemoteAgent) copyUninstallScriptsToAgent() error {
 	Verbose("Copying uninstall scripts to Agent " + agent.name)
 	// Declare scripts to copy
 	scripts := []string{
-		"init.sh",
-		"uninstall_iofog.sh",
+		"agent_init.sh",
+		"agent_uninstall_iofog.sh",
 	}
-	return agent.copyScriptsToAgent("agent", scripts, agent.iofogDir)
+	return agent.copyScriptsToAgent(scripts)
 }
 
-func (agent RemoteAgent) copyScriptsToAgent(srcDir string, filenames []string, destDir string) error {
+func (agent RemoteAgent) copyScriptsToAgent(scripts []string) error {
 	// Establish SSH to agent
 	if err := agent.ssh.Connect(); err != nil {
 		return err
@@ -295,13 +279,10 @@ func (agent RemoteAgent) copyScriptsToAgent(srcDir string, filenames []string, d
 	defer agent.ssh.Disconnect()
 
 	// Copy scripts to remote host
-	for _, filename := range filenames {
-		if srcDir != "" {
-			srcDir = util.AddTrailingSlash(srcDir)
-		}
-		staticFile := util.GetStaticFile(srcDir + filename)
+	for _, script := range scripts {
+		staticFile := util.GetStaticFile(script)
 		reader := strings.NewReader(staticFile)
-		if err := agent.ssh.CopyTo(reader, util.AddTrailingSlash(destDir), filename, "0775", int64(len(staticFile))); err != nil {
+		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", int64(len(staticFile))); err != nil {
 			return err
 		}
 	}

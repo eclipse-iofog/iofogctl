@@ -27,7 +27,7 @@ do_uninstall_iofog() {
 	$sh_c "rm -rf ${AGENT_LOG_FOLDER}"
 }
 
-. /etc/iofog/agent/init.sh
+. /tmp/agent_init.sh
 init
 
 do_uninstall_iofog

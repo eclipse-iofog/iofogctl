@@ -254,13 +254,7 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 
 		// Write to stdin
 		fmt.Fprintf(remoteStdin, "C%s %d %s\n", permissions, size, destFilename)
-		written, err := io.Copy(remoteStdin, reader)
-		if err != nil {
-			errChan <- err
-		}
-		if written == 0 {
-			errChan <- errors.New("Wrote 0 bytes during file copy to server")
-		}
+		io.Copy(remoteStdin, reader)
 		fmt.Fprint(remoteStdin, "\x00")
 	}()
 
@@ -349,9 +343,6 @@ func (cl *SecureShellClient) CreateFolder(path string) error {
 }
 
 func addLeadingZero(in string) string {
-	if len(in) == 0 {
-		return in
-	}
 	if in[0:0] != "0" {
 		in = "0" + in
 	}
@@ -359,9 +350,6 @@ func addLeadingZero(in string) string {
 }
 
 func AddTrailingSlash(in string) string {
-	if len(in) == 0 {
-		return in
-	}
 	if in[len(in)-1:] != "/" {
 		in = in + "/"
 	}
