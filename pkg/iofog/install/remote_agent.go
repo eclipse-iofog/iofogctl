@@ -24,18 +24,6 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-const (
-	scriptPrereq         = "check_prereqs.sh"
-	scriptInit           = "init.sh"
-	scriptInstallDeps    = "install_deps.sh"
-	scriptInstallJava    = "install_java.sh"
-	scriptInstallDocker  = "install_docker.sh"
-	scriptInstallIofog   = "install_iofog.sh"
-	scriptUninstallIofog = "uninstall_iofog.sh"
-	iofogDir             = "/etc/iofog"
-	agentDir             = "/etc/iofog/agent"
-)
-
 // Remote agent uses SSH
 type RemoteAgent struct {
 	defaultAgent
@@ -68,13 +56,61 @@ func (script *Entrypoint) getCommand() string {
 	return fmt.Sprintf("%s %s", script.destPath, args)
 }
 
+func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) *RemoteAgent {
+	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
+	ssh.SetPort(port)
+	agent := &RemoteAgent{
+		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
+		ssh:          ssh,
+		version:      util.GetAgentVersion(),
+		dir:          pkg.agentDir,
+		procs: AgentProcedures{
+			check: Entrypoint{
+				Name:     pkg.scriptPrereq,
+				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptPrereq),
+			},
+			Deps: Entrypoint{
+				Name:     pkg.scriptInstallDeps,
+				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptInstallDeps),
+			},
+			Install: Entrypoint{
+				Name:     pkg.scriptInstallIofog,
+				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptInstallIofog),
+				Args: []string{
+					util.GetAgentVersion(),
+					"",
+					"",
+				},
+			},
+			Uninstall: Entrypoint{
+				Name:     pkg.scriptUninstallIofog,
+				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptUninstallIofog),
+			},
+			scriptNames: []string{
+				pkg.scriptPrereq,
+				pkg.scriptInit,
+				pkg.scriptInstallDeps,
+				pkg.scriptInstallJava,
+				pkg.scriptInstallDocker,
+				pkg.scriptInstallIofog,
+				pkg.scriptUninstallIofog,
+			},
+		},
+	}
+	// Get script contents from embedded files
+	for _, scriptName := range agent.procs.scriptNames {
+		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptName)))
+	}
+	return agent
+}
+
 func (agent *RemoteAgent) CustomizeProcedures(dir string, procs AgentProcedures) error {
 	// Format source directory of script files
-	dir = util.AddTrailingSlash(dir)
 	dir, err := util.FormatPath(dir)
 	if err != nil {
 		return err
 	}
+	dir = util.AddTrailingSlash(dir)
 
 	// Load script files into memory
 	files, err := ioutil.ReadDir(dir)
@@ -93,29 +129,29 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs AgentProcedures)
 	}
 
 	// Add prereq script and entrypoint
-	procs.scriptNames = append(procs.scriptNames, scriptPrereq)
-	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptPrereq)))
-	procs.check.destPath = fmt.Sprintf("%s/%s", agent.dir, scriptPrereq)
+	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
+	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq)))
+	procs.check.destPath = fmt.Sprintf("%s/%s", agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
 	if procs.Deps.Name == "" {
 		procs.Deps = agent.procs.Deps
-		for _, script := range []string{scriptInstallDeps, scriptInstallDocker, scriptInstallJava} {
+		for _, script := range []string{pkg.scriptInstallDeps, pkg.scriptInstallDocker, pkg.scriptInstallJava} {
 			procs.scriptNames = append(procs.scriptNames, script)
 			procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(script)))
 		}
 	}
 	if procs.Install.Name == "" {
 		procs.Install = agent.procs.Install
-		procs.scriptNames = append(procs.scriptNames, scriptInstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptInstallIofog)))
+		procs.scriptNames = append(procs.scriptNames, pkg.scriptInstallIofog)
+		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog)))
 	} else {
 		agent.customInstall = true
 	}
 	if procs.Uninstall.Name == "" {
 		procs.Uninstall = agent.procs.Uninstall
-		procs.scriptNames = append(procs.scriptNames, scriptUninstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptUninstallIofog)))
+		procs.scriptNames = append(procs.scriptNames, pkg.scriptUninstallIofog)
+		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog)))
 	}
 
 	// Set destination paths where scripts appear on Agent
@@ -125,54 +161,6 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs AgentProcedures)
 
 	agent.procs = procs
 	return nil
-}
-
-func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) *RemoteAgent {
-	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
-	ssh.SetPort(port)
-	agent := &RemoteAgent{
-		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
-		ssh:          ssh,
-		version:      util.GetAgentVersion(),
-		dir:          agentDir,
-		procs: AgentProcedures{
-			check: Entrypoint{
-				Name:     scriptPrereq,
-				destPath: fmt.Sprintf("%s/%s", agentDir, scriptPrereq),
-			},
-			Deps: Entrypoint{
-				Name:     scriptInstallDeps,
-				destPath: fmt.Sprintf("%s/%s", agentDir, scriptInstallDeps),
-			},
-			Install: Entrypoint{
-				Name:     scriptInstallIofog,
-				destPath: fmt.Sprintf("%s/%s", agentDir, scriptInstallIofog),
-				Args: []string{
-					util.GetAgentVersion(),
-					"",
-					"",
-				},
-			},
-			Uninstall: Entrypoint{
-				Name:     scriptUninstallIofog,
-				destPath: fmt.Sprintf("%s/%s", agentDir, scriptUninstallIofog),
-			},
-			scriptNames: []string{
-				scriptPrereq,
-				scriptInit,
-				scriptInstallDeps,
-				scriptInstallJava,
-				scriptInstallDocker,
-				scriptInstallIofog,
-				scriptUninstallIofog,
-			},
-		},
-	}
-	// Get script contents from embedded files
-	for _, scriptName := range agent.procs.scriptNames {
-		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptName)))
-	}
-	return agent
 }
 
 func (agent *RemoteAgent) SetVersion(version string) {
