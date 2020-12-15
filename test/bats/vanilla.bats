@@ -8,6 +8,11 @@ NS2="$NS"-2
 @test "Initialize tests" {
   stopTest
 }
+@test "Verify Agents >= 2" {
+  startTest
+  testAgentCount
+  stopTest
+}
 
 @test "Create namespace" {
   startTest

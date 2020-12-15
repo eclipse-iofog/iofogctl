@@ -24,6 +24,12 @@ NS="$NAMESPACE"
   stopTest
 }
 
+@test "Verify Agents >= 2" {
+  startTest
+  testAgentCount
+  stopTest
+}
+
 @test "Verify kubectl works" {
   startTest
   kctl get ns

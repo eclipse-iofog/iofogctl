@@ -71,6 +71,7 @@ jobs:
       for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
       for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
       for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+      for file in $(find ./assets/agent -name '*.sh'); do dos2unix -o $file; done
     displayName: 'Format test files'
   - bash: |
       test/run.bash smoke

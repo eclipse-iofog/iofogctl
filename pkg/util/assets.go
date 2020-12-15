@@ -14,6 +14,8 @@
 package util
 
 import (
+	"errors"
+	"fmt"
 	"sync"
 
 	rice "github.com/GeertJohan/go.rice"
@@ -32,6 +34,9 @@ func GetStaticFile(filename string) string {
 	})
 
 	fileContent, err := assets.String(filename)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("Could not load static file %s: %s", filename, err.Error()))
+	}
 	Check(err)
 	return fileContent
 }
