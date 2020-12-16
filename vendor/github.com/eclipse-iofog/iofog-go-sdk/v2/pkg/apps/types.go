@@ -202,14 +202,10 @@ type ApplicationTemplate struct {
 // TemplateVariable contains a key-value pair
 // +k8s:deepcopy-gen=true
 type TemplateVariable struct {
-	Key          string                    `yaml:"key"`
-	Description  string                    `yaml:"description"`
-	DefaultValue TemplateVariableInterface `yaml:"defaultValue,omitempty"`
-	Value        TemplateVariableInterface `yaml:"value,omitempty"`
-}
-
-type TemplateVariableInterface interface {
-	DeepCopyTemplateVariableInterface() TemplateVariableInterface
+	Key          string      `yaml:"key"`
+	Description  string      `yaml:"description"`
+	DefaultValue interface{} `yaml:"defaultValue,omitempty"`
+	Value        interface{} `yaml:"value,omitempty"`
 }
 
 // ApplicationTemplateInfo contains microservice and route details for template

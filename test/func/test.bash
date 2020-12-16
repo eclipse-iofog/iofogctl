@@ -328,5 +328,13 @@ function testApplicationTemplates(){
   iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
   iofogctl -v -n "$NS" deploy -f test/conf/templated-app.yaml
   checkApplication "$NS" "-${APPLICATION_NAME}"
+
+  # Look for templated variables
+  for CHECK in 12345 func-test-0; do
+    iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "$CHECK"
+  done
+
+  # Delete templated app and template
   iofogctl -v -n "$NS" delete -f test/conf/templated-app.yaml
+  iofogctl -v -n "$NS" delete application-template "$APP_TEMPLATE_NAME"
 }

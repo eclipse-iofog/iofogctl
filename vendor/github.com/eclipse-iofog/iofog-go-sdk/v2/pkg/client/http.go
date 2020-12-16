@@ -15,8 +15,8 @@ package client
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	json "github.com/json-iterator/go"
 	"net/http"
 	"strings"
 	"time"
