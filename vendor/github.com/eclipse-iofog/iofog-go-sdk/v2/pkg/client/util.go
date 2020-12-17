@@ -81,6 +81,10 @@ func before(input, substr string) string {
 func assertInt(in interface{}) int {
 	out, ok := in.(int)
 	if !ok {
+		floatOut, ok := in.(float64)
+		if ok {
+			return int(floatOut)
+		}
 		panic(pkg.errorVariableNotAnInteger)
 	}
 	return out

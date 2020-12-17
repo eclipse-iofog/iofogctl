@@ -153,7 +153,7 @@ func (clt *Client) GetMicroservicePortMapping(UUID string) (response *Microservi
 
 // DeleteMicroservicePortMapping deletes a microservice port mapping using Controller REST API
 func (clt *Client) DeleteMicroservicePortMapping(UUID string, portMapping MicroservicePortMapping) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s/port-mapping/%d", UUID, portMapping.Internal), nil)
+	_, err = clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s/port-mapping/%v", UUID, portMapping.Internal), nil)
 	return
 }
 

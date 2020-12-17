@@ -135,7 +135,7 @@ NS="$NAMESPACE"
 @test "Update Microservice" {
   startTest
   initMicroserviceUpdateFile
-  iofogctl -v -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
+  iofogctl --debug -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
   checkUpdatedMicroservice
   checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
   stopTest
