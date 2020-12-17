@@ -203,6 +203,9 @@ function checkMicroserviceNegative() {
 function checkApplication() {
   local NS_CHECK=${1:-$NS}
   local NAME_SUFFIX=${2:-""}
+  local PORT_INT=${3:-80}
+  local PORT_EXT=${4:-5000}
+  local PORT_PUB=${5:-5000}
   iofogctl -v -n "$NS_CHECK" get applications
   [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
@@ -221,7 +224,7 @@ function checkApplication() {
   # Use a separate AgentConfig Kind to update the required config.
   # [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check ports
-  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5000:80")
+  msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$PORT_EXT:$PORT_INT")
   [[ "${MSVC2_NAME}${NAME_SUFFIX}" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
   # Check volumes
   msvcWithVolume=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$VOL_DEST:$VOL_CONT_DEST")
@@ -234,8 +237,9 @@ function checkApplication() {
   cat test/conf/app_output.yaml | grep "name: ${MSVC1_NAME}${NAME_SUFFIX}"
   cat test/conf/app_output.yaml | grep "name: ${MSVC2_NAME}${NAME_SUFFIX}"
   cat test/conf/app_output.yaml | grep "ports:"
-  cat test/conf/app_output.yaml | grep "external: 5000"
-  cat test/conf/app_output.yaml | grep "\- internal: 80"
+  cat test/conf/app_output.yaml | grep "external: $PORT_EXT"
+  cat test/conf/app_output.yaml | grep "internal: $PORT_INT"
+  cat test/conf/app_output.yaml | grep "public: $PORT_PUB"
   cat test/conf/app_output.yaml | grep "volumes: \[\]"
   cat test/conf/app_output.yaml | grep "images:"
   cat test/conf/app_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:x86-v1"

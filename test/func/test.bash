@@ -327,7 +327,7 @@ function testApplicationTemplates(){
   # Deploy again and deploy application
   iofogctl --debug -n "$NS" deploy -f test/conf/app-template.yaml
   iofogctl --debug -n "$NS" deploy -f test/conf/templated-app.yaml
-  checkApplication "$NS" "-${APPLICATION_NAME}"
+  checkApplication "$NS" "-${APPLICATION_NAME}" 80 7777 6666
 
   # Look for templated variables
   for CHECK in 12345 7777 6666 80 func-test-0; do
