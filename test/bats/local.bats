@@ -100,13 +100,13 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Deploy application template" {
+@test "Deploy Application Template and Templated Application" {
   startTest
   testApplicationTemplates
   stopTest
 }
 
-@test "Deploy application" {
+@test "Deploy Application" {
   startTest
   initApplicationFiles
   iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
@@ -116,7 +116,7 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Deploy microservice" {
+@test "Deploy Microservice" {
   startTest
   initMicroserviceFile
   iofogctl -v -n "$NS" deploy -f test/conf/microservice.yaml
@@ -124,7 +124,7 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Deploy route" {
+@test "Deploy Route" {
   startTest
   initRouteFile
   iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
@@ -132,16 +132,16 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Update microservice" {
+@test "Update Microservice" {
   startTest
   initMicroserviceUpdateFile
-  iofogctl -v -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
+  iofogctl --debug -n "$NS" deploy -f test/conf/updatedMicroservice.yaml
   checkUpdatedMicroservice
   checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
   stopTest
 }
 
-@test "Rename and Delete route" {
+@test "Rename and Delete Route" {
   startTest
   local NEW_ROUTE_NAME="route-2"
   iofogctl -v -n "$NS" rename route "$ROUTE_NAME" "$NEW_ROUTE_NAME"
@@ -151,14 +151,14 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Delete microservice using file option" {
+@test "Delete Microservice using file option" {
   startTest
   iofogctl -v -n "$NS" delete -f test/conf/updatedMicroservice.yaml
   checkMicroserviceNegative
   stopTest
 }
 
-@test "Deploy microservice in application" {
+@test "Deploy Microservice in Application" {
   startTest
   initMicroserviceFile
   iofogctl -v -n "$NS" deploy -f test/conf/microservice.yaml
@@ -173,7 +173,7 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Deploy registry" {
+@test "Deploy Registry" {
   startTest
   initGCRRegistryFile
   iofogctl -v -n "$NS" deploy -f test/conf/gcr.yaml
@@ -194,21 +194,21 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Detach/attach agent" {
+@test "Detach/attach Agent" {
   startTest
   iofogctl -v -n "$NS" detach agent ${NAME}-0 --force
   iofogctl -v -n "$NS" attach agent ${NAME}-0
   stopTest
 }
 
-@test "Deploy application from file and test application update" {
+@test "Deploy Application from file and test Application update" {
   startTest
   iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
   stopTest
 }
 
-@test "Delete agent should fail because of running msvc" {
+@test "Delete Agent should fail because of running msvc" {
   startTest
   run iofogctl -v -n "$NS" delete agent ${NAME}-0
   [ "$status" -eq 1 ]
@@ -232,7 +232,7 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Delete namespace" {
+@test "Delete Namespace" {
   startTest
   iofogctl -v delete namespace "$NS"
   [[ -z $(iofogctl get namespaces | grep "$NS") ]]

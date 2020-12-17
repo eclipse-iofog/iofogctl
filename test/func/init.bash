@@ -321,6 +321,30 @@ spec:
   template:
     name: $APP_TEMPLATE_NAME
     variables:
+    - key: magic-number
+      value: 12345
+    - key: internal
+      value: 80
+    - key: external
+      value: 7777
+    - key: public
+      value: 6666
+    - key: turtle
+      value:
+        turtles:
+        - name: john
+          job: johnb
+          age: 139
+          info:
+            likes:
+            - cats
+            - hats
+        - name: bob
+          job: bobbing
+          age: 121
+          info:
+            lifes:
+            - pineapple
     - key: $APP_TEMPLATE_KEY
       value: $APP_TEMPLATE_DEF_VAL" > test/conf/templated-app.yaml
   echo "---
@@ -335,6 +359,26 @@ spec:
     - key: $APP_TEMPLATE_KEY
       description: $APP_TEMPLATE_KEY_DESC
       defaultValue: $APP_TEMPLATE_DEF_VAL
+    - key: magic-number
+      description: custom
+      defaultValue: 123
+    - key: turtle
+      description: custom
+      defaultValue:
+        turtles:
+        - name: peter
+          job: peteing
+          age: 100
+          info:
+            likes:
+            - toes
+            - shoes
+        - name: bob
+          job: bobbing
+          age: 101
+          info:
+            lifes:
+            - pineapple
     application:
       routes:
       - name: $ROUTE_NAME
@@ -357,6 +401,8 @@ spec:
         config:
           test_mode: true
           data_label: 'Anonymous_Person'
+          first_custom: \"{{magic-number}}\"
+          second_custom: \"{{turtle}}\"
       # Simple JSON viewer for the heart rate output
       - name: $MSVC2_NAME
         agent:
@@ -369,9 +415,9 @@ spec:
           rootHostAccess: false
           ports:
             # The ui will be listening on port 80 (internal).
-            - external: 5000
-              internal: 80
-              public: 5000
+            - external: \"{{external}}\"
+              internal: \"{{internal}}\"
+              public: \"{{public}}\"
           volumes:
           - hostDestination: $VOL_DEST
             containerDestination: $VOL_CONT_DEST

@@ -1,3 +1,5 @@
+9fans.net/go v0.0.0-20181112161441-237454027057 h1:OcHlKWkAMJEF1ndWLGxp5dnJQkYM/YImUOvsBoz6h5E=
+9fans.net/go v0.0.0-20181112161441-237454027057/go.mod h1:diCsxrliIURU9xsYtjCp5AbpQKqdhKmf0ujWDUSkfoY=
 bitbucket.org/bertimus9/systemstat v0.0.0-20180207000608-0eeff89b0690/go.mod h1:Ulb78X89vxKYgdL24HMTiXYHlyHEvruOj1ZPlqeNEZM=
 bou.ke/monkey v1.0.1/go.mod h1:FgHuK96Rv2Nlf+0u1OOVDpCMdsWyOFmeeketDHE7LIg=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -286,6 +288,20 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201210010356-b3d3a6436
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201210010356-b3d3a6436577/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201210030136-aff173e58e46 h1:4CIQU15VTrFboX4IlnNlU8h2a6YdxLYVN2qrlJje/r4=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201210030136-aff173e58e46/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201211004049-e5d6689df6a8 h1:JVjQUpAslVyR+Grs3/BiIvAo95/4oBX6r/r+3LjPk2w=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201211004049-e5d6689df6a8/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216215813-2a484dbf800a h1:DK3CiQEnlfVfIJQ8Rr2kW2AE2BjgiXTBAfLkl8p/xEY=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216215813-2a484dbf800a/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216231741-c485552f6316 h1:hi6gdLCdP2gmwL9XchraIPkW9OV9I/9SJjE8QgbqSTo=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216231741-c485552f6316/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216232353-5db0b5435e2e h1:LuFYRJwt2oYgn3HgSzcjgakjW6Gyy/9Mr5+wDl/ISEU=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216232353-5db0b5435e2e/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217002239-ed11203ab82c h1:7TOG6ACP7Ubft9P1FqJCn4HMF13DcgtFVDsRQvkuBX4=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217002239-ed11203ab82c/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217031337-70f864e9b07e h1:xoxXlsdCJVajBNdyqSU8PP6SJBhS/qPc1ineYRjFkZI=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217031337-70f864e9b07e/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217034524-c05fd6a656b4 h1:UVISFnZREbO6IXu1vNhA58Ibj2ifYWTLhcK1TsE8MGA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217034524-c05fd6a656b4/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=
 github.com/eclipse-iofog/iofog-operator v1.3.0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005194419-2e26a3690802 h1:+s3v4U5MATqtOJRW4o91TUYqfLzFyctrVxty/cCcPpk=
@@ -759,6 +775,8 @@ github.com/rogpeppe/go-charset v0.0.0-20180617210344-2471d30d28b4/go.mod h1:qgYe
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.5.0/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
+github.com/rogpeppe/godef v1.1.2 h1:c5mCx0EcCORJOdVMREX7Lgh1raTxAHFmOfXdEB9u8Jw=
+github.com/rogpeppe/godef v1.1.2/go.mod h1:WtY9A/ovuQ+UakAJ1/CEqwwulX/WJjb2kgkokCHi/GY=
 github.com/rubenv/sql-migrate v0.0.0-20191025130928-9355dd04f4b3/go.mod h1:WS0rl9eEliYI8DPnr3TOwz4439pay+qNgzJoVya/DmY=
 github.com/rubiojr/go-vhd v0.0.0-20160810183302-0bfd3b39853c/go.mod h1:DM5xW0nvfNNm2uytzsvhI3OnX8uzaRAg8UX/CnDqbto=
 github.com/russross/blackfriday v0.0.0-20170610170232-067529f716f4/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
@@ -905,6 +923,7 @@ golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3/go.mod h1:6SW0HCj/g11FgYtHl
 golang.org/x/lint v0.0.0-20190409202823-959b441ac422/go.mod h1:6SW0HCj/g11FgYtHlgUYUwCkIfeOF89ocIRzGO/8vkc=
 golang.org/x/mobile v0.0.0-20190312151609-d3739f865fa6/go.mod h1:z+o9i4GpDbdi3rU15maQ/Ox0txvL9dWGYEHz965HBQE=
 golang.org/x/mod v0.0.0-20190513183733-4bf6d317e70e/go.mod h1:mXi4GBBbnImb6dmsKGUJ2LatrhH/nqhxcFungHvyanc=
+golang.org/x/mod v0.1.1-0.20191105210325-c90efee705ee/go.mod h1:QqPTAvyqsEbceGzBzNggFXnrqF1CaUcvgkdR5Ot7KZg=
 golang.org/x/mod v0.2.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 golang.org/x/net v0.0.0-20170114055629-f2499483f923/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20180112015858-5ccada7d0a7b/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
@@ -1033,6 +1052,8 @@ golang.org/x/tools v0.0.0-20190706070813-72ffa07ba3db/go.mod h1:jcCCGcm9btYwXyDq
 golang.org/x/tools v0.0.0-20191018212557-ed542cd5b28a/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20191130070609-6e064ea0cf2d/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
+golang.org/x/tools v0.0.0-20200226224502-204d844ad48d/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
+golang.org/x/tools v0.0.0-20200407041343-bf15fae40dea h1:DUwLyMDMUauGMd9kSLIlhhYJNELm06HuxeBdkFkeax4=
 golang.org/x/tools v0.0.0-20200407041343-bf15fae40dea/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/tools/gopls v0.4.0/go.mod h1:fdOZ8zb6nqlePvfek79JCskQXI4W+i2e1xT+xOPKMcY=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

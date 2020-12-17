@@ -314,7 +314,7 @@ function testApplicationTemplates(){
   initAgents
 
   # Deploy and verify
-  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml --debug
+  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
   for CHECK in "$APP_TEMPLATE_NAME" "$APP_TEMPLATE_DESC" "$MSVC1_NAME" "$MSVC2_NAME" "$ROUTE_NAME"; do
     iofogctl -v -n "$NS" get application-templates | grep "$CHECK"
     iofogctl -v -n "$NS" describe application-template "$APP_TEMPLATE_NAME" | grep "$CHECK"
@@ -325,10 +325,18 @@ function testApplicationTemplates(){
   [ -z "$(iofogctl -v -n "$NS" get application-templates | grep "$APP_TEMPLATE_NAME")" ]
 
   # Deploy again and deploy application
-  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
-  iofogctl -v -n "$NS" deploy -f test/conf/templated-app.yaml
-  checkApplication "$NS" "-${APPLICATION_NAME}"
+  iofogctl --debug -n "$NS" deploy -f test/conf/app-template.yaml
+  iofogctl --debug -n "$NS" deploy -f test/conf/templated-app.yaml
+  checkApplication "$NS" "-${APPLICATION_NAME}" 80 7777 6666
+
+  # Look for templated variables
+  for CHECK in 12345 7777 6666 80 func-test-0; do
+    iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "$CHECK"
+  done
+
+  # Delete templated app and template
   iofogctl -v -n "$NS" delete -f test/conf/templated-app.yaml
+  iofogctl -v -n "$NS" delete application-template "$APP_TEMPLATE_NAME"
 }
 
 # testAgentCount enforces a minimum of 2 Agents to allow for regular and custom installs to be tested simultaneously

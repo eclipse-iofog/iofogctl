@@ -41,9 +41,7 @@ func (exe *applicationTemplateExecutor) execute() (err error) {
 	}
 
 	// Deploy application
-	err = exe.deploy()
-
-	return nil
+	return exe.deploy()
 }
 
 func (exe *applicationTemplateExecutor) init() (err error) {
