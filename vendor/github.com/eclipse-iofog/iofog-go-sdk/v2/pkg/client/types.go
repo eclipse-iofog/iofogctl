@@ -212,12 +212,12 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int    `json:"internal"`
-	External   int    `json:"external"`
-	Public     int    `json:"publicPort,omitempty"`
-	Host       string `json:"host,omitempty"`
-	Protocol   string `json:"protocol,omitempty"`
-	PublicLink string `json:"publicLink,omitempty"`
+	Internal   interface{} `json:"internal"`
+	External   interface{} `json:"external"`
+	Public     interface{} `json:"publicPort,omitempty"`
+	Host       string      `json:"host,omitempty"`
+	Protocol   string      `json:"protocol,omitempty"`
+	PublicLink string      `json:"publicLink,omitempty"`
 }
 
 type MicroserviceVolumeMapping struct {

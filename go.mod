@@ -8,7 +8,7 @@ require (
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf
 	github.com/docker/go-connections v0.4.0
-	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201216232353-5db0b5435e2e
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217002239-ed11203ab82c
 	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201126233946-33f6565691a5
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/gorilla/mux v1.7.4 // indirect
@@ -16,7 +16,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
-	github.com/rogpeppe/godef v1.1.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073

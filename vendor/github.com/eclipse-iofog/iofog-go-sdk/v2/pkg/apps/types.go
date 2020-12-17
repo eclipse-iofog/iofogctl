@@ -115,12 +115,12 @@ func deepCopyNestedMap(src NestedMap, dest NestedMap) {
 
 // +k8s:deepcopy-gen=true
 type MicroservicePortMapping struct {
-	Internal   int    `yaml:"internal" json:"internal"`
-	External   int    `yaml:"external" json:"external"`
-	Public     int    `yaml:"public,omitempty" json:"publicPort"`
-	Host       string `yaml:"host,omitempty" json:"host"`
-	Protocol   string `yaml:"protocol,omitempty" json:"protocol"`
-	PublicLink string `yaml:"publicLink,omitempty" json:"publicLink"`
+	Internal   interface{} `yaml:"internal" json:"internal"`           // +k8s:deepcopy-gen=ignore
+	External   interface{} `yaml:"external" json:"external"`           // +k8s:deepcopy-gen=ignore
+	Public     interface{} `yaml:"public,omitempty" json:"publicPort"` // +k8s:deepcopy-gen=ignore
+	Host       string      `yaml:"host,omitempty" json:"host"`
+	Protocol   string      `yaml:"protocol,omitempty" json:"protocol"`
+	PublicLink string      `yaml:"publicLink,omitempty" json:"publicLink"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -204,8 +204,8 @@ type ApplicationTemplate struct {
 type TemplateVariable struct {
 	Key          string      `yaml:"key"`
 	Description  string      `yaml:"description"`
-	DefaultValue interface{} `yaml:"defaultValue,omitempty"`
-	Value        interface{} `yaml:"value,omitempty"`
+	DefaultValue interface{} `yaml:"defaultValue,omitempty"` // +k8s:deepcopy-gen=ignore
+	Value        interface{} `yaml:"value,omitempty"`        // +k8s:deepcopy-gen=ignore
 }
 
 // ApplicationTemplateInfo contains microservice and route details for template

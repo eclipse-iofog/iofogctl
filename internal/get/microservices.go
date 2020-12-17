@@ -107,9 +107,9 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string,
 		ports := ""
 		for idx, port := range ms.Ports {
 			if idx == 0 {
-				ports += fmt.Sprintf("%d:%d", port.External, port.Internal)
+				ports += fmt.Sprintf("%v:%v", port.External, port.Internal)
 			} else {
-				ports += fmt.Sprintf(", %d:%d", port.External, port.Internal)
+				ports += fmt.Sprintf(", %v:%v", port.External, port.Internal)
 			}
 		}
 		agent, ok := exe.agentPerID[ms.AgentUUID]

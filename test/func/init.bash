@@ -308,6 +308,12 @@ spec:
     variables:
     - key: magic-number
       value: 12345
+    - key: internal
+      value: 80
+    - key: external
+      value: 7777
+    - key: public
+      value: 6666
     - key: turtle
       value:
         turtles:
@@ -394,9 +400,9 @@ spec:
           rootHostAccess: false
           ports:
             # The ui will be listening on port 80 (internal).
-            - external: 5000
-              internal: 80
-              public: 5000
+            - external: \"{{external}}\"
+              internal: \"{{internal}}\"
+              public: \"{{public}}\"
           volumes:
           - hostDestination: $VOL_DEST
             containerDestination: $VOL_CONT_DEST

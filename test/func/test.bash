@@ -325,12 +325,12 @@ function testApplicationTemplates(){
   [ -z "$(iofogctl -v -n "$NS" get application-templates | grep "$APP_TEMPLATE_NAME")" ]
 
   # Deploy again and deploy application
-  iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
-  iofogctl -v -n "$NS" deploy -f test/conf/templated-app.yaml
+  iofogctl --debug -n "$NS" deploy -f test/conf/app-template.yaml
+  iofogctl --debug -n "$NS" deploy -f test/conf/templated-app.yaml
   checkApplication "$NS" "-${APPLICATION_NAME}"
 
   # Look for templated variables
-  for CHECK in 12345 func-test-0; do
+  for CHECK in 12345 7777 6666 80 func-test-0; do
     iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "$CHECK"
   done
 

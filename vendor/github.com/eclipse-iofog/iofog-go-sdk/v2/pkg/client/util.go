@@ -77,3 +77,11 @@ func before(input, substr string) string {
 	}
 	return input[0:pos]
 }
+
+func assertInt(in interface{}) int {
+	out, ok := in.(int)
+	if !ok {
+		panic(pkg.errorVariableNotAnInteger)
+	}
+	return out
+}

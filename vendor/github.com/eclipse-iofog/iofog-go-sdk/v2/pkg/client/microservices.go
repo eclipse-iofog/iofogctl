@@ -165,8 +165,8 @@ func (clt *Client) CreateMicroservicePortMapping(UUID string, portMapping Micros
 
 func portMappingsToMap(mappings []MicroservicePortMapping) map[int]MicroservicePortMapping {
 	response := make(map[int]MicroservicePortMapping)
-	for _, port := range mappings {
-		response[port.Internal] = port
+	for _, mapping := range mappings {
+		response[assertInt(mapping.Internal)] = mapping
 	}
 	return response
 }
@@ -196,7 +196,7 @@ func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []
 
 	// Remove outdated ports
 	for _, currentMapping := range currentPortMappings.PortMappings {
-		if newPortMapping, found := newPortMappingMap[currentMapping.Internal]; !found || (found && !samePortMapping(currentMapping, newPortMapping)) {
+		if newPortMapping, found := newPortMappingMap[assertInt(currentMapping.Internal)]; !found || (found && !samePortMapping(currentMapping, newPortMapping)) {
 			if err = clt.DeleteMicroservicePortMapping(UUID, currentMapping); err != nil {
 				return
 			}
@@ -205,7 +205,7 @@ func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []
 
 	// Create missing mappings
 	for _, newMapping := range newPortMappings {
-		if currentMapping, found := currentPortMappingMap[newMapping.Internal]; !found || (found && !samePortMapping(currentMapping, newMapping)) {
+		if currentMapping, found := currentPortMappingMap[assertInt(newMapping.Internal)]; !found || (found && !samePortMapping(currentMapping, newMapping)) {
 			if err = clt.CreateMicroservicePortMapping(UUID, newMapping); err != nil {
 				return
 			}
