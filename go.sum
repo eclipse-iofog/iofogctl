@@ -300,6 +300,8 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217002239-ed11203ab
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217002239-ed11203ab82c/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217031337-70f864e9b07e h1:xoxXlsdCJVajBNdyqSU8PP6SJBhS/qPc1ineYRjFkZI=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217031337-70f864e9b07e/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217034524-c05fd6a656b4 h1:UVISFnZREbO6IXu1vNhA58Ibj2ifYWTLhcK1TsE8MGA=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201217034524-c05fd6a656b4/go.mod h1:HcfRGiV2iyYKaqcXfypi+m++nz/dbA+XUeNyMzTm7GA=
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=
 github.com/eclipse-iofog/iofog-operator v1.3.0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005194419-2e26a3690802 h1:+s3v4U5MATqtOJRW4o91TUYqfLzFyctrVxty/cCcPpk=
