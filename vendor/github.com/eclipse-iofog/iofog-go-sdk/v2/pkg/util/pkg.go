@@ -11,12 +11,14 @@
  *
  */
 
-package client
+package util
 
 var pkg struct {
-	errorVariableNotAnInteger string
+	errorVariableNotInteger string
+	errorVariableNotBool    string
 }
 
 func init() {
-	pkg.errorVariableNotAnInteger = "Variable is not of type integer"
+	pkg.errorVariableNotInteger = "Variable (%s) is not of type integer"
+	pkg.errorVariableNotBool = "Variable (%s) is not of type bool"
 }

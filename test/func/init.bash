@@ -321,6 +321,10 @@ spec:
   template:
     name: $APP_TEMPLATE_NAME
     variables:
+    - key: root-host-access
+      value: true
+    - key: rebuild
+      value: false
     - key: magic-number
       value: 12345
     - key: internal
@@ -359,6 +363,12 @@ spec:
     - key: $APP_TEMPLATE_KEY
       description: $APP_TEMPLATE_KEY_DESC
       defaultValue: $APP_TEMPLATE_DEF_VAL
+    - key: rebuild
+      description: custom
+      defaultValue: true
+    - key: root-host-access
+      description: custom
+      defaultValue: false
     - key: magic-number
       description: custom
       defaultValue: 123
@@ -386,6 +396,7 @@ spec:
         to: $MSVC2_NAME
       microservices:
       - name: $MSVC1_NAME
+        rebuild: \"{{rebuild}}\"
         agent:
           name: \"{{$APP_TEMPLATE_KEY}}\"
           config:
@@ -396,7 +407,7 @@ spec:
           x86: edgeworx/healthcare-heart-rate:x86-v1
           registry: remote # public docker
         container:
-          rootHostAccess: false
+          rootHostAccess: \"{{root-host-access}}\"
           ports: []
         config:
           test_mode: true

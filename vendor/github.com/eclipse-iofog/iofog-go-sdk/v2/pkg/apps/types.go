@@ -75,7 +75,7 @@ type MicroserviceContainer struct {
 	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
 	ExtraHosts     *[]MicroserviceExtraHost     `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
 	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
-	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
+	RootHostAccess interface{}                  `yaml:"rootHostAccess" json:"rootHostAccess"` // +k8s:deepcopy-gen=ignore
 }
 
 // Microservice contains information for configuring a microservice
@@ -90,7 +90,7 @@ type Microservice struct {
 	Flow        *string               `yaml:"flow,omitempty" json:"flow,omitempty"`
 	Application *string               `yaml:"application,omitempty" json:"application,omitempty"`
 	Created     string                `yaml:"created,omitempty" json:"created,omitempty"`
-	Rebuild     bool                  `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
+	Rebuild     interface{}           `yaml:"rebuild,omitempty" json:"rebuild,omitempty"` // +k8s:deepcopy-gen=ignore
 }
 
 type NestedMap map[string]interface{}

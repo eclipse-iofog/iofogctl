@@ -292,7 +292,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		Config:         &config,
 		CatalogItemID:  catalogID,
 		Name:           &exe.msvc.Name,
-		RootHostAccess: &exe.msvc.Container.RootHostAccess,
+		RootHostAccess: exe.msvc.Container.RootHostAccess,
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        mapVolumes(exe.msvc.Container.Volumes),
 		Env:            mapEnvs(exe.msvc.Container.Env),
