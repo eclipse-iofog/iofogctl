@@ -159,8 +159,6 @@ function checkUpdatedMicroservice() {
   echo "${DESC_MSVC}" | grep "data_label: Anonymous_Person_3"
   echo "${DESC_MSVC}" | grep "test_data:"
   echo "${DESC_MSVC}" | grep "key: 42"
-  [[ "memoryLimit: 5555" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep memoryLimit | awk '{$1=$1};1' ) ]]
-  [[ "diskDirectory: /tmp/iofog-agent/" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep diskDirectory | awk '{$1=$1};1') ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "5443:443, 5080:80")
   [[ "$MICROSERVICE_NAME" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
@@ -265,7 +263,26 @@ function checkAgent() {
   local OPTIONS=$3
   local AGENT_NAME=$1
   [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents $OPTIONS | grep "$AGENT_NAME" | awk '{print $1}') ]]
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" $OPTIONS | grep "name: $AGENT_NAME") ]]
+  # Checks list taken from init.bash
+  CHECKS=("name:.$AGENT_NAME"
+"description:.special.test.agent"
+"bluetoothEnabled:.true"
+"abstractedHardwareEnabled:.false"
+"latitude:.46\.464646"
+"longitude:.64\.646464"
+"memoryLimit:.8192"
+"diskDirectory:./tmp/iofog-agent/"
+"diskLimit:.77"
+"cpuLimit:.89"
+"logLimit:.12"
+"logFileCount:.11"
+"statusFrequency:.9"
+"changeFrequency:.8"
+"deviceScanFrequency:.61")
+  for CHECK in ${CHECKS[@]}; do
+    echo $CHECK
+    [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" $OPTIONS | grep "$CHECK") ]]
+  done
 }
 
 function checkDetachedAgent() {

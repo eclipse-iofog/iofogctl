@@ -20,7 +20,7 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Test wrong namespace metadata " {
+@test "Test wrong namespace metadata" {
   startTest
   testWrongNamespace
   stopTest

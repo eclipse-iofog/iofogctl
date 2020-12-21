@@ -24,8 +24,6 @@ metadata:
 spec:
   agent:
     name: ${NAME}-0
-    config:
-      memoryLimit: 8192
   images:
     arm: edgeworx/healthcare-heart-rate:test-arm
     x86: edgeworx/healthcare-heart-rate:test
@@ -68,9 +66,6 @@ metadata:
 spec:
   agent:
     name: ${NAME}-0
-    config:
-      memoryLimit: 5555
-      diskDirectory: /tmp/iofog-agent/
   images:
     arm: edgeworx/healthcare-heart-rate:test-arm
     x86: edgeworx/healthcare-heart-rate:test
@@ -115,9 +110,6 @@ function initApplicationFiles() {
     - name: $MSVC1_NAME
       agent:
         name: ${NAME}-0
-        config:
-          bluetoothEnabled: true # this will install the iofog/restblue microservice
-          abstractedHardwareEnabled: false
       images:
         arm: edgeworx/healthcare-heart-rate:arm-v1
         x86: edgeworx/healthcare-heart-rate:x86-v1
@@ -166,6 +158,21 @@ kind: LocalAgent
 metadata:
   name: ${NAME}-0
 spec:
+  config:
+    bluetoothEnabled: true
+    abstractedHardwareEnabled: false
+    memoryLimit: 8192
+    diskDirectory: /tmp/iofog-agent/
+    description: special test agent
+    latitude: 46.464646
+    longitude: 64.646464
+    diskLimit: 77
+    cpuLimit: 89
+    logLimit: 12
+    logFileCount: 11
+    statusFrequency: 9
+    changeFrequency: 8
+    deviceScanFrequency: 61
   container:
     image: ${AGENT_IMAGE}" > test/conf/local-agent.yaml
 }
@@ -198,6 +205,21 @@ kind: Agent
 metadata:
   name: $AGENT_NAME
 spec:
+  config:
+    bluetoothEnabled: true
+    abstractedHardwareEnabled: false
+    memoryLimit: 8192
+    diskDirectory: /tmp/iofog-agent/
+    description: special test agent
+    latitude: 46.464646
+    longitude: 64.646464
+    diskLimit: 77
+    cpuLimit: 89
+    logLimit: 12
+    logFileCount: 11
+    statusFrequency: 9
+    changeFrequency: 8
+    deviceScanFrequency: 61
   host: ${HOSTS[$IDX]}
   ssh:
     user: ${USERS[$IDX]}

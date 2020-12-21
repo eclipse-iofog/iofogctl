@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -50,7 +49,7 @@ func (exe executor) GetName() string {
 	return exe.opt.Name
 }
 
-func (exe executor) onFailure(inErr error) error {
+func (exe executor) fail(inErr error) error {
 	// Get a client
 	iofogclient, err := iutil.NewControllerClient(exe.opt.Namespace)
 	if err != nil {
@@ -80,49 +79,56 @@ func (exe executor) Execute() error {
 		return errors.New(errStr)
 	}
 
-	// Create Agent
+	// Create Agent Config
+	agentConfig := baseAgent.GetConfig()
+	if agentConfig == nil {
+		agentConfig = &rsc.AgentConfiguration{}
+	}
 	host := baseAgent.GetHost()
-	configExecutor := deployagentconfig.NewRemoteExecutor(exe.opt.Name,
-		rsc.AgentConfiguration{
-			Name: exe.opt.Name,
-			AgentConfiguration: client.AgentConfiguration{
-				Host: &host,
-			},
-		}, exe.opt.Namespace, nil)
+	agentConfig.Host = &host
+	configExecutor := deployagentconfig.NewRemoteExecutor(
+		exe.opt.Name,
+		*agentConfig,
+		exe.opt.Namespace, nil)
 	if err = configExecutor.Execute(); err != nil {
 		return err
 	}
 
-	// Create executor to provision the Agent w/ Controller
+	// Create Agent
 	var executor execute.Executor
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
 		executor, err = deploy.NewLocalExecutor(exe.opt.Namespace, agent, false)
 		if err != nil {
-			return exe.onFailure(err)
+			return exe.fail(err)
 		}
 	case *rsc.RemoteAgent:
 		executor, err = deploy.NewRemoteExecutor(exe.opt.Namespace, agent, false)
 		if err != nil {
-			return exe.onFailure(err)
+			return exe.fail(err)
 		}
 	}
 	deployExecutor, ok := executor.(execute.ProvisioningExecutor)
 	if !ok {
-		return exe.onFailure(errors.New("Attach: Could not convert executor"))
+		return exe.fail(errors.New("Attach: Could not convert Executor"))
 	}
 	UUID, err := deployExecutor.ProvisionAgent()
 	if err != nil {
-		return exe.onFailure(err)
+		return exe.fail(err)
+	}
+	// TODO: Remove this additional config deploy step when Agent no longer posts config on provision
+	// Deploy config again
+	if err = configExecutor.Execute(); err != nil {
+		return err
 	}
 
-	// Update config
+	// Update local config
 	baseAgent.SetUUID(UUID)
 	if baseAgent.GetCreatedTime() == "" {
 		baseAgent.SetCreatedTime(util.NowUTC())
 	}
 	if err = config.AttachAgent(exe.opt.Namespace, exe.opt.Name, UUID); err != nil {
-		return exe.onFailure(err)
+		return exe.fail(err)
 	}
 
 	return config.Flush()

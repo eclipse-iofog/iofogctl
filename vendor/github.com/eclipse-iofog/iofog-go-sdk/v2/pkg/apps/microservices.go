@@ -198,14 +198,6 @@ func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err
 		catalogItemID = catalogItem.ID
 	}
 
-	// Get registry
-
-	// Configure agent
-	agent, err := configureAgent(&exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
-	if err != nil {
-		return nil, err
-	}
-
 	// Transform msvc config to JSON string
 	config := ""
 	if exe.msvc.Config != nil {
@@ -224,6 +216,7 @@ func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err
 		}
 	}
 
+	agent := exe.agentsByName[exe.msvc.Agent.Name]
 	if exe.msvc.UUID != "" {
 		// Update microservice
 		return exe.update(config, agent.UUID, catalogItemID, registryID)

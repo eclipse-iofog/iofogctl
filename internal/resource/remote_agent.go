@@ -24,13 +24,14 @@ type AgentScripts struct {
 }
 
 type RemoteAgent struct {
-	Name    string        `yaml:"name"`
-	Host    string        `yaml:"host"`
-	SSH     SSH           `yaml:"ssh"`
-	UUID    string        `yaml:"uuid,omitempty"`
-	Created string        `yaml:"created,omitempty"`
-	Package Package       `yaml:"package,omitempty"`
-	Scripts *AgentScripts `yaml:"scripts,omitempty"`
+	Name    string              `yaml:"name"`
+	Host    string              `yaml:"host"`
+	SSH     SSH                 `yaml:"ssh"`
+	UUID    string              `yaml:"uuid,omitempty"`
+	Created string              `yaml:"created,omitempty"`
+	Package Package             `yaml:"package,omitempty"`
+	Config  *AgentConfiguration `yaml:"config,omitempty"`
+	Scripts *AgentScripts       `yaml:"scripts,omitempty"`
 }
 
 func (agent RemoteAgent) GetName() string {
@@ -49,6 +50,10 @@ func (agent RemoteAgent) GetCreatedTime() string {
 	return agent.Created
 }
 
+func (agent RemoteAgent) GetConfig() *AgentConfiguration {
+	return agent.Config
+}
+
 func (agent *RemoteAgent) SetName(name string) {
 	agent.Name = name
 }
@@ -65,6 +70,10 @@ func (agent *RemoteAgent) SetCreatedTime(time string) {
 	agent.Created = time
 }
 
+func (agent *RemoteAgent) SetConfig(config *AgentConfiguration) {
+	agent.Config = config
+}
+
 func (agent *RemoteAgent) Sanitize() (err error) {
 	if agent.SSH.Port == 0 {
 		agent.SSH.Port = 22
@@ -76,6 +85,16 @@ func (agent *RemoteAgent) Sanitize() (err error) {
 }
 
 func (agent *RemoteAgent) Clone() Agent {
+	scripts := agent.Scripts
+	if agent.Scripts != nil {
+		scripts = new(AgentScripts)
+		*scripts = *agent.Scripts
+	}
+	config := agent.Config
+	if agent.Config != nil {
+		config = new(AgentConfiguration)
+		*config = *agent.Config
+	}
 	return &RemoteAgent{
 		Name:    agent.Name,
 		Host:    agent.Host,
@@ -83,6 +102,8 @@ func (agent *RemoteAgent) Clone() Agent {
 		UUID:    agent.UUID,
 		Created: agent.Created,
 		Package: agent.Package,
+		Scripts: scripts,
+		Config:  config,
 	}
 }
 

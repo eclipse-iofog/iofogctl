@@ -109,28 +109,6 @@ func validateRoutes(routes []string, microserviceByName map[string]*client.Micro
 	return routesUUIDs, nil
 }
 
-func configureAgent(msvc *Microservice, agent *client.AgentInfo, clt *client.Client) (*client.AgentInfo, error) {
-	return clt.UpdateAgent(&client.AgentUpdateRequest{
-		UUID: agent.UUID,
-		AgentConfiguration: client.AgentConfiguration{
-			DockerURL:                 msvc.Agent.Config.DockerURL,
-			DiskLimit:                 msvc.Agent.Config.DiskLimit,
-			DiskDirectory:             msvc.Agent.Config.DiskDirectory,
-			MemoryLimit:               msvc.Agent.Config.MemoryLimit,
-			CPULimit:                  msvc.Agent.Config.CPULimit,
-			LogLimit:                  msvc.Agent.Config.LogLimit,
-			LogDirectory:              msvc.Agent.Config.LogDirectory,
-			LogFileCount:              msvc.Agent.Config.LogFileCount,
-			StatusFrequency:           msvc.Agent.Config.StatusFrequency,
-			ChangeFrequency:           msvc.Agent.Config.ChangeFrequency,
-			DeviceScanFrequency:       msvc.Agent.Config.DeviceScanFrequency,
-			BluetoothEnabled:          msvc.Agent.Config.BluetoothEnabled,
-			WatchdogEnabled:           msvc.Agent.Config.WatchdogEnabled,
-			AbstractedHardwareEnabled: msvc.Agent.Config.AbstractedHardwareEnabled,
-		},
-	})
-}
-
 func setUpCatalogItem(msvc *Microservice, catalogByID map[int]*client.CatalogItemInfo, catalogByName map[string]*client.CatalogItemInfo, clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
 	// No catalog item
 	if msvc.Images.CatalogID == 0 {

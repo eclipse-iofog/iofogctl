@@ -14,11 +14,15 @@
 package util
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 var clientCache map[string]*client.Client
@@ -194,5 +198,121 @@ func GetMicroserviceUUID(namespace, name string) (uuid string, err error) {
 	}
 
 	uuid = response.UUID
+	return
+}
+
+func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfiguration, tags *[]string, err error) {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return
+	}
+	// Get config
+	agent, err := ns.GetAgent(agentName)
+	if err != nil {
+		return
+	}
+
+	// Connect to controller
+	ctrl, err := NewControllerClient(namespace)
+	if err != nil {
+		return
+	}
+
+	agentInfo, err := ctrl.GetAgentByID(agent.GetUUID())
+	if err != nil {
+		// The agents might not be provisioned with Controller
+		// TODO: Standardize error check and error message here
+		if strings.Contains(err.Error(), "NotFoundError") {
+			err = util.NewInputError("Cannot describe an Agent that is not provisioned with the Controller in Namespace " + namespace)
+			return
+		}
+		return
+	}
+	tags = agentInfo.Tags
+
+	// Get all agents for mapping uuid to name if required
+	getAgentList, err := ctrl.ListAgents(client.ListAgentsRequest{})
+	if err != nil {
+		return
+	}
+	// Map by uuid for easier access
+	agentMapByUUID := make(map[string]client.AgentInfo)
+	for _, agent := range getAgentList.Agents {
+		agentMapByUUID[agent.UUID] = agent
+	}
+
+	fogType, found := rsc.FogTypeIntMap[agentInfo.FogType]
+	if !found {
+		fogType = "auto"
+	}
+
+	routerConfig := client.RouterConfig{
+		RouterMode:      &agentInfo.RouterMode,
+		MessagingPort:   agentInfo.MessagingPort,
+		EdgeRouterPort:  agentInfo.EdgeRouterPort,
+		InterRouterPort: agentInfo.InterRouterPort,
+	}
+
+	var upstreamRoutersPtr *[]string
+
+	if agentInfo.UpstreamRouters != nil {
+		upstreamRouters := []string{}
+		for _, upstreamRouterAgentUUID := range *agentInfo.UpstreamRouters {
+			upstreamRouters = append(upstreamRouters, getAgentNameFromUUID(agentMapByUUID, upstreamRouterAgentUUID))
+		}
+		upstreamRoutersPtr = &upstreamRouters
+	}
+
+	var networkRouterPtr *string
+	if agentInfo.NetworkRouter != nil {
+		networkRouter := getAgentNameFromUUID(agentMapByUUID, *agentInfo.NetworkRouter)
+		networkRouterPtr = &networkRouter
+	}
+
+	agentConfig = rsc.AgentConfiguration{
+		Name:        agentInfo.Name,
+		Location:    agentInfo.Location,
+		Latitude:    agentInfo.Latitude,
+		Longitude:   agentInfo.Longitude,
+		Description: agentInfo.Description,
+		FogType:     &fogType,
+		AgentConfiguration: client.AgentConfiguration{
+			DockerURL:                 &agentInfo.DockerURL,
+			DiskLimit:                 &agentInfo.DiskLimit,
+			DiskDirectory:             &agentInfo.DiskDirectory,
+			MemoryLimit:               &agentInfo.MemoryLimit,
+			CPULimit:                  &agentInfo.CPULimit,
+			LogLimit:                  &agentInfo.LogLimit,
+			LogDirectory:              &agentInfo.LogDirectory,
+			LogFileCount:              &agentInfo.LogFileCount,
+			StatusFrequency:           &agentInfo.StatusFrequency,
+			ChangeFrequency:           &agentInfo.ChangeFrequency,
+			DeviceScanFrequency:       &agentInfo.DeviceScanFrequency,
+			BluetoothEnabled:          &agentInfo.BluetoothEnabled,
+			WatchdogEnabled:           &agentInfo.WatchdogEnabled,
+			AbstractedHardwareEnabled: &agentInfo.AbstractedHardwareEnabled,
+			LogLevel:                  agentInfo.LogLevel,
+			DockerPruningFrequency:    agentInfo.DockerPruningFrequency,
+			AvailableDiskThreshold:    agentInfo.AvailableDiskThreshold,
+			UpstreamRouters:           upstreamRoutersPtr,
+			NetworkRouter:             networkRouterPtr,
+			RouterConfig:              routerConfig,
+		},
+	}
+
+	return
+}
+
+func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid string) (name string) {
+	if uuid == iofog.VanillaRouterAgentName {
+		return uuid
+	}
+	agent, found := agentMapByUUID[uuid]
+	if !found {
+		util.PrintNotify(fmt.Sprintf("Could not find Router: %s\n", uuid))
+		name = "UNKNOWN ROUTER: " + uuid
+	} else {
+		name = agent.Name
+	}
 	return
 }

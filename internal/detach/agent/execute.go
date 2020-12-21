@@ -98,6 +98,13 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return err
 	}
 
+	// Get Config before deletion
+	agentConfig, _, err := iutil.GetAgentConfig(exe.name, exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	// Get UUID for deletion
 	agentInfo, err := ctrl.GetAgentByName(exe.name, false)
 	if err != nil {
 		return err
@@ -110,6 +117,16 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 
 	// Try to detach from config
 	if err = config.DetachAgent(exe.namespace, exe.name); err != nil {
+		return err
+	}
+
+	// Update detached Agent with Agent Config
+	agent, err := config.GetDetachedAgent(exe.name)
+	if err != nil {
+		return err
+	}
+	agent.SetConfig(&agentConfig)
+	if err = config.UpdateDetachedAgent(agent); err != nil {
 		return err
 	}
 
