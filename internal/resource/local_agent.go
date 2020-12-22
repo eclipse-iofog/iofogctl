@@ -14,11 +14,12 @@
 package resource
 
 type LocalAgent struct {
-	Name      string    `yaml:"name,omitempty"`
-	UUID      string    `yaml:"uuid,omitempty"`
-	Container Container `yaml:"container,omitempty"`
-	Created   string    `yaml:"created,omitempty"`
-	Host      string    `yaml:"host,omitempty"`
+	Name      string              `yaml:"name,omitempty"`
+	UUID      string              `yaml:"uuid,omitempty"`
+	Container Container           `yaml:"container,omitempty"`
+	Created   string              `yaml:"created,omitempty"`
+	Host      string              `yaml:"host,omitempty"`
+	Config    *AgentConfiguration `yaml:"config,omitempty"`
 }
 
 func (agent LocalAgent) GetName() string {
@@ -37,6 +38,10 @@ func (agent LocalAgent) GetCreatedTime() string {
 	return agent.Created
 }
 
+func (agent LocalAgent) GetConfig() *AgentConfiguration {
+	return agent.Config
+}
+
 func (agent *LocalAgent) SetName(name string) {
 	agent.Name = name
 }
@@ -53,6 +58,10 @@ func (agent *LocalAgent) SetCreatedTime(time string) {
 	agent.Created = time
 }
 
+func (agent *LocalAgent) SetConfig(config *AgentConfiguration) {
+	agent.Config = config
+}
+
 func (agent *LocalAgent) Sanitize() error {
 	if agent.Name == "" {
 		agent.Name = "local"
@@ -61,11 +70,17 @@ func (agent *LocalAgent) Sanitize() error {
 }
 
 func (agent *LocalAgent) Clone() Agent {
+	config := agent.Config
+	if agent.Config != nil {
+		config = new(AgentConfiguration)
+		*config = *agent.Config
+	}
 	return &LocalAgent{
 		Name:      agent.Name,
 		Host:      agent.Host,
 		UUID:      agent.UUID,
 		Created:   agent.Created,
 		Container: agent.Container,
+		Config:    config,
 	}
 }

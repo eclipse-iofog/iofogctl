@@ -2,9 +2,12 @@
 
 ## [v2.1.0] - unreleased
 
+* Add Application Template support
 * Add Agent `upgrade` and `rollback` commands
 * Add Docker pull percentage to `iofogctl get microservices` output
 * Parallelize `iofogctl get all` command to hide latency
+* Add `config` field to `Agent` kind to allow custom configuration on Agent deploy
+* Remove Agent configuration field from Microservice kind
 * Fix bug showing `--detached` as flag for all commands
 * Fix bug preventing deployment of Apps/Microservices in same YAML file as Control Plane
 

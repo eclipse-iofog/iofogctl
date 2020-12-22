@@ -63,8 +63,7 @@ type MicroserviceImages struct {
 // MicroserviceAgent contains information about required agent configuration for a microservice
 // +k8s:deepcopy-gen=true
 type MicroserviceAgent struct {
-	Name   string             `yaml:"name" json:"name"`
-	Config AgentConfiguration `yaml:"config" json:"config"`
+	Name string `yaml:"name" json:"name"`
 }
 
 // MicroserviceContainer contains information for configuring a microservice container

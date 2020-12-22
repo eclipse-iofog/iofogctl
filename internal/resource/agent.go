@@ -18,10 +18,12 @@ type Agent interface {
 	GetUUID() string
 	GetHost() string
 	GetCreatedTime() string
+	GetConfig() *AgentConfiguration
 	SetName(string)
 	SetUUID(string)
 	SetHost(string)
 	SetCreatedTime(string)
+	SetConfig(*AgentConfiguration)
 	Sanitize() error
 	Clone() Agent
 }

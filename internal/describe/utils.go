@@ -77,22 +77,6 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	result.Name = msvc.Name
 	result.Agent = apps.MicroserviceAgent{
 		Name: agent.Name,
-		Config: apps.AgentConfiguration{
-			DockerURL:                 &agent.DockerURL,
-			DiskLimit:                 &agent.DiskLimit,
-			DiskDirectory:             &agent.DiskDirectory,
-			MemoryLimit:               &agent.MemoryLimit,
-			CPULimit:                  &agent.CPULimit,
-			LogLimit:                  &agent.LogLimit,
-			LogDirectory:              &agent.LogDirectory,
-			LogFileCount:              &agent.LogFileCount,
-			StatusFrequency:           &agent.StatusFrequency,
-			ChangeFrequency:           &agent.ChangeFrequency,
-			DeviceScanFrequency:       &agent.DeviceScanFrequency,
-			BluetoothEnabled:          &agent.BluetoothEnabled,
-			WatchdogEnabled:           &agent.WatchdogEnabled,
-			AbstractedHardwareEnabled: &agent.AbstractedHardwareEnabled,
-		},
 	}
 	var armImage, x86Image string
 	var msvcImages []client.CatalogImage

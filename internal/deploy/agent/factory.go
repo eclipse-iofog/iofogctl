@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	agentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -58,7 +59,7 @@ func (facade *facadeExecutor) Execute() (err error) {
 
 	// Check Controller exists
 	if len(controlPlane.GetControllers()) == 0 {
-		return util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Agents")
+		return rsc.NewNoControlPlaneError(facade.namespace)
 	}
 
 	if !facade.isSystem || install.IsVerbose() {
@@ -75,6 +76,15 @@ func (facade *facadeExecutor) Execute() (err error) {
 			return
 		}
 	}
+
+	// Set Agent configuration if provided
+	if agentConfig := facade.agent.GetConfig(); agentConfig != nil {
+		configExe := agentconfig.NewRemoteExecutor(facade.agent.GetName(), *agentConfig, facade.namespace, facade.tags)
+		if err := configExe.Execute(); err != nil {
+			return err
+		}
+	}
+
 	return config.Flush()
 }
 

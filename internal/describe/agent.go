@@ -62,16 +62,15 @@ func (exe *agentExecutor) Execute() (err error) {
 	}
 
 	var tags *[]string
+	var agentConfig rsc.AgentConfiguration
+	// Detached Agents don't have a UUID
 	if agent.GetUUID() != "" {
-		// Connect to controller
-		ctrl, err := iutil.NewControllerClient(exe.namespace)
+		// Get Agent configuration
+		agentConfig, tags, err = iutil.GetAgentConfig(exe.name, exe.namespace)
 		if err != nil {
 			return err
 		}
-		getAgentResponse, err := ctrl.GetAgentByID(agent.GetUUID())
-		if err == nil {
-			tags = getAgentResponse.Tags
-		}
+		agent.SetConfig(&agentConfig)
 	}
 
 	var kind config.Kind
