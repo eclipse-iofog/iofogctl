@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,12 +14,12 @@
 package createnamespace
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func Execute(name string) error {
-	if err := util.IsLowerAlphanumeric(name); err != nil {
+	if err := util.IsLowerAlphanumeric("Namespace", name); err != nil {
 		return err
 	}
 	// Update configuration

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,10 +14,14 @@
 package describe
 
 import (
+	"fmt"
+
 	jsoniter "github.com/json-iterator/go"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *apps.Microservice, err error) {
@@ -41,14 +45,19 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 		return
 	}
 
-	routes := []string{}
-
-	for _, msvcUUID := range msvc.Routes {
-		destMsvc, err := clt.GetMicroserviceByID(msvcUUID)
-		if err != nil {
-			return nil, err
+	// Map port host to agent name
+	for idx, port := range msvc.Ports {
+		if port.Host != "" && port.Host != iofog.VanillaRouterAgentName {
+			hostAgent, err := clt.GetAgentByID(port.Host)
+			var name string
+			if err != nil {
+				util.PrintNotify(fmt.Sprintf("Could not find Agent with UUID %s\n", port.Host))
+				name = "UNKNOWN_" + port.Host
+			} else {
+				name = hostAgent.Name
+			}
+			msvc.Ports[idx].Host = name
 		}
-		routes = append(routes, destMsvc.Name)
 	}
 
 	jsonConfig := make(map[string]interface{})
@@ -120,13 +129,15 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 	volumes := mapVolumes(msvc.Volumes)
 	envs := mapEnvs(msvc.Env)
+	extraHosts := mapExtraHosts(msvc.ExtraHosts)
 	result.Images = &images
 	result.Config = jsonConfig
-	result.RootHostAccess = msvc.RootHostAccess
-	result.Ports = mapPorts(msvc.Ports)
-	result.Volumes = &volumes
-	result.Env = &envs
-	result.Routes = routes
+	result.Container.RootHostAccess = msvc.RootHostAccess
+	result.Container.Commands = msvc.Commands
+	result.Container.Ports = mapPorts(msvc.Ports)
+	result.Container.Volumes = &volumes
+	result.Container.Env = &envs
+	result.Container.ExtraHosts = &extraHosts
 	result.Flow = &application.Name
 	return
 }
@@ -148,6 +159,13 @@ func mapVolumes(in []client.MicroserviceVolumeMapping) (out []apps.MicroserviceV
 func mapEnvs(in []client.MicroserviceEnvironment) (out []apps.MicroserviceEnvironment) {
 	for _, env := range in {
 		out = append(out, apps.MicroserviceEnvironment(env))
+	}
+	return
+}
+
+func mapExtraHosts(in []client.MicroserviceExtraHost) (out []apps.MicroserviceExtraHost) {
+	for _, eH := range in {
+		out = append(out, apps.MicroserviceExtraHost(eH))
 	}
 	return
 }

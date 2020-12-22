@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,10 +14,10 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -59,10 +59,10 @@ func NewRootCommand() *cobra.Command {
 	cobra.OnInitialize(initialize)
 
 	// Global flags
-	cmd.PersistentFlags().StringVar(&configFilename, "config", "", "CLI configuration file (default is "+config.DefaultConfigPath+")")
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
-	cmd.PersistentFlags().BoolVar(&httpVerbose, "http-verbose", false, "Toggle for displaying verbose output of API client")
-	cmd.PersistentFlags().StringP("namespace", "n", "default", "Namespace to execute respective command within")
+	cmd.PersistentFlags().BoolVar(&debug, "debug", false, "Toggle for displaying verbose output of API clients (HTTP and SSH)")
+	cmd.PersistentFlags().StringP("namespace", "n", config.GetDefaultNamespaceName(), "Namespace to execute respective command within")
+	cmd.PersistentFlags().Bool("detached", false, "Use/Show detached resources")
 
 	// Register all commands
 	cmd.AddCommand(
@@ -71,6 +71,8 @@ func NewRootCommand() *cobra.Command {
 		newDisconnectCommand(),
 		newDeployCommand(),
 		newDeleteCommand(),
+		newDetachCommand(),
+		newAttachCommand(),
 		newCreateCommand(),
 		newGetCommand(),
 		newDescribeCommand(),
@@ -82,24 +84,31 @@ func NewRootCommand() *cobra.Command {
 		newViewCommand(),
 		newStartCommand(),
 		newStopCommand(),
+		newMoveCommand(),
+		newRenameCommand(),
+		newDockerPruneCommand(),
 	)
 
 	return cmd
 }
 
-// Config file set by --config persistent flag
-var configFilename string
-
 // Toggle set by --verbose persistent flag
 var verbose bool
 
-// Toggle set by --http-verbose persistent flag
-var httpVerbose bool
+// Toggle set by --debug persistent flag
+var debug bool
 
 // Callback for cobra on initialization
 func initialize() {
-	config.Init(configFilename)
-	client.SetVerbosity(httpVerbose)
+	client.SetGlobalRetries(client.Retries{
+		CustomMessage: map[string]int{
+			"timeout":           10, // Linux
+			"failed to respond": 10, // Windows
+			"Bad Gateway":       10, // K8s
+		},
+	})
+	client.SetVerbosity(debug)
 	install.SetVerbosity(verbose)
-	util.SpinEnable(!verbose && !httpVerbose)
+	util.SpinEnable(!verbose && !debug)
+	util.SetDebug(debug)
 }

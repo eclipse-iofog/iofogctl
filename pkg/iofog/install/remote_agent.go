@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,9 +18,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 // Remote agent uses SSH
@@ -32,13 +31,13 @@ type RemoteAgent struct {
 	token   string
 }
 
-func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName string) *RemoteAgent {
+func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) *RemoteAgent {
 	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
 	ssh.SetPort(port)
 	return &RemoteAgent{
-		defaultAgent: defaultAgent{name: agentName},
+		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
 		ssh:          ssh,
-		version:      util.GetAgentTag(),
+		version:      util.GetAgentVersion(),
 	}
 }
 
@@ -59,13 +58,17 @@ func (agent *RemoteAgent) SetRepository(repo, token string) {
 
 func (agent *RemoteAgent) Bootstrap() error {
 	// Prepare Agent for bootstrap
-	if err := agent.copyScriptsToAgent(); err != nil {
+	if err := agent.copyInstallScriptsToAgent(); err != nil {
 		return err
 	}
 
 	// Define bootstrap commands
 	installArgs := agent.version + " " + agent.repo + " " + agent.token
 	cmds := []command{
+		{
+			cmd: "/tmp/check_prereqs.sh ",
+			msg: "Checking prerequisites on Agent " + agent.name,
+		},
 		{
 			cmd: "/tmp/agent_install_java.sh ",
 			msg: "Installing Java on Agent " + agent.name,
@@ -78,18 +81,6 @@ func (agent *RemoteAgent) Bootstrap() error {
 			cmd: "sudo -S /tmp/agent_install_iofog.sh " + installArgs,
 			msg: "Installing ioFog daemon on Agent " + agent.name,
 		},
-		{
-			cmd: "sudo -S service iofog-agent start",
-			msg: "Starting Agent " + agent.name,
-		},
-		{
-			cmd: "/tmp/agent_wait.sh",
-			msg: "Waiting for Agent " + agent.name,
-		},
-		{
-			cmd: "sudo -S iofog-agent config -cf 10 -sf 10",
-			msg: "Configuring Agent frequencies",
-		},
 	}
 
 	// Execute commands on remote server
@@ -100,15 +91,10 @@ func (agent *RemoteAgent) Bootstrap() error {
 	return nil
 }
 
-func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUser) (uuid string, err error) {
-	controllerEndpoint, err := ctrlPlane.GetControllerEndpoint()
+func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (string, error) {
+	key, err := agent.getProvisionKey(controllerEndpoint, user)
 	if err != nil {
-		return
-	}
-
-	key, uuid, err := agent.getProvisionKey(controllerEndpoint, user)
-	if err != nil {
-		return
+		return "", err
 	}
 
 	// Generate controller endpoint
@@ -144,6 +130,23 @@ func (agent *RemoteAgent) Configure(ctrlPlane config.ControlPlane, user IofogUse
 
 	// Execute commands on remote server
 	if err = agent.run(cmds); err != nil {
+		return "", err
+	}
+
+	return agent.uuid, nil
+}
+
+func (agent *RemoteAgent) Deprovision() (err error) {
+	// Prepare commands
+	cmds := []command{
+		{
+			cmd: "sudo iofog-agent deprovision",
+			msg: "Deprovisioning Agent " + agent.name,
+		},
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
 		return
 	}
 
@@ -154,8 +157,68 @@ func (agent *RemoteAgent) Stop() (err error) {
 	// Prepare commands
 	cmds := []command{
 		{
+			cmd: "sudo iofog-agent deprovision",
+			msg: "Deprovisioning Agent " + agent.name,
+		},
+	}
+	if err = agent.run(cmds); err != nil && !isNotProvisionedError(err) {
+		return err
+	}
+
+	cmds = []command{
+		{
 			cmd: "sudo -S service iofog-agent stop",
 			msg: "Stopping Agent " + agent.name,
+		},
+	}
+	if err = agent.run(cmds); err != nil {
+		return err
+	}
+
+	return
+}
+
+func isNotProvisionedError(err error) bool {
+	return strings.Contains(err.Error(), "not provisioned")
+}
+
+func (agent *RemoteAgent) Prune() (err error) {
+	// Prepare commands
+	cmds := []command{
+		{
+			cmd: "sudo -S service iofog-agent prune",
+			msg: "Pruning Agent " + agent.name,
+		},
+	}
+
+	// Execute commands on remote server
+	if err = agent.run(cmds); err != nil {
+		return err
+	}
+
+	return
+}
+
+func (agent *RemoteAgent) Uninstall() (err error) {
+	// Prepare Agent for removal
+	if err := agent.copyUninstallScriptsToAgent(); err != nil {
+		return err
+	}
+	// Stop iofog-agent properly
+	if err = agent.Stop(); err != nil {
+		return
+	}
+
+	// Prepare commands
+	cmds := []command{
+		// TODO: Implement purge on agent
+		// {
+		// 	cmd: "sudo iofog-agent purge",
+		// 	msg: "Deprovisioning Agent " + agent.name,
+		// },
+		{
+			cmd: "/tmp/agent_uninstall_iofog.sh ",
+			msg: "Removing iofog-agent software " + agent.name,
 		},
 	}
 
@@ -176,36 +239,50 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose(cmd.msg)
+		Verbose(cmd.msg)
 		if _, err = agent.ssh.Run(cmd.cmd); err != nil {
-			return
+			return err
 		}
 	}
 
 	return
 }
 
-func (agent RemoteAgent) copyScriptsToAgent() error {
-	verbose("Copying install scripts to Agent " + agent.name)
+func (agent RemoteAgent) copyInstallScriptsToAgent() error {
+	Verbose("Copying install scripts to Agent " + agent.name)
+	// Declare scripts to copy
+	scripts := []string{
+		"check_prereqs.sh",
+		"agent_init.sh",
+		"agent_install_java.sh",
+		"agent_install_docker.sh",
+		"agent_install_iofog.sh",
+	}
+	return agent.copyScriptsToAgent(scripts)
+}
+
+func (agent RemoteAgent) copyUninstallScriptsToAgent() error {
+	Verbose("Copying uninstall scripts to Agent " + agent.name)
+	// Declare scripts to copy
+	scripts := []string{
+		"agent_init.sh",
+		"agent_uninstall_iofog.sh",
+	}
+	return agent.copyScriptsToAgent(scripts)
+}
+
+func (agent RemoteAgent) copyScriptsToAgent(scripts []string) error {
 	// Establish SSH to agent
 	if err := agent.ssh.Connect(); err != nil {
 		return err
 	}
 	defer agent.ssh.Disconnect()
 
-	// Declare scripts to copy
-	scripts := []string{
-		"agent_init.sh",
-		"agent_install_java.sh",
-		"agent_install_docker.sh",
-		"agent_install_iofog.sh",
-		"agent_wait.sh",
-	}
 	// Copy scripts to remote host
 	for _, script := range scripts {
 		staticFile := util.GetStaticFile(script)
 		reader := strings.NewReader(staticFile)
-		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", len(staticFile)); err != nil {
+		if err := agent.ssh.CopyTo(reader, "/tmp/", script, "0775", int64(len(staticFile))); err != nil {
 			return err
 		}
 	}

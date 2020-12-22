@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -43,6 +43,7 @@ func (err *Error) Error() string {
 
 // NotFoundError export
 type NotFoundError struct {
+	header  string
 	message string
 }
 
@@ -50,12 +51,18 @@ type NotFoundError struct {
 func NewNotFoundError(message string) *NotFoundError {
 	return &NotFoundError{
 		message: message,
+		header:  "Unknown resource error",
 	}
 }
 
 // Error export
 func (err *NotFoundError) Error() string {
-	return fmt.Sprintf("Unknown resource error\n%s", err.message)
+	return fmt.Sprintf("%s\n%s", err.header, err.message)
+}
+
+func IsNotFoundError(err error) bool {
+	notFoundErr := NewNotFoundError("")
+	return err != nil && strings.Contains(err.Error(), notFoundErr.header)
 }
 
 //ConflictError export
@@ -140,25 +147,4 @@ func NewUnmarshalError(message string) *UnmarshalError {
 
 func (err *UnmarshalError) Error() string {
 	return fmt.Sprintf("Failed to unmarshal input file. \n%s\nMake sure to use camel case field names. E.g. `keyFile: ~/.ssh/id_rsa`", err.message)
-}
-
-type NoConfigError struct {
-	message string
-}
-
-func NewNoConfigError(resource string) *NoConfigError {
-	res := strings.ToLower(resource)
-	var kubeText string
-	if res == "connector" || res == "controller" {
-		kubeText = "Kube Config and "
-	}
-	message := fmt.Sprintf("Cannot perform command because %sSSH details for this %s are not available. Use the configure command to add required details.", kubeText, res)
-
-	return &NoConfigError{
-		message: message,
-	}
-}
-
-func (err *NoConfigError) Error() string {
-	return err.message
 }

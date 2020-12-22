@@ -103,27 +103,21 @@ deploy_controller() {
 		ln -fFs "$INSTALL_DIR/controller/bin/iofog-controller" /usr/local/bin/iofog-controller
 	fi
 
-    # Set controller permissions
-    chmod 744 -R "$INSTALL_DIR/controller"
+	# Set controller permissions
+	chmod 744 -R "$INSTALL_DIR/controller"
 
-    # Startup script
-    controller_service
+	# Startup script
+	controller_service
 
-    # Run controller
-    iofog-controller start
+	# Run controller
+	. /opt/iofog/config/controller/env.sh
+	iofog-controller start
 }
 
 # main
 version="$1"
 repo=$([ -z "$2" ] && echo "iofog/iofog-controller-snapshots" || echo "$2")
 token="$3"
-# Optional args
-export DB_PROVIDER="$4"
-export DB_HOST="$5"
-export DB_USER="$6"
-export DB_PASSWORD="$7"
-export DB_PORT="$8"
-export DB_NAME="$9"
 
 install_deps
 deploy_controller

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	delete "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,9 @@ func newDeleteControllerCommand() *cobra.Command {
 			util.Check(err)
 
 			// Get an executor for the command
-			err = delete.Execute(namespace, name)
+			exe, err := delete.NewExecutor(namespace, name)
+			util.Check(err)
+			err = exe.Execute()
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted " + namespace + "/" + name)

@@ -5,16 +5,27 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
-MAJOR ?= 0
-MINOR ?= 0
-PATCH ?= 0
-SUFFIX ?= -dev
+MAJOR ?= $(shell cat version | grep MAJOR | sed 's/MAJOR=//g')
+MINOR ?= $(shell cat version | grep MINOR | sed 's/MINOR=//g')
+PATCH ?= $(shell cat version | grep PATCH | sed 's/PATCH=//g')
+SUFFIX ?= $(shell cat version | grep SUFFIX | sed 's/SUFFIX=//g')
 VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
+PREFIX = github.com/eclipse-iofog/iofogctl/v2/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).controllerTag=1.3.1 -X $(PREFIX).connectorTag=1.3.0 -X $(PREFIX).kubeletTag=1.3.0 -X $(PREFIX).operatorTag=1.3.0 -X $(PREFIX).agentTag=1.3.0 -X $(PREFIX).schedulerTag=0.0.0
+LDFLAGS += -X $(PREFIX).portManagerTag=2.0.0
+LDFLAGS += -X $(PREFIX).kubeletTag=2.0.0
+LDFLAGS += -X $(PREFIX).operatorTag=2.0.0
+LDFLAGS += -X $(PREFIX).proxyTag=2.0.0
+LDFLAGS += -X $(PREFIX).routerTag=2.0.0
+LDFLAGS += -X $(PREFIX).controllerTag=2.0.0
+LDFLAGS += -X $(PREFIX).agentTag=2.0.0
+LDFLAGS += -X $(PREFIX).controllerVersion=2.0.0
+LDFLAGS += -X $(PREFIX).agentVersion=2.0.0
+LDFLAGS += -X $(PREFIX).repo=iofog
+GO_SDK_MODULE = iofog-go-sdk/v2@v2.0.0
+OPERATOR_MODULE = iofog-operator/v2@v2.0.0
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -27,24 +38,36 @@ GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
-all: init dep build install ## Get deps, build, and install binary
+all: init build install ## Build, and install binary
 
 .PHONY: clean
 clean: ## Clean the working area and the project
-	rm -rf $(BUILD_DIR)/ vendor/
+	rm -rf $(BUILD_DIR)/
 	rm -rf $(REPORTS_DIR)
 
 .PHONY: init
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
 
-.PHONY: dep
-dep: ## Install dependencies
-	@go get github.com/GeertJohan/go.rice/rice
-	@dep ensure -v -vendor-only
+.PHONY: modules
+modules: get vendor ## Get modules and vendor them
+
+.PHONY: get
+get: ## Pull modules
+	@for module in $(GO_SDK_MODULE) $(OPERATOR_MODULE); do \
+		go get github.com/eclipse-iofog/$$module; \
+	done
+	@go get github.com/eclipse-iofog/iofogctl@v1.3
+
+.PHONY: vendor
+vendor: ## Vendor all modules
+	@go mod vendor
+	@for module in GeertJohan akavel jessevdk jstemmer nkovacs valyala; do \
+		git checkout -- vendor/github.com/$$module; \
+	done
 
 .PHONY: build
-build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
+build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: fmt ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
@@ -64,7 +87,7 @@ fmt: ## Format the source
 test: ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list ./... | xargs -n1 go test -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; find ./internal -name '*_test.go' -not -path vendor/ | sed -E "s|(/.*/).*_test.go|\1|g" | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -coverprofile=$(REPORTS_DIR)/coverage.txt -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list

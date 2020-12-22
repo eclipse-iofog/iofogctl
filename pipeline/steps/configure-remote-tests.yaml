@@ -1,0 +1,36 @@
+parameters:
+  windows: 'false'
+
+steps:
+- bash: |
+    sed -i "s|AGENT_LIST=.*|AGENT_LIST=\"$(agent_vm_list)\"|g" test/env.sh
+    sed -i "s|VANILLA_CONTROLLER=.*|VANILLA_CONTROLLER=\"$(controller_vm)\"|g" test/env.sh
+    if [[ ${{ parameters.windows }} == "false" ]]; then
+      KCONF=$(echo "$HOME/.kube/config")
+      sed -i "s|TEST_KUBE_CONFIG=.*|TEST_KUBE_CONFIG=\"$KCONF\"|g" test/env.sh
+    fi
+    sed -i "s|KEY_FILE=.*|KEY_FILE=\"~/id_rsa\"|g" test/env.sh
+    keyFilePath="$(Agent.TempDirectory)/id_rsa"
+    if [[ ${{ parameters.windows }} == "true" ]]; then
+      keyFilePath=$(wslpath "${keyFilePath}")
+    fi
+    cat $keyFilePath > ~/id_rsa
+    echo $(ssh.user.pub) > ~/id_rsa.pub
+    NS=$(jobuuid)
+    sed -i "s|NAMESPACE=.*|NAMESPACE=\"$NS\"|g" test/env.sh
+    sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"$(controller_image)\"|g" test/env.sh
+    sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"$(controller_version)\"|g" test/env.sh
+    sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"$(operator_image)\"|g" test/env.sh
+    sed -i "s|KUBELET_IMAGE=.*|KUBELET_IMAGE=\"$(kubelet_image)\"|g" test/env.sh
+    sed -i "s|PORT_MANAGER_IMAGE=.*|PORT_MANAGER_IMAGE=\"$(port_manager_image)\"|g" test/env.sh
+    sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"$(agent_image)\"|g" test/env.sh
+    sed -i "s|ROUTER_IMAGE=.*|ROUTER_IMAGE=\"$(router_image)\"|g" test/env.sh
+    sed -i "s|ROUTER_ARM_IMAGE=.*|ROUTER_ARM_IMAGE=\"$(router_arm_image)\"|g" test/env.sh
+    sed -i "s|PROXY_IMAGE=.*|PROXY_IMAGE=\"$(proxy_image)\"|g" test/env.sh
+    sed -i "s|PROXY_ARM_IMAGE=.*|PROXY_ARM_IMAGE=\"$(proxy_arm_image)\"|g" test/env.sh
+    sed -i "s|AGENT_VANILLA_VERSION=.*|AGENT_VANILLA_VERSION=\"$(iofog_agent_version)\"|g" test/env.sh
+    sed -i "s|CONTROLLER_PACKAGE_CLOUD_TOKEN=.*|CONTROLLER_PACKAGE_CLOUD_TOKEN=\"$(pkg.controller.token)\"|g" test/env.sh
+    sed -i "s|AGENT_PACKAGE_CLOUD_TOKEN=.*|AGENT_PACKAGE_CLOUD_TOKEN=\"$(pkg.agent.token)\"|g" test/env.sh
+    cp test/env.sh test/conf
+    cat test/conf/env.sh
+  displayName: 'Configure Remote Tests'

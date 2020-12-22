@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,10 +14,9 @@
 package execute
 
 import (
+	"errors"
 	"fmt"
 	"sync"
-
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type jobResult struct {
@@ -25,14 +24,23 @@ type jobResult struct {
 	exe Executor
 }
 
-func RunExecutors(executors []Executor, execType string) error {
-	if errs, failedExes := ForParallel(executors); len(errs) > 0 {
-		for idx := range errs {
-			util.PrintNotify("Error from " + failedExes[idx].GetName() + ": " + errs[idx].Error())
+func CoalesceErrors(errs []error) error {
+	msg := ""
+	for idx := range errs {
+		if msg == "" {
+			msg = errs[idx].Error()
+		} else {
+			msg = fmt.Sprintf("%s\n%s", errs[idx].Error())
 		}
-		return util.NewError(fmt.Sprintf("Failed to %s\n", execType))
 	}
-	return nil
+	return errors.New(msg)
+}
+
+func RunExecutors(executors []Executor, execType string) []error {
+	if errs, _ := ForParallel(executors); len(errs) > 0 {
+		return errs
+	}
+	return []error{}
 }
 
 func ForParallel(exes []Executor) (errs []error, failedExes []Executor) {

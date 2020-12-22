@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,20 +14,27 @@
 package deletecontroller
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"fmt"
+
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type remoteExecutor struct {
-	namespace string
-	name      string
+	controlPlane *rsc.RemoteControlPlane
+	namespace    string
+	name         string
 }
 
-func newRemoteExecutor(namespace, name string) *remoteExecutor {
-	exe := &remoteExecutor{}
-	exe.namespace = namespace
-	exe.name = name
-	return exe
+func NewRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *remoteExecutor {
+	return &remoteExecutor{
+		controlPlane: controlPlane,
+		namespace:    namespace,
+		name:         name,
+	}
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -36,12 +43,30 @@ func (exe *remoteExecutor) GetName() string {
 
 func (exe *remoteExecutor) Execute() error {
 	// Get controller from config
-	ctrl, err := config.GetController(exe.namespace, exe.name)
+	baseCtrl, err := exe.controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
 	}
 
-	// Instantiate installer
+	// Assert dynamic type
+	ctrl, ok := baseCtrl.(*rsc.RemoteController)
+	if !ok {
+		return util.NewInternalError("Could not assert Controller type to Remote Controller")
+	}
+
+	// Try to remove default router
+	sshAgent := install.NewRemoteAgent(
+		ctrl.SSH.User,
+		ctrl.Host,
+		ctrl.SSH.Port,
+		ctrl.SSH.KeyFile,
+		iofog.VanillaRouterAgentName,
+		"")
+	if err = sshAgent.Uninstall(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
+	}
+
+	// Instantiate Controller uninstaller
 	controllerOptions := &install.ControllerOptions{
 		User:            ctrl.SSH.User,
 		Host:            ctrl.Host,
@@ -50,15 +75,18 @@ func (exe *remoteExecutor) Execute() error {
 	}
 	installer := install.NewController(controllerOptions)
 
-	// Stop Controller
-	if err = installer.Stop(); err != nil {
+	// Uninstall Controller
+	if err = installer.Uninstall(); err != nil {
 		return err
 	}
 
 	// Update config
-	if err = config.DeleteController(exe.namespace, exe.name); err != nil {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
 		return err
 	}
-
-	return nil
+	if err = ns.DeleteController(exe.name); err != nil {
+		return err
+	}
+	return config.Flush()
 }

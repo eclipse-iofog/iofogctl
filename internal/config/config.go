@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,436 +14,248 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
+	"path"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	configv1 "github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
 )
 
 var (
-	conf           configuration // struct that file is unmarshalled into
-	configFilename string        // Name of file
+	conf               configuration
+	configFolder       string // config directory
+	configFilename     string // config file name
+	namespaceDirectory string // Path of namespace directory
+	namespaces         map[string]*rsc.Namespace
 	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
-	mux = &sync.Mutex{}
 )
 
 const (
-	defaultDirname  = ".iofog/"
-	defaultFilename = "config.yaml"
-	// DefaultConfigPath is used if user does not specify a config file path
-	DefaultConfigPath = "~/" + defaultDirname + defaultFilename
+	apiVersionGroup      = "iofog.org"
+	latestVersion        = "v2"
+	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
+	defaultDirname       = ".iofog/" + latestVersion
+	namespaceDirname     = "namespaces/"
+	defaultFilename      = "config.yaml"
+	configV2             = "iofogctl/v2"
+	configV1             = "iofogctl/v1"
+	CurrentConfigVersion = configV2
+	detachedNamespace    = "_detached"
 )
 
-// Init initializes config and unmarshalls the file
-func Init(filename string) {
-	// Format file path
-	filename, err := util.FormatPath(filename)
+// Init initializes config, namespace and unmarshalls the files
+func Init(configFolderArg string) {
+	namespaces = make(map[string]*rsc.Namespace)
+
+	var err error
+	configFolder, err = util.FormatPath(configFolderArg)
 	util.Check(err)
 
-	// Set default filename if necessary
-	var homeDirname string
-	if filename == "" {
+	if configFolder == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.Check(err)
-		homeDirname = home + "/" + defaultDirname
-		filename = homeDirname + defaultFilename
+		configFolder = path.Join(home, defaultDirname)
+	} else {
+		dirInfo, err := os.Stat(configFolder)
+		util.Check(err)
+		if dirInfo.IsDir() == false {
+			util.Check(util.NewInputError(fmt.Sprintf("The config folder %s is not a valid directory", configFolder)))
+		}
 	}
+
+	// Set default filename if necessary
+	filename := path.Join(configFolder, defaultFilename)
 	configFilename = filename
+	namespaceDirectory = path.Join(configFolder, namespaceDirname)
 
-	// Check file exists
+	// Check config file already exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(homeDirname, 0755)
+		err = os.MkdirAll(configFolder, 0755)
 		util.Check(err)
 
-		// Create default file
-		err = AddNamespace("default", util.NowUTC())
-		util.Check(err)
-		err = Flush()
+		// Create default config file
+		conf.DefaultNamespace = "default"
+		err = flushShared()
 		util.Check(err)
 	}
 
-	// Unmarshall the file
-	err = util.UnmarshalYAML(configFilename, &conf)
+	// Unmarshall the config file
+	confHeader := iofogctlConfig{}
+	err = util.UnmarshalYAML(configFilename, &confHeader)
 	util.Check(err)
-}
 
-// GetNamespaces returns all namespaces in config
-func GetNamespaces() (namespaces []Namespace) {
-	return conf.Namespaces
-}
+	conf, err = getConfigFromHeader(confHeader)
+	util.Check(err)
 
-// GetAgents returns all agents within a namespace
-func GetAgents(namespace string) ([]Agent, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.Agents, nil
-		}
-	}
-	return nil, util.NewNotFoundError(namespace)
-}
+	// Check namespace dir exists
+	initNamespaces := []string{"default", detachedNamespace}
+	flush := false
+	for _, initNamespace := range initNamespaces {
+		nsFile := getNamespaceFile(initNamespace)
+		if _, err := os.Stat(nsFile); os.IsNotExist(err) {
+			flush = true
+			err = os.MkdirAll(namespaceDirectory, 0755)
+			util.Check(err)
 
-// GetControllers returns all controllers within a namespace
-func GetControllers(namespace string) ([]Controller, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.ControlPlane.Controllers, nil
-		}
-	}
-	return nil, util.NewNotFoundError(namespace)
-}
-
-// GetConnectors returns all controllers within a namespace
-func GetConnectors(namespace string) ([]Connector, error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			return ns.Connectors, nil
-		}
-	}
-	return nil, util.NewNotFoundError(namespace)
-}
-
-// GetNamespace returns a single namespace
-func GetNamespace(name string) (namespace Namespace, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == name {
-			namespace = ns
-			return
-		}
-	}
-	err = util.NewNotFoundError(name)
-	return
-}
-
-// GetControlPlane returns a control plane within a namespace
-func GetControlPlane(namespace string) (controlplane ControlPlane, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			controlplane = ns.ControlPlane
-			return
-		}
-	}
-	err = util.NewNotFoundError(namespace + " Control Plane")
-	return
-}
-
-// GetController returns a single controller within a namespace
-func GetController(namespace, name string) (controller Controller, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, ctrl := range ns.ControlPlane.Controllers {
-				if ctrl.Name == name {
-					controller = ctrl
-					return
-				}
+			// Create default namespace file
+			if err = AddNamespace(initNamespace, util.NowUTC()); err != nil {
+				util.Check(errors.New("Could not initialize " + initNamespace + " configuration"))
 			}
 		}
 	}
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
+	if flush {
+		err = flushNamespaces()
+		util.Check(err)
+	}
 }
 
-// GetConnector returns a single connector within a namespace
-func GetConnector(namespace, name string) (connector Connector, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, cnct := range ns.Connectors {
-				if cnct.Name == name {
-					connector = cnct
-					return
-				}
+// getNamespaceFile helper function that returns the full path to a namespace file
+func getNamespaceFile(name string) string {
+	return path.Join(namespaceDirectory, name+".yaml")
+}
+
+func updateConfigToV2(header iofogctlConfig) (iofogctlConfig, error) {
+	header.APIVersion = configV2
+	return header, nil
+}
+
+func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
+	switch header.APIVersion {
+	case CurrentConfigVersion:
+		{
+			// All good
+			break
+		}
+	// Example for further maintenance
+	// case PreviousConfigVersion {
+	// 	updateFromPreviousVersion()
+	// 	break
+	// }
+	case configV1:
+		{
+			headerV2, err := updateConfigToV2(header)
+			if err != nil {
+				return c, err
 			}
+			return getConfigFromHeader(headerV2)
 		}
+	default:
+		return c, util.NewInputError("Invalid iofogctl config version")
 	}
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
-}
-
-// GetAgent returns a single agent within a namespace
-func GetAgent(namespace, name string) (agent Agent, err error) {
-	for _, ns := range conf.Namespaces {
-		if ns.Name == namespace {
-			for _, ag := range ns.Agents {
-				if ag.Name == name {
-					agent = ag
-					return
-				}
-			}
-		}
-	}
-	err = util.NewNotFoundError(namespace + "/" + name)
-	return
-}
-
-// AddNamespace adds a new namespace to the config
-func AddNamespace(name, created string) error {
-	// Check collision
-	_, err := GetNamespace(name)
-	if err == nil {
-		return util.NewConflictError(name)
-	}
-
-	newNamespace := Namespace{
-		Name:    name,
-		Created: created,
-	}
-	mux.Lock()
-	conf.Namespaces = append(conf.Namespaces, newNamespace)
-	mux.Unlock()
-	return nil
-}
-
-// UpdateConnector overwrites Control Plane in the namespace
-func UpdateControlPlane(namespace string, controlPlane ControlPlane) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	mux.Lock()
-	ns.ControlPlane = controlPlane
-	mux.Unlock()
-	return nil
-}
-
-// Overwrites or creates new controller to the namespace
-func UpdateController(namespace string, controller Controller) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Update existing controller if exists
-	for idx := range ns.ControlPlane.Controllers {
-		if ns.ControlPlane.Controllers[idx].Name == controller.Name {
-			mux.Lock()
-			ns.ControlPlane.Controllers[idx] = controller
-			mux.Unlock()
-			return nil
-		}
-	}
-	// Add new controller
-	AddController(namespace, controller)
-
-	return nil
-}
-
-// Overwrites or creates new connector to the namespace
-func UpdateConnector(namespace string, connector Connector) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Update existing connector if exists
-	for idx := range ns.Connectors {
-		if ns.Connectors[idx].Name == connector.Name {
-			mux.Lock()
-			ns.Connectors[idx] = connector
-			mux.Unlock()
-			return nil
-		}
-	}
-	// Add new connector
-	AddConnector(namespace, connector)
-
-	return nil
-}
-
-// Overwrites or creates new agent to the namespace
-func UpdateAgent(namespace string, agent Agent) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Update existing agent if exists
-	for idx := range ns.Agents {
-		if ns.Agents[idx].Name == agent.Name {
-			mux.Lock()
-			ns.Agents[idx] = agent
-			mux.Unlock()
-			return nil
-		}
-	}
-	// Add new agent
-	AddAgent(namespace, agent)
-
-	return nil
-}
-
-// AddController adds a new controller to the namespace
-func AddController(namespace string, controller Controller) error {
-	_, err := GetController(namespace, controller.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + controller.Name)
-	}
-
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	// Append the controller
-	mux.Lock()
-	ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers, controller)
-	mux.Unlock()
-
-	return nil
-}
-
-// AddConnector adds a new connector to the namespace
-func AddConnector(namespace string, connector Connector) error {
-	_, err := GetConnector(namespace, connector.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + connector.Name)
-	}
-
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	// Append the connector
-	mux.Lock()
-	ns.Connectors = append(ns.Connectors, connector)
-	mux.Unlock()
-
-	return nil
-}
-
-// AddAgent adds a new agent to the namespace
-func AddAgent(namespace string, agent Agent) error {
-	_, err := GetAgent(namespace, agent.Name)
-	if err == nil {
-		return util.NewConflictError(namespace + "/" + agent.Name)
-	}
-
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	// Append the controller
-	mux.Lock()
-	ns.Agents = append(ns.Agents, agent)
-	mux.Unlock()
-
-	return nil
-}
-
-// DeleteNamespace removes a namespace including all the resources within it
-func DeleteNamespace(name string) error {
-	for idx := range conf.Namespaces {
-		if conf.Namespaces[idx].Name == name {
-			mux.Lock()
-			conf.Namespaces = append(conf.Namespaces[:idx], conf.Namespaces[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return nil
-}
-
-func DeleteControlPlane(namespace string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	mux.Lock()
-	ns.ControlPlane = ControlPlane{}
-	mux.Unlock()
-	return nil
-}
-
-// DeleteController deletes a controller from a namespace
-func DeleteController(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	for idx := range ns.ControlPlane.Controllers {
-		if ns.ControlPlane.Controllers[idx].Name == name {
-			mux.Lock()
-			ns.ControlPlane.Controllers = append(ns.ControlPlane.Controllers[:idx], ns.ControlPlane.Controllers[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(namespace + "/" + name)
-}
-
-// DeleteConnector deletes a connector from a namespace
-func DeleteConnector(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	for idx := range ns.Connectors {
-		if ns.Connectors[idx].Name == name {
-			mux.Lock()
-			ns.Connectors = append(ns.Connectors[:idx], ns.Connectors[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(namespace + "/" + name)
-}
-
-// DeleteAgent deletes an agent from a namespace
-func DeleteAgent(namespace, name string) error {
-	ns, err := getNamespace(namespace)
-	if err != nil {
-		return err
-	}
-
-	for idx := range ns.Agents {
-		if ns.Agents[idx].Name == name {
-			mux.Lock()
-			ns.Agents = append(ns.Agents[:idx], ns.Agents[idx+1:]...)
-			mux.Unlock()
-			return nil
-		}
-	}
-
-	return util.NewNotFoundError(namespace + "/" + name)
-}
-
-// getNamespace is a helper function to find a namespace and reference it directly
-func getNamespace(name string) (*Namespace, error) {
-	for idx := range conf.Namespaces {
-		if conf.Namespaces[idx].Name == name {
-			return &conf.Namespaces[idx], nil
-		}
-	}
-	return nil, util.NewNotFoundError(name)
-}
-
-// Flush will write over the config file based on the runtime data of all namespaces
-func Flush() (err error) {
-	// Marshal the runtime data
-	marshal, err := yaml.Marshal(&conf)
+	bytes, err := yaml.Marshal(header.Spec)
 	if err != nil {
 		return
+	}
+	if err = yaml.Unmarshal(bytes, &c); err != nil {
+		return
+	}
+	return
+}
+
+func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err error) {
+	switch header.APIVersion {
+	case CurrentConfigVersion:
+		{
+			// All good
+			break
+		}
+	case configV1:
+		{
+			err = util.NewError("Namespace file is out of date.")
+			return
+		}
+	default:
+		return n, util.NewInputError("Invalid iofogctl config version")
+	}
+	bytes, err := yaml.Marshal(header.Spec)
+	if err != nil {
+		return
+	}
+	if err = yaml.Unmarshal(bytes, &n); err != nil {
+		return
+	}
+	return
+}
+
+func getConfigYAMLFile(conf configuration) ([]byte, error) {
+	confHeader := iofogctlConfig{
+		Header: Header{
+			Kind:       IofogctlConfigKind,
+			APIVersion: CurrentConfigVersion,
+			Spec:       conf,
+		},
+	}
+
+	return yaml.Marshal(confHeader)
+}
+
+func getNamespaceYAMLFile(ns *rsc.Namespace) ([]byte, error) {
+	namespaceHeader := iofogctlNamespace{
+		Header{
+			Kind:       IofogctlNamespaceKind,
+			APIVersion: CurrentConfigVersion,
+			Metadata: HeaderMetadata{
+				Name: ns.Name,
+			},
+			Spec: ns,
+		},
+	}
+	return yaml.Marshal(namespaceHeader)
+}
+
+func flushNamespaces() error {
+	for _, ns := range namespaces {
+		// Marshal the runtime data
+		marshal, err := getNamespaceYAMLFile(ns)
+		if err != nil {
+			return err
+		}
+		// Overwrite the file
+		err = ioutil.WriteFile(getNamespaceFile(ns.Name), marshal, 0644)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func flushShared() error {
+	// Marshal the runtime data
+	marshal, err := getConfigYAMLFile(conf)
+	if err != nil {
+		return nil
 	}
 	// Overwrite the file
 	err = ioutil.WriteFile(configFilename, marshal, 0644)
 	if err != nil {
-		return
+		return nil
 	}
-	return
+	return nil
 }
 
-// NewRandomUser creates a new config user
-func NewRandomUser() IofogUser {
-	return IofogUser{
-		Name:     "N" + util.RandomString(10, util.AlphaLower),
-		Surname:  "S" + util.RandomString(10, util.AlphaLower),
-		Email:    util.RandomString(5, util.AlphaLower) + "@domain.com",
-		Password: util.RandomString(10, util.AlphaNum),
+// Flush will write namespace files to disk
+func Flush() error {
+	return flushNamespaces()
+}
+
+type v1NamespaceSpecContent struct {
+	Name         string                `yaml:"name,omitempty"`
+	ControlPlane configv1.ControlPlane `yaml:"controlPlane,omitempty"`
+	Agents       []configv1.Agent      `yaml:"agents,omitempty"`
+	Created      string                `yaml:"created,omitempty"`
+	Connectors   []configv1.Connector  `yaml:"connectors,omitempty"`
+}
+
+func ValidateHeader(header Header) error {
+	if header.APIVersion != LatestAPIVersion {
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
+	return nil
 }

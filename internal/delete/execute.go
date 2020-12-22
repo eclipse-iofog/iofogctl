@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,54 +16,78 @@ package delete
 import (
 	"fmt"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
-	deleteapplication "github.com/eclipse-iofog/iofogctl/internal/delete/application"
-	deletecatalogitem "github.com/eclipse-iofog/iofogctl/internal/delete/catalog_item"
-	deleteconnector "github.com/eclipse-iofog/iofogctl/internal/delete/connector"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
-	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
-	deletemicroservice "github.com/eclipse-iofog/iofogctl/internal/delete/microservice"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
+	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
+	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalogitem"
+	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
+	deletek8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/k8s"
+	deletelocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/local"
+	deleteremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/remote"
+	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
+	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
+	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {
 	Namespace string
 	InputFile string
+	Soft      bool
 }
 
-var kindOrder = []apps.Kind{
+var kindOrder = []config.Kind{
 	config.CatalogItemKind,
-	apps.MicroserviceKind,
-	apps.ApplicationKind,
-	apps.AgentKind,
-	apps.ConnectorKind,
-	apps.ControllerKind,
-	apps.ControlPlaneKind,
+	config.MicroserviceKind,
+	config.ApplicationKind,
+	config.RegistryKind,
+	config.RemoteAgentKind,
+	config.LocalAgentKind,
+	config.RemoteControllerKind,
+	config.LocalControllerKind,
+	config.KubernetesControlPlaneKind,
+	config.RemoteControlPlaneKind,
+	config.LocalControlPlaneKind,
+	config.VolumeKind,
 }
 
-var kindHandlers = map[apps.Kind]func(string, string, []byte) (execute.Executor, error){
-	apps.ApplicationKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deleteapplication.NewExecutor(namespace, name)
+var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+	config.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteapplication.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.MicroserviceKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletemicroservice.NewExecutor(namespace, name)
+	config.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	apps.ControlPlaneKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletecontrolplane.NewExecutor(namespace, name)
+	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletek8scontrolplane.NewExecutor(opt.Namespace)
 	},
-	apps.AgentKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deleteagent.NewExecutor(namespace, name)
+	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteremotecontrolplane.NewExecutor(opt.Namespace)
 	},
-	apps.ConnectorKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deleteconnector.NewExecutor(namespace, name)
+	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletelocalcontrolplane.NewExecutor(opt.Namespace)
 	},
-	apps.ControllerKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletecontroller.NewExecutor(namespace, name)
+	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.CatalogItemKind: func(namespace, name string, _ []byte) (exe execute.Executor, err error) {
-		return deletecatalogitem.NewExecutor(namespace, name)
+	config.LocalControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
+	},
+	config.RemoteAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
+	},
+	config.LocalAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
+	},
+	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
+	},
+	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
+	},
+	config.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+		return deletevolume.NewExecutor(opt.Namespace, opt.Name)
 	},
 }
 
@@ -73,10 +97,15 @@ func Execute(opt *Options) error {
 		return err
 	}
 
-	// Microservice, Application, Agent, Connector, Controller, ControlPlane
+	// Microservice, Application, Agent, Controller, ControlPlane
 	for idx := range kindOrder {
-		if err = execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); err != nil {
-			return err
+		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); len(errs) > 0 {
+			for _, err := range errs {
+				if _, ok := err.(*util.NotFoundError); !ok {
+					return execute.CoalesceErrors(errs)
+				}
+				util.PrintNotify(fmt.Sprintf("Warning: %s %s.", kindOrder[idx], err.Error()))
+			}
 		}
 	}
 

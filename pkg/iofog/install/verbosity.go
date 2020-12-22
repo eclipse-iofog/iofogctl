@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,11 +20,15 @@ import (
 // Toggle HTTP output
 var isVerbose bool
 
+func IsVerbose() bool {
+	return isVerbose
+}
+
 func SetVerbosity(verbose bool) {
 	isVerbose = verbose
 }
 
-func verbose(msg string) {
+func Verbose(msg string) {
 	if isVerbose {
 		fmt.Println(msg)
 	}

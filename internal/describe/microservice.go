@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,11 +14,10 @@
 package describe
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type microserviceExecutor struct {
@@ -38,7 +37,7 @@ func newMicroserviceExecutor(namespace, name, filename string) *microserviceExec
 }
 
 func (exe *microserviceExecutor) init() (err error) {
-	exe.client, err = internal.NewControllerClient(exe.namespace)
+	exe.client, err = iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}
@@ -66,8 +65,8 @@ func (exe *microserviceExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: internal.LatestAPIVersion,
-		Kind:       apps.MicroserviceKind,
+		APIVersion: config.LatestAPIVersion,
+		Kind:       config.MicroserviceKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,

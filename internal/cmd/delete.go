@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,9 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/delete"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"errors"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/delete"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -24,15 +25,19 @@ func newDeleteCommand() *cobra.Command {
 	opt := &delete.Options{}
 
 	cmd := &cobra.Command{
-		Use:     "delete",
-		Example: `deploy -f platform.yaml`,
-		Short:   "Delete an existing ioFog resource",
-		Long:    `Delete an existing ioFog resource.`,
+		Use:   "delete",
+		Short: "Delete an existing ioFog resource",
+		Long:  `Delete an existing ioFog resource.`,
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			// Get namespace
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+
+			// Check file
+			if opt.InputFile == "" {
+				util.Check(errors.New("Provided empty value for input file via the -f flag"))
+			}
 
 			// Execute command
 			err = delete.Execute(opt)
@@ -46,16 +51,18 @@ func newDeleteCommand() *cobra.Command {
 	cmd.AddCommand(
 		newDeleteNamespaceCommand(),
 		newDeleteControllerCommand(),
-		newDeleteConnectorCommand(),
 		newDeleteAgentCommand(),
 		newDeleteAllCommand(),
 		newDeleteApplicationCommand(),
 		newDeleteCatalogItemCommand(),
+		newDeleteRegistryCommand(),
 		newDeleteMicroserviceCommand(),
+		newDeleteVolumeCommand(),
+		newDeleteRouteCommand(),
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to delete")
 
 	return cmd
 }

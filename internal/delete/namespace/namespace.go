@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,15 +14,15 @@
 package deletemicroservice
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	delete "github.com/eclipse-iofog/iofogctl/internal/delete/all"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/all"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func Execute(name string, force bool) error {
 	// Disallow deletion of default
 	if name == "default" {
-		return util.NewInputError("Cannot delete default namespace")
+		return util.NewInputError("Cannot delete namespace named \"default\"")
 	}
 
 	// Get config
@@ -32,8 +32,8 @@ func Execute(name string, force bool) error {
 	}
 
 	// Check resources exist
-	hasAgents := len(ns.Agents) > 0
-	hasControllers := len(ns.ControlPlane.Controllers) > 0
+	hasAgents := len(ns.GetAgents()) > 0
+	hasControllers := len(ns.GetControllers()) > 0
 
 	// Force must be specified
 	if !force && (hasAgents || hasControllers) {
@@ -42,14 +42,13 @@ func Execute(name string, force bool) error {
 
 	// Handle delete all
 	if force && (hasAgents || hasControllers) {
-		if err = delete.Execute(name); err != nil {
+		if err = delete.Execute(name, false, force); err != nil {
 			return err
 		}
 	}
 
 	// Delete namespace
-	err = config.DeleteNamespace(name)
-	if err != nil {
+	if err = config.DeleteNamespace(name); err != nil {
 		return err
 	}
 

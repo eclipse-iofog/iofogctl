@@ -1,0 +1,86 @@
+trigger:
+  tags:
+    include:
+      - v*
+  branches:
+    include:
+      - develop
+      - release/*
+  paths:
+    exclude:
+      - README.md
+      - docs/
+
+variables:
+  build: $(Build.BuildId)
+  jobuuid: $(Build.BuildId)$(Agent.Id)
+  GOROOT: '/usr/local/go1.12'
+  GOPATH: '/tmp/go'
+  GOBIN:  '$(GOPATH)/bin'
+  ref: $(Build.SourceBranch)
+  branch: $(Build.SourceBranchName)
+  controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.0'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:2.0.0'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.0'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:2.0.0'
+  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:2.0.0'
+  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:2.0.0'
+  router_image: 'gcr.io/focal-freedom-236620/router:2.0.0'
+  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:2.0.0'
+  proxy_image: 'gcr.io/focal-freedom-236620/proxy:2.0.0'
+  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:2.0.0'
+  iofog_agent_version: '2.0.0'
+  controller_version: '2.0.0'
+  version:
+  agent_vm_list:
+  controller_vm:
+  windows_ssh_key_path: 'C:/Users/$(azure.windows.user)/.ssh'
+  ssh_key_file: 'id_rsa'
+  windows_kube_config_path: 'C:/Users/$(azure.windows.user)/.kube/config'
+  bash_kube_config_path: '/root/.kube/config'
+
+stages:
+
+- stage: Build
+  jobs:
+  - template: pipeline/build.yaml
+    parameters:
+      os: linux
+  - template: pipeline/build.yaml
+    parameters:
+      os: darwin
+  - template: pipeline/build.yaml
+    parameters:
+      os: windows
+    
+- stage: Test
+  jobs:
+  - template: pipeline/win-k8s.yaml
+  - template: pipeline/win-vanilla.yaml
+  - template: pipeline/local.yaml
+  - template: pipeline/k8s.yaml
+  - template: pipeline/ha.yaml
+  - template: pipeline/vanilla.yaml
+    parameters:
+      job_name: Vanilla_Bionic
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.bionic)
+      repo: $(gcp.vm.repo.ubuntu)
+      agent_count: 2
+      controller_count: 1
+  - template: pipeline/vanilla.yaml
+    parameters:
+      job_name: Vanilla_Buster
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.buster)
+      repo: $(gcp.vm.repo.debian)
+      agent_count: 2
+      controller_count: 1
+
+- stage: Publish
+  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+  jobs:
+  - template: pipeline/publish-osx.yaml
+  - template: pipeline/publish-debian.yaml
+  - template: pipeline/publish-rpm.yaml
+  - template: pipeline/publish-win.yaml

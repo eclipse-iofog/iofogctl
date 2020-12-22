@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,9 +14,9 @@
 package deletecatalogitem
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Executor struct {
@@ -42,7 +42,7 @@ func (exe *Executor) GetName() string {
 func (exe *Executor) Execute() (err error) {
 	util.SpinStart("Deleting Microservice")
 	// Init remote resources
-	clt, err := internal.NewControllerClient(exe.namespace)
+	clt, err := iutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

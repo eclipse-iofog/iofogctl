@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,19 +19,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type ControllerOptions struct {
-	User            string
-	Host            string
-	Port            int
-	PrivKeyFilename string
-	Version         string
-	Repo            string
-	Token           string
+	User                string
+	Host                string
+	Port                int
+	PrivKeyFilename     string
+	Version             string
+	Repo                string
+	Token               string
+	SystemMicroservices rsc.RemoteSystemMicroservices
 }
 
 type database struct {
@@ -53,7 +55,7 @@ func NewController(options *ControllerOptions) *Controller {
 	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
 	ssh.SetPort(options.Port)
 	if options.Version == "" || options.Version == "latest" {
-		options.Version = util.GetControllerTag()
+		options.Version = util.GetControllerVersion()
 	}
 	return &Controller{
 		ControllerOptions: options,
@@ -81,65 +83,136 @@ func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, prov
 func (ctrl *Controller) CopyScript(path string, name string) (err error) {
 	script := util.GetStaticFile(path + name)
 	reader := strings.NewReader(script)
-	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", len(script)); err != nil {
+	if err := ctrl.ssh.CopyTo(reader, "/tmp/"+path, name, "0775", int64(len(script))); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func (ctrl *Controller) Uninstall() (err error) {
+	// Stop controller gracefully
+	if err = ctrl.Stop(); err != nil {
+		return err
+	}
+
+	// Connect to server
+	Verbose("Connecting to server")
+	if err = ctrl.ssh.Connect(); err != nil {
+		return
+	}
+	defer ctrl.ssh.Disconnect()
+
+	// Copy uninstallation scripts to remote host
+	Verbose("Copying install files to server")
+	scripts := []string{
+		"controller_uninstall_iofog.sh",
+	}
+	for _, script := range scripts {
+		if err = ctrl.CopyScript("", script); err != nil {
+			return err
+		}
+	}
+
+	cmds := []command{
+		{
+			cmd: "sudo /tmp/controller_uninstall_iofog.sh",
+			msg: "Uninstalling controller on host " + ctrl.Host,
+		},
+	}
+
+	// Execute commands
+	for _, cmd := range cmds {
+		Verbose(cmd.msg)
+		_, err = ctrl.ssh.Run(cmd.cmd)
+		if err != nil {
+			return
+		}
+	}
+	return nil
+}
+
 func (ctrl *Controller) Install() (err error) {
 	// Connect to server
-	verbose("Connecting to server")
+	Verbose("Connecting to server")
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
 	defer ctrl.ssh.Disconnect()
 
 	// Copy installation scripts to remote host
-	verbose("Copying install files to server")
-	if err = ctrl.CopyScript("", "controller_install_node.sh"); err != nil {
-		return err
+	Verbose("Copying install files to server")
+	scripts := []string{
+		"check_prereqs.sh",
+		"controller_install_node.sh",
+		"controller_install_iofog.sh",
+		"controller_set_env.sh",
 	}
-	if err = ctrl.CopyScript("", "controller_install_iofog.sh"); err != nil {
-		return err
+	for _, script := range scripts {
+		if err = ctrl.CopyScript("", script); err != nil {
+			return err
+		}
 	}
 
 	// Copy service scripts to remote host
-	verbose("Copying service files to server")
+	Verbose("Copying service files to server")
 	if _, err = ctrl.ssh.Run("mkdir -p /tmp/iofog-controller-service"); err != nil {
 		return err
 	}
-	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.initctl"); err != nil {
-		return err
+	scripts = []string{
+		"iofog-controller.initctl",
+		"iofog-controller.systemd",
+		"iofog-controller.update-rc",
 	}
-	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.systemd"); err != nil {
-		return err
-	}
-	if err = ctrl.CopyScript("iofog-controller-service/", "iofog-controller.update-rc"); err != nil {
-		return err
+	for _, script := range scripts {
+		if err = ctrl.CopyScript("iofog-controller-service/", script); err != nil {
+			return err
+		}
 	}
 
 	// Define commands
 	dbArgs := ""
 	if ctrl.db.host != "" {
 		db := ctrl.db
-		dbArgs = fmt.Sprintf(" %s %s %s %s %d %s", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
+		dbArgs = fmt.Sprintf("\"DB_PROVIDER=%s\" \"DB_HOST=%s\" \"DB_USER=%s\" \"DB_PASSWORD=%s\" \"DB_PORT=%d\" \"DB_NAME=%s\"", db.provider, db.host, db.user, db.password, db.port, db.databaseName)
 	}
+	systemImages := []string{}
+	if ctrl.SystemMicroservices.Proxy.X86 != "" {
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Proxy_1=%s\"", ctrl.SystemMicroservices.Proxy.X86))
+	}
+	if ctrl.SystemMicroservices.Proxy.ARM != "" {
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Proxy_2=%s\"", ctrl.SystemMicroservices.Proxy.ARM))
+	}
+	if ctrl.SystemMicroservices.Router.X86 != "" {
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Router_1=%s\"", ctrl.SystemMicroservices.Router.X86))
+	}
+	if ctrl.SystemMicroservices.Router.ARM != "" {
+		systemImages = append(systemImages, fmt.Sprintf("\"SystemImages_Router_2=%s\"", ctrl.SystemMicroservices.Router.ARM))
+	}
+
+	envVariables := fmt.Sprintf("%s %s", dbArgs, strings.Join(systemImages, " "))
 	cmds := []command{
+		{
+			cmd: "/tmp/check_prereqs.sh",
+			msg: "Checking prerequisites on Controller " + ctrl.Host,
+		},
 		{
 			cmd: "sudo /tmp/controller_install_node.sh",
 			msg: "Installing Node.js on Controller " + ctrl.Host,
 		},
 		{
-			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token) + dbArgs,
+			cmd: fmt.Sprintf("sudo /tmp/controller_set_env.sh %s", envVariables),
+			msg: "Setting up environment variables for Controller " + ctrl.Host,
+		},
+		{
+			cmd: fmt.Sprintf("sudo /tmp/controller_install_iofog.sh %s %s %s", ctrl.Version, ctrl.Repo, ctrl.Token),
 			msg: "Installing ioFog on Controller " + ctrl.Host,
 		},
 	}
 
 	// Execute commands
 	for _, cmd := range cmds {
-		verbose(cmd.msg)
+		Verbose(cmd.msg)
 		_, err = ctrl.ssh.Run(cmd.cmd)
 		if err != nil {
 			return
@@ -151,7 +224,7 @@ func (ctrl *Controller) Install() (err error) {
 		"Process exited with status 7", // curl: (7) Failed to connect to localhost port 8080: Connection refused
 	}
 	// Wait for Controller
-	verbose("Waiting for Controller " + ctrl.Host)
+	Verbose("Waiting for Controller " + ctrl.Host)
 	if err = ctrl.ssh.RunUntil(
 		regexp.MustCompile("\"status\":\"online\""),
 		fmt.Sprintf("curl --request GET --url http://localhost:%s/api/v3/status", iofog.ControllerPortString),
@@ -194,31 +267,19 @@ func (ctrl *Controller) Stop() (err error) {
 }
 
 func WaitForControllerAPI(endpoint string) (err error) {
-	ctrlClient := client.New(endpoint)
+	ctrlClient := client.New(client.Options{Endpoint: endpoint})
 
-	connected := false
 	seconds := 0
-	for !connected {
-		// Time out
-		if seconds > 60 {
-			err = util.NewInternalError("Timed out waiting for Controller API")
+	for seconds < 60 {
+		// Try to create the user, return if success
+		if _, err = ctrlClient.GetStatus(); err == nil {
 			return
 		}
-		// Try to create the user
-		if _, err = ctrlClient.GetStatus(); err != nil {
-			// Retry if connection is refused, this is usually only necessary on K8s Controller
-			if strings.Contains(err.Error(), "connection refused") || strings.Contains(err.Error(), "timeout") {
-				time.Sleep(time.Millisecond * 1000)
-				seconds = seconds + 1
-				continue
-			}
-			// Return the error otherwise
-			return
-		}
-		// No error, connected
-		connected = true
-		continue
+		// Connection failed, wait and retry
+		time.Sleep(time.Millisecond * 1000)
+		seconds = seconds + 1
 	}
 
+	// Return last error
 	return
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,24 +15,29 @@ package deployagent
 
 import (
 	"fmt"
-	"os/user"
 	"regexp"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	install "github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type localExecutor struct {
+	isSystem         bool
 	namespace        string
-	agent            *config.Agent
+	agent            *rsc.LocalAgent
 	client           *install.LocalContainer
 	localAgentConfig *install.LocalAgentConfig
 }
 
-func getController(namespace string) (*config.Controller, error) {
-	controllers, err := config.GetControllers(namespace)
+func getController(namespace string) (*rsc.Controller, error) {
+	ns, err := config.GetNamespace(namespace)
 	if err != nil {
+		return nil, err
+	}
+	controllers := ns.GetControllers()
+	if len(controllers) == 0 {
 		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
 		return nil, err
 	}
@@ -42,38 +47,52 @@ func getController(namespace string) (*config.Controller, error) {
 	return &controllers[0], nil
 }
 
-func newLocalExecutor(namespace string, agent *config.Agent, client *install.LocalContainer) (*localExecutor, error) {
+func newLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (*localExecutor, error) {
+	client, err := install.NewLocalContainerClient()
+	if err != nil {
+		return nil, err
+	}
 	// Get Controller LocalContainerConfig
 	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
 	return &localExecutor{
+		isSystem:  isSystem,
 		namespace: namespace,
 		agent:     agent,
 		client:    client,
-		localAgentConfig: install.NewLocalAgentConfig(agent.Name, agent.Container.Image, controllerContainerConfig, install.Credentials{
-			User:     agent.Container.Credentials.User,
-			Password: agent.Container.Credentials.Password,
-		}),
+		localAgentConfig: install.NewLocalAgentConfig(
+			agent.Name,
+			agent.Container.Image,
+			controllerContainerConfig,
+			install.Credentials{
+				User:     agent.Container.Credentials.User,
+				Password: agent.Container.Credentials.Password,
+			},
+			isSystem),
 	}, nil
 }
 
-func (exe *localExecutor) provisionAgent() (string, error) {
+func (exe *localExecutor) ProvisionAgent() (string, error) {
 	// Get agent
 	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
 
-	// Get Controller details
-	controller, err := getController(exe.namespace)
+	// Get user
+	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return "", err
 	}
-
-	// Get user
-	controlPlane, err := config.GetControlPlane(exe.namespace)
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return "", err
+	}
+	endpoint, err := controlPlane.GetEndpoint()
 	if err != nil {
 		return "", err
 	}
 
 	// Configure the agent with Controller details
-	return agent.Configure(controller, install.IofogUser(controlPlane.IofogUser))
+	user := install.IofogUser(controlPlane.GetUser())
+	user.Password = controlPlane.GetUser().GetRawPassword()
+	return agent.Configure(endpoint, user)
 }
 
 func (exe *localExecutor) GetName() string {
@@ -81,12 +100,6 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-
-	// Get current user
-	currUser, err := user.Current()
-	if err != nil {
-		return err
-	}
 
 	// Deploy agent image
 	util.SpinStart("Deploying Agent container")
@@ -102,14 +115,14 @@ func (exe *localExecutor) Execute() error {
 		}
 	}
 
-	if _, err = exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
+	if _, err := exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
 		return err
 	}
 
 	// Wait for agent
 	util.SpinStart("Waiting for Agent")
-	if err = exe.client.WaitForCommand(
-		install.GetLocalContainerName("agent"),
+	if err := exe.client.WaitForCommand(
+		install.GetLocalContainerName("agent", exe.isSystem),
 		regexp.MustCompile("ioFog daemon[ |\t]*: RUNNING"),
 		"iofog-agent",
 		"status",
@@ -122,7 +135,7 @@ func (exe *localExecutor) Execute() error {
 
 	// Provision agent
 	util.SpinStart("Provisioning Agent")
-	uuid, err := exe.provisionAgent()
+	uuid, err := exe.ProvisionAgent()
 	if err != nil {
 		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
 			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))
@@ -131,7 +144,6 @@ func (exe *localExecutor) Execute() error {
 	}
 
 	// Return new Agent config because variable is a pointer
-	exe.agent.SSH.User = currUser.Username
 	exe.agent.Host = fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
 	exe.agent.UUID = uuid
 

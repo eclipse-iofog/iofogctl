@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	startapplication "github.com/eclipse-iofog/iofogctl/internal/start"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	startapplication "github.com/eclipse-iofog/iofogctl/v2/internal/start"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -25,17 +25,16 @@ func newStartApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Starts an application",
 		Long:    "Starts an application",
-		Example: `iofogctl start application meerkat`,
+		Example: `iofogctl start application NAME`,
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			if len(args) == 0 {
 				util.Check(util.NewInputError("Must specify an application to start"))
 			}
-			// Get namespace
+			opt.Name = args[0]
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
-			opt.Name = args[0]
 
 			exe := startapplication.NewExecutor(opt)
 

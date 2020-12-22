@@ -5,4 +5,7 @@ stop on (runlevel [!2345])
 
 respawn
 
-exec /usr/local/bin/iofog-controller start
+script
+  . /opt/iofog/config/controller/env.sh
+  exec /usr/local/bin/iofog-controller start
+end script

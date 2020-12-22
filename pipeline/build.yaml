@@ -1,0 +1,19 @@
+parameters:
+  os: ''
+
+jobs:
+- job: ${{ parameters.os }}
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: steps/prebuild.yaml
+  - template: steps/version.yaml
+  - script: |
+      . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
+      GOARCH=amd64 GOOS=${{ parameters.os }} make build
+      echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
+    displayName: 'Build Binary'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: './bin'
+      artifactName: ${{ parameters.os }}

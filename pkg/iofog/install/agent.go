@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,28 +14,26 @@
 package install
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
 type Agent interface {
 	Bootstrap() error
 	getProvisionKey(string, IofogUser) (string, string, error)
-	Configure(*config.Controller, IofogUser) (string, error)
 }
 
 // defaultAgent implements commong behavior
 type defaultAgent struct {
-	name      string
-	namespace string
+	name string
+	uuid string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, uuid string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, err error) {
 	// Connect to controller
-	ctrl := client.New(controllerEndpoint)
+	ctrl, err := client.NewAndLogin(client.Options{Endpoint: controllerEndpoint}, user.Email, user.Password)
 
 	// Log in
-	verbose("Accessing Controller to generate Provisioning Key")
+	Verbose("Accessing Controller to generate Provisioning Key")
 	loginRequest := client.LoginRequest{
 		Email:    user.Email,
 		Password: user.Password,
@@ -44,34 +42,18 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 		return
 	}
 
-	// If the agent already exists, re-use the UUID
-	agentList, err := ctrl.ListAgents()
-	if err != nil {
-		return
-	}
-	for _, existingAgent := range agentList.Agents {
-		if existingAgent.Name == agent.name {
-			uuid = existingAgent.UUID
-			break
-		}
-	}
-
-	// Create agent if necessary
-	if uuid == "" {
-		createRequest := client.CreateAgentRequest{
-			Name:    agent.name,
-			FogType: 0,
-		}
-		var createResponse client.CreateAgentResponse
-		createResponse, err = ctrl.CreateAgent(createRequest)
+	// System agents have uuid passed through, normal agents dont
+	if agent.uuid == "" {
+		var agentInfo *client.AgentInfo
+		agentInfo, err = ctrl.GetAgentByName(agent.name, false)
 		if err != nil {
 			return
 		}
-		uuid = createResponse.UUID
+		agent.uuid = agentInfo.UUID
 	}
 
 	// Get provisioning key
-	provisionResponse, err := ctrl.GetAgentProvisionKey(uuid)
+	provisionResponse, err := ctrl.GetAgentProvisionKey(agent.uuid)
 	if err != nil {
 		return
 	}

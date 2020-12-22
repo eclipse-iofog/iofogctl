@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,17 +14,13 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/eclipse-iofog/iofogctl/internal/describe"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/describe"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 func newDescribeCommand() *cobra.Command {
 	// Values accepted in resource type argument
-	var validResources = []string{"namespace", "controlplane", "controller", "connector", "agent", "agent-config", "microservice", "application"}
 	filename := ""
 	cmd := &cobra.Command{
 		Use:   "describe resource NAME",
@@ -33,28 +29,30 @@ func newDescribeCommand() *cobra.Command {
 
 Resources such as Agents require a working Controller in the namespace in order to be described.`,
 		Example: `iofogctl describe namespace
-iofogctl describe controlplane
-iofogctl describe controller NAME
-iofogctl describe agent NAME
-iofogctl describe agent-config NAME
-iofogctl describe microservice NAME` + fmt.Sprintf("\n\nValid resources are: %s\n", strings.Join(validResources, ", ")),
+                  controlplane
+                  controller   NAME
+                  agent        NAME
+                  agent-config NAME
+                  application  NAME
+                  microservice NAME
+                  volume       NAME
+                  route        NAME`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				util.Check(util.NewInputError("Must specify a resource to describe"))
 			}
 			// Get resource type and name
 			resource := args[0]
+			namespace, err := cmd.Flags().GetString("namespace")
+			util.Check(err)
+			useDetached, err := cmd.Flags().GetBool("detached")
+			util.Check(err)
 			name := ""
 			if len(args) > 1 {
 				name = args[1]
 			}
-
-			// Get namespace option
-			namespace, err := cmd.Flags().GetString("namespace")
-			util.Check(err)
-
 			// Get executor for describe command
-			exe, err := describe.NewExecutor(resource, namespace, name, filename)
+			exe, err := describe.NewExecutor(resource, namespace, name, filename, useDetached)
 			util.Check(err)
 
 			// Execute the command

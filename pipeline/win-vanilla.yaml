@@ -1,0 +1,87 @@
+jobs:
+- job: Windows_Vanilla
+  pool: 'Azure Windows'
+  steps:
+  - bash: |
+      rm -rf /mnt/c/Users/$(azure.windows.user)/.iofog/
+    displayName: 'Clean up Windows env'
+  - template: steps/init-ssh.yaml
+  - template: steps/init-vms.yaml
+    parameters:
+      id: win$(build)
+      distro: $(gcp.vm.distro.stretch)
+      repo: $(gcp.vm.repo.debian)
+      agent_count: 2
+      controller_count: 1
+      windows: "true"
+  - template: steps/configure-remote-tests.yaml
+    parameters:
+      windows: 'true'
+  - task: DownloadSecureFile@1
+    displayName: 'Download SSH keys to'
+    name: 'gcp_iofogctl_rsa'
+    inputs:
+      secureFile: 'gcp_iofogctl_rsa'
+  - bash: |
+      destFolder=$(wslpath "$(windows_ssh_key_path)")
+      echo "SSH downloaded at $(gcp_iofogctl_rsa.secureFilePath)"
+      echo "Converting windows path to bash path"
+      bashPath=$(wslpath "$(gcp_iofogctl_rsa.secureFilePath)")
+      echo "Bash path = $bashPath"
+      ls $bashPath
+      mkdir -p $destFolder
+      cp $bashPath $destFolder/$(ssh_key_file)
+      echo "Copied SSH key from $bashPath to $destFolder"
+      chmod 0700 $destFolder
+      chmod 0600 $destFolder/$(ssh_key_file)
+      echo '' > $destFolder/known_hosts
+      ls -la $destFolder
+    displayName: Prepare SSH key
+  - bash: |
+      sed -i "s|KEY_FILE=.*|KEY_FILE=\"$(windows_ssh_key_path)/$(ssh_key_file)\"|g" test/conf/env.sh
+      cat test/conf/env.sh
+    displayName: 'Prepare Test Config'
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: windows
+      downloadPath: $(System.DefaultWorkingDirectory)
+  - bash: |
+      dir=$(wslpath "C:\Users\$(azure.windows.user)\AppData\Local\Microsoft\WindowsApps")
+      echo moving
+      mv windows/iofogctl $dir/
+
+      echo chmodding
+      chmod +x $dir/iofogctl
+
+      echo version
+      $dir/iofogctl version
+      iofogctl version
+    displayName: 'Prepare iofogctl binary'
+  - bash: |
+      tempBashPath=$(wslpath "$(Agent.TempDirectory)")
+      cd $tempBashPath
+      git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && ./install.sh /usr
+      bats --version
+    displayName: 'Install Bats'
+  - bash: |
+      sudo apt-get install -y jq
+    displayName: 'Install jq'
+  - bash: |
+      for file in $(find ./test -name '*.bash'); do dos2unix -o $file; done
+      for file in $(find ./test -name '*.sh'); do dos2unix -o $file; done
+      for file in $(find ./test -name '*.bats'); do dos2unix -o $file; done
+    displayName: 'Format test files'
+  - bash: |
+      test/run.bash smoke
+    displayName: 'Run Smoke Tests'
+  - bash: |
+      export WSL_KEY_FILE=$(wslpath "$(windows_ssh_key_path)/$(ssh_key_file)")
+      echo $WSL_KEY_FILE
+      test/run.bash vanilla
+    displayName: 'Run Functional Tests'
+  - template: steps/functional-clean-vm.yaml
+    parameters:
+      id: win$(build)
+      agent_count: 2
+      controller_count: 1

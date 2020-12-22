@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package configure
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {
@@ -23,25 +23,27 @@ type Options struct {
 	Namespace    string
 	Name         string
 	KubeConfig   string
-	Host         string
 	KeyFile      string
 	User         string
 	Port         int
+	UseDetached  bool
 }
 
 var multipleResources = map[string]bool{
-	"all":         true,
-	"controllers": true,
-	"connectors":  true,
 	"agents":      true,
+	"controllers": true,
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {
 	switch opt.ResourceType {
+	case "current-namespace":
+		return newDefaultNamespaceExecutor(opt), nil
+	case "default-namespace":
+		return newDefaultNamespaceExecutor(opt), nil
+	case "controlplane":
+		return newControlPlaneExecutor(opt), nil
 	case "controller":
 		return newControllerExecutor(opt), nil
-	case "connector":
-		return newConnectorExecutor(opt), nil
 	case "agent":
 		return newAgentExecutor(opt), nil
 	default:

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,12 +14,13 @@
 package main
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/cmd"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/cmd"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func main() {
-
+	config.Init("")
 	rootCmd := cmd.NewRootCommand()
 	err := rootCmd.Execute()
 	util.Check(err)

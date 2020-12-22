@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,7 +14,8 @@
 package disconnect
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type Options struct {
@@ -22,21 +23,19 @@ type Options struct {
 }
 
 func Execute(opt *Options) error {
-	// Check namespace
-	ns, err := config.GetNamespace(opt.Namespace)
-	if err != nil {
-		return err
+	// Check Namespace exists
+	if _, err := config.GetNamespace(opt.Namespace); err != nil {
+		if util.IsNotFoundError(err) {
+			// Not found, disconnection is idempotent
+			return nil
+		} else {
+			// Error was not 'not found'
+			return err
+		}
 	}
 
-	// Wipe the namespace
-	err = config.DeleteNamespace(opt.Namespace)
-	if err != nil {
+	if err := config.DeleteNamespace(opt.Namespace); err != nil {
 		return err
 	}
-	err = config.AddNamespace(opt.Namespace, ns.Created)
-	if err != nil {
-		return err
-	}
-
 	return config.Flush()
 }

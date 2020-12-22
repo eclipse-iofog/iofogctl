@@ -1,0 +1,36 @@
+jobs:
+- job: RPM
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: linux
+      downloadPath: $(System.DefaultWorkingDirectory)
+  - script: sudo cp linux/iofogctl /usr/local/bin/
+  - template: steps/version.yaml
+  - template: steps/publish-deps.yaml
+  - script: |
+      fpm -f -s dir -t rpm -n iofogctl -v $(version) /usr/local/bin/iofogctl=/usr/local/bin/
+      package=$(ls | grep *.rpm)
+      echo $package
+      cp $package $(Build.ArtifactStagingDirectory)
+    displayName: 'Create RPM package'
+  - script: |
+      package=$(ls | grep *.rpm)
+      echo "package..."
+      echo $package
+      declare -a FEDORA_VERS=("23" "24" "30" "31")
+      declare -a REDHAT_VERS=("6" "7" "8")
+      for fed in ${FEDORA_VERS[@]}
+      do
+          package_cloud yank iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud || true
+          package_cloud push iofog/iofogctl-snapshots/fedora/${fed} $package --config=$(Agent.TempDirectory)/package_cloud
+      done
+      for red in ${REDHAT_VERS[@]}
+      do
+          package_cloud yank iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud || true
+          package_cloud push iofog/iofogctl-snapshots/el/${red} $package --config=$(Agent.TempDirectory)/package_cloud
+      done
+    displayName: 'Publish RPM to package-cloud'

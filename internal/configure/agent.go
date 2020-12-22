@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,27 +14,29 @@
 package configure
 
 import (
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type agentExecutor struct {
-	namespace string
-	name      string
-	keyFile   string
-	user      string
-	port      int
-	host      string
+	namespace   string
+	name        string
+	keyFile     string
+	user        string
+	port        int
+	useDetached bool
 }
 
 func newAgentExecutor(opt Options) *agentExecutor {
 	return &agentExecutor{
-		namespace: opt.Namespace,
-		name:      opt.Name,
-		keyFile:   opt.KeyFile,
-		user:      opt.User,
-		port:      opt.Port,
-		host:      opt.Host,
+		namespace:   opt.Namespace,
+		name:        opt.Name,
+		keyFile:     opt.KeyFile,
+		user:        opt.User,
+		port:        opt.Port,
+		useDetached: opt.UseDetached,
 	}
 }
 
@@ -43,36 +45,53 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
-	if exe.host != "" {
-		return util.NewInputError("Cannot change host address of Agents")
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		return err
 	}
 
-	// Get config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	var baseAgent rsc.Agent
+	if exe.useDetached {
+		baseAgent, err = config.GetDetachedAgent(exe.name)
+	} else {
+		baseAgent, err = ns.GetAgent(exe.name)
+	}
 	if err != nil {
 		return err
 	}
 
-	// Only updated fields specified
-	if exe.keyFile != "" {
-		agent.SSH.KeyFile = exe.keyFile
-	}
-	if exe.user != "" {
-		agent.SSH.User = exe.user
-	}
-	if exe.port != 0 {
-		agent.SSH.Port = exe.port
-	}
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		return util.NewInputError("Cannot configure Local Agent")
+	case *rsc.RemoteAgent:
+		// Only updated fields specified
+		if exe.user != "" {
+			agent.SSH.User = exe.user
+		}
+		if exe.port != 0 {
+			agent.SSH.Port = exe.port
+		}
+		if exe.keyFile != "" {
+			agent.SSH.KeyFile, err = util.FormatPath(exe.keyFile)
+			if err != nil {
+				return err
+			}
+		}
+		agent.Sanitize()
 
-	// Add port if not specified or existing
-	if agent.SSH.Port == 0 {
-		agent.SSH.Port = 22
+		// Save config
+		if exe.useDetached {
+			config.UpdateDetachedAgent(agent)
+			return nil
+		}
+		if err = ns.UpdateAgent(agent); err != nil {
+			return err
+		}
+		return config.Flush()
 	}
-
-	// Save config
-	if err = config.UpdateAgent(exe.namespace, agent); err != nil {
-		return err
-	}
-
-	return config.Flush()
+	return util.NewError("Could not convert Agent to dynamic type")
 }

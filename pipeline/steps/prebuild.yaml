@@ -1,0 +1,22 @@
+steps:
+- script: |
+    mkdir -p '$(GOBIN)'
+    mkdir -p '$(GOPATH)/pkg'
+    echo '##vso[task.prependpath]$(GOBIN)'
+    echo '##vso[task.prependpath]$(GOROOT)/bin'
+  displayName: 'Set up the Go workspace'
+- task: GoTool@0
+  inputs:
+    version: '1.12.1'
+    goPath: $(GOPATH)
+    goBin: $(GOBIN)
+  displayName: 'Install Golang'
+- script: |
+    ./script/check_fmt.sh
+  displayName: 'Check Source Format'
+- script: |
+    script/bootstrap.sh
+  displayName: 'Bootstrap'
+- script: |
+    make test
+  displayName: 'Run Unit Tests'

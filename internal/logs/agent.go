@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,8 +16,11 @@ package logs
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 type agentExecutor struct {
@@ -37,28 +40,55 @@ func (agent *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() error {
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	// Update local cache based on Controller
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		return err
+	}
+
 	// Get agent config
-	agent, err := config.GetAgent(exe.namespace, exe.name)
+	baseAgent, err := ns.GetAgent(exe.name)
 	if err != nil {
 		return err
 	}
 
-	// Establish SSH connection
-	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "" || agent.SSH.Port == 0 {
-		util.Check(util.NewNoConfigError("Agent"))
-	}
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
-	err = ssh.Connect()
-	if err != nil {
-		return err
-	}
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		lc, err := install.NewLocalContainerClient()
+		if err != nil {
+			return err
+		}
+		containerName := install.GetLocalContainerName("agent", false)
+		stdout, stderr, err := lc.GetLogsByName(containerName)
+		if err != nil {
+			return err
+		}
 
-	// Get logs
-	out, err := ssh.Run("sudo cat /var/log/iofog-agent/iofog-agent.0.log")
-	if err != nil {
-		return err
+		printContainerLogs(stdout, stderr)
+
+		return nil
+	case *rsc.RemoteAgent:
+		// Establish SSH connection
+		if err = agent.ValidateSSH(); err != nil {
+			return err
+		}
+		ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+		ssh.SetPort(agent.SSH.Port)
+		err = ssh.Connect()
+		if err != nil {
+			return err
+		}
+
+		// Get logs
+		out, err := ssh.Run("sudo cat /var/log/iofog-agent/iofog-agent.0.log")
+		if err != nil {
+			return err
+		}
+		fmt.Print(out.String())
 	}
-	fmt.Print(out.String())
 
 	return nil
 }

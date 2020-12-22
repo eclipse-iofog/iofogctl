@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,23 +19,40 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/internal"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
-func generateExecutor(header config.Header, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (exe Executor, err error) {
-	// Check namespace exists
-	if len(header.Metadata.Namespace) > 0 {
-		namespace = header.Metadata.Namespace
+type emptyExecutor struct {
+	name string
+}
+
+func (exe *emptyExecutor) Execute() error {
+	return nil
+}
+func (exe *emptyExecutor) GetName() string {
+	return exe.name
+}
+
+// NewEmptyExecutor return an executor that does nothing
+func NewEmptyExecutor(name string) Executor {
+	return &emptyExecutor{
+		name: name,
 	}
-	if _, err := config.GetNamespace(namespace); err != nil {
-		return exe, err
+}
+
+func generateExecutor(header config.Header, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
+	if len(header.Metadata.Namespace) > 0 && namespace != header.Metadata.Namespace {
+		msg := "The Namespace provided by the %s named '%s' does not match the Namespace '%s'. You must pass '--namespace %s' to perform this command"
+		return nil, util.NewInputError(fmt.Sprintf(msg, header.Kind, header.Metadata.Name, namespace, header.Metadata.Namespace))
 	}
 
-	if err = internal.ValidateHeader(header); err != nil {
+	if _, err := config.GetNamespace(namespace); err != nil {
+		return nil, err
+	}
+
+	if err = config.ValidateHeader(header); err != nil {
 		return nil, err
 	}
 
@@ -50,10 +67,22 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[a
 		return nil, nil
 	}
 
-	return createExecutorFunc(namespace, header.Metadata.Name, subYamlBytes)
+	return createExecutorFunc(KindHandlerOpt{
+		Kind:      header.Kind,
+		Namespace: namespace,
+		Name:      header.Metadata.Name,
+		YAML:      subYamlBytes,
+	})
 }
 
-func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kind]func(string, string, []byte) (Executor, error)) (executorsMap map[apps.Kind][]Executor, err error) {
+type KindHandlerOpt struct {
+	Kind      config.Kind
+	Namespace string
+	Name      string
+	YAML      []byte
+}
+
+func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
 	yamlFile, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		return
@@ -69,7 +98,8 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kin
 	}
 
 	// Generate all executors
-	executorsMap = make(map[apps.Kind][]Executor)
+	empty := true
+	executorsMap = make(map[config.Kind][]Executor)
 	decodeErr := dec.Decode(&header)
 	for decodeErr == nil {
 		exe, err := generateExecutor(header, namespace, kindHandlers)
@@ -77,12 +107,17 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[apps.Kin
 			return nil, err
 		}
 		if exe != nil {
+			empty = false
 			executorsMap[header.Kind] = append(executorsMap[header.Kind], exe)
 		}
 		decodeErr = dec.Decode(&header)
 	}
 	if decodeErr != io.EOF && decodeErr != nil {
 		return nil, decodeErr
+	}
+
+	if empty {
+		err = util.NewInputError("Could not decode any valid resources from input YAML file")
 	}
 
 	return
