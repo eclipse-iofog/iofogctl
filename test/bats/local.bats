@@ -197,6 +197,7 @@ NS="$NAMESPACE"
 @test "Detach/attach Agent" {
   startTest
   iofogctl -v -n "$NS" detach agent ${NAME}-0 --force
+  iofogctl -v describe agent ${NAME}-0 --detached
   iofogctl -v -n "$NS" attach agent ${NAME}-0
   stopTest
 }

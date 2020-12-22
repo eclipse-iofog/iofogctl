@@ -43,7 +43,7 @@ func newPruneAgentCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
+	cmd.Flags().Bool("detached", false, pkg.flagDescDetached)
 
 	return cmd
 }

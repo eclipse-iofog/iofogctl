@@ -76,7 +76,7 @@ iofogctl configure controlplane --kube FILE`,
 	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key")
 	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Path to Kubernetes configuration file")
 	cmd.Flags().IntVar(&opt.Port, "port", 0, "Port number that iofogctl uses to SSH into remote hosts")
-	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
+	cmd.Flags().Bool("detached", false, pkg.flagDescDetached)
 
 	return cmd
 }

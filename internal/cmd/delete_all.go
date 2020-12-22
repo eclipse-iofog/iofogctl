@@ -44,7 +44,7 @@ If you don't want to tear down the deployments but would like to free up the Nam
 	}
 
 	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of Agents")
-	cmd.Flags().Bool("detached", false, "Specify command is to run against detached resources")
+	cmd.Flags().Bool("detached", false, pkg.flagDescDetached)
 
 	return cmd
 }

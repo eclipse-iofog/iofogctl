@@ -47,6 +47,7 @@ func newDescribeAgentCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&opt.Filename, "output-file", "o", "", "YAML output file")
+	cmd.Flags().BoolVarP(&opt.IsDetached, "detached", "", false, pkg.flagDescDetached)
 
 	return cmd
 }

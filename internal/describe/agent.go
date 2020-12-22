@@ -42,19 +42,18 @@ func (exe *agentExecutor) GetName() string {
 }
 
 func (exe *agentExecutor) Execute() (err error) {
-	ns, err := config.GetNamespace(exe.namespace)
-	if err != nil {
-		return err
-	}
-	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
-		return err
-	}
-
 	var agent rsc.Agent
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)
 	} else {
+		ns, err := config.GetNamespace(exe.namespace)
+		if err != nil {
+			return err
+		}
+		// Update local cache based on Controller
+		if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+			return err
+		}
 		agent, err = ns.GetAgent(exe.name)
 	}
 	if err != nil {
