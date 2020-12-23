@@ -55,7 +55,7 @@ If you wish to not remove the Agent stack from the host, please use iofogctl det
 		},
 	}
 
-	cmd.Flags().BoolVar(&force, "force", false, "Remove even if there are still resource running on the Agent")
+	cmd.Flags().BoolVar(&force, "force", false, "Remove even if there are still Microservices running on the Agent")
 	cmd.Flags().Bool("detached", false, pkg.flagDescDetached)
 
 	return cmd

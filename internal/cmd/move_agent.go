@@ -49,11 +49,11 @@ func newMoveAgentCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess("Successfully moved Agent " + name + " to Namespace " + destNamespace)
+			util.PrintSuccess(getMoveSuccessMessage("Agent", name, "Namespace", destNamespace))
 		},
 	}
 
-	cmd.Flags().BoolVar(&force, "force", false, "Move Agent, even if it still uses resources")
+	cmd.Flags().BoolVar(&force, "force", false, "Move Agent even if it is running Microservices")
 
 	return cmd
 }

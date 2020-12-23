@@ -52,13 +52,13 @@ iofogctl connect --generate`,
 		},
 	}
 	// Register flags
-	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", pkg.flagDescYaml)
 	cmd.Flags().StringVar(&opt.ControllerName, "name", "", "Name you would like to assign to Controller")
 	cmd.Flags().StringVar(&opt.ControllerEndpoint, "ecn-addr", "", "URL of Edge Compute Network to connect to")
 	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Kubernetes config file. Typically ~/.kube/config")
 	cmd.Flags().StringVar(&opt.IofogUserEmail, "email", "", "ioFog user email address")
 	cmd.Flags().StringVar(&opt.IofogUserPass, "pass", "", "ioFog user password")
-	cmd.Flags().BoolVar(&opt.OverwriteNamespace, "force", false, "Overwrite existing namespace")
+	cmd.Flags().BoolVar(&opt.OverwriteNamespace, "force", false, "Overwrite existing Namespace")
 	cmd.Flags().BoolVar(&opt.Generate, "generate", false, "Generate a connection string that can be used to connect to this ECN")
 	cmd.Flags().BoolVar(&opt.Base64Encoded, "b64", false, "Indicate whether input password (--pass) is base64 encoded or not")
 

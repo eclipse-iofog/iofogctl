@@ -49,7 +49,7 @@ The Agent stack will not be uninstalled from the host.`,
 		},
 	}
 
-	cmd.Flags().BoolVar(&force, "force", false, "Detach Agent, even if it still uses resources")
+	cmd.Flags().BoolVar(&force, "force", false, "Detach Agent even if it is running Microservices")
 
 	return cmd
 }

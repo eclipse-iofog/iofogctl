@@ -37,7 +37,7 @@ func newMoveMicroserviceCommand() *cobra.Command {
 			err = move.Execute(namespace, name, agent)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully moved Microservice " + name + " to Agent " + agent)
+			util.PrintSuccess(getMoveSuccessMessage("Microservice", name, "Agent", agent))
 		},
 	}
 

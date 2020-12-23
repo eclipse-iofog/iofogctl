@@ -37,7 +37,7 @@ func newRenameControllerCommand() *cobra.Command {
 			err = rename.Execute(namespace, name, newName)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed controller " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Controller", name, newName))
 		},
 	}
 

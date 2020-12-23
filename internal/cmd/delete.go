@@ -64,7 +64,7 @@ func newDeleteCommand() *cobra.Command {
 	)
 
 	// Register flags
-	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", "YAML file containing resource definitions for Controllers, Agents, and Microservice to delete")
+	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", pkg.flagDescYaml)
 
 	return cmd
 }

@@ -35,7 +35,7 @@ func newRenameNamespaceCommand() *cobra.Command {
 			err := rename.Execute(name, newName)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed namespace " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Namespace", name, newName))
 		},
 	}
 

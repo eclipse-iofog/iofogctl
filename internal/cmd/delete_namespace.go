@@ -43,7 +43,7 @@ If you would like to delete all resources in the Namespace, use the --force flag
 		},
 	}
 
-	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of all resources within the namespace")
+	cmd.Flags().BoolVar(&force, "force", false, "Force deletion of all resources within the Namespace")
 
 	return cmd
 }

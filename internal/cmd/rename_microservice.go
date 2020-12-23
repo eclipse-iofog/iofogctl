@@ -37,7 +37,7 @@ func newRenameMicroserviceCommand() *cobra.Command {
 			err = rename.Execute(namespace, name, newName)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed microservice " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Microservice", name, newName))
 		},
 	}
 

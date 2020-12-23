@@ -37,7 +37,7 @@ func newRenameEdgeResourceCommand() *cobra.Command {
 			err = rename.Execute(namespace, name, newName)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed Edge Resource " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Edge Resource", name, newName))
 		},
 	}
 

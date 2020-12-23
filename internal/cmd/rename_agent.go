@@ -39,7 +39,7 @@ func newRenameAgentCommand() *cobra.Command {
 			err = rename.Execute(namespace, name, newName, useDetached)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed agent " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Agent", name, newName))
 		},
 	}
 

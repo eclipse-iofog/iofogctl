@@ -37,7 +37,7 @@ func newRenameRouteCommand() *cobra.Command {
 			err = rename.Execute(namespace, name, newName)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed route " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Route", name, newName))
 		},
 	}
 

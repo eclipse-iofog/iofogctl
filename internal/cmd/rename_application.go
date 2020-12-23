@@ -37,7 +37,7 @@ func newRenameApplicationCommand() *cobra.Command {
 			err = rename.Execute(namespace, name, newName)
 			util.Check(err)
 
-			util.PrintSuccess("Successfully renamed application " + name + " to " + newName)
+			util.PrintSuccess(getRenameSuccessMessage("Application", name, newName))
 		},
 	}
 
