@@ -44,7 +44,7 @@ func (ms *remoteMicroserviceExecutor) GetName() string {
 
 func (ms *remoteMicroserviceExecutor) Execute() error {
 	// Get image name of the microservice and details of the Agent its deployed on
-	baseAgent, agentInfo, msvc, err := getAgentAndMicroservice(ms.namespace, ms.name)
+	baseAgent, msvc, err := getAgentAndMicroservice(ms.namespace, ms.name)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.Sec
 	return
 }
 
-func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, agentInfo client.AgentInfo, msvc client.MicroserviceInfo, err error) {
+func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, msvc client.MicroserviceInfo, err error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return
@@ -157,7 +157,6 @@ func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, agent
 	if err != nil {
 		return
 	}
-	agentInfo = *agentResponse
 	agent, err = ns.GetAgent(agentResponse.Name)
 	if err != nil {
 		return
