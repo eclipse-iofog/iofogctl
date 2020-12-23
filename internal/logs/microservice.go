@@ -82,13 +82,8 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		}
 
 		// Notify the user of the containers that are up
-		var image string
-		for _, img := range msvc.Images {
-			if img.AgentTypeID == agentInfo.FogType {
-				image = img.ContainerImage
-			}
-		}
-		out, err := ms.runDockerCommand(fmt.Sprintf("docker ps | grep %s", image), ssh)
+		containerName := "iofog_" + msvc.UUID
+		out, err := ms.runDockerCommand(fmt.Sprintf("docker ps | grep %s", containerName), ssh)
 		if err != nil {
 			return err
 		}
@@ -96,8 +91,8 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		util.PrintInfo(msg)
 
 		// Execute the command
-		logFile := util.After(image, "/")
-		cmd := fmt.Sprintf("docker ps | grep %s | awk 'FNR == 1 {print $1}' | xargs docker logs 2> /tmp/%s.logs", image, logFile)
+		logFile := util.After(containerName, "/")
+		cmd := fmt.Sprintf("docker ps | grep %s | awk 'FNR == 1 {print $1}' | xargs docker logs 2> /tmp/%s.logs", containerName, logFile)
 		out, err = ms.runDockerCommand(cmd, ssh)
 		if err != nil {
 			return err
@@ -156,12 +151,6 @@ func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, agent
 	}
 
 	msvc = *msvcPtr
-
-	// Images must exist
-	if len(msvc.Images) == 0 {
-		err = util.NewError("Microservice " + msvcName + " does not have any images")
-		return
-	}
 
 	// Get Agent running the microservice
 	agentResponse, err := ctrlClient.GetAgentByID(msvc.AgentUUID)
