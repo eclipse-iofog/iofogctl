@@ -15,23 +15,22 @@ package deletecontroller
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type localExecutor struct {
+type LocalExecutor struct {
 	controlPlane          *rsc.LocalControlPlane
 	namespace             string
 	name                  string
-	client                *install.LocalContainer
 	localControllerConfig *install.LocalContainerConfig
 }
 
-func NewLocalExecutor(controlPlane *rsc.LocalControlPlane, namespace, name string) *localExecutor {
-	exe := &localExecutor{
+func NewLocalExecutor(controlPlane *rsc.LocalControlPlane, namespace, name string) *LocalExecutor {
+	exe := &LocalExecutor{
 		controlPlane:          controlPlane,
 		namespace:             namespace,
 		name:                  name,
@@ -40,11 +39,11 @@ func NewLocalExecutor(controlPlane *rsc.LocalControlPlane, namespace, name strin
 	return exe
 }
 
-func (exe *localExecutor) GetName() string {
+func (exe *LocalExecutor) GetName() string {
 	return exe.name
 }
 
-func (exe *localExecutor) Execute() error {
+func (exe *LocalExecutor) Execute() error {
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err

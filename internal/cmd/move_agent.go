@@ -45,7 +45,7 @@ func newMoveAgentCommand() *cobra.Command {
 				iutil.InvalidateCache()
 			}
 			// Attach
-			exe = attach.NewExecutor(attach.Options{Name: name, Namespace: destNamespace})
+			exe = attach.NewExecutor(&attach.Options{Name: name, Namespace: destNamespace})
 			err = exe.Execute()
 			util.Check(err)
 

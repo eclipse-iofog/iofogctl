@@ -27,6 +27,13 @@ func Check(err error) {
 	}
 }
 
+func Log(callback func() error) {
+	err := callback()
+	if err != nil {
+		PrintNotify(err.Error())
+	}
+}
+
 type Error struct {
 	message string
 }
@@ -65,7 +72,7 @@ func IsNotFoundError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), notFoundErr.header)
 }
 
-//ConflictError export
+// ConflictError export
 type ConflictError struct {
 	message string
 }
@@ -87,7 +94,7 @@ type InputError struct {
 	message string
 }
 
-//NewInputError export
+// NewInputError export
 func NewInputError(message string) *InputError {
 	return &InputError{
 		message: message,
@@ -149,23 +156,23 @@ func (err *UnmarshalError) Error() string {
 	return fmt.Sprintf("Failed to unmarshal input file. \n%s\nMake sure to use camel case field names. E.g. `keyFile: ~/.ssh/id_rsa`", err.message)
 }
 
-type UnsupportedApiError struct {
+type UnsupportedAPIError struct {
 	header  string
 	message string
 }
 
-func NewUnsupportedApiError(message string) *UnsupportedApiError {
-	return &UnsupportedApiError{
+func NewUnsupportedAPIError(message string) *UnsupportedAPIError {
+	return &UnsupportedAPIError{
 		header:  "Unsupported API error",
 		message: message,
 	}
 }
 
-func (err *UnsupportedApiError) Error() string {
+func (err *UnsupportedAPIError) Error() string {
 	return fmt.Sprintf("%s\n%s", err.header, err.message)
 }
 
-func IsUnsupportedApiError(err error) bool {
-	apiErr := NewUnsupportedApiError("")
+func IsUnsupportedAPIError(err error) bool {
+	apiErr := NewUnsupportedAPIError("")
 	return err != nil && strings.Contains(err.Error(), apiErr.header)
 }

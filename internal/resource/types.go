@@ -123,7 +123,7 @@ type EdgeResource struct {
 type EdgeResourceHTTPInterface = client.HttpEdgeResource
 
 type Display = client.EdgeResourceDisplay
-type HttpEndpoint = client.HttpEndpoint
+type HTTPEndpoint = client.HttpEndpoint
 
 // FogTypeStringMap map human readable fog type to Controller fog type
 var FogTypeStringMap = map[string]int64{

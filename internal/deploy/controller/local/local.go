@@ -83,11 +83,11 @@ func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, 
 	}
 
 	// Instantiate executor
-	return newExecutor(namespace, controlPlane, controller, cli)
+	return newExecutor(namespace, controlPlane, controller, cli), nil
 }
 
 // TODO: Rewrite this pkg, don't need ctrl coming in here
-func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.LocalController, client *install.LocalContainer) (*localExecutor, error) {
+func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.LocalController, client *install.LocalContainer) *localExecutor {
 	return &localExecutor{
 		namespace: namespace,
 		ctrl:      ctrl,
@@ -98,7 +98,7 @@ func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.Loca
 		}),
 		iofogUser: controlPlane.GetUser(),
 		ctrlPlane: controlPlane,
-	}, nil
+	}
 }
 
 func (exe *localExecutor) cleanContainers() {
@@ -131,7 +131,7 @@ func (exe *localExecutor) deployContainers() error {
 	exe.containersNames = append(exe.containersNames, controllerContainerName)
 	// Wait for public API
 	util.SpinStart("Waiting for Controller API")
-	if err = exe.client.WaitForCommand(
+	if err := exe.client.WaitForCommand(
 		install.GetLocalContainerName("controller", false),
 		regexp.MustCompile("\"status\":[ |\t]*\"online\""),
 		"iofog-controller",
@@ -165,7 +165,6 @@ func (exe *localExecutor) Execute() error {
 	exe.ctrl.Endpoint = endpoint
 	exe.ctrl.Created = util.NowUTC()
 	return exe.ctrlPlane.UpdateController(exe.ctrl)
-
 }
 
 func Validate(ctrl rsc.Controller) error {

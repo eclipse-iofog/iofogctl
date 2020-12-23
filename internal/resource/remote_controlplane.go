@@ -29,21 +29,21 @@ type RemoteControlPlane struct {
 	SystemMicroservices RemoteSystemMicroservices `yaml:"systemMicroservices,omitempty"`
 }
 
-func (cp RemoteControlPlane) GetUser() IofogUser {
+func (cp *RemoteControlPlane) GetUser() IofogUser {
 	return cp.IofogUser
 }
 
-func (cp RemoteControlPlane) GetControllers() (controllers []Controller) {
+func (cp *RemoteControlPlane) GetControllers() (controllers []Controller) {
 	for idx := range cp.Controllers {
 		controllers = append(controllers, cp.Controllers[idx].Clone())
 	}
 	return
 }
 
-func (cp RemoteControlPlane) GetController(name string) (ret Controller, err error) {
-	for _, ctrl := range cp.Controllers {
-		if ctrl.GetName() == name {
-			ret = &ctrl
+func (cp *RemoteControlPlane) GetController(name string) (ret Controller, err error) {
+	for idx := range cp.Controllers {
+		if cp.Controllers[idx].Name == name {
+			ret = &cp.Controllers[idx]
 			return
 		}
 	}
@@ -51,7 +51,7 @@ func (cp RemoteControlPlane) GetController(name string) (ret Controller, err err
 	return
 }
 
-func (cp RemoteControlPlane) GetEndpoint() (string, error) {
+func (cp *RemoteControlPlane) GetEndpoint() (string, error) {
 	if len(cp.Controllers) == 0 {
 		return "", util.NewInternalError("Control Plane does not have any Controllers")
 	}

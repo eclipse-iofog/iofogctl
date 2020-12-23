@@ -53,13 +53,15 @@ func (exe *Executor) Execute() (err error) {
 		return util.NewError("Could not Convert Controller to Remote Controller")
 	}
 
-	var executors []execute.Executor
-	for _, controller := range controlPlane.GetControllers() {
+	controllers := controlPlane.GetControllers()
+	executors := make([]execute.Executor, len(controllers))
+	for idx := range controllers {
+		controller := controllers[idx]
 		exe := deletecontroller.NewRemoteExecutor(controlPlane, exe.namespace, controller.GetName())
-		executors = append(executors, exe)
+		executors[idx] = exe
 	}
 
-	if err = runExecutors(executors); err != nil {
+	if err := runExecutors(executors); err != nil {
 		return err
 	}
 

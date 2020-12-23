@@ -48,7 +48,7 @@ func printYAML(writer io.Writer, obj interface{}) error {
 
 func FPrint(obj interface{}, filename string) error {
 	f, err := os.Create(filename)
-	defer f.Close()
+	defer Log(f.Close)
 	if err != nil {
 		return err
 	}

@@ -19,7 +19,6 @@ import (
 )
 
 func (exe *applicationExecutor) initLegacy() (err error) {
-
 	exe.flow, err = exe.client.GetFlowByName(exe.name)
 	if err != nil {
 		return
@@ -30,7 +29,8 @@ func (exe *applicationExecutor) initLegacy() (err error) {
 	}
 
 	// Filter system microservices
-	for _, msvc := range msvcListResponse.Microservices {
+	for idx := range msvcListResponse.Microservices {
+		msvc := &msvcListResponse.Microservices[idx]
 		if util.IsSystemMsvc(msvc) {
 			continue
 		}
@@ -38,7 +38,7 @@ func (exe *applicationExecutor) initLegacy() (err error) {
 	}
 	exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(exe.msvcs); i++ {
-		exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
+		exe.msvcPerID[exe.msvcs[i].UUID] = exe.msvcs[i]
 	}
 	return
 }

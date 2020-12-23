@@ -26,15 +26,15 @@ type RemoteController struct {
 	Created  string `yaml:"created,omitempty"`
 }
 
-func (ctrl RemoteController) GetName() string {
+func (ctrl *RemoteController) GetName() string {
 	return ctrl.Name
 }
 
-func (ctrl RemoteController) GetEndpoint() string {
+func (ctrl *RemoteController) GetEndpoint() string {
 	return ctrl.Endpoint
 }
 
-func (ctrl RemoteController) GetCreatedTime() string {
+func (ctrl *RemoteController) GetCreatedTime() string {
 	return ctrl.Created
 }
 

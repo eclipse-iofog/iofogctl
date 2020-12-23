@@ -38,7 +38,7 @@ func NewRemoteExecutorYAML(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Validate
-	if err = ValidateRemoteAgent(agent); err != nil {
+	if err = ValidateRemoteAgent(&agent); err != nil {
 		return
 	}
 

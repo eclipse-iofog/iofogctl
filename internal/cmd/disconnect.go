@@ -20,7 +20,7 @@ import (
 )
 
 func newDisconnectCommand() *cobra.Command {
-	//Instantiate options
+	// Instantiate options
 	opt := &disconnect.Options{}
 
 	// Instantiate command

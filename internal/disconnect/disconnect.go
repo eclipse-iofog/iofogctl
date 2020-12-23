@@ -28,10 +28,9 @@ func Execute(opt *Options) error {
 		if util.IsNotFoundError(err) {
 			// Not found, disconnection is idempotent
 			return nil
-		} else {
-			// Error was not 'not found'
-			return err
 		}
+		// Error was not 'not found'
+		return err
 	}
 
 	if err := config.DeleteNamespace(opt.Namespace); err != nil {

@@ -104,7 +104,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	return agent
 }
 
-func (agent *RemoteAgent) CustomizeProcedures(dir string, procs AgentProcedures) error {
+func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures) error {
 	// Format source directory of script files
 	dir, err := util.FormatPath(dir)
 	if err != nil {
@@ -159,7 +159,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs AgentProcedures)
 	procs.Install.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Install.Name)
 	procs.Uninstall.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Uninstall.Name)
 
-	agent.procs = procs
+	agent.procs = *procs
 	return nil
 }
 
@@ -169,7 +169,6 @@ func (agent *RemoteAgent) SetVersion(version string) {
 	}
 	agent.version = version
 	agent.procs.Install.Args[0] = version
-	return
 }
 
 func (agent *RemoteAgent) SetRepository(repo, token string) {
@@ -250,7 +249,7 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 	}
 
 	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil {
+	if err := agent.run(cmds); err != nil {
 		return "", err
 	}
 
@@ -292,7 +291,7 @@ func (agent *RemoteAgent) Stop() (err error) {
 			msg: "Stopping Agent " + agent.name,
 		},
 	}
-	if err = agent.run(cmds); err != nil {
+	if err := agent.run(cmds); err != nil {
 		return err
 	}
 
@@ -313,7 +312,7 @@ func (agent *RemoteAgent) Prune() (err error) {
 	}
 
 	// Execute commands on remote server
-	if err = agent.run(cmds); err != nil {
+	if err := agent.run(cmds); err != nil {
 		return err
 	}
 
@@ -352,7 +351,7 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 	if err = agent.ssh.Connect(); err != nil {
 		return
 	}
-	defer agent.ssh.Disconnect()
+	defer util.Log(agent.ssh.Disconnect)
 
 	// Execute commands
 	for _, cmd := range cmds {
@@ -365,7 +364,7 @@ func (agent *RemoteAgent) run(cmds []command) (err error) {
 	return
 }
 
-func (agent RemoteAgent) copyInstallScriptsToAgent() error {
+func (agent *RemoteAgent) copyInstallScriptsToAgent() error {
 	Verbose("Copying install scripts to Agent " + agent.name)
 	cmds := []command{
 		{
@@ -379,12 +378,12 @@ func (agent RemoteAgent) copyInstallScriptsToAgent() error {
 	return agent.copyScriptsToAgent()
 }
 
-func (agent RemoteAgent) copyScriptsToAgent() error {
+func (agent *RemoteAgent) copyScriptsToAgent() error {
 	// Establish SSH to agent
 	if err := agent.ssh.Connect(); err != nil {
 		return err
 	}
-	defer agent.ssh.Disconnect()
+	defer util.Log(agent.ssh.Disconnect)
 
 	// Copy scripts to remote host
 	for idx, script := range agent.procs.scriptNames {

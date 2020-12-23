@@ -16,7 +16,6 @@ package deployk8scontrolplane
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -31,7 +30,6 @@ type Options struct {
 }
 
 type kubernetesControlPlaneExecutor struct {
-	ctrlClient   *client.Client
 	controlPlane *rsc.KubernetesControlPlane
 	namespace    string
 	name         string
@@ -114,7 +112,7 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 		PidBaseDir:    exe.controlPlane.Controller.PidBaseDir,
 		EcnViewerPort: exe.controlPlane.Controller.EcnViewerPort,
 	}
-	endpoint, err := installer.CreateControlPlane(conf)
+	endpoint, err := installer.CreateControlPlane(&conf)
 	if err != nil {
 		return
 	}
@@ -138,7 +136,7 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	// Assign control plane endpoint
 	exe.controlPlane.Endpoint = endpoint
 
-	return
+	return err
 }
 
 func validate(controlPlane *rsc.KubernetesControlPlane) (err error) {
@@ -151,7 +149,9 @@ func validate(controlPlane *rsc.KubernetesControlPlane) (err error) {
 	db := controlPlane.Database
 	if db.Host != "" || db.DatabaseName != "" || db.Password != "" || db.Port != 0 || db.User != "" {
 		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
-			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
+			msg := `If you are specifying an external database for the Control Plane,
+you must provide non-empty values in host, databasename, user, password, and port fields.`
+			return util.NewInputError(msg)
 		}
 	}
 	return

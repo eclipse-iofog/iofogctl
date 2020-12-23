@@ -62,6 +62,7 @@ func GetDefaultNamespaceName() string {
 func getNamespace(name string) (*rsc.Namespace, error) {
 	namespace, ok := namespaces[name]
 	if !ok {
+		// Namespace has not been loaded from file, do so now
 		namespaceHeader := iofogctlNamespace{}
 		if err := util.UnmarshalYAML(getNamespaceFile(name), &namespaceHeader); err != nil {
 			if os.IsNotExist(err) {
@@ -69,13 +70,14 @@ func getNamespace(name string) (*rsc.Namespace, error) {
 			}
 			return nil, err
 		}
-		ns, err := getNamespaceFromHeader(namespaceHeader)
+		ns, err := getNamespaceFromHeader(&namespaceHeader)
 		if err != nil {
 			return nil, err
 		}
-		namespaces[name] = &ns
-		return &ns, flushNamespaces()
+		namespaces[name] = ns
+		return ns, flushNamespaces()
 	}
+	// Return Namespace from memory
 	return namespace, nil
 }
 
@@ -122,13 +124,15 @@ func DeleteNamespace(name string) error {
 	// Reset default namespace if required
 	if name == conf.DefaultNamespace {
 		if err := SetDefaultNamespace("default"); err != nil {
-			return errors.New("Failed to reconfigure default namespace")
+			msg := "failed to reconfigure default namespace"
+			return errors.New(msg)
 		}
 	}
 
 	filename := getNamespaceFile(name)
 	if err := os.Remove(filename); err != nil {
-		return util.NewNotFoundError("Could not delete namespace file " + filename)
+		msg := "could not delete namespace file " + filename
+		return util.NewNotFoundError(msg)
 	}
 
 	delete(namespaces, name)
@@ -144,7 +148,7 @@ func RenameNamespace(name, newName string) error {
 		return err
 	}
 	ns.Name = newName
-	if err = os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
+	if err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
 		return err
 	}
 	if name == conf.DefaultNamespace {

@@ -15,7 +15,7 @@ package connectk8scontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
+	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
@@ -45,7 +45,9 @@ func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) 
 		KubeConfig: kubeConfig,
 		Endpoint:   formatEndpoint(endpoint),
 	}
-	controlPlane.Sanitize()
+	if err := controlPlane.Sanitize(); err != nil {
+		return nil, err
+	}
 	return newKubernetesExecutor(controlPlane, namespace), nil
 }
 
@@ -86,7 +88,7 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if err != nil {
 		return
 	}
-	err = agents.Connect(exe.controlPlane, endpoint, ns)
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, ns)
 	if err != nil {
 		return
 	}

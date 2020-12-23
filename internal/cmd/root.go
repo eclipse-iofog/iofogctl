@@ -39,7 +39,6 @@ func printHeader() {
 }
 
 func NewRootCommand() *cobra.Command {
-
 	var cmd = &cobra.Command{
 		Use: "iofogctl",
 		//Short: "ioFog Unified Command Line Interface",

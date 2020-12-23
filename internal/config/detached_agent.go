@@ -30,7 +30,7 @@ func GetDetachedAgents() []rsc.Agent {
 	return ns.GetAgents()
 }
 
-func AttachAgent(namespace, name, UUID string) error {
+func AttachAgent(namespace, name, uuid string) error {
 	ns, err := getNamespace(namespace)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func AttachAgent(namespace, name, UUID string) error {
 	if err := DeleteDetachedAgent(name); err != nil {
 		return err
 	}
-	detachedAgent.SetUUID(UUID)
+	detachedAgent.SetUUID(uuid)
 	return ns.AddAgent(detachedAgent)
 }
 
@@ -75,7 +75,7 @@ func RenameDetachedAgent(oldName, newName string) error {
 	if err != nil {
 		return err
 	}
-	if err = DeleteDetachedAgent(oldName); err != nil {
+	if err := DeleteDetachedAgent(oldName); err != nil {
 		return err
 	}
 	detachedAgent.SetName(newName)
@@ -95,6 +95,5 @@ func UpdateDetachedAgent(agent rsc.Agent) error {
 	if err != nil {
 		return err
 	}
-	ns.UpdateAgent(agent)
-	return nil
+	return ns.UpdateAgent(agent)
 }

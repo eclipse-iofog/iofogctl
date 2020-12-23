@@ -6,6 +6,9 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
+// Namespace is the fundamental type for managing an ECN's resources.
+// Namespace's public getters will all return copies of resources.
+// Namespace's API is intended to be used in parallel, hence the mutex.
 type Namespace struct {
 	Name                   string                  `yaml:"name,omitempty"`
 	KubernetesControlPlane *KubernetesControlPlane `yaml:"k8sControlPlane,omitempty"`
@@ -18,6 +21,7 @@ type Namespace struct {
 	mux                    sync.Mutex
 }
 
+// GetControlPlane will return a deep copy of the Namespace's ControlPlane
 func (ns *Namespace) GetControlPlane() (ControlPlane, error) {
 	ns.mux.Lock()
 	defer ns.mux.Unlock()
@@ -60,6 +64,7 @@ func (ns *Namespace) DeleteControlPlane() {
 	ns.LocalControlPlane = nil
 }
 
+// GetControllers will return a slice of deep copied Controllers
 func (ns *Namespace) GetControllers() []Controller {
 	ns.mux.Lock()
 	defer ns.mux.Unlock()
@@ -107,6 +112,8 @@ func (ns *Namespace) GetAgents() (agents []Agent) {
 	defer ns.mux.Unlock()
 	return ns.getAgents()
 }
+
+// getAgents will return a slice of deep copied Agents
 func (ns *Namespace) getAgents() (agents []Agent) {
 	// K8s / Remote
 	for idx := range ns.RemoteAgents {
@@ -195,8 +202,8 @@ func (ns *Namespace) DeleteAgent(name string) error {
 func (ns *Namespace) DeleteAgents() {
 	ns.mux.Lock()
 	defer ns.mux.Unlock()
-	ns.RemoteAgents = make([]RemoteAgent, 0)
-	ns.LocalAgents = make([]LocalAgent, 0)
+	ns.RemoteAgents = []RemoteAgent{}
+	ns.LocalAgents = []LocalAgent{}
 }
 
 func (ns *Namespace) Clone() *Namespace {
@@ -229,31 +236,30 @@ func (ns *Namespace) Clone() *Namespace {
 	}
 }
 
-func (ns *Namespace) AddVolume(volume Volume) error {
+func (ns *Namespace) AddVolume(volume *Volume) error {
 	ns.mux.Lock()
 	defer ns.mux.Unlock()
 	if _, err := ns.getVolume(volume.Name); err == nil {
 		return util.NewConflictError(ns.Name + "/" + volume.Name)
 	}
 
-	ns.Volumes = append(ns.Volumes, volume)
+	ns.Volumes = append(ns.Volumes, *volume)
 	return nil
 }
 
-func (ns *Namespace) UpdateVolume(volume Volume) {
+func (ns *Namespace) UpdateVolume(volume *Volume) {
 	ns.mux.Lock()
 	defer ns.mux.Unlock()
 	// Replace if exists
 	for idx := range ns.Volumes {
 		if ns.Volumes[idx].Name == volume.Name {
-			ns.Volumes[idx] = volume
+			ns.Volumes[idx] = *volume
 			return
 		}
 	}
 
 	// Add new
-	ns.Volumes = append(ns.Volumes, volume)
-	return
+	ns.Volumes = append(ns.Volumes, *volume)
 }
 
 func (ns *Namespace) DeleteVolume(name string) error {

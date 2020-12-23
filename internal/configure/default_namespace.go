@@ -22,7 +22,7 @@ type defaultNamespaceExecutor struct {
 	name string
 }
 
-func newDefaultNamespaceExecutor(opt Options) *defaultNamespaceExecutor {
+func newDefaultNamespaceExecutor(opt *Options) *defaultNamespaceExecutor {
 	return &defaultNamespaceExecutor{
 		name: opt.Name,
 	}

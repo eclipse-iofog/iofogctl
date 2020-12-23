@@ -52,41 +52,41 @@ var kindOrder = []config.Kind{
 	config.VolumeKind,
 }
 
-var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	config.ApplicationKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
+	config.ApplicationKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteapplication.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.MicroserviceKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.MicroserviceKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.KubernetesControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletek8scontrolplane.NewExecutor(opt.Namespace)
 	},
-	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteremotecontrolplane.NewExecutor(opt.Namespace)
 	},
-	config.LocalControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.LocalControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletelocalcontrolplane.NewExecutor(opt.Namespace)
 	},
-	config.RemoteControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControllerKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.LocalControllerKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.LocalControllerKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecontroller.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.RemoteAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteAgentKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	config.LocalAgentKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.LocalAgentKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteagent.NewExecutor(opt.Namespace, opt.Name, false, false)
 	},
-	config.CatalogItemKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.CatalogItemKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletecatalogitem.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.RegistryKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RegistryKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteregistry.NewExecutor(opt.Namespace, opt.Name)
 	},
-	config.VolumeKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.VolumeKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deletevolume.NewExecutor(opt.Namespace, opt.Name)
 	},
 }

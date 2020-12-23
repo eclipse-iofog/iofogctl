@@ -26,7 +26,6 @@ import (
 type remoteExecutor struct {
 	namespace string
 	agent     *rsc.RemoteAgent
-	uuid      string
 }
 
 func newRemoteExecutor(namespace string, agent *rsc.RemoteAgent) *remoteExecutor {
@@ -96,9 +95,9 @@ func (exe *remoteExecutor) Execute() (err error) {
 
 	// Set custom scripts
 	if exe.agent.Scripts != nil {
-		if err = agent.CustomizeProcedures(
+		if err := agent.CustomizeProcedures(
 			exe.agent.Scripts.Directory,
-			exe.agent.Scripts.AgentProcedures); err != nil {
+			&exe.agent.Scripts.AgentProcedures); err != nil {
 			return err
 		}
 	}
@@ -121,10 +120,10 @@ func (exe *remoteExecutor) Execute() (err error) {
 	// Return the Agent through pointer
 	exe.agent.UUID = uuid
 	exe.agent.Created = util.NowUTC()
-	return
+	return nil
 }
 
-func ValidateRemoteAgent(agent rsc.RemoteAgent) error {
+func ValidateRemoteAgent(agent *rsc.RemoteAgent) error {
 	if err := util.IsLowerAlphanumeric("Agent", agent.Name); err != nil {
 		return err
 	}

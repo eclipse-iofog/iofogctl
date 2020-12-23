@@ -52,10 +52,6 @@ func (exe *Executor) GetName() string {
 	return exe.name
 }
 
-func (exe *Executor) init() (err error) {
-	return
-}
-
 // Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Application Template")
@@ -64,7 +60,7 @@ func (exe *Executor) Execute() error {
 		return err
 	}
 
-	if err = clt.DeleteApplicationTemplate(exe.name); err != nil {
+	if err := clt.DeleteApplicationTemplate(exe.name); err != nil {
 		return err
 	}
 

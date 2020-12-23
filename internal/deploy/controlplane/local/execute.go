@@ -43,7 +43,7 @@ type localControlPlaneExecutor struct {
 }
 
 // TODO: remove duplication
-func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
+func deploySystemAgent(namespace string) (err error) {
 	host := "localhost"
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent")
@@ -64,23 +64,17 @@ func deploySystemAgent(namespace string, ctrl rsc.Controller) (err error) {
 	}
 
 	// Get Agentconfig executor
-	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace, nil)
+	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, &deployAgentConfig, namespace, nil)
 	// If there already is a system fog, ignore error
-	if err = deployAgentConfigExecutor.Execute(); err != nil {
+	if err := deployAgentConfigExecutor.Execute(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// TODO: remove duplication
 func (exe localControlPlaneExecutor) postDeploy() (err error) {
-	// Look for a Vanilla controller
-	controllers := exe.controlPlane.GetControllers()
-	for _, ctrl := range controllers {
-		// If Vanilla controller
-		if err = deploySystemAgent(exe.namespace, ctrl); err != nil {
-			return err
-		}
+	if err := deploySystemAgent(exe.namespace); err != nil {
+		return err
 	}
 	return nil
 }
@@ -98,7 +92,7 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 	}
 	endpoint := controller.GetEndpoint()
 
-	if err = install.WaitForControllerAPI(endpoint); err != nil {
+	if err := install.WaitForControllerAPI(endpoint); err != nil {
 		return err
 	}
 	// Create new user
@@ -111,7 +105,7 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 			return err
 		}
 		// Try to log in
-		if err = exe.ctrlClient.Login(client.LoginRequest{
+		if err := exe.ctrlClient.Login(client.LoginRequest{
 			Email:    user.Email,
 			Password: user.Password,
 		}); err != nil {
@@ -124,7 +118,7 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 		return err
 	}
 	ns.SetControlPlane(exe.controlPlane)
-	if err = config.Flush(); err != nil {
+	if err := config.Flush(); err != nil {
 		return err
 	}
 	// Post deploy steps
@@ -157,12 +151,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	// Instantiate executors
-	var controllerExecutors []execute.Executor
-
 	// Create exe Controllers
-	for _, baseController := range controlPlane.GetControllers() {
-		controller, ok := baseController.(*rsc.LocalController)
+	controllers := controlPlane.GetControllers()
+	controllerExecutors := make([]execute.Executor, len(controllers))
+	for idx := range controllers {
+		controller, ok := controllers[idx].(*rsc.LocalController)
 		if !ok {
 			return nil, util.NewError("Could not convert Controller to Local Controller")
 		}
@@ -170,7 +163,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		if err != nil {
 			return nil, err
 		}
-		controllerExecutors = append(controllerExecutors, exe)
+		controllerExecutors[idx] = exe
 	}
 
 	return newControlPlaneExecutor(controllerExecutors, opt.Namespace, opt.Name, &controlPlane), nil
@@ -181,14 +174,4 @@ func runExecutors(executors []execute.Executor) error {
 		return execute.CoalesceErrors(errs)
 	}
 	return nil
-}
-
-func validate(controlPlane rsc.ControlPlane) (err error) {
-	// Validate user
-	user := controlPlane.GetUser()
-	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
-		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
-	}
-
-	return
 }

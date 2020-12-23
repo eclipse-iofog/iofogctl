@@ -18,7 +18,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func deleteRemote(agent *rsc.RemoteAgent, volume rsc.Volume) error {
+func deleteRemote(agent *rsc.RemoteAgent, volume *rsc.Volume) error {
 	// Check SSH details
 	if err := agent.ValidateSSH(); err != nil {
 		return err

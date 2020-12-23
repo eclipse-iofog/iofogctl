@@ -54,7 +54,7 @@ func generateControllerOutput(namespace string) (table [][]string, err error) {
 		return
 	}
 
-	podStatuses := make([]string, 0)
+	podStatuses := []string{}
 	// Handle k8s
 	baseControlPlane, err := ns.GetControlPlane()
 	if err != nil {
@@ -124,12 +124,12 @@ func generateControllerOutput(namespace string) (table [][]string, err error) {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	return
+	return table, err
 }
 
 func updateControllerPods(controlPlane *rsc.KubernetesControlPlane, namespace string) (err error) {
 	// Clear existing
-	controlPlane.ControllerPods = make([]rsc.KubernetesController, 0)
+	controlPlane.ControllerPods = []rsc.KubernetesController{}
 	// Get pods
 	installer, err := install.NewKubernetes(controlPlane.KubeConfig, namespace)
 	if err != nil {

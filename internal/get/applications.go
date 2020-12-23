@@ -26,13 +26,13 @@ type applicationExecutor struct {
 	namespace           string
 	client              *client.Client
 	flows               []client.FlowInfo
-	msvcsPerApplication map[int][]client.MicroserviceInfo
+	msvcsPerApplication map[int][]*client.MicroserviceInfo
 }
 
 func newApplicationExecutor(namespace string) *applicationExecutor {
 	c := &applicationExecutor{}
 	c.namespace = namespace
-	c.msvcsPerApplication = make(map[int][]client.MicroserviceInfo)
+	c.msvcsPerApplication = make(map[int][]*client.MicroserviceInfo)
 	return c
 }
 
@@ -46,10 +46,7 @@ func (exe *applicationExecutor) Execute() error {
 		return err
 	}
 	printNamespace(exe.namespace)
-	table, err := exe.generateApplicationOutput()
-	if err != nil {
-		return err
-	}
+	table := exe.generateApplicationOutput()
 	return print(table)
 }
 
@@ -62,42 +59,49 @@ func (exe *applicationExecutor) init() (err error) {
 		return err
 	}
 	applications, err := exe.client.GetAllApplications()
-	// If notfound error, try legacy
-	if _, ok := err.(*client.NotFoundError); err != nil && ok {
-		if err = exe.initLegacy(); err != nil {
+	// Try legacy if error is "not found"
+	if _, ok := err.(*client.NotFoundError); ok {
+		if err := exe.initLegacy(); err != nil {
 			return err
 		}
-	} else {
-		// Map applications to flow
-		// TODO: Use Application instead of flow
-		exe.flows = []client.FlowInfo{}
-		for _, application := range applications.Applications {
-			exe.flows = append(exe.flows, client.FlowInfo{
-				Name:        application.Name,
-				IsActivated: application.IsActivated,
-				Description: application.Description,
-				IsSystem:    application.IsSystem,
-				UserID:      application.UserID,
-				ID:          application.ID,
-			})
-			listMsvcs, err := exe.client.GetMicroservicesByApplication(application.Name)
-			if err != nil {
-				return err
-			}
+		// Successful legacy
+		return nil
+	}
+	if err != nil {
+		// Return errors that are not "not found"
+		return err
+	}
+	// Execute non-legacy
+	// Map applications to flow
+	// TODO: Use Application instead of flow
+	exe.flows = []client.FlowInfo{}
+	for _, application := range applications.Applications {
+		exe.flows = append(exe.flows, client.FlowInfo{
+			Name:        application.Name,
+			IsActivated: application.IsActivated,
+			Description: application.Description,
+			IsSystem:    application.IsSystem,
+			UserID:      application.UserID,
+			ID:          application.ID,
+		})
+		listMsvcs, err := exe.client.GetMicroservicesByApplication(application.Name)
+		if err != nil {
+			return err
+		}
 
-			// Filter System microservices
-			for _, ms := range listMsvcs.Microservices {
-				if util.IsSystemMsvc(ms) {
-					continue
-				}
-				exe.msvcsPerApplication[application.ID] = append(exe.msvcsPerApplication[application.ID], ms)
+		// Filter System microservices
+		for idx := range listMsvcs.Microservices {
+			msvc := &listMsvcs.Microservices[idx]
+			if util.IsSystemMsvc(msvc) {
+				continue
 			}
+			exe.msvcsPerApplication[application.ID] = append(exe.msvcsPerApplication[application.ID], msvc)
 		}
 	}
-	return
+	return err
 }
 
-func (exe *applicationExecutor) generateApplicationOutput() (table [][]string, err error) {
+func (exe *applicationExecutor) generateApplicationOutput() (table [][]string) {
 	// Generate table and headers
 	table = make([][]string, len(exe.flows)+1)
 	headers := []string{"APPLICATION", "RUNNING", "MICROSERVICES"}
@@ -109,9 +113,10 @@ func (exe *applicationExecutor) generateApplicationOutput() (table [][]string, e
 		runningMsvcs := 0
 		msvcs := ""
 		first := true
-		for _, msvc := range exe.msvcsPerApplication[flow.ID] {
-			if first == true {
-				msvcs += fmt.Sprintf("%s", msvc.Name)
+		for idx := range exe.msvcsPerApplication[flow.ID] {
+			msvc := exe.msvcsPerApplication[flow.ID][idx]
+			if first {
+				msvcs += msvc.Name
 			} else {
 				msvcs += fmt.Sprintf(", %s", msvc.Name)
 			}
@@ -135,5 +140,5 @@ func (exe *applicationExecutor) generateApplicationOutput() (table [][]string, e
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	return
+	return table
 }

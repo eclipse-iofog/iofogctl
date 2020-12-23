@@ -29,21 +29,21 @@ type KubernetesControlPlane struct {
 	Controller     ControllerConfig       `yaml:"controller,omitempty"`
 }
 
-func (cp KubernetesControlPlane) GetUser() IofogUser {
+func (cp *KubernetesControlPlane) GetUser() IofogUser {
 	return cp.IofogUser
 }
 
-func (cp KubernetesControlPlane) GetControllers() (controllers []Controller) {
+func (cp *KubernetesControlPlane) GetControllers() (controllers []Controller) {
 	for idx := range cp.ControllerPods {
 		controllers = append(controllers, cp.ControllerPods[idx].Clone())
 	}
 	return
 }
 
-func (cp KubernetesControlPlane) GetController(name string) (ret Controller, err error) {
-	for _, ctrl := range cp.ControllerPods {
-		if ctrl.GetName() == name {
-			ret = &ctrl
+func (cp *KubernetesControlPlane) GetController(name string) (ret Controller, err error) {
+	for idx := range cp.ControllerPods {
+		if cp.ControllerPods[idx].GetName() == name {
+			ret = &cp.ControllerPods[idx]
 			return
 		}
 	}
@@ -51,7 +51,7 @@ func (cp KubernetesControlPlane) GetController(name string) (ret Controller, err
 	return
 }
 
-func (cp KubernetesControlPlane) GetEndpoint() (string, error) {
+func (cp *KubernetesControlPlane) GetEndpoint() (string, error) {
 	return cp.Endpoint, nil
 }
 

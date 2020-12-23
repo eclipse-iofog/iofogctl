@@ -32,13 +32,14 @@ func (exe executor) deleteLocalContainer() error {
 	if errClean := client.CleanContainer(install.GetLocalContainerName("agent", false)); errClean != nil {
 		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
 	}
-	// if errClean := client.CleanContainer(install.GetLocalContainerName("agent", true)); errClean != nil {
-	// 	util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
-	// }
 
 	// Clean microservices
 	containers, err := client.ListContainers()
-	for _, container := range containers {
+	if err != nil {
+		return err
+	}
+	for idx := range containers {
+		container := &containers[idx]
 		for _, containerName := range container.Names {
 			if strings.HasPrefix(containerName, "/iofog_") {
 				if errClean := client.CleanContainerByID(container.ID); errClean != nil {

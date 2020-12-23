@@ -88,7 +88,7 @@ func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.RemoteControl
 		return
 	}
 
-	if err = controller.Sanitize(); err != nil {
+	if err := controller.Sanitize(); err != nil {
 		return nil, err
 	}
 

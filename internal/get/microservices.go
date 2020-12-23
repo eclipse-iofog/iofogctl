@@ -15,19 +15,18 @@ package get
 
 import (
 	"fmt"
+	"math"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
-	"math"
-	"strings"
 )
 
 type microserviceExecutor struct {
 	namespace  string
 	client     *client.Client
-	flows      []client.FlowInfo
 	msvcPerID  map[string]*client.MicroserviceInfo
 	agentPerID map[string]*client.AgentInfo
 }
@@ -76,14 +75,11 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 	printNamespace(exe.namespace)
-	table, err := exe.generateMicroserviceOutput()
-	if err != nil {
-		return err
-	}
+	table := exe.generateMicroserviceOutput()
 	return print(table)
 }
 
-func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string, err error) {
+func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string) {
 	// Generate table and headers
 	table = make([][]string, len(exe.msvcPerID)+1)
 	headers := []string{"MICROSERVICE", "STATUS", "AGENT", "VOLUMES", "PORTS"}
@@ -92,7 +88,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string,
 	// Populate rows
 	count := 0
 	for _, ms := range exe.msvcPerID {
-		if util.IsSystemMsvc(*ms) {
+		if util.IsSystemMsvc(ms) {
 			continue
 		}
 
@@ -149,5 +145,5 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string,
 		count++
 	}
 
-	return
+	return table
 }

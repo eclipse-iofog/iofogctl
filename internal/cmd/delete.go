@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"errors"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/delete"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
@@ -36,7 +37,7 @@ func newDeleteCommand() *cobra.Command {
 
 			// Check file
 			if opt.InputFile == "" {
-				util.Check(errors.New("Provided empty value for input file via the -f flag"))
+				util.Check(errors.New("provided empty value for input file via the -f flag"))
 			}
 
 			// Execute command

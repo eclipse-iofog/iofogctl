@@ -20,7 +20,6 @@ import (
 	"os"
 	"path"
 
-	configv1 "github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
@@ -33,7 +32,6 @@ var (
 	configFilename     string // config file name
 	namespaceDirectory string // Path of namespace directory
 	namespaces         map[string]*rsc.Namespace
-	// TODO: Replace sync.Mutex with chan impl (if its worth the code)
 )
 
 const (
@@ -65,7 +63,7 @@ func Init(configFolderArg string) {
 	} else {
 		dirInfo, err := os.Stat(configFolder)
 		util.Check(err)
-		if dirInfo.IsDir() == false {
+		if !dirInfo.IsDir() {
 			util.Check(util.NewInputError(fmt.Sprintf("The config folder %s is not a valid directory", configFolder)))
 		}
 	}
@@ -91,7 +89,7 @@ func Init(configFolderArg string) {
 	err = util.UnmarshalYAML(configFilename, &confHeader)
 	util.Check(err)
 
-	conf, err = getConfigFromHeader(confHeader)
+	conf, err = getConfigFromHeader(&confHeader)
 	util.Check(err)
 
 	// Check namespace dir exists
@@ -121,64 +119,57 @@ func getNamespaceFile(name string) string {
 	return path.Join(namespaceDirectory, name+".yaml")
 }
 
-func updateConfigToV2(header iofogctlConfig) (iofogctlConfig, error) {
-	header.APIVersion = configV2
-	return header, nil
+func updateConfigToV2(header *iofogctlConfig) {
+	if header != nil {
+		header.APIVersion = configV2
+	}
 }
 
-func getConfigFromHeader(header iofogctlConfig) (c configuration, err error) {
+func getConfigFromHeader(header *iofogctlConfig) (conf configuration, err error) {
 	switch header.APIVersion {
 	case CurrentConfigVersion:
-		{
-			// All good
-			break
-		}
+		// All good
+		break
 	// Example for further maintenance
-	// case PreviousConfigVersion {
+	// case PreviousConfigVersion
 	// 	updateFromPreviousVersion()
 	// 	break
-	// }
 	case configV1:
-		{
-			headerV2, err := updateConfigToV2(header)
-			if err != nil {
-				return c, err
-			}
-			return getConfigFromHeader(headerV2)
-		}
+		updateConfigToV2(header)
+		return getConfigFromHeader(header)
 	default:
-		return c, util.NewInputError("Invalid iofogctl config version")
+		return conf, util.NewInputError("Invalid iofogctl config version")
 	}
 	bytes, err := yaml.Marshal(header.Spec)
 	if err != nil {
 		return
 	}
-	if err = yaml.Unmarshal(bytes, &c); err != nil {
+	if err = yaml.Unmarshal(bytes, &conf); err != nil {
 		return
 	}
-	return
+	return conf, err
 }
 
-func getNamespaceFromHeader(header iofogctlNamespace) (n rsc.Namespace, err error) {
+func getNamespaceFromHeader(header *iofogctlNamespace) (ns *rsc.Namespace, err error) {
+	// Check header not supported
 	switch header.APIVersion {
 	case CurrentConfigVersion:
-		{
-			// All good
-			break
-		}
+		// All good
+		break
 	case configV1:
-		{
-			err = util.NewError("Namespace file is out of date.")
-			return
-		}
+		err = util.NewError("Namespace file is out of date.")
+		return
 	default:
-		return n, util.NewInputError("Invalid iofogctl config version")
+		err = util.NewInputError("Invalid iofogctl config version")
+		return
 	}
+	// Unmarshal Namespace spec
 	bytes, err := yaml.Marshal(header.Spec)
 	if err != nil {
 		return
 	}
-	if err = yaml.Unmarshal(bytes, &n); err != nil {
+	ns = new(rsc.Namespace)
+	if err = yaml.Unmarshal(bytes, &ns); err != nil {
 		return
 	}
 	return
@@ -245,15 +236,7 @@ func Flush() error {
 	return flushNamespaces()
 }
 
-type v1NamespaceSpecContent struct {
-	Name         string                `yaml:"name,omitempty"`
-	ControlPlane configv1.ControlPlane `yaml:"controlPlane,omitempty"`
-	Agents       []configv1.Agent      `yaml:"agents,omitempty"`
-	Created      string                `yaml:"created,omitempty"`
-	Connectors   []configv1.Connector  `yaml:"connectors,omitempty"`
-}
-
-func ValidateHeader(header Header) error {
+func ValidateHeader(header *Header) error {
 	if header.APIVersion != LatestAPIVersion {
 		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}

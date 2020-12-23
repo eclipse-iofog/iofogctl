@@ -40,19 +40,22 @@ func newGenerateDocumentationCommand(rootCmd *cobra.Command) *cobra.Command {
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if docDir == "" {
-				docDir := home + "/.iofog/docs/"
-				os.MkdirAll(docDir, 0755)
+				docDir = home + "/.iofog/docs/"
+				err = os.MkdirAll(docDir, 0755)
+				util.Check(err)
 			}
 			switch t := strings.ToLower(args[0]); t {
 			case "md":
 				mdDir := path.Join(docDir, "md/")
-				os.MkdirAll(mdDir, 0755)
-				err := doc.GenMarkdownTree(rootCmd, mdDir)
+				err = os.MkdirAll(mdDir, 0755)
+				util.Check(err)
+				err = doc.GenMarkdownTree(rootCmd, mdDir)
 				util.Check(err)
 				util.PrintSuccess(fmt.Sprintf("markdown documentation generated at %s", mdDir))
 			case "man":
 				manDir := path.Join(docDir, "man/")
-				os.MkdirAll(manDir, 0755)
+				err = os.MkdirAll(manDir, 0755)
+				util.Check(err)
 				header := &doc.GenManHeader{
 					Title:   "iofogctl",
 					Section: "1",

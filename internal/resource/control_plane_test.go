@@ -18,6 +18,11 @@ import (
 	"testing"
 )
 
+const (
+	email    = "user@domain.com"
+	password = "as901yh3rinsd"
+)
+
 func TestKubernetesControlPlane(t *testing.T) {
 	cp := KubernetesControlPlane{
 		Endpoint:   "123.123.123.123",

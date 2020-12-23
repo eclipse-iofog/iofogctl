@@ -79,7 +79,7 @@ func (facade *facadeExecutor) Execute() (err error) {
 
 	// Set Agent configuration if provided
 	if agentConfig := facade.agent.GetConfig(); agentConfig != nil {
-		configExe := agentconfig.NewRemoteExecutor(facade.agent.GetName(), *agentConfig, facade.namespace, facade.tags)
+		configExe := agentconfig.NewRemoteExecutor(facade.agent.GetName(), agentConfig, facade.namespace, facade.tags)
 		if err := configExe.Execute(); err != nil {
 			return err
 		}

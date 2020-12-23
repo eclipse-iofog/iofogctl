@@ -20,15 +20,15 @@ type LocalController struct {
 	Created   string    `yaml:"created,omitempty"`
 }
 
-func (ctrl LocalController) GetName() string {
+func (ctrl *LocalController) GetName() string {
 	return ctrl.Name
 }
 
-func (ctrl LocalController) GetEndpoint() string {
+func (ctrl *LocalController) GetEndpoint() string {
 	return ctrl.Endpoint
 }
 
-func (ctrl LocalController) GetCreatedTime() string {
+func (ctrl *LocalController) GetCreatedTime() string {
 	return ctrl.Created
 }
 

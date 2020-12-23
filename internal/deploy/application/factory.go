@@ -36,11 +36,11 @@ type remoteExecutor struct {
 	application rsc.Application
 }
 
-func (exe remoteExecutor) GetName() string {
+func (exe *remoteExecutor) GetName() string {
 	return exe.application.Name
 }
 
-func (exe remoteExecutor) Execute() error {
+func (exe *remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying Application %s", exe.GetName()))
 
 	ns, err := config.GetNamespace(exe.namespace)
@@ -108,7 +108,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		}
 	}
 
-	return remoteExecutor{
+	return &remoteExecutor{
 		namespace:   opt.Namespace,
 		application: application}, nil
 }

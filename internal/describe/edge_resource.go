@@ -15,6 +15,7 @@ package describe
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
@@ -84,11 +85,11 @@ func (exe *edgeResourceExecutor) Execute() error {
 	}
 
 	if exe.filename == "" {
-		if err = util.Print(header); err != nil {
+		if err := util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(header, exe.filename); err != nil {
+		if err := util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

@@ -34,7 +34,7 @@ var multipleResources = map[string]bool{
 	"controllers": true,
 }
 
-func NewExecutor(opt Options) (execute.Executor, error) {
+func NewExecutor(opt *Options) (execute.Executor, error) {
 	switch opt.ResourceType {
 	case "current-namespace":
 		return newDefaultNamespaceExecutor(opt), nil

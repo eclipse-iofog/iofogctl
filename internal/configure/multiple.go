@@ -20,10 +20,10 @@ import (
 )
 
 type multipleExecutor struct {
-	opt Options
+	opt *Options
 }
 
-func newMultipleExecutor(opt Options) *multipleExecutor {
+func newMultipleExecutor(opt *Options) *multipleExecutor {
 	return &multipleExecutor{
 		opt: opt,
 	}

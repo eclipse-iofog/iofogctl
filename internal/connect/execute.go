@@ -43,16 +43,16 @@ var kindOrder = []config.Kind{
 	config.RemoteControlPlaneKind,
 }
 
-var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
-	config.KubernetesControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
+	config.KubernetesControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectk8scontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
 	},
-	config.RemoteControlPlaneKind: func(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	config.RemoteControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
 	},
 }
 
-func Execute(opt Options) error {
+func Execute(opt *Options) error {
 	if opt.Generate {
 		return generateConnectionString(opt.Namespace)
 	}
@@ -83,7 +83,7 @@ func Execute(opt Options) error {
 		}
 	} else {
 		// Create namespace
-		if err = config.AddNamespace(opt.Namespace, util.NowUTC()); err != nil {
+		if err := config.AddNamespace(opt.Namespace, util.NowUTC()); err != nil {
 			return err
 		}
 	}
@@ -91,32 +91,33 @@ func Execute(opt Options) error {
 	defer config.Flush()
 
 	if opt.InputFile != "" {
-		if err = executeWithYAML(opt.InputFile, opt.Namespace); err != nil {
+		return executeWithYAML(opt.InputFile, opt.Namespace)
+	}
+	return manualExecute(opt)
+}
+
+func manualExecute(opt *Options) (err error) {
+	if err := hasAllFlags(opt); err != nil {
+		return err
+	}
+
+	// K8s or Remote
+	var exe execute.Executor
+	if opt.KubeConfig != "" {
+		exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+		if err != nil {
 			return err
 		}
 	} else {
-		if err := hasAllFlags(opt); err != nil {
+		exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
+		if err != nil {
 			return err
 		}
+	}
 
-		// K8s or Remote
-		var exe execute.Executor
-		if opt.KubeConfig != "" {
-			exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
-			if err != nil {
-				return err
-			}
-		} else {
-			exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
-			if err != nil {
-				return err
-			}
-		}
-
-		// Execute
-		if err = exe.Execute(); err != nil {
-			return err
-		}
+	// Execute
+	if err := exe.Execute(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -136,7 +137,7 @@ func executeWithYAML(yamlFile, namespace string) error {
 	return nil
 }
 
-func hasAllFlags(opt Options) error {
+func hasAllFlags(opt *Options) error {
 	if opt.IofogUserEmail == "" || opt.IofogUserPass == "" {
 		return util.NewInputError("Must provide ioFog User and Password flags")
 	}
@@ -161,8 +162,7 @@ func generateConnectionString(namespace string) error {
 	if err != nil {
 		return err
 	}
-	switch controlPlane.(type) {
-	case *rsc.LocalControlPlane:
+	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
 		return util.NewInputError("Cannot generate Connection String for Local Control Plane")
 	}
 	endpoint, err := controlPlane.GetEndpoint()

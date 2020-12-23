@@ -28,7 +28,7 @@ func Execute(namespace, name string) error {
 	}
 
 	// Execute deletion
-	if err = exe.Execute(); err != nil {
+	if err := exe.Execute(); err != nil {
 		return err
 	}
 

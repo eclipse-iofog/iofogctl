@@ -57,10 +57,20 @@ if ! checkForInstallation "jq"; then
     fi
 fi
 
+# Is go lint installed?
+if ! checkForInstallation "golangci-lint"; then
+    if [ "$(uname -s)" = "Darwin" ]; then
+        brew install golangci-lint
+        brew upgrade golangci-lint
+    else
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
+    fi
+fi
+
 # CI deps
 if [ ! -z "$PIPELINE" ]; then
     ## Is kubernetes-cli installed?
-    if [ ! checkForInstallation "kubectl" ]; then
+    if ! checkForInstallation "kubectl"; then
         OS=$(uname -s | tr A-Z a-z)
         K8S_VERSION=1.13.4
         echoInfo " Attempting to install kubernetes-cli"

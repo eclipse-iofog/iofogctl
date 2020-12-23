@@ -22,23 +22,23 @@ type LocalAgent struct {
 	Config    *AgentConfiguration `yaml:"config,omitempty"`
 }
 
-func (agent LocalAgent) GetName() string {
+func (agent *LocalAgent) GetName() string {
 	return agent.Name
 }
 
-func (agent LocalAgent) GetUUID() string {
+func (agent *LocalAgent) GetUUID() string {
 	return agent.UUID
 }
 
-func (agent LocalAgent) GetHost() string {
+func (agent *LocalAgent) GetHost() string {
 	return "localhost"
 }
 
-func (agent LocalAgent) GetCreatedTime() string {
+func (agent *LocalAgent) GetCreatedTime() string {
 	return agent.Created
 }
 
-func (agent LocalAgent) GetConfig() *AgentConfiguration {
+func (agent *LocalAgent) GetConfig() *AgentConfiguration {
 	return agent.Config
 }
 

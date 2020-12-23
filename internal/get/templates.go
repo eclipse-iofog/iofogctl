@@ -21,6 +21,10 @@ import (
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 )
 
+const (
+	separateDelim = ", "
+)
+
 type applicationTemplateExecutor struct {
 	namespace string
 	templates []client.ApplicationTemplate
@@ -42,10 +46,7 @@ func (exe *applicationTemplateExecutor) Execute() error {
 		return err
 	}
 	printNamespace(exe.namespace)
-	table, err := exe.generateApplicationTemplateOutput()
-	if err != nil {
-		return err
-	}
+	table := exe.generateApplicationTemplateOutput()
 	return print(table)
 }
 
@@ -69,7 +70,7 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 	return
 }
 
-func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (table [][]string, err error) {
+func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (table [][]string) {
 	// Generate table and headers
 	table = make([][]string, len(exe.templates)+1)
 	headers := []string{"TEMPLATE", "DESCRIPTION", "MICROSERVICES", "ROUTES"}
@@ -90,9 +91,10 @@ func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (tab
 }
 
 func encodeMicroservices(msvcs []client.MicroserviceCreateRequest) (encoded string) {
-	for msvcIdx, msvc := range msvcs {
-		delim := ", "
-		if msvcIdx == 0 {
+	for idx := range msvcs {
+		msvc := &msvcs[idx]
+		delim := separateDelim
+		if idx == 0 {
 			delim = ""
 		}
 		encoded = fmt.Sprintf("%s%s%s", encoded, delim, msvc.Name)
@@ -102,7 +104,7 @@ func encodeMicroservices(msvcs []client.MicroserviceCreateRequest) (encoded stri
 
 func encodeRoutes(routes []client.ApplicationRouteCreateRequest) (encoded string) {
 	for routeIdx, route := range routes {
-		delim := ", "
+		delim := separateDelim
 		if routeIdx == 0 {
 			delim = ""
 		}

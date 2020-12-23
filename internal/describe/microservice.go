@@ -55,7 +55,7 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 
-	if util.IsSystemMsvc(*(exe.msvc)) {
+	if util.IsSystemMsvc(exe.msvc) {
 		return nil
 	}
 
@@ -75,11 +75,11 @@ func (exe *microserviceExecutor) Execute() error {
 	}
 
 	if exe.filename == "" {
-		if err = util.Print(header); err != nil {
+		if err := util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(header, exe.filename); err != nil {
+		if err := util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

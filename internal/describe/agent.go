@@ -45,6 +45,9 @@ func (exe *agentExecutor) Execute() (err error) {
 	var agent rsc.Agent
 	if exe.useDetached {
 		agent, err = config.GetDetachedAgent(exe.name)
+		if err != nil {
+			return err
+		}
 	} else {
 		ns, err := config.GetNamespace(exe.namespace)
 		if err != nil {
@@ -55,9 +58,9 @@ func (exe *agentExecutor) Execute() (err error) {
 			return err
 		}
 		agent, err = ns.GetAgent(exe.name)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	var tags *[]string
@@ -91,11 +94,11 @@ func (exe *agentExecutor) Execute() (err error) {
 	}
 
 	if exe.filename == "" {
-		if err = util.Print(header); err != nil {
+		if err := util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(header, exe.filename); err != nil {
+		if err := util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

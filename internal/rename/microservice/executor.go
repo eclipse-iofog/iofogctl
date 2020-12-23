@@ -15,6 +15,7 @@ package microservice
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"

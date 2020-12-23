@@ -52,15 +52,14 @@ func (exe *Executor) init() (err error) {
 // Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() (err error) {
 	util.SpinStart("Deleting Application")
-	if err = exe.init(); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 
 	err = exe.client.DeleteApplication(exe.name)
 	// If notfound error, try legacy
-	if _, ok := err.(*client.NotFoundError); err != nil && ok {
+	if _, ok := err.(*client.NotFoundError); ok {
 		return exe.deleteLegacy()
 	}
-
-	return nil
+	return err
 }

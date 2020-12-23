@@ -70,9 +70,9 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 	}
 
 	// Get Agentconfig executor
-	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, deployAgentConfig, namespace, nil)
+	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(iofog.VanillaRouterAgentName, &deployAgentConfig, namespace, nil)
 	// If there already is a system fog, ignore error
-	if err = deployAgentConfigExecutor.Execute(); err != nil {
+	if err := deployAgentConfigExecutor.Execute(); err != nil {
 		return err
 	}
 	agent.UUID = deployAgentConfigExecutor.GetAgentUUID()
@@ -95,7 +95,7 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 		if !ok {
 			return util.NewInternalError("Could not convert ControlPlane to Remote ControlPlane")
 		}
-		if err = deploySystemAgent(exe.ns.Name, controller, remoteControlPlane.SystemAgent); err != nil {
+		if err := deploySystemAgent(exe.ns.Name, controller, remoteControlPlane.SystemAgent); err != nil {
 			return err
 		}
 	}
@@ -113,7 +113,7 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 	if err != nil {
 		return
 	}
-	if err = install.WaitForControllerAPI(endpoint); err != nil {
+	if err := install.WaitForControllerAPI(endpoint); err != nil {
 		return err
 	}
 	// Create new user
@@ -126,7 +126,7 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 			return err
 		}
 		// Try to log in
-		if err = exe.ctrlClient.Login(client.LoginRequest{
+		if err := exe.ctrlClient.Login(client.LoginRequest{
 			Email:    user.Email,
 			Password: user.Password,
 		}); err != nil {
@@ -135,7 +135,7 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 	}
 	// Update config
 	exe.ns.SetControlPlane(exe.controlPlane)
-	if err = config.Flush(); err != nil {
+	if err := config.Flush(); err != nil {
 		return err
 	}
 	// Post deploy steps
@@ -168,12 +168,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	// Instantiate executors
-	var controllerExecutors []execute.Executor
-
 	// Create exe Controllers
-	for _, baseController := range controlPlane.GetControllers() {
-		controller, ok := baseController.(*rsc.RemoteController)
+	controllers := controlPlane.GetControllers()
+	controllerExecutors := make([]execute.Executor, len(controllers))
+	for idx := range controllers {
+		controller, ok := controllers[idx].(*rsc.RemoteController)
 		if !ok {
 			return nil, util.NewError("Could not convert Controller to Remote Controller")
 		}
@@ -181,7 +180,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		if err != nil {
 			return nil, err
 		}
-		controllerExecutors = append(controllerExecutors, exe)
+		controllerExecutors[idx] = exe
 	}
 
 	return newControlPlaneExecutor(controllerExecutors, ns, opt.Name, &controlPlane), nil
@@ -192,31 +191,4 @@ func runExecutors(executors []execute.Executor) error {
 		return execute.CoalesceErrors(errs)
 	}
 	return nil
-}
-
-func validate(controlPlane *rsc.RemoteControlPlane) (err error) {
-	// Validate user
-	user := controlPlane.IofogUser
-	if user.Email == "" || user.Name == "" || user.Password == "" || user.Surname == "" {
-		return util.NewInputError("Control Plane Iofog User must contain non-empty values in email, name, surname, and password fields")
-	}
-	// Validate database
-	db := controlPlane.Database
-	if db.Host != "" || db.DatabaseName != "" || db.Password != "" || db.Port != 0 || db.User != "" {
-		if db.Host == "" || db.DatabaseName == "" || db.Password == "" || db.Port == 0 || db.User == "" {
-			return util.NewInputError("If you are specifying an external database for the Control Plane, you must provide non-empty values in host, databasename, user, password, and port fields,")
-		}
-	}
-	// Validate Controllers
-	controllers := controlPlane.GetControllers()
-	if len(controllers) == 0 {
-		return util.NewInputError("Control Plane must have at least one Controller instance specified.")
-	}
-	for _, ctrl := range controllers {
-		if err = deployremotecontroller.Validate(ctrl); err != nil {
-			return
-		}
-	}
-
-	return
 }

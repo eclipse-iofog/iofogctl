@@ -20,15 +20,15 @@ type KubernetesController struct {
 	Status   string `yaml:"status,omitempty"`
 }
 
-func (ctrl KubernetesController) GetName() string {
+func (ctrl *KubernetesController) GetName() string {
 	return ctrl.PodName
 }
 
-func (ctrl KubernetesController) GetEndpoint() string {
+func (ctrl *KubernetesController) GetEndpoint() string {
 	return ctrl.Endpoint
 }
 
-func (ctrl KubernetesController) GetCreatedTime() string {
+func (ctrl *KubernetesController) GetCreatedTime() string {
 	return ctrl.Created
 }
 

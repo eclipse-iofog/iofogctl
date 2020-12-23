@@ -30,38 +30,42 @@ const (
 	NoneRouter     RouterMode = "none"
 )
 
-func getRouterMode(config rsc.AgentConfiguration) RouterMode {
+func getRouterMode(config *rsc.AgentConfiguration) RouterMode {
 	if config.RouterConfig.RouterMode != nil {
 		return RouterMode(*config.RouterConfig.RouterMode)
-	} else {
-		return EdgeRouter
 	}
+	return EdgeRouter
 }
 
-func Validate(config rsc.AgentConfiguration) error {
+func Validate(config *rsc.AgentConfiguration) error {
 	routerMode := getRouterMode(config)
 
 	if routerMode != EdgeRouter && routerMode != InteriorRouter && routerMode != NoneRouter {
-		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. RouterMode has to be one of edge, interior, none. Default is: edge", config.Name))
+		msg := "agent config %s validation failed. RouterMode has to be one of edge, interior, none. Default is: edge"
+		return util.NewInputError(fmt.Sprintf(msg, config.Name))
 	}
 	if routerMode != NoneRouter && config.NetworkRouter != nil {
-		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a network if routerMode is different from none. Current router mode is: %s", config.Name, routerMode))
+		msg := "agent config %s validation failed. Cannot have a network if routerMode is different from none. Current router mode is: %s"
+		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
 	}
 	if routerMode == NoneRouter && config.UpstreamRouters != nil && len(*config.UpstreamRouters) > 0 {
-		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a upstreamRouters if routerMode is none", config.Name))
+		msg := "agent config %s validation failed. Cannot have a upstreamRouters if routerMode is none"
+		return util.NewInputError(fmt.Sprintf(msg, config.Name))
 	}
 	if routerMode != InteriorRouter && (config.RouterConfig.EdgeRouterPort != nil || config.RouterConfig.InterRouterPort != nil) {
-		return util.NewInputError(fmt.Sprintf("Agent config %s validation failed. Cannot have a edgeRouterPort or InterRouterPort if routerMode is different from interior. Current router mode is: %s", config.Name, routerMode))
+		msg := "agent config %s validation failed. Cannot have an edgeRouterPort or interRouterPort if routerMode is different from interior. Current router mode is: %s"
+		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
 	}
 
 	return nil
 }
 
-func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err error) {
+func findAgentUUIDInList(list []client.AgentInfo, name string) (uuid string, err error) {
 	if name == iofog.VanillaRouterAgentName {
 		return name, nil
 	}
-	for _, agent := range list {
+	for idx := range list {
+		agent := &list[idx]
 		if agent.Name == name {
 			return agent.UUID, nil
 		}
@@ -70,15 +74,15 @@ func findAgentUuidInList(list []client.AgentInfo, name string) (uuid string, err
 }
 
 // Process update the config to translate agent names into uuids, and sets the host value if needed
-func Process(agentConfig rsc.AgentConfiguration, name, agentIP string, otherAgents []client.AgentInfo) (rsc.AgentConfiguration, error) {
+func Process(agentConfig *rsc.AgentConfiguration, name, agentIP string, otherAgents []client.AgentInfo) error {
 	routerMode := getRouterMode(agentConfig)
 
 	if agentConfig.UpstreamRouters != nil {
 		upstreamRoutersUUID := []string{}
 		for _, agentName := range *agentConfig.UpstreamRouters {
-			uuid, err := findAgentUuidInList(otherAgents, agentName)
+			uuid, err := findAgentUUIDInList(otherAgents, agentName)
 			if err != nil {
-				return agentConfig, err
+				return err
 			}
 			upstreamRoutersUUID = append(upstreamRoutersUUID, uuid)
 		}
@@ -86,9 +90,9 @@ func Process(agentConfig rsc.AgentConfiguration, name, agentIP string, otherAgen
 	}
 
 	if agentConfig.NetworkRouter != nil {
-		uuid, err := findAgentUuidInList(otherAgents, *agentConfig.NetworkRouter)
+		uuid, err := findAgentUUIDInList(otherAgents, *agentConfig.NetworkRouter)
 		if err != nil {
-			return agentConfig, err
+			return err
 		}
 		agentConfig.NetworkRouter = &uuid
 	}
@@ -97,10 +101,10 @@ func Process(agentConfig rsc.AgentConfiguration, name, agentIP string, otherAgen
 		agentConfig.Host = &agentIP
 	}
 
-	return agentConfig, nil
+	return nil
 }
 
-func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
+func getAgentUpdateRequestFromAgentConfig(agentConfig *rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
 	var fogTypePtr *int64
 	if agentConfig.FogType != nil {
 		fogType, found := rsc.FogTypeStringMap[*agentConfig.FogType]
@@ -120,7 +124,7 @@ func getAgentUpdateRequestFromAgentConfig(agentConfig rsc.AgentConfiguration, ta
 	return
 }
 
-func createAgentFromConfiguration(agentConfig rsc.AgentConfiguration, tags *[]string, name string, clt *client.Client) (uuid string, err error) {
+func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, name string, clt *client.Client) (uuid string, err error) {
 	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 	createAgentRequest := client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
@@ -141,7 +145,7 @@ func createAgentFromConfiguration(agentConfig rsc.AgentConfiguration, tags *[]st
 
 func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, uuid string, clt *client.Client) (err error) {
 	if agentConfig != nil {
-		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(*agentConfig, tags)
+		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 		updateAgentConfigRequest.UUID = uuid
 
 		if _, err = clt.UpdateAgent(&updateAgentConfigRequest); err != nil {

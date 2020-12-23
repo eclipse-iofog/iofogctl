@@ -54,7 +54,7 @@ func (exe *Executor) Execute() error {
 	// Delete files
 	ch := make(chan error, len(volume.Agents))
 	for idx := range volume.Agents {
-		go exe.execute(volume, idx, ch)
+		go exe.execute(&volume, idx, ch)
 	}
 	for idx := 0; idx < len(volume.Agents); idx++ {
 		if err := <-ch; err != nil {
@@ -70,7 +70,7 @@ func (exe *Executor) Execute() error {
 }
 
 // TODO: Parallelize this
-func (exe *Executor) execute(volume rsc.Volume, agentIdx int, ch chan error) {
+func (exe *Executor) execute(volume *rsc.Volume, agentIdx int, ch chan error) {
 	agentName := volume.Agents[agentIdx]
 	baseAgent, err := exe.ns.GetAgent(agentName)
 	if err != nil {

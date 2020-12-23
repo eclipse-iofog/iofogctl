@@ -78,5 +78,5 @@ func generateVolumeOutput(namespace string) (table [][]string, err error) {
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	return
+	return table, err
 }

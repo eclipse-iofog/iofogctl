@@ -35,18 +35,18 @@ type executor struct {
 	volume    rsc.Volume
 }
 
-func (exe executor) GetName() string {
+func (exe *executor) GetName() string {
 	return "deploying Volume " + exe.Name
 }
 
-func (exe executor) Execute() error {
+func (exe *executor) Execute() error {
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
 	}
 	// Check agents exist
-	remoteAgents := make([]*rsc.RemoteAgent, 0)
-	localAgents := make([]*rsc.LocalAgent, 0)
+	remoteAgents := []*rsc.RemoteAgent{}
+	localAgents := []*rsc.LocalAgent{}
 	for _, agentName := range exe.volume.Agents {
 		baseAgent, err := ns.GetAgent(agentName)
 		if err != nil {
@@ -55,7 +55,7 @@ func (exe executor) Execute() error {
 		agent, ok := baseAgent.(*rsc.RemoteAgent)
 		if ok {
 			// Check SSH details
-			if err = agent.ValidateSSH(); err != nil {
+			if err := agent.ValidateSSH(); err != nil {
 				return err
 			}
 			// Check agent is not local
@@ -74,14 +74,14 @@ func (exe executor) Execute() error {
 	}
 	executors := []execute.Executor{}
 	if len(localAgents) > 0 {
-		executors = append(executors, localExecutor{
+		executors = append(executors, &localExecutor{
 			agents: localAgents,
 			volume: exe.volume,
 			ns:     ns,
 		})
 	}
 	if len(remoteAgents) > 0 {
-		executors = append(executors, remoteExecutor{
+		executors = append(executors, &remoteExecutor{
 			agents: remoteAgents,
 			volume: exe.volume,
 			ns:     ns,
@@ -115,7 +115,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	if !info.IsDir() {
 		return nil, util.NewInputError("Source must be a directory")
 	}
-	return executor{
+	return &executor{
 		Name:      volume.Name,
 		namespace: opt.Namespace,
 		volume:    volume,

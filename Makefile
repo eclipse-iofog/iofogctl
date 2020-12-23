@@ -47,7 +47,7 @@ bootstrap: ## Bootstrap environment
 
 .PHONY: build
 build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
-build: fmt ## Build the binary
+build: lint ## Build the binary
 ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
 endif
@@ -57,7 +57,6 @@ endif
 .PHONY: install
 install: ## Install the iofogctl binary to /usr/local/bin
 	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
-
 
 .PHONY: modules
 modules: get vendor ## Get modules and vendor them
@@ -75,6 +74,10 @@ vendor: ## Vendor all modules
 	@for module in GeertJohan akavel jessevdk jstemmer nkovacs valyala; do \
 		git checkout -- vendor/github.com/$$module; \
 	done
+
+.PHONY: lint
+lint: fmt ## Lint the source
+	@golangci-lint run --timeout 5m0s
 
 .PHONY: fmt
 fmt: ## Format the source

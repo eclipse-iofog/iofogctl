@@ -14,7 +14,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -26,23 +25,23 @@ import (
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // GCP Auth pkg required
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
-	sshErrMsg = "Legacy commands requires SSH access.\n%s %s SSH details are not available.\nUse `iofogctl configure --help` to find out how to add SSH details"
+	sshErrMsg = "legacy commands requires SSH access.\n%s %s SSH details are not available.\nUse `iofogctl configure --help` to find out how to add SSH details"
 )
 
 func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string) {
 	kubeConfig, err := util.FormatPath(kubeConfig)
 	util.Check(err)
 	// Connect to cluster
-	//Execute
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
+	// Execute
+	conf, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 	util.Check(err)
 	// Instantiate Kubernetes client
-	clientset, err := kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(conf)
 	util.Check(err)
 	podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: podSelector})
 	if err != nil {
@@ -76,7 +75,7 @@ func remoteExec(user, host, keyFile string, port int, cliCmd string, cmd []strin
 	ssh := util.NewSecureShellClient(user, host, keyFile)
 	ssh.SetPort(port)
 	util.Check(ssh.Connect())
-	defer ssh.Disconnect()
+	defer util.Log(ssh.Disconnect)
 
 	sshCmd := cliCmd
 	for _, arg := range cmd {
@@ -131,7 +130,7 @@ iofogctl legacy agent      NAME COMMAND`,
 					k8sExecute(k8sControlPlane.KubeConfig, namespace, "name=controller", cliCommand, args[2:])
 				case *rsc.RemoteController:
 					if controller.ValidateSSH() != nil {
-						util.Check(errors.New(fmt.Sprintf(sshErrMsg, "Controller", controller.Name)))
+						util.Check(fmt.Errorf(sshErrMsg, "Controller", controller.Name))
 					}
 					remoteExec(controller.SSH.User, controller.Host, controller.SSH.KeyFile, controller.SSH.Port, "sudo iofog-controller", args[2:])
 				case *rsc.LocalController:
@@ -156,7 +155,7 @@ iofogctl legacy agent      NAME COMMAND`,
 				case *rsc.RemoteAgent:
 					// SSH connect
 					if agent.ValidateSSH() != nil {
-						util.Check(errors.New(fmt.Sprintf(sshErrMsg, "Agent", agent.Name)))
+						util.Check(fmt.Errorf(sshErrMsg, "Agent", agent.Name))
 					}
 					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
 				}

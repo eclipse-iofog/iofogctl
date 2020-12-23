@@ -64,8 +64,7 @@ func (exe *allExecutor) Execute() error {
 		routines = append(routines[:2], append([]tableFunc{getEdgeResourceTable}, routines[2:]...)...)
 	}
 	// Get tables in parallel
-	resourceCount := len(routines)
-	tableChans := make([]tableChannel, resourceCount)
+	tableChans := make([]tableChannel, len(routines))
 	for idx := range tableChans {
 		tableChans[idx] = make(tableChannel, 1)
 	}
@@ -110,10 +109,9 @@ func getApplicationTable(namespace string, tableChan tableChannel) {
 		tableChan <- tableQuery{err: err}
 		return
 	}
-	table, err := appExe.generateApplicationOutput()
+	table := appExe.generateApplicationOutput()
 	tableChan <- tableQuery{
 		table: table,
-		err:   err,
 	}
 }
 
@@ -122,10 +120,9 @@ func getMicroserviceTable(namespace string, tableChan tableChannel) {
 	if err := msvcExe.init(); err != nil {
 		tableChan <- tableQuery{err: err}
 	}
-	table, err := msvcExe.generateMicroserviceOutput()
+	table := msvcExe.generateMicroserviceOutput()
 	tableChan <- tableQuery{
 		table: table,
-		err:   err,
 	}
 }
 

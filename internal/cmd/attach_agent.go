@@ -37,7 +37,7 @@ The Agent will be provisioned with the Controller within the Namespace.`,
 			util.Check(err)
 
 			// Run the command
-			exe := attach.NewExecutor(opt)
+			exe := attach.NewExecutor(&opt)
 			err = exe.Execute()
 			util.Check(err)
 

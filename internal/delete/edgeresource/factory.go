@@ -15,6 +15,7 @@ package deleteedgeresource
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"

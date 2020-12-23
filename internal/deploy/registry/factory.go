@@ -36,14 +36,14 @@ type remoteExecutor struct {
 	registry  rsc.Registry
 }
 
-func (exe remoteExecutor) GetName() string {
+func (exe *remoteExecutor) GetName() string {
 	if exe.registry.URL != nil {
 		return *exe.registry.URL
 	}
 	return ""
 }
 
-func (exe remoteExecutor) Execute() error {
+func (exe *remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying registry %s", exe.GetName()))
 	// Init remote resources
 	clt, err := iutil.NewControllerClient(exe.namespace)
@@ -126,11 +126,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		registry.Private = &Private
 	}
 
-	if err = validate(registry, true); err != nil {
+	if err := validate(registry, true); err != nil {
 		return nil, err
 	}
 
-	return remoteExecutor{
+	return &remoteExecutor{
 		registry:  registry,
 		namespace: opt.Namespace,
 	}, nil
@@ -148,7 +148,7 @@ func validate(opt rsc.Registry, create bool) error {
 	if opt.RequiresCert != nil && *opt.RequiresCert && opt.Certificate != nil && *opt.Certificate == "" {
 		return util.NewInputError("Certificate cannot be empty if requiresCertificate is set to true")
 	}
-	if *opt.Private == false && ((opt.Password == nil || *opt.Password == "") || (opt.Username == nil || *opt.Username == "")) {
+	if !*opt.Private && ((opt.Password == nil || *opt.Password == "") || (opt.Username == nil || *opt.Username == "")) {
 		return util.NewInputError("Password and/or Username cannot be empty if Private is set to false")
 	}
 

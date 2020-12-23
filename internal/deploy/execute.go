@@ -59,71 +59,71 @@ type Options struct {
 	InputFile string
 }
 
-func deployEdgeResource(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployEdgeResource(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployedgeresource.NewExecutor(deployedgeresource.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployCatalogItem(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployCatalogItem(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploycatalogitem.NewExecutor(deploycatalogitem.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployApplicationTemplate(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployApplicationTemplate(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployapplicationtemplate.NewExecutor(deployapplicationtemplate.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployApplication(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployApplication(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployapplication.NewExecutor(deployapplication.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployMicroservice(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployMicroservice(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploymicroservice.NewExecutor(deploymicroservice.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployKubernetesControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployKubernetesControlPlane(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployk8scontrolplane.NewExecutor(deployk8scontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployRemoteControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployRemoteControlPlane(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployremotecontrolplane.NewExecutor(deployremotecontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployLocalControlPlane(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployLocalControlPlane(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploylocalcontrolplane.NewExecutor(deploylocalcontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployRemoteController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployRemoteController(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployremotecontroller.NewExecutor(deployremotecontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployLocalController(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployLocalController(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploylocalcontroller.NewExecutor(deploylocalcontroller.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployRemoteAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployRemoteAgent(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployagent.NewRemoteExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Tags: opt.Tags, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployLocalAgent(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployLocalAgent(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployagent.NewLocalExecutorYAML(deployagent.Options{Namespace: opt.Namespace, Tags: opt.Tags, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployAgentConfig(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployAgentConfig(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployagentconfig.NewExecutor(deployagentconfig.Options{Namespace: opt.Namespace, Tags: opt.Tags, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployRegistry(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployRegistry(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployregistry.NewExecutor(deployregistry.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployVolume(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployVolume(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployvolume.NewExecutor(deployvolume.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployRoute(opt execute.KindHandlerOpt) (exe execute.Executor, err error) {
+func deployRoute(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployroute.NewExecutor(deployroute.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-var kindHandlers = map[config.Kind]func(execute.KindHandlerOpt) (execute.Executor, error){
+var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
 	config.ApplicationKind:            deployApplication,
 	config.ApplicationTemplateKind:    deployApplicationTemplate,
 	config.MicroserviceKind:           deployMicroservice,
@@ -190,7 +190,7 @@ func Execute(opt *Options) (err error) {
 			}
 			executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
 				agentExecutor.GetName(),
-				rsc.AgentConfiguration{
+				&rsc.AgentConfiguration{
 					Name:               agentExecutor.GetName(),
 					AgentConfiguration: agentConfig,
 				},
@@ -233,7 +233,7 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Agent config
-	if err = deployAgentConfiguration(executorsMap[config.AgentConfigKind]); err != nil {
+	if err := deployAgentConfiguration(executorsMap[config.AgentConfigKind]); err != nil {
 		return err
 	}
 
@@ -266,85 +266,94 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 	}
 
 	for namespace, executors := range executorsByNamespace {
-		// List agents on Controller
-		ctrlClient, err := iutil.NewControllerClient(namespace)
-		if err != nil {
+		if err := sortAndExecute(namespace, executors); err != nil {
 			return err
-		}
-
-		listAgentReponse, err := ctrlClient.ListAgents(client.ListAgentsRequest{})
-		if err != nil {
-			return err
-		}
-
-		// Get a map for easy access
-		agentByName := make(map[string]*client.AgentInfo)
-		agentByUUID := make(map[string]*client.AgentInfo)
-		for idx := range listAgentReponse.Agents {
-			agentByName[listAgentReponse.Agents[idx].Name] = &listAgentReponse.Agents[idx]
-			agentByUUID[listAgentReponse.Agents[idx].UUID] = &listAgentReponse.Agents[idx]
-		}
-		// Add default router
-		agentByName[iofog.VanillaRouterAgentName] = &client.AgentInfo{Name: iofog.VanillaRouterAgentName}
-
-		// Agent config are the representation of agents in Controller. They need to be deployed sequentially because of router dependencies
-		// First create the acyclic graph of dependencies
-		g := graph.New(graph.Directed)
-		nodeMap := make(map[string]graph.Node, 0)
-		agentNodeMap := make(map[string]graph.Node, 0)
-
-		for idx := range executors {
-			// Create node
-			nodeMap[executors[idx].GetName()] = g.MakeNode()
-			// Make node value to be executor
-			*nodeMap[executors[idx].GetName()].Value = executors[idx]
-		}
-
-		// Create connections
-		for _, node := range nodeMap {
-			// Get a more specific executor allowing retrieval of upstream agents
-			agentConfigExecutor, ok := (*node.Value).(deployagentconfig.AgentConfigExecutor)
-			if !ok {
-				return util.NewInternalError("Could not convert node to agent config executor")
-			}
-			// Set dependencies for agent config topological sort
-			configuration := agentConfigExecutor.GetConfiguration()
-			dependencies := getDependencies(configuration.UpstreamRouters, configuration.NetworkRouter)
-			if err = makeEdges(g, node, nodeMap, agentNodeMap, agentByName, agentByUUID, dependencies); err != nil {
-				return err
-			}
-		}
-
-		// Detect if there is any cyclic graph
-		cyclicGraphs := g.StronglyConnectedComponents()
-		for _, cyclicGraph := range cyclicGraphs {
-			if len(cyclicGraph) > 1 {
-				cyclicAgentsNames := []string{}
-				for _, node := range cyclicGraph {
-					executor := (*node.Value).(execute.Executor)
-					cyclicAgentsNames = append(cyclicAgentsNames, executor.GetName())
-				}
-				return util.NewInputError(fmt.Sprintf("Cyclic dependencies between agent configurations: %v\n", cyclicAgentsNames))
-			}
-		}
-
-		// Sort and execute
-		sortedExecutors := g.TopologicalSort()
-		for i := range sortedExecutors {
-			executor, ok := (*sortedExecutors[i].Value).(execute.Executor)
-			if !ok {
-				return util.NewInternalError("Failed to convert node to executor")
-			}
-			if err = executor.Execute(); err != nil {
-				return err
-			}
 		}
 	}
 
 	return nil
 }
 
-func makeEdges(g *graph.Graph, node graph.Node, nodeMap, agentNodeMap map[string]graph.Node, agentByName, agentByUUID map[string]*client.AgentInfo, dependencies []string) (err error) {
+func sortAndExecute(namespace string, executors []deployagentconfig.AgentConfigExecutor) error {
+	// List agents on Controller
+	ctrlClient, err := iutil.NewControllerClient(namespace)
+	if err != nil {
+		return err
+	}
+
+	listAgentReponse, err := ctrlClient.ListAgents(client.ListAgentsRequest{})
+	if err != nil {
+		return err
+	}
+
+	// Get a map for easy access
+	agentByName := make(map[string]*client.AgentInfo)
+	agentByUUID := make(map[string]*client.AgentInfo)
+	for idx := range listAgentReponse.Agents {
+		agentByName[listAgentReponse.Agents[idx].Name] = &listAgentReponse.Agents[idx]
+		agentByUUID[listAgentReponse.Agents[idx].UUID] = &listAgentReponse.Agents[idx]
+	}
+	// Add default router
+	agentByName[iofog.VanillaRouterAgentName] = &client.AgentInfo{Name: iofog.VanillaRouterAgentName}
+
+	// Agent config are the representation of agents in Controller. They need to be deployed sequentially because of router dependencies
+	// First create the acyclic graph of dependencies
+	g := graph.New(graph.Directed)
+	nodeMap := make(map[string]graph.Node)
+	agentNodeMap := make(map[string]graph.Node)
+
+	for idx := range executors {
+		// Create node
+		nodeMap[executors[idx].GetName()] = g.MakeNode()
+		// Make node value to be executor
+		*nodeMap[executors[idx].GetName()].Value = executors[idx]
+	}
+
+	// Create connections
+	for _, node := range nodeMap {
+		// Get a more specific executor allowing retrieval of upstream agents
+		agentConfigExecutor, ok := (*node.Value).(deployagentconfig.AgentConfigExecutor)
+		if !ok {
+			return util.NewInternalError("Could not convert node to agent config executor")
+		}
+		// Set dependencies for agent config topological sort
+		configuration := agentConfigExecutor.GetConfiguration()
+		dependencies := getDependencies(configuration.UpstreamRouters, configuration.NetworkRouter)
+		if err := makeEdges(g, node, nodeMap, agentNodeMap, agentByName, agentByUUID, dependencies); err != nil {
+			return err
+		}
+	}
+
+	// Detect if there is any cyclic graph
+	cyclicGraphs := g.StronglyConnectedComponents()
+	for _, cyclicGraph := range cyclicGraphs {
+		if len(cyclicGraph) > 1 {
+			cyclicAgentsNames := []string{}
+			for _, node := range cyclicGraph {
+				executor := (*node.Value).(execute.Executor)
+				cyclicAgentsNames = append(cyclicAgentsNames, executor.GetName())
+			}
+			return util.NewInputError(fmt.Sprintf("Cyclic dependencies between agent configurations: %v\n", cyclicAgentsNames))
+		}
+	}
+
+	// Sort and execute
+	sortedExecutors := g.TopologicalSort()
+	for i := range sortedExecutors {
+		executor, ok := (*sortedExecutors[i].Value).(execute.Executor)
+		if !ok {
+			return util.NewInternalError("Failed to convert node to executor")
+		}
+		if err := executor.Execute(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// TODO: Refactor this func to have struct arg
+func makeEdges(g *graph.Graph, node graph.Node, nodeMap, agentNodeMap map[string]graph.Node,
+	agentByName, agentByUUID map[string]*client.AgentInfo, dependencies []string) (err error) {
 	for _, dep := range dependencies {
 		dependsOnNode, found := nodeMap[dep]
 		if !found {
@@ -365,13 +374,15 @@ func makeEdges(g *graph.Graph, node graph.Node, nodeMap, agentNodeMap map[string
 			if agent != nil {
 				// Fill dependency graph with agents on Controller
 				uuidDependencies := getDependencies(agent.UpstreamRouters, agent.NetworkRouter)
-				if err = makeEdges(g, dependsOnNode, nodeMap, agentNodeMap, agentByName, agentByUUID, mapUUIDsToNames(uuidDependencies, agentByUUID)); err != nil {
+				if err := makeEdges(g, dependsOnNode, nodeMap, agentNodeMap, agentByName, agentByUUID, mapUUIDsToNames(uuidDependencies, agentByUUID)); err != nil {
 					return err
 				}
 			}
 		}
 		// Edge from x -> y means that x needs to complete before y
-		g.MakeEdge(dependsOnNode, node)
+		if err := g.MakeEdge(dependsOnNode, node); err != nil {
+			return err
+		}
 	}
 	return nil
 }

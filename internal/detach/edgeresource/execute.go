@@ -15,6 +15,7 @@ package detachedgeresource
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"

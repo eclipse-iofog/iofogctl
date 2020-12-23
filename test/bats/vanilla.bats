@@ -8,6 +8,7 @@ NS2="$NS"-2
 @test "Initialize tests" {
   stopTest
 }
+
 @test "Verify Agents >= 2" {
   startTest
   testAgentCount
@@ -372,7 +373,7 @@ spec:
     local AGENT_NAME="${NAME}-${IDX}"
     iofogctl -v -n "$NS2" rename agent "$AGENT_NAME" "newname"
     checkRenamedResource agents "$AGENT_NAME" "newname" "$NS2"
-    iofogctl -v -n "${NS2}" rename agent "newname" "${AGENT_NAME}"
+    iofogctl -v -n "$NS2" rename agent "newname" "$AGENT_NAME"
     checkRenamedResource agents "newname" "$AGENT_NAME" "$NS2"
   done
   stopTest
@@ -382,7 +383,7 @@ spec:
   startTest
   iofogctl -v -n "$NS2" rename controller "$NAME" "newname"
   checkRenamedResource controllers "$NAME" "newname" "$NS2"
-  iofogctl -v -n "$NS2" rename controller "newname" "${NAME}"
+  iofogctl -v -n "$NS2" rename controller "newname" "$NAME"
   checkRenamedResource controllers "newname" "$NAME" "$NS2"
   stopTest
 }

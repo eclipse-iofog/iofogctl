@@ -35,7 +35,7 @@ func ElapsedUTC(from, to string) (diff string, err error) {
 	if err != nil {
 		return
 	}
-	diffTime := time.Now().Sub(fromTime)
+	diffTime := time.Since(fromTime)
 	diff = FormatDuration(diffTime)
 	return
 }
@@ -45,7 +45,7 @@ func ElapsedRFC(from, to string) (diff string, err error) {
 	if err != nil {
 		return
 	}
-	diffTime := time.Now().Sub(fromTime)
+	diffTime := time.Since(fromTime)
 	diff = FormatDuration(diffTime)
 	return
 }

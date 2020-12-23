@@ -36,11 +36,11 @@ type remoteExecutor struct {
 	microservice rsc.Microservice
 }
 
-func (exe remoteExecutor) GetName() string {
+func (exe *remoteExecutor) GetName() string {
 	return exe.microservice.Name
 }
 
-func (exe remoteExecutor) Execute() error {
+func (exe *remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.GetName()))
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
@@ -99,7 +99,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		microservice.Images.Registry = "remote"
 	}
 
-	return remoteExecutor{
+	return &remoteExecutor{
 		namespace:    opt.Namespace,
 		microservice: microservice}, nil
 }

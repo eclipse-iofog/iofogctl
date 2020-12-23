@@ -1,4 +1,4 @@
-package agents
+package connectcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -19,13 +19,14 @@ func Connect(ctrlPlane rsc.ControlPlane, endpoint string, ns *rsc.Namespace) err
 	}
 
 	// Update Agents config
-	for _, agent := range listAgentsResponse.Agents {
+	for idx := range listAgentsResponse.Agents {
+		agent := &listAgentsResponse.Agents[idx]
 		agentConfig := rsc.RemoteAgent{
 			Name: agent.Name,
 			UUID: agent.UUID,
 			Host: agent.IPAddressExternal,
 		}
-		if err = ns.AddAgent(&agentConfig); err != nil {
+		if err := ns.AddAgent(&agentConfig); err != nil {
 			return err
 		}
 	}

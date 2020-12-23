@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/configure"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
@@ -47,10 +48,8 @@ iofogctl configure controlplane --kube FILE`,
 			opt.ResourceType = args[0]
 			if len(args) > 1 {
 				opt.Name = args[1]
-			} else {
-				if opt.ResourceType == "all" && opt.ResourceType != "agents" && opt.ResourceType != "controlplane" {
-					util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
-				}
+			} else if opt.ResourceType == "all" && opt.ResourceType != "agents" && opt.ResourceType != "controlplane" {
+				util.Check(util.NewInputError("Must specify resource name if not configuring a group of resources"))
 			}
 
 			var err error
@@ -62,7 +61,7 @@ iofogctl configure controlplane --kube FILE`,
 			util.Check(err)
 
 			// Get executor for configure command
-			exe, err := configure.NewExecutor(opt)
+			exe, err := configure.NewExecutor(&opt)
 			util.Check(err)
 
 			// Execute the command

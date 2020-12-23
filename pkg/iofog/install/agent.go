@@ -31,6 +31,9 @@ type defaultAgent struct {
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, err error) {
 	// Connect to controller
 	ctrl, err := client.NewAndLogin(client.Options{Endpoint: controllerEndpoint}, user.Email, user.Password)
+	if err != nil {
+		return
+	}
 
 	// Log in
 	Verbose("Accessing Controller to generate Provisioning Key")
@@ -58,5 +61,5 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 		return
 	}
 	key = provisionResponse.Key
-	return
+	return key, err
 }

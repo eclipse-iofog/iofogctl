@@ -61,7 +61,7 @@ func generateEdgeResourceOutput(namespace string) (table [][]string, err error) 
 		return
 	}
 
-	edgeResources := make([]client.EdgeResourceMetadata, 0)
+	edgeResources := []client.EdgeResourceMetadata{}
 	if err == nil {
 		// Populate table
 		listResponse, err := clt.ListEdgeResources()
@@ -71,10 +71,10 @@ func generateEdgeResourceOutput(namespace string) (table [][]string, err error) 
 		edgeResources = listResponse.EdgeResources
 	}
 
-	return tabulateEdgeResources(namespace, edgeResources)
+	return tabulateEdgeResources(edgeResources)
 }
 
-func tabulateEdgeResources(namespace string, edgeResources []client.EdgeResourceMetadata) (table [][]string, err error) {
+func tabulateEdgeResources(edgeResources []client.EdgeResourceMetadata) (table [][]string, err error) {
 	// Generate table and headers
 	table = make([][]string, len(edgeResources)+1)
 	headers := []string{"EDGE RESOURCE", "PROTOCOL", "VERSIONS"}
@@ -103,7 +103,7 @@ func tabulateEdgeResources(namespace string, edgeResources []client.EdgeResource
 			edge.Version,
 		}
 		table[idx+1] = append(table[idx+1], row...)
-		idx = idx + 1
+		idx++
 	}
-	return
+	return table, err
 }

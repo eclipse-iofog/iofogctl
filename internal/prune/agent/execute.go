@@ -42,7 +42,7 @@ func (exe executor) Execute() error {
 		return err
 	}
 	// Update local cache based on Controller
-	if err = iutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
 	}
 
@@ -58,16 +58,16 @@ func (exe executor) Execute() error {
 	// Prune Agent
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err = exe.localAgentPrune(); err != nil {
+		if err := exe.localAgentPrune(); err != nil {
 			return err
 		}
 	case *rsc.RemoteAgent:
 		if exe.useDetached {
-			if err = exe.remoteDetachedAgentPrune(agent); err != nil {
+			if err := exe.remoteDetachedAgentPrune(agent); err != nil {
 				return err
 			}
 		} else {
-			if err = exe.remoteAgentPrune(baseAgent); err != nil {
+			if err := exe.remoteAgentPrune(baseAgent); err != nil {
 				return err
 			}
 		}

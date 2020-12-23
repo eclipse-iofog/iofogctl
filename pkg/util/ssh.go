@@ -127,16 +127,18 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	err = session.Run(cmd)
 	if err != nil {
 		stderrBuf := new(bytes.Buffer)
-		stderrBuf.ReadFrom(stderr)
+		if _, err = stderrBuf.ReadFrom(stderr); err != nil {
+			return
+		}
 		err = format(err, &stdout, stderrBuf)
 		return
 	}
 	return
 }
 
-func format(err error, stdout, stderr *bytes.Buffer) error {
+func format(err error, stdout, stderr fmt.Stringer) error {
 	if err == nil {
-		return err
+		return nil
 	}
 	msg := "Error during SSH Session"
 	if stdout != nil && stdout.String() != "" {
@@ -211,9 +213,10 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 		}
 		if err != nil {
 			stderrBuf := new(bytes.Buffer)
-			stderrBuf.ReadFrom(stderr)
-			err = format(err, &stdoutBuffer, stderrBuf)
-			return
+			if _, err := stderrBuf.ReadFrom(stderr); err != nil {
+				return err
+			}
+			return format(err, &stdoutBuffer, stderrBuf)
 		}
 		if condition.MatchString(stdoutBuffer.String()) {
 			return nil
@@ -254,7 +257,9 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 
 		// Write to stdin
 		fmt.Fprintf(remoteStdin, "C%s %d %s\n", permissions, size, destFilename)
-		io.Copy(remoteStdin, reader)
+		if _, err := io.Copy(remoteStdin, reader); err != nil {
+			errChan <- err
+		}
 		fmt.Fprint(remoteStdin, "\x00")
 	}()
 
@@ -299,7 +304,7 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 				return err
 			}
 			// Copy contents of dir
-			if err = cl.CopyFolderTo(
+			if err := cl.CopyFolderTo(
 				AddTrailingSlash(srcPath)+file.Name(),
 				AddTrailingSlash(destPath)+file.Name(),
 				permissions,
@@ -351,13 +356,13 @@ func addLeadingZero(in string) string {
 
 func AddTrailingSlash(in string) string {
 	if in[len(in)-1:] != "/" {
-		in = in + "/"
+		in += "/"
 	}
 	return in
 }
 
 func SSHVerbose(msg string) {
 	if IsDebug() {
-		fmt.Println(fmt.Sprintf("[SSH]: %s", msg))
+		fmt.Printf("[SSH]: %s\n", msg)
 	}
 }

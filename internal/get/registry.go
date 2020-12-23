@@ -79,7 +79,7 @@ func tabulateRegistries(catalogItems []client.RegistryInfo) error {
 			strconv.FormatBool(item.IsSecure),
 		}
 		table[idx+1] = append(table[idx+1], row...)
-		idx = idx + 1
+		idx++
 	}
 
 	// Print table

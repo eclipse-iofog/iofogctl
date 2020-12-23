@@ -115,7 +115,7 @@ func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error)
 
 func (ctrl *Controller) Uninstall() (err error) {
 	// Stop controller gracefully
-	if err = ctrl.Stop(); err != nil {
+	if err := ctrl.Stop(); err != nil {
 		return err
 	}
 
@@ -124,7 +124,7 @@ func (ctrl *Controller) Uninstall() (err error) {
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
-	defer ctrl.ssh.Disconnect()
+	defer util.Log(ctrl.ssh.Disconnect)
 
 	// Copy uninstallation scripts to remote host
 	Verbose("Copying install files to server")
@@ -132,7 +132,7 @@ func (ctrl *Controller) Uninstall() (err error) {
 		"uninstall_iofog.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
+		if err := ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
 			return err
 		}
 	}
@@ -161,7 +161,7 @@ func (ctrl *Controller) Install() (err error) {
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
-	defer ctrl.ssh.Disconnect()
+	defer util.Log(ctrl.ssh.Disconnect)
 
 	// Copy installation scripts to remote host
 	Verbose("Copying install files to server")
@@ -175,7 +175,7 @@ func (ctrl *Controller) Install() (err error) {
 		"set_env.sh",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
+		if err := ctrl.CopyScript("controller", script, ctrl.ctrlDir); err != nil {
 			return err
 		}
 	}
@@ -188,20 +188,21 @@ func (ctrl *Controller) Install() (err error) {
 		"iofog-controller.update-rc",
 	}
 	for _, script := range scripts {
-		if err = ctrl.CopyScript("controller/service", script, ctrl.svcDir); err != nil {
+		if err := ctrl.CopyScript("controller/service", script, ctrl.svcDir); err != nil {
 			return err
 		}
 	}
 
 	// Encode environment variables
-	env := make([]string, 0)
+	env := []string{}
 	if ctrl.db.host != "" {
-		env = append(env, fmt.Sprintf("\"DB_PROVIDER=%s\"", ctrl.db.provider))
-		env = append(env, fmt.Sprintf("\"DB_HOST=%s\"", ctrl.db.host))
-		env = append(env, fmt.Sprintf("\"DB_USER=%s\"", ctrl.db.user))
-		env = append(env, fmt.Sprintf("\"DB_PASSWORD=%s\"", ctrl.db.password))
-		env = append(env, fmt.Sprintf("\"DB_PORT=%d\"", ctrl.db.port))
-		env = append(env, fmt.Sprintf("\"DB_NAME=%s\"", ctrl.db.databaseName))
+		env = append(env,
+			fmt.Sprintf(`"DB_PROVIDER=%s"`, ctrl.db.provider),
+			fmt.Sprintf(`"DB_HOST=%s"`, ctrl.db.host),
+			fmt.Sprintf(`"DB_USER=%s"`, ctrl.db.user),
+			fmt.Sprintf(`"DB_PASSWORD=%s"`, ctrl.db.password),
+			fmt.Sprintf(`"DB_PORT=%d"`, ctrl.db.port),
+			fmt.Sprintf(`"DB_NAME=%s"`, ctrl.db.databaseName))
 	}
 	if ctrl.PidBaseDir != "" {
 		env = append(env, fmt.Sprintf("\"PID_BASE=%s\"", ctrl.PidBaseDir))
@@ -273,7 +274,7 @@ func (ctrl *Controller) Install() (err error) {
 		return
 	}
 
-	return
+	return nil
 }
 
 func (ctrl *Controller) Stop() (err error) {
@@ -281,7 +282,7 @@ func (ctrl *Controller) Stop() (err error) {
 	if err = ctrl.ssh.Connect(); err != nil {
 		return
 	}
-	defer ctrl.ssh.Disconnect()
+	defer util.Log(ctrl.ssh.Disconnect)
 
 	// TODO: Clear the database
 	// Define commands
@@ -311,7 +312,7 @@ func WaitForControllerAPI(endpoint string) (err error) {
 		}
 		// Connection failed, wait and retry
 		time.Sleep(time.Millisecond * 1000)
-		seconds = seconds + 1
+		seconds++
 	}
 
 	// Return last error
