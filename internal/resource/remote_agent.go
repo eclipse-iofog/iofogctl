@@ -34,23 +34,23 @@ type RemoteAgent struct {
 	Scripts *AgentScripts       `yaml:"scripts,omitempty"`
 }
 
-func (agent RemoteAgent) GetName() string {
+func (agent *RemoteAgent) GetName() string {
 	return agent.Name
 }
 
-func (agent RemoteAgent) GetUUID() string {
+func (agent *RemoteAgent) GetUUID() string {
 	return agent.UUID
 }
 
-func (agent RemoteAgent) GetHost() string {
+func (agent *RemoteAgent) GetHost() string {
 	return agent.Host
 }
 
-func (agent RemoteAgent) GetCreatedTime() string {
+func (agent *RemoteAgent) GetCreatedTime() string {
 	return agent.Created
 }
 
-func (agent RemoteAgent) GetConfig() *AgentConfiguration {
+func (agent *RemoteAgent) GetConfig() *AgentConfiguration {
 	return agent.Config
 }
 

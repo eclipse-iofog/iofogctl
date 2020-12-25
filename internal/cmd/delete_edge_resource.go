@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"fmt"
+
 	delete "github.com/eclipse-iofog/iofogctl/v2/internal/delete/edgeresource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"

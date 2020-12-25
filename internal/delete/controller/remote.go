@@ -23,25 +23,25 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-type remoteExecutor struct {
+type RemoteExecutor struct {
 	controlPlane *rsc.RemoteControlPlane
 	namespace    string
 	name         string
 }
 
-func NewRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *remoteExecutor {
-	return &remoteExecutor{
+func NewRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, name string) *RemoteExecutor {
+	return &RemoteExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,
 		name:         name,
 	}
 }
 
-func (exe *remoteExecutor) GetName() string {
+func (exe *RemoteExecutor) GetName() string {
 	return exe.name
 }
 
-func (exe *remoteExecutor) Execute() error {
+func (exe *RemoteExecutor) Execute() error {
 	// Get controller from config
 	baseCtrl, err := exe.controlPlane.GetController(exe.name)
 	if err != nil {
@@ -76,7 +76,7 @@ func (exe *remoteExecutor) Execute() error {
 	installer := install.NewController(controllerOptions)
 
 	// Uninstall Controller
-	if err = installer.Uninstall(); err != nil {
+	if err := installer.Uninstall(); err != nil {
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	if err = ns.DeleteController(exe.name); err != nil {
+	if err := ns.DeleteController(exe.name); err != nil {
 		return err
 	}
 	return config.Flush()

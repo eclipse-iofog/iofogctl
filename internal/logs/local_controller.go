@@ -32,8 +32,8 @@ func newLocalControllerExecutor(controlPlane *rsc.LocalControlPlane, namespace, 
 	}
 }
 
-func (ctrl *localControllerExecutor) GetName() string {
-	return ctrl.name
+func (exe *localControllerExecutor) GetName() string {
+	return exe.name
 }
 
 func (exe *localControllerExecutor) Execute() error {

@@ -22,25 +22,25 @@ type LocalControlPlane struct {
 	Controller *LocalController `yaml:"controller,omitempty"`
 }
 
-func (cp LocalControlPlane) GetUser() IofogUser {
+func (cp *LocalControlPlane) GetUser() IofogUser {
 	return cp.IofogUser
 }
 
-func (cp LocalControlPlane) GetControllers() []Controller {
+func (cp *LocalControlPlane) GetControllers() []Controller {
 	if cp.Controller == nil {
 		return []Controller{}
 	}
 	return []Controller{cp.Controller.Clone()}
 }
 
-func (cp LocalControlPlane) GetController(name string) (Controller, error) {
+func (cp *LocalControlPlane) GetController(name string) (Controller, error) {
 	if cp.Controller == nil {
 		return nil, util.NewError("Local Control Plane does not have a Controller")
 	}
 	return cp.Controller, nil
 }
 
-func (cp LocalControlPlane) GetEndpoint() (string, error) {
+func (cp *LocalControlPlane) GetEndpoint() (string, error) {
 	if cp.Controller == nil {
 		return "", util.NewError("Local Control Plane does not have a Controller, cannot get endpoint.")
 	}

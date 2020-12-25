@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"errors"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/get"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -66,7 +67,7 @@ Resources like Agents will require a working Controller in the namespace to disp
 
 			// TODO: Break out resources as subcommands to avoid this kind of logic and improve --help accuracy
 			if showDetached && resource != "agents" {
-				err = errors.New("Can only use --detached flag with Agents")
+				err = errors.New("can only use --detached flag with Agents")
 				util.Check(err)
 			}
 

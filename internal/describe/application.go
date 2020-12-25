@@ -29,7 +29,7 @@ type applicationExecutor struct {
 	filename  string
 	flow      *client.FlowInfo
 	client    *client.Client
-	msvcs     []client.MicroserviceInfo
+	msvcs     []*client.MicroserviceInfo
 	routes    []client.Route
 	msvcPerID map[string]*client.MicroserviceInfo
 }
@@ -55,9 +55,13 @@ func (exe *applicationExecutor) init() (err error) {
 	exe.routes = routeList.Routes
 
 	application, err := exe.client.GetApplicationByName(exe.name)
-	// If notfound error, try legacy
-	if _, ok := err.(*client.NotFoundError); err != nil && ok {
+	// If not found error, try legacy
+	if _, ok := err.(*client.NotFoundError); ok {
 		return exe.initLegacy()
+	}
+	// Return other errors
+	if err != nil {
+		return err
 	}
 	// TODO: Use Application instead of flow
 	exe.flow = &client.FlowInfo{
@@ -74,7 +78,8 @@ func (exe *applicationExecutor) init() (err error) {
 	}
 
 	// Filter system microservices
-	for _, msvc := range msvcListResponse.Microservices {
+	for idx := range msvcListResponse.Microservices {
+		msvc := &msvcListResponse.Microservices[idx]
 		if util.IsSystemMsvc(msvc) {
 			continue
 		}
@@ -82,10 +87,10 @@ func (exe *applicationExecutor) init() (err error) {
 	}
 	exe.msvcPerID = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(exe.msvcs); i++ {
-		exe.msvcPerID[exe.msvcs[i].UUID] = &exe.msvcs[i]
+		exe.msvcPerID[exe.msvcs[i].UUID] = exe.msvcs[i]
 	}
 
-	return
+	return err
 }
 
 func (exe *applicationExecutor) GetName() string {
@@ -101,8 +106,8 @@ func (exe *applicationExecutor) Execute() error {
 	yamlMsvcs := []rsc.Microservice{}
 	yamlRoutes := []rsc.Route{}
 
-	for _, msvc := range exe.msvcs {
-		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(&msvc, exe.client)
+	for idx := range exe.msvcs {
+		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(exe.msvcs[idx], exe.client)
 		if err != nil {
 			return err
 		}

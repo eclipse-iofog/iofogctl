@@ -24,10 +24,10 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (result *apps.Microservice, err error) {
+func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (*apps.Microservice, error) {
 	agent, err := clt.GetAgentByID(msvc.AgentUUID)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var catalogItem *client.CatalogItemInfo
 	if msvc.CatalogItemID != 0 {
@@ -68,33 +68,30 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 		}
 	}
 
-	jsonConfig := make(map[string]interface{})
-	if err = jsoniter.Unmarshal([]byte(msvc.Config), &jsonConfig); err != nil {
-		return
-	}
-	result = new(apps.Microservice)
-	result.UUID = msvc.UUID
-	result.Name = msvc.Name
-	result.Agent = apps.MicroserviceAgent{
-		Name: agent.Name,
+	return constructMicroservice(msvc, agent.Name, applicationName, catalogItem)
+}
+
+func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName string, catalogItem *client.CatalogItemInfo) (msvc *apps.Microservice, err error) {
+	msvc = new(apps.Microservice)
+	msvc.UUID = msvcInfo.UUID
+	msvc.Name = msvcInfo.Name
+	msvc.Agent = apps.MicroserviceAgent{
+		Name: agentName,
 	}
 	var armImage, x86Image string
 	var msvcImages []client.CatalogImage
 	if catalogItem != nil {
 		msvcImages = catalogItem.Images
 	} else {
-		msvcImages = msvc.Images
+		msvcImages = msvcInfo.Images
 	}
 	for _, image := range msvcImages {
 		switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
 		case "x86":
 			x86Image = image.ContainerImage
-			break
 		case "arm":
 			armImage = image.ContainerImage
-			break
 		default:
-			break
 		}
 	}
 	var registryID int
@@ -103,11 +100,11 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 		registryID = catalogItem.RegistryID
 		imgArray = catalogItem.Images
 	} else {
-		registryID = msvc.RegistryID
-		imgArray = msvc.Images
+		registryID = msvcInfo.RegistryID
+		imgArray = msvcInfo.Images
 	}
 	images := apps.MicroserviceImages{
-		CatalogID: msvc.CatalogItemID,
+		CatalogID: msvcInfo.CatalogItemID,
 		X86:       x86Image,
 		ARM:       armImage,
 		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
@@ -119,19 +116,23 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 			images.ARM = img.ContainerImage
 		}
 	}
-	volumes := mapVolumes(msvc.Volumes)
-	envs := mapEnvs(msvc.Env)
-	extraHosts := mapExtraHosts(msvc.ExtraHosts)
-	result.Images = &images
-	result.Config = jsonConfig
-	result.Container.RootHostAccess = msvc.RootHostAccess
-	result.Container.Commands = msvc.Commands
-	result.Container.Ports = mapPorts(msvc.Ports)
-	result.Container.Volumes = &volumes
-	result.Container.Env = &envs
-	result.Container.ExtraHosts = &extraHosts
-	result.Application = &applicationName
-	return
+	volumes := mapVolumes(msvcInfo.Volumes)
+	envs := mapEnvs(msvcInfo.Env)
+	extraHosts := mapExtraHosts(msvcInfo.ExtraHosts)
+	msvc.Images = &images
+	jsonConfig := make(map[string]interface{})
+	if err := jsoniter.Unmarshal([]byte(msvcInfo.Config), &jsonConfig); err != nil {
+		return msvc, err
+	}
+	msvc.Config = jsonConfig
+	msvc.Container.RootHostAccess = msvcInfo.RootHostAccess
+	msvc.Container.Commands = msvcInfo.Commands
+	msvc.Container.Ports = mapPorts(msvcInfo.Ports)
+	msvc.Container.Volumes = &volumes
+	msvc.Container.Env = &envs
+	msvc.Container.ExtraHosts = &extraHosts
+	msvc.Application = &appName
+	return msvc, err
 }
 
 func mapPorts(in []client.MicroservicePortMapping) (out []apps.MicroservicePortMapping) {

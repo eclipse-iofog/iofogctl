@@ -24,7 +24,6 @@ func GetControllerEndpoint(host string) (endpoint string, err error) {
 	// Generate controller endpoint
 	u, err := url.Parse(host)
 	if err != nil || u.Host == "" {
-
 		if !strings.Contains(host, ":") {
 			host = host + ":" + client.ControllerPortString
 		}

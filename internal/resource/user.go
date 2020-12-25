@@ -37,9 +37,6 @@ func (user IofogUser) GetRawPassword() string {
 	return string(buf)
 }
 
-func decodeBase64(digest string) ([]byte, error) {
-	return base64.StdEncoding.DecodeString(digest)
-}
 func encodeBase64(raw string) string {
 	return base64.StdEncoding.EncodeToString([]byte(raw))
 }

@@ -28,11 +28,12 @@ func (exe *applicationExecutor) initLegacy() (err error) {
 		}
 
 		// Filter System microservices
-		for _, ms := range listMsvcs.Microservices {
-			if util.IsSystemMsvc(ms) {
+		for idx := range listMsvcs.Microservices {
+			msvc := &listMsvcs.Microservices[idx]
+			if util.IsSystemMsvc(msvc) {
 				continue
 			}
-			exe.msvcsPerApplication[flow.ID] = append(exe.msvcsPerApplication[flow.ID], ms)
+			exe.msvcsPerApplication[flow.ID] = append(exe.msvcsPerApplication[flow.ID], msvc)
 		}
 	}
 	return nil

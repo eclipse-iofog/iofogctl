@@ -17,6 +17,6 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
-func deleteLocal(agent *rsc.LocalAgent, volume rsc.Volume) error {
+func deleteLocal(agent *rsc.LocalAgent, volume *rsc.Volume) error {
 	return nil
 }

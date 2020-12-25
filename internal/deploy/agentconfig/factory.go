@@ -41,40 +41,40 @@ type AgentConfigExecutor interface {
 	GetAgentUUID() string
 	SetHost(string)
 	SetTags(*[]string)
-	GetConfiguration() rsc.AgentConfiguration
+	GetConfiguration() *rsc.AgentConfiguration
 	GetNamespace() string
 }
 
-type remoteExecutor struct {
+type RemoteExecutor struct {
 	name        string
 	uuid        string
-	agentConfig rsc.AgentConfiguration
+	agentConfig *rsc.AgentConfiguration
 	namespace   string
 	tags        *[]string
 }
 
-func NewRemoteExecutor(name string, config rsc.AgentConfiguration, namespace string, tags *[]string) *remoteExecutor {
-	return &remoteExecutor{
+func NewRemoteExecutor(name string, conf *rsc.AgentConfiguration, namespace string, tags *[]string) *RemoteExecutor {
+	return &RemoteExecutor{
 		name:        name,
-		agentConfig: config,
+		agentConfig: conf,
 		namespace:   namespace,
 		tags:        tags,
 	}
 }
 
-func (exe *remoteExecutor) GetNamespace() string {
+func (exe *RemoteExecutor) GetNamespace() string {
 	return exe.namespace
 }
 
-func (exe *remoteExecutor) GetConfiguration() rsc.AgentConfiguration {
+func (exe *RemoteExecutor) GetConfiguration() *rsc.AgentConfiguration {
 	return exe.agentConfig
 }
 
-func (exe *remoteExecutor) SetHost(host string) {
+func (exe *RemoteExecutor) SetHost(host string) {
 	exe.agentConfig.Host = &host
 }
 
-func (exe *remoteExecutor) SetTags(tags *[]string) {
+func (exe *RemoteExecutor) SetTags(tags *[]string) {
 	// Merge tags
 	if tags != nil {
 		if exe.tags == nil {
@@ -86,11 +86,11 @@ func (exe *remoteExecutor) SetTags(tags *[]string) {
 	}
 }
 
-func (exe *remoteExecutor) GetAgentUUID() string {
+func (exe *RemoteExecutor) GetAgentUUID() string {
 	return exe.uuid
 }
 
-func (exe *remoteExecutor) GetName() string {
+func (exe *RemoteExecutor) GetName() string {
 	return exe.name
 }
 
@@ -116,7 +116,7 @@ func isOverridingSystemAgent(controllerHost, agentHost string, isSystem bool) (e
 	return nil
 }
 
-func (exe *remoteExecutor) Execute() error {
+func (exe *RemoteExecutor) Execute() error {
 	isSystem := iutil.IsSystemAgent(exe.agentConfig)
 	if !isSystem || install.IsVerbose() {
 		util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
@@ -166,8 +166,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 	// Process needs to be done at execute time because agent might have been created during deploy
-	exe.agentConfig, err = Process(exe.agentConfig, exe.name, ip, agentList.Agents)
-	if err != nil {
+	if err := Process(exe.agentConfig, exe.name, ip, agentList.Agents); err != nil {
 		return err
 	}
 
@@ -179,7 +178,7 @@ func (exe *remoteExecutor) Execute() error {
 	}
 	// Update existing Agent
 	exe.uuid = agent.UUID
-	return updateAgentConfiguration(&exe.agentConfig, exe.tags, agent.UUID, clt)
+	return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, clt)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -190,27 +189,18 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	if len(agentConfig.Name) == 0 {
+	if agentConfig.Name == "" {
 		agentConfig.Name = opt.Name
 	}
 
-	if err = Validate(agentConfig); err != nil {
+	if err = Validate(&agentConfig); err != nil {
 		return
 	}
 
-	return &remoteExecutor{
+	return &RemoteExecutor{
 		name:        opt.Name,
-		agentConfig: agentConfig,
+		agentConfig: &agentConfig,
 		namespace:   opt.Namespace,
 		tags:        opt.Tags,
 	}, nil
-}
-
-func findAgent(agents []client.AgentInfo, name string) *client.AgentInfo {
-	for idx := range agents {
-		if agents[idx].Name == name {
-			return &agents[idx]
-		}
-	}
-	return nil
 }

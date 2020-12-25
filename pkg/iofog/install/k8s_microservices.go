@@ -21,19 +21,16 @@ import (
 
 // Microservice names
 const (
-	kubelet    = "kubelet"
-	operator   = "operator"
 	controller = "controller"
 )
 
 type microservice struct {
-	name        string
-	IP          string
-	ports       []int32
-	serviceType string
-	replicas    int32
-	containers  []container
-	rbacRules   []rbacv1.PolicyRule
+	name       string
+	IP         string
+	ports      []int32
+	replicas   int32
+	containers []container
+	rbacRules  []rbacv1.PolicyRule
 }
 
 type container struct {

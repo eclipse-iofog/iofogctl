@@ -32,7 +32,7 @@ type controllerExecutor struct {
 	remoteConfig     remoteConfig
 }
 
-func newControllerExecutor(opt Options) *controllerExecutor {
+func newControllerExecutor(opt *Options) *controllerExecutor {
 	return &controllerExecutor{
 		namespace: opt.Namespace,
 		name:      opt.Name,
@@ -61,7 +61,7 @@ func (exe *controllerExecutor) Execute() error {
 
 	switch controlPlane := baseControlPlane.(type) {
 	case *rsc.RemoteControlPlane:
-		if err = exe.remoteConfigure(controlPlane); err != nil {
+		if err := exe.remoteConfigure(controlPlane); err != nil {
 			return err
 		}
 
@@ -108,7 +108,7 @@ func (exe *controllerExecutor) remoteConfigure(controlPlane *rsc.RemoteControlPl
 		controller.SSH.Port = 22
 	}
 
-	if err = controlPlane.UpdateController(controller); err != nil {
+	if err := controlPlane.UpdateController(controller); err != nil {
 		return err
 	}
 	return nil

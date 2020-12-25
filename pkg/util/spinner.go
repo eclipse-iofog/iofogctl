@@ -2,8 +2,9 @@ package util
 
 import (
 	"fmt"
-	"github.com/briandowns/spinner"
 	"time"
+
+	"github.com/briandowns/spinner"
 )
 
 var (
@@ -29,7 +30,7 @@ func SpinStart(msg string) {
 		fmt.Println(msg)
 		return
 	}
-	spin.Color("red")
+	_ = spin.Color("red")
 	spin.Stop()
 	spin.Suffix = " " + msg
 	spin.Start()

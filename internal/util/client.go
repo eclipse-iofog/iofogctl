@@ -37,8 +37,8 @@ func InvalidateCache() {
 	mux.Lock()
 	defer mux.Unlock()
 
-	clientCache = make(map[string]*client.Client, 0)
-	agentCache = make(map[string][]client.AgentInfo, 0)
+	clientCache = make(map[string]*client.Client)
+	agentCache = make(map[string][]client.AgentInfo)
 }
 
 func NewControllerClient(namespace string) (*client.Client, error) {
@@ -111,13 +111,12 @@ func UpdateAgentCache(namespace string) error {
 	if err != nil {
 		return err
 	}
-	switch controlPlane.(type) {
-	case *rsc.LocalControlPlane:
+	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
 		// Do not update local Agents
 		return nil
 	}
 	// Generate map of config Agents
-	agentsMap := make(map[string]*rsc.RemoteAgent, 0)
+	agentsMap := make(map[string]*rsc.RemoteAgent)
 	var localAgent *rsc.LocalAgent
 	for _, baseAgent := range ns.GetAgents() {
 		if v, ok := baseAgent.(*rsc.LocalAgent); ok {
@@ -133,8 +132,9 @@ func UpdateAgentCache(namespace string) error {
 	}
 
 	// Generate cache types
-	agents := make([]rsc.RemoteAgent, 0)
-	for _, backendAgent := range backendAgents {
+	agents := make([]rsc.RemoteAgent, len(backendAgents))
+	for idx := range backendAgents {
+		backendAgent := &backendAgents[idx]
 		if localAgent != nil && backendAgent.Name == localAgent.Name {
 			localAgent.UUID = backendAgent.UUID
 			continue
@@ -151,7 +151,7 @@ func UpdateAgentCache(namespace string) error {
 			agent.SSH = cachedAgent.SSH
 		}
 
-		agents = append(agents, agent)
+		agents[idx] = agent
 	}
 
 	// Overwrite the Agents
@@ -237,8 +237,9 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 	}
 	// Map by uuid for easier access
 	agentMapByUUID := make(map[string]client.AgentInfo)
-	for _, agent := range getAgentList.Agents {
-		agentMapByUUID[agent.UUID] = agent
+	for idx := range getAgentList.Agents {
+		agent := &getAgentList.Agents[idx]
+		agentMapByUUID[agent.UUID] = *agent
 	}
 
 	fogType, found := rsc.FogTypeIntMap[agentInfo.FogType]
@@ -300,7 +301,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		},
 	}
 
-	return
+	return agentConfig, tags, err
 }
 
 func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid string) (name string) {

@@ -37,11 +37,11 @@ type remoteExecutor struct {
 	namespace   string
 }
 
-func (exe remoteExecutor) GetName() string {
+func (exe *remoteExecutor) GetName() string {
 	return exe.catalogItem.Name
 }
 
-func (exe remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
+func (exe *remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
 	currentItem, err := clt.GetCatalogItem(exe.catalogItem.ID)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (exe remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
 	return nil
 }
 
-func (exe remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
+func (exe *remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
 	if _, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
 		Name: exe.catalogItem.Name,
 		Images: []client.CatalogImage{
@@ -101,7 +101,7 @@ func (exe remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
 	return nil
 }
 
-func (exe remoteExecutor) Execute() error {
+func (exe *remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying catalog item %s", exe.GetName()))
 	// Init remote resources
 	clt, err := iutil.NewControllerClient(exe.namespace)
@@ -138,17 +138,17 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	// Validate catalog item definition
-	if err := validate(catalogItem); err != nil {
+	if err := validate(&catalogItem); err != nil {
 		return nil, err
 	}
 
-	return remoteExecutor{
+	return &remoteExecutor{
 		namespace:   opt.Namespace,
 		catalogItem: catalogItem,
 	}, nil
 }
 
-func validate(opt apps.CatalogItem) error {
+func validate(opt *apps.CatalogItem) error {
 	if opt.Name == "" {
 		return util.NewInputError("Name must be specified")
 	}

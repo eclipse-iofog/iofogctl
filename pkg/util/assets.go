@@ -14,7 +14,6 @@
 package util
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -26,7 +25,6 @@ var once sync.Once
 var assets *rice.Box
 
 func GetStaticFile(filename string) string {
-
 	once.Do(func() {
 		var err error
 		assets, err = rice.FindBox("../../assets")
@@ -35,7 +33,8 @@ func GetStaticFile(filename string) string {
 
 	fileContent, err := assets.String(filename)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("Could not load static file %s: %s", filename, err.Error()))
+		msg := "could not load static file %s: %s"
+		err = fmt.Errorf(msg, filename, err.Error())
 	}
 	Check(err)
 	return fileContent

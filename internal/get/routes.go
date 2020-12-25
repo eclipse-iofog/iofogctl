@@ -55,7 +55,7 @@ func generateRouteOutput(namespace string) (table [][]string, err error) {
 		return
 	}
 
-	routes := make([]client.Route, 0)
+	routes := []client.Route{}
 	if err == nil {
 		// Populate table
 		listResponse, err := clt.ListRoutes()

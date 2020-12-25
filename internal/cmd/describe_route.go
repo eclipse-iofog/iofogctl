@@ -38,7 +38,7 @@ func newDescribeRouteCommand() *cobra.Command {
 			util.Check(err)
 
 			// Get executor for describe command
-			exe, err := describe.NewExecutor(opt)
+			exe, err := describe.NewExecutor(&opt)
 			util.Check(err)
 
 			// Execute the command

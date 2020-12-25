@@ -78,7 +78,7 @@ func runTest(t *testing.T, state testState) {
 		state.agentName,
 		state.agentUUID)
 
-	if err := agent.CustomizeProcedures(state.dir, state.procs); err != nil {
+	if err := agent.CustomizeProcedures(state.dir, &state.procs); err != nil {
 		t.Fatalf("Failed to customize procedures: %s", err.Error())
 	}
 

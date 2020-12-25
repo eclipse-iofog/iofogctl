@@ -15,6 +15,7 @@ package deployroute
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
@@ -36,11 +37,11 @@ type executor struct {
 	route     rsc.Route
 }
 
-func (exe executor) GetName() string {
+func (exe *executor) GetName() string {
 	return "deploying Route " + exe.name
 }
 
-func (exe executor) Execute() (err error) {
+func (exe *executor) Execute() (err error) {
 	if _, err = config.GetNamespace(exe.namespace); err != nil {
 		return
 	}
@@ -92,7 +93,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 		return nil, util.NewInputError(fmt.Sprintf("Mismatch between metadata.name [%s] and spec.name [%s]", opt.Name, route.Name))
 	}
 
-	return executor{
+	return &executor{
 		namespace: opt.Namespace,
 		name:      opt.Name,
 		route:     route,

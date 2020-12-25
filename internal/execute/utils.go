@@ -42,7 +42,7 @@ func NewEmptyExecutor(name string) Executor {
 	}
 }
 
-func generateExecutor(header config.Header, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
+func generateExecutor(header *config.Header, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
 	if len(header.Metadata.Namespace) > 0 && namespace != header.Metadata.Namespace {
 		msg := "The Namespace provided by the %s named '%s' does not match the Namespace '%s'. You must pass '--namespace %s' to perform this command"
 		return nil, util.NewInputError(fmt.Sprintf(msg, header.Kind, header.Metadata.Name, namespace, header.Metadata.Namespace))
@@ -52,7 +52,7 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[c
 		return nil, err
 	}
 
-	if err = config.ValidateHeader(header); err != nil {
+	if err := config.ValidateHeader(header); err != nil {
 		return nil, err
 	}
 
@@ -67,19 +67,7 @@ func generateExecutor(header config.Header, namespace string, kindHandlers map[c
 		return nil, nil
 	}
 
-	// // Prevent tags slice memory sharing
-	// fmt.Printf("\n\n=============> Header: %v\n", header)
-	// var tagsPtr *[]string
-	// if header.Metadata.Tags != nil {
-	// 	tags := append([]string{}, *header.Metadata.Tags...)
-	// 	tagsPtr = &tags
-	// 	header.Metadata.Tags = nil
-	// } else {
-	// 	tagsPtr = nil
-	// }
-	// fmt.Printf("=============> Tags: %v\n\n", tagsPtr)
-
-	return createExecutorFunc(KindHandlerOpt{
+	return createExecutorFunc(&KindHandlerOpt{
 		Kind:      header.Kind,
 		Namespace: namespace,
 		Name:      header.Metadata.Name,
@@ -96,7 +84,7 @@ type KindHandlerOpt struct {
 	Tags      *[]string
 }
 
-func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
+func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
 	yamlFile, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		return
@@ -118,7 +106,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 	executorsMap = make(map[config.Kind][]Executor)
 	decodeErr := dec.Decode(&header)
 	for decodeErr == nil {
-		exe, err := generateExecutor(header, namespace, kindHandlers)
+		exe, err := generateExecutor(&header, namespace, kindHandlers)
 		if err != nil {
 			return nil, err
 		}
@@ -143,5 +131,5 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 		err = util.NewInputError("Could not decode any valid resources from input YAML file")
 	}
 
-	return
+	return executorsMap, err
 }

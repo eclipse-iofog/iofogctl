@@ -26,7 +26,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 
@@ -93,7 +92,7 @@ func GetLocalContainerName(t string, isSystem bool) string {
 		"agent":      sanitizeContainerName("iofog-agent"),
 	}
 	name, ok := names[t]
-	if ok == false {
+	if !ok {
 		return ""
 	}
 	if isSystem {
@@ -108,17 +107,9 @@ func sanitizeContainerName(name string) string {
 }
 
 // NewAgentConfig generates a static agent config
-func NewLocalAgentConfig(name string, image string, ctrlConfig *LocalContainerConfig, credentials Credentials, isSystem bool) *LocalAgentConfig {
+func NewLocalAgentConfig(name, image string, ctrlConfig *LocalContainerConfig, credentials Credentials, isSystem bool) *LocalAgentConfig {
 	if image == "" {
 		image = util.GetAgentImage()
-	}
-
-	var bindings []string
-
-	if runtime.GOOS == "windows" {
-		bindings = append(bindings, "//var/run/docker.sock:/var/run/docker.sock:rw")
-	} else {
-		bindings = append(bindings, "/var/run/docker.sock:/var/run/docker.sock:rw")
 	}
 
 	return &LocalAgentConfig{
@@ -165,7 +156,7 @@ func NewLocalContainerClient() (*LocalContainer, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = client.FromEnv(cli); err != nil {
+	if err := client.FromEnv(cli); err != nil {
 		return nil, err
 	}
 	return &LocalContainer{
@@ -205,10 +196,11 @@ func (lc *LocalContainer) GetContainerByName(name string) (types.Container, erro
 	}
 
 	// Find by name
-	for _, container := range containers {
+	for idx := range containers {
+		container := &containers[idx]
 		for _, containerName := range container.Names {
 			if containerName == "/"+name { // Docker prefixes names with /
-				return container, nil
+				return *container, nil
 			}
 		}
 	}
@@ -229,7 +221,9 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 		return err
 	}
 	// Stop container if running (ignore error if there is no running container)
-	lc.client.ContainerStop(ctx, container.ID, nil)
+	if err := lc.client.ContainerStop(ctx, container.ID, nil); err != nil {
+		return err
+	}
 
 	// Force remove container
 	return lc.client.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
@@ -239,7 +233,9 @@ func (lc *LocalContainer) CleanContainerByID(id string) error {
 	ctx := context.Background()
 
 	// Stop container if running (ignore error if there is no running container)
-	lc.client.ContainerStop(ctx, id, nil)
+	if err := lc.client.ContainerStop(ctx, id, nil); err != nil {
+		return err
+	}
 
 	// Force remove container
 	return lc.client.ContainerRemove(ctx, id, types.ContainerRemoveOptions{Force: true})
@@ -363,40 +359,10 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		}
 	}
 
-	// Create network if it does not exists
-	// networkName := "local-iofog-network"
-	// networks, err := lc.client.NetworkList(ctx, types.NetworkListOptions{})
-	// networkID := ""
-	// for i := range networks {
-	// 	if networks[i].Name == networkName {
-	// 		networkID = networks[i].ID
-	// 		break
-	// 	}
-	// }
-
-	// if networkID == "" {
-	// 	networkResponse, err := lc.client.NetworkCreate(ctx, networkName, types.NetworkCreate{
-	// 		Driver:         "bridge",
-	// 		CheckDuplicate: true,
-	// 	})
-	// 	if err != nil {
-	// 		fmt.Printf("Failed to create network: %v\n", err)
-	// 		return "", err
-	// 	}
-	// 	networkID = networkResponse.ID
-	// }
-
 	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, containerConfig.ContainerName)
 	if err != nil {
 		return "", util.NewError(fmt.Sprintf("Failed to create container: %v\n", err))
 	}
-
-	// Connect to network
-	// err = lc.client.NetworkConnect(ctx, networkID, container.ID, nil)
-	// if err != nil {
-	// 	fmt.Printf("Failed to connect container to network: %v\n", err)
-	// 	return "", err
-	// }
 
 	// Start container
 	err = lc.client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
@@ -417,14 +383,14 @@ func (lc *LocalContainer) GetLocalControllerEndpoint() (controllerEndpoint strin
 	return
 }
 
-func (lc *LocalContainer) GetContainerIP(name string) (IP string, err error) {
+func (lc *LocalContainer) GetContainerIP(name string) (ip string, err error) {
 	container, err := lc.GetContainerByName(name)
 	if err != nil {
 		return
 	}
 
 	network, found := container.NetworkSettings.Networks[container.HostConfig.NetworkMode]
-	if found == false {
+	if !found {
 		return "", util.NewNotFoundError(fmt.Sprintf("Container %s : Could not find network setting for network %s", name, container.HostConfig.NetworkMode))
 	}
 
@@ -513,7 +479,7 @@ func (lc *LocalContainer) ExecuteCmd(name string, cmd []string) (execResult Exec
 	if err = lc.client.ContainerExecStart(ctx, execID.ID, execStartCheck); err != nil {
 		return
 	}
-	return
+	return execResult, nil
 }
 
 func compress(src string, buf io.Writer) error {
@@ -524,7 +490,10 @@ func compress(src string, buf io.Writer) error {
 	srcLength := len(filepath.ToSlash(src))
 
 	// walk through every file in the folder
-	filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+	err := filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if file == src {
 			// Skip root folder
 			return nil
@@ -555,6 +524,9 @@ func compress(src string, buf io.Writer) error {
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	// produce tar
 	if err := tw.Close(); err != nil {

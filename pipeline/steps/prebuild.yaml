@@ -1,5 +1,6 @@
 steps:
 - script: |
+    set -e
     mkdir -p '$(GOBIN)'
     mkdir -p '$(GOPATH)/pkg'
     echo '##vso[task.prependpath]$(GOBIN)'
@@ -12,11 +13,14 @@ steps:
     goBin: $(GOBIN)
   displayName: 'Install Golang'
 - script: |
+    set -e
     script/check_fmt.sh
   displayName: 'Check Source Format'
 - script: |
+    set -e
     PIPELINE=1 script/bootstrap.sh
   displayName: 'Bootstrap'
 - script: |
+    set -e
     make test
   displayName: 'Run Unit Tests'

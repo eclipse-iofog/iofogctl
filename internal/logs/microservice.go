@@ -70,14 +70,14 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		return nil
 	case *rsc.RemoteAgent:
 		// Verify we can SSH into the Agent
-		if err = agent.ValidateSSH(); err != nil {
+		if err := agent.ValidateSSH(); err != nil {
 			return err
 		}
 
 		// SSH into the Agent and get the logs
 		ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
 		ssh.SetPort(agent.SSH.Port)
-		if err = ssh.Connect(); err != nil {
+		if err := ssh.Connect(); err != nil {
 			return err
 		}
 
@@ -110,7 +110,6 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 
 		// Output stderr of the logs
 		fmt.Println(out.String())
-
 	}
 
 	return nil

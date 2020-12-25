@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/upgrade"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"

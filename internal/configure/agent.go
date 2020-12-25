@@ -29,7 +29,7 @@ type agentExecutor struct {
 	useDetached bool
 }
 
-func newAgentExecutor(opt Options) *agentExecutor {
+func newAgentExecutor(opt *Options) *agentExecutor {
 	return &agentExecutor{
 		namespace:   opt.Namespace,
 		name:        opt.Name,
@@ -81,14 +81,15 @@ func (exe *agentExecutor) Execute() error {
 				return err
 			}
 		}
-		agent.Sanitize()
+		if err := agent.Sanitize(); err != nil {
+			return err
+		}
 
 		// Save config
 		if exe.useDetached {
-			config.UpdateDetachedAgent(agent)
-			return nil
+			return config.UpdateDetachedAgent(agent)
 		}
-		if err = ns.UpdateAgent(agent); err != nil {
+		if err := ns.UpdateAgent(agent); err != nil {
 			return err
 		}
 		return config.Flush()

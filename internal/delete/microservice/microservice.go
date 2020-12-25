@@ -52,7 +52,7 @@ func (exe *Executor) Execute() (err error) {
 		return err
 	}
 
-	if err = clt.DeleteMicroservice(item.UUID); err != nil {
+	if err := clt.DeleteMicroservice(item.UUID); err != nil {
 		return err
 	}
 

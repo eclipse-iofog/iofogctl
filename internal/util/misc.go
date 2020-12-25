@@ -17,8 +17,8 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 )
 
-func IsSystemAgent(agentConfig rsc.AgentConfiguration) bool {
-	return agentConfig.IsSystem != nil && *agentConfig.IsSystem
+func IsSystemAgent(agentConfig *rsc.AgentConfiguration) bool {
+	return agentConfig != nil && agentConfig.IsSystem != nil && *agentConfig.IsSystem
 }
 
 func MakeIntPtr(value int) *int {

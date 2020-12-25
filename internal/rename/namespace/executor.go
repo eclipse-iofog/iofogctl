@@ -15,6 +15,7 @@ package namespace
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -33,5 +34,4 @@ func Execute(name, newName string) error {
 		return err
 	}
 	return config.Flush()
-
 }

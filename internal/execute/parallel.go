@@ -30,7 +30,7 @@ func CoalesceErrors(errs []error) error {
 		if msg == "" {
 			msg = errs[idx].Error()
 		} else {
-			msg = fmt.Sprintf("%s\n%s", errs[idx].Error())
+			msg = fmt.Sprintf("%s\n%s", msg, errs[idx].Error())
 		}
 	}
 	return errors.New(msg)

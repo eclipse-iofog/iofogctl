@@ -35,11 +35,11 @@ type executor struct {
 	edge      rsc.EdgeResource
 }
 
-func (exe executor) GetName() string {
+func (exe *executor) GetName() string {
 	return "deploying Edge Resource " + exe.name
 }
 
-func (exe executor) Execute() (err error) {
+func (exe *executor) Execute() (err error) {
 	if _, err = config.GetNamespace(exe.namespace); err != nil {
 		return
 	}
@@ -89,7 +89,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 		return nil, err
 	}
 	// Return executor
-	return executor{
+	return &executor{
 		namespace: opt.Namespace,
 		name:      opt.Name,
 		edge:      edge,

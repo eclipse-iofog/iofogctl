@@ -73,9 +73,11 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		if err != nil {
 			return err
 		}
-		for _, msvc := range msvcList.Microservices {
+		for idx := range msvcList.Microservices {
+			msvc := &msvcList.Microservices[idx]
 			if msvc.AgentUUID == baseAgent.GetUUID() {
-				return util.NewInputError(fmt.Sprintf("Could not detach Agent %s because it still has microservices running. Remove the microservices first, or use the --force option.", baseAgent.GetName()))
+				msg := "Could not detach Agent %s because it still has microservices running. Remove the microservices first, or use the --force option."
+				return util.NewInputError(fmt.Sprintf(msg, baseAgent.GetName()))
 			}
 		}
 	}
@@ -83,11 +85,11 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	// Deprovision agent
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err = exe.localDeprovision(); err != nil {
+		if err := exe.localDeprovision(); err != nil {
 			return err
 		}
 	case *rsc.RemoteAgent:
-		if err = exe.remoteDeprovision(agent); err != nil {
+		if err := exe.remoteDeprovision(agent); err != nil {
 			return err
 		}
 	}
@@ -111,12 +113,12 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Perform deletion of Agent through Controller
-	if err = ctrl.DeleteAgent(agentInfo.UUID); err != nil {
+	if err := ctrl.DeleteAgent(agentInfo.UUID); err != nil {
 		return err
 	}
 
 	// Try to detach from config
-	if err = config.DetachAgent(exe.namespace, exe.name); err != nil {
+	if err := config.DetachAgent(exe.namespace, exe.name); err != nil {
 		return err
 	}
 
@@ -126,7 +128,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 		return err
 	}
 	agent.SetConfig(&agentConfig)
-	if err = config.UpdateDetachedAgent(agent); err != nil {
+	if err := config.UpdateDetachedAgent(agent); err != nil {
 		return err
 	}
 

@@ -35,8 +35,8 @@ func newRemoteControllerExecutor(controlPlane *rsc.RemoteControlPlane, namespace
 	}
 }
 
-func (ctrl *remoteControllerExecutor) GetName() string {
-	return ctrl.name
+func (exe *remoteControllerExecutor) GetName() string {
+	return exe.name
 }
 
 func (exe *remoteControllerExecutor) Execute() error {
@@ -60,12 +60,12 @@ func (exe *remoteControllerExecutor) Execute() error {
 	}
 
 	// Remote
-	if err = ctrl.ValidateSSH(); err != nil {
+	if err := ctrl.ValidateSSH(); err != nil {
 		return err
 	}
 	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
 	ssh.SetPort(ctrl.SSH.Port)
-	if err = ssh.Connect(); err != nil {
+	if err := ssh.Connect(); err != nil {
 		return err
 	}
 

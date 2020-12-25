@@ -61,18 +61,18 @@ func (exe *agentExecutor) Execute() error {
 func generateDetachedAgentOutput() (table [][]string, err error) {
 	detachedAgents := config.GetDetachedAgents()
 	// Make an index of agents the client knows about and pre-process any info
-	agentsToPrint := make([]client.AgentInfo, 0)
-	for _, agent := range detachedAgents {
-		agentsToPrint = append(agentsToPrint, client.AgentInfo{
-			Name:              agent.GetName(),
-			IPAddressExternal: agent.GetHost(),
-		})
+	agentsToPrint := make([]client.AgentInfo, len(detachedAgents))
+	for idx := range detachedAgents {
+		agentsToPrint[idx] = client.AgentInfo{
+			Name:              detachedAgents[idx].GetName(),
+			IPAddressExternal: detachedAgents[idx].GetHost(),
+		}
 	}
 	return tabulateAgents(agentsToPrint)
 }
 
 func generateAgentOutput(namespace string) (table [][]string, err error) {
-	agents := make([]client.AgentInfo, 0)
+	agents := []client.AgentInfo{}
 	// Update local cache based on Controller
 	if err = iutil.UpdateAgentCache(namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
 		return
@@ -102,8 +102,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
-	idx := 0
-	for _, agent := range agentInfos {
+	for idx := range agentInfos {
+		agent := &agentInfos[idx]
 		// if UUID is empty, we assume the agent is not provisioned
 		if agent.UUID == "" {
 			row := []string{
@@ -131,9 +131,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}
-		idx = idx + 1
 	}
-	return
+	return table, err
 }
 
 func printDetached() {

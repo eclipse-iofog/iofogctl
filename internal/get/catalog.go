@@ -44,7 +44,7 @@ func (exe *catalogExecutor) GetName() string {
 }
 
 func generateCatalogOutput(namespace string) error {
-	var items []apps.CatalogItem
+	items := []apps.CatalogItem{}
 
 	// Connect to Controller if it is ready
 	// Instantiate client
@@ -70,12 +70,9 @@ func generateCatalogOutput(namespace string) error {
 			switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
 			case "x86":
 				catalogItem.X86 = image.ContainerImage
-				break
 			case "arm":
 				catalogItem.ARM = image.ContainerImage
-				break
 			default:
-				break
 			}
 		}
 		items = append(items, catalogItem)
@@ -108,7 +105,7 @@ func tabulateCatalogItems(catalogItems []apps.CatalogItem) error {
 			item.ARM,
 		}
 		table[idx+1] = append(table[idx+1], row...)
-		idx = idx + 1
+		idx++
 	}
 
 	// Print table

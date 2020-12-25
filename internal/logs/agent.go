@@ -35,8 +35,8 @@ func newAgentExecutor(namespace, name string) *agentExecutor {
 	return exe
 }
 
-func (agent *agentExecutor) GetName() string {
-	return agent.name
+func (exe *agentExecutor) GetName() string {
+	return exe.name
 }
 
 func (exe *agentExecutor) Execute() error {
@@ -72,7 +72,7 @@ func (exe *agentExecutor) Execute() error {
 		return nil
 	case *rsc.RemoteAgent:
 		// Establish SSH connection
-		if err = agent.ValidateSSH(); err != nil {
+		if err := agent.ValidateSSH(); err != nil {
 			return err
 		}
 		ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)

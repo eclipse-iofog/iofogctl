@@ -19,10 +19,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 func FormatPath(input string) (string, error) {
-	if len(input) == 0 {
+	if input == "" {
 		return input, nil
 	}
 
@@ -71,9 +72,19 @@ func IsLowerAlphanumeric(resourceType, name string) error {
 	if len(name) <= 2 {
 		return NewInputError(fmt.Sprintf("%s name %s is not valid. Names must be atleast 3 characters in length.", resourceType, name))
 	}
-	regex := regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
+	regex := regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`)
 	if !regex.MatchString(name) {
-		return NewInputError(fmt.Sprintf("%s name %s is not valid. Names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character", resourceType, name))
+		msg := "%s name %s is not valid. Names must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"
+		return NewInputError(fmt.Sprintf(msg, resourceType, name))
 	}
 	return nil
+}
+
+func FirstToUpper(in string) (out string) {
+	if in != "" {
+		tmp := []rune(in)
+		tmp[0] = unicode.ToUpper(tmp[0])
+		out = string(tmp)
+	}
+	return
 }

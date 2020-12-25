@@ -40,11 +40,11 @@ func (exe *namespaceExecutor) Execute() error {
 		return err
 	}
 	if exe.filename == "" {
-		if err = util.Print(namespace); err != nil {
+		if err := util.Print(namespace); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(namespace, exe.filename); err != nil {
+		if err := util.FPrint(namespace, exe.filename); err != nil {
 			return err
 		}
 	}

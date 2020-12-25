@@ -38,34 +38,36 @@ type Options struct {
 }
 
 type executor struct {
-	opt Options
+	opt *Options
 }
 
-func NewExecutor(opt Options) execute.Executor {
-	return executor{opt: opt}
+func NewExecutor(opt *Options) execute.Executor {
+	return &executor{opt: opt}
 }
 
-func (exe executor) GetName() string {
+func (exe *executor) GetName() string {
 	return exe.opt.Name
 }
 
-func (exe executor) fail(inErr error) error {
+func (exe *executor) fail(inErr error) error {
 	// Get a client
 	iofogclient, err := iutil.NewControllerClient(exe.opt.Namespace)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%s\nFailed to create Controller API client: %s", inErr.Error(), err.Error()))
+		return fmt.Errorf("%s\nFailed to create Controller API client: %s", inErr.Error(), err.Error())
 	}
 	agent, err := iofogclient.GetAgentByName(exe.opt.Name, false)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%s\nFailed to get newly created Agent by name: %s", inErr.Error(), err.Error()))
+		msg := "%s\nFailed to get newly created Agent by name: %s"
+		return fmt.Errorf(msg, inErr.Error(), err.Error())
 	}
 	if err := iofogclient.DeleteAgent(agent.UUID); err != nil {
-		return errors.New(fmt.Sprintf("%s\nFailed to delete newly created Agent: %s", inErr.Error(), err.Error()))
+		msg := "%s\nFailed to delete newly created Agent: %s"
+		return fmt.Errorf(msg, inErr.Error(), err.Error())
 	}
 	return inErr
 }
 
-func (exe executor) Execute() error {
+func (exe *executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
 	// Update local cache based on Controller
@@ -88,9 +90,9 @@ func (exe executor) Execute() error {
 	agentConfig.Host = &host
 	configExecutor := deployagentconfig.NewRemoteExecutor(
 		exe.opt.Name,
-		*agentConfig,
+		agentConfig,
 		exe.opt.Namespace, nil)
-	if err = configExecutor.Execute(); err != nil {
+	if err := configExecutor.Execute(); err != nil {
 		return err
 	}
 
@@ -110,7 +112,8 @@ func (exe executor) Execute() error {
 	}
 	deployExecutor, ok := executor.(execute.ProvisioningExecutor)
 	if !ok {
-		return exe.fail(errors.New("Attach: Could not convert Executor"))
+		msg := "attach: Could not convert Executor"
+		return exe.fail(errors.New(msg))
 	}
 	UUID, err := deployExecutor.ProvisionAgent()
 	if err != nil {
@@ -118,7 +121,7 @@ func (exe executor) Execute() error {
 	}
 	// TODO: Remove this additional config deploy step when Agent no longer posts config on provision
 	// Deploy config again
-	if err = configExecutor.Execute(); err != nil {
+	if err := configExecutor.Execute(); err != nil {
 		return err
 	}
 

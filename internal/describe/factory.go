@@ -15,6 +15,7 @@ package describe
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -28,7 +29,7 @@ type Options struct {
 	Version    string
 }
 
-func NewExecutor(opt Options) (execute.Executor, error) {
+func NewExecutor(opt *Options) (execute.Executor, error) {
 	switch opt.Resource {
 	case "namespace":
 		return newNamespaceExecutor(opt.Namespace, opt.Filename), nil
@@ -39,7 +40,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	case "agent":
 		return newAgentExecutor(opt.Namespace, opt.Name, opt.Filename, opt.IsDetached), nil
 	case "registry":
-		return newRegistryExecutor(opt.Namespace, opt.Name, opt.Filename, opt.IsDetached)
+		return newRegistryExecutor(opt.Namespace, opt.Name, opt.Filename)
 	case "agent-config":
 		return newAgentConfigExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "microservice":

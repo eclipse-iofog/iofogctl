@@ -21,7 +21,6 @@ import (
 )
 
 func (exe executor) localAgentPrune() error {
-
 	containerClient, err := install.NewLocalContainerClient()
 	if err != nil {
 		return err

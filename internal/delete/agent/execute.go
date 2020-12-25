@@ -46,50 +46,36 @@ func (exe executor) Execute() (err error) {
 		return err
 	}
 
-	// Update Agent cache
-	if !exe.useDetached {
-		if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
-			return err
-		}
-	}
-
-	// Get Agent from config
 	var baseAgent rsc.Agent
+
+	// Detached from config
 	if exe.useDetached {
 		baseAgent, err = config.GetDetachedAgent(exe.name)
 		if err != nil {
 			return err
 		}
-	} else {
-		baseAgent, err = ns.GetAgent(exe.name)
-		if err != nil {
-			return err
-		}
-	}
 
-	if exe.useDetached {
 		// Update config
-		if err = config.DeleteDetachedAgent(baseAgent.GetName()); err != nil {
+		if err := config.DeleteDetachedAgent(baseAgent.GetName()); err != nil {
 			return err
 		}
 		return config.Flush()
 	}
 
+	// Update Agent cache
+	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		return err
+	}
+
+	baseAgent, err = ns.GetAgent(exe.name)
+	if err != nil {
+		return err
+	}
+
 	// Check if it has microservices running on it
 	if !exe.force {
-		// Try to get a Controller client to talk to the REST API
-		ctrl, err := iutil.NewControllerClient(exe.namespace)
-		if err != nil {
+		if err := exe.checkMicroservices(baseAgent.GetName(), baseAgent.GetUUID()); err != nil {
 			return err
-		}
-		msvcList, err := ctrl.GetAllMicroservices()
-		if err != nil {
-			return err
-		}
-		for _, msvc := range msvcList.Microservices {
-			if msvc.AgentUUID == baseAgent.GetUUID() {
-				return util.NewInputError(fmt.Sprintf("Could not delete Agent %s because it still has microservices running. Remove the microservices first, or use the --force option.", baseAgent.GetName()))
-			}
 		}
 	}
 
@@ -111,10 +97,10 @@ func (exe executor) Execute() (err error) {
 		util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
 	}
 	// Perform deletion of Agent through Controller
-	if err = ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
+	if err := ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
 		return err
 	}
-	if err = ns.DeleteAgent(baseAgent.GetName()); err != nil {
+	if err := ns.DeleteAgent(baseAgent.GetName()); err != nil {
 		return err
 	}
 
@@ -143,8 +129,28 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 	for idx := range updateVols {
-		ns.UpdateVolume(updateVols[idx])
+		ns.UpdateVolume(&updateVols[idx])
 	}
 
 	return config.Flush()
+}
+
+func (exe executor) checkMicroservices(agentName, agentUUID string) (err error) {
+	// Try to get a Controller client to talk to the REST API
+	ctrl, err := iutil.NewControllerClient(exe.namespace)
+	if err != nil {
+		return err
+	}
+	msvcList, err := ctrl.GetAllMicroservices()
+	if err != nil {
+		return err
+	}
+	for idx := range msvcList.Microservices {
+		msvc := &msvcList.Microservices[idx]
+		if msvc.AgentUUID == agentUUID {
+			msg := "Could not delete Agent %s because it still has microservices running. Remove the microservices first, or use the --force option."
+			return util.NewInputError(fmt.Sprintf(msg, agentName))
+		}
+	}
+	return
 }

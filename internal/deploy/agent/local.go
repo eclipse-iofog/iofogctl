@@ -31,22 +31,6 @@ type localExecutor struct {
 	localAgentConfig *install.LocalAgentConfig
 }
 
-func getController(namespace string) (*rsc.Controller, error) {
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return nil, err
-	}
-	controllers := ns.GetControllers()
-	if len(controllers) == 0 {
-		fmt.Print("You must deploy a Controller to a namespace before deploying any Agents")
-		return nil, err
-	}
-	if len(controllers) != 1 {
-		return nil, util.NewInternalError("Only support 1 controller per namespace")
-	}
-	return &controllers[0], nil
-}
-
 func newLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (*localExecutor, error) {
 	client, err := install.NewLocalContainerClient()
 	if err != nil {
@@ -100,7 +84,6 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-
 	// Deploy agent image
 	util.SpinStart("Deploying Agent container")
 	if exe.agent.Container.Image == "" {

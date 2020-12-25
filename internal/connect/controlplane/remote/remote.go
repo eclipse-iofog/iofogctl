@@ -17,7 +17,7 @@ import (
 	"net/url"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
+	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -114,7 +114,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	err = agents.Connect(exe.controlPlane, endpoint, ns)
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, ns)
 	if err != nil {
 		return err
 	}

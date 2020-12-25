@@ -31,7 +31,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // GCP auth
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -168,8 +168,12 @@ func (k8s *Kubernetes) enableCustomResources() error {
 
 func (k8s *Kubernetes) enableOperatorClient() (err error) {
 	scheme := runtime.NewScheme()
-	clientgoscheme.AddToScheme(scheme)
-	crdapi.AddToScheme(scheme)
+	if err := clientgoscheme.AddToScheme(scheme); err != nil {
+		return err
+	}
+	if err := crdapi.AddToScheme(scheme); err != nil {
+		return err
+	}
 	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
 	if err != nil {
 		return err
@@ -178,7 +182,7 @@ func (k8s *Kubernetes) enableOperatorClient() (err error) {
 }
 
 // CreateController on cluster
-func (k8s *Kubernetes) CreateControlPlane(conf ControllerConfig) (endpoint string, err error) {
+func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint string, err error) {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
 	ns := &corev1.Namespace{
@@ -257,7 +261,37 @@ func (k8s *Kubernetes) CreateControlPlane(conf ControllerConfig) (endpoint strin
 		err = util.NewInternalError("Failed to wait for Default Router registration")
 	}
 
-	return
+	return endpoint, err
+}
+
+func (k8s *Kubernetes) getReadyPod() (readyPod *corev1.Pod, err error) {
+	// Check operator logs
+	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{
+		LabelSelector: "name=iofog-operator", // TODO: Decouple this
+	})
+	if err != nil {
+		return
+	}
+	if len(pods.Items) == 0 {
+		err = util.NewInternalError("Could not find any Operator Pods ")
+		return
+	}
+	// Find ready Pod
+	var pod *corev1.Pod
+	for podIdx := range pods.Items {
+		for _, condition := range pods.Items[podIdx].Status.Conditions {
+			if condition.Type == corev1.PodReady {
+				if condition.Status == corev1.ConditionTrue {
+					pod = &pods.Items[podIdx]
+					break
+				}
+			}
+		}
+		if pod != nil {
+			break
+		}
+	}
+	return pod, err
 }
 
 // Watch Operator logs
@@ -268,32 +302,10 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 	errSuffix := "while awaiting finalization of Control Plane"
 	for {
 		time.Sleep(2 * time.Second)
-		// Check operator logs
-		pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{
-			LabelSelector: "name=iofog-operator", // TODO: Decouple this
-		})
+		pod, err := k8s.getReadyPod()
 		if err != nil {
-			errCh <- err
+			errCh <- fmt.Errorf("%s %s", err.Error(), errSuffix)
 			return
-		}
-		if len(pods.Items) == 0 {
-			errCh <- util.NewInternalError("Could not find any Operator Pods " + errSuffix)
-			return
-		}
-		// Find ready Pod
-		var pod *corev1.Pod
-		for podIdx := range pods.Items {
-			for _, condition := range pods.Items[podIdx].Status.Conditions {
-				if condition.Type == corev1.PodReady {
-					if condition.Status == corev1.ConditionTrue {
-						pod = &pods.Items[podIdx]
-						break
-					}
-				}
-			}
-			if pod != nil {
-				break
-			}
 		}
 		// Could not find ready Operator Pod
 		if pod == nil {
@@ -366,7 +378,7 @@ func (k8s *Kubernetes) deleteOperator() (err error) {
 		}
 	}
 
-	return
+	return nil
 }
 
 func (k8s *Kubernetes) createOperator() (err error) {
@@ -453,6 +465,7 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr strin
 	if err != nil {
 		return
 	}
+	defer watch.Stop()
 
 	// Wait for Services to have addresses allocated
 	for event := range watch.ResultChan() {
@@ -473,73 +486,113 @@ func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr strin
 			if len(svc.Status.LoadBalancer.Ingress) == 0 {
 				continue
 			}
-			nodePort = targetPort
-			ip := svc.Status.LoadBalancer.Ingress[0].IP
-			host := svc.Status.LoadBalancer.Ingress[0].Hostname
-			if ip != "" {
-				addr = ip
-			}
-			if host != "" {
-				addr = host
-			}
+			addr, nodePort = k8s.handleLoadBalancer(svc, targetPort)
 			if addr == "" {
 				continue
 			}
+			return
 
 		case corev1.ServiceTypeNodePort:
-			// Get a list of K8s nodes and return one of their external IPs
-			var nodeList *corev1.NodeList
-			nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
-			if err == nil {
-				if len(nodeList.Items) == 0 {
-					err = util.NewError("Could not find Kubernetes nodes when waiting for NodePort service " + name)
-				} else {
-					// Return external IP of any of the nodes in the cluster
-					for _, node := range nodeList.Items {
-						for _, addrs := range node.Status.Addresses {
-							if addrs.Type == corev1.NodeExternalIP {
-								addr = addrs.Address
-								break
-							}
-						}
-					}
-					if addr == "" {
-						util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
-						for _, node := range nodeList.Items {
-							for _, addrs := range node.Status.Addresses {
-								if addrs.Type == corev1.NodeInternalIP {
-									addr = addrs.Address
-									break
-								}
-							}
-						}
-						if addr == "" {
-							err = util.NewError("Could not get an external or internal IP address of any Kubernetes nodes for NodePort service " + name)
-						}
-					}
+			addr, err = k8s.getNodePortAddress(name)
+			if err != nil {
+				util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
+				addr, err = k8s.getClusterIPAddress(name)
+				if err != nil {
+					return
 				}
 			}
-			// Get the port allocated on the node
-			if err == nil {
-				for _, port := range svc.Spec.Ports {
-					if port.TargetPort.IntVal == targetPort {
-						nodePort = port.NodePort
-						break
-					}
-				}
-				if nodePort == 0 {
-					err = util.NewError("Could not get node port for Kubernetes service " + name)
-				}
-			}
-
+			nodePort, err = k8s.getPort(svc, name, targetPort)
+			return
 		case corev1.ServiceTypeClusterIP:
-			// Note: ClusterIPs are internal to K8s cluster only
+			addr, err = k8s.getClusterIPAddress(name)
+			if err != nil {
+				return
+			}
+			nodePort, err = k8s.getPort(svc, name, targetPort)
+			return
+		default:
+			err = util.NewError("Found Service was not of supported type")
+			return
 		}
-
-		// End the loop
-		watch.Stop()
 	}
+	err = util.NewError("Did not receive any events from Kuberenetes API Server")
+	return addr, nodePort, err
+}
 
+func (k8s *Kubernetes) getPort(svc *corev1.Service, name string, targetPort int32) (nodePort int32, err error) {
+	// Get the port allocated on the node
+	for _, port := range svc.Spec.Ports {
+		if port.TargetPort.IntVal == targetPort {
+			nodePort = port.NodePort
+			break
+		}
+	}
+	if nodePort == 0 {
+		err = util.NewError("Could not get node port for Kubernetes service " + name)
+		return
+	}
+	return
+}
+
+func (k8s *Kubernetes) getClusterIPAddress(name string) (addr string, err error) {
+	// Get a list of K8s nodes and return one of their external IPs
+	var nodeList *corev1.NodeList
+	nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	for idx := range nodeList.Items {
+		node := &nodeList.Items[idx]
+		for _, addrs := range node.Status.Addresses {
+			if addrs.Type == corev1.NodeInternalIP {
+				addr = addrs.Address
+				break
+			}
+		}
+	}
+	if addr == "" {
+		err = util.NewError("Could not get address for ClusterIP " + name)
+	}
+	return
+}
+func (k8s *Kubernetes) getNodePortAddress(name string) (addr string, err error) {
+	// Get a list of K8s nodes and return one of their external IPs
+	var nodeList *corev1.NodeList
+	nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	if len(nodeList.Items) == 0 {
+		err = util.NewError("Could not find Kubernetes nodes when waiting for NodePort service " + name)
+		return
+	}
+	// Return external IP of any of the nodes in the cluster
+	for idx := range nodeList.Items {
+		node := &nodeList.Items[idx]
+		for _, addrs := range node.Status.Addresses {
+			if addrs.Type == corev1.NodeExternalIP {
+				addr = addrs.Address
+				break
+			}
+		}
+	}
+	if addr == "" {
+		err = util.NewError("Could not find address in Node Port service " + name)
+	}
+	return
+}
+
+func (k8s *Kubernetes) handleLoadBalancer(svc *corev1.Service, targetPort int32) (addr string, nodePort int32) {
+	nodePort = targetPort
+	// TODO: error if Ingress len == 0
+	ip := svc.Status.LoadBalancer.Ingress[0].IP
+	host := svc.Status.LoadBalancer.Ingress[0].Hostname
+	if ip != "" {
+		addr = ip
+	}
+	if host != "" {
+		addr = host
+	}
 	return
 }
 
@@ -584,7 +637,8 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 	if err != nil {
 		return err
 	}
-	for _, svc := range svcList.Items {
+	for idx := range svcList.Items {
+		svc := &svcList.Items[idx]
 		if svc.Name == controller {
 			return nil
 		}
@@ -601,7 +655,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 }
 
 func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
-	podNames = make([]Pod, 0)
+	podNames = []Pod{}
 	// List pods
 	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{})
 	if err != nil {

@@ -30,7 +30,7 @@ type controlPlaneExecutor struct {
 	remoteConfig     remoteConfig
 }
 
-func newControlPlaneExecutor(opt Options) *controlPlaneExecutor {
+func newControlPlaneExecutor(opt *Options) *controlPlaneExecutor {
 	return &controlPlaneExecutor{
 		namespace: opt.Namespace,
 		name:      opt.Name,
@@ -65,7 +65,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 		return util.NewInputError("Cannot configure Remote Control Plane as if it is a Kubernetes Control Plane")
 
 	case *rsc.KubernetesControlPlane:
-		if err = exe.kubernetesConfigure(controlPlane); err != nil {
+		if err := exe.kubernetesConfigure(controlPlane); err != nil {
 			return err
 		}
 

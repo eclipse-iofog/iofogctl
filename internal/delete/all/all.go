@@ -63,7 +63,7 @@ func Execute(namespace string, useDetached, force bool) error {
 		}
 
 		for _, flow := range flows.Flows {
-			if err = clt.DeleteFlow(flow.ID); err != nil {
+			if err := clt.DeleteFlow(flow.ID); err != nil {
 				return err
 			}
 		}
@@ -93,7 +93,7 @@ func Execute(namespace string, useDetached, force bool) error {
 		if err != nil {
 			return err
 		}
-		if err = exe.Execute(); err != nil {
+		if err := exe.Execute(); err != nil {
 			return err
 		}
 	}

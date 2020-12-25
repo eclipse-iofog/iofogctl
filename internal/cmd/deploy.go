@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"errors"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/deploy"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
@@ -46,7 +47,7 @@ Visit iofog.org to view all YAML specifications usable with this command.`,
 
 			// Check file
 			if opt.InputFile == "" {
-				util.Check(errors.New("Provided empty value for input file via the -f flag"))
+				util.Check(errors.New("provided empty value for input file via the -f flag"))
 			}
 
 			// Execute command

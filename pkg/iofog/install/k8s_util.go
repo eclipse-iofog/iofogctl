@@ -14,45 +14,12 @@
 package install
 
 import (
-	"strconv"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
-
-func newService(namespace string, ms *microservice) *corev1.Service {
-	svc := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ms.name,
-			Namespace: namespace,
-			Labels: map[string]string{
-				"name": ms.name,
-			},
-		},
-		Spec: corev1.ServiceSpec{
-			Type:                  corev1.ServiceTypeLoadBalancer,
-			ExternalTrafficPolicy: corev1.ServiceExternalTrafficPolicyTypeLocal,
-			LoadBalancerIP:        ms.IP,
-			Selector: map[string]string{
-				"name": ms.name,
-			},
-		},
-	}
-	// Add ports
-	for idx, port := range ms.ports {
-		svcPort := corev1.ServicePort{
-			Name:       ms.name + strconv.Itoa(idx),
-			Port:       int32(port),
-			TargetPort: intstr.FromInt(int(port)),
-			Protocol:   corev1.Protocol("TCP"),
-		}
-		svc.Spec.Ports = append(svc.Spec.Ports, svcPort)
-	}
-	return svc
-}
 
 func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 	maxUnavailable := intstr.FromInt(0)
@@ -93,7 +60,8 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 		},
 	}
 	containers := &dep.Spec.Template.Spec.Containers
-	for _, msCont := range ms.containers {
+	for idx := range ms.containers {
+		msCont := &ms.containers[idx]
 		cont := corev1.Container{
 			Name:            msCont.name,
 			Image:           msCont.image,

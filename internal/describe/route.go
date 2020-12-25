@@ -81,11 +81,11 @@ func (exe *routeExecutor) Execute() error {
 	}
 
 	if exe.filename == "" {
-		if err = util.Print(header); err != nil {
+		if err := util.Print(header); err != nil {
 			return err
 		}
 	} else {
-		if err = util.FPrint(header, exe.filename); err != nil {
+		if err := util.FPrint(header, exe.filename); err != nil {
 			return err
 		}
 	}

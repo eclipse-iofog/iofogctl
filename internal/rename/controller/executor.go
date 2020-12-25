@@ -15,6 +15,7 @@ package controller
 
 import (
 	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -30,23 +31,21 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
+	// Get the Controller to rename
 	controller, err := controlPlane.GetController(name)
 	if err != nil {
 		return err
 	}
 
+	// Check new name is valid
 	if err := util.IsLowerAlphanumeric("Controller", newName); err != nil {
 		return err
 	}
+
+	// Perform the rename
 	util.SpinStart(fmt.Sprintf("Renaming Controller %s", name))
 	controller.SetName(newName)
-	// Add first to fail on name clash
-	if err = controlPlane.AddController(controller); err != nil {
-		return err
-	}
-	if err = controlPlane.DeleteController(name); err != nil {
-		return err
-	}
 	ns.SetControlPlane(controlPlane)
+
 	return config.Flush()
 }

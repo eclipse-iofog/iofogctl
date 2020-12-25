@@ -20,7 +20,7 @@ import (
 )
 
 func newConnectCommand() *cobra.Command {
-	//Instantiate options
+	// Instantiate options
 	opt := connect.Options{}
 
 	// Instantiate command
@@ -43,7 +43,7 @@ iofogctl connect --generate`,
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
 			// Execute command
-			err = connect.Execute(opt)
+			err = connect.Execute(&opt)
 			util.Check(err)
 
 			if !opt.Generate {

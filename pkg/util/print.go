@@ -28,6 +28,7 @@ const Green = "\033[38;5;28m"
 // Print a 'message' with CSkyblue color text
 func PrintInfo(message string) {
 	wasRunning := SpinPause()
+	message = FirstToUpper(message)
 	fmt.Printf(CSkyblue + message + NoFormat + "\n")
 	if wasRunning {
 		SpinUnpause()
@@ -37,6 +38,7 @@ func PrintInfo(message string) {
 // Print 'message' with CDeepskyblue color text and background
 func PrintNotify(message string) {
 	wasRunning := SpinPause()
+	message = FirstToUpper(message)
 	fmt.Fprintf(os.Stderr, CSkyblue+"! "+message+NoFormat+"\n")
 	if wasRunning {
 		SpinUnpause()
@@ -46,11 +48,13 @@ func PrintNotify(message string) {
 // Print 'message' with green color text
 func PrintSuccess(message string) {
 	SpinStop()
+	message = FirstToUpper(message)
 	fmt.Printf(Green + "✔ " + message + NoFormat + "\n")
 }
 
 // Print 'message' with red color text
 func PrintError(message string) {
 	SpinStop()
+	message = FirstToUpper(message)
 	fmt.Fprintf(os.Stderr, Red+"✘ "+message+NoFormat+"\n")
 }
