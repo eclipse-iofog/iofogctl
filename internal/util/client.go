@@ -48,6 +48,11 @@ func NewControllerClient(namespace string) (*client.Client, error) {
 	if cachedClient, exists := clientCache[namespace]; exists {
 		return cachedClient, nil
 	}
+
+	return newControllerClient(namespace)
+}
+
+func newControllerClient(namespace string) (*client.Client, error) {
 	// Get endpoint
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -92,15 +97,27 @@ func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	return getBackendAgents(namespace, ioClient)
+}
+
+func getBackendAgents(namespace string, ioClient *client.Client) ([]client.AgentInfo, error) {
 	agentList, err := ioClient.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return nil, err
 	}
-	agentCache[namespace] = agentList.Agents // TODO: Fix concurrent writes issue here
+	agentCache[namespace] = agentList.Agents
 	return agentList.Agents, nil
 }
 
 func UpdateAgentCache(namespace string) error {
+	mux.Lock()
+	defer mux.Unlock()
+
+	// Do not update cache more than once per iofogctl command
+	if _, exists := agentCache[namespace]; exists {
+		return nil
+	}
+
 	// Get local cache Agents
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -125,8 +142,13 @@ func UpdateAgentCache(namespace string) error {
 			agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
 		}
 	}
+
 	// Get backend Agents
-	backendAgents, err := GetBackendAgents(namespace)
+	ioClient, err := newControllerClient(namespace)
+	if err != nil {
+		return err
+	}
+	backendAgents, err := getBackendAgents(namespace, ioClient)
 	if err != nil {
 		return err
 	}
