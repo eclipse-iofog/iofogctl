@@ -16,7 +16,6 @@ package util
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
@@ -27,29 +26,214 @@ import (
 
 var clientCache map[string]*client.Client
 var agentCache map[string][]client.AgentInfo
-var mux sync.Mutex
+var clientReqChan chan string
+var clientChan chan clientCacheResult
+var agentReqChan chan string
+var agentChan chan agentCacheResult
+var agentConfigReqChan chan string
+var agentConfigChan chan error
 
 func init() {
+	clientReqChan = make(chan string, 10)
+	clientChan = make(chan clientCacheResult)
+	agentReqChan = make(chan string, 10)
+	agentChan = make(chan agentCacheResult)
+	agentConfigReqChan = make(chan string, 10)
+	agentConfigChan = make(chan error)
+	go clientRoutine()
+	go agentRoutine()
+	go agentConfigRoutine()
 	InvalidateCache()
 }
 
-func InvalidateCache() {
-	mux.Lock()
-	defer mux.Unlock()
+type clientCacheResult struct {
+	err    error
+	client *client.Client
+}
 
-	clientCache = make(map[string]*client.Client)
-	agentCache = make(map[string][]client.AgentInfo)
+func (ccr *clientCacheResult) get() (*client.Client, error) {
+	return ccr.client, ccr.err
+}
+
+type agentCacheResult struct {
+	err    error
+	agents []client.AgentInfo
+}
+
+func (acr *agentCacheResult) get() ([]client.AgentInfo, error) {
+	return acr.agents, acr.err
+}
+
+func InvalidateCache() {
+	clientReqChan <- ""
+	agentReqChan <- ""
+}
+
+func clientRoutine() {
+	for {
+		namespace := <-clientReqChan
+		// Invalidate cache
+		if namespace == "" {
+			clientCache = make(map[string]*client.Client)
+			continue
+		}
+		result := clientCacheResult{}
+		// From cache
+		if cachedClient, exists := clientCache[namespace]; exists {
+			result.client = cachedClient
+			clientChan <- result
+			continue
+		}
+		// Create new client
+		ioClient, err := newControllerClient(namespace)
+		// Failure
+		if err != nil {
+			result.err = err
+			clientChan <- result
+			continue
+		}
+		// Save to cache and return new client
+		clientCache[namespace] = ioClient
+		result.client = ioClient
+		clientChan <- result
+	}
+}
+
+func agentRoutine() {
+	for {
+		namespace := <-agentReqChan
+		if namespace == "" {
+			// Invalidate cache
+			agentCache = make(map[string][]client.AgentInfo)
+			continue
+		}
+		result := agentCacheResult{}
+		// From cache
+		if cachedAgents, exist := agentCache[namespace]; exist {
+			result.agents = cachedAgents
+			agentChan <- result
+			continue
+		}
+		// Client to get agents
+		ioClient, err := NewControllerClient(namespace)
+		if err != nil {
+			result.err = err
+			agentChan <- result
+			continue
+		}
+		// Get agents
+		agents, err := getBackendAgents(namespace, ioClient)
+		if err != nil {
+			result.err = err
+			agentChan <- result
+			continue
+		}
+		// Save to cache and return new agents
+		agentCache[namespace] = agents
+		result.agents = agents
+		agentChan <- result
+	}
 }
 
 func NewControllerClient(namespace string) (*client.Client, error) {
-	mux.Lock()
-	defer mux.Unlock()
+	clientReqChan <- namespace
+	result := <-clientChan
+	return result.get()
+}
 
-	if cachedClient, exists := clientCache[namespace]; exists {
-		return cachedClient, nil
+func UpdateAgentCache(namespace string) error {
+	agentConfigReqChan <- namespace
+	return <-agentConfigChan
+}
+
+func updateAgentCache(namespace string) error {
+	// Get local cache Agents
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	// Check the Control Plane type
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return err
+	}
+	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
+		// Do not update local Agents
+		return nil
+	}
+	// Generate map of config Agents
+	agentsMap := make(map[string]*rsc.RemoteAgent)
+	var localAgent *rsc.LocalAgent
+	for _, baseAgent := range ns.GetAgents() {
+		if v, ok := baseAgent.(*rsc.LocalAgent); ok {
+			localAgent = v
+		} else {
+			agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
+		}
 	}
 
-	return newControllerClient(namespace)
+	// Get backend Agents
+	backendAgents, err := GetBackendAgents(namespace)
+	if err != nil {
+		return err
+	}
+
+	// Generate cache types
+	agents := make([]rsc.RemoteAgent, len(backendAgents))
+	for idx := range backendAgents {
+		backendAgent := &backendAgents[idx]
+		if localAgent != nil && backendAgent.Name == localAgent.Name {
+			localAgent.UUID = backendAgent.UUID
+			continue
+		}
+
+		agent := rsc.RemoteAgent{
+			Name: backendAgent.Name,
+			UUID: backendAgent.UUID,
+			Host: backendAgent.Host,
+		}
+		// Update additional info if local cache contains it
+		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
+			agent.Created = cachedAgent.GetCreatedTime()
+			agent.SSH = cachedAgent.SSH
+		}
+
+		agents[idx] = agent
+	}
+
+	// Overwrite the Agents
+	ns.DeleteAgents()
+	for idx := range agents {
+		if err := ns.AddAgent(&agents[idx]); err != nil {
+			agentConfigChan <- err
+			continue
+		}
+	}
+
+	if localAgent != nil {
+		if err := ns.AddAgent(localAgent); err != nil {
+			return err
+		}
+	}
+
+	return config.Flush()
+}
+
+func agentConfigRoutine() {
+	complete := false
+	for {
+		namespace := <-agentConfigReqChan
+		if complete {
+			agentConfigChan <- nil
+			continue
+		}
+		if err := updateAgentCache(namespace); err != nil {
+			agentConfigChan <- err
+			continue
+		}
+		complete = true
+		agentConfigChan <- nil
+	}
 }
 
 func newControllerClient(namespace string) (*client.Client, error) {
@@ -90,14 +274,9 @@ func IsEdgeResourceCapable(namespace string) error {
 }
 
 func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
-	if cachedAgents, exist := agentCache[namespace]; exist {
-		return cachedAgents, nil
-	}
-	ioClient, err := NewControllerClient(namespace)
-	if err != nil {
-		return nil, err
-	}
-	return getBackendAgents(namespace, ioClient)
+	agentReqChan <- namespace
+	result := <-agentChan
+	return result.get()
 }
 
 func getBackendAgents(namespace string, ioClient *client.Client) ([]client.AgentInfo, error) {
@@ -107,90 +286,6 @@ func getBackendAgents(namespace string, ioClient *client.Client) ([]client.Agent
 	}
 	agentCache[namespace] = agentList.Agents
 	return agentList.Agents, nil
-}
-
-func UpdateAgentCache(namespace string) error {
-	mux.Lock()
-	defer mux.Unlock()
-
-	// Do not update cache more than once per iofogctl command
-	if _, exists := agentCache[namespace]; exists {
-		return nil
-	}
-
-	// Get local cache Agents
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Check the Control Plane type
-	controlPlane, err := ns.GetControlPlane()
-	if err != nil {
-		return err
-	}
-	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
-		// Do not update local Agents
-		return nil
-	}
-	// Generate map of config Agents
-	agentsMap := make(map[string]*rsc.RemoteAgent)
-	var localAgent *rsc.LocalAgent
-	for _, baseAgent := range ns.GetAgents() {
-		if v, ok := baseAgent.(*rsc.LocalAgent); ok {
-			localAgent = v
-		} else {
-			agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
-		}
-	}
-
-	// Get backend Agents
-	ioClient, err := newControllerClient(namespace)
-	if err != nil {
-		return err
-	}
-	backendAgents, err := getBackendAgents(namespace, ioClient)
-	if err != nil {
-		return err
-	}
-
-	// Generate cache types
-	agents := make([]rsc.RemoteAgent, len(backendAgents))
-	for idx := range backendAgents {
-		backendAgent := &backendAgents[idx]
-		if localAgent != nil && backendAgent.Name == localAgent.Name {
-			localAgent.UUID = backendAgent.UUID
-			continue
-		}
-
-		agent := rsc.RemoteAgent{
-			Name: backendAgent.Name,
-			UUID: backendAgent.UUID,
-			Host: backendAgent.Host,
-		}
-		// Update additional info if local cache contains it
-		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
-			agent.Created = cachedAgent.GetCreatedTime()
-			agent.SSH = cachedAgent.SSH
-		}
-
-		agents[idx] = agent
-	}
-
-	// Overwrite the Agents
-	ns.DeleteAgents()
-	for idx := range agents {
-		if err := ns.AddAgent(&agents[idx]); err != nil {
-			return err
-		}
-	}
-
-	if localAgent != nil {
-		if err := ns.AddAgent(localAgent); err != nil {
-			return err
-		}
-	}
-
-	return config.Flush()
 }
 
 func GetMicroserviceName(namespace, uuid string) (name string, err error) {
