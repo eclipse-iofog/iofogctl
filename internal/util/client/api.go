@@ -37,15 +37,8 @@ func NewControllerClient(namespace string) (*client.Client, error) {
 
 // SyncAgentInfo will synchronize local Agent info with backend Agent info
 func SyncAgentInfo(namespace string) error {
-	var done chan error
-	pkg.once.Do(func() {
-		done := make(chan error)
-		done <- syncAgentInfo(namespace)
-	})
-	if done != nil {
-		return <-done
-	}
-	return nil
+	pkg.agentSyncReqChan <- namespace
+	return <-pkg.agentSyncChan
 }
 
 func IsEdgeResourceCapable(namespace string) error {

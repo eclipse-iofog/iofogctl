@@ -14,8 +14,6 @@
 package client
 
 import (
-	"sync"
-
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
@@ -24,23 +22,28 @@ var pkg struct {
 	clientCache map[string]*client.Client
 	agentCache  map[string][]client.AgentInfo
 	// Channels for requesting and receiving cached resources
-	clientReqChan chan string
-	clientChan    chan clientCacheResult
-	agentReqChan  chan string
-	agentChan     chan agentCacheResult
-	// Once off for sync agent info
-	once sync.Once
+	clientReqChan    chan string
+	clientChan       chan clientCacheResult
+	agentReqChan     chan string
+	agentChan        chan agentCacheResult
+	agentSyncReqChan chan string
+	agentSyncChan    chan error
 }
 
 func init() {
 	pkg.clientCache = make(map[string]*client.Client)
 	pkg.agentCache = make(map[string][]client.AgentInfo)
+
 	pkg.clientReqChan = make(chan string)
 	pkg.clientChan = make(chan clientCacheResult)
 	pkg.agentReqChan = make(chan string)
 	pkg.agentChan = make(chan agentCacheResult)
+	pkg.agentSyncReqChan = make(chan string)
+	pkg.agentSyncChan = make(chan error)
+
 	go clientCacheRoutine()
 	go agentCacheRoutine()
+	go agentSyncRoutine()
 }
 
 type clientCacheResult struct {

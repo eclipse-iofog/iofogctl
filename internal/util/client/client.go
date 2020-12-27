@@ -91,6 +91,23 @@ func agentCacheRoutine() {
 	}
 }
 
+func agentSyncRoutine() {
+	complete := false
+	for {
+		namespace := <-pkg.agentSyncReqChan
+		if complete {
+			pkg.agentSyncChan <- nil
+			continue
+		}
+		if err := syncAgentInfo(namespace); err != nil {
+			pkg.agentSyncChan <- err
+			continue
+		}
+		complete = true
+		pkg.agentSyncChan <- nil
+	}
+}
+
 func syncAgentInfo(namespace string) error {
 	// Get local cache Agents
 	ns, err := config.GetNamespace(namespace)
