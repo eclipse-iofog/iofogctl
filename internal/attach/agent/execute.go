@@ -71,7 +71,7 @@ func (exe *executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
 	// Update local cache based on Controller
-	if err := clientutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(exe.opt.Namespace); err != nil {
 		return err
 	}
 

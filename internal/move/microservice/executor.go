@@ -25,7 +25,7 @@ func Execute(namespace, name, agent string) error {
 	util.SpinStart(fmt.Sprintf("Moving microservice %s", name))
 
 	// Update local cache based on Controller
-	if err := clientutil.UpdateAgentCache(namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(namespace); err != nil {
 		return err
 	}
 

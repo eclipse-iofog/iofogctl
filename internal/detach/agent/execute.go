@@ -54,7 +54,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Update local cache based on Controller
-	if err := clientutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(exe.namespace); err != nil {
 		return err
 	}
 	baseAgent, err := ns.GetAgent(exe.name)

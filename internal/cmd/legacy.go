@@ -138,7 +138,7 @@ iofogctl legacy agent      NAME COMMAND`,
 				}
 			case "agent":
 				// Update local cache based on Controller
-				err := clientutil.UpdateAgentCache(namespace)
+				err := clientutil.SyncAgentInfo(namespace)
 				util.Check(err)
 				// Get config
 				var baseAgent rsc.Agent

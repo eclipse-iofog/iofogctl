@@ -63,7 +63,7 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Update Agent cache
-	if err := clientutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(exe.namespace); err != nil {
 		return err
 	}
 

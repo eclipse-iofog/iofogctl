@@ -74,7 +74,7 @@ func generateDetachedAgentOutput() (table [][]string, err error) {
 func generateAgentOutput(namespace string) (table [][]string, err error) {
 	agents := []client.AgentInfo{}
 	// Update local cache based on Controller
-	if err = clientutil.UpdateAgentCache(namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
+	if err = clientutil.SyncAgentInfo(namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
 		return
 	}
 

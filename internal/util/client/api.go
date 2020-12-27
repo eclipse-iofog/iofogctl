@@ -11,7 +11,7 @@
  *
  */
 
-package util
+package client
 
 import (
 	"strings"
@@ -22,20 +22,30 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
+// InvalidateCache will clear the cache
 func InvalidateCache() {
 	pkg.clientReqChan <- ""
 	pkg.agentReqChan <- ""
 }
 
+// NewControllerClient will return cached client or create new client and cache it
 func NewControllerClient(namespace string) (*client.Client, error) {
 	pkg.clientReqChan <- namespace
 	result := <-pkg.clientChan
 	return result.get()
 }
 
-func UpdateAgentCache(namespace string) error {
-	pkg.agentConfigReqChan <- namespace
-	return <-pkg.agentConfigChan
+// SyncAgentInfo will synchronize local Agent info with backend Agent info
+func SyncAgentInfo(namespace string) error {
+	var done chan error
+	pkg.once.Do(func() {
+		done := make(chan error)
+		done <- syncAgentInfo(namespace)
+	})
+	if done != nil {
+		return <-done
+	}
+	return nil
 }
 
 func IsEdgeResourceCapable(namespace string) error {

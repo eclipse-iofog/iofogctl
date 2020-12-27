@@ -11,7 +11,7 @@
  *
  */
 
-package util
+package client
 
 import (
 	"fmt"
@@ -23,7 +23,8 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func clientRoutine() {
+// clientCacheRoutine handles concurrent requests for a cached Controller client
+func clientCacheRoutine() {
 	for {
 		namespace := <-pkg.clientReqChan
 		// Invalidate cache
@@ -53,7 +54,8 @@ func clientRoutine() {
 	}
 }
 
-func agentRoutine() {
+// agentCacheRoutine handles concurrent requests for a cached list of Agents
+func agentCacheRoutine() {
 	for {
 		namespace := <-pkg.agentReqChan
 		if namespace == "" {
@@ -89,7 +91,7 @@ func agentRoutine() {
 	}
 }
 
-func updateAgentCache(namespace string) error {
+func syncAgentInfo(namespace string) error {
 	// Get local cache Agents
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
@@ -148,8 +150,7 @@ func updateAgentCache(namespace string) error {
 	ns.DeleteAgents()
 	for idx := range agents {
 		if err := ns.AddAgent(&agents[idx]); err != nil {
-			pkg.agentConfigChan <- err
-			continue
+			return err
 		}
 	}
 
@@ -160,23 +161,6 @@ func updateAgentCache(namespace string) error {
 	}
 
 	return config.Flush()
-}
-
-func agentConfigRoutine() {
-	complete := false
-	for {
-		namespace := <-pkg.agentConfigReqChan
-		if complete {
-			pkg.agentConfigChan <- nil
-			continue
-		}
-		if err := updateAgentCache(namespace); err != nil {
-			pkg.agentConfigChan <- err
-			continue
-		}
-		complete = true
-		pkg.agentConfigChan <- nil
-	}
 }
 
 func newControllerClient(namespace string) (*client.Client, error) {

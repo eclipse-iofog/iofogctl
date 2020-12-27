@@ -38,7 +38,7 @@ func Execute(namespace, name, newName string, useDetached bool) error {
 
 	// Get config
 	// Update local cache based on Controller
-	if err := clientutil.UpdateAgentCache(namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(namespace); err != nil {
 		return err
 	}
 	ns, err := config.GetNamespace(namespace)
