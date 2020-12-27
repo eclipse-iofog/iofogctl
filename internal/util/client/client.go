@@ -26,85 +26,85 @@ import (
 // clientCacheRoutine handles concurrent requests for a cached Controller client
 func clientCacheRoutine() {
 	for {
-		namespace := <-pkg.clientReqChan
+		request := <-pkg.clientCacheRequestChan
 		// Invalidate cache
-		if namespace == "" {
+		if request.namespace == "" {
 			pkg.clientCache = make(map[string]*client.Client)
 			continue
 		}
-		result := clientCacheResult{}
+		result := &clientCacheResult{}
 		// From cache
-		if cachedClient, exists := pkg.clientCache[namespace]; exists {
+		if cachedClient, exists := pkg.clientCache[request.namespace]; exists {
 			result.client = cachedClient
-			pkg.clientChan <- result
+			request.resultChan <- result
 			continue
 		}
 		// Create new client
-		ioClient, err := newControllerClient(namespace)
+		ioClient, err := newControllerClient(request.namespace)
 		// Failure
 		if err != nil {
 			result.err = err
-			pkg.clientChan <- result
+			request.resultChan <- result
 			continue
 		}
 		// Save to cache and return new client
-		pkg.clientCache[namespace] = ioClient
+		pkg.clientCache[request.namespace] = ioClient
 		result.client = ioClient
-		pkg.clientChan <- result
+		request.resultChan <- result
 	}
 }
 
 // agentCacheRoutine handles concurrent requests for a cached list of Agents
 func agentCacheRoutine() {
 	for {
-		namespace := <-pkg.agentReqChan
-		if namespace == "" {
+		request := <-pkg.agentCacheRequestChan
+		if request.namespace == "" {
 			// Invalidate cache
 			pkg.agentCache = make(map[string][]client.AgentInfo)
 			continue
 		}
-		result := agentCacheResult{}
+		result := &agentCacheResult{}
 		// From cache
-		if cachedAgents, exist := pkg.agentCache[namespace]; exist {
+		if cachedAgents, exist := pkg.agentCache[request.namespace]; exist {
 			result.agents = cachedAgents
-			pkg.agentChan <- result
+			request.resultChan <- result
 			continue
 		}
 		// Client to get agents
-		ioClient, err := NewControllerClient(namespace)
+		ioClient, err := NewControllerClient(request.namespace)
 		if err != nil {
 			result.err = err
-			pkg.agentChan <- result
+			request.resultChan <- result
 			continue
 		}
 		// Get agents
-		agents, err := getBackendAgents(namespace, ioClient)
+		agents, err := getBackendAgents(request.namespace, ioClient)
 		if err != nil {
 			result.err = err
-			pkg.agentChan <- result
+			request.resultChan <- result
 			continue
 		}
 		// Save to cache and return new agents
-		pkg.agentCache[namespace] = agents
+		pkg.agentCache[request.namespace] = agents
 		result.agents = agents
-		pkg.agentChan <- result
+		request.resultChan <- result
 	}
 }
 
 func agentSyncRoutine() {
 	complete := false
 	for {
-		namespace := <-pkg.agentSyncReqChan
+		request := <-pkg.agentSyncRequestChan
 		if complete {
-			pkg.agentSyncChan <- nil
+			request.resultChan <- nil
 			continue
 		}
-		if err := syncAgentInfo(namespace); err != nil {
-			pkg.agentSyncChan <- err
+		if err := syncAgentInfo(request.namespace); err != nil {
+			request.resultChan <- err
 			continue
 		}
 		complete = true
-		pkg.agentSyncChan <- nil
+		request.resultChan <- nil
 	}
 }
 

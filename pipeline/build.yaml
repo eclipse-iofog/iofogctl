@@ -10,7 +10,7 @@ jobs:
   - template: steps/version.yaml
   - script: |
       . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
-      GOARCH=amd64 GOOS=${{ parameters.os }} make build
+      GOARCH=amd64 GOOS=${{ parameters.os }} make lint build
       echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
     displayName: 'Build Binary'
   - task: PublishBuildArtifacts@1

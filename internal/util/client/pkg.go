@@ -22,28 +22,34 @@ var pkg struct {
 	clientCache map[string]*client.Client
 	agentCache  map[string][]client.AgentInfo
 	// Channels for requesting and receiving cached resources
-	clientReqChan    chan string
-	clientChan       chan clientCacheResult
-	agentReqChan     chan string
-	agentChan        chan agentCacheResult
-	agentSyncReqChan chan string
-	agentSyncChan    chan error
+	clientCacheRequestChan chan *clientCacheRequest
+	agentCacheRequestChan  chan *agentCacheRequest
+	agentSyncRequestChan   chan *agentSyncRequest
 }
 
 func init() {
 	pkg.clientCache = make(map[string]*client.Client)
 	pkg.agentCache = make(map[string][]client.AgentInfo)
 
-	pkg.clientReqChan = make(chan string)
-	pkg.clientChan = make(chan clientCacheResult)
-	pkg.agentReqChan = make(chan string)
-	pkg.agentChan = make(chan agentCacheResult)
-	pkg.agentSyncReqChan = make(chan string)
-	pkg.agentSyncChan = make(chan error)
+	pkg.clientCacheRequestChan = make(chan *clientCacheRequest)
+	pkg.agentCacheRequestChan = make(chan *agentCacheRequest)
+	pkg.agentSyncRequestChan = make(chan *agentSyncRequest)
 
 	go clientCacheRoutine()
 	go agentCacheRoutine()
 	go agentSyncRoutine()
+}
+
+type clientCacheRequest struct {
+	namespace  string
+	resultChan chan *clientCacheResult
+}
+
+func newClientCacheRequest(namespace string) *clientCacheRequest {
+	return &clientCacheRequest{
+		namespace:  namespace,
+		resultChan: make(chan *clientCacheResult),
+	}
 }
 
 type clientCacheResult struct {
@@ -55,6 +61,18 @@ func (ccr *clientCacheResult) get() (*client.Client, error) {
 	return ccr.client, ccr.err
 }
 
+type agentCacheRequest struct {
+	namespace  string
+	resultChan chan *agentCacheResult
+}
+
+func newAgentCacheRequest(namespace string) *agentCacheRequest {
+	return &agentCacheRequest{
+		namespace:  namespace,
+		resultChan: make(chan *agentCacheResult),
+	}
+}
+
 type agentCacheResult struct {
 	err    error
 	agents []client.AgentInfo
@@ -62,4 +80,16 @@ type agentCacheResult struct {
 
 func (acr *agentCacheResult) get() ([]client.AgentInfo, error) {
 	return acr.agents, acr.err
+}
+
+type agentSyncRequest struct {
+	namespace  string
+	resultChan chan error
+}
+
+func newAgentSyncRequest(namespace string) *agentSyncRequest {
+	return &agentSyncRequest{
+		namespace:  namespace,
+		resultChan: make(chan error),
+	}
 }

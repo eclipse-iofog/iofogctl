@@ -24,21 +24,31 @@ import (
 
 // InvalidateCache will clear the cache
 func InvalidateCache() {
-	pkg.clientReqChan <- ""
-	pkg.agentReqChan <- ""
+	pkg.clientCacheRequestChan <- newClientCacheRequest("")
+	pkg.agentCacheRequestChan <- newAgentCacheRequest("")
 }
 
 // NewControllerClient will return cached client or create new client and cache it
 func NewControllerClient(namespace string) (*client.Client, error) {
-	pkg.clientReqChan <- namespace
-	result := <-pkg.clientChan
+	request := newClientCacheRequest(namespace)
+	pkg.clientCacheRequestChan <- request
+	result := <-request.resultChan
+	return result.get()
+}
+
+// GetBackendAgents will return cached list of agents or create new list and cache it
+func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
+	request := newAgentCacheRequest(namespace)
+	pkg.agentCacheRequestChan <- request
+	result := <-request.resultChan
 	return result.get()
 }
 
 // SyncAgentInfo will synchronize local Agent info with backend Agent info
 func SyncAgentInfo(namespace string) error {
-	pkg.agentSyncReqChan <- namespace
-	return <-pkg.agentSyncChan
+	request := newAgentSyncRequest(namespace)
+	pkg.agentSyncRequestChan <- request
+	return <-request.resultChan
 }
 
 func IsEdgeResourceCapable(namespace string) error {
@@ -51,12 +61,6 @@ func IsEdgeResourceCapable(namespace string) error {
 		return err
 	}
 	return nil
-}
-
-func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
-	pkg.agentReqChan <- namespace
-	result := <-pkg.agentChan
-	return result.get()
 }
 
 func GetMicroserviceName(namespace, uuid string) (name string, err error) {
