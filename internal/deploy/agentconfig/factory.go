@@ -20,6 +20,7 @@ import (
 
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"gopkg.in/yaml.v2"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -123,7 +124,7 @@ func (exe *RemoteExecutor) Execute() error {
 	}
 
 	// Check controller is reachable
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

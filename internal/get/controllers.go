@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -88,7 +88,7 @@ func generateControllerOutput(namespace string) (table [][]string, err error) {
 	// Populate rows
 	for idx, ctrlConfig := range controllers {
 		// Instantiate connection to controller
-		ctrl, err := iutil.NewControllerClient(namespace)
+		ctrl, err := clientutil.NewControllerClient(namespace)
 		if err != nil {
 			return table, err
 		}

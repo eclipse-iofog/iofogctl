@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -47,17 +47,17 @@ func (exe *executor) Execute() (err error) {
 	}
 
 	// Connect to Controller
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Convert route details
-	srcMsvcUUID, err := iutil.GetMicroserviceUUID(exe.namespace, exe.route.From)
+	srcMsvcUUID, err := clientutil.GetMicroserviceUUID(exe.namespace, exe.route.From)
 	if err != nil {
 		return
 	}
-	destMsvcUUID, err := iutil.GetMicroserviceUUID(exe.namespace, exe.route.To)
+	destMsvcUUID, err := clientutil.GetMicroserviceUUID(exe.namespace, exe.route.To)
 	if err != nil {
 		return
 	}

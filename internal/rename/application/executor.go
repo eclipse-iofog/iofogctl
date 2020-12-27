@@ -18,7 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -29,7 +29,7 @@ func Execute(namespace, name, newName string) error {
 	util.SpinStart(fmt.Sprintf("Renaming Application %s", name))
 
 	// Init remote resources
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

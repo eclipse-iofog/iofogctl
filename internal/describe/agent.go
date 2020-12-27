@@ -14,7 +14,7 @@
 package describe
 
 import (
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
@@ -54,7 +54,7 @@ func (exe *agentExecutor) Execute() (err error) {
 			return err
 		}
 		// Update local cache based on Controller
-		if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+		if err := clientutil.UpdateAgentCache(exe.namespace); err != nil {
 			return err
 		}
 		agent, err = ns.GetAgent(exe.name)
@@ -68,7 +68,7 @@ func (exe *agentExecutor) Execute() (err error) {
 	// Detached Agents don't have a UUID
 	if agent.GetUUID() != "" {
 		// Get Agent configuration
-		agentConfig, tags, err = iutil.GetAgentConfig(exe.name, exe.namespace)
+		agentConfig, tags, err = clientutil.GetAgentConfig(exe.name, exe.namespace)
 		if err != nil {
 			return err
 		}

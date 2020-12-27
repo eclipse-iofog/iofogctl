@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type edgeResourceExecutor struct {
@@ -38,7 +38,7 @@ func (exe *edgeResourceExecutor) GetName() string {
 
 func (exe *edgeResourceExecutor) Execute() error {
 	// Check capability
-	if err := iutil.IsEdgeResourceCapable(exe.namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
+	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
 		return err
 	}
 	printNamespace(exe.namespace)
@@ -56,7 +56,7 @@ func generateEdgeResourceOutput(namespace string) (table [][]string, err error) 
 	}
 
 	// Connect to Controller
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil && !rsc.IsNoControlPlaneError(err) {
 		return
 	}

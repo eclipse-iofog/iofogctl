@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -54,7 +54,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := clientutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
 	}
 	baseAgent, err := ns.GetAgent(exe.name)
@@ -65,7 +65,7 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	// Check if it has microservices running on it
 	if !exe.force {
 		// Try to get a Controller client to talk to the REST API
-		ctrl, err := iutil.NewControllerClient(exe.namespace)
+		ctrl, err := clientutil.NewControllerClient(exe.namespace)
 		if err != nil {
 			return err
 		}
@@ -95,13 +95,13 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Try to get a Controller client to talk to the REST API
-	ctrl, err := iutil.NewControllerClient(exe.namespace)
+	ctrl, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	// Get Config before deletion
-	agentConfig, _, err := iutil.GetAgentConfig(exe.name, exe.namespace)
+	agentConfig, _, err := clientutil.GetAgentConfig(exe.name, exe.namespace)
 	if err != nil {
 		return err
 	}

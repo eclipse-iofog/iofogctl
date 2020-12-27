@@ -17,7 +17,7 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type registryExecutor struct {
@@ -44,7 +44,7 @@ func (exe *registryExecutor) GetName() string {
 
 func generateRegistryOutput(namespace string) error {
 	// Init remote resources
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

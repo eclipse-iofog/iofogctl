@@ -18,7 +18,7 @@ import (
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type catalogExecutor struct {
@@ -49,7 +49,7 @@ func generateCatalogOutput(namespace string) error {
 	// Connect to Controller if it is ready
 	// Instantiate client
 	// Log into Controller
-	ctrlClient, err := iutil.NewControllerClient(namespace)
+	ctrlClient, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return tabulateCatalogItems(items)
 	}

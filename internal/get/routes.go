@@ -17,7 +17,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type routeExecutor struct {
@@ -50,7 +50,7 @@ func generateRouteOutput(namespace string) (table [][]string, err error) {
 	}
 
 	// Connect to Controller
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil && !rsc.IsNoControlPlaneError(err) {
 		return
 	}
@@ -77,11 +77,11 @@ func tabulateRoutes(namespace string, routes []client.Route) (table [][]string, 
 	// Populate rows
 	for idx, route := range routes {
 		// Convert route details
-		from, err := iutil.GetMicroserviceName(namespace, route.SourceMicroserviceUUID)
+		from, err := clientutil.GetMicroserviceName(namespace, route.SourceMicroserviceUUID)
 		if err != nil {
 			return table, err
 		}
-		to, err := iutil.GetMicroserviceName(namespace, route.DestMicroserviceUUID)
+		to, err := clientutil.GetMicroserviceName(namespace, route.DestMicroserviceUUID)
 		if err != nil {
 			return table, err
 		}

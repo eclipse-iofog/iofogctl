@@ -15,7 +15,7 @@ package startapplication
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type Options struct {
@@ -40,7 +40,7 @@ func (exe *executor) GetName() string {
 }
 
 func (exe *executor) Execute() (err error) {
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

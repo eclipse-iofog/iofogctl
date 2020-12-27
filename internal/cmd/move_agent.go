@@ -16,7 +16,7 @@ package cmd
 import (
 	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/agent"
 	detach "github.com/eclipse-iofog/iofogctl/v2/internal/detach/agent"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +42,7 @@ func newMoveAgentCommand() *cobra.Command {
 			util.Check(err)
 			// Invalidate cache between Executor invocations
 			if namespace == destNamespace {
-				iutil.InvalidateCache()
+				clientutil.InvalidateCache()
 			}
 			// Attach
 			exe = attach.NewExecutor(&attach.Options{Name: name, Namespace: destNamespace})

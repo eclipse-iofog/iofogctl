@@ -19,7 +19,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -63,7 +63,7 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Update Agent cache
-	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := clientutil.UpdateAgentCache(exe.namespace); err != nil {
 		return err
 	}
 
@@ -92,7 +92,7 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Try to get a Controller client to talk to the REST API
-	ctrl, err := iutil.NewControllerClient(exe.namespace)
+	ctrl, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
 	}
@@ -137,7 +137,7 @@ func (exe executor) Execute() (err error) {
 
 func (exe executor) checkMicroservices(agentName, agentUUID string) (err error) {
 	// Try to get a Controller client to talk to the REST API
-	ctrl, err := iutil.NewControllerClient(exe.namespace)
+	ctrl, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

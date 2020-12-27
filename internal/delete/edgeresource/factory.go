@@ -18,7 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type executor struct {
@@ -37,13 +37,13 @@ func (exe executor) Execute() (err error) {
 	}
 
 	// Connect to Controller
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}
 
 	// Check capability
-	if err := iutil.IsEdgeResourceCapable(exe.namespace); err != nil {
+	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err != nil {
 		return err
 	}
 

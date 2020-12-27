@@ -14,7 +14,7 @@
 package describe
 
 import (
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -39,7 +39,7 @@ func (exe *agentConfigExecutor) GetName() string {
 }
 
 func (exe *agentConfigExecutor) Execute() error {
-	agentConfig, tags, err := iutil.GetAgentConfig(exe.name, exe.namespace)
+	agentConfig, tags, err := clientutil.GetAgentConfig(exe.name, exe.namespace)
 	if err != nil {
 		return err
 	}

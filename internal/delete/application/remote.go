@@ -16,7 +16,7 @@ package deleteapplication
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -42,7 +42,7 @@ func (exe *Executor) GetName() string {
 }
 
 func (exe *Executor) init() (err error) {
-	exe.client, err = iutil.NewControllerClient(exe.namespace)
+	exe.client, err = clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}

@@ -16,7 +16,7 @@ package edgeresource
 import (
 	"fmt"
 
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -28,13 +28,13 @@ func Execute(namespace, name, newName string) error {
 	util.SpinStart(fmt.Sprintf("Renaming edgeResource %s", name))
 
 	// Init remote resources
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}
 
 	// Check capability
-	if err := iutil.IsEdgeResourceCapable(namespace); err != nil {
+	if err := clientutil.IsEdgeResourceCapable(namespace); err != nil {
 		return err
 	}
 
