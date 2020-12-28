@@ -122,10 +122,7 @@ run:
   skip-files:
    - ".*_test.go"
    - ".*rice-box.*"
-#  skip-dirs:
-#    - internal/cache
-#    - internal/renameio
-#    - internal/robustio
+  modules-download-mode: vendor
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
