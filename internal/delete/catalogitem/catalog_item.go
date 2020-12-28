@@ -15,7 +15,7 @@ package deletecatalogitem
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -42,7 +42,7 @@ func (exe *Executor) GetName() string {
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Catalog item")
 	// Init remote resources
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

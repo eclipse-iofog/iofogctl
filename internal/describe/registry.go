@@ -18,7 +18,7 @@ import (
 	"strconv"
 
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -48,7 +48,7 @@ func (exe *registryExecutor) GetName() string {
 
 func (exe *registryExecutor) Execute() error {
 	// Connect to controller
-	ctrl, err := iutil.NewControllerClient(exe.namespace)
+	ctrl, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

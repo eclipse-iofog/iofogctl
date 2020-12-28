@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -74,13 +74,13 @@ func generateDetachedAgentOutput() (table [][]string, err error) {
 func generateAgentOutput(namespace string) (table [][]string, err error) {
 	agents := []client.AgentInfo{}
 	// Update local cache based on Controller
-	if err = iutil.UpdateAgentCache(namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
+	if err = clientutil.SyncAgentInfo(namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
 		return
 	}
 
 	// Get Agents from Controller
 	if err == nil {
-		agents, err = iutil.GetBackendAgents(namespace)
+		agents, err = clientutil.GetBackendAgents(namespace)
 		if err != nil {
 			return
 		}

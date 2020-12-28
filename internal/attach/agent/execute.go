@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 
 	deploy "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
@@ -51,7 +51,7 @@ func (exe *executor) GetName() string {
 
 func (exe *executor) fail(inErr error) error {
 	// Get a client
-	iofogclient, err := iutil.NewControllerClient(exe.opt.Namespace)
+	iofogclient, err := clientutil.NewControllerClient(exe.opt.Namespace)
 	if err != nil {
 		return fmt.Errorf("%s\nFailed to create Controller API client: %s", inErr.Error(), err.Error())
 	}
@@ -71,7 +71,7 @@ func (exe *executor) Execute() error {
 	util.SpinStart("Attaching Agent")
 
 	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(exe.opt.Namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(exe.opt.Namespace); err != nil {
 		return err
 	}
 

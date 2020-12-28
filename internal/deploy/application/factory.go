@@ -20,7 +20,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -62,7 +62,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -25,12 +25,12 @@ func Execute(namespace, name, agent string) error {
 	util.SpinStart(fmt.Sprintf("Moving microservice %s", name))
 
 	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(namespace); err != nil {
 		return err
 	}
 
 	// Init remote resources
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

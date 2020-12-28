@@ -18,7 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -45,7 +45,7 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(exe.namespace); err != nil {
 		return err
 	}
 

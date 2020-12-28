@@ -16,13 +16,13 @@ package route
 import (
 	"fmt"
 
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
 func Execute(namespace, name, newName string) error {
 	// Init remote resources
-	clt, err := iutil.NewControllerClient(namespace)
+	clt, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

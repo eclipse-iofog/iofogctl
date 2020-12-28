@@ -18,7 +18,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -44,13 +44,13 @@ func (exe executor) Execute() error {
 	util.SpinStart("Detaching Edge Resource")
 
 	// Init client
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	// Check capability
-	if err := iutil.IsEdgeResourceCapable(exe.namespace); err != nil {
+	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err != nil {
 		return err
 	}
 

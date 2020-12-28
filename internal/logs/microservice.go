@@ -21,7 +21,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
@@ -138,7 +138,7 @@ func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, msvc 
 		return
 	}
 
-	ctrlClient, err := iutil.NewControllerClient(namespace)
+	ctrlClient, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return
 	}

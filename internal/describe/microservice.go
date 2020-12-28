@@ -16,7 +16,7 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -37,7 +37,7 @@ func newMicroserviceExecutor(namespace, name, filename string) *microserviceExec
 }
 
 func (exe *microserviceExecutor) init() (err error) {
-	exe.client, err = iutil.NewControllerClient(exe.namespace)
+	exe.client, err = clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return
 	}

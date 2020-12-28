@@ -11,70 +11,44 @@
  *
  */
 
-package util
+package client
 
 import (
-	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-var clientCache map[string]*client.Client
-var agentCache map[string][]client.AgentInfo
-var mux sync.Mutex
-
-func init() {
-	InvalidateCache()
-}
-
+// InvalidateCache will clear the cache
 func InvalidateCache() {
-	mux.Lock()
-	defer mux.Unlock()
-
-	clientCache = make(map[string]*client.Client)
-	agentCache = make(map[string][]client.AgentInfo)
+	pkg.clientCacheRequestChan <- newClientCacheRequest("")
+	pkg.agentCacheRequestChan <- newAgentCacheRequest("")
 }
 
+// NewControllerClient will return cached client or create new client and cache it
 func NewControllerClient(namespace string) (*client.Client, error) {
-	mux.Lock()
-	defer mux.Unlock()
-
-	if cachedClient, exists := clientCache[namespace]; exists {
-		return cachedClient, nil
-	}
-
-	return newControllerClient(namespace)
+	request := newClientCacheRequest(namespace)
+	pkg.clientCacheRequestChan <- request
+	result := <-request.resultChan
+	return result.get()
 }
 
-func newControllerClient(namespace string) (*client.Client, error) {
-	// Get endpoint
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return nil, err
-	}
-	controlPlane, err := ns.GetControlPlane()
-	if err != nil {
-		return nil, err
-	}
-	endpoint, err := controlPlane.GetEndpoint()
-	if err != nil {
-		return nil, err
-	}
+// GetBackendAgents will return cached list of agents or create new list and cache it
+func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
+	request := newAgentCacheRequest(namespace)
+	pkg.agentCacheRequestChan <- request
+	result := <-request.resultChan
+	return result.get()
+}
 
-	user := controlPlane.GetUser()
-	cachedClient, err := client.NewAndLogin(client.Options{Endpoint: endpoint}, user.Email, user.GetRawPassword())
-	if err != nil {
-		return nil, err
-	}
-	clientCache[namespace] = cachedClient
-
-	return cachedClient, nil
+// SyncAgentInfo will synchronize local Agent info with backend Agent info
+func SyncAgentInfo(namespace string) error {
+	request := newAgentSyncRequest(namespace)
+	pkg.agentSyncRequestChan <- request
+	return <-request.resultChan
 }
 
 func IsEdgeResourceCapable(namespace string) error {
@@ -87,110 +61,6 @@ func IsEdgeResourceCapable(namespace string) error {
 		return err
 	}
 	return nil
-}
-
-func GetBackendAgents(namespace string) ([]client.AgentInfo, error) {
-	if cachedAgents, exist := agentCache[namespace]; exist {
-		return cachedAgents, nil
-	}
-	ioClient, err := NewControllerClient(namespace)
-	if err != nil {
-		return nil, err
-	}
-	return getBackendAgents(namespace, ioClient)
-}
-
-func getBackendAgents(namespace string, ioClient *client.Client) ([]client.AgentInfo, error) {
-	agentList, err := ioClient.ListAgents(client.ListAgentsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	agentCache[namespace] = agentList.Agents
-	return agentList.Agents, nil
-}
-
-func UpdateAgentCache(namespace string) error {
-	mux.Lock()
-	defer mux.Unlock()
-
-	// Do not update cache more than once per iofogctl command
-	if _, exists := agentCache[namespace]; exists {
-		return nil
-	}
-
-	// Get local cache Agents
-	ns, err := config.GetNamespace(namespace)
-	if err != nil {
-		return err
-	}
-	// Check the Control Plane type
-	controlPlane, err := ns.GetControlPlane()
-	if err != nil {
-		return err
-	}
-	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
-		// Do not update local Agents
-		return nil
-	}
-	// Generate map of config Agents
-	agentsMap := make(map[string]*rsc.RemoteAgent)
-	var localAgent *rsc.LocalAgent
-	for _, baseAgent := range ns.GetAgents() {
-		if v, ok := baseAgent.(*rsc.LocalAgent); ok {
-			localAgent = v
-		} else {
-			agentsMap[baseAgent.GetName()] = baseAgent.(*rsc.RemoteAgent)
-		}
-	}
-
-	// Get backend Agents
-	ioClient, err := newControllerClient(namespace)
-	if err != nil {
-		return err
-	}
-	backendAgents, err := getBackendAgents(namespace, ioClient)
-	if err != nil {
-		return err
-	}
-
-	// Generate cache types
-	agents := make([]rsc.RemoteAgent, len(backendAgents))
-	for idx := range backendAgents {
-		backendAgent := &backendAgents[idx]
-		if localAgent != nil && backendAgent.Name == localAgent.Name {
-			localAgent.UUID = backendAgent.UUID
-			continue
-		}
-
-		agent := rsc.RemoteAgent{
-			Name: backendAgent.Name,
-			UUID: backendAgent.UUID,
-			Host: backendAgent.Host,
-		}
-		// Update additional info if local cache contains it
-		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
-			agent.Created = cachedAgent.GetCreatedTime()
-			agent.SSH = cachedAgent.SSH
-		}
-
-		agents[idx] = agent
-	}
-
-	// Overwrite the Agents
-	ns.DeleteAgents()
-	for idx := range agents {
-		if err := ns.AddAgent(&agents[idx]); err != nil {
-			return err
-		}
-	}
-
-	if localAgent != nil {
-		if err := ns.AddAgent(localAgent); err != nil {
-			return err
-		}
-	}
-
-	return config.Flush()
 }
 
 func GetMicroserviceName(namespace, uuid string) (name string, err error) {
@@ -324,18 +194,4 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 	}
 
 	return agentConfig, tags, err
-}
-
-func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid string) (name string) {
-	if uuid == iofog.VanillaRouterAgentName {
-		return uuid
-	}
-	agent, found := agentMapByUUID[uuid]
-	if !found {
-		util.PrintNotify(fmt.Sprintf("Could not find Router: %s\n", uuid))
-		name = "UNKNOWN ROUTER: " + uuid
-	} else {
-		name = agent.Name
-	}
-	return
 }

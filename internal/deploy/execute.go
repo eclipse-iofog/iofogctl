@@ -35,7 +35,7 @@ import (
 	deployvolume "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/twmb/algoimpl/go/graph"
@@ -276,7 +276,7 @@ func deployAgentConfiguration(executors []execute.Executor) (err error) {
 
 func sortAndExecute(namespace string, executors []deployagentconfig.AgentConfigExecutor) error {
 	// List agents on Controller
-	ctrlClient, err := iutil.NewControllerClient(namespace)
+	ctrlClient, err := clientutil.NewControllerClient(namespace)
 	if err != nil {
 		return err
 	}

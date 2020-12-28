@@ -9,9 +9,8 @@
 set -e
 
 echo "Pre commit:"
-echo "Formatting..."
-make fmt
 echo "Building..."
+make lint
 make build
 echo "Generating docs..."
 ./bin/iofogctl documentation md -o ./docs/

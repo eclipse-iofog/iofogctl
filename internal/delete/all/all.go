@@ -19,7 +19,7 @@ import (
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
 	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -52,7 +52,7 @@ func Execute(namespace string, useDetached, force bool) error {
 	if !useDetached {
 		// Delete applications
 		util.SpinStart("Deleting Flows")
-		clt, err := iutil.NewControllerClient(namespace)
+		clt, err := clientutil.NewControllerClient(namespace)
 		if err != nil {
 			return err
 		}

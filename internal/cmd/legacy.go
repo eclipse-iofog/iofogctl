@@ -20,7 +20,7 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -138,7 +138,7 @@ iofogctl legacy agent      NAME COMMAND`,
 				}
 			case "agent":
 				// Update local cache based on Controller
-				err := iutil.UpdateAgentCache(namespace)
+				err := clientutil.SyncAgentInfo(namespace)
 				util.Check(err)
 				// Get config
 				var baseAgent rsc.Agent

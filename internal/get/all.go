@@ -15,7 +15,7 @@ package get
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type tableFunc = func(string, tableChannel)
@@ -59,7 +59,7 @@ func (exe *allExecutor) Execute() error {
 	}
 
 	// Add edge resource output if supported
-	if err := iutil.IsEdgeResourceCapable(exe.namespace); err == nil {
+	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err == nil {
 		// Add Edge Resources between Agent and Application
 		routines = append(routines[:2], append([]tableFunc{getEdgeResourceTable}, routines[2:]...)...)
 	}

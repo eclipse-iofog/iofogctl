@@ -15,7 +15,7 @@ package upgrade
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 )
 
 type agentExecutor struct {
@@ -40,7 +40,7 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 	// Update local cache based on Controller
-	if err := iutil.UpdateAgentCache(exe.namespace); err != nil {
+	if err := clientutil.SyncAgentInfo(exe.namespace); err != nil {
 		return err
 	}
 
@@ -51,7 +51,7 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	// Talk to Controller
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}

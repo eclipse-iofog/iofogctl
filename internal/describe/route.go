@@ -16,7 +16,7 @@ package describe
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -45,7 +45,7 @@ func (exe *routeExecutor) Execute() error {
 	}
 
 	// Connect to Controller
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
@@ -57,11 +57,11 @@ func (exe *routeExecutor) Execute() error {
 	}
 
 	// Convert route details
-	from, err := iutil.GetMicroserviceName(exe.namespace, route.SourceMicroserviceUUID)
+	from, err := clientutil.GetMicroserviceName(exe.namespace, route.SourceMicroserviceUUID)
 	if err != nil {
 		return err
 	}
-	to, err := iutil.GetMicroserviceName(exe.namespace, route.DestMicroserviceUUID)
+	to, err := clientutil.GetMicroserviceName(exe.namespace, route.DestMicroserviceUUID)
 	if err != nil {
 		return err
 	}

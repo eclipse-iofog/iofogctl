@@ -15,7 +15,7 @@ package describe
 
 import (
 	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
@@ -38,7 +38,7 @@ func (exe *applicationTemplateExecutor) GetName() string {
 }
 
 func (exe *applicationTemplateExecutor) Execute() error {
-	clt, err := iutil.NewControllerClient(exe.namespace)
+	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
