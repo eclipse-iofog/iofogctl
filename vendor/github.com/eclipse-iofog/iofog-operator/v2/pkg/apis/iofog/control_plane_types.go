@@ -68,11 +68,11 @@ type RouterIngress struct {
 	EdgePort     int `json:"edgePort,omitempty"`
 }
 
-type TcpIngress struct {
+type TCPIngress struct {
 	Ingress
-	TcpAllocatorHost string `json:"tcpAllocatorHost,omitempty"`
-	TcpAllocatorPort int    `json:"tcpAllocatorPort,omitempty"`
-	EcnId            int    `json:"ecnId,omitempty"`
+	TCPAllocatorHost string `json:"tcpAllocatorHost,omitempty"`
+	TCPAllocatorPort int    `json:"tcpAllocatorPort,omitempty"`
+	EcnID            int    `json:"ecnId,omitempty"`
 }
 
 type Ingress struct {
@@ -81,8 +81,8 @@ type Ingress struct {
 
 type Ingresses struct {
 	Router    RouterIngress `json:"router,omitempty"`
-	HttpProxy Ingress       `json:"httpProxy,omitempty"`
-	TcpProxy  TcpIngress    `json:"tcpProxy,omitempty"`
+	HTTPProxy Ingress       `json:"httpProxy,omitempty"`
+	TCPProxy  TCPIngress    `json:"tcpProxy,omitempty"`
 }
 
 type Controller struct {

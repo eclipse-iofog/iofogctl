@@ -20,7 +20,7 @@ import (
 
 // GetCatalog retrieves all catalog items using Controller REST API
 func (clt *Client) GetCatalog() (response *CatalogListResponse, err error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/catalog/microservices"), nil)
+	body, err := clt.doRequest("GET", "/catalog/microservices", nil)
 	if err != nil {
 		return
 	}
@@ -31,8 +31,8 @@ func (clt *Client) GetCatalog() (response *CatalogListResponse, err error) {
 }
 
 // GetCatalogItem retrieves one catalog item using Controller REST API
-func (clt *Client) GetCatalogItem(ID int) (response *CatalogItemInfo, err error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/catalog/microservices/%d", ID), nil)
+func (clt *Client) GetCatalogItem(id int) (response *CatalogItemInfo, err error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/catalog/microservices/%d", id), nil)
 	if err != nil {
 		return
 	}
@@ -49,12 +49,12 @@ func (clt *Client) CreateCatalogItem(request *CatalogItemCreateRequest) (*Catalo
 		request.RegistryID = 1
 	}
 
-	body, err := clt.doRequest("POST", fmt.Sprintf("/catalog/microservices"), request)
+	body, err := clt.doRequest("POST", "/catalog/microservices", request)
 	if err != nil {
 		return nil, err
 	}
 	response := &CatalogItemCreateResponse{}
-	if err = json.Unmarshal(body, response); err != nil {
+	if err := json.Unmarshal(body, response); err != nil {
 		return nil, err
 	}
 	return clt.GetCatalogItem(response.ID)
@@ -70,8 +70,8 @@ func (clt *Client) UpdateCatalogItem(request *CatalogItemUpdateRequest) (*Catalo
 }
 
 // DeleteCatalogItem deletes one catalog item using Controller REST API
-func (clt *Client) DeleteCatalogItem(ID int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%d", ID), nil)
+func (clt *Client) DeleteCatalogItem(id int) (err error) {
+	_, err = clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%d", id), nil)
 	return
 }
 

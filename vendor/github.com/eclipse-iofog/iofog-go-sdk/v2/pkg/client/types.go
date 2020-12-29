@@ -113,7 +113,7 @@ type ApplicationTemplateInfo struct {
 
 type ApplicationTemplateCreateResponse struct {
 	Name string `json:"name"`
-	Id   int    `json:"id"`
+	ID   int    `json:"id"`
 }
 
 type ApplicationTemplateUpdateRequest = ApplicationTemplate
@@ -237,8 +237,8 @@ type MicroserviceStatus struct {
 	StartTimne        int64   `json:"startTime"`
 	OperatingDuration int64   `json:"operatingDuration"`
 	MemoryUsage       float64 `json:"memoryUsage"`
-	CpuUsage          float64 `json:"cpuUsage"`
-	ContainerId       string  `json:"containerId"`
+	CPUUsage          float64 `json:"cpuUsage"`
+	ContainerID       string  `json:"containerId"`
 	Percentage        float64 `json:"percentage"`
 	ErrorMessage      string  `json:"errorMessage"`
 }
@@ -520,7 +520,7 @@ func newDefaultProxyRequest(address string) *UpdateConfigRequest {
 
 func newPublicPortHostRequest(protocol Protocol, host string) *UpdateConfigRequest {
 	return &UpdateConfigRequest{
-		Key:   string(protocol) + "-public-port-host",
+		Key:   protocol + "-public-port-host",
 		Value: host,
 	}
 }
@@ -554,15 +554,15 @@ type EdgeResourceMetadata struct {
 	Version           string               `json:"version,omitempty"`
 	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
 	Display           *EdgeResourceDisplay `json:"display,omitempty"`
-	Interface         HttpEdgeResource     `json:"interface,omitempty"` // TODO: Make this generic
+	Interface         HTTPEdgeResource     `json:"interface,omitempty"` // TODO: Make this generic
 	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
 }
 
-type HttpEdgeResource struct {
-	Endpoints []HttpEndpoint `json:"endpoints,omitempty"`
+type HTTPEdgeResource struct {
+	Endpoints []HTTPEndpoint `json:"endpoints,omitempty"`
 }
 
-type HttpEndpoint struct {
+type HTTPEndpoint struct {
 	Name   string `json:"name,omitempty"`
 	Method string `json:"method,omitempty"`
 	URL    string `json:"url,omitempty"`

@@ -16,10 +16,11 @@ package client
 import (
 	"bytes"
 	"fmt"
-	json "github.com/json-iterator/go"
 	"net/http"
 	"strings"
 	"time"
+
+	json "github.com/json-iterator/go"
 )
 
 func httpDo(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
@@ -46,10 +47,8 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 	request.Close = true
 
 	// Set headers on request
-	if headers != nil {
-		for key, val := range headers {
-			request.Header.Set(key, val)
-		}
+	for key, val := range headers {
+		request.Header.Set(key, val)
 	}
 
 	// Perform request
@@ -61,6 +60,7 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 	if err != nil {
 		return
 	}
+	defer httpResp.Body.Close()
 
 	// Check response
 	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
@@ -69,8 +69,10 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 
 	// Return body
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
+	if _, err := buf.ReadFrom(httpResp.Body); err != nil {
+		return nil, err
+	}
 	responseBody = buf.Bytes()
 	Verbose(fmt.Sprintf("===> Response: %s\n\n", string(responseBody)))
-	return
+	return responseBody, err
 }

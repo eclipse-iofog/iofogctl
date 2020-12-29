@@ -18,12 +18,12 @@ func DeployApplicationTemplate(controller IofogController, template ApplicationT
 	return exe.execute()
 }
 
-func DeployApplication(controller IofogController, application Application) error {
+func DeployApplication(controller IofogController, application *Application) error {
 	exe := newApplicationExecutor(controller, application)
 	return exe.execute()
 }
 
-func DeployMicroservice(controller IofogController, microservice Microservice) error {
+func DeployMicroservice(controller IofogController, microservice *Microservice) error {
 	exe := newMicroserviceExecutor(controller, microservice)
 	return exe.execute()
 }

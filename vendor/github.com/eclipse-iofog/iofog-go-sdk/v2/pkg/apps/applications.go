@@ -17,14 +17,9 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
-type iofogUser struct {
-	email    string
-	password string
-}
-
 type applicationExecutor struct {
 	controller         IofogController
-	app                Application
+	app                *Application
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
 	flowInfo           *client.FlowInfo
@@ -44,7 +39,7 @@ func microserviceArrayToClientMap(a []Microservice) (result map[string]*client.M
 	return
 }
 
-func newApplicationExecutor(controller IofogController, app Application) *applicationExecutor {
+func newApplicationExecutor(controller IofogController, app *Application) *applicationExecutor {
 	exe := &applicationExecutor{
 		controller:         controller,
 		app:                app,
@@ -70,14 +65,13 @@ func (exe *applicationExecutor) execute() (err error) {
 	}
 
 	// Deploy application
-	err = exe.deploy()
-	// If notfound error, try legacy
-	if _, ok := err.(*client.NotFoundError); err != nil && ok {
-		return exe.deployLegacy()
-	} else if err != nil {
+	if err := exe.deploy(); err != nil {
+		if _, ok := err.(*client.NotFoundError); ok {
+			// If notfound error, try legacy
+			return exe.deployLegacy()
+		}
 		return err
 	}
-
 	return nil
 }
 
@@ -155,11 +149,11 @@ func (exe *applicationExecutor) update() (err error) {
 func (exe *applicationExecutor) deploy() (err error) {
 	// Existing app info retrieved in init
 	if exe.applicationInfo == nil {
-		if err = exe.create(); err != nil {
+		if err := exe.create(); err != nil {
 			return err
 		}
 	} else {
-		if err = exe.update(); err != nil {
+		if err := exe.update(); err != nil {
 			return err
 		}
 	}

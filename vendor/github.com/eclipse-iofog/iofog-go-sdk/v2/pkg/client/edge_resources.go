@@ -23,7 +23,7 @@ const (
 )
 
 // CreateHttpEdgeResource creates an Edge Resource using Controller REST API
-func (clt *Client) CreateHttpEdgeResource(request EdgeResourceMetadata) error {
+func (clt *Client) CreateHTTPEdgeResource(request *EdgeResourceMetadata) error {
 	if !clt.isLoggedIn() {
 		return NewError(edgeResourceLoggedInErr)
 	}
@@ -37,7 +37,7 @@ func (clt *Client) CreateHttpEdgeResource(request EdgeResourceMetadata) error {
 }
 
 // GetHttpEdgeResourceByName gets an Edge Resource using Controller REST API
-func (clt *Client) GetHttpEdgeResourceByName(name, version string) (response EdgeResourceMetadata, err error) {
+func (clt *Client) GetHTTPEdgeResourceByName(name, version string) (response EdgeResourceMetadata, err error) {
 	if !clt.isLoggedIn() {
 		err = NewError(edgeResourceLoggedInErr)
 		return
@@ -63,7 +63,7 @@ func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err e
 	}
 
 	// Send request
-	body, err := clt.doRequest("GET", fmt.Sprintf("/edgeResources"), nil)
+	body, err := clt.doRequest("GET", "/edgeResources", nil)
 	if err != nil {
 		return
 	}
@@ -75,7 +75,7 @@ func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err e
 }
 
 // UpdateHttpEdgeResource updates an HTTP Based Edge Resources using Controller REST API
-func (clt *Client) UpdateHttpEdgeResource(name string, request EdgeResourceMetadata) error {
+func (clt *Client) UpdateHTTPEdgeResource(name string, request *EdgeResourceMetadata) error {
 	if !clt.isLoggedIn() {
 		return NewError(edgeResourceLoggedInErr)
 	}

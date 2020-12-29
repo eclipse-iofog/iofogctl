@@ -19,8 +19,8 @@ import (
 )
 
 // GetFlowByID retrieve flow information using the Controller REST API
-func (clt *Client) GetFlowByID(ID int) (flow *FlowInfo, err error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/flow/%d", ID), nil)
+func (clt *Client) GetFlowByID(id int) (flow *FlowInfo, err error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/flow/%d", id), nil)
 	if err != nil {
 		return
 	}
@@ -38,7 +38,7 @@ func (clt *Client) CreateFlow(name, description string) (*FlowInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 	return clt.GetFlowByID(response.ID)
@@ -54,15 +54,15 @@ func (clt *Client) UpdateFlow(request *FlowUpdateRequest) (*FlowInfo, error) {
 }
 
 // StartFlow set the flow as active using the Controller REST API
-func (clt *Client) StartFlow(ID int) (*FlowInfo, error) {
+func (clt *Client) StartFlow(id int) (*FlowInfo, error) {
 	active := true
-	return clt.UpdateFlow(&FlowUpdateRequest{ID: ID, IsActivated: &active})
+	return clt.UpdateFlow(&FlowUpdateRequest{ID: id, IsActivated: &active})
 }
 
 // StopFlow set the flow as inactive using the Controller REST API
-func (clt *Client) StopFlow(ID int) (*FlowInfo, error) {
+func (clt *Client) StopFlow(id int) (*FlowInfo, error) {
 	active := false
-	return clt.UpdateFlow(&FlowUpdateRequest{ID: ID, IsActivated: &active})
+	return clt.UpdateFlow(&FlowUpdateRequest{ID: id, IsActivated: &active})
 }
 
 // GetAllFlows retrieve all flows information from the Controller REST API
@@ -93,7 +93,7 @@ func (clt *Client) GetFlowByName(name string) (_ *FlowInfo, err error) {
 }
 
 // DeleteFlow deletes a flow using the Controller REST API
-func (clt *Client) DeleteFlow(ID int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/flow/%d", ID), nil)
+func (clt *Client) DeleteFlow(id int) (err error) {
+	_, err = clt.doRequest("DELETE", fmt.Sprintf("/flow/%d", id), nil)
 	return
 }

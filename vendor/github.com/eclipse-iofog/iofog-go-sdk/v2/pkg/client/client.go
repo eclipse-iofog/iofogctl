@@ -115,7 +115,7 @@ func (clt *Client) SetAccessToken(token string) {
 	clt.accessToken = token
 }
 
-func (clt *Client) makeRequestUrl(url string) string {
+func (clt *Client) makeRequestURL(url string) string {
 	if !strings.HasPrefix(url, "/") {
 		url = "/" + url
 	}
@@ -157,7 +157,7 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 
 func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, error) {
 	// Prepare request
-	requestURL := clt.makeRequestUrl(url)
+	requestURL := clt.makeRequestURL(url)
 	headers := map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": clt.accessToken,

@@ -33,7 +33,7 @@ type Options struct {
 
 type remoteExecutor struct {
 	namespace   string
-	application rsc.Application
+	application *rsc.Application
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -110,5 +110,5 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 
 	return &remoteExecutor{
 		namespace:   opt.Namespace,
-		application: application}, nil
+		application: &application}, nil
 }

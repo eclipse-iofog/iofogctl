@@ -60,7 +60,7 @@ func (exe *edgeResourceExecutor) Execute() error {
 	}
 
 	// Get Edge Resource
-	edge, err := clt.GetHttpEdgeResourceByName(exe.name, exe.version)
+	edge, err := clt.GetHTTPEdgeResourceByName(exe.name, exe.version)
 	if err != nil {
 		return err
 	}

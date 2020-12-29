@@ -19,13 +19,13 @@ import (
 )
 
 // CreateRegistry creates a new registry using the Controller REST API
-func (clt *Client) CreateRegistry(request RegistryCreateRequest) (int, error) {
+func (clt *Client) CreateRegistry(request *RegistryCreateRequest) (int, error) {
 	response := RegistryCreateResponse{}
 	body, err := clt.doRequest("POST", "/registries", request)
 	if err != nil {
 		return -1, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return -1, err
 	}
 	return response.ID, nil
@@ -53,7 +53,7 @@ func (clt *Client) ListRegistries() (response RegistryListResponse, err error) {
 }
 
 // DeleteRegistry deletes a registry using the Controller REST API
-func (clt *Client) DeleteRegistry(ID int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/registries/%d", ID), nil)
+func (clt *Client) DeleteRegistry(id int) (err error) {
+	_, err = clt.doRequest("DELETE", fmt.Sprintf("/registries/%d", id), nil)
 	return
 }

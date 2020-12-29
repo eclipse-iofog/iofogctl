@@ -45,14 +45,14 @@ func (exe *executor) Execute() (err error) {
 	}
 
 	// Translate edge resource to client type
-	edge := client.EdgeResourceMetadata{
+	edge := &client.EdgeResourceMetadata{
 		Name:              exe.name,
 		Description:       exe.edge.Description,
 		Version:           exe.edge.Version,
 		InterfaceProtocol: exe.edge.InterfaceProtocol,
 		Display:           exe.edge.Display,
 		OrchestrationTags: exe.edge.OrchestrationTags,
-		Interface: client.HttpEdgeResource{
+		Interface: client.HTTPEdgeResource{
 			Endpoints: exe.edge.Interface.Endpoints,
 		},
 	}
@@ -63,7 +63,7 @@ func (exe *executor) Execute() (err error) {
 	}
 
 	// Create the resource
-	if err = clt.UpdateHttpEdgeResource(edge.Name, edge); err != nil {
+	if err = clt.UpdateHTTPEdgeResource(edge.Name, edge); err != nil {
 		return
 	}
 

@@ -126,7 +126,7 @@ func getAgentUpdateRequestFromAgentConfig(agentConfig *rsc.AgentConfiguration, t
 
 func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, name string, clt *client.Client) (uuid string, err error) {
 	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
-	createAgentRequest := client.CreateAgentRequest{
+	createAgentRequest := &client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
 	}
 	if createAgentRequest.AgentUpdateRequest.Name == "" {

@@ -33,7 +33,7 @@ type ApplicationData struct {
 
 type microserviceExecutor struct {
 	controller         IofogController
-	msvc               Microservice
+	msvc               *Microservice
 	microserviceByName map[string]*client.MicroserviceInfo
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
@@ -41,10 +41,9 @@ type microserviceExecutor struct {
 	registryByID       map[int]*client.RegistryInfo
 	flowInfo           *client.FlowInfo
 	client             *client.Client
-	routes             []string
 }
 
-func newMicroserviceExecutor(controller IofogController, msvc Microservice) *microserviceExecutor {
+func newMicroserviceExecutor(controller IofogController, msvc *Microservice) *microserviceExecutor {
 	exe := &microserviceExecutor{
 		controller: controller,
 		msvc:       msvc,
@@ -54,7 +53,7 @@ func newMicroserviceExecutor(controller IofogController, msvc Microservice) *mic
 }
 
 // newMicroserviceExecutorWithApplicationDataAndClient (DEPRECATED) used by application deployment in order to reuse already initialised data
-func newMicroserviceExecutorWithApplicationDataAndClient(controller IofogController, msvc Microservice, appData ApplicationData, clt *client.Client) *microserviceExecutor {
+func newMicroserviceExecutorWithApplicationDataAndClient(controller IofogController, msvc *Microservice, appData ApplicationData, clt *client.Client) *microserviceExecutor {
 	exe := &microserviceExecutor{
 		controller:         controller,
 		msvc:               msvc,
@@ -128,7 +127,8 @@ func (exe *microserviceExecutor) init() (err error) {
 			if exe.msvc.UUID == "" {
 				exe.msvc.UUID = listMsvcs.Microservices[i].UUID
 			} else if exe.msvc.UUID != listMsvcs.Microservices[i].UUID {
-				return NewConflictError(fmt.Sprintf("Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]", listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
+				msg := "Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]"
+				return NewConflictError(fmt.Sprintf(msg, listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
 			}
 		}
 	}
@@ -161,12 +161,12 @@ func (exe *microserviceExecutor) init() (err error) {
 		exe.registryByID[listRegistries.Registries[i].ID] = &listRegistries.Registries[i]
 	}
 
-	return
+	return err
 }
 
 func (exe *microserviceExecutor) validate() error {
 	// Validate microservice
-	if err := validateMicroservice(&exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	if err := validateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
 	}
 
@@ -174,13 +174,13 @@ func (exe *microserviceExecutor) validate() error {
 	if exe.msvc.UUID != "" {
 		existingMsvc := exe.microserviceByName[exe.msvc.Name]
 		if exe.msvc.Images.CatalogID != 0 && exe.msvc.Images.CatalogID != existingMsvc.CatalogItemID {
-			return NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
+			return NewInputError("Cannot update a microservice catalog item")
 		}
 		if exe.flowInfo != nil && exe.flowInfo.ID != existingMsvc.FlowID { // Legacy
-			return NewInputError(fmt.Sprintf("Cannot update a microservice application"))
+			return NewInputError("Cannot update a microservice application")
 		}
 		if exe.msvc.Application != nil && *exe.msvc.Application != existingMsvc.Application {
-			return NewInputError(fmt.Sprintf("Cannot update a microservice application"))
+			return NewInputError("Cannot update a microservice application")
 		}
 	}
 	// TODO: Check if microservice already exists (Will fail on API call)
@@ -189,13 +189,21 @@ func (exe *microserviceExecutor) validate() error {
 
 func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err error) {
 	// Get catalog item
-	catalogItem, err := setUpCatalogItem(&exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
+	catalogItem, err := setUpCatalogItem(exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
 	if err != nil {
 		return nil, err
 	}
 	var catalogItemID int
 	if catalogItem != nil {
 		catalogItemID = catalogItem.ID
+	}
+
+	// Get registry
+
+	// Configure agent
+	agent, err := configureAgent(exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
+	if err != nil {
+		return nil, err
 	}
 
 	// Transform msvc config to JSON string
@@ -216,7 +224,6 @@ func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err
 		}
 	}
 
-	agent := exe.agentsByName[exe.msvc.Agent.Name]
 	if exe.msvc.UUID != "" {
 		// Update microservice
 		return exe.update(config, agent.UUID, catalogItemID, registryID)
@@ -244,17 +251,17 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 	}
 	// Handle flow vs application
 	application := ""
-	flowId := 0
+	flowID := 0
 	if exe.msvc.Application != nil {
 		application = *exe.msvc.Application
 	}
 	if exe.flowInfo != nil {
-		flowId = exe.flowInfo.ID
+		flowID = exe.flowInfo.ID
 	}
-	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
+	return exe.client.CreateMicroservice(&client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
-		FlowID:         flowId,
+		FlowID:         flowID,
 		Application:    application,
 		Name:           exe.msvc.Name,
 		RootHostAccess: exe.msvc.Container.RootHostAccess,
@@ -280,7 +287,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		cmdPointer = &exe.msvc.Container.Commands
 	}
 
-	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
+	return exe.client.UpdateMicroservice(&client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
 		CatalogItemID:  catalogID,

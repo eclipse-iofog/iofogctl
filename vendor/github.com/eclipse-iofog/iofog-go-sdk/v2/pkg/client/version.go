@@ -19,11 +19,11 @@ import (
 	"strconv"
 )
 
-func (clt Client) GetVersion() string {
+func (clt *Client) GetVersion() string {
 	return clt.status.version
 }
 
-func (clt Client) GetVersionNumbers() (major, minor, patch int, err error) {
+func (clt *Client) GetVersionNumbers() (major, minor, patch int, err error) {
 	errMsg := fmt.Sprintf("Controller did not return a valid API version: %s", clt.status.version)
 
 	// Split version string
@@ -33,10 +33,10 @@ func (clt Client) GetVersionNumbers() (major, minor, patch int, err error) {
 	}
 
 	// Convert to int
-	major, err = strconv.Atoi(clt.status.versionNums[0])
-	minor, err = strconv.Atoi(clt.status.versionNums[1])
-	patch, err = strconv.Atoi(clt.status.versionNums[2])
-	if err != nil {
+	major, majErr := strconv.Atoi(clt.status.versionNums[0])
+	minor, minErr := strconv.Atoi(clt.status.versionNums[1])
+	patch, patErr := strconv.Atoi(clt.status.versionNums[2])
+	if majErr != nil || minErr != nil || patErr != nil {
 		err = errors.New(errMsg)
 		return
 	}
@@ -44,11 +44,11 @@ func (clt Client) GetVersionNumbers() (major, minor, patch int, err error) {
 	return
 }
 
-func (clt Client) IsDevVersion() bool {
+func (clt *Client) IsDevVersion() bool {
 	return clt.status.version == "0.0.0-dev"
 }
 
-func (clt Client) IsEdgeResourceCapable() error {
+func (clt *Client) IsEdgeResourceCapable() error {
 	if clt.IsDevVersion() {
 		return nil
 	}
@@ -62,5 +62,5 @@ func (clt Client) IsEdgeResourceCapable() error {
 		return nil
 	}
 	// Unsupported
-	return errors.New(fmt.Sprintf("Controller version %s does not support Edge Resources", clt.status.version))
+	return fmt.Errorf("controller version %s does not support Edge Resources", clt.status.version)
 }

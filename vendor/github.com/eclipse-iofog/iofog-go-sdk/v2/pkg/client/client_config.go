@@ -15,7 +15,7 @@ package client
 
 import "fmt"
 
-// Toggle HTTP output
+// IsVerbose will Toggle HTTP output
 var IsVerbose bool
 
 func SetVerbosity(verbose bool) {
@@ -24,7 +24,7 @@ func SetVerbosity(verbose bool) {
 
 func Verbose(msg string) {
 	if IsVerbose {
-		fmt.Println(fmt.Sprintf("[HTTP]: %s", msg))
+		fmt.Printf("[HTTP]: %s\n", msg)
 	}
 }
 

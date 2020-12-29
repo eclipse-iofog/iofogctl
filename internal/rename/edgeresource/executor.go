@@ -54,13 +54,13 @@ func Execute(namespace, name, newName string) error {
 			continue
 		}
 		// Get versioned resource
-		oldEdge, err := clt.GetHttpEdgeResourceByName(meta.Name, meta.Version)
+		oldEdge, err := clt.GetHTTPEdgeResourceByName(meta.Name, meta.Version)
 		if err != nil {
 			return err
 		}
 		// Update versioned resource
 		oldEdge.Name = newName
-		if err := clt.UpdateHttpEdgeResource(name, oldEdge); err != nil {
+		if err := clt.UpdateHTTPEdgeResource(name, &oldEdge); err != nil {
 			return err
 		}
 	}

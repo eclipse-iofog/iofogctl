@@ -48,7 +48,7 @@ func (err *NotFoundError) Error() string {
 	return fmt.Sprintf("Unknown resource error\n%s", err.msg)
 }
 
-//ConflictError export
+// ConflictError export
 type ConflictError struct {
 	msg string
 }
@@ -70,7 +70,7 @@ type InputError struct {
 	message string
 }
 
-//NewInputError export
+// NewInputError export
 func NewInputError(message string) (err *InputError) {
 	err = new(InputError)
 	err.message = message

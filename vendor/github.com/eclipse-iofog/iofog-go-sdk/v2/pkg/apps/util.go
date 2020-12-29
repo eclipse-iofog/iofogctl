@@ -22,28 +22,39 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
+func validatePortMapping(port *MicroservicePortMapping, agentsByName map[string]*client.AgentInfo) error {
+	isPublic := port.Public != 0
+	if !isPublic && port.Host != "" {
+		return NewInputError("Cannot specify a port host without specifying a public port number")
+	}
+	if port.Protocol != "" {
+		port.Protocol = strings.ToLower(port.Protocol)
+		protocol := port.Protocol
+		if protocol != "tcp" && protocol != "http" {
+			return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
+		}
+	}
+	if port.Host != "" {
+		if port.Host != client.DefaultRouterName {
+			agent, found := agentsByName[port.Host]
+			if !found {
+				return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", port.Host))
+			}
+			port.Host = agent.UUID
+		}
+	}
+	return nil
+}
+
+func validateMicroservice(
+	msvc *Microservice,
+	agentsByName map[string]*client.AgentInfo,
+	catalogByID map[int]*client.CatalogItemInfo,
+	registryByID map[int]*client.RegistryInfo) (err error) {
 	// Validate ports and update host
-	for idx, port := range msvc.Container.Ports {
-		isPublic := port.Public != 0
-		if !isPublic && port.Host != "" {
-			return NewInputError("Cannot specify a port host without specifying a public port number")
-		}
-		if port.Protocol != "" {
-			msvc.Container.Ports[idx].Protocol = strings.ToLower(msvc.Container.Ports[idx].Protocol)
-			protocol := msvc.Container.Ports[idx].Protocol
-			if protocol != "tcp" && protocol != "http" {
-				return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
-			}
-		}
-		if port.Host != "" {
-			if port.Host != client.DefaultRouterName {
-				agent, found := agentsByName[port.Host]
-				if !found {
-					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", port.Host))
-				}
-				msvc.Container.Ports[idx].Host = agent.UUID
-			}
+	for idx := range msvc.Container.Ports {
+		if err := validatePortMapping(&msvc.Container.Ports[idx], agentsByName); err != nil {
+			return err
 		}
 	}
 
@@ -82,14 +93,10 @@ func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.Ag
 			if msvc.Images.X86 == "" {
 				return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
 			}
-			break
 		case 2:
 			if msvc.Images.ARM == "" {
 				return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
 			}
-			break
-		default:
-			break
 		}
 	}
 
@@ -97,7 +104,7 @@ func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.Ag
 	return nil
 }
 
-func validateRoutes(routes []string, microserviceByName map[string]*client.MicroserviceInfo) (routesUUIDs []string, err error) {
+func validateRoutes(routes []string, microserviceByName map[string]*client.MicroserviceInfo) (routesUUIDs []string, err error) { // nolint:deadcode,unused
 	// Validate routes
 	for _, route := range routes {
 		msvc, foundTo := microserviceByName[route]
@@ -109,7 +116,33 @@ func validateRoutes(routes []string, microserviceByName map[string]*client.Micro
 	return routesUUIDs, nil
 }
 
-func setUpCatalogItem(msvc *Microservice, catalogByID map[int]*client.CatalogItemInfo, catalogByName map[string]*client.CatalogItemInfo, clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
+func configureAgent(msvc *Microservice, agent *client.AgentInfo, clt *client.Client) (*client.AgentInfo, error) {
+	return clt.UpdateAgent(&client.AgentUpdateRequest{
+		UUID: agent.UUID,
+		AgentConfiguration: client.AgentConfiguration{
+			DockerURL:                 msvc.Agent.Config.DockerURL,
+			DiskLimit:                 msvc.Agent.Config.DiskLimit,
+			DiskDirectory:             msvc.Agent.Config.DiskDirectory,
+			MemoryLimit:               msvc.Agent.Config.MemoryLimit,
+			CPULimit:                  msvc.Agent.Config.CPULimit,
+			LogLimit:                  msvc.Agent.Config.LogLimit,
+			LogDirectory:              msvc.Agent.Config.LogDirectory,
+			LogFileCount:              msvc.Agent.Config.LogFileCount,
+			StatusFrequency:           msvc.Agent.Config.StatusFrequency,
+			ChangeFrequency:           msvc.Agent.Config.ChangeFrequency,
+			DeviceScanFrequency:       msvc.Agent.Config.DeviceScanFrequency,
+			BluetoothEnabled:          msvc.Agent.Config.BluetoothEnabled,
+			WatchdogEnabled:           msvc.Agent.Config.WatchdogEnabled,
+			AbstractedHardwareEnabled: msvc.Agent.Config.AbstractedHardwareEnabled,
+		},
+	})
+}
+
+func setUpCatalogItem(
+	msvc *Microservice,
+	catalogByID map[int]*client.CatalogItemInfo,
+	catalogByName map[string]*client.CatalogItemInfo,
+	clt *client.Client) (catalogItem *client.CatalogItemInfo, err error) {
 	// No catalog item
 	if msvc.Images.CatalogID == 0 {
 		return
@@ -135,14 +168,14 @@ func setUpCatalogItem(msvc *Microservice, catalogByID map[int]*client.CatalogIte
 		catalogItem, found = catalogByID[msvc.Images.CatalogID]
 	}
 	// Update catalog item if needed
-	if found == true {
+	if found {
 		// Check if catalog item needs to be updated
 		if catalogItemNeedsUpdate(catalogItem, catalogImages, registryID) {
 			if msvc.Images.CatalogID != 0 {
-				return nil, NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
+				return nil, NewInputError("Cannot update a microservice catalog item")
 			}
 			// Delete catalog item
-			if err = clt.DeleteCatalogItem(catalogItem.ID); err != nil {
+			if err := clt.DeleteCatalogItem(catalogItem.ID); err != nil {
 				return nil, err
 			}
 			// Create new catalog item
@@ -170,13 +203,13 @@ func setUpCatalogItem(msvc *Microservice, catalogByID map[int]*client.CatalogIte
 	} else { // Not found, and catalog item id specified
 		return nil, NewNotFoundError(fmt.Sprintf("Could not find specified catalog item, ID: %d", msvc.Images.CatalogID))
 	}
-	return
+	return catalogItem, err
 }
 
-func createRoutes(routes []Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) (err error) {
+func createRoutes(routes []Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) (err error) { // nolint:deadcode,unused
 	for _, route := range routes {
-		fromMsvc, _ := microserviceByName[route.From]
-		toMsvc, _ := microserviceByName[route.To]
+		fromMsvc := microserviceByName[route.From]
+		toMsvc := microserviceByName[route.To]
 		if err = clt.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
 			return
 		}
@@ -203,7 +236,7 @@ func catalogItemNeedsUpdate(catalogItem *client.CatalogItemInfo, catalogImages [
 	return false
 }
 
-func mapMicroserviceToClientMicroserviceRequest(microservice Microservice) (request client.MicroserviceCreateRequest, err error) {
+func mapMicroserviceToClientMicroserviceRequest(microservice *Microservice) (request client.MicroserviceCreateRequest, err error) {
 	// Transform msvc config to JSON string
 	config := ""
 	if microservice.Config != nil {
@@ -264,12 +297,13 @@ func mapRouteToClientRouteRequest(route Route) client.ApplicationRouteCreateRequ
 
 func mapMicroservicesToClientMicroserviceRequests(microservices []Microservice) (result []client.MicroserviceCreateRequest, err error) {
 	result = make([]client.MicroserviceCreateRequest, 0)
-	for _, microservice := range microservices {
-		m, err := mapMicroserviceToClientMicroserviceRequest(microservice)
+	for idx := range microservices {
+		msvc := &microservices[idx]
+		request, err := mapMicroserviceToClientMicroserviceRequest(msvc)
 		if err != nil {
 			return result, err
 		}
-		result = append(result, m)
+		result = append(result, request)
 	}
 	return
 }

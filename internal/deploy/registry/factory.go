@@ -69,7 +69,7 @@ func (exe *remoteExecutor) Execute() error {
 		})
 	}
 
-	createRequest := client.RegistryCreateRequest{}
+	createRequest := &client.RegistryCreateRequest{}
 	if exe.registry.URL != nil {
 		createRequest.URL = *exe.registry.URL
 	}

@@ -24,7 +24,7 @@ func (clt *Client) ListRoutes() (response RouteListResponse, err error) {
 		return
 	}
 
-	body, err := clt.doRequest("GET", fmt.Sprintf("/routes"), nil)
+	body, err := clt.doRequest("GET", "/routes", nil)
 	if err != nil {
 		return
 	}

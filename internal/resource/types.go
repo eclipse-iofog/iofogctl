@@ -120,10 +120,10 @@ type EdgeResource struct {
 	Custom            map[string]interface{}     `yaml:"custom"`
 }
 
-type EdgeResourceHTTPInterface = client.HttpEdgeResource
+type EdgeResourceHTTPInterface = client.HTTPEdgeResource
 
 type Display = client.EdgeResourceDisplay
-type HTTPEndpoint = client.HttpEndpoint
+type HTTPEndpoint = client.HTTPEndpoint
 
 // FogTypeStringMap map human readable fog type to Controller fog type
 var FogTypeStringMap = map[string]int64{

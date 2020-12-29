@@ -53,7 +53,7 @@ func (exe *applicationExecutor) initLegacy() (err error) {
 	for i := 0; i < len(listRegistries.Registries); i++ {
 		exe.registryByID[listRegistries.Registries[i].ID] = &listRegistries.Registries[i]
 	}
-	return
+	return err
 }
 
 func (exe *applicationExecutor) validateLegacy() (err error) {
@@ -83,7 +83,7 @@ func (exe *applicationExecutor) validateLegacy() (err error) {
 
 func (exe *applicationExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
 	for _, route := range exe.app.Routes {
-		if err = exe.client.UpdateRoute(client.Route{
+		if err := exe.client.UpdateRoute(client.Route{
 			Name:                   route.Name,
 			SourceMicroserviceUUID: microserviceByName[route.From].UUID,
 			DestMicroserviceUUID:   microserviceByName[route.To].UUID,
@@ -98,11 +98,13 @@ func (exe *applicationExecutor) updateLegacy() (err error) {
 	description := fmt.Sprintf("Flow for application: %s", exe.app.Name)
 	// Update and stop flow
 	active := false
-	exe.client.UpdateFlow(&client.FlowUpdateRequest{
+	if _, err := exe.client.UpdateFlow(&client.FlowUpdateRequest{
 		Name:        &exe.app.Name,
 		Description: &description,
 		IsActivated: &active,
-	})
+	}); err != nil {
+		return err
+	}
 
 	existingMicroservicesPerName := make(map[string]*client.MicroserviceInfo)
 	listMsvcs, err := exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
@@ -125,12 +127,13 @@ func (exe *applicationExecutor) updateLegacy() (err error) {
 	}
 
 	// Delete all uneeded microservices
-	for _, msvc := range listMsvcs.Microservices {
+	for idx := range listMsvcs.Microservices {
+		msvc := &listMsvcs.Microservices[idx]
 		catalogItem, foundCatalogItem := exe.catalogByID[msvc.CatalogItemID]
 		// If !foundCatalogItem -> Catalog item not returned in init -> We cannot edit it.
 		isSystem := msvc.CatalogItemID != 0 && (!foundCatalogItem || catalogItem.Category == "SYSTEM")
 		if _, found := yamlMicroservicesPerName[msvc.Name]; !found && !isSystem {
-			if err = exe.client.DeleteMicroservice(msvc.UUID); err != nil {
+			if err := exe.client.DeleteMicroservice(msvc.UUID); err != nil {
 				return err
 			}
 		}
@@ -141,7 +144,7 @@ func (exe *applicationExecutor) updateLegacy() (err error) {
 		// Force deletion of all routes
 		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
-			*msvc,
+			msvc,
 			ApplicationData{
 				MicroserviceByName: existingMicroservicesPerName,
 				AgentsByName:       exe.agentsByName,
@@ -174,10 +177,10 @@ func (exe *applicationExecutor) createLegacy() (err error) {
 	exe.flowInfo = flow
 
 	// Create microservices
-	for _, msvc := range exe.app.Microservices {
+	for idx := range exe.app.Microservices {
 		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
-			msvc,
+			&exe.app.Microservices[idx],
 			ApplicationData{
 				MicroserviceByName: exe.microserviceByName,
 				AgentsByName:       exe.agentsByName,
@@ -200,7 +203,6 @@ func (exe *applicationExecutor) createLegacy() (err error) {
 }
 
 func (exe *applicationExecutor) deployLegacy() (err error) {
-
 	// Validate application definition (routes, agents, etc.)
 	if err = exe.initLegacy(); err != nil {
 		return
@@ -211,11 +213,11 @@ func (exe *applicationExecutor) deployLegacy() (err error) {
 	}
 
 	if exe.flowInfo == nil {
-		if err = exe.createLegacy(); err != nil {
+		if err := exe.createLegacy(); err != nil {
 			return err
 		}
 	} else {
-		if err = exe.updateLegacy(); err != nil {
+		if err := exe.updateLegacy(); err != nil {
 			return err
 		}
 	}

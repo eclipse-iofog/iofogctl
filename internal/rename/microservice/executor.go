@@ -38,7 +38,7 @@ func Execute(namespace, name, newName string) error {
 
 	util.SpinStart(fmt.Sprintf("Renaming microservice %s", name))
 
-	if _, err = clt.UpdateMicroservice(client.MicroserviceUpdateRequest{
+	if _, err = clt.UpdateMicroservice(&client.MicroserviceUpdateRequest{
 		UUID: msvc.UUID,
 		Name: &newName,
 		// Bug in Controller, fails if empty because images should be an array

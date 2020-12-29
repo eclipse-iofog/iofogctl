@@ -38,7 +38,7 @@ func (clt *Client) CreateApplication(request *ApplicationCreateRequest) (*Applic
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 	return clt.GetApplicationByName(request.Name)

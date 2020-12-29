@@ -33,7 +33,7 @@ type Options struct {
 
 type remoteExecutor struct {
 	namespace    string
-	microservice rsc.Microservice
+	microservice *rsc.Microservice
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -101,5 +101,5 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 
 	return &remoteExecutor{
 		namespace:    opt.Namespace,
-		microservice: microservice}, nil
+		microservice: &microservice}, nil
 }

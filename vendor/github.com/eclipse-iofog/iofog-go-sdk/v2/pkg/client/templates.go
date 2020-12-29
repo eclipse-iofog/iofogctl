@@ -41,7 +41,7 @@ func (clt *Client) CreateApplicationTemplate(request *ApplicationTemplateCreateR
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -60,7 +60,7 @@ func (clt *Client) UpdateApplicationTemplate(request *ApplicationTemplateUpdateR
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -92,7 +92,7 @@ func (clt *Client) ListApplicationTemplates() (*ApplicationTemplateListResponse,
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -111,7 +111,7 @@ func (clt *Client) GetApplicationTemplate(name string) (*ApplicationTemplate, er
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
