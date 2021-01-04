@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -110,7 +111,6 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	if err != nil {
 		return err
 	}
-	dir = util.AddTrailingSlash(dir)
 
 	// Load script files into memory
 	files, err := ioutil.ReadDir(dir)
@@ -120,7 +120,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	for _, file := range files {
 		if !file.IsDir() {
 			procs.scriptNames = append(procs.scriptNames, file.Name())
-			content, err := ioutil.ReadFile(fmt.Sprintf("%s%s", dir, file.Name()))
+			content, err := ioutil.ReadFile(filepath.Join(dir, file.Name()))
 			if err != nil {
 				return err
 			}
@@ -131,7 +131,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
 	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq)))
-	procs.check.destPath = fmt.Sprintf("%s/%s", agent.dir, pkg.scriptPrereq)
+	procs.check.destPath = filepath.Join(agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
 	if procs.Deps.Name == "" {
@@ -155,9 +155,9 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	}
 
 	// Set destination paths where scripts appear on Agent
-	procs.Deps.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Deps.Name)
-	procs.Install.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Install.Name)
-	procs.Uninstall.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Uninstall.Name)
+	procs.Deps.destPath = filepath.Join(agent.dir, procs.Deps.Name)
+	procs.Install.destPath = filepath.Join(agent.dir, procs.Install.Name)
+	procs.Uninstall.destPath = filepath.Join(agent.dir, procs.Uninstall.Name)
 
 	agent.procs = *procs
 	return nil
@@ -389,7 +389,7 @@ func (agent *RemoteAgent) copyScriptsToAgent() error {
 	for idx, script := range agent.procs.scriptNames {
 		content := agent.procs.scriptContents[idx]
 		reader := strings.NewReader(content)
-		if err := agent.ssh.CopyTo(reader, util.AddTrailingSlash(agent.dir), script, "0775", int64(len(content))); err != nil {
+		if err := agent.ssh.CopyTo(reader, agent.dir, script, "0775", int64(len(content))); err != nil {
 			return err
 		}
 	}
