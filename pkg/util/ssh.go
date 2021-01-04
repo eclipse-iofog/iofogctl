@@ -193,8 +193,8 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			return
 		}
 		// Refresh stdout for every iter
-		stdoutBuffer := bytes.Buffer{}
-		session.Stdout = &stdoutBuffer
+		stdoutBuffer := &bytes.Buffer{}
+		session.Stdout = stdoutBuffer
 
 		// Run the command
 		SSHVerbose(fmt.Sprintf("Running: %s", cmd))
@@ -216,7 +216,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			if _, err := stderrBuf.ReadFrom(stderr); err != nil {
 				return err
 			}
-			return format(err, &stdoutBuffer, stderrBuf)
+			return format(err, stdoutBuffer, stderrBuf)
 		}
 		if condition.MatchString(stdoutBuffer.String()) {
 			return nil
@@ -240,6 +240,16 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 		return err
 	}
 	defer session.Close()
+
+	// Connect pipes
+	var stderr io.Reader
+	stderr, err = session.StderrPipe()
+	if err != nil {
+		return err
+	}
+	// Refresh stdout for every iter
+	stdoutBuffer := &bytes.Buffer{}
+	session.Stdout = stdoutBuffer
 
 	// Start routine to write file
 	errChan := make(chan error)
@@ -285,7 +295,11 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 		}
 	}
 	if errMsg != "" {
-		return errors.New(errMsg)
+		stderrBuf := new(bytes.Buffer)
+		if _, err := stderrBuf.ReadFrom(stderr); err != nil {
+			return err
+		}
+		return format(errors.New(errMsg), stdoutBuffer, stderrBuf)
 	}
 
 	return nil
