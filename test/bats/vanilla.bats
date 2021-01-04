@@ -107,7 +107,7 @@ spec:
 @test "Deploy Agents against vanilla Controller" {
   startTest
   initRemoteAgentsFile
-  iofogctl -v deploy -f test/conf/agents.yaml
+  iofogctl --debug deploy -f test/conf/agents.yaml
   checkAgents
   # Wait for router microservice
   local SSH_KEY_PATH=$KEY_FILE
