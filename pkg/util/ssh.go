@@ -376,17 +376,6 @@ func AddTrailingSlash(in string) string {
 	return in
 }
 
-func JoinLinux(elems ...string) string {
-	join := ""
-	for idx, elem := range elems {
-		if idx != len(elems)-1 {
-			elem = AddTrailingSlash(elem)
-		}
-		join += elem
-	}
-	return join
-}
-
 func SSHVerbose(msg string) {
 	if IsDebug() {
 		fmt.Printf("[SSH]: %s\n", msg)
