@@ -1,5 +1,5 @@
 /*
- *  *******************************************************************************
+*  *******************************************************************************
  *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
@@ -9,7 +9,7 @@
  *  * SPDX-License-Identifier: EPL-2.0
  *  *******************************************************************************
  *
- */
+*/
 
 package install
 
@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
@@ -67,15 +68,15 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 		procs: AgentProcedures{
 			check: Entrypoint{
 				Name:     pkg.scriptPrereq,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptPrereq),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptPrereq),
 			},
 			Deps: Entrypoint{
 				Name:     pkg.scriptInstallDeps,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptInstallDeps),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptInstallDeps),
 			},
 			Install: Entrypoint{
 				Name:     pkg.scriptInstallIofog,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptInstallIofog),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptInstallIofog),
 				Args: []string{
 					util.GetAgentVersion(),
 					"",
@@ -84,7 +85,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 			},
 			Uninstall: Entrypoint{
 				Name:     pkg.scriptUninstallIofog,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptUninstallIofog),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptUninstallIofog),
 			},
 			scriptNames: []string{
 				pkg.scriptPrereq,
@@ -110,7 +111,6 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	if err != nil {
 		return err
 	}
-	dir = util.AddTrailingSlash(dir)
 
 	// Load script files into memory
 	files, err := ioutil.ReadDir(dir)
@@ -120,7 +120,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	for _, file := range files {
 		if !file.IsDir() {
 			procs.scriptNames = append(procs.scriptNames, file.Name())
-			content, err := ioutil.ReadFile(fmt.Sprintf("%s%s", dir, file.Name()))
+			content, err := ioutil.ReadFile(filepath.Join(dir, file.Name()))
 			if err != nil {
 				return err
 			}
@@ -131,7 +131,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
 	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq)))
-	procs.check.destPath = fmt.Sprintf("%s/%s", agent.dir, pkg.scriptPrereq)
+	procs.check.destPath = util.JoinAgentPath(agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
 	if procs.Deps.Name == "" {
@@ -155,9 +155,9 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	}
 
 	// Set destination paths where scripts appear on Agent
-	procs.Deps.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Deps.Name)
-	procs.Install.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Install.Name)
-	procs.Uninstall.destPath = fmt.Sprintf("%s/%s", agent.dir, procs.Uninstall.Name)
+	procs.Deps.destPath = util.JoinAgentPath(agent.dir, procs.Deps.Name)
+	procs.Install.destPath = util.JoinAgentPath(agent.dir, procs.Install.Name)
+	procs.Uninstall.destPath = util.JoinAgentPath(agent.dir, procs.Uninstall.Name)
 
 	agent.procs = *procs
 	return nil
@@ -389,7 +389,7 @@ func (agent *RemoteAgent) copyScriptsToAgent() error {
 	for idx, script := range agent.procs.scriptNames {
 		content := agent.procs.scriptContents[idx]
 		reader := strings.NewReader(content)
-		if err := agent.ssh.CopyTo(reader, util.AddTrailingSlash(agent.dir), script, "0775", int64(len(content))); err != nil {
+		if err := agent.ssh.CopyTo(reader, agent.dir, script, "0775", int64(len(content))); err != nil {
 			return err
 		}
 	}

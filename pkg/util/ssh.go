@@ -20,6 +20,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -147,6 +148,7 @@ func format(err error, stdout, stderr fmt.Stringer) error {
 	if stderr != nil && stderr.String() != "" {
 		msg = fmt.Sprintf("%s\n%s", msg, stderr.String())
 	}
+	msg = fmt.Sprintf("%s\n%s", msg, err.Error())
 
 	return errors.New(msg)
 }
@@ -193,8 +195,8 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			return
 		}
 		// Refresh stdout for every iter
-		stdoutBuffer := bytes.Buffer{}
-		session.Stdout = &stdoutBuffer
+		stdoutBuffer := &bytes.Buffer{}
+		session.Stdout = stdoutBuffer
 
 		// Run the command
 		SSHVerbose(fmt.Sprintf("Running: %s", cmd))
@@ -216,7 +218,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			if _, err := stderrBuf.ReadFrom(stderr); err != nil {
 				return err
 			}
-			return format(err, &stdoutBuffer, stderrBuf)
+			return format(err, stdoutBuffer, stderrBuf)
 		}
 		if condition.MatchString(stdoutBuffer.String()) {
 			return nil
@@ -228,7 +230,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 
 func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int64) error {
 	// Check permissions string
-	SSHVerbose(fmt.Sprintf("Copying file %s...", destPath+destFilename))
+	SSHVerbose(fmt.Sprintf("Copying file %s...", JoinAgentPath(destPath, destFilename)))
 	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
 		return NewError("Invalid file permission specified: " + permissions)
 	}
@@ -240,6 +242,16 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 		return err
 	}
 	defer session.Close()
+
+	// Connect pipes
+	var stderr io.Reader
+	stderr, err = session.StderrPipe()
+	if err != nil {
+		return err
+	}
+	// Refresh stdout for every iter
+	stdoutBuffer := &bytes.Buffer{}
+	session.Stdout = stdoutBuffer
 
 	// Start routine to write file
 	errChan := make(chan error)
@@ -279,13 +291,15 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 	}
 	for copyErr := range errChan {
 		if copyErr != nil {
-			msg := `%s
-%s`
-			errMsg = fmt.Sprintf(msg, errMsg, copyErr.Error())
+			errMsg = fmt.Sprintf("%s\n%s", errMsg, copyErr.Error())
 		}
 	}
 	if errMsg != "" {
-		return errors.New(errMsg)
+		stderrBuf := new(bytes.Buffer)
+		if _, err := stderrBuf.ReadFrom(stderr); err != nil {
+			return err
+		}
+		return format(errors.New(errMsg), stdoutBuffer, stderrBuf)
 	}
 
 	return nil
@@ -300,13 +314,13 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 	for _, file := range files {
 		if file.IsDir() && recurse {
 			// Create the dir if necessary
-			if err := cl.CreateFolder(AddTrailingSlash(destPath) + file.Name()); err != nil {
+			if err := cl.CreateFolder(JoinAgentPath(destPath, file.Name())); err != nil {
 				return err
 			}
 			// Copy contents of dir
 			if err := cl.CopyFolderTo(
-				AddTrailingSlash(srcPath)+file.Name(),
-				AddTrailingSlash(destPath)+file.Name(),
+				filepath.Join(srcPath, file.Name()),
+				JoinAgentPath(destPath, file.Name()),
 				permissions,
 				true,
 			); err != nil {
@@ -314,12 +328,12 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 			}
 		} else {
 			// Read the file
-			openFile, err := os.Open(AddTrailingSlash(srcPath) + file.Name())
+			openFile, err := os.Open(filepath.Join(srcPath, file.Name()))
 			if err != nil {
 				return err
 			}
 			// Copy the file
-			if err := cl.CopyTo(openFile, AddTrailingSlash(destPath), file.Name(), addLeadingZero(permissions), file.Size()); err != nil {
+			if err := cl.CopyTo(openFile, destPath, file.Name(), addLeadingZero(permissions), file.Size()); err != nil {
 				return err
 			}
 		}
@@ -328,15 +342,16 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 }
 
 func (cl *SecureShellClient) CreateFolder(path string) error {
+	path = AddTrailingSlash(path)
 	SSHVerbose(fmt.Sprintf("Creating folder %s", path))
-	SSHVerbose(fmt.Sprintf("Running: %s", "mkdir -p "+AddTrailingSlash(path)))
-	if _, err := cl.Run("mkdir -p " + AddTrailingSlash(path)); err != nil {
+	SSHVerbose(fmt.Sprintf("Running: %s", "mkdir -p "+path))
+	if _, err := cl.Run("mkdir -p " + path); err != nil {
 		if strings.Contains(err.Error(), "exists") {
 			return nil
 		}
 		// Retry with sudo
 		if strings.Contains(err.Error(), "Permission denied") {
-			if _, sudoErr := cl.Run("sudo -S mkdir -p " + AddTrailingSlash(path)); sudoErr != nil {
+			if _, sudoErr := cl.Run("sudo -S mkdir -p " + path); sudoErr != nil {
 				if !strings.Contains(sudoErr.Error(), "exists") {
 					return sudoErr
 				}
@@ -365,4 +380,8 @@ func SSHVerbose(msg string) {
 	if IsDebug() {
 		fmt.Printf("[SSH]: %s\n", msg)
 	}
+}
+
+func JoinAgentPath(elem ...string) string {
+	return filepath.ToSlash(filepath.Join(elem...))
 }
