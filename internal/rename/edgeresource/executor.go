@@ -49,7 +49,8 @@ func Execute(namespace, name, newName string) error {
 	}
 
 	// Get full resource contents and update
-	for _, meta := range listResponse.EdgeResources {
+	for idx := range listResponse.EdgeResources {
+		meta := listResponse.EdgeResources[idx]
 		if meta.Name != name {
 			continue
 		}

@@ -82,7 +82,8 @@ func tabulateEdgeResources(edgeResources []client.EdgeResourceMetadata) (table [
 
 	// Coalesce versions
 	index := make(map[string]client.EdgeResourceMetadata)
-	for _, edgeResource := range edgeResources {
+	for i := range edgeResources {
+		edgeResource := edgeResources[i]
 		name := edgeResource.Name
 		if indexEdgeResource, exists := index[name]; exists {
 			// Append version
@@ -95,7 +96,8 @@ func tabulateEdgeResources(edgeResources []client.EdgeResourceMetadata) (table [
 	}
 	// Populate rows
 	idx := 0
-	for _, edge := range index {
+	for i := range index {
+		edge := index[i]
 		// Store values
 		row := []string{
 			edge.Name,
