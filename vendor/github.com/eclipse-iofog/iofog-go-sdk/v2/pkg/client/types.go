@@ -549,13 +549,14 @@ type EdgeResourceDisplay struct {
 }
 
 type EdgeResourceMetadata struct {
-	Name              string               `json:"name,omitempty"`
-	Description       string               `json:"description,omitempty"`
-	Version           string               `json:"version,omitempty"`
-	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
-	Display           *EdgeResourceDisplay `json:"display,omitempty"`
-	Interface         HTTPEdgeResource     `json:"interface,omitempty"` // TODO: Make this generic
-	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
+	Name              string                 `json:"name,omitempty"`
+	Description       string                 `json:"description,omitempty"`
+	Version           string                 `json:"version,omitempty"`
+	InterfaceProtocol string                 `json:"interfaceProtocol,omitempty"`
+	Display           *EdgeResourceDisplay   `json:"display,omitempty"`
+	Interface         HTTPEdgeResource       `json:"interface,omitempty"` // TODO: Make this generic
+	OrchestrationTags []string               `json:"orchestrationTags,omitempty"`
+	Custom            map[string]interface{} `json:"custom,omitempty"`
 }
 
 type HTTPEdgeResource struct {

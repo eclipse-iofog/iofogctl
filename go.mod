@@ -8,8 +8,8 @@ require (
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf
 	github.com/docker/go-connections v0.4.0
-	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201229204532-79a813505ed9
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201229015319-ce6cd1dd37ef
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210105002726-8b0b593812ed
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201230013910-4e8354a01b74
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/json-iterator/go v1.1.8

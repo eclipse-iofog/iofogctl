@@ -55,6 +55,7 @@ func (exe *executor) Execute() (err error) {
 		Interface: client.HTTPEdgeResource{
 			Endpoints: exe.edge.Interface.Endpoints,
 		},
+		Custom: exe.edge.Custom,
 	}
 	// Connect to Controller
 	clt, err := clientutil.NewControllerClient(exe.namespace)

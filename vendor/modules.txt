@@ -47,11 +47,11 @@ github.com/docker/go-connections/tlsconfig
 github.com/docker/go-units
 # github.com/eclipse-iofog/iofog-go-sdk v1.3.0
 github.com/eclipse-iofog/iofog-go-sdk/pkg/client
-# github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20201229204532-79a813505ed9
+# github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210105002726-8b0b593812ed
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util
-# github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201229015319-ce6cd1dd37ef
+# github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201230013910-4e8354a01b74
 github.com/eclipse-iofog/iofog-operator/v2/pkg/apis
 github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog
 # github.com/eclipse-iofog/iofogctl v1.3.2

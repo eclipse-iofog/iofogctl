@@ -81,6 +81,7 @@ func (exe *edgeResourceExecutor) Execute() error {
 			Name:              edge.Name,
 			OrchestrationTags: edge.OrchestrationTags,
 			Version:           edge.Version,
+			Custom:            edge.Custom,
 		},
 	}
 
