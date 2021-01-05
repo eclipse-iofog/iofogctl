@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v2/internal/rollback"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -49,7 +50,7 @@ func newRollbackCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully scheduled rollback for %s %s", opt.ResourceType, opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Succesfully scheduled rollback for %s %s", strings.Title(opt.ResourceType), opt.Name))
 		},
 	}
 
