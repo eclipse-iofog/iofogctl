@@ -1,5 +1,5 @@
 /*
- *  *******************************************************************************
+*  *******************************************************************************
  *  * Copyright (c) 2020 Edgeworx, Inc.
  *  *
  *  * This program and the accompanying materials are made available under the
@@ -9,7 +9,7 @@
  *  * SPDX-License-Identifier: EPL-2.0
  *  *******************************************************************************
  *
- */
+*/
 
 package install
 
@@ -68,15 +68,15 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 		procs: AgentProcedures{
 			check: Entrypoint{
 				Name:     pkg.scriptPrereq,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptPrereq),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptPrereq),
 			},
 			Deps: Entrypoint{
 				Name:     pkg.scriptInstallDeps,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptInstallDeps),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptInstallDeps),
 			},
 			Install: Entrypoint{
 				Name:     pkg.scriptInstallIofog,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptInstallIofog),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptInstallIofog),
 				Args: []string{
 					util.GetAgentVersion(),
 					"",
@@ -85,7 +85,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 			},
 			Uninstall: Entrypoint{
 				Name:     pkg.scriptUninstallIofog,
-				destPath: fmt.Sprintf("%s/%s", pkg.agentDir, pkg.scriptUninstallIofog),
+				destPath: util.JoinAgentPath(pkg.agentDir, pkg.scriptUninstallIofog),
 			},
 			scriptNames: []string{
 				pkg.scriptPrereq,
@@ -131,7 +131,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
 	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq)))
-	procs.check.destPath = filepath.Join(agent.dir, pkg.scriptPrereq)
+	procs.check.destPath = util.JoinAgentPath(agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
 	if procs.Deps.Name == "" {
@@ -155,9 +155,9 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	}
 
 	// Set destination paths where scripts appear on Agent
-	procs.Deps.destPath = filepath.Join(agent.dir, procs.Deps.Name)
-	procs.Install.destPath = filepath.Join(agent.dir, procs.Install.Name)
-	procs.Uninstall.destPath = filepath.Join(agent.dir, procs.Uninstall.Name)
+	procs.Deps.destPath = util.JoinAgentPath(agent.dir, procs.Deps.Name)
+	procs.Install.destPath = util.JoinAgentPath(agent.dir, procs.Install.Name)
+	procs.Uninstall.destPath = util.JoinAgentPath(agent.dir, procs.Uninstall.Name)
 
 	agent.procs = *procs
 	return nil

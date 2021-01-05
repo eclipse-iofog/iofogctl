@@ -230,7 +230,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 
 func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, permissions string, size int64) error {
 	// Check permissions string
-	SSHVerbose(fmt.Sprintf("Copying file %s...", filepath.Join(destPath, destFilename)))
+	SSHVerbose(fmt.Sprintf("Copying file %s...", JoinAgentPath(destPath, destFilename)))
 	if !regexp.MustCompile(`\d{4}`).MatchString(permissions) {
 		return NewError("Invalid file permission specified: " + permissions)
 	}
@@ -314,13 +314,13 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 	for _, file := range files {
 		if file.IsDir() && recurse {
 			// Create the dir if necessary
-			if err := cl.CreateFolder(filepath.Join(destPath, file.Name())); err != nil {
+			if err := cl.CreateFolder(JoinAgentPath(destPath, file.Name())); err != nil {
 				return err
 			}
 			// Copy contents of dir
 			if err := cl.CopyFolderTo(
 				filepath.Join(srcPath, file.Name()),
-				filepath.Join(destPath, file.Name()),
+				JoinAgentPath(destPath, file.Name()),
 				permissions,
 				true,
 			); err != nil {
@@ -376,8 +376,23 @@ func AddTrailingSlash(in string) string {
 	return in
 }
 
+func JoinLinux(elems ...string) string {
+	join := ""
+	for idx, elem := range elems {
+		if idx != len(elems)-1 {
+			elem = AddTrailingSlash(elem)
+		}
+		join += elem
+	}
+	return join
+}
+
 func SSHVerbose(msg string) {
 	if IsDebug() {
 		fmt.Printf("[SSH]: %s\n", msg)
 	}
+}
+
+func JoinAgentPath(elem ...string) string {
+	return filepath.ToSlash(filepath.Join(elem...))
 }
