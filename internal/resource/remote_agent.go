@@ -109,7 +109,7 @@ func (agent *RemoteAgent) Clone() Agent {
 
 func (agent *RemoteAgent) ValidateSSH() error {
 	if agent.Host == "" || agent.SSH.User == "" || agent.SSH.Port == 0 || agent.SSH.KeyFile == "" {
-		return util.NewInputError("Must specify user, host, and key file fields for Agent resource")
+		return NewNoSSHConfigError("Agent")
 	}
 	return nil
 }
