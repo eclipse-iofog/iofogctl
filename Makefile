@@ -34,7 +34,6 @@ TEST_REPORT ?= TEST-iofogctl.xml
 export CGO_ENABLED ?= 0
 export GOOS ?= $(OS)
 export GOARCH ?= amd64
-GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: all
@@ -48,9 +47,6 @@ bootstrap: ## Bootstrap environment
 .PHONY: build
 build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: fmt ## Build the binary
-ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
-	@printf "$(GOLANG_VERSION)\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^$(GOLANG_VERSION)$$" || (printf "Required Go version is $(GOLANG_VERSION)\nInstalled: `go version`" && exit 1)
-endif
 	@cd pkg/util && rice embed-go
 	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
 
