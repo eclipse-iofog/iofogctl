@@ -1,7 +1,7 @@
 ![iofogctl-logo](iofogctl-logo.png?raw=true "iofogctl logo")
 
 `iofogctl` is a CLI for the installation, configuration, and operation of ioFog 
-[Edge Compute Networks (ECNs)](https://iofog.org/docs/2.0.0/getting-started/core-concepts.html).
+[Edge Compute Networks](https://iofog.org/docs/2/getting-started/core-concepts.html) (ECNs).
 It can be used to remotely manage multiple ECNs from a single host. It is built for ioFog users and DevOps engineers 
 wanting to manage ECNs. It is modelled on existing tools such as Terraform or kubectl that can be used to automate
 infrastructure-as-code.
@@ -35,7 +35,7 @@ sudo apt install iofogctl
 
 ### Documentation
 
-The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/2.0.0/getting-started/quick-start.html) learning resources.
+The best way to learn how to use `iofogctl` is through the [iofog.org](https://iofog.org/docs/2/getting-started/quick-start-local.html) learning resources.
 
 There are also auto-generated docs within this [repo](./docs/md).
 
