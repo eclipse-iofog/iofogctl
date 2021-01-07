@@ -4,6 +4,7 @@
 
 * Add Application Template support
 * Add Agent `upgrade` and `rollback` commands
+* Add custom installation plugin support for Agent deploy
 * Add Docker pull percentage to `iofogctl get microservices` output
 * Parallelize `iofogctl get all` command to hide latency
 * Add `config` field to `Agent` kind to allow custom configuration on Agent deploy
