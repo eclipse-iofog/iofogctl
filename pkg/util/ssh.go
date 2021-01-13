@@ -120,6 +120,7 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	session.Stdout = &stdout
 	stderr, err := session.StderrPipe()
 	if err != nil {
+		err = format(err, nil, readToBuffer(stderr))
 		return
 	}
 
@@ -127,11 +128,7 @@ func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	SSHVerbose(fmt.Sprintf("Running: %s", cmd))
 	err = session.Run(cmd)
 	if err != nil {
-		stderrBuf := new(bytes.Buffer)
-		if _, err = stderrBuf.ReadFrom(stderr); err != nil {
-			return
-		}
-		err = format(err, &stdout, stderrBuf)
+		err = format(err, &stdout, readToBuffer(stderr))
 		return
 	}
 	return
@@ -214,11 +211,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 			}
 		}
 		if err != nil {
-			stderrBuf := new(bytes.Buffer)
-			if _, err := stderrBuf.ReadFrom(stderr); err != nil {
-				return err
-			}
-			return format(err, stdoutBuffer, stderrBuf)
+			return format(err, stdoutBuffer, readToBuffer(stderr))
 		}
 		if condition.MatchString(stdoutBuffer.String()) {
 			return nil
@@ -295,11 +288,7 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 		}
 	}
 	if errMsg != "" {
-		stderrBuf := new(bytes.Buffer)
-		if _, err := stderrBuf.ReadFrom(stderr); err != nil {
-			return err
-		}
-		return format(errors.New(errMsg), stdoutBuffer, stderrBuf)
+		return format(errors.New(errMsg), stdoutBuffer, readToBuffer(stderr))
 	}
 
 	return nil
@@ -350,7 +339,7 @@ func (cl *SecureShellClient) CreateFolder(path string) error {
 			return nil
 		}
 		// Retry with sudo
-		if strings.Contains(err.Error(), "Permission denied") {
+		if strings.Contains(strings.ToLower(err.Error()), "permission denied") {
 			if _, sudoErr := cl.Run("sudo -S mkdir -p " + path); sudoErr != nil {
 				if !strings.Contains(sudoErr.Error(), "exists") {
 					return sudoErr
@@ -384,4 +373,13 @@ func SSHVerbose(msg string) {
 
 func JoinAgentPath(elem ...string) string {
 	return filepath.ToSlash(filepath.Join(elem...))
+}
+
+func readToBuffer(reader io.Reader) (buf *bytes.Buffer) {
+	buf = new(bytes.Buffer)
+	if _, err := buf.ReadFrom(reader); err != nil {
+		buf = nil
+		return
+	}
+	return
 }

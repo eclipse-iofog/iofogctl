@@ -231,6 +231,12 @@ spec:
   stopTest
 }
 
+@test "Microservice logs" {
+  startTest
+  iofogctl -v logs microservice "$MSVC2_NAME" | grep "node index.js"
+  stopTest
+}
+
 @test "Deploy application and test deploy idempotence" {
   startTest
   iofogctl -v deploy -f test/conf/application.yaml

@@ -87,28 +87,15 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		if err != nil {
 			return err
 		}
-		msg := "Retrieving logs for the first container in this list\n" + out.String()
-		util.PrintInfo(msg)
 
 		// Execute the command
-		logFile := util.After(containerName, "/")
-		cmd := fmt.Sprintf("docker ps | grep %s | awk 'FNR == 1 {print $1}' | xargs docker logs 2> /tmp/%s.logs", containerName, logFile)
+		cmd := fmt.Sprintf("docker ps | grep %s | awk 'FNR == 1 {print $1}' | xargs docker logs", containerName)
 		out, err = ms.runDockerCommand(cmd, ssh)
 		if err != nil {
 			return err
 		}
 
 		// Output stdout of the logs
-		fmt.Println(out.String())
-
-		// Execute command to print stderr
-		cmd = fmt.Sprintf("cat /tmp/%s.logs", logFile)
-		out, err = ssh.Run(cmd)
-		if err != nil {
-			return err
-		}
-
-		// Output stderr of the logs
 		fmt.Println(out.String())
 	}
 
@@ -118,7 +105,7 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.SecureShellClient) (stdout bytes.Buffer, err error) {
 	stdout, err = ssh.Run(cmd)
 	if err != nil {
-		if !strings.Contains(err.Error(), "permission denied") {
+		if !strings.Contains(strings.ToLower(err.Error()), "permission denied") {
 			return
 		}
 		// Retry with sudo
