@@ -54,32 +54,7 @@ stages:
     parameters:
       os: windows
     
-- stage: Test
-  jobs:
-  - template: pipeline/win-k8s.yaml
-  - template: pipeline/win-vanilla.yaml
-  - template: pipeline/local.yaml
-  - template: pipeline/k8s.yaml
-  - template: pipeline/ha.yaml
-  - template: pipeline/vanilla.yaml
-    parameters:
-      job_name: Vanilla_Bionic
-      id: $(jobuuid)
-      distro: $(gcp.vm.distro.bionic)
-      repo: $(gcp.vm.repo.ubuntu)
-      agent_count: 2
-      controller_count: 1
-  - template: pipeline/vanilla.yaml
-    parameters:
-      job_name: Vanilla_Buster
-      id: $(jobuuid)
-      distro: $(gcp.vm.distro.buster)
-      repo: $(gcp.vm.repo.debian)
-      agent_count: 2
-      controller_count: 1
-
 - stage: Publish
-  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
   - template: pipeline/publish-osx.yaml
   - template: pipeline/publish-debian.yaml
