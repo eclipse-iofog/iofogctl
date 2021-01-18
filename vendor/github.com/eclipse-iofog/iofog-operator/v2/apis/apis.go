@@ -3,6 +3,12 @@ package apis
 import (
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+
+	appsv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/apps/v2"
+	cpv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/controlplanes/v2"
 )
 
 var (
@@ -90,4 +96,13 @@ func IsSupportedCustomResource(crd *extsv1.CustomResourceDefinition) bool {
 		return sameVersionsSupported(appCR, crd)
 	}
 	return false
+}
+
+func InitClientScheme() *runtime.Scheme {
+	scheme := runtime.NewScheme()
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+
+	utilruntime.Must(appsv2.AddToScheme(scheme))
+	utilruntime.Must(cpv2.AddToScheme(scheme))
+	return scheme
 }

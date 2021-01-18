@@ -13,7 +13,7 @@ require (
 	github.com/eclipse-iofog/iofog-go-sdk v1.3.0 // indirect
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210115035542-6a3c7233ad91
 	github.com/eclipse-iofog/iofog-operator v1.3.0 // indirect
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118005747-9b10a947fc00
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118024315-dcc3e8b4f35b
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/go-logr/zapr v0.2.0 // indirect

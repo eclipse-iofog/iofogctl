@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v2 contains API Schema definitions for the controlplanes v2 API group
+// Package v2 contains API Schema definitions for the apps v2 API group
 // +kubebuilder:object:generate=true
 // +groupName=iofog.org
 package v2

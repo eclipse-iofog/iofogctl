@@ -22,8 +22,6 @@ import (
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	//crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
-	//iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog"
 	iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/apis"
 	cpv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/controlplanes/v2"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
@@ -37,8 +35,6 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	//runtime "k8s.io/apimachinery/pkg/runtime"
-	//clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	opclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -161,7 +157,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 		return err
 	}
 
-	// Enable client after CRDs have been made
+	// Enable client
 	if err := k8s.enableOperatorClient(); err != nil {
 		return err
 	}
@@ -170,15 +166,8 @@ func (k8s *Kubernetes) enableCustomResources() error {
 }
 
 func (k8s *Kubernetes) enableOperatorClient() (err error) {
-	//	scheme := runtime.NewScheme()
-	//	if err := clientgoscheme.AddToScheme(scheme); err != nil {
-	//		return err
-	//	}
-	//	if err := crdapi.AddToScheme(scheme); err != nil {
-	//		return err
-	//	}
-	//k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
-	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{})
+	scheme := iofogv2.InitClientScheme()
+	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
 	if err != nil {
 		return err
 	}
