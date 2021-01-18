@@ -318,7 +318,8 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 			return
 		}
 		podLogsStr := buf.String()
-		if strings.Contains(podLogsStr, `"msg":"Completed Reconciliation","Request.Namespace":"`+k8s.ns) { // TODO: Decouple iofogctl-operator succ string
+		finMsg := `Successfully Reconciled	{"reconcilerGroup": "iofog.org", "reconcilerKind": "ControlPlane", "controller": "controlplane", "name": "iofog", "namespace": "%s"}`
+		if strings.Contains(podLogsStr, fmt.Sprintf(finMsg, k8s.ns)) { // TODO: Decouple iofogctl-operator succ string
 			errCh <- nil
 			return
 		}
