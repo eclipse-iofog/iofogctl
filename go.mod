@@ -64,6 +64,7 @@ replace (
 	github.com/go-logr/logr => github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr => github.com/go-logr/zapr v0.3.0
 	k8s.io/client-go => k8s.io/client-go v0.19.4
+	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
 )
 
 exclude github.com/Sirupsen/logrus v1.4.2
