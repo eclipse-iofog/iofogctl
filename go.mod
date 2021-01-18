@@ -18,7 +18,6 @@ require (
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect
-	github.com/googleapis/gnostic v0.5.1 // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/imdario/mergo v0.3.10 // indirect
 	github.com/json-iterator/go v1.1.10
@@ -33,6 +32,7 @@ require (
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/skupperproject/skupper-cli v0.0.1-beta6.0.20191022215135-8088454e7fda // indirect
 	github.com/spf13/cobra v1.0.0
+	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
 	go.uber.org/goleak v1.1.10 // indirect
 	go.uber.org/zap v1.15.0 // indirect
@@ -43,6 +43,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.1.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	helm.sh/helm/v3 v3.4.1 // indirect
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4
