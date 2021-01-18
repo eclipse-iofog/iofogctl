@@ -11,9 +11,9 @@ require (
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk v1.3.0 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210115035542-6a3c7233ad91
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210118203455-fefcc397b550
 	github.com/eclipse-iofog/iofog-operator v1.3.0 // indirect
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118024315-dcc3e8b4f35b
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118205845-c8fff520cbfa
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/go-logr/zapr v0.2.0 // indirect
@@ -63,8 +63,8 @@ replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503
 replace (
 	github.com/go-logr/logr => github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr => github.com/go-logr/zapr v0.3.0
-	k8s.io/client-go => k8s.io/client-go v0.19.4
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
+	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
 
 exclude github.com/Sirupsen/logrus v1.4.2
