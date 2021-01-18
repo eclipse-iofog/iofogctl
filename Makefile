@@ -24,8 +24,8 @@ LDFLAGS += -X $(PREFIX).agentTag=develop
 LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
 LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
-GO_SDK_MODULE = iofog-go-sdk/v2@develop
-OPERATOR_MODULE = iofog-operator/v2@develop
+GO_SDK_MODULE = iofog-go-sdk/v2@6a3c7233ad91843457c699dc610cc0ff33a73a3c
+OPERATOR_MODULE = iofog-operator/v2@9b10a947fc0050edf5a13d519f163057e5511746
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -58,6 +58,7 @@ install: ## Install the iofogctl binary to /usr/local/bin
 modules: get vendor ## Get modules and vendor them
 
 .PHONY: get
+get: export GOFLAGS=-mod=vendor
 get: ## Pull modules
 	@for module in $(OPERATOR_MODULE) $(GO_SDK_MODULE); do \
 		go get github.com/eclipse-iofog/$$module; \

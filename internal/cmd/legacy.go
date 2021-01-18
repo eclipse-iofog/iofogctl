@@ -14,6 +14,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
@@ -43,7 +44,7 @@ func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string)
 	// Instantiate Kubernetes client
 	clientset, err := kubernetes.NewForConfig(conf)
 	util.Check(err)
-	podList, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: podSelector})
+	podList, err := clientset.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{LabelSelector: podSelector})
 	if err != nil {
 		return
 	}

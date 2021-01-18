@@ -22,8 +22,10 @@ import (
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
-	iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog"
+	//crdapi "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis"
+	//iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/pkg/apis/iofog"
+	iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/apis"
+	cpv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/controlplanes/v2"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -35,8 +37,8 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	//runtime "k8s.io/apimachinery/pkg/runtime"
+	//clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	opclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -52,8 +54,8 @@ type Kubernetes struct {
 	extsClientset *extsclientset.Clientset
 	ns            string
 	operator      *microservice
-	services      iofogv2.Services
-	images        iofogv2.Images
+	services      cpv2.Services
+	images        cpv2.Images
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -132,21 +134,22 @@ func (k8s *Kubernetes) SetControllerImage(image string) {
 }
 
 func (k8s *Kubernetes) enableCustomResources() error {
+	ctx := context.Background()
 	// Control Plane and App
 	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv2.NewControlPlaneCustomResource(), iofogv2.NewAppCustomResource()} {
 		// Try create new
-		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
+		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
 				return err
 			}
 			// Update
-			existingCRD, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
+			existingCRD, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ctx, crd.Name, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
 			if !iofogv2.IsSupportedCustomResource(existingCRD) {
 				existingCRD.Spec.Versions = crd.Spec.Versions
-				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(existingCRD); err != nil {
+				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(ctx, existingCRD, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			}
@@ -167,14 +170,15 @@ func (k8s *Kubernetes) enableCustomResources() error {
 }
 
 func (k8s *Kubernetes) enableOperatorClient() (err error) {
-	scheme := runtime.NewScheme()
-	if err := clientgoscheme.AddToScheme(scheme); err != nil {
-		return err
-	}
-	if err := crdapi.AddToScheme(scheme); err != nil {
-		return err
-	}
-	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
+	//	scheme := runtime.NewScheme()
+	//	if err := clientgoscheme.AddToScheme(scheme); err != nil {
+	//		return err
+	//	}
+	//	if err := crdapi.AddToScheme(scheme); err != nil {
+	//		return err
+	//	}
+	//k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
+	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{})
 	if err != nil {
 		return err
 	}
@@ -190,7 +194,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 			Name: k8s.ns,
 		},
 	}
-	if _, err = k8s.clientset.CoreV1().Namespaces().Create(ns); err != nil {
+	if _, err = k8s.clientset.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{}); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
@@ -208,7 +212,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 		Name:      cpInstanceName,
 		Namespace: k8s.ns,
 	}
-	var cp iofogv2.ControlPlane
+	var cp cpv2.ControlPlane
 	found := true
 	if err = k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
 		if !k8serrors.IsNotFound(err) {
@@ -216,7 +220,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 		}
 		// Not found, set basic info
 		found = false
-		cp = iofogv2.ControlPlane{
+		cp = cpv2.ControlPlane{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      cpInstanceName,
 				Namespace: k8s.ns,
@@ -226,8 +230,8 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 
 	// Set specification
 	cp.Spec.Replicas.Controller = conf.Replicas
-	cp.Spec.Database = iofogv2.Database(conf.Database)
-	cp.Spec.User = iofogv2.User(conf.User)
+	cp.Spec.Database = cpv2.Database(conf.Database)
+	cp.Spec.User = cpv2.User(conf.User)
 	cp.Spec.Services = k8s.services
 	cp.Spec.Images = k8s.images
 	cp.Spec.Controller.EcnViewerPort = conf.EcnViewerPort
@@ -266,7 +270,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 
 func (k8s *Kubernetes) getReadyPod() (readyPod *corev1.Pod, err error) {
 	// Check operator logs
-	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{
+	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(context.Background(), metav1.ListOptions{
 		LabelSelector: "name=iofog-operator", // TODO: Decouple this
 	})
 	if err != nil {
@@ -313,7 +317,7 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 		}
 		// Get the logs of ready Pod
 		req := k8s.clientset.CoreV1().Pods(k8s.ns).GetLogs(pod.Name, &corev1.PodLogOptions{})
-		podLogs, err := req.Stream()
+		podLogs, err := req.Stream(context.Background())
 		if err != nil {
 			errCh <- util.NewInternalError("Error opening Operator Pod log stream " + errSuffix)
 			return
@@ -350,29 +354,31 @@ func (k8s *Kubernetes) deleteOperator() (err error) {
 	// Resource name for deletions
 	name := k8s.operator.name
 
+	ctx := context.Background()
+
 	// Service Account
-	if err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+	if err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return
 		}
 	}
 
 	// Role
-	if err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+	if err = k8s.clientset.RbacV1().Roles(k8s.ns).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return
 		}
 	}
 
 	// Role Binding
-	if err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+	if err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return
 		}
 	}
 
 	// Deployment
-	if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(name, &metav1.DeleteOptions{}); err != nil {
+	if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return
 		}
@@ -382,9 +388,11 @@ func (k8s *Kubernetes) deleteOperator() (err error) {
 }
 
 func (k8s *Kubernetes) createOperator() (err error) {
+	ctx := context.Background()
+
 	// Service Account
 	opSvcAcc := newServiceAccount(k8s.ns, k8s.operator)
-	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(opSvcAcc); err != nil {
+	if _, err = k8s.clientset.CoreV1().ServiceAccounts(k8s.ns).Create(ctx, opSvcAcc, metav1.CreateOptions{}); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
@@ -392,7 +400,7 @@ func (k8s *Kubernetes) createOperator() (err error) {
 
 	// Role
 	role := newRole(k8s.ns, k8s.operator)
-	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(role); err != nil {
+	if _, err = k8s.clientset.RbacV1().Roles(k8s.ns).Create(ctx, role, metav1.CreateOptions{}); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
@@ -400,7 +408,7 @@ func (k8s *Kubernetes) createOperator() (err error) {
 
 	// Role Binding
 	rb := newRoleBinding(k8s.ns, k8s.operator)
-	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(rb); err != nil {
+	if _, err = k8s.clientset.RbacV1().RoleBindings(k8s.ns).Create(ctx, rb, metav1.CreateOptions{}); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
@@ -408,15 +416,15 @@ func (k8s *Kubernetes) createOperator() (err error) {
 
 	// Deployment
 	opDep := newDeployment(k8s.ns, k8s.operator)
-	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+	if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(ctx, opDep, metav1.CreateOptions{}); err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return
 		}
 		// Redeploy the operator
-		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(k8s.operator.name, &metav1.DeleteOptions{}); err != nil {
+		if err = k8s.clientset.AppsV1().Deployments(k8s.ns).Delete(ctx, k8s.operator.name, metav1.DeleteOptions{}); err != nil {
 			return
 		}
-		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(opDep); err != nil {
+		if _, err = k8s.clientset.AppsV1().Deployments(k8s.ns).Create(ctx, opDep, metav1.CreateOptions{}); err != nil {
 			return
 		}
 	}
@@ -430,7 +438,7 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 	}
 
 	// Delete Control Plane
-	cp := &iofogv2.ControlPlane{
+	cp := &cpv2.ControlPlane{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cpInstanceName,
 			Namespace: k8s.ns,
@@ -449,7 +457,7 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 
 	// Delete Namespace
 	if k8s.ns != "default" {
-		if err := k8s.clientset.CoreV1().Namespaces().Delete(k8s.ns, &metav1.DeleteOptions{}); err != nil {
+		if err := k8s.clientset.CoreV1().Namespaces().Delete(context.Background(), k8s.ns, metav1.DeleteOptions{}); err != nil {
 			if !k8serrors.IsNotFound(err) {
 				return err
 			}
@@ -461,7 +469,7 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 
 func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr string, nodePort int32, err error) {
 	// Get watch handler to observe changes to services
-	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(metav1.ListOptions{})
+	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return
 	}
@@ -537,7 +545,7 @@ func (k8s *Kubernetes) getPort(svc *corev1.Service, name string, targetPort int3
 func (k8s *Kubernetes) getClusterIPAddress(name string) (addr string, err error) {
 	// Get a list of K8s nodes and return one of their external IPs
 	var nodeList *corev1.NodeList
-	nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodeList, err = k8s.clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return
 	}
@@ -555,10 +563,11 @@ func (k8s *Kubernetes) getClusterIPAddress(name string) (addr string, err error)
 	}
 	return
 }
+
 func (k8s *Kubernetes) getNodePortAddress(name string) (addr string, err error) {
 	// Get a list of K8s nodes and return one of their external IPs
 	var nodeList *corev1.NodeList
-	nodeList, err = k8s.clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodeList, err = k8s.clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return
 	}
@@ -624,8 +633,9 @@ func (k8s *Kubernetes) SetProxyService(svcType, ip string) {
 }
 
 func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
+	ctx := context.Background()
 	// Check namespace exists
-	if _, err := k8s.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{}); err != nil {
+	if _, err := k8s.clientset.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{}); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return util.NewError("Could not find Namespace " + namespace + " on Kubernetes cluster")
 		}
@@ -633,7 +643,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 	}
 
 	// Check services exist
-	svcList, err := k8s.clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	svcList, err := k8s.clientset.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -657,7 +667,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
 	podNames = []Pod{}
 	// List pods
-	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(metav1.ListOptions{})
+	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return
 	}
