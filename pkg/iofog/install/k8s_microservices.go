@@ -94,6 +94,8 @@ func newOperatorMicroservice() *microservice {
 				Resources: []string{
 					"pods",
 					"configmaps",
+					"configmaps/status",
+					"events",
 					"serviceaccounts",
 					"services",
 					"persistentvolumeclaims",
@@ -109,19 +111,6 @@ func newOperatorMicroservice() *microservice {
 				name:            "iofog-operator",
 				image:           util.GetOperatorImage(),
 				imagePullPolicy: "Always",
-				readinessProbe: &corev1.Probe{
-					Handler: corev1.Handler{
-						Exec: &corev1.ExecAction{
-							Command: []string{
-								"stat",
-								"/tmp/operator-sdk-ready",
-							},
-						},
-					},
-					InitialDelaySeconds: 4,
-					PeriodSeconds:       10,
-					FailureThreshold:    1,
-				},
 				env: []corev1.EnvVar{
 					{
 						Name: "WATCH_NAMESPACE",
@@ -152,6 +141,9 @@ func newOperatorMicroservice() *microservice {
 				},
 				command: []string{
 					"iofog-operator",
+				},
+				args: []string{
+					"--enable-leader-election",
 				},
 			},
 		},

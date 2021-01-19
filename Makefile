@@ -58,6 +58,7 @@ install: ## Install the iofogctl binary to /usr/local/bin
 modules: get vendor ## Get modules and vendor them
 
 .PHONY: get
+get: export GOFLAGS=-mod=vendor
 get: ## Pull modules
 	@for module in $(OPERATOR_MODULE) $(GO_SDK_MODULE); do \
 		go get github.com/eclipse-iofog/$$module; \
