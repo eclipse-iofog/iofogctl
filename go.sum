@@ -412,6 +412,8 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210115035542-6a3c7233a
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210115035542-6a3c7233ad91/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210118203455-fefcc397b550 h1:ojir+EO9nhuaFlGUpUXvTbX6eQRbgscTHrxkgonmCuw=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210118203455-fefcc397b550/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27a8b h1:50KMQCVWq7oFdceMiXTuI6vf4j08yUyIicdMm7crLLQ=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27a8b/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=
 github.com/eclipse-iofog/iofog-operator v1.3.0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005194419-2e26a3690802 h1:+s3v4U5MATqtOJRW4o91TUYqfLzFyctrVxty/cCcPpk=
@@ -444,6 +446,8 @@ github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118024315-dcc3e8b4f35b h1
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118024315-dcc3e8b4f35b/go.mod h1:VnIpHSmsffEu0QFRqQxDiPWblEe8469RozP8wLuhrrE=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118205845-c8fff520cbfa h1:GPI/R4EZaNR+VL0yAH8VBLNtELHPaUr9q8lDcbSAT3Y=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210118205845-c8fff520cbfa/go.mod h1:mfJEE61K8v0tT39mhUWQTRwwoMSGyqWQ22+/LBWr4KE=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210120204800-2a535fbd7d35 h1:Kj62zsme0MDPCRxUIRkcP6ERN+LBUMRH83a5fZwx6no=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210120204800-2a535fbd7d35/go.mod h1:mfJEE61K8v0tT39mhUWQTRwwoMSGyqWQ22+/LBWr4KE=
 github.com/eclipse-iofog/iofogctl v1.3.2 h1:k38k0bpiGU57BVrdj6g0/1A93xSLl4Yp9jbX8Nlz6CM=
 github.com/eclipse-iofog/iofogctl v1.3.2/go.mod h1:qhUiKuc7PjbxPEgEpAHYArgUqlvIuHAb6DnuTDX6+tg=
 github.com/edsrzf/mmap-go v0.0.0-20170320065105-0bce6a688712/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=

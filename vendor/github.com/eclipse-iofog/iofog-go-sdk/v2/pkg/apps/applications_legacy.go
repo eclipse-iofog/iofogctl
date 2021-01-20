@@ -102,6 +102,7 @@ func (exe *applicationExecutor) updateLegacy() (err error) {
 		Name:        &exe.app.Name,
 		Description: &description,
 		IsActivated: &active,
+		ID:          exe.flowInfo.ID,
 	}); err != nil {
 		return err
 	}
