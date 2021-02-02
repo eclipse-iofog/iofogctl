@@ -28,7 +28,7 @@ const TitleHeader = "     _       ____                 __  __    \n" +
 	" /_/\\____/_/  \\____/\\__, /\\___/\\__/_/  \n" +
 	"                   /____/                   \n"
 
-const TitleMessage = "Welcome to the cool new iofogctl Cli!\n" +
+const TitleMessage = "iofogctl is the CLI for ioFog. Think of it as a mix between ansible and kubectl.\n" +
 	"\n" +
 	"Use `iofogctl version` to display the current version.\n\n"
 
