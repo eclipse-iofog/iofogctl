@@ -104,7 +104,8 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	// Update default msvc values
 	for idx := range application.Microservices {
 		if application.Microservices[idx].Images == nil {
-			return nil, util.NewInputError(fmt.Sprintf("The microservice %s does not have an image. You must provide a valid microservice image to deploy", application.Microservices[idx].Name))
+			return nil, util.NewInputError(fmt.Sprintf("The microservice %s does not have an image. You must provide a valid microservice image to deploy",
+				application.Microservices[idx].Name))
 		}
 		if application.Microservices[idx].Images.Registry == "" {
 			application.Microservices[idx].Images.Registry = "remote"
