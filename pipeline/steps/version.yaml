@@ -5,7 +5,7 @@ steps:
     if [[ $(ref) == refs/tags* ]]; then
       TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
       if [[ $TAG != $VERS ]]; then
-        echo 'Version file does not match git tag'
+        echo "Version file ($VERS) does not match git tag ($TAG)"
         exit 1
       fi
     fi
