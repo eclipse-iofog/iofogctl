@@ -62,6 +62,12 @@ NS="$NAMESPACE"
   stopTest
 }
 
+@test "Agent config dev mode" {
+  startTest  
+  [[ ! -z $(iofogctl -v -n "$NS" legacy agent "${NAME}-0" 'config -dev on') ]]
+  stopTest
+}
+
 @test "Deploy local Controller again for indempotence" {
   startTest
   initLocalControllerFile
