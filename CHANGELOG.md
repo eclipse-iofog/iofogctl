@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.5] - 2021-02-25
+
+* Update Agent to 2.0.5 as default
+
 ## [2.0.4] - 2021-02-17
 
 * Update Agent to 2.0.4 as default
