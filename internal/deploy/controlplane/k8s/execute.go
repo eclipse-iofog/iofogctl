@@ -89,7 +89,6 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	}
 
 	// Configure deploy
-	installer.SetKubeletImage(exe.controlPlane.Images.Kubelet)
 	installer.SetOperatorImage(exe.controlPlane.Images.Operator)
 	installer.SetPortManagerImage(exe.controlPlane.Images.PortManager)
 	installer.SetRouterImage(exe.controlPlane.Images.Router)

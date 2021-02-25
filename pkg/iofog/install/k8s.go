@@ -81,14 +81,6 @@ func NewKubernetes(configFilename, namespace string) (*Kubernetes, error) {
 	}, nil
 }
 
-func (k8s *Kubernetes) SetKubeletImage(image string) {
-	if image != "" {
-		k8s.images.Kubelet = image
-	} else {
-		k8s.images.Kubelet = util.GetKubeletImage()
-	}
-}
-
 func (k8s *Kubernetes) SetOperatorImage(image string) {
 	if image != "" {
 		k8s.operator.containers[0].image = image

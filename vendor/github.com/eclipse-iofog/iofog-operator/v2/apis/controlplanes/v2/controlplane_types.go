@@ -54,7 +54,6 @@ type Service struct {
 
 type Images struct {
 	PullSecret  string `json:"pullSecret,omitempty"`
-	Kubelet     string `json:"kubelet,omitempty"`
 	Controller  string `json:"controller,omitempty"`
 	Router      string `json:"router,omitempty"`
 	PortManager string `json:"portManager,omitempty"`
@@ -84,13 +83,6 @@ type RouterIngress struct {
 	EdgePort     int `json:"edgePort,omitempty"`
 }
 
-type TCPIngress struct {
-	Ingress
-	TCPAllocatorHost string `json:"tcpAllocatorHost,omitempty"`
-	TCPAllocatorPort int    `json:"tcpAllocatorPort,omitempty"`
-	EcnID            int    `json:"ecnId,omitempty"`
-}
-
 type Ingress struct {
 	Address string `json:"address,omitempty"`
 }
@@ -98,12 +90,15 @@ type Ingress struct {
 type Ingresses struct {
 	Router    RouterIngress `json:"router,omitempty"`
 	HTTPProxy Ingress       `json:"httpProxy,omitempty"`
-	TCPProxy  TCPIngress    `json:"tcpProxy,omitempty"`
+	TCPProxy  Ingress       `json:"tcpProxy,omitempty"`
 }
 
 type Controller struct {
-	PidBaseDir    string `json:"pidBaseDir,omitempty"`
-	EcnViewerPort int    `json:"ecnViewerPort,omitempty"`
+	PidBaseDir        string `json:"pidBaseDir,omitempty"`
+	EcnViewerPort     int    `json:"ecnViewerPort,omitempty"`
+	PortProvider      string `json:"portProvider,omitempty"`
+	ECNName           string `json:"ecn,omitempty"`
+	PortAllocatorHost string `json:"portAllocatorHost,omitempty"`
 }
 
 // ControlPlaneStatus defines the observed state of ControlPlane

@@ -52,7 +52,7 @@ github.com/eclipse-iofog/iofog-go-sdk/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util
-# github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210124193355-4627e46f7829
+# github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210223023603-18bf9fae574f
 github.com/eclipse-iofog/iofog-operator/v2/apis
 github.com/eclipse-iofog/iofog-operator/v2/apis/apps/v2
 github.com/eclipse-iofog/iofog-operator/v2/apis/controlplanes/v2
