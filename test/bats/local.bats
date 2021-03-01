@@ -49,6 +49,15 @@ NS="$NAMESPACE"
   stopTest
 }
 
+@test "Deploy Application for docker pull stats" {
+  startTest
+  initDockerPullStatsApplicationFiles
+  iofogctl -v -n "$NS" deploy -f test/conf/application_pull_stat.yaml
+  waitForPullingMsvc "$MSVC5_NAME" "$NS"
+  checkPullPercentageOfMicroservice "$MSVC5_NAME" "$NS"
+  stopTest
+}
+
 @test "Edge Resources" {
   startTest
   testEdgeResources

@@ -151,6 +151,30 @@ function initInvalidApplicationFiles() {
   echo -n "$MSVCS" >> test/conf/application_volume_missing.yaml
 }
 
+function initDockerPullStatsApplicationFiles() {
+  MSVCS="
+    microservices:
+    - name: $MSVC5_NAME
+      agent:
+        name: ${NAME}-0
+      images:
+        x86: edgeworx/thermal-edge-ai-2-arm:2.0.2
+        registry: remote # public docker
+      container:
+        rootHostAccess: false
+        ports: []
+      config:
+        test_mode: true
+        data_label: 'Anonymous_Person'"
+  echo -n "---
+  apiVersion: iofog.org/v2
+  kind: Application
+  metadata:
+    name: ${APPLICATION_NAME}-1
+  spec:" > test/conf/application_pull_stat.yaml
+  echo -n "$MSVCS" >> test/conf/application_pull_stat.yaml
+}
+
 function initApplicationFiles() {
   MSVCS="
     microservices:
