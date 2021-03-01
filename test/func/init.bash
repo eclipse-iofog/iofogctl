@@ -107,7 +107,7 @@ function initApplicationFileWithRoutes() {
 function initInvalidApplicationFiles() {
     MSVCS="
     microservices:
-    - name: ${MSVC1_NAME}-0
+    - name: $MSVC3_NAME
       agent:
         name: ${NAME}-0
       images:
@@ -121,7 +121,7 @@ function initInvalidApplicationFiles() {
         test_mode: true
         data_label: 'Anonymous_Person'
     # Simple JSON viewer for the heart rate output
-    - name: ${MSVC2_NAME}-0
+    - name: $MSVC4_NAME
       agent:
         name: ${NAME}-0
       images:

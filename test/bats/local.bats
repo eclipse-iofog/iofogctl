@@ -117,7 +117,6 @@ NS="$NAMESPACE"
   initApplicationFiles
   iofogctl -v -n "$NS" deploy -f test/conf/application.yaml
   checkApplication
-  [[ ! -z $(iofogctl get microservices -n "$NS"  | grep "%") ]]
   waitForMsvc "$MSVC1_NAME" "$NS"
   waitForMsvc "$MSVC2_NAME" "$NS"
   stopTest
@@ -127,9 +126,7 @@ NS="$NAMESPACE"
   startTest
   initInvalidApplicationFiles
   iofogctl -v -n "$NS" deploy -f test/conf/application_volume_missing.yaml
-  checkApplication
-  waitForMsvc "$MSVC1_NAME" "$NS"
-  waitForMsvc "$MSVC2_NAME" "$NS"
+  waitForFailedMsvc "$MSVC4_NAME" "$NS"
   [[ ! -z $(iofogctl get microservices -n "$NS"  | grep "Volume missing") ]]
   iofogctl get microservices -n "$NS"
   stopTest
@@ -187,8 +184,8 @@ NS="$NAMESPACE"
 
 @test "Get local json logs" {
   startTest
-  [[ ! -z $(iofogctl -v -n "$NS" logs controller $NAME | jq) ]]
-  [[ ! -z $(iofogctl -v -n "$NS" logs agent ${NAME}-0 | jq) ]]
+  [[ ! -z $(iofogctl -v -n "$NS" logs controller $NAME | jq .) ]]
+  [[ ! -z $(iofogctl -v -n "$NS" logs agent ${NAME}-0 | jq .) ]]
   [iofogctl logs ${NAME}-0 -n "$NS" | jq -e . >/dev/null 2>&1  | echo ${PIPESTATUS[1]}  -eq 0 ]
   stopTest
 }
