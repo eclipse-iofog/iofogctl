@@ -17,6 +17,9 @@ jobs:
   - script: |
       sudo cp linux/iofogctl /usr/local/bin/
       sudo chmod 0755 /usr/local/bin/iofogctl
+  - bash: |
+      sudo apt-get install -y jq
+    displayName: 'Install jq'
   - template: steps/postinstall.yaml
   - template: steps/configure-remote-tests.yaml
   - template: steps/install-test-deps.yaml
