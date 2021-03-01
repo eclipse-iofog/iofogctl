@@ -35,6 +35,26 @@ function waitForMsvc() {
   done
 }
 
+function waitForFailedMsvc() {
+  ITER=0
+  MS=$1
+  NS=$2
+  [ -z $3 ] && STATE="FAILED (Volume missing)" || STATE="$3" && echo $STATE
+
+  run findMsvcState $NS $MS $STATE
+  while [ -z "$output" ] ; do
+      iofogctl -n $NS get microservices
+      # Allow for 400 sec so that the agent can pull the image
+      if [ $ITER -gt 20 ]; then
+          echo "Timed out. Waited for $MS to be $STATE"
+          exit 1
+      fi
+      sleep 20
+      ITER=$((ITER+1))
+      run findMsvcState $NS $MS $STATE
+  done
+}
+
 function waitForSvc() {
   NS="$1"
   SVC="$2"

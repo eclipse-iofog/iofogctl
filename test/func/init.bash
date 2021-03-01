@@ -104,6 +104,53 @@ function initApplicationFileWithRoutes() {
   echo "$ROUTES" >> test/conf/application.yaml
 }
 
+function initInvalidApplicationFiles() {
+    MSVCS="
+    microservices:
+    - name: $MSVC3_NAME
+      agent:
+        name: ${NAME}-0
+      images:
+        arm: edgeworx/healthcare-heart-rate:arm-v1
+        x86: edgeworx/healthcare-heart-rate:x86-v1
+        registry: remote # public docker
+      container:
+        rootHostAccess: false
+        ports: []
+      config:
+        test_mode: true
+        data_label: 'Anonymous_Person'
+    # Simple JSON viewer for the heart rate output
+    - name: $MSVC4_NAME
+      agent:
+        name: ${NAME}-0
+      images:
+        arm: edgeworx/healthcare-heart-rate-ui:arm
+        x86: edgeworx/healthcare-heart-rate-ui:x86
+        registry: remote
+      container:
+        rootHostAccess: false
+        ports:
+          # The ui will be listening on port 80 (internal).
+          - external: 5001
+            internal: 81
+            public: 5001
+        volumes:
+        - hostDestination: $VOL_INVALID_DEST
+          containerDestination: $VOL_CONT_INVALID_DEST
+          accessMode: rw
+        env:
+          - key: BASE_URL
+            value: http://localhost:8080/data"
+  echo -n "---
+  apiVersion: iofog.org/v2
+  kind: Application
+  metadata:
+    name: ${APPLICATION_NAME}-0
+  spec:" > test/conf/application_volume_missing.yaml
+  echo -n "$MSVCS" >> test/conf/application_volume_missing.yaml
+}
+
 function initApplicationFiles() {
   MSVCS="
     microservices:
