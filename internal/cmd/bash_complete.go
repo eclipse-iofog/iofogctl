@@ -37,7 +37,7 @@ func newBashCompleteCommand(rootCmd *cobra.Command) *cobra.Command {
 		Short:  "Generate bash autocomplete file",
 		Long:   "Generate bash autocomplete file",
 		Example: `iofogctl autocomplete bash
-		iofogctl autocomplete zsh`,
+                      zsh`,
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			switch t := strings.ToLower(args[0]); t {
