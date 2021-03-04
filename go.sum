@@ -414,6 +414,8 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210118203455-fefcc397b
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210118203455-fefcc397b550/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27a8b h1:50KMQCVWq7oFdceMiXTuI6vf4j08yUyIicdMm7crLLQ=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27a8b/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210304020236-bab3501368f7 h1:DfaE/hYS5/8FAJM6lZwn3zr+yqIzo+QTeufPlzCBvec=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210304020236-bab3501368f7/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0 h1:Yh9nwJMY2Qxwj6ZbtpFwLwm1CpBio5Fl0QETvdAApS4=
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=
 github.com/eclipse-iofog/iofog-operator v1.3.0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
@@ -453,6 +455,8 @@ github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210124193355-4627e46f7829 h1
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210124193355-4627e46f7829/go.mod h1:mfJEE61K8v0tT39mhUWQTRwwoMSGyqWQ22+/LBWr4KE=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210223023603-18bf9fae574f h1:6qnBFUWMv1g3jydCjLbKn+JOe5eihM5ZAiBFEiiUVKg=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210223023603-18bf9fae574f/go.mod h1:mfJEE61K8v0tT39mhUWQTRwwoMSGyqWQ22+/LBWr4KE=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d h1:YIpGlT95ceQBCKQ8NSafVY89LF3qEkFG1WmCz/lvPs8=
+github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d/go.mod h1:kogf+OHm/92C545YnCg2OjuzZvMGHcResaCjm2+0uns=
 github.com/eclipse-iofog/iofogctl v1.3.2 h1:k38k0bpiGU57BVrdj6g0/1A93xSLl4Yp9jbX8Nlz6CM=
 github.com/eclipse-iofog/iofogctl v1.3.2/go.mod h1:qhUiKuc7PjbxPEgEpAHYArgUqlvIuHAb6DnuTDX6+tg=
 github.com/edsrzf/mmap-go v0.0.0-20170320065105-0bce6a688712/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=

@@ -53,7 +53,7 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 
 	// Perform request
 	client := &http.Client{
-		Timeout: time.Second * 120,
+		Timeout: time.Second * 4,
 	}
 
 	httpResp, err := client.Do(request)

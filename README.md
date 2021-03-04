@@ -130,7 +130,7 @@ echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 
 This project uses go modules so it must be built from outside of your $GOPATH.
 
-Go 1.13+ is a prerequisite. Install all other dependancies with:
+Go 1.15+ is a prerequisite. Install all other dependancies with:
 ```
 make bootstrap
 ```
