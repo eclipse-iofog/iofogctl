@@ -283,7 +283,6 @@ func (k8s *Kubernetes) getReadyPod() (readyPod *corev1.Pod, err error) {
 // Report error from Operator if found in logs
 // Operator Pods are deleted and created when Control Plane redeployed
 func (k8s *Kubernetes) monitorOperator(errCh chan error) {
-	defer close(errCh)
 	errSuffix := "while awaiting finalization of Control Plane"
 	for {
 		time.Sleep(2 * time.Second)
@@ -320,12 +319,14 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 			msg := ""
 			logLines := strings.Split(podLogsStr, "\n")
 			for _, line := range logLines {
-				if strings.Contains(line, errDelim) {
+				// Error line pertains to this NS?
+				if strings.Contains(line, errDelim) && strings.Contains(line, k8s.ns) {
 					msg = fmt.Sprintf("%s\n%s", msg, line)
+					errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
+					return
 				}
 			}
-			errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
-			return
+			// Error pertains to another Control Plane
 		}
 
 		// Continue loop, wait for Router registration or error...
