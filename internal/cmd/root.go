@@ -103,9 +103,10 @@ func initialize() {
 	client.SetGlobalRetries(client.Retries{
 		Timeout: 20,
 		CustomMessage: map[string]int{
-			"timeout":           20, // Linux
-			"failed to respond": 20, // Windows
-			"Bad Gateway":       20, // K8s
+			"timeout":                   20, // Linux
+			"failed to respond":         20, // Windows
+			"Bad Gateway":               20, // K8s
+			"context deadline exceeded": 20,
 		},
 	})
 	client.SetVerbosity(debug)
