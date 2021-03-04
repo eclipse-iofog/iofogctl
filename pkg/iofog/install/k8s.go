@@ -314,13 +314,13 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 			errCh <- nil
 			return
 		}
-		errDelim := `"level":"error"` // TODO: Decouple iofogctl-operator err string
+		errDelim := `ERROR` // TODO: Decouple iofogctl-operator err string
 		if strings.Contains(podLogsStr, errDelim) {
 			msg := ""
 			logLines := strings.Split(podLogsStr, "\n")
 			for _, line := range logLines {
 				// Error line pertains to this NS?
-				if strings.Contains(line, errDelim) && strings.Contains(line, k8s.ns) {
+				if strings.Contains(line, errDelim) && strings.Contains(line, fmt.Sprintf(`"namespace": "%s"`, k8s.ns)) {
 					msg = fmt.Sprintf("%s\n%s", msg, line)
 					errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
 					return

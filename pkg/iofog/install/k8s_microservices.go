@@ -74,6 +74,7 @@ func newOperatorMicroservice() *microservice {
 					"list",
 					"get",
 					"watch",
+					"update",
 				},
 			},
 			{
