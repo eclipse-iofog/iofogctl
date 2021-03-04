@@ -1,6 +1,6 @@
 module github.com/eclipse-iofog/iofogctl/v2
 
-go 1.12
+go 1.15
 
 require (
 	cloud.google.com/go v0.51.0 // indirect
@@ -11,9 +11,9 @@ require (
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk v1.3.0 // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27a8b
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210304020236-bab3501368f7
 	github.com/eclipse-iofog/iofog-operator v1.3.0 // indirect
-	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210223023603-18bf9fae574f
+	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect

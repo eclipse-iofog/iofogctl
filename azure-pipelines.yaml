@@ -15,7 +15,7 @@ trigger:
 variables:
   build: $(Build.BuildId)
   jobuuid: $(Build.BuildId)$(Agent.Id)
-  GOROOT: '/usr/local/go1.12'
+  GOROOT: '/usr/local/go1.15'
   GOPATH: '/tmp/go'
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
