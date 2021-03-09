@@ -258,6 +258,27 @@ function checkApplicationNegative() {
   [[ "$MSVC2_NAME" != $(iofogctl -v -n "$NS_CHECK" get microservices | grep "${MSVC2_NAME}${NAME_SUFFIX}" | awk '{print $1}') ]]
 }
 
+function checkPullPercentageOfMicroservice() {
+  local MS=$1
+  local NS=$2
+  [[ ! -z $(iofogctl get microservices -n "$NS"  | grep "%") ]]
+  # iofogctl -n "$NS" get microservices | grep "$MS" | awk '{print $3}' |  sed -E "s/.*\((.*)\%\).*/\1/g"
+  [[ ! -z $(iofogctl -n "$NS" get microservices | grep "$MS" | awk '{print $3}' |  sed -E "s/.*\((.*)\%\).*/\1/g") ]]
+  sleep 2
+  PERCENTAGE1=$(iofogctl -n "$NS" get microservices | grep "$MS" | awk '{print $3}' |  sed -E "s/.*\((.*)\%\).*/\1/g")
+  sleep 2
+  PERCENTAGE2=$(iofogctl -n "$NS" get microservices | grep "$MS" |  awk '{print $3}' |  sed -E "s/.*\((.*)\%\).*/\1/g")
+  echo "$PERCENTAGE1"
+  echo "$PERCENTAGE2"
+  PERCENTAGE1=$((PERCENTAGE1+0))
+  PERCENTAGE2=$((PERCENTAGE2+0))
+  echo "$PERCENTAGE1"
+  echo "$PERCENTAGE2"
+  # [[ ! -z $(iofogctl -n "$NS" get microservices | grep "$MS" | awk '{print $3}' |  sed -E "s/.*\((.*)\%\).*/\1/g") ]]
+  [ $PERCENTAGE2 -eq $PERCENTAGE1 ] || [ $PERCENTAGE2 -gt $PERCENTAGE1 ]
+}
+
+
 function checkAgent() {
   local NS_CHECK=${2:-$NS}
   local OPTIONS=$3

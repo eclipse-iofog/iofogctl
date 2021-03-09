@@ -2,7 +2,7 @@
 
 function testDeployLocalVolume(){
   SRC="$VOL_DEST"
-  DST="$VOL_DEST"
+  DST="$VOL_CONT_DEST"
   YAML_SRC="$SRC"
   if [[ ! -z $WSL_KEY_FILE ]]; then
     YAML_SRC="$WIN_VOL_SRC"
