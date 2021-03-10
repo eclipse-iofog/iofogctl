@@ -16,7 +16,7 @@ package get
 import (
 	"regexp"
 
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 func getAddressAndPort(endpoint, defaultPort string) (addr, port string) {

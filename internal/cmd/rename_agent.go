@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	rename "github.com/eclipse-iofog/iofogctl/v2/internal/rename/agent"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	rename "github.com/eclipse-iofog/iofogctl/v3/internal/rename/agent"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"github.com/spf13/cobra"
 )
 

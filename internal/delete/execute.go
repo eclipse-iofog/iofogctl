@@ -16,19 +16,19 @@ package delete
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
-	deleteapplication "github.com/eclipse-iofog/iofogctl/v2/internal/delete/application"
-	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v2/internal/delete/catalogitem"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controller"
-	deletek8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/k8s"
-	deletelocalcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/local"
-	deleteremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane/remote"
-	deletemicroservice "github.com/eclipse-iofog/iofogctl/v2/internal/delete/microservice"
-	deleteregistry "github.com/eclipse-iofog/iofogctl/v2/internal/delete/registry"
-	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	deleteagent "github.com/eclipse-iofog/iofogctl/v3/internal/delete/agent"
+	deleteapplication "github.com/eclipse-iofog/iofogctl/v3/internal/delete/application"
+	deletecatalogitem "github.com/eclipse-iofog/iofogctl/v3/internal/delete/catalogitem"
+	deletecontroller "github.com/eclipse-iofog/iofogctl/v3/internal/delete/controller"
+	deletek8scontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/delete/controlplane/k8s"
+	deletelocalcontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/delete/controlplane/local"
+	deleteremotecontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/delete/controlplane/remote"
+	deletemicroservice "github.com/eclipse-iofog/iofogctl/v3/internal/delete/microservice"
+	deleteregistry "github.com/eclipse-iofog/iofogctl/v3/internal/delete/registry"
+	deletevolume "github.com/eclipse-iofog/iofogctl/v3/internal/delete/volume"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type Options struct {

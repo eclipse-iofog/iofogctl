@@ -19,8 +19,8 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 

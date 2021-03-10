@@ -19,7 +19,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )

@@ -14,7 +14,7 @@
 package install
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )

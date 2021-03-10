@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/agent"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	attach "github.com/eclipse-iofog/iofogctl/v3/internal/attach/agent"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"github.com/spf13/cobra"
 )
 

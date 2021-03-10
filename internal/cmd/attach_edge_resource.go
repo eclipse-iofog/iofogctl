@@ -16,8 +16,8 @@ package cmd
 import (
 	"fmt"
 
-	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/edgeresource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	attach "github.com/eclipse-iofog/iofogctl/v3/internal/attach/edgeresource"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"github.com/spf13/cobra"
 )
 

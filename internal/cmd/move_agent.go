@@ -14,10 +14,10 @@
 package cmd
 
 import (
-	attach "github.com/eclipse-iofog/iofogctl/v2/internal/attach/agent"
-	detach "github.com/eclipse-iofog/iofogctl/v2/internal/detach/agent"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	attach "github.com/eclipse-iofog/iofogctl/v3/internal/attach/agent"
+	detach "github.com/eclipse-iofog/iofogctl/v3/internal/detach/agent"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"github.com/spf13/cobra"
 )
 

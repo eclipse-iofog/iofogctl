@@ -19,11 +19,11 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type remoteMicroserviceExecutor struct {

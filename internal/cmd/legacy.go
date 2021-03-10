@@ -17,12 +17,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

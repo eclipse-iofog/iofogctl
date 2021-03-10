@@ -16,8 +16,8 @@ package pruneagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 func (exe executor) localAgentPrune() error {

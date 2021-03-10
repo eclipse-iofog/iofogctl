@@ -18,16 +18,16 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deployagent "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/agentconfig"
-	deployremotecontroller "github.com/eclipse-iofog/iofogctl/v2/internal/deploy/controller/remote"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	deployagent "github.com/eclipse-iofog/iofogctl/v3/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/v3/internal/deploy/agentconfig"
+	deployremotecontroller "github.com/eclipse-iofog/iofogctl/v3/internal/deploy/controller/remote"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v3/internal/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type Options struct {

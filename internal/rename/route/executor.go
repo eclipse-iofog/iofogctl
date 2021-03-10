@@ -16,8 +16,8 @@ package route
 import (
 	"fmt"
 
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 func Execute(namespace, name, newName string) error {

@@ -16,9 +16,9 @@ package deleteagent
 import (
 	"fmt"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {

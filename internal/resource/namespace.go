@@ -3,7 +3,7 @@ package resource
 import (
 	"sync"
 
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 // Namespace is the fundamental type for managing an ECN's resources.

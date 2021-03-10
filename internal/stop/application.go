@@ -14,8 +14,8 @@
 package stopapplication
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 )
 
 type Options struct {

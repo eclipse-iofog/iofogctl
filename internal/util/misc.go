@@ -14,7 +14,7 @@
 package util
 
 import (
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 )
 
 func IsSystemAgent(agentConfig *rsc.AgentConfiguration) bool {

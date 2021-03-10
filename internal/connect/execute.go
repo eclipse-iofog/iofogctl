@@ -17,12 +17,12 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/k8s"
-	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane/remote"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	connectk8scontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/connect/controlplane/k8s"
+	connectremotecontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/connect/controlplane/remote"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type Options struct {

@@ -14,10 +14,10 @@
 package configure
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type agentExecutor struct {

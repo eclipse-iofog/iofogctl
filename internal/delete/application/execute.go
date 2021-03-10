@@ -14,7 +14,7 @@
 package deleteapplication
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 )
 
 func Execute(namespace, name string) error {

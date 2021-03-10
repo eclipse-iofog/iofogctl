@@ -14,13 +14,13 @@
 package deleteall
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	deleteagent "github.com/eclipse-iofog/iofogctl/v2/internal/delete/agent"
-	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/delete/controlplane"
-	deletevolume "github.com/eclipse-iofog/iofogctl/v2/internal/delete/volume"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	deleteagent "github.com/eclipse-iofog/iofogctl/v3/internal/delete/agent"
+	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/delete/controlplane"
+	deletevolume "github.com/eclipse-iofog/iofogctl/v3/internal/delete/volume"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 func Execute(namespace string, useDetached, force bool) error {

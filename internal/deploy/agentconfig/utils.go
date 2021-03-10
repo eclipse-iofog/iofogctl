@@ -17,9 +17,9 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type RouterMode string

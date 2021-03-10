@@ -13,7 +13,7 @@
 
 package get
 
-import "github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+import "github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 
 func (exe *applicationExecutor) initLegacy() (err error) {
 	flows, err := exe.client.GetAllFlows()

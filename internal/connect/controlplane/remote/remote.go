@@ -16,11 +16,11 @@ package connectremotecontrolplane
 import (
 	"net/url"
 
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v2/internal/connect/controlplane"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/connect/controlplane"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type remoteExecutor struct {

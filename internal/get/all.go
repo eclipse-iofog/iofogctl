@@ -14,8 +14,8 @@
 package get
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 )
 
 type tableFunc = func(string, tableChannel)

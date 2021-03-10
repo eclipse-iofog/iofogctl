@@ -16,8 +16,8 @@ package logs
 import (
 	"fmt"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type kubernetesControllerExecutor struct {

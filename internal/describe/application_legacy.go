@@ -15,7 +15,7 @@ package describe
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 func (exe *applicationExecutor) initLegacy() (err error) {

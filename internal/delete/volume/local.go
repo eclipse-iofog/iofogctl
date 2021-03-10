@@ -14,7 +14,7 @@
 package deletevolume
 
 import (
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 )
 
 func deleteLocal(agent *rsc.LocalAgent, volume *rsc.Volume) error {

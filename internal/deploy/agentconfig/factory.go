@@ -18,16 +18,16 @@ import (
 	"net/url"
 	"strings"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v2/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v2/internal/util"
-	clientutil "github.com/eclipse-iofog/iofogctl/v2/internal/util/client"
+	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/v3/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 	"gopkg.in/yaml.v2"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v2/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type Options struct {

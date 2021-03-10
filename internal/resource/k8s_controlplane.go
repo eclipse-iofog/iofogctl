@@ -14,7 +14,7 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 type KubernetesControlPlane struct {
