@@ -118,7 +118,10 @@ func (exe *remoteExecutor) Execute() (err error) {
 		Token:               exe.controlPlane.Package.Token,
 		SystemMicroservices: exe.controlPlane.SystemMicroservices,
 	}
-	deployer := install.NewController(controllerOptions)
+	deployer, err := install.NewController(controllerOptions)
+	if err != nil {
+		return err
+	}
 
 	// Set database configuration
 	if exe.controlPlane.Database.Host != "" {

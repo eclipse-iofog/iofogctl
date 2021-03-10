@@ -42,13 +42,15 @@ func (exe *remoteExecutor) GetName() string {
 
 func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 	// Get agent
-	agent := install.NewRemoteAgent(
-		exe.agent.SSH.User,
+	agent, err := install.NewRemoteAgent(exe.agent.SSH.User,
 		exe.agent.Host,
 		exe.agent.SSH.Port,
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
 		exe.agent.UUID)
+	if err != nil {
+		return "", err
+	}
 
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
@@ -85,13 +87,15 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Connect to agent via SSH
-	agent := install.NewRemoteAgent(
-		exe.agent.SSH.User,
+	agent, err := install.NewRemoteAgent(exe.agent.SSH.User,
 		exe.agent.Host,
 		exe.agent.SSH.Port,
 		exe.agent.SSH.KeyFile,
 		exe.agent.Name,
 		exe.agent.UUID)
+	if err != nil {
+		return err
+	}
 
 	// Set custom scripts
 	if exe.agent.Scripts != nil {

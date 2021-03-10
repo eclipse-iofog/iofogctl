@@ -42,7 +42,10 @@ func (exe executor) remoteDetachedAgentPrune(agent *rsc.RemoteAgent) error {
 	if err := agent.ValidateSSH(); err != nil {
 		return err
 	}
-	sshAgent := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name, agent.UUID)
+	sshAgent, err := install.NewRemoteAgent(agent.SSH.User, agent.Host, agent.SSH.Port, agent.SSH.KeyFile, agent.Name, agent.UUID)
+	if err != nil {
+		return err
+	}
 	if err := sshAgent.Prune(); err != nil {
 		return util.NewInternalError(fmt.Sprintf("Failed to Prune Iofog resource %s. %s", agent.Name, err.Error()))
 	}

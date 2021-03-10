@@ -65,8 +65,11 @@ type Controller struct {
 	svcDir   string
 }
 
-func NewController(options *ControllerOptions) *Controller {
-	ssh := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
+func NewController(options *ControllerOptions) (*Controller, error) {
+	ssh, err := util.NewSecureShellClient(options.User, options.Host, options.PrivKeyFilename)
+	if err != nil {
+		return nil, err
+	}
 	ssh.SetPort(options.Port)
 	if options.Version == "" || options.Version == "latest" {
 		options.Version = util.GetControllerVersion()
@@ -77,7 +80,7 @@ func NewController(options *ControllerOptions) *Controller {
 		iofogDir:          "/etc/iofog",
 		ctrlDir:           "/etc/iofog/controller",
 		svcDir:            "/etc/iofog/controller/service",
-	}
+	}, nil
 }
 
 func (ctrl *Controller) SetControllerExternalDatabase(host, user, password, provider, databaseName string, port int) {

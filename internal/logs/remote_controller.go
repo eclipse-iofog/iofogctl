@@ -63,7 +63,10 @@ func (exe *remoteControllerExecutor) Execute() error {
 	if err := ctrl.ValidateSSH(); err != nil {
 		return err
 	}
-	ssh := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
+	ssh, err := util.NewSecureShellClient(ctrl.SSH.User, ctrl.Host, ctrl.SSH.KeyFile)
+	if err != nil {
+		return err
+	}
 	ssh.SetPort(ctrl.SSH.Port)
 	if err := ssh.Connect(); err != nil {
 		return err

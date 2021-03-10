@@ -73,7 +73,8 @@ func localExecute(container string, localCLI, localCmd []string) {
 }
 
 func remoteExec(user, host, keyFile string, port int, cliCmd string, cmd []string) {
-	ssh := util.NewSecureShellClient(user, host, keyFile)
+	ssh, err := util.NewSecureShellClient(user, host, keyFile)
+	util.Check(err)
 	ssh.SetPort(port)
 	util.Check(ssh.Connect())
 	defer util.Log(ssh.Disconnect)

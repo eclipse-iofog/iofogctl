@@ -55,13 +55,15 @@ func (exe *RemoteExecutor) Execute() error {
 	}
 
 	// Try to remove default router
-	sshAgent := install.NewRemoteAgent(
-		ctrl.SSH.User,
+	sshAgent, err := install.NewRemoteAgent(ctrl.SSH.User,
 		ctrl.Host,
 		ctrl.SSH.Port,
 		ctrl.SSH.KeyFile,
 		iofog.VanillaRouterAgentName,
 		"")
+	if err != nil {
+		return err
+	}
 	if err = sshAgent.Uninstall(); err != nil {
 		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
 	}
@@ -73,7 +75,10 @@ func (exe *RemoteExecutor) Execute() error {
 		Port:            ctrl.SSH.Port,
 		PrivKeyFilename: ctrl.SSH.KeyFile,
 	}
-	installer := install.NewController(controllerOptions)
+	installer, err := install.NewController(controllerOptions)
+	if err != nil {
+		return err
+	}
 
 	// Uninstall Controller
 	if err := installer.Uninstall(); err != nil {

@@ -70,13 +70,16 @@ var state = testState{
 }
 
 func runTest(t *testing.T, state testState) {
-	agent := NewRemoteAgent(
+	agent, err := NewRemoteAgent(
 		state.user,
 		state.host,
 		state.port,
 		state.keyFile,
 		state.agentName,
 		state.agentUUID)
+	if err != nil {
+		t.Fatalf("failed to init Agent installer %s", err.Error())
+	}
 
 	if err := agent.CustomizeProcedures(state.dir, &state.procs); err != nil {
 		t.Fatalf("Failed to customize procedures: %s", err.Error())

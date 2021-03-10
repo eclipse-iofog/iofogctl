@@ -53,7 +53,12 @@ func (exe *remoteExecutor) execute(agentIdx int, ch chan error) {
 	agent := exe.agents[agentIdx]
 
 	// Connect
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	ssh, err := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	if err != nil {
+		msg := "failed to initialize SSH client %s.\n%s"
+		ch <- fmt.Errorf(msg, agent.Name, err.Error())
+		return
+	}
 	if err := ssh.Connect(); err != nil {
 		msg := "failed to Connect to Agent %s.\n%s"
 		ch <- fmt.Errorf(msg, agent.Name, err.Error())

@@ -57,8 +57,11 @@ func (script *Entrypoint) getCommand() string {
 	return fmt.Sprintf("%s %s", script.destPath, args)
 }
 
-func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) *RemoteAgent {
-	ssh := util.NewSecureShellClient(user, host, privKeyFilename)
+func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, agentUUID string) (*RemoteAgent, error) {
+	ssh, err := util.NewSecureShellClient(user, host, privKeyFilename)
+	if err != nil {
+		return nil, err
+	}
 	ssh.SetPort(port)
 	agent := &RemoteAgent{
 		defaultAgent: defaultAgent{name: agentName, uuid: agentUUID},
@@ -102,7 +105,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	for _, scriptName := range agent.procs.scriptNames {
 		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptName)))
 	}
-	return agent
+	return agent, nil
 }
 
 func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures) error {

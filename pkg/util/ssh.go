@@ -39,32 +39,18 @@ type SecureShellClient struct {
 	conn            *ssh.Client
 }
 
-func NewSecureShellClient(user, host, privKeyFilename string) *SecureShellClient {
-	return &SecureShellClient{
+func NewSecureShellClient(user, host, privKeyFilename string) (*SecureShellClient, error) {
+	cl := &SecureShellClient{
 		user:            user,
 		host:            host,
 		port:            22,
 		privKeyFilename: privKeyFilename,
 	}
-}
-
-func (cl *SecureShellClient) SetPort(port int) {
-	SSHVerbose(fmt.Sprintf("Setting port to %v", port))
-	cl.port = port
-}
-
-func (cl *SecureShellClient) Connect() (err error) {
-	// Don't bother connecting twice
-	SSHVerbose("Initialiasing connection")
-	if cl.conn != nil {
-		return nil
-	}
-
 	// Parse keys
 	SSHVerbose("Parsing keys")
 	key, err := cl.getPublicKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Instantiate config
@@ -79,6 +65,20 @@ func (cl *SecureShellClient) Connect() (err error) {
 	SSHVerbose("Config:")
 	SSHVerbose(fmt.Sprintf("User: %s", cl.user))
 	SSHVerbose(fmt.Sprintf("Auth method: %v", key))
+	return cl, nil
+}
+
+func (cl *SecureShellClient) SetPort(port int) {
+	SSHVerbose(fmt.Sprintf("Setting port to %v", port))
+	cl.port = port
+}
+
+func (cl *SecureShellClient) Connect() (err error) {
+	// Don't bother connecting twice
+	SSHVerbose("Initialiasing connection")
+	if cl.conn != nil {
+		return nil
+	}
 
 	// Connect
 	endpoint := cl.host + ":" + strconv.Itoa(cl.port)

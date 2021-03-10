@@ -28,7 +28,10 @@ func deleteRemote(agent *rsc.RemoteAgent, volume *rsc.Volume) error {
 		return util.NewError("Volume deletion is not supported for local Agents")
 	}
 	// Connect
-	ssh := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	ssh, err := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+	if err != nil {
+		return err
+	}
 	if err := ssh.Connect(); err != nil {
 		return err
 	}

@@ -21,21 +21,23 @@ import (
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 )
 
-func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) (err error) {
+func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
 	// Stop and remove the Agent process on remote server
 	if agent.ValidateSSH() != nil {
 		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
 	} else {
-		sshAgent := install.NewRemoteAgent(
-			agent.SSH.User,
+		sshAgent, err := install.NewRemoteAgent(agent.SSH.User,
 			agent.Host,
 			agent.SSH.Port,
 			agent.SSH.KeyFile,
 			agent.Name,
 			agent.UUID)
-		if err = sshAgent.Uninstall(); err != nil {
+		if err != nil {
+			return err
+		}
+		if err := sshAgent.Uninstall(); err != nil {
 			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
 		}
 	}
-	return
+	return nil
 }
