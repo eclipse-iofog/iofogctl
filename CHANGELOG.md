@@ -1,6 +1,6 @@
 # Changelog
 
-## [v2.1.0] - unreleased
+## [v3.0.0-alpha] - 11 March 2021
 
 * Add Application Template support
 * Add Agent `upgrade` and `rollback` commands
@@ -11,6 +11,9 @@
 * Remove Agent configuration field from Microservice kind
 * Fix bug showing `--detached` as flag for all commands
 * Fix bug preventing deployment of Apps/Microservices in same YAML file as Control Plane
+* Improve error output of SSH operations during deploys
+* Update K8s deploy to ignore errors from irrelevant Namespaces given ioFog can be deployed w/ cluster-scope
+* Update `pkg/util/ssh.go` to read keys before dialling connection
 
 ## [v2.0.1] - 2020-09-10
 
