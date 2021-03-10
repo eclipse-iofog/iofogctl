@@ -416,7 +416,11 @@ github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210120223531-243473c27a8b/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210304020236-bab3501368f7 h1:DfaE/hYS5/8FAJM6lZwn3zr+yqIzo+QTeufPlzCBvec=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210304020236-bab3501368f7/go.mod h1:Ti6eohWIsEWbHUpXkoOd6YvAmRzgk1lpXvXk8a8f68U=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d h1:hdiOQGF8Vsq4FT+BzeL6BYoZvnc84aCE9iQDB2BNcm0=
+github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d/go.mod h1:8QJJMbfavHHgZnj2gtwhdG/Y9vJ74XgA3uFdd5/2KuA=
 github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0 h1:Yh9nwJMY2Qxwj6ZbtpFwLwm1CpBio5Fl0QETvdAApS4=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-alpha h1:E3vAZKMYHGUZ5uEjLbBJ8uvX2GZG7I/MMe/ir1jb2XE=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-alpha/go.mod h1:aauE9ce3SVr9mTkLTKpEblKHjN4xBPjQqs5WGt5V3WA=
 github.com/eclipse-iofog/iofog-operator v1.3.0 h1:F1SXsBOVjhzFLElDQMgK7WBNJfnE0XjfpnUJ94lZMKU=
 github.com/eclipse-iofog/iofog-operator v1.3.0/go.mod h1:r/bGkjLr59ORotQDHTC8+ybksdr9wBoJ2iOSxfBHTQc=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20201005194419-2e26a3690802 h1:+s3v4U5MATqtOJRW4o91TUYqfLzFyctrVxty/cCcPpk=
@@ -457,6 +461,8 @@ github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210223023603-18bf9fae574f h1
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210223023603-18bf9fae574f/go.mod h1:mfJEE61K8v0tT39mhUWQTRwwoMSGyqWQ22+/LBWr4KE=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d h1:YIpGlT95ceQBCKQ8NSafVY89LF3qEkFG1WmCz/lvPs8=
 github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d/go.mod h1:kogf+OHm/92C545YnCg2OjuzZvMGHcResaCjm2+0uns=
+github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210310230929-850dd52b5f11 h1:OkpZAQcELl89CYegYX29c+Olp2G6Cud7HCcrUTyTTjo=
+github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210310230929-850dd52b5f11/go.mod h1:KrXc+kkhdLHdcdnb668oyQmGvXwzI8iZM7lJGmZZrZA=
 github.com/eclipse-iofog/iofogctl v1.3.2 h1:k38k0bpiGU57BVrdj6g0/1A93xSLl4Yp9jbX8Nlz6CM=
 github.com/eclipse-iofog/iofogctl v1.3.2/go.mod h1:qhUiKuc7PjbxPEgEpAHYArgUqlvIuHAb6DnuTDX6+tg=
 github.com/edsrzf/mmap-go v0.0.0-20170320065105-0bce6a688712/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
@@ -742,6 +748,7 @@ github.com/gorilla/mux v1.7.4/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB7
 github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gostaticanalysis/analysisutil v0.0.0-20190318220348-4088753ea4d3/go.mod h1:eEOZF4jCKGi+aprrirO9e7WKB3beBRtWgqGunKl6pKE=
 github.com/gosuri/uitable v0.0.1/go.mod h1:tKR86bXuXPZazfOTG1FIzvjIdXzd0mo4Vtn16vt0PJo=
 github.com/gosuri/uitable v0.0.4/go.mod h1:tKR86bXuXPZazfOTG1FIzvjIdXzd0mo4Vtn16vt0PJo=

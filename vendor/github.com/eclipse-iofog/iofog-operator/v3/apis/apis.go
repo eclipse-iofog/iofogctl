@@ -7,12 +7,12 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
-	appsv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/apps/v2"
-	cpv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/controlplanes/v2"
+	appsv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/apps/v3"
+	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 )
 
 var (
-	apiVersions = []string{"v2", "v1"}
+	apiVersions = []string{"v3", "v2", "v1"}
 )
 
 func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
@@ -102,7 +102,7 @@ func InitClientScheme() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(appsv2.AddToScheme(scheme))
-	utilruntime.Must(cpv2.AddToScheme(scheme))
+	utilruntime.Must(appsv3.AddToScheme(scheme))
+	utilruntime.Must(cpv3.AddToScheme(scheme))
 	return scheme
 }

@@ -22,8 +22,8 @@ import (
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	iofogv2 "github.com/eclipse-iofog/iofog-operator/v2/apis"
-	cpv2 "github.com/eclipse-iofog/iofog-operator/v2/apis/controlplanes/v2"
+	iofogv3 "github.com/eclipse-iofog/iofog-operator/v3/apis"
+	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 	"github.com/eclipse-iofog/iofogctl/v2/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -50,8 +50,8 @@ type Kubernetes struct {
 	extsClientset *extsclientset.Clientset
 	ns            string
 	operator      *microservice
-	services      cpv2.Services
-	images        cpv2.Images
+	services      cpv3.Services
+	images        cpv3.Images
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -124,7 +124,7 @@ func (k8s *Kubernetes) SetControllerImage(image string) {
 func (k8s *Kubernetes) enableCustomResources() error {
 	ctx := context.Background()
 	// Control Plane and App
-	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv2.NewControlPlaneCustomResource(), iofogv2.NewAppCustomResource()} {
+	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv3.NewControlPlaneCustomResource(), iofogv3.NewAppCustomResource()} {
 		// Try create new
 		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
@@ -135,7 +135,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 			if err != nil {
 				return err
 			}
-			if !iofogv2.IsSupportedCustomResource(existingCRD) {
+			if !iofogv3.IsSupportedCustomResource(existingCRD) {
 				existingCRD.Spec.Versions = crd.Spec.Versions
 				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(ctx, existingCRD, metav1.UpdateOptions{}); err != nil {
 					return err
@@ -158,7 +158,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 }
 
 func (k8s *Kubernetes) enableOperatorClient() (err error) {
-	scheme := iofogv2.InitClientScheme()
+	scheme := iofogv3.InitClientScheme()
 	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
 	if err != nil {
 		return err
@@ -193,7 +193,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 		Name:      cpInstanceName,
 		Namespace: k8s.ns,
 	}
-	var cp cpv2.ControlPlane
+	var cp cpv3.ControlPlane
 	found := true
 	if err = k8s.opClient.Get(context.Background(), cpKey, &cp); err != nil {
 		if !k8serrors.IsNotFound(err) {
@@ -201,7 +201,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 		}
 		// Not found, set basic info
 		found = false
-		cp = cpv2.ControlPlane{
+		cp = cpv3.ControlPlane{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      cpInstanceName,
 				Namespace: k8s.ns,
@@ -211,8 +211,8 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 
 	// Set specification
 	cp.Spec.Replicas.Controller = conf.Replicas
-	cp.Spec.Database = cpv2.Database(conf.Database)
-	cp.Spec.User = cpv2.User(conf.User)
+	cp.Spec.Database = cpv3.Database(conf.Database)
+	cp.Spec.User = cpv3.User(conf.User)
 	cp.Spec.Services = k8s.services
 	cp.Spec.Images = k8s.images
 	cp.Spec.Controller.EcnViewerPort = conf.EcnViewerPort
@@ -421,7 +421,7 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 	}
 
 	// Delete Control Plane
-	cp := &cpv2.ControlPlane{
+	cp := &cpv3.ControlPlane{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cpInstanceName,
 			Namespace: k8s.ns,
