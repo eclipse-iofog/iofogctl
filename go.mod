@@ -14,7 +14,7 @@ require (
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d
 	github.com/eclipse-iofog/iofog-operator v1.3.0 // indirect
 	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d // indirect
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210310230929-850dd52b5f11
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210310234756-435f1376c1da
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect
