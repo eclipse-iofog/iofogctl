@@ -14,7 +14,7 @@
 package client
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 )
 
 var pkg struct {

@@ -16,7 +16,7 @@ package deployapplicationtemplate
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"

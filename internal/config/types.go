@@ -1,7 +1,7 @@
 package config
 
 import (
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 )
 
 type Kind string

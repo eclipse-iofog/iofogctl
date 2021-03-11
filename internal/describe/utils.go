@@ -18,8 +18,8 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )

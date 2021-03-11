@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"

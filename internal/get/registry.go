@@ -16,7 +16,7 @@ package get
 import (
 	"strconv"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 )
 

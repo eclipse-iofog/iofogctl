@@ -59,10 +59,8 @@ github.com/docker/go-units
 github.com/eclipse-iofog/iofog-go-sdk/pkg/client
 # github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d
 ## explicit
-github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps
-github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client
-github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util
 # github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-alpha
+## explicit
 github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps
 github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client
 github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/util
@@ -70,7 +68,7 @@ github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/util
 ## explicit
 # github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d
 ## explicit
-# github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210310234756-435f1376c1da
+# github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210310230929-850dd52b5f11
 ## explicit
 github.com/eclipse-iofog/iofog-operator/v3/apis
 github.com/eclipse-iofog/iofog-operator/v3/apis/apps/v3

@@ -14,8 +14,8 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 )
 
 type Route = apps.Route
