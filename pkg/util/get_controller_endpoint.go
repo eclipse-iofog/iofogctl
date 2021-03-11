@@ -17,7 +17,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 )
 
 func GetControllerEndpoint(host string) (endpoint string, err error) {

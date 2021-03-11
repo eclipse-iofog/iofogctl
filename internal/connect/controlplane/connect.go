@@ -1,7 +1,7 @@
 package connectcontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 )
 

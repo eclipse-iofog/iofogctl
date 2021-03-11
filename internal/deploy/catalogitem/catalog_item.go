@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"strconv"
 
-	apps "github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/apps"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"

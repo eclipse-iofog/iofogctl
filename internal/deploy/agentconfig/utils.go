@@ -16,7 +16,7 @@ package deployagentconfig
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"

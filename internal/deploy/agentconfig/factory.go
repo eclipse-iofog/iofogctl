@@ -23,7 +23,7 @@ import (
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 	"gopkg.in/yaml.v2"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
