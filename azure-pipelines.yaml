@@ -60,6 +60,7 @@ stages:
   - template: pipeline/win-vanilla.yaml
   - template: pipeline/local.yaml
   - template: pipeline/k8s.yaml
+  - template: pipeline/ha.yaml
   - template: pipeline/vanilla.yaml
     parameters:
       job_name: Vanilla_Bionic
