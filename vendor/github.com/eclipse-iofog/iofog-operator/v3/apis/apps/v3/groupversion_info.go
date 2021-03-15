@@ -17,7 +17,7 @@ limitations under the License.
 // Package v2 contains API Schema definitions for the apps v2 API group
 // +kubebuilder:object:generate=true
 // +groupName=iofog.org
-package v2
+package v3
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -26,7 +26,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "iofog.org", Version: "v2"}
+	GroupVersion = schema.GroupVersion{Group: "iofog.org", Version: "v3"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

@@ -16,7 +16,7 @@ PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 LDFLAGS += -X $(PREFIX).portManagerTag=2.0.0
 LDFLAGS += -X $(PREFIX).kubeletTag=develop
-LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-alpha
+LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-alpha1
 LDFLAGS += -X $(PREFIX).proxyTag=2.0.2
 LDFLAGS += -X $(PREFIX).routerTag=2.0.1
 LDFLAGS += -X $(PREFIX).controllerTag=2.0.1
@@ -24,8 +24,8 @@ LDFLAGS += -X $(PREFIX).agentTag=2.0.5
 LDFLAGS += -X $(PREFIX).controllerVersion=2.0.1
 LDFLAGS += -X $(PREFIX).agentVersion=2.0.5
 LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
-GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-alpha
-OPERATOR_MODULE = iofog-operator/v3@v3.0.0-alpha
+GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-alpha1
+OPERATOR_MODULE = iofog-operator/v3@v3.0.0-alpha1
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
