@@ -11,15 +11,16 @@ import (
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 )
 
-var (
-	apiVersions = []string{"v3", "v2", "v1"}
-)
-
 func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
-	versions := make([]extsv1.CustomResourceDefinitionVersion, 1)
-	versions[0].Name = apiVersions[0]
-	versions[0].Served = true
-	versions[0].Storage = true
+	apiVersions := []string{"v3", "v2"}
+	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
+	for idx, version := range apiVersions {
+		versions[idx].Name = version
+		versions[idx].Served = true
+		if idx == 0 {
+			versions[idx].Storage = true
+		}
+	}
 	return &extsv1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "controlplanes.iofog.org",
@@ -32,7 +33,7 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 				Plural:   "controlplanes",
 				Singular: "controlplane",
 			},
-			Scope:    extsv1.ResourceScope("Namespaced"),
+			Scope:    extsv1.NamespaceScoped,
 			Versions: versions,
 			Subresources: &extsv1.CustomResourceSubresources{
 				Status: &extsv1.CustomResourceSubresourceStatus{},
@@ -42,6 +43,7 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 }
 
 func NewAppCustomResource() *extsv1.CustomResourceDefinition {
+	apiVersions := []string{"v3", "v2", "v1"}
 	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
 	for idx, version := range apiVersions {
 		versions[idx].Name = version
@@ -62,7 +64,7 @@ func NewAppCustomResource() *extsv1.CustomResourceDefinition {
 				Plural:   "apps",
 				Singular: "app",
 			},
-			Scope:    extsv1.ResourceScope("Namespaced"),
+			Scope:    extsv1.NamespaceScoped,
 			Versions: versions,
 			Subresources: &extsv1.CustomResourceSubresources{
 				Status: &extsv1.CustomResourceSubresourceStatus{},

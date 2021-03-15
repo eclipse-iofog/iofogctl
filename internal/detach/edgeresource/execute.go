@@ -49,11 +49,6 @@ func (exe executor) Execute() error {
 		return err
 	}
 
-	// Check capability
-	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err != nil {
-		return err
-	}
-
 	// Get Agent UUID
 	agentInfo, err := clt.GetAgentByName(exe.agent, false)
 	if err != nil {

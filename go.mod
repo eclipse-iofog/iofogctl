@@ -12,10 +12,10 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk v1.3.0 // indirect
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-alpha
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20210315001729-4bfb68b2b2a6
 	github.com/eclipse-iofog/iofog-operator v1.3.0 // indirect
 	github.com/eclipse-iofog/iofog-operator/v2 v2.0.0-20210304184121-d30002bc497d // indirect
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-alpha
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210315002056-adf160d9e1a1
 	github.com/eclipse-iofog/iofogctl v1.3.2
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect

@@ -85,10 +85,6 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	if err := util.IsLowerAlphanumeric("Edge Resource", opt.Name); err != nil {
 		return nil, err
 	}
-	// Check capability
-	if err := clientutil.IsEdgeResourceCapable(opt.Namespace); err != nil {
-		return nil, err
-	}
 	// Return executor
 	return &executor{
 		namespace: opt.Namespace,
