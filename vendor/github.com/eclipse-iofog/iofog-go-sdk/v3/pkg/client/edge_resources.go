@@ -22,10 +22,34 @@ const (
 	edgeResourceLoggedInErr = "Controller client must be logged in to perform Edge Resource requests"
 )
 
-// CreateHttpEdgeResource creates an Edge Resource using Controller REST API
-func (clt *Client) CreateHTTPEdgeResource(request *EdgeResourceMetadata) error {
+func (clt *Client) IsEdgeResourceCapable() error {
+	if _, err := clt.doRequest("HEAD", "/capabilities/edgeResources", nil); err != nil {
+		// If 404, not capable
+		if _, ok := err.(*NotFoundError); ok {
+			return NewNotSupportedError("Edge Resources")
+		}
+		return err
+	}
+	return nil
+}
+
+func (clt *Client) edgeResourcePreflight() error {
+	// Check capability
+	if err := clt.IsEdgeResourceCapable(); err != nil {
+		return err
+	}
+
 	if !clt.isLoggedIn() {
 		return NewError(edgeResourceLoggedInErr)
+	}
+
+	return nil
+}
+
+// CreateHttpEdgeResource creates an Edge Resource using Controller REST API
+func (clt *Client) CreateHTTPEdgeResource(request *EdgeResourceMetadata) error {
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return err
 	}
 
 	// Send request
@@ -38,9 +62,8 @@ func (clt *Client) CreateHTTPEdgeResource(request *EdgeResourceMetadata) error {
 
 // GetHttpEdgeResourceByName gets an Edge Resource using Controller REST API
 func (clt *Client) GetHTTPEdgeResourceByName(name, version string) (response EdgeResourceMetadata, err error) {
-	if !clt.isLoggedIn() {
-		err = NewError(edgeResourceLoggedInErr)
-		return
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return response, err
 	}
 
 	// Send request
@@ -57,9 +80,8 @@ func (clt *Client) GetHTTPEdgeResourceByName(name, version string) (response Edg
 
 // ListEdgeResources list all Edge Resources using Controller REST API
 func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err error) {
-	if !clt.isLoggedIn() {
-		err = NewError(edgeResourceLoggedInErr)
-		return
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return response, err
 	}
 
 	// Send request
@@ -76,8 +98,8 @@ func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err e
 
 // UpdateHttpEdgeResource updates an HTTP Based Edge Resources using Controller REST API
 func (clt *Client) UpdateHTTPEdgeResource(name string, request *EdgeResourceMetadata) error {
-	if !clt.isLoggedIn() {
-		return NewError(edgeResourceLoggedInErr)
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return err
 	}
 
 	// Send request
@@ -90,8 +112,8 @@ func (clt *Client) UpdateHTTPEdgeResource(name string, request *EdgeResourceMeta
 
 // ListEdgeResources list all Edge Resources using Controller REST API
 func (clt *Client) DeleteEdgeResource(name, version string) error {
-	if !clt.isLoggedIn() {
-		return NewError(edgeResourceLoggedInErr)
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return err
 	}
 
 	// Send request
@@ -104,8 +126,8 @@ func (clt *Client) DeleteEdgeResource(name, version string) error {
 
 // LinkEdgeResource links an Edge Resource to an Agent using Controller REST API
 func (clt *Client) LinkEdgeResource(request LinkEdgeResourceRequest) error {
-	if !clt.isLoggedIn() {
-		return NewError(edgeResourceLoggedInErr)
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return err
 	}
 
 	// Send request
@@ -119,10 +141,9 @@ func (clt *Client) LinkEdgeResource(request LinkEdgeResourceRequest) error {
 
 // UnlinkEdgeResource unlinks an Edge Resource from an Agent using Controller REST API
 func (clt *Client) UnlinkEdgeResource(request LinkEdgeResourceRequest) error {
-	if !clt.isLoggedIn() {
-		return NewError(edgeResourceLoggedInErr)
+	if err := clt.edgeResourcePreflight(); err != nil {
+		return err
 	}
-
 	// Send request
 	url := fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion)
 	if _, err := clt.doRequest("DELETE", url, request); err != nil {

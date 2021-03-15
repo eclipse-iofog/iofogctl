@@ -37,10 +37,6 @@ func (exe *edgeResourceExecutor) GetName() string {
 }
 
 func (exe *edgeResourceExecutor) Execute() error {
-	// Check capability
-	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err != nil && !rsc.IsNoControlPlaneError(err) {
-		return err
-	}
 	printNamespace(exe.namespace)
 	table, err := generateEdgeResourceOutput(exe.namespace)
 	if err != nil {

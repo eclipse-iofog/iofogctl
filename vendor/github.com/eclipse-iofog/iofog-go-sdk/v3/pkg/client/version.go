@@ -43,24 +43,3 @@ func (clt *Client) GetVersionNumbers() (major, minor, patch int, err error) {
 
 	return
 }
-
-func (clt *Client) IsDevVersion() bool {
-	return clt.status.version == "0.0.0-dev"
-}
-
-func (clt *Client) IsEdgeResourceCapable() error {
-	if clt.IsDevVersion() {
-		return nil
-	}
-	// Decode version
-	major, minor, _, err := clt.GetVersionNumbers()
-	if err != nil {
-		return err
-	}
-	// Supported
-	if major >= 2 && minor >= 1 {
-		return nil
-	}
-	// Unsupported
-	return fmt.Errorf("controller version %s does not support Edge Resources", clt.status.version)
-}

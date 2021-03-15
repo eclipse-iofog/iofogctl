@@ -29,9 +29,21 @@ func (clt *Client) IsApplicationTemplateCapable() error {
 	return nil
 }
 
-func (clt *Client) CreateApplicationTemplate(request *ApplicationTemplateCreateRequest) (*ApplicationTemplateCreateResponse, error) {
+func (clt *Client) applicationTemplatePreflight() error {
 	// Check capability
 	if err := clt.IsApplicationTemplateCapable(); err != nil {
+		return err
+	}
+
+	if !clt.isLoggedIn() {
+		return NewError(edgeResourceLoggedInErr)
+	}
+
+	return nil
+}
+
+func (clt *Client) CreateApplicationTemplate(request *ApplicationTemplateCreateRequest) (*ApplicationTemplateCreateResponse, error) {
+	if err := clt.applicationTemplatePreflight(); err != nil {
 		return nil, err
 	}
 
@@ -48,8 +60,7 @@ func (clt *Client) CreateApplicationTemplate(request *ApplicationTemplateCreateR
 }
 
 func (clt *Client) UpdateApplicationTemplate(request *ApplicationTemplateUpdateRequest) (*ApplicationTemplateUpdateResponse, error) {
-	// Check capability
-	if err := clt.IsApplicationTemplateCapable(); err != nil {
+	if err := clt.applicationTemplatePreflight(); err != nil {
 		return nil, err
 	}
 
@@ -67,8 +78,7 @@ func (clt *Client) UpdateApplicationTemplate(request *ApplicationTemplateUpdateR
 }
 
 func (clt *Client) UpdateApplicationTemplateMetadata(name string, newMeta *ApplicationTemplateMetadataUpdateRequest) error {
-	// Check capability
-	if err := clt.IsApplicationTemplateCapable(); err != nil {
+	if err := clt.applicationTemplatePreflight(); err != nil {
 		return err
 	}
 
@@ -81,8 +91,7 @@ func (clt *Client) UpdateApplicationTemplateMetadata(name string, newMeta *Appli
 }
 
 func (clt *Client) ListApplicationTemplates() (*ApplicationTemplateListResponse, error) {
-	// Check capability
-	if err := clt.IsApplicationTemplateCapable(); err != nil {
+	if err := clt.applicationTemplatePreflight(); err != nil {
 		return nil, err
 	}
 
@@ -99,8 +108,7 @@ func (clt *Client) ListApplicationTemplates() (*ApplicationTemplateListResponse,
 }
 
 func (clt *Client) GetApplicationTemplate(name string) (*ApplicationTemplate, error) {
-	// Check capability
-	if err := clt.IsApplicationTemplateCapable(); err != nil {
+	if err := clt.applicationTemplatePreflight(); err != nil {
 		return nil, err
 	}
 
@@ -118,8 +126,7 @@ func (clt *Client) GetApplicationTemplate(name string) (*ApplicationTemplate, er
 }
 
 func (clt *Client) DeleteApplicationTemplate(name string) error {
-	// Check capability
-	if err := clt.IsApplicationTemplateCapable(); err != nil {
+	if err := clt.applicationTemplatePreflight(); err != nil {
 		return err
 	}
 

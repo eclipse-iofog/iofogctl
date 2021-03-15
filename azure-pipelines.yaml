@@ -20,10 +20,17 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
+<<<<<<< HEAD
   controller_image: 'gcr.io/focal-freedom-236620/controller:2.0.1'
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.0-alpha'
   agent_image: 'gcr.io/focal-freedom-236620/agent:2.0.5'
   operator_image: 'gcr.io/focal-freedom-236620/operator:3.0.0-alpha'
+=======
+  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.0-alpha-b12091'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
+>>>>>>> develop
   kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:develop'
   port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:2.0.0'
   router_image: 'gcr.io/focal-freedom-236620/router:2.0.1'

@@ -33,11 +33,6 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
-	// Check capability
-	if err := clientutil.IsEdgeResourceCapable(namespace); err != nil {
-		return err
-	}
-
 	// List all edge resources
 	listResponse, err := clt.ListEdgeResources()
 	if err != nil {
