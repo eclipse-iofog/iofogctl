@@ -11,7 +11,7 @@
 * Fix Debian Stretch Docker installation
 * Fix Debian Buster apt update release info issue for Agent install
 
-## [v3.0.0-alpha1] - 11 March 2021
+## [v3.0.0-alpha1] - 25 March 2021
 
 * Add Application Template support
 * Add Agent `upgrade` and `rollback` commands
