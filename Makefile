@@ -14,18 +14,18 @@ COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).portManagerTag=develop
-LDFLAGS += -X $(PREFIX).kubeletTag=develop
-LDFLAGS += -X $(PREFIX).operatorTag=develop
-LDFLAGS += -X $(PREFIX).proxyTag=develop
-LDFLAGS += -X $(PREFIX).routerTag=develop
-LDFLAGS += -X $(PREFIX).controllerTag=develop
-LDFLAGS += -X $(PREFIX).agentTag=develop
-LDFLAGS += -X $(PREFIX).controllerVersion=0.0.0-dev
-LDFLAGS += -X $(PREFIX).agentVersion=0.0.0-dev
+LDFLAGS += -X $(PREFIX).portManagerTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).kubeletTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).operatorTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).proxyTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).routerTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).controllerTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).agentTag=v3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).controllerVersion=3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-alpha1
 LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
-GO_SDK_MODULE = iofog-go-sdk/v3@4bfb68b2b2a60b8caedaa3651d5acb9ec38f5565
-OPERATOR_MODULE = iofog-operator/v3@adf160d9e1a17ce3add6f7c501503c4b0727515f
+GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-alpha1
+OPERATOR_MODULE = iofog-operator/v3@v3.0.0-alpha1
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
