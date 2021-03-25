@@ -49,7 +49,7 @@ func (exe *applicationTemplateExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: config.LatestAPIVersion,
+		APIVersion: config.APIVersion(),
 		Kind:       config.ApplicationKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

@@ -17,7 +17,7 @@ function initAllLocalDeleteFile() {
 
 function initMicroserviceFile() {
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Microservice 
 metadata:
   name: ${MICROSERVICE_NAME}
@@ -48,7 +48,7 @@ spec:
 
 function initRouteFile() {
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Route
 metadata:
   name: $ROUTE_NAME
@@ -59,7 +59,7 @@ spec:
 
 function initMicroserviceUpdateFile() {
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Microservice
 metadata:
   name: ${MICROSERVICE_NAME}
@@ -143,7 +143,7 @@ function initInvalidApplicationFiles() {
           - key: BASE_URL
             value: http://localhost:8080/data"
   echo -n "---
-  apiVersion: iofog.org/v2
+  apiVersion: iofog.org/v3
   kind: Application
   metadata:
     name: ${APPLICATION_NAME}-0
@@ -167,7 +167,7 @@ function initDockerPullStatsApplicationFiles() {
         test_mode: true
         data_label: 'Anonymous_Person'"
   echo -n "---
-  apiVersion: iofog.org/v2
+  apiVersion: iofog.org/v3
   kind: Application
   metadata:
     name: ${APPLICATION_NAME}-1
@@ -214,7 +214,7 @@ function initApplicationFiles() {
           - key: BASE_URL
             value: http://localhost:8080/data"
   echo -n "---
-  apiVersion: iofog.org/v2
+  apiVersion: iofog.org/v3
   kind: Application
   metadata:
     name: $APPLICATION_NAME
@@ -224,7 +224,7 @@ function initApplicationFiles() {
 
 function initLocalAgentFile() {
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: LocalAgent
 metadata:
   name: ${NAME}-0
@@ -250,7 +250,7 @@ spec:
 
 function initLocalControllerFile() {
     echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: LocalControlPlane
 spec:
   iofogUser:
@@ -271,7 +271,7 @@ function initRemoteAgentsFile() {
   for IDX in "${!AGENTS[@]}"; do
     local AGENT_NAME="${NAME}-${IDX}"
     echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Agent
 metadata:
   name: $AGENT_NAME
@@ -349,7 +349,7 @@ function initAgents(){
 function initGCRRegistryFile() {
   echo "---
 kind: Registry
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 spec:
   url: gcr.io
   email: alex@edgeworx.io
@@ -362,7 +362,7 @@ spec:
 function initUpdatedGCRRegistryFile() {
   echo "---
 kind: Registry
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 spec:
   id: 3
   url: https://gcr.io
@@ -379,7 +379,7 @@ function initEdgeResourceFile() {
     ER_VERSION="$1"
   fi
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: EdgeResource
 metadata:
   name: $EDGE_RESOURCE_NAME
@@ -406,7 +406,7 @@ spec:
 
 function initApplicationTemplateFile(){
   echo -n "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Application
 metadata:
   name: $APPLICATION_NAME
@@ -445,7 +445,7 @@ spec:
     - key: $APP_TEMPLATE_KEY
       value: $APP_TEMPLATE_DEF_VAL" > test/conf/templated-app.yaml
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: ApplicationTemplate
 metadata:
   name: $APP_TEMPLATE_NAME
