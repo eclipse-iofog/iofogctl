@@ -26,7 +26,7 @@ function runNoExecutors(){
 
 function runWrongNamespace(){
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: LocalControlPlane
 metadata:
   namespace: wrong

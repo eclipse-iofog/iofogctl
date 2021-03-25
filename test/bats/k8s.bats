@@ -51,7 +51,7 @@ NS="$NAMESPACE"
 @test "Deploy Control Plane" {
   startTest
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: KubernetesControlPlane
 metadata:
   name: func-controlplane
@@ -139,7 +139,7 @@ spec:
 @test "Deploy Controller for idempotence" {
   startTest
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: KubernetesControlPlane
 metadata:
   name: func-controlplane

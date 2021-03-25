@@ -9,7 +9,7 @@ function testDeployLocalVolume(){
     SRC=$(wslpath $YAML_SRC)
   fi
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Volume
 spec:
   name: $VOL_NAME
@@ -85,7 +85,7 @@ function testDeployVolume(){
   fi
   initAgents
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: Volume
 spec:
   name: $VOL_NAME
