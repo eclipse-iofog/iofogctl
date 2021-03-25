@@ -26,80 +26,96 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-var (
-	conf               configuration
-	configFolder       string // config directory
-	configFilename     string // config file name
-	namespaceDirectory string // Path of namespace directory
-	namespaces         map[string]*rsc.Namespace
-)
+var pkg struct {
+	conf                 configuration
+	configFolder         string // config directory
+	configFilename       string // config file name
+	namespaceDirectory   string // Path of namespace directory
+	namespaces           map[string]*rsc.Namespace
+	apiVersionGroup      string
+	latestVersion        string
+	latestAPIVersion     string
+	defaultDirname       string
+	namespaceDirname     string
+	defaultFilename      string
+	configV3             string
+	configV2             string
+	configV1             string
+	currentConfigVersion string
+	detachedNamespace    string
+}
 
-const (
-	apiVersionGroup      = "iofog.org"
-	latestVersion        = "v2"
-	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
-	defaultDirname       = ".iofog/" + latestVersion
-	namespaceDirname     = "namespaces/"
-	defaultFilename      = "config.yaml"
-	configV2             = "iofogctl/v2"
-	configV1             = "iofogctl/v1"
-	CurrentConfigVersion = configV2
-	detachedNamespace    = "_detached"
-)
+func init() {
+	pkg.apiVersionGroup = "iofog.org"
+	pkg.latestVersion = "v3"
+	pkg.latestAPIVersion = pkg.apiVersionGroup + "/" + pkg.latestVersion
+	pkg.defaultDirname = ".iofog/" + pkg.latestVersion
+	pkg.namespaceDirname = "namespaces/"
+	pkg.defaultFilename = "config.yaml"
+	pkg.configV3 = "iofogctl/v3"
+	pkg.configV2 = "iofogctl/v2"
+	pkg.configV1 = "iofogctl/v1"
+	pkg.currentConfigVersion = pkg.configV3
+	pkg.detachedNamespace = "_detached"
+}
+
+func APIVersion() string {
+	return pkg.latestAPIVersion
+}
 
 // Init initializes config, namespace and unmarshalls the files
 func Init(configFolderArg string) {
-	namespaces = make(map[string]*rsc.Namespace)
+	pkg.namespaces = make(map[string]*rsc.Namespace)
 
 	var err error
-	configFolder, err = util.FormatPath(configFolderArg)
+	pkg.configFolder, err = util.FormatPath(configFolderArg)
 	util.Check(err)
 
-	if configFolder == "" {
+	if pkg.configFolder == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.Check(err)
-		configFolder = path.Join(home, defaultDirname)
+		pkg.configFolder = path.Join(home, pkg.defaultDirname)
 	} else {
-		dirInfo, err := os.Stat(configFolder)
+		dirInfo, err := os.Stat(pkg.configFolder)
 		util.Check(err)
 		if !dirInfo.IsDir() {
-			util.Check(util.NewInputError(fmt.Sprintf("The config folder %s is not a valid directory", configFolder)))
+			util.Check(util.NewInputError(fmt.Sprintf("The config folder %s is not a valid directory", pkg.configFolder)))
 		}
 	}
 
 	// Set default filename if necessary
-	filename := path.Join(configFolder, defaultFilename)
-	configFilename = filename
-	namespaceDirectory = path.Join(configFolder, namespaceDirname)
+	filename := path.Join(pkg.configFolder, pkg.defaultFilename)
+	pkg.configFilename = filename
+	pkg.namespaceDirectory = path.Join(pkg.configFolder, pkg.namespaceDirname)
 
 	// Check config file already exists
-	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(configFolder, 0755)
+	if _, err := os.Stat(pkg.configFilename); os.IsNotExist(err) {
+		err = os.MkdirAll(pkg.configFolder, 0755)
 		util.Check(err)
 
 		// Create default config file
-		conf.DefaultNamespace = "default"
+		pkg.conf.DefaultNamespace = "default"
 		err = flushShared()
 		util.Check(err)
 	}
 
 	// Unmarshall the config file
 	confHeader := iofogctlConfig{}
-	err = util.UnmarshalYAML(configFilename, &confHeader)
+	err = util.UnmarshalYAML(pkg.configFilename, &confHeader)
 	util.Check(err)
 
-	conf, err = getConfigFromHeader(&confHeader)
+	pkg.conf, err = getConfigFromHeader(&confHeader)
 	util.Check(err)
 
 	// Check namespace dir exists
-	initNamespaces := []string{"default", detachedNamespace}
+	initNamespaces := []string{"default", pkg.detachedNamespace}
 	flush := false
 	for _, initNamespace := range initNamespaces {
 		nsFile := getNamespaceFile(initNamespace)
 		if _, err := os.Stat(nsFile); os.IsNotExist(err) {
 			flush = true
-			err = os.MkdirAll(namespaceDirectory, 0755)
+			err = os.MkdirAll(pkg.namespaceDirectory, 0755)
 			util.Check(err)
 
 			// Create default namespace file
@@ -116,26 +132,26 @@ func Init(configFolderArg string) {
 
 // getNamespaceFile helper function that returns the full path to a namespace file
 func getNamespaceFile(name string) string {
-	return path.Join(namespaceDirectory, name+".yaml")
+	return path.Join(pkg.namespaceDirectory, name+".yaml")
 }
 
-func updateConfigToV2(header *iofogctlConfig) {
+func updateConfigToV3(header *iofogctlConfig) {
 	if header != nil {
-		header.APIVersion = configV2
+		header.APIVersion = pkg.configV3
 	}
 }
 
 func getConfigFromHeader(header *iofogctlConfig) (conf configuration, err error) {
 	switch header.APIVersion {
-	case CurrentConfigVersion:
+	case pkg.currentConfigVersion:
 		// All good
 		break
 	// Example for further maintenance
 	// case PreviousConfigVersion
 	// 	updateFromPreviousVersion()
 	// 	break
-	case configV1:
-		updateConfigToV2(header)
+	case pkg.configV1:
+		updateConfigToV3(header)
 		return getConfigFromHeader(header)
 	default:
 		return conf, util.NewInputError("Invalid iofogctl config version")
@@ -153,10 +169,10 @@ func getConfigFromHeader(header *iofogctlConfig) (conf configuration, err error)
 func getNamespaceFromHeader(header *iofogctlNamespace) (ns *rsc.Namespace, err error) {
 	// Check header not supported
 	switch header.APIVersion {
-	case CurrentConfigVersion:
+	case pkg.currentConfigVersion:
 		// All good
 		break
-	case configV1:
+	case pkg.configV1:
 		err = util.NewError("Namespace file is out of date.")
 		return
 	default:
@@ -179,7 +195,7 @@ func getConfigYAMLFile(conf configuration) ([]byte, error) {
 	confHeader := iofogctlConfig{
 		Header: Header{
 			Kind:       IofogctlConfigKind,
-			APIVersion: CurrentConfigVersion,
+			APIVersion: pkg.currentConfigVersion,
 			Spec:       conf,
 		},
 	}
@@ -191,7 +207,7 @@ func getNamespaceYAMLFile(ns *rsc.Namespace) ([]byte, error) {
 	namespaceHeader := iofogctlNamespace{
 		Header{
 			Kind:       IofogctlNamespaceKind,
-			APIVersion: CurrentConfigVersion,
+			APIVersion: pkg.currentConfigVersion,
 			Metadata: HeaderMetadata{
 				Name: ns.Name,
 			},
@@ -202,7 +218,7 @@ func getNamespaceYAMLFile(ns *rsc.Namespace) ([]byte, error) {
 }
 
 func flushNamespaces() error {
-	for _, ns := range namespaces {
+	for _, ns := range pkg.namespaces {
 		// Marshal the runtime data
 		marshal, err := getNamespaceYAMLFile(ns)
 		if err != nil {
@@ -219,12 +235,12 @@ func flushNamespaces() error {
 
 func flushShared() error {
 	// Marshal the runtime data
-	marshal, err := getConfigYAMLFile(conf)
+	marshal, err := getConfigYAMLFile(pkg.conf)
 	if err != nil {
 		return nil
 	}
 	// Overwrite the file
-	err = ioutil.WriteFile(configFilename, marshal, 0644)
+	err = ioutil.WriteFile(pkg.configFilename, marshal, 0644)
 	if err != nil {
 		return nil
 	}
@@ -237,8 +253,9 @@ func Flush() error {
 }
 
 func ValidateHeader(header *Header) error {
-	if header.APIVersion != LatestAPIVersion {
-		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
+	if header.APIVersion != pkg.latestAPIVersion {
+		msg := fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, pkg.latestAPIVersion)
+		return util.NewInputError(msg)
 	}
 	return nil
 }

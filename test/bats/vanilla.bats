@@ -37,7 +37,7 @@ NS2="$NS"-2
   startTest
   initVanillaController
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: ControlPlane
 metadata:
   name: func-controlplane

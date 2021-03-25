@@ -18,7 +18,7 @@ import (
 )
 
 func GetDetachedAgent(name string) (rsc.Agent, error) {
-	ns, err := getNamespace(detachedNamespace)
+	ns, err := getNamespace(pkg.detachedNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func GetDetachedAgent(name string) (rsc.Agent, error) {
 }
 
 func GetDetachedAgents() []rsc.Agent {
-	ns, _ := getNamespace(detachedNamespace)
+	ns, _ := getNamespace(pkg.detachedNamespace)
 	return ns.GetAgents()
 }
 
@@ -63,7 +63,7 @@ func DetachAgent(namespace, name string) error {
 }
 
 func AddDetachedAgent(agent rsc.Agent) error {
-	ns, err := getNamespace(detachedNamespace)
+	ns, err := getNamespace(pkg.detachedNamespace)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func RenameDetachedAgent(oldName, newName string) error {
 }
 
 func DeleteDetachedAgent(name string) error {
-	ns, err := getNamespace(detachedNamespace)
+	ns, err := getNamespace(pkg.detachedNamespace)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func DeleteDetachedAgent(name string) error {
 }
 
 func UpdateDetachedAgent(agent rsc.Agent) error {
-	ns, err := getNamespace(detachedNamespace)
+	ns, err := getNamespace(pkg.detachedNamespace)
 	if err != nil {
 		return err
 	}
