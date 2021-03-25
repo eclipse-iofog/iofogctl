@@ -20,6 +20,8 @@ import (
 )
 
 func main() {
-	util.Check(config.Init())
-	util.Check(cmd.NewRootCommand().Execute())
+	config.Init("")
+	rootCmd := cmd.NewRootCommand()
+	err := rootCmd.Execute()
+	util.Check(err)
 }

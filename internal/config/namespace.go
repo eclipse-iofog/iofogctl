@@ -39,12 +39,8 @@ func SetDefaultNamespace(name string) (err error) {
 
 // GetNamespaces returns all namespaces in config
 func GetNamespaces() (namespaces []string) {
-	files := []os.FileInfo{}
-	for _, dir := range pkg.nsDirs {
-		nsFiles, err := ioutil.ReadDir(dir)
-		util.Check(err)
-		files = append(files, nsFiles...)
-	}
+	files, err := ioutil.ReadDir(pkg.namespaceDirectory)
+	util.Check(err)
 
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].ModTime().Before(files[j].ModTime())
@@ -63,23 +59,12 @@ func GetDefaultNamespaceName() string {
 	return pkg.conf.DefaultNamespace
 }
 
-func findNamespaceVersion(name string) (version string, err error) {
-	// TODO: Replace this with LS dir for ns file
-	for _, vers := range pkg.supportedVersions {
-		if _, err = getNamespace(name, vers); err == nil {
-			version = vers
-			break
-		}
-	}
-	return version, err
-}
-
-func getNamespace(name, version string) (*rsc.Namespace, error) {
-	namespace, ok := pkg.nsIndex[version][name]
+func getNamespace(name string) (*rsc.Namespace, error) {
+	namespace, ok := pkg.namespaces[name]
 	if !ok {
 		// Namespace has not been loaded from file, do so now
 		namespaceHeader := iofogctlNamespace{}
-		if err := util.UnmarshalYAML(getNamespaceFile(name, version), &namespaceHeader); err != nil {
+		if err := util.UnmarshalYAML(getNamespaceFile(name), &namespaceHeader); err != nil {
 			if os.IsNotExist(err) {
 				return nil, util.NewNotFoundError(name)
 			}
@@ -89,7 +74,7 @@ func getNamespace(name, version string) (*rsc.Namespace, error) {
 		if err != nil {
 			return nil, err
 		}
-		pkg.nsIndex[version][name] = ns
+		pkg.namespaces[name] = ns
 		return ns, flushNamespaces()
 	}
 	// Return Namespace from memory
@@ -97,12 +82,12 @@ func getNamespace(name, version string) (*rsc.Namespace, error) {
 }
 
 // GetNamespace returns the namespace
-func GetNamespace(name string) (ns *rsc.Namespace, err error) {
-	version, err := findNamespaceVersion(name)
+func GetNamespace(namespace string) (*rsc.Namespace, error) {
+	ns, err := getNamespace(namespace)
 	if err != nil {
 		return nil, err
 	}
-	return getNamespace(name, version)
+	return ns, nil
 }
 
 // AddNamespace adds a new namespace to the config
@@ -113,10 +98,7 @@ func AddNamespace(name, created string) error {
 			return util.NewConflictError(name)
 		}
 	}
-	return addNamespace(name, created, pkg.latestVersion)
-}
 
-func addNamespace(name, created, version string) error {
 	newNamespace := rsc.Namespace{
 		Name:    name,
 		Created: created,
@@ -124,16 +106,16 @@ func addNamespace(name, created, version string) error {
 
 	// Write namespace file
 	// Marshal the runtime data
-	marshal, err := getNamespaceYAMLFile(&newNamespace, version)
+	marshal, err := getNamespaceYAMLFile(&newNamespace)
 	if err != nil {
 		return err
 	}
 	// Overwrite the file
-	err = ioutil.WriteFile(getNamespaceFile(name, version), marshal, 0644)
+	err = ioutil.WriteFile(getNamespaceFile(name), marshal, 0644)
 	if err != nil {
 		return err
 	}
-	pkg.nsIndex[version][name] = &newNamespace
+	pkg.namespaces[name] = &newNamespace
 	return nil
 }
 
@@ -146,46 +128,27 @@ func DeleteNamespace(name string) error {
 			return errors.New(msg)
 		}
 	}
-	// Find ns version
-	version, err := findNamespaceVersion(name)
-	if err != nil {
-		return err
-	}
 
-	return deleteNamespace(name, version)
-}
-
-func deleteNamespace(name, version string) error {
-	filename := getNamespaceFile(name, version)
+	filename := getNamespaceFile(name)
 	if err := os.Remove(filename); err != nil {
 		msg := "could not delete namespace file " + filename
 		return util.NewNotFoundError(msg)
 	}
 
-	delete(pkg.nsIndex[version], name)
+	delete(pkg.namespaces, name)
 
 	return nil
 }
 
 // RenameNamespace renames a namespace
 func RenameNamespace(name, newName string) error {
-	ns, err := getNamespace(name, pkg.latestVersion)
+	ns, err := getNamespace(name)
 	if err != nil {
 		util.PrintError("Could not find namespace " + name)
 		return err
 	}
-	// Find ns version
-	version, err := findNamespaceVersion(name)
-	if err != nil {
-		return err
-	}
-	return renameNamespace(ns, newName, version)
-}
-
-func renameNamespace(ns *rsc.Namespace, newName, version string) error {
-	name := ns.Name
 	ns.Name = newName
-	if err := os.Rename(getNamespaceFile(name, version), getNamespaceFile(newName, version)); err != nil {
+	if err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
 		return err
 	}
 	if name == pkg.conf.DefaultNamespace {
