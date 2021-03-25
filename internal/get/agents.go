@@ -59,7 +59,11 @@ func (exe *agentExecutor) Execute() error {
 }
 
 func generateDetachedAgentOutput() (table [][]string, err error) {
-	detachedAgents := config.GetDetachedAgents()
+	detachedAgents, err := config.GetDetachedAgents()
+	if err != nil {
+		return
+	}
+
 	// Make an index of agents the client knows about and pre-process any info
 	agentsToPrint := make([]client.AgentInfo, len(detachedAgents))
 	for idx := range detachedAgents {
