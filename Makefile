@@ -23,7 +23,7 @@ LDFLAGS += -X $(PREFIX).controllerTag=v3.0.0-alpha1
 LDFLAGS += -X $(PREFIX).agentTag=v3.0.0-alpha1
 LDFLAGS += -X $(PREFIX).controllerVersion=3.0.0-alpha1
 LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).repo=gcr.io/focal-freedom-236620
+LDFLAGS += -X $(PREFIX).repo=iofog
 GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-alpha1
 OPERATOR_MODULE = iofog-operator/v3@v3.0.0-alpha1
 REPORTS_DIR ?= reports
