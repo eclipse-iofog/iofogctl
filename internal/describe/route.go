@@ -73,7 +73,7 @@ func (exe *routeExecutor) Execute() error {
 
 	// Convert to YAML
 	header := config.Header{
-		APIVersion: config.LatestAPIVersion,
+		APIVersion: config.APIVersion(),
 		Kind:       config.RouteKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
