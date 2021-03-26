@@ -115,6 +115,9 @@ github.com/opencontainers/go-digest
 ## explicit
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
+# github.com/otiai10/copy v1.5.0
+## explicit
+github.com/otiai10/copy
 # github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 ## explicit
 github.com/pkg/browser
