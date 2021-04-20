@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+
+* Remove Microservice output from `get all` command
+
 ## [v3.0.0-alpha] - 11 March 2021
 
 * Add Application Template support
