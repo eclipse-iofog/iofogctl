@@ -22,6 +22,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util/assets"
 )
 
 type RemoteSystemImages struct {
@@ -105,7 +106,10 @@ func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error)
 	if srcDir != "" {
 		srcDir = util.AddTrailingSlash(srcDir)
 	}
-	staticFile := util.GetStaticFileOrDie(srcDir + filename)
+	staticFile, err := assets.GetStaticFile(srcDir + filename)
+	if err != nil {
+		return err
+	}
 
 	// Copy to /tmp for backwards compatability
 	reader := strings.NewReader(staticFile)

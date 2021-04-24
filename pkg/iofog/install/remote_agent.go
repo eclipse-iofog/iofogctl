@@ -23,6 +23,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/v3/pkg/util/assets"
 )
 
 // Remote agent uses SSH
@@ -103,7 +104,11 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	}
 	// Get script contents from embedded files
 	for _, scriptName := range agent.procs.scriptNames {
-		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(scriptName)))
+		scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(scriptName))
+		if err != nil {
+			return nil, err
+		}
+		agent.procs.scriptContents = append(agent.procs.scriptContents, scriptContent)
 	}
 	return agent, nil
 }
@@ -133,7 +138,11 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
-	procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(pkg.scriptPrereq)))
+	prereqContent, err := assets.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq))
+	if err != nil {
+		return err
+	}
+	procs.scriptContents = append(procs.scriptContents, prereqContent)
 	procs.check.destPath = util.JoinAgentPath(agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
@@ -141,20 +150,32 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 		procs.Deps = agent.procs.Deps
 		for _, script := range []string{pkg.scriptInstallDeps, pkg.scriptInstallDocker, pkg.scriptInstallJava} {
 			procs.scriptNames = append(procs.scriptNames, script)
-			procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(script)))
+			scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(script))
+			if err != nil {
+				return err
+			}
+			procs.scriptContents = append(procs.scriptContents, scriptContent)
 		}
 	}
 	if procs.Install.Name == "" {
 		procs.Install = agent.procs.Install
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptInstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(pkg.scriptInstallIofog)))
+		scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog))
+		if err != nil {
+			return err
+		}
+		procs.scriptContents = append(procs.scriptContents, scriptContent)
 	} else {
 		agent.customInstall = true
 	}
 	if procs.Uninstall.Name == "" {
 		procs.Uninstall = agent.procs.Uninstall
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptUninstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(pkg.scriptUninstallIofog)))
+		scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog))
+		if err != nil {
+			return err
+		}
+		procs.scriptContents = append(procs.scriptContents, scriptContent)
 	}
 
 	// Set destination paths where scripts appear on Agent

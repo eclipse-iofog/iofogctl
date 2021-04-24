@@ -47,7 +47,7 @@ bootstrap: ## Bootstrap environment
 .PHONY: build
 build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: fmt ## Build the binary
-	@cd pkg/util && rice embed-go
+	@cd pkg/util/assets && rice embed-go
 	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
 
 .PHONY: install
