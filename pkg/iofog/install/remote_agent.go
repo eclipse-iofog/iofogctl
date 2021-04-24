@@ -103,7 +103,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	}
 	// Get script contents from embedded files
 	for _, scriptName := range agent.procs.scriptNames {
-		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptName)))
+		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(scriptName)))
 	}
 	return agent, nil
 }
@@ -133,7 +133,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
-	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq)))
+	procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(pkg.scriptPrereq)))
 	procs.check.destPath = util.JoinAgentPath(agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
@@ -141,20 +141,20 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 		procs.Deps = agent.procs.Deps
 		for _, script := range []string{pkg.scriptInstallDeps, pkg.scriptInstallDocker, pkg.scriptInstallJava} {
 			procs.scriptNames = append(procs.scriptNames, script)
-			procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(script)))
+			procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(script)))
 		}
 	}
 	if procs.Install.Name == "" {
 		procs.Install = agent.procs.Install
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptInstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog)))
+		procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(pkg.scriptInstallIofog)))
 	} else {
 		agent.customInstall = true
 	}
 	if procs.Uninstall.Name == "" {
 		procs.Uninstall = agent.procs.Uninstall
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptUninstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog)))
+		procs.scriptContents = append(procs.scriptContents, util.GetStaticFileOrDie(addAgentAssetPrefix(pkg.scriptUninstallIofog)))
 	}
 
 	// Set destination paths where scripts appear on Agent

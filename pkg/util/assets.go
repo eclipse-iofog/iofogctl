@@ -15,27 +15,30 @@ package util
 
 import (
 	"fmt"
-	"sync"
 
 	rice "github.com/GeertJohan/go.rice"
 )
 
-var once sync.Once
-
 var assets *rice.Box
 
-func GetStaticFile(filename string) string {
-	once.Do(func() {
-		var err error
-		assets, err = rice.FindBox("../../assets")
-		Check(err)
-	})
+func init() {
+	var err error
+	assets, err = rice.FindBox("../../assets")
+	Check(err)
+}
 
+func GetStaticFileOrDie(filename string) string {
+	staticFile, err := GetStaticFile(filename)
+	Check(err)
+	return staticFile
+}
+
+func GetStaticFile(filename string) (string, error) {
 	fileContent, err := assets.String(filename)
 	if err != nil {
 		msg := "could not load static file %s: %s"
 		err = fmt.Errorf(msg, filename, err.Error())
+		return "", err
 	}
-	Check(err)
-	return fileContent
+	return fileContent, nil
 }

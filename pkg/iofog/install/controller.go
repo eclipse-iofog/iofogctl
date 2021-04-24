@@ -105,7 +105,7 @@ func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error)
 	if srcDir != "" {
 		srcDir = util.AddTrailingSlash(srcDir)
 	}
-	staticFile := util.GetStaticFile(srcDir + filename)
+	staticFile := util.GetStaticFileOrDie(srcDir + filename)
 
 	// Copy to /tmp for backwards compatability
 	reader := strings.NewReader(staticFile)
