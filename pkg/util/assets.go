@@ -25,11 +25,15 @@ var assets *rice.Box
 var once sync.Once
 
 func GetStaticFile(filename string) (string, error) {
+	var err error
 	once.Do(func() {
-		var err error
 		assets, err = rice.FindBox("../../assets")
-		Check(err)
 	})
+	if err != nil {
+		msg := "could not initialize assets: %s"
+		err = fmt.Errorf(msg, err.Error())
+		return "", err
+	}
 	fileContent, err := assets.String(filename)
 	if err != nil {
 		msg := "could not load static file %s: %s"
