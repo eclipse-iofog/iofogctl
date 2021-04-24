@@ -23,7 +23,6 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util/assets"
 )
 
 // Remote agent uses SSH
@@ -104,7 +103,7 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	}
 	// Get script contents from embedded files
 	for _, scriptName := range agent.procs.scriptNames {
-		scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(scriptName))
+		scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(scriptName))
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +137,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
-	prereqContent, err := assets.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq))
+	prereqContent, err := util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq))
 	if err != nil {
 		return err
 	}
@@ -150,7 +149,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 		procs.Deps = agent.procs.Deps
 		for _, script := range []string{pkg.scriptInstallDeps, pkg.scriptInstallDocker, pkg.scriptInstallJava} {
 			procs.scriptNames = append(procs.scriptNames, script)
-			scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(script))
+			scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(script))
 			if err != nil {
 				return err
 			}
@@ -160,7 +159,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	if procs.Install.Name == "" {
 		procs.Install = agent.procs.Install
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptInstallIofog)
-		scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog))
+		scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog))
 		if err != nil {
 			return err
 		}
@@ -171,7 +170,7 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 	if procs.Uninstall.Name == "" {
 		procs.Uninstall = agent.procs.Uninstall
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptUninstallIofog)
-		scriptContent, err := assets.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog))
+		scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog))
 		if err != nil {
 			return err
 		}

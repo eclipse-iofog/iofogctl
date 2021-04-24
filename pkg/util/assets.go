@@ -11,22 +11,20 @@
  *
  */
 
-package assets
+package util
 
 import (
 	"fmt"
 
 	rice "github.com/GeertJohan/go.rice"
-
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
 var assets *rice.Box
 
 func init() {
 	var err error
-	assets, err = rice.FindBox("../../../assets")
-	util.Check(err)
+	assets, err = rice.FindBox("../../assets")
+	Check(err)
 }
 
 func GetStaticFile(filename string) (string, error) {
