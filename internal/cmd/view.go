@@ -18,6 +18,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
@@ -49,8 +50,13 @@ func newViewCommand() *cobra.Command {
 			if URL.Scheme == "" {
 				URL.Scheme = "http"
 			}
-			host, _, err := net.SplitHostPort(URL.Host)
-			util.Check(err)
+			host := ""
+			if strings.Contains(URL.Host, ":") {
+				host, _, err = net.SplitHostPort(URL.Host)
+				util.Check(err)
+			} else {
+				host = URL.Host
+			}
 			if util.IsLocalHost(host) {
 				host += ":" + iofog.ControllerHostECNViewerPortString
 			}
