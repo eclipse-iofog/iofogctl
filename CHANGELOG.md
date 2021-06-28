@@ -1,4 +1,11 @@
 # Changelog
+## [2.0.7] - 2021-06-28
+
+* Update Agent to 2.0.7 as default
+
+## [2.0.6] - 2021-06-28
+
+* Update Agent to 2.0.6 as default
 
 ## [2.0.5] - 2021-02-25
 
