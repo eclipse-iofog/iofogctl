@@ -9,7 +9,7 @@ jobs:
   - template: steps/init-vms.yaml
     parameters:
       id: win$(build)
-      distro: $(gcp.vm.distro.stretch)
+      distro: $(gcp.vm.distro.buster)
       repo: $(gcp.vm.repo.debian)
       agent_count: 2
       controller_count: 1
