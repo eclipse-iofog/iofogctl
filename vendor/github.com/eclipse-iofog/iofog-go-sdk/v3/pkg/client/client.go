@@ -14,8 +14,8 @@
 package client
 
 import (
-	"fmt"
-	"regexp"
+	"net/url"
+	"path"
 	"strings"
 	"time"
 )
@@ -27,8 +27,7 @@ type controllerStatus struct {
 }
 
 type Client struct {
-	endpoint    string
-	baseURL     string
+	baseURL     url.URL
 	accessToken string
 	retries     Retries
 	status      controllerStatus
@@ -36,31 +35,12 @@ type Client struct {
 }
 
 type Options struct {
-	Endpoint string
-	Retries  *Retries
-	Timeout  int
+	BaseURL url.URL
+	Retries *Retries
+	Timeout int
 }
 
-var apiPrefix = "/api/v3"
-
 func New(opt Options) *Client {
-	// remember if we are using https
-	var protocol string
-	if strings.HasPrefix(opt.Endpoint, "https://") {
-		protocol = "https"
-	} else {
-		protocol = "http"
-	}
-
-	// Remove prefix
-	regex := regexp.MustCompile("https?://")
-	endpoint := regex.ReplaceAllString(opt.Endpoint, "")
-
-	// Add default port if none specified
-	if !strings.Contains(endpoint, ":") {
-		endpoint = endpoint + ":" + ControllerPortString
-	}
-
 	if opt.Timeout == 0 {
 		opt.Timeout = 5
 	}
@@ -69,10 +49,9 @@ func New(opt Options) *Client {
 		retries = *opt.Retries
 	}
 	client := &Client{
-		endpoint: endpoint,
-		retries:  retries,
-		baseURL:  fmt.Sprintf("%s://%s%s", protocol, endpoint, apiPrefix),
-		timeout:  opt.Timeout,
+		retries: retries,
+		baseURL: opt.BaseURL,
+		timeout: opt.Timeout,
 	}
 	// Get Controller version
 	if status, err := client.GetStatus(); err == nil {
@@ -101,8 +80,8 @@ func NewWithToken(opt Options, token string) (clt *Client, err error) {
 	return
 }
 
-func (clt *Client) GetEndpoint() string {
-	return clt.endpoint
+func (clt *Client) GetBaseURL() string {
+	return clt.baseURL.String()
 }
 
 func (clt *Client) GetRetries() Retries {
@@ -119,13 +98,6 @@ func (clt *Client) GetAccessToken() string {
 
 func (clt *Client) SetAccessToken(token string) {
 	clt.accessToken = token
-}
-
-func (clt *Client) makeRequestURL(url string) string {
-	if !strings.HasPrefix(url, "/") {
-		url = "/" + url
-	}
-	return clt.baseURL + url
 }
 
 func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request interface{}) ([]byte, error) {
@@ -164,7 +136,7 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 
 func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, error) {
 	// Prepare request
-	requestURL := clt.makeRequestURL(url)
+	requestURL := path.Join(clt.baseURL.String(), url)
 	headers := map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": clt.accessToken,
