@@ -54,6 +54,9 @@ func New(opt Options) *Client {
 		baseURL: opt.BaseURL,
 		timeout: opt.Timeout,
 	}
+	if client.baseURL.Path == "" {
+		client.baseURL.Path = "api/v3"
+	}
 	// Get Controller version
 	if status, err := client.GetStatus(); err == nil {
 		versionNoSuffix := before(status.Versions.Controller, "-")

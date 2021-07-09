@@ -14,7 +14,6 @@
 package apps
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -22,14 +21,16 @@ import (
 
 type applicationTemplateExecutor struct {
 	controller         IofogController
+	baseURL            url.URL
 	template           ApplicationTemplate
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
 }
 
-func newApplicationTemplateExecutor(controller IofogController, template ApplicationTemplate) *applicationTemplateExecutor {
+func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL url.URL, template ApplicationTemplate) *applicationTemplateExecutor {
 	exe := &applicationTemplateExecutor{
 		controller:         controller,
+		baseURL:            controllerBaseURL,
 		template:           template,
 		microserviceByName: microserviceArrayToClientMap(template.Application.Microservices),
 	}
@@ -48,14 +49,10 @@ func (exe *applicationTemplateExecutor) execute() (err error) {
 }
 
 func (exe *applicationTemplateExecutor) init() (err error) {
-	baseURL, err := url.Parse(exe.controller.Endpoint)
-	if err != nil {
-		return fmt.Errorf(errParseControllerURL, err.Error())
-	}
 	if exe.controller.Token != "" {
-		exe.client, err = client.NewWithToken(client.Options{BaseURL: *baseURL}, exe.controller.Token)
+		exe.client, err = client.NewWithToken(client.Options{BaseURL: exe.baseURL}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(client.Options{BaseURL: *baseURL}, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.NewAndLogin(client.Options{BaseURL: exe.baseURL}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return

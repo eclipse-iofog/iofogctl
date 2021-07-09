@@ -16,8 +16,6 @@ package util
 import (
 	"fmt"
 	"net/url"
-	"path"
-	"strings"
 )
 
 func GetBaseURL(controllerEndpoint string) (*url.URL, error) {
@@ -36,8 +34,8 @@ func GetBaseURL(controllerEndpoint string) (*url.URL, error) {
 	}
 
 	// Default path
-	if !strings.Contains(u.Path, "api") {
-		u.Path = path.Join(u.Path, "api/v3")
+	if u.Path == "" {
+		u.Path = "api/v3"
 	}
 	u.RawQuery = ""
 	u.Fragment = ""
