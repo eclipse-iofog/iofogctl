@@ -1,140 +1,140 @@
-#@test "Edge Resources" {
-#  startTest
-#  testEdgeResources
-#  stopTest
-#}
-#
-#@test "Deploy Volumes" {
-#  startTest
-#  testDeployVolume
-#  testGetDescribeVolume
-#  stopTest
-#}
-#
-#@test "Deploy Volumes Idempotent" {
-#  startTest
-#  testDeployVolume
-#  testGetDescribeVolume
-#  stopTest
-#}
-#
-#@test "Delete Volumes and Redeploy" {
-#  startTest
-#  testDeleteVolume
-#  testDeployVolume
-#  testGetDescribeVolume
-#  stopTest
-#}
-#
-#@test "Agent legacy commands" {
-#  startTest
-#  for IDX in "${!AGENTS[@]}"; do
-#    local AGENT_NAME="${NAME}-${IDX}"
-#    iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
-#    checkLegacyAgent "$AGENT_NAME"
-#  done
-#  stopTest
-#}
-#
-#@test "Get Agent logs" {
-#  startTest
-#  for IDX in "${!AGENTS[@]}"; do
-#    local AGENT_NAME="${NAME}-${IDX}"
-#    iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
-#  done
-#  stopTest
-#}
-#
-#@test "Prune Agent" {
-#  startTest
-#  initAgents
-#  local AGENT_NAME="${NAME}-0"
-#  iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
-#  local CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-#  local SSH_KEY_PATH=$KEY_FILE
-#  if [[ ! -z $WSL_KEY_FILE ]]; then
-#    SSH_KEY_PATH=$WSL_KEY_FILE
-#  fi
-#  # TODO: Enable check that is not flake
-#  #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
-#  stopTest
-#}
-#
-#@test "Disconnect from cluster" {
-#  startTest
-#  initAgents
-#  iofogctl -v -n "$NS" disconnect
-#  checkNamespaceExistsNegative "$NS"
-#  stopTest
-#}
-#
-#@test "Connect to cluster using deploy file" {
-#  startTest
-#  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-#  iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
-#  checkControllerK8s
-#  checkAgents
-#  stopTest
-#}
-#
-#@test "Generate connection string" {
-#  startTest
-#  local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
-#  testGenerateConnectionString "http://$IP:51121"
-#  CNCT=$(iofogctl -n "$NS" connect --generate)
-#  eval "$CNCT -n ${NS}-2"
-#  iofogctl disconnect -n "${NS}-2"
-#  stopTest
-#}
-#
-#@test "Disconnect from cluster again" {
-#  startTest
-#  initAgents
-#  iofogctl -v -n "$NS" disconnect
-#  checkNamespaceExistsNegative "$NS"
-#  iofogctl -v -n "$NS2" disconnect # Idempotent
-#  stopTest
-#}
-#
-#@test "Connect to cluster using flags" {
-#  startTest
-#  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
-#  iofogctl -v -n "$NS" connect --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
-#  checkControllerK8s
-#  checkAgents
-#  stopTest
-#}
-#
-#
-#@test "Set default namespace" {
-#  startTest
-#  testDefaultNamespace "$NS"
-#  stopTest
-#}
-#
-#@test "Deploy application template" {
-#  startTest
-#  testApplicationTemplates
-#  stopTest
-#}
-#
-#@test "Deploy application" {
-#  startTest
-#  initApplicationFiles
-#  iofogctl -v deploy -f test/conf/application.yaml
-#  checkApplication
-#  waitForMsvc "$MSVC1_NAME" "$NS"
-#  waitForMsvc "$MSVC2_NAME" "$NS"
-#  stopTest
-#}
-#
-#@test "Deploy route" {
-#  startTest
-#  initRouteFile
-#  iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
-#  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
-#  stopTest
-#}
+@test "Edge Resources" {
+  startTest
+  testEdgeResources
+  stopTest
+}
+
+@test "Deploy Volumes" {
+  startTest
+  testDeployVolume
+  testGetDescribeVolume
+  stopTest
+}
+
+@test "Deploy Volumes Idempotent" {
+  startTest
+  testDeployVolume
+  testGetDescribeVolume
+  stopTest
+}
+
+@test "Delete Volumes and Redeploy" {
+  startTest
+  testDeleteVolume
+  testDeployVolume
+  testGetDescribeVolume
+  stopTest
+}
+
+@test "Agent legacy commands" {
+  startTest
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
+    checkLegacyAgent "$AGENT_NAME"
+  done
+  stopTest
+}
+
+@test "Get Agent logs" {
+  startTest
+  for IDX in "${!AGENTS[@]}"; do
+    local AGENT_NAME="${NAME}-${IDX}"
+    iofogctl -v -n "$NS" logs agent "$AGENT_NAME"
+  done
+  stopTest
+}
+
+@test "Prune Agent" {
+  startTest
+  initAgents
+  local AGENT_NAME="${NAME}-0"
+  iofogctl -v -n "$NS" prune agent "$AGENT_NAME"
+  local CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  local SSH_KEY_PATH=$KEY_FILE
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  # TODO: Enable check that is not flake
+  #checkAgentPruneController "$CONTROLLER_ENDPOINT" "$SSH_KEY_PATH"
+  stopTest
+}
+
+@test "Disconnect from cluster" {
+  startTest
+  initAgents
+  iofogctl -v -n "$NS" disconnect
+  checkNamespaceExistsNegative "$NS"
+  stopTest
+}
+
+@test "Connect to cluster using deploy file" {
+  startTest
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  iofogctl -v -n "$NS" connect -f test/conf/k8s.yaml
+  checkControllerK8s
+  checkAgents
+  stopTest
+}
+
+@test "Generate connection string" {
+  startTest
+  local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
+  testGenerateConnectionString "http://$IP:51121"
+  CNCT=$(iofogctl -n "$NS" connect --generate)
+  eval "$CNCT -n ${NS}-2"
+  iofogctl disconnect -n "${NS}-2"
+  stopTest
+}
+
+@test "Disconnect from cluster again" {
+  startTest
+  initAgents
+  iofogctl -v -n "$NS" disconnect
+  checkNamespaceExistsNegative "$NS"
+  iofogctl -v -n "$NS2" disconnect # Idempotent
+  stopTest
+}
+
+@test "Connect to cluster using flags" {
+  startTest
+  CONTROLLER_ENDPOINT=$(cat /tmp/endpoint.txt)
+  iofogctl -v -n "$NS" connect --kube "$KUBE_CONFIG" --email "$USER_EMAIL" --pass "$USER_PW"
+  checkControllerK8s
+  checkAgents
+  stopTest
+}
+
+
+@test "Set default namespace" {
+  startTest
+  testDefaultNamespace "$NS"
+  stopTest
+}
+
+@test "Deploy application template" {
+  startTest
+  testApplicationTemplates
+  stopTest
+}
+
+@test "Deploy application" {
+  startTest
+  initApplicationFiles
+  iofogctl -v deploy -f test/conf/application.yaml
+  checkApplication
+  waitForMsvc "$MSVC1_NAME" "$NS"
+  waitForMsvc "$MSVC2_NAME" "$NS"
+  stopTest
+}
+
+@test "Deploy route" {
+  startTest
+  initRouteFile
+  iofogctl -v -n "$NS" deploy -f test/conf/route.yaml
+  checkRoute "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+  stopTest
+}
 
 @test "Volumes are mounted" {
   startTest
