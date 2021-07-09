@@ -134,9 +134,13 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 	return bytes, err
 }
 
-func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, error) {
+func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
 	// Prepare request
-	requestURL := path.Join(clt.baseURL.String(), url)
+	requestURL, err := url.Parse(clt.baseURL.String())
+	if err != nil {
+		return nil, err
+	}
+	requestURL.Path = path.Join(requestURL.Path, requestPath)
 	headers := map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": clt.accessToken,
@@ -149,7 +153,7 @@ func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, e
 		}
 	}
 
-	return clt.doRequestWithRetries(currentRetries, method, requestURL, headers, request)
+	return clt.doRequestWithRetries(currentRetries, method, requestURL.String(), headers, request)
 }
 
 func (clt *Client) isLoggedIn() bool {
