@@ -54,6 +54,9 @@ func New(opt Options) *Client {
 		baseURL: opt.BaseURL,
 		timeout: opt.Timeout,
 	}
+	if client.baseURL.Scheme == "" {
+		client.baseURL.Path = "http"
+	}
 	if client.baseURL.Path == "" {
 		client.baseURL.Path = "api/v3"
 	}
