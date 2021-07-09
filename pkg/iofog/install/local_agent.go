@@ -46,7 +46,7 @@ func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (s
 		if err != nil {
 			return "", err
 		}
-		provisioningEndpoint = "localhost"
+		provisioningEndpoint = "localhost:51121"
 		controllerEndpoint = localControllerEndpoint
 	}
 
