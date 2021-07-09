@@ -14,6 +14,7 @@
 package client
 
 import (
+	"fmt"
 	"net/url"
 	"path"
 	"strings"
@@ -135,12 +136,23 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 }
 
 func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
-	// Prepare request
+	// Copy the base URL
 	requestURL, err := url.Parse(clt.baseURL.String())
 	if err != nil {
 		return nil, err
 	}
-	requestURL.Path = path.Join(requestURL.Path, requestPath)
+	// Get query params
+	qpSplit := strings.Split(requestPath, "?")
+	switch len(qpSplit) {
+	case 1:
+		requestURL.Path = path.Join(requestURL.Path, requestPath)
+	case 2:
+		requestURL.Path = path.Join(requestURL.Path, qpSplit[0])
+		requestURL.RawQuery = qpSplit[1]
+	default:
+		return nil, fmt.Errorf("Failed to parse request URL %s", requestPath)
+	}
+	// Set headers
 	headers := map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": clt.accessToken,
