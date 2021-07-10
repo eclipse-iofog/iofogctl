@@ -14,6 +14,8 @@
 package connectremotecontrolplane
 
 import (
+	"fmt"
+	"strings"
 	"net/url"
 
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
@@ -124,7 +126,23 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func formatEndpoint(endpoint string) (*url.URL, error) {
-	URL, err := url.Parse(endpoint)
+	// Ensure port specified
+       hostPort := ""
+       schemeSplit := strings.Split(endpoint, "://")
+       splitCount := len(schemeSplit)
+       if splitCount != 1 && splitCount != 2 {
+               return nil, fmt.Errorf("failed to parse Controller URL %s", endpoint)
+       }
+       protocol := fmt.Sprintf("%s://", schemeSplit[0])
+       if len(schemeSplit) == 1 {
+	       protocol = "http://"
+       }
+       hostPort = schemeSplit[splitCount-1]
+       if !strings.Contains(hostPort, ":") {
+	       hostPort = fmt.Sprintf("%s:51121", hostPort)
+       }
+       // Handle IPs
+       URL, err := url.Parse(fmt.Sprintf("%s%s", protocol, hostPort))
 	if err != nil || URL.Host == "" {
 		URL, err = url.Parse("//" + endpoint)
 	}
