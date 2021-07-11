@@ -55,7 +55,7 @@ stages:
     parameters:
       os: windows
 
-- stage: Publish
+- stage: Temp
   condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
   - template: pipeline/publish-osx.yaml
