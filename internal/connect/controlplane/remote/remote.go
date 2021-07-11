@@ -138,7 +138,7 @@ func formatEndpoint(endpoint string) (*url.URL, error) {
 		protocol = "http://"
 	}
 	hostPort = schemeSplit[splitCount-1]
-	if !strings.Contains(hostPort, ":") {
+	if !strings.Contains(hostPort, ":") && !strings.Contains(endpoint, "api/v3") { // TODO: This is error prone. This function shouldn't have to add port
 		hostPort = fmt.Sprintf("%s:51121", hostPort)
 	}
 	// Handle IPs
