@@ -54,6 +54,14 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: windows
+
+- stage: Publish
+  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+  jobs:
+  - template: pipeline/publish-osx.yaml
+  - template: pipeline/publish-debian.yaml
+  - template: pipeline/publish-rpm.yaml
+  - template: pipeline/publish-win.yaml
     
 - stage: Test
   jobs:
