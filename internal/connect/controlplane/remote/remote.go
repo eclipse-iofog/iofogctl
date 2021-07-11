@@ -126,25 +126,17 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func formatEndpoint(endpoint string) (*url.URL, error) {
-	// Ensure port specified
-	hostPort := ""
-	schemeSplit := strings.Split(endpoint, "://")
-	splitCount := len(schemeSplit)
-	if splitCount != 1 && splitCount != 2 {
-		return nil, fmt.Errorf("failed to parse Controller URL %s", endpoint)
+	// Ensure protocol
+	if !strings.Contains(endpoint, "://") {
+		endpoint = fmt.Sprintf("http://%s", endpoint)
 	}
-	protocol := fmt.Sprintf("%s://", schemeSplit[0])
-	if len(schemeSplit) == 1 {
-		protocol = "http://"
+	URL, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
 	}
-	hostPort = schemeSplit[splitCount-1]
-	if !strings.Contains(hostPort, ":") && !strings.Contains(endpoint, "api/v3") { // TODO: This is error prone. This function shouldn't have to add port
-		hostPort = fmt.Sprintf("%s:51121", hostPort)
-	}
-	// Handle IPs
-	URL, err := url.Parse(fmt.Sprintf("%s%s", protocol, hostPort))
-	if err != nil || URL.Host == "" {
-		URL, err = url.Parse("//" + endpoint)
+	// Ensure port
+	if !strings.Contains(URL.Host, ":") {
+		URL.Host += ":51121"
 	}
 	return URL, err
 }
