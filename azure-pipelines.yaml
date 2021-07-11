@@ -56,7 +56,6 @@ stages:
       os: windows
 
 - stage: Temp
-  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
   - template: pipeline/publish-osx.yaml
   - template: pipeline/publish-debian.yaml
