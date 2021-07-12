@@ -60,7 +60,7 @@ func TestFormatEndpoint(t *testing.T) {
 		},
 		{
 			"https://caas.edgeworx.io/api/v3",
-			"https://caas.edgeworx.io:443/api/v3",
+			"https://caas.edgeworx.io/api/v3",
 		},
 	}
 	for _, c := range testCases {

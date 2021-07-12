@@ -134,13 +134,9 @@ func formatEndpoint(endpoint string) (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Ensure port
-	if !strings.Contains(URL.Host, ":") {
-		if URL.Scheme == "https" {
-			URL.Host += ":443"
-		} else {
-			URL.Host += ":51121"
-		}
+	// Ensure port for http
+	if !strings.Contains(URL.Host, ":") && URL.Scheme != "https" {
+		URL.Host += ":51121"
 	}
 	return URL, err
 }
