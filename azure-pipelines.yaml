@@ -11,7 +11,7 @@ trigger:
       - README.md
       - CHANGELOG.md
       - LICENSE
-      - docs/
+      - docs/*
 
 variables:
   build: $(Build.BuildId)
@@ -55,13 +55,6 @@ stages:
     parameters:
       os: windows
 
-- stage: Temp
-  jobs:
-  - template: pipeline/publish-osx.yaml
-  - template: pipeline/publish-debian.yaml
-  - template: pipeline/publish-rpm.yaml
-  - template: pipeline/publish-win.yaml
-    
 - stage: Test
   jobs:
   - template: pipeline/win-k8s.yaml

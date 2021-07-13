@@ -138,7 +138,7 @@ func formatEndpoint(endpoint string) (*url.URL, error) {
 	if !strings.Contains(URL.Host, ":") && URL.Scheme != "https" {
 		URL.Host += ":51121"
 	}
-	return URL, err
+	return URL, nil
 }
 
 func validate(controlPlane rsc.ControlPlane) (err error) {
