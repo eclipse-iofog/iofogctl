@@ -35,7 +35,7 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 	if err != nil {
 		return
 	}
-	ctrl, err := client.NewAndLogin(client.Options{BaseURL: *baseURL}, user.Email, user.Password)
+	ctrl, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, user.Email, user.Password)
 	if err != nil {
 		return
 	}

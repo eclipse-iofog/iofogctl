@@ -98,9 +98,9 @@ func (exe *microserviceExecutor) init() (err error) {
 		return fmt.Errorf(errParseControllerURL, err.Error())
 	}
 	if exe.controller.Token != "" {
-		exe.client, err = client.NewWithToken(client.Options{BaseURL: *baseURL}, exe.controller.Token)
+		exe.client, err = client.NewWithToken(client.Options{BaseURL: baseURL}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(client.Options{BaseURL: *baseURL}, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.NewAndLogin(client.Options{BaseURL: baseURL}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return

@@ -121,7 +121,7 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	exe.ctrlClient = client.New(client.Options{BaseURL: *baseURL})
+	exe.ctrlClient = client.New(client.Options{BaseURL: baseURL})
 	user := client.User(exe.controlPlane.GetUser())
 	user.Password = exe.controlPlane.GetUser().GetRawPassword()
 	if err = exe.ctrlClient.CreateUser(user); err != nil {

@@ -312,7 +312,7 @@ func WaitForControllerAPI(endpoint string) (err error) {
 	if err != nil {
 		return err
 	}
-	ctrlClient := client.New(client.Options{BaseURL: *baseURL})
+	ctrlClient := client.New(client.Options{BaseURL: baseURL})
 
 	seconds := 0
 	for seconds < 60 {

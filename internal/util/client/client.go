@@ -200,7 +200,7 @@ func newControllerClient(namespace string) (*client.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachedClient, err := client.NewAndLogin(client.Options{BaseURL: *baseURL}, user.Email, user.GetRawPassword())
+	cachedClient, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, user.Email, user.GetRawPassword())
 	if err != nil {
 		return nil, err
 	}

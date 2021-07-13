@@ -12,7 +12,7 @@ func Connect(ctrlPlane rsc.ControlPlane, endpoint string, ns *rsc.Namespace) err
 	if err != nil {
 		return err
 	}
-	ctrl, err := client.NewAndLogin(client.Options{BaseURL: *baseURL}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().GetRawPassword())
+	ctrl, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().GetRawPassword())
 	if err != nil {
 		return err
 	}

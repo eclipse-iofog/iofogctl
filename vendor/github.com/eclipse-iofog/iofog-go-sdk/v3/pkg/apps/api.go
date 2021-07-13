@@ -17,7 +17,7 @@ import (
 	"net/url"
 )
 
-func DeployApplicationTemplate(controller IofogController, controllerBaseURL url.URL, template ApplicationTemplate) error {
+func DeployApplicationTemplate(controller IofogController, controllerBaseURL *url.URL, template ApplicationTemplate) error {
 	exe := newApplicationTemplateExecutor(controller, controllerBaseURL, template)
 	return exe.execute()
 }

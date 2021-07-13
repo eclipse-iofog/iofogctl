@@ -21,13 +21,13 @@ import (
 
 type applicationTemplateExecutor struct {
 	controller         IofogController
-	baseURL            url.URL
+	baseURL            *url.URL
 	template           ApplicationTemplate
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
 }
 
-func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL url.URL, template ApplicationTemplate) *applicationTemplateExecutor {
+func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template ApplicationTemplate) *applicationTemplateExecutor {
 	exe := &applicationTemplateExecutor{
 		controller:         controller,
 		baseURL:            controllerBaseURL,

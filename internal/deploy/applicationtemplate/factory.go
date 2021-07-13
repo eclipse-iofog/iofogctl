@@ -78,7 +78,7 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	return apps.DeployApplicationTemplate(controller, *baseURL, exe.template)
+	return apps.DeployApplicationTemplate(controller, baseURL, exe.template)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
