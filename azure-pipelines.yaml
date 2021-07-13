@@ -11,12 +11,12 @@ trigger:
       - README.md
       - CHANGELOG.md
       - LICENSE
-      - docs/
+      - docs/*
 
 variables:
   build: $(Build.BuildId)
   jobuuid: $(Build.BuildId)$(Agent.Id)
-  GOROOT: '/usr/local/go1.15'
+  GOROOT: '/usr/local/go1.16'
   GOPATH: '/tmp/go'
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
@@ -54,7 +54,7 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: windows
-    
+
 - stage: Test
   jobs:
   - template: pipeline/win-k8s.yaml

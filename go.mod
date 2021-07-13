@@ -1,6 +1,6 @@
 module github.com/eclipse-iofog/iofogctl/v3
 
-go 1.15
+go 1.16
 
 require (
 	github.com/GeertJohan/go.rice v1.0.0
@@ -10,8 +10,9 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20210315001729-4bfb68b2b2a6
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210315002056-adf160d9e1a1
+	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d // indirect
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20210713200113-53dac8484e12
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210713211750-10706a88ec49
 	github.com/eclipse-iofog/iofogctl v1.3.2 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/mitchellh/go-homedir v1.1.0
