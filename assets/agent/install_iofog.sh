@@ -34,6 +34,7 @@ do_check_iofog_on_arm() {
 do_install_iofog() {
 	AGENT_CONFIG_FOLDER=/etc/iofog-agent
 	SAVED_AGENT_CONFIG_FOLDER=/tmp/agent-config-save
+	PACKAGE_CLOUD_SCRIPT=package_cloud.sh
 	echo "# Installing ioFog agent..."
 
 	# Save iofog-agent config
@@ -63,7 +64,8 @@ do_install_iofog() {
 			;;
 		mendel)
 			curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.deb.sh" > ${PACKAGE_CLOUD_SCRIPT}
-			$sh_c "os=ubuntu dist=trusty ./${PACKAGE_CLOUD_SCRIPT}"
+			chmod +x ${PACKAGE_CLOUD_SCRIPT}
+			$sh_c "os=debian dist=buster ./${PACKAGE_CLOUD_SCRIPT}"
 			$sh_c "apt-get install -y --allow-downgrades iofog-agent=$agent_version"
 	esac
 
