@@ -49,6 +49,7 @@ armv7l-ubuntu-bionic
 armv7l-ubuntu-focal
 armv7l-ubuntu-artful
 aarch64-mendel-eagle
+aarch64-raspbian-buster
 "
 
 
@@ -216,7 +217,7 @@ init() {
 		installer script.
 		Please visit the following URL for more detailed installation instructions:
 
-		https://iofog.org/developer
+		https://iofog.org/docs
 
 		EOF
 		exit 1
