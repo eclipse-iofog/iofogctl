@@ -4,6 +4,7 @@ set -e
 
 SUPPORT_MAP="
 x86_64-centos-7
+x86_64-centos-8
 x86_64-fedora-26
 x86_64-fedora-27
 x86_64-fedora-28
