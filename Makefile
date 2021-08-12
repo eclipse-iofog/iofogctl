@@ -5,11 +5,14 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
-MAJOR ?= $(shell cat version | grep MAJOR | sed 's/MAJOR=//g')
-MINOR ?= $(shell cat version | grep MINOR | sed 's/MINOR=//g')
-PATCH ?= $(shell cat version | grep PATCH | sed 's/PATCH=//g')
-SUFFIX ?= $(shell cat version | grep SUFFIX | sed 's/SUFFIX=//g')
-VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
+LATEST_TAG = $(shell git for-each-ref refs/tags --sort=-taggerdate --format='%(refname)' | tail -n1 | sed "s|refs/tags/||")
+MAJOR ?= $(shell echo "$(LATEST_TAG)" | tr -d "v" | sed "s|-.*||" | sed -E "s|(.)\..\..|\1|g")
+MINOR ?= $(shell echo "$(LATEST_TAG)" | tr -d "v" | sed "s|-.*||" | sed -E "s|.\.(.)\..|\1|g")
+PATCH ?= $(shell echo "$(LATEST_TAG)" | tr -d "v" | sed "s|-.*||" | sed -E "s|.\..\.(.)|\1|g")
+TAG_SUFFIX = $(shell echo "$(LATEST_TAG)" | sed "s|v$(MAJOR)\.$(MINOR)\.$(PATCH)||")
+DEV_SUFFIX = -dev
+SUFFIX ?= $(shell [ -z "$(shell git tag --points-at HEAD)" ] && echo "$(DEV_SUFFIX)" || echo "$(TAG_SUFFIX)")
+VERSION ?= $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util

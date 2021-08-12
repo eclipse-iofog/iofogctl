@@ -12,7 +12,7 @@ jobs:
   - template: steps/version.yaml
   - template: steps/init-ssh.yaml
   - script: |
-      . version
+      . version.sh
       short_version=$MAJOR.$MINOR.$PATCH
       tar -zcf iofogctl.tar.gz darwin/iofogctl
       checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
