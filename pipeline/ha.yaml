@@ -16,8 +16,8 @@ jobs:
   - template: steps/init-vms.yaml
     parameters:
       id: $(jobuuid)
-      distro: $(gcp.vm.distro.buster)
-      repo: $(gcp.vm.repo.debian)
+      distro: $(gcp.vm.distro.xenial)
+      repo: $(gcp.vm.repo.ubuntu)
       agent_count: 2
       controller_count: 0
   - script: |
