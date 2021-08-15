@@ -14,7 +14,7 @@ jobs:
     - template: steps/vanilla.yaml
       parameters:
         id: $(jobuuid)
-        distro: $(distro)
-        repo: $(repo)
+        distro: ${{ parameters.distro }}
+        repo: ${{ parameters.repo }}
         agent_count: 2
         controller_count: 1
