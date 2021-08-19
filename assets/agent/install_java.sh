@@ -24,11 +24,15 @@ do_install_java() {
 		is_arm="-arm"
 	fi
 	case "$lsb_dist" in
-		debian|raspbian|ubuntu|mendel)
-		  $sh_c "add-apt-repository ppa:openjdk-r/ppa -y"
+		ubuntu)
+	    $sh_c "add-apt-repository ppa:openjdk-r/ppa -y"
+	    $sh_c "apt-get update"
+      $sh_c "apt install -y openjdk-11-jdk"
+	    ;;
+		debian|raspbian|mendel)
       $sh_c "apt-get update"
       $sh_c "apt install -y openjdk-11-jdk"
-			;;		
+			;;
 		fedora|centos)
       $sh_c "yum install -y openjdk-11-jdk"
 			;;
