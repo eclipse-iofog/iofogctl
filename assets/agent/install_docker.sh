@@ -30,7 +30,7 @@ do_configure_overlay() {
 		if [ ! -d "/etc/systemd/system/docker.service.d" ]; then
 			$sh_c "mkdir -p /etc/systemd/system/docker.service.d"
 		fi
-		if [ -f "/etc/systemd/system/docker.service.d/overlay.conf" ] && ! grep -Fxq "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" "/etc/systemd/system/docker.service.d/overlay.conf"; then
+		if [ -f "/etc/systemd/system/docker.service.d/overlay.conf" ] && ! grep -Fxq "ExecStart=/usr/bin/dockerd --storage-driver $driver -H unix:// -H tcp://127.0.0.1:2375" "/etc/systemd/system/docker.service.d/overlay.conf"; then
 			$sh_c 'echo "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" >> /etc/systemd/system/docker.service.d/overlay.conf'
 		elif [ ! -f "/etc/systemd/system/docker.service.d/overlay.conf" ]; then
 			$sh_c 'echo "[Service]" > /etc/systemd/system/docker.service.d/overlay.conf'
