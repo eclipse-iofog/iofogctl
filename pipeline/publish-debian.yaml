@@ -25,14 +25,14 @@ jobs:
       echo $package
       declare -a UBUNTU_VERS=("xenial" "bionic" "trusty" "focal")
       declare -a DEBIAN_VERS=("stretch" "buster")
-      for ubu in "${UBUNTU_VERS[@]}"
-      do
-          package_cloud yank iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud || true
-          package_cloud push iofog/iofogctl-snapshots/ubuntu/${ubu} $package --config=$(Agent.TempDirectory)/package_cloud
-      done
-      for deb in "${DEBIAN_VERS[@]}"
-      do
-          package_cloud yank iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud || true
-          package_cloud push iofog/iofogctl-snapshots/debian/${deb} $package --config=$(Agent.TempDirectory)/package_cloud
+      for repo in ("iofogctl" "iofogctl-snapshots"); do
+        for ubu in "${UBUNTU_VERS[@]}"; do
+            package_cloud yank "iofog/${repo}/ubuntu/${ubu}" $package --config=$(Agent.TempDirectory)/package_cloud || true
+            package_cloud push "iofog/${repo}/ubuntu/${ubu}" $package --config=$(Agent.TempDirectory)/package_cloud
+        done
+        for deb in "${DEBIAN_VERS[@]}"; do
+            package_cloud yank "iofog/${repo}/debian/${deb}" $package --config=$(Agent.TempDirectory)/package_cloud || true
+            package_cloud push "iofog/${repo}/debian/${deb}" $package --config=$(Agent.TempDirectory)/package_cloud
+        done
       done
     displayName: 'Publish deb to package-cloud'
