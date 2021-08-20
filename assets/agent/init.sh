@@ -221,7 +221,6 @@ init() {
 		https://iofog.org/docs
 
 		EOF
-		exit 1
 	fi
 
 }
