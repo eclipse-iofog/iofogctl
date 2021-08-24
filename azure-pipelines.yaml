@@ -64,7 +64,7 @@ stages:
   - template: pipeline/ha.yaml
   - template: pipeline/vanilla.yaml
     parameters:
-      job_name: Vanilla_Bionic
+      job_name: Vanilla
       id: $(jobuuid)
       distro: $(gcp.vm.distro.stretch)
       repo: $(gcp.vm.repo.debian)
