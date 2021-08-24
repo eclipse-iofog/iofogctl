@@ -64,8 +64,7 @@ get_distribution() {
 		echo "Unsupported Linux distribution!"
 		exit 1
 	fi
-	echo "# Our distro is '$lsb_dist'"
-	echo $lsb_dist
+	echo "# Our distro is $lsb_dist"
 }
 
 # Check if this is a forked Linux distro
