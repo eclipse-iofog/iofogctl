@@ -3,6 +3,7 @@
 ## [unreleased]
 
 * Remove Microservice output from `get all` command
+* Fix Debian Stretch Docker installation
 
 ## [v3.0.0-alpha] - 11 March 2021
 
