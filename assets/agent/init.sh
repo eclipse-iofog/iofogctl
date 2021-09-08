@@ -161,6 +161,8 @@ init() {
 			case "$dist_version" in
 				10)
 					dist_version="buster"
+					# Avoid https://stackoverflow.com/questions/68802802/repository-http-security-debian-org-debian-security-buster-updates-inrelease
+					$sh_c "apt-get update --allow-releaseinfo-change"
 				;;
 				9)
 					dist_version="stretch"

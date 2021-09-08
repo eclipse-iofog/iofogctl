@@ -25,17 +25,17 @@ do_install_java() {
 	fi
 	case "$lsb_dist" in
 		ubuntu)
-	    $sh_c "add-apt-repository ppa:openjdk-r/ppa -y"
-	    $sh_c "apt-get update"
-      $sh_c "apt install -y openjdk-11-jdk"
-	    ;;
+			$sh_c "add-apt-repository ppa:openjdk-r/ppa -y"
+			$sh_c "apt-get update"
+			$sh_c "apt install -y openjdk-11-jdk"
+		;;
 		debian|raspbian|mendel)
-      $sh_c "apt-get update"
-      $sh_c "apt install -y openjdk-11-jdk"
-			;;
+			$sh_c "apt-get update"
+			$sh_c "apt install -y openjdk-11-jdk"
+		;;
 		fedora|centos)
-      $sh_c "yum install -y openjdk-11-jdk"
-			;;
+			$sh_c "yum install -y openjdk-11-jdk"
+		;;
 	esac
 }
 
@@ -44,10 +44,10 @@ do_install_deps() {
 	case "$lsb_dist" in
 		ubuntu|debian|raspbian)
 			installer="apt"
-			;;
+		;;
 		fedora|centos)
 			installer="yum"
-			;;
+		;;
 	esac
 
 	local iter=0
