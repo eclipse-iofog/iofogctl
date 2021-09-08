@@ -70,14 +70,14 @@ stages:
       repo: $(gcp.vm.repo.debian)
       agent_count: 2
       controller_count: 1
-#  - template: pipeline/vanilla.yaml
-#    parameters:
-#      job_name: Vanilla_Buster
-#      id: $(jobuuid)
-#      distro: $(gcp.vm.distro.buster)
-#      repo: $(gcp.vm.repo.debian)
-#      agent_count: 2
-#      controller_count: 1
+  - template: pipeline/vanilla.yaml
+    parameters:
+      job_name: Vanilla_Buster
+      id: $(jobuuid)
+      distro: $(gcp.vm.distro.buster)
+      repo: $(gcp.vm.repo.debian)
+      agent_count: 2
+      controller_count: 1
 
 - stage: Publish
   condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
