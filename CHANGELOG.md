@@ -1,6 +1,6 @@
 # Changelog
 
-## [v3.0.0-alpha2] - 10 September 2021
+## [v3.0.0-beta1] - 10 September 2021
 
 * Remove Microservice output from `get all` command
 * Fix Debian Stretch Docker installation
