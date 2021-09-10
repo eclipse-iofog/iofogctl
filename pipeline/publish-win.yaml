@@ -1,7 +1,7 @@
 jobs:
 - job: Windows
   pool:
-    vmImage: 'Ubuntu-16.04'
+    vmImage: 'Ubuntu-18.04'
   steps:
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Build Artifacts'
@@ -12,7 +12,7 @@ jobs:
   - template: steps/version.yaml
   - template: steps/init-ssh.yaml
   - script: |
-      . version
+      . version.sh
       DIR="$(gcp.bucket.win)/$MAJOR.$MINOR"
       gsutil cp windows/iofogctl gs://$DIR/iofogctl.exe
       gsutil acl set public-read  gs://$DIR/iofogctl.exe

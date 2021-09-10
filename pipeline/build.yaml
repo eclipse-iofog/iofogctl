@@ -4,12 +4,13 @@ parameters:
 jobs:
 - job: ${{ parameters.os }}
   pool:
-    vmImage: 'Ubuntu-16.04'
+    vmImage: 'Ubuntu-18.04'
   steps:
   - template: steps/prebuild.yaml
   - template: steps/version.yaml
   - script: |
-      . version && export MAJOR && export MINOR && export PATCH && export SUFFIX
+      . version.sh && export MAJOR && export MINOR && export PATCH && export SUFFIX
+      echo "version: $MAJOR.$MINOR.$PATCH$SUFFIX"
       GOARCH=amd64 GOOS=${{ parameters.os }} make lint build
       echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
     displayName: 'Build Binary'

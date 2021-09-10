@@ -10,12 +10,13 @@ trigger:
     exclude:
       - README.md
       - CHANGELOG.md
-      - docs/
+      - LICENSE
+      - docs/*
 
 variables:
   build: $(Build.BuildId)
   jobuuid: $(Build.BuildId)$(Agent.Id)
-  GOROOT: '/usr/local/go1.15'
+  GOROOT: '/usr/local/go1.16'
   GOPATH: '/tmp/go'
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
@@ -53,30 +54,30 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: windows
-    
+
 - stage: Test
   jobs:
   - template: pipeline/win-k8s.yaml
-  - template: pipeline/win-vanilla.yaml
+#  - template: pipeline/win-vanilla.yaml
   - template: pipeline/local.yaml
   - template: pipeline/k8s.yaml
   - template: pipeline/ha.yaml
   - template: pipeline/vanilla.yaml
     parameters:
-      job_name: Vanilla_Bionic
+      job_name: Vanilla
       id: $(jobuuid)
-      distro: $(gcp.vm.distro.bionic)
-      repo: $(gcp.vm.repo.ubuntu)
-      agent_count: 2
-      controller_count: 1
-  - template: pipeline/vanilla.yaml
-    parameters:
-      job_name: Vanilla_Buster
-      id: $(jobuuid)
-      distro: $(gcp.vm.distro.buster)
+      distro: $(gcp.vm.distro.stretch)
       repo: $(gcp.vm.repo.debian)
       agent_count: 2
       controller_count: 1
+#  - template: pipeline/vanilla.yaml
+#    parameters:
+#      job_name: Vanilla_Buster
+#      id: $(jobuuid)
+#      distro: $(gcp.vm.distro.buster)
+#      repo: $(gcp.vm.repo.debian)
+#      agent_count: 2
+#      controller_count: 1
 
 - stage: Publish
   condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))

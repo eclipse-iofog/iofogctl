@@ -4,6 +4,7 @@ set -e
 
 SUPPORT_MAP="
 x86_64-centos-7
+x86_64-centos-8
 x86_64-fedora-26
 x86_64-fedora-27
 x86_64-fedora-28
@@ -48,6 +49,8 @@ armv7l-ubuntu-xenial
 armv7l-ubuntu-bionic
 armv7l-ubuntu-focal
 armv7l-ubuntu-artful
+aarch64-mendel-eagle
+aarch64-raspbian-buster
 "
 
 
@@ -61,8 +64,7 @@ get_distribution() {
 		echo "Unsupported Linux distribution!"
 		exit 1
 	fi
-	echo "# Our distro is '$lsb_dist'"
-	echo $lsb_dist
+	echo "# Our distro is $lsb_dist"
 }
 
 # Check if this is a forked Linux distro
@@ -159,6 +161,8 @@ init() {
 			case "$dist_version" in
 				10)
 					dist_version="buster"
+					# Avoid https://stackoverflow.com/questions/68802802/repository-http-security-debian-org-debian-security-buster-updates-inrelease
+					$sh_c "apt-get update --allow-releaseinfo-change"
 				;;
 				9)
 					dist_version="stretch"
@@ -215,10 +219,9 @@ init() {
 		installer script.
 		Please visit the following URL for more detailed installation instructions:
 
-		https://iofog.org/developer
+		https://iofog.org/docs
 
 		EOF
-		exit 1
 	fi
 
 }

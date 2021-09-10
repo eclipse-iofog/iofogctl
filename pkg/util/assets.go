@@ -20,22 +20,25 @@ import (
 	rice "github.com/GeertJohan/go.rice"
 )
 
-var once sync.Once
-
 var assets *rice.Box
 
-func GetStaticFile(filename string) string {
-	once.Do(func() {
-		var err error
-		assets, err = rice.FindBox("../../assets")
-		Check(err)
-	})
+var once sync.Once
 
+func GetStaticFile(filename string) (string, error) {
+	var err error
+	once.Do(func() {
+		assets, err = rice.FindBox("../../assets")
+	})
+	if err != nil {
+		msg := "could not initialize assets: %s"
+		err = fmt.Errorf(msg, err.Error())
+		return "", err
+	}
 	fileContent, err := assets.String(filename)
 	if err != nil {
 		msg := "could not load static file %s: %s"
 		err = fmt.Errorf(msg, filename, err.Error())
+		return "", err
 	}
-	Check(err)
-	return fileContent
+	return fileContent, nil
 }

@@ -16,12 +16,9 @@ package install
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
-	"net/url"
 	"path/filepath"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 )
 
@@ -103,7 +100,11 @@ func NewRemoteAgent(user, host string, port int, privKeyFilename, agentName, age
 	}
 	// Get script contents from embedded files
 	for _, scriptName := range agent.procs.scriptNames {
-		agent.procs.scriptContents = append(agent.procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(scriptName)))
+		scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(scriptName))
+		if err != nil {
+			return nil, err
+		}
+		agent.procs.scriptContents = append(agent.procs.scriptContents, scriptContent)
 	}
 	return agent, nil
 }
@@ -133,7 +134,11 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 
 	// Add prereq script and entrypoint
 	procs.scriptNames = append(procs.scriptNames, pkg.scriptPrereq)
-	procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq)))
+	prereqContent, err := util.GetStaticFile(addAgentAssetPrefix(pkg.scriptPrereq))
+	if err != nil {
+		return err
+	}
+	procs.scriptContents = append(procs.scriptContents, prereqContent)
 	procs.check.destPath = util.JoinAgentPath(agent.dir, pkg.scriptPrereq)
 
 	// Add default entrypoints and scripts if necessary (user not provided)
@@ -141,20 +146,32 @@ func (agent *RemoteAgent) CustomizeProcedures(dir string, procs *AgentProcedures
 		procs.Deps = agent.procs.Deps
 		for _, script := range []string{pkg.scriptInstallDeps, pkg.scriptInstallDocker, pkg.scriptInstallJava} {
 			procs.scriptNames = append(procs.scriptNames, script)
-			procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(script)))
+			scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(script))
+			if err != nil {
+				return err
+			}
+			procs.scriptContents = append(procs.scriptContents, scriptContent)
 		}
 	}
 	if procs.Install.Name == "" {
 		procs.Install = agent.procs.Install
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptInstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog)))
+		scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(pkg.scriptInstallIofog))
+		if err != nil {
+			return err
+		}
+		procs.scriptContents = append(procs.scriptContents, scriptContent)
 	} else {
 		agent.customInstall = true
 	}
 	if procs.Uninstall.Name == "" {
 		procs.Uninstall = agent.procs.Uninstall
 		procs.scriptNames = append(procs.scriptNames, pkg.scriptUninstallIofog)
-		procs.scriptContents = append(procs.scriptContents, util.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog)))
+		scriptContent, err := util.GetStaticFile(addAgentAssetPrefix(pkg.scriptUninstallIofog))
+		if err != nil {
+			return err
+		}
+		procs.scriptContents = append(procs.scriptContents, scriptContent)
 	}
 
 	// Set destination paths where scripts appear on Agent
@@ -220,30 +237,15 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 		return "", err
 	}
 
-	// Generate controller endpoint
-	u, err := url.Parse(controllerEndpoint)
-	if err != nil || u.Host == "" {
-		u, err = url.Parse("//" + controllerEndpoint) // Try to see if controllerEndpoint is an IP, in which case it needs to be pefixed by //
-		if err != nil {
-			return "", err
-		}
-	}
-	if u.Scheme == "" {
-		u.Scheme = "http"
-	}
-	_, _, err = net.SplitHostPort(u.Host) // Returns error if port is not specified
+	controllerBaseURL, err := util.GetBaseURL(controllerEndpoint)
 	if err != nil {
-		u.Host = u.Host + ":" + client.ControllerPortString
+		return "", err
 	}
-	u.Path = "api/v3"
-	u.RawQuery = ""
-	u.Fragment = ""
-	controllerBaseURL := u.String()
 	// Instantiate commands
 	cmds := []command{
 		{
-			cmd: "sudo iofog-agent config -a " + controllerBaseURL,
-			msg: "Configuring Agent " + agent.name + " with Controller URL " + controllerBaseURL,
+			cmd: "sudo iofog-agent config -a " + controllerBaseURL.String(),
+			msg: "Configuring Agent " + agent.name + " with Controller URL " + controllerBaseURL.String(),
 		},
 		{
 			cmd: "sudo iofog-agent provision " + key,

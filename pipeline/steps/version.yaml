@@ -1,7 +1,8 @@
 steps:
 - script: |
-    . version
+    . version.sh
     VERS=$MAJOR.$MINOR.$PATCH$SUFFIX
+    echo "$VERS"
     if [[ $(ref) == refs/tags* ]]; then
       TAG=$(echo $(ref) | sed "s|refs/tags/v||g")
       if [[ $TAG != $VERS ]]; then
@@ -10,5 +11,4 @@ steps:
       fi
     fi
     echo "##vso[task.setvariable variable=version]$VERS"
-    echo $(version)
   displayName: 'Set version variable'

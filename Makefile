@@ -5,27 +5,30 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 BINARY_NAME = iofogctl
 BUILD_DIR ?= bin
 PACKAGE_DIR = cmd/iofogctl
-MAJOR ?= $(shell cat version | grep MAJOR | sed 's/MAJOR=//g')
-MINOR ?= $(shell cat version | grep MINOR | sed 's/MINOR=//g')
-PATCH ?= $(shell cat version | grep PATCH | sed 's/PATCH=//g')
-SUFFIX ?= $(shell cat version | grep SUFFIX | sed 's/SUFFIX=//g')
-VERSION = $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
+LATEST_TAG = $(shell git for-each-ref refs/tags --sort=-taggerdate --format='%(refname)' | tail -n1 | sed "s|refs/tags/||")
+MAJOR ?= $(shell echo "$(LATEST_TAG)" | tr -d "v" | sed "s|-.*||" | sed -E "s|(.)\..\..|\1|g")
+MINOR ?= $(shell echo "$(LATEST_TAG)" | tr -d "v" | sed "s|-.*||" | sed -E "s|.\.(.)\..|\1|g")
+PATCH ?= $(shell echo "$(LATEST_TAG)" | tr -d "v" | sed "s|-.*||" | sed -E "s|.\..\.(.)|\1|g")
+TAG_SUFFIX = $(shell echo "$(LATEST_TAG)" | sed "s|v$(MAJOR)\.$(MINOR)\.$(PATCH)||")
+DEV_SUFFIX = -dev
+SUFFIX ?= $(shell [ -z "$(shell git tag --points-at HEAD)" ] && echo "$(DEV_SUFFIX)" || echo "$(TAG_SUFFIX)")
+VERSION ?= $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).portManagerTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).kubeletTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).proxyTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).routerTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).controllerTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).agentTag=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).controllerVersion=3.0.0-alpha1
-LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-alpha1
+LDFLAGS += -X $(PREFIX).portManagerTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).kubeletTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).proxyTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).routerTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).controllerTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).agentTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).controllerVersion=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).repo=iofog
-GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-alpha1
-OPERATOR_MODULE = iofog-operator/v3@v3.0.0-alpha1
+GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-beta1
+OPERATOR_MODULE = iofog-operator/v3@v3.0.0-beta1
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml

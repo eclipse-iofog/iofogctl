@@ -25,7 +25,6 @@ var (
 		getControllerTable,
 		getAgentTable,
 		getApplicationTable,
-		getMicroserviceTable,
 		getVolumeTable,
 		getRouteTable,
 	}
@@ -110,17 +109,6 @@ func getApplicationTable(namespace string, tableChan tableChannel) {
 		return
 	}
 	table := appExe.generateApplicationOutput()
-	tableChan <- tableQuery{
-		table: table,
-	}
-}
-
-func getMicroserviceTable(namespace string, tableChan tableChannel) {
-	msvcExe := newMicroserviceExecutor(namespace)
-	if err := msvcExe.init(); err != nil {
-		tableChan <- tableQuery{err: err}
-	}
-	table := msvcExe.generateMicroserviceOutput()
 	tableChan <- tableQuery{
 		table: table,
 	}

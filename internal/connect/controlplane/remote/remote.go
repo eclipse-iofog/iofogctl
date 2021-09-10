@@ -14,7 +14,9 @@
 package connectremotecontrolplane
 
 import (
+	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/connect/controlplane"
@@ -124,11 +126,19 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func formatEndpoint(endpoint string) (*url.URL, error) {
-	URL, err := url.Parse(endpoint)
-	if err != nil || URL.Host == "" {
-		URL, err = url.Parse("//" + endpoint)
+	// Ensure protocol
+	if !strings.Contains(endpoint, "://") {
+		endpoint = fmt.Sprintf("http://%s", endpoint)
 	}
-	return URL, err
+	URL, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	// Ensure port for http
+	if !strings.Contains(URL.Host, ":") && URL.Scheme != "https" {
+		URL.Host += ":51121"
+	}
+	return URL, nil
 }
 
 func validate(controlPlane rsc.ControlPlane) (err error) {

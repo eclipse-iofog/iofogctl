@@ -21,17 +21,19 @@ start_docker() {
 }
 
 do_configure_overlay() {
+	local driver="$DOCKER_STORAGE_DRIVER"
+	if [ -z "$driver" ]; then
+		driver="overlay"
+	fi
 	echo "# Configuring /etc/systemd/system/docker.service.d/overlay.conf..."
 	if [ "$lsb_dist" = "raspbian" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv8" ]; then
 		if [ ! -d "/etc/systemd/system/docker.service.d" ]; then
 			$sh_c "mkdir -p /etc/systemd/system/docker.service.d"
 		fi
-		if [ -f "/etc/systemd/system/docker.service.d/overlay.conf" ] && ! grep -Fxq "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" "/etc/systemd/system/docker.service.d/overlay.conf"; then
-			$sh_c 'echo "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" >> /etc/systemd/system/docker.service.d/overlay.conf'
-		elif [ ! -f "/etc/systemd/system/docker.service.d/overlay.conf" ]; then
+		if [ ! -f "/etc/systemd/system/docker.service.d/overlay.conf" ] || ! grep -Fxq "ExecStart=/usr/bin/dockerd --storage-driver $driver -H unix:// -H tcp://127.0.0.1:2375" "/etc/systemd/system/docker.service.d/overlay.conf"; then
 			$sh_c 'echo "[Service]" > /etc/systemd/system/docker.service.d/overlay.conf'
 			$sh_c 'echo "ExecStart=" >> /etc/systemd/system/docker.service.d/overlay.conf'
-			$sh_c 'echo "ExecStart=/usr/bin/dockerd --storage-driver overlay -H unix:// -H tcp://127.0.0.1:2375" >> /etc/systemd/system/docker.service.d/overlay.conf'
+			$sh_c "echo \"ExecStart=/usr/bin/dockerd --storage-driver $driver -H unix:// -H tcp://127.0.0.1:2375\" >> /etc/systemd/system/docker.service.d/overlay.conf"
 		fi
 		$sh_c "systemctl daemon-reload"
 		$sh_c "service docker restart"
@@ -50,7 +52,18 @@ do_install_docker() {
 		fi
 	fi
 	echo "# Installing Docker..."
-	curl -fsSL https://get.docker.com/ | sh
+	case "$dist_version" in
+		"stretch")
+			$sh_c "apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common"
+			curl -fsSL https://download.docker.com/linux/debian/gpg | $sh_c "apt-key add -"
+			$sh_c "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable\""
+			$sh_c "apt-get update -y"
+			$sh_c "sudo apt install -y docker-ce"
+		;;
+		*)
+			curl -fsSL https://get.docker.com/ | sh
+		;;
+	esac
 	
 	if ! command_exists docker; then
 		echo "Failed to install Docker"

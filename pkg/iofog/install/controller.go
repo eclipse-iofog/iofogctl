@@ -105,7 +105,10 @@ func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error)
 	if srcDir != "" {
 		srcDir = util.AddTrailingSlash(srcDir)
 	}
-	staticFile := util.GetStaticFile(srcDir + filename)
+	staticFile, err := util.GetStaticFile(srcDir + filename)
+	if err != nil {
+		return err
+	}
 
 	// Copy to /tmp for backwards compatability
 	reader := strings.NewReader(staticFile)
@@ -305,7 +308,11 @@ func (ctrl *Controller) Stop() (err error) {
 }
 
 func WaitForControllerAPI(endpoint string) (err error) {
-	ctrlClient := client.New(client.Options{Endpoint: endpoint})
+	baseURL, err := util.GetBaseURL(endpoint)
+	if err != nil {
+		return err
+	}
+	ctrlClient := client.New(client.Options{BaseURL: baseURL})
 
 	seconds := 0
 	for seconds < 60 {
