@@ -24,24 +24,24 @@ export TEST_KUBE_CONFIG="~/.kube/config"
 export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster or local deploy
-export CONTROLLER_IMAGE='gcr.io/focal-freedom-236620/controller:3.0.0-alpha1'
-export AGENT_IMAGE='gcr.io/focal-freedom-236620/agent:3.0.0-alpha1'
-export PORT_MANAGER_IMAGE='gcr.io/focal-freedom-236620/port-manager:3.0.0-alpha1'
-export ROUTER_IMAGE='gcr.io/focal-freedom-236620/router:3.0.0-alpha1'
-export ROUTER_ARM_IMAGE='gcr.io/focal-freedom-236620/router-arm:3.0.0-alpha1'
-export PROXY_IMAGE='gcr.io/focal-freedom-236620/proxy:3.0.0-alpha1'
-export PROXY_ARM_IMAGE='gcr.io/focal-freedom-236620/proxy-arm:3.0.0-alpha1'
-export OPERATOR_IMAGE='gcr.io/focal-freedom-236620/operator:3.0.0-alpha1'
-export KUBELET_IMAGE='gcr.io/focal-freedom-236620/kubelet:3.0.0-alpha1'
+export CONTROLLER_IMAGE='gcr.io/focal-freedom-236620/controller:3.0.0-beta1'
+export AGENT_IMAGE='gcr.io/focal-freedom-236620/agent:3.0.0-beta1'
+export PORT_MANAGER_IMAGE='gcr.io/focal-freedom-236620/port-manager:3.0.0-beta1'
+export ROUTER_IMAGE='gcr.io/focal-freedom-236620/router:3.0.0-beta1'
+export ROUTER_ARM_IMAGE='gcr.io/focal-freedom-236620/router-arm:3.0.0-beta1'
+export PROXY_IMAGE='gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
+export PROXY_ARM_IMAGE='gcr.io/focal-freedom-236620/proxy-arm:3.0.0-beta1'
+export OPERATOR_IMAGE='gcr.io/focal-freedom-236620/operator:3.0.0-beta1'
+export KUBELET_IMAGE='gcr.io/focal-freedom-236620/kubelet:3.0.0-beta1'
 
 # Controller version for vanilla deploys
-export CONTROLLER_VANILLA_VERSION='3.0.0-alpha1'
+export CONTROLLER_VANILLA_VERSION='3.0.0-beta1'
 export CONTROLLER_REPO='iofog/iofog-controller-snapshots'
 # Token to access develop versions of Controller
 export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 # Agent version for vanilla deploys
-export AGENT_VANILLA_VERSION='3.0.0-alpha1'
+export AGENT_VANILLA_VERSION='3.0.0-beta1'
 export AGENT_REPO='iofog/iofog-agent-snapshots'
 # Token to access develop versions of Agent
 export AGENT_PACKAGE_CLOUD_TOKEN=""
