@@ -21,18 +21,18 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.0-alpha1'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.0-alpha1'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:3.0.0-alpha1'
-  operator_image: 'gcr.io/focal-freedom-236620/operator:3.0.0-alpha1'
-  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:3.0.0-alpha1'
-  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:3.0.0-alpha1'
-  router_image: 'gcr.io/focal-freedom-236620/router:3.0.0-alpha1'
-  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:3.0.0-alpha1'
-  proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0-alpha1'
-  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:3.0.0-alpha1'
-  iofog_agent_version: '3.0.0-alpha1'
-  controller_version: '3.0.0-alpha1'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.0-beta1'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.0-beta1'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:3.0.0-beta1'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:3.0.0-beta1'
+  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:3.0.0-beta1'
+  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:3.0.0-beta1'
+  router_image: 'gcr.io/focal-freedom-236620/router:3.0.0-beta1'
+  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:3.0.0-beta1'
+  proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
+  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:3.0.0-beta1'
+  iofog_agent_version: '3.0.0-beta1'
+  controller_version: '3.0.0-beta1'
   version:
   agent_vm_list:
   controller_vm:
