@@ -5,11 +5,18 @@ set -e
 start_docker() {
 	set +e
 	# check if docker is running
-	if [ ! -f /var/run/docker.pid ]; then
+	if ! $sh_c docker ps >/dev/null 2>&1; then
+		# Try init.d
 		$sh_c "/etc/init.d/docker start"
 		local err_code=$?
+		# Try systemd
 		if [ $err_code -ne 0 ]; then
 			$sh_c "service docker start"
+			err_code=$?
+		fi
+		# Try snapd
+		if [ $err_code -ne 0 ]; then
+			$sh_c "snap docker start"
 			err_code=$?
 		fi
 		if [ $err_code -ne 0 ]; then

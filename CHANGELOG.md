@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+* Fix Docker install for ioFog Agent install procedure for systems w/o init.d
+* Add snapd Docker support in ioFog Agent install procedure
+
 ## [v3.0.0-beta1] - 10 September 2021
 
 * Remove Microservice output from `get all` command
