@@ -18,6 +18,8 @@ jobs:
       checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
       gsutil cp iofogctl.tar.gz gs://$(gcp.bucket.osx)/$short_version/
       gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl.tar.gz
+      gsutil cp darwin/iofogctl gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl
       git config --global user.email "serge@edgeworx.io"
       git config --global user.name "Serge Radinovich"
       git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git
