@@ -14,7 +14,6 @@ jobs:
   - script: |
       . version.sh
       DIR="$(gcp.bucket.linux)/$MAJOR.$MINOR"
-      chmod +x linux/iofogctl
       gsutil cp linux/iofogctl gs://$DIR/iofogctl
       gsutil acl set public-read  gs://$DIR/iofogctl
     displayName: 'Publish Linux binary'
