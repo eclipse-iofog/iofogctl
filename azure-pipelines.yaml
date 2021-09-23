@@ -80,7 +80,7 @@ stages:
 ##      controller_count: 1
 
 - stage: Publish
-  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+#  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
   jobs:
   - template: pipeline/publish-linux.yaml
   - template: pipeline/publish-osx.yaml
