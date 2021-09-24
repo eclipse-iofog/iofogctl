@@ -27,8 +27,7 @@ func newVersionCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ecnFlag, err := cmd.Flags().GetBool("ecn")
 			util.Check(err)
-			util.PrintInfo("iofogctl Unified CLI\n")
-			util.PrintInfo("Copyright (C) 2019-2020, Edgeworx, Inc.\n")
+			util.PrintInfo("iofogctl - Copyright (C) 2019-2021, Edgeworx, Inc.\n")
 			_ = util.Print(util.GetVersion())
 			if ecnFlag {
 				fmt.Println("")
