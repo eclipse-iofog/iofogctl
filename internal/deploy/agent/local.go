@@ -68,7 +68,7 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	endpoint, err := controlPlane.GetEndpoint()
+	endpoint, err := controlPlane.GetAgentEndpoint()
 	if err != nil {
 		return "", err
 	}

@@ -18,6 +18,7 @@ type ControlPlane interface {
 	GetControllers() []Controller
 	GetController(string) (Controller, error)
 	GetEndpoint() (string, error)
+	GetAgentEndpoint() (string, error)
 	UpdateController(Controller) error
 	AddController(Controller) error
 	DeleteController(string) error

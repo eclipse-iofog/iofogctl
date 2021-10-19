@@ -143,7 +143,7 @@ func (exe *RemoteExecutor) Execute() error {
 	if exe.agentConfig.Host != nil {
 		host = *exe.agentConfig.Host
 	}
-	endpoint, err := controlPlane.GetEndpoint()
+	endpoint, err := controlPlane.GetAgentEndpoint()
 	if err != nil {
 		return err
 	}

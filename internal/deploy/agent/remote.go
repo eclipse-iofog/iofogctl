@@ -60,7 +60,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	controllerEndpoint, err := controlPlane.GetEndpoint()
+	controllerEndpoint, err := controlPlane.GetAgentEndpoint()
 	if err != nil {
 		return "", util.NewError("Failed to retrieve Controller endpoint!")
 	}
@@ -71,9 +71,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 	return agent.Configure(controllerEndpoint, user)
 }
 
-//
-// Deploy iofog-agent stack on an agent host
-//
+// Deploy ioFog Agent stack on an agent host
 func (exe *remoteExecutor) Execute() (err error) {
 	// Get Control Plane
 	ns, err := config.GetNamespace(exe.namespace)
