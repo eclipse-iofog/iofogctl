@@ -24,14 +24,15 @@ type AgentScripts struct {
 }
 
 type RemoteAgent struct {
-	Name    string              `yaml:"name"`
-	Host    string              `yaml:"host"`
-	SSH     SSH                 `yaml:"ssh"`
-	UUID    string              `yaml:"uuid,omitempty"`
-	Created string              `yaml:"created,omitempty"`
-	Package Package             `yaml:"package,omitempty"`
-	Config  *AgentConfiguration `yaml:"config,omitempty"`
-	Scripts *AgentScripts       `yaml:"scripts,omitempty"`
+	Name               string              `yaml:"name"`
+	Host               string              `yaml:"host"`
+	SSH                SSH                 `yaml:"ssh"`
+	UUID               string              `yaml:"uuid,omitempty"`
+	Created            string              `yaml:"created,omitempty"`
+	Package            Package             `yaml:"package,omitempty"`
+	Config             *AgentConfiguration `yaml:"config,omitempty"`
+	Scripts            *AgentScripts       `yaml:"scripts,omitempty"`
+	ControllerEndpoint string              `yaml:"controllerEndpoint,omitempty"`
 }
 
 func (agent *RemoteAgent) GetName() string {
@@ -48,6 +49,10 @@ func (agent *RemoteAgent) GetHost() string {
 
 func (agent *RemoteAgent) GetCreatedTime() string {
 	return agent.Created
+}
+
+func (agent *RemoteAgent) GetControllerEndpoint() string {
+	return agent.ControllerEndpoint
 }
 
 func (agent *RemoteAgent) GetConfig() *AgentConfiguration {
@@ -96,14 +101,15 @@ func (agent *RemoteAgent) Clone() Agent {
 		*config = *agent.Config
 	}
 	return &RemoteAgent{
-		Name:    agent.Name,
-		Host:    agent.Host,
-		SSH:     agent.SSH,
-		UUID:    agent.UUID,
-		Created: agent.Created,
-		Package: agent.Package,
-		Scripts: scripts,
-		Config:  config,
+		Name:               agent.Name,
+		Host:               agent.Host,
+		SSH:                agent.SSH,
+		UUID:               agent.UUID,
+		Created:            agent.Created,
+		Package:            agent.Package,
+		Scripts:            scripts,
+		Config:             config,
+		ControllerEndpoint: agent.ControllerEndpoint,
 	}
 }
 
