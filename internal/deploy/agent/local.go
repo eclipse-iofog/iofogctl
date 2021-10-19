@@ -68,15 +68,19 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	endpoint, err := controlPlane.GetEndpoint()
-	if err != nil {
-		return "", err
+	// Try Agent-specific endpoint first
+	controllerEndpoint := exe.agent.GetControllerEndpoint()
+	if controllerEndpoint == "" {
+		controllerEndpoint, err = controlPlane.GetEndpoint()
+		if err != nil {
+			return "", err
+		}
 	}
 
 	// Configure the agent with Controller details
 	user := install.IofogUser(controlPlane.GetUser())
 	user.Password = controlPlane.GetUser().GetRawPassword()
-	return agent.Configure(endpoint, user)
+	return agent.Configure(controllerEndpoint, user)
 }
 
 func (exe *localExecutor) GetName() string {

@@ -19,6 +19,7 @@ type Agent interface {
 	GetHost() string
 	GetCreatedTime() string
 	GetConfig() *AgentConfiguration
+	GetControllerEndpoint() string
 	SetName(string)
 	SetUUID(string)
 	SetHost(string)

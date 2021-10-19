@@ -60,9 +60,13 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	controllerEndpoint, err := controlPlane.GetEndpoint()
-	if err != nil {
-		return "", util.NewError("Failed to retrieve Controller endpoint!")
+	// Try Agent-specific endpoint first
+	controllerEndpoint := exe.agent.GetControllerEndpoint()
+	if controllerEndpoint == "" {
+		controllerEndpoint, err = controlPlane.GetEndpoint()
+		if err != nil {
+			return "", util.NewError("Failed to retrieve Controller endpoint!")
+		}
 	}
 
 	// Configure the agent with Controller details
