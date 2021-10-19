@@ -129,7 +129,6 @@ func (cp *KubernetesControlPlane) Clone() ControlPlane {
 		Replicas:       cp.Replicas,
 		Images:         cp.Images,
 		Endpoint:       cp.Endpoint,
-		AgentEndpoint:  cp.AgentEndpoint,
 		ControllerPods: controllerPods,
 	}
 }
