@@ -34,7 +34,7 @@ do_install_java() {
 			$sh_c "apt install -y openjdk-11-jdk"
 		;;
 		fedora|centos)
-			$sh_c "yum install -y openjdk-11-jdk"
+			$sh_c "yum install -y java-11-openjdk"
 		;;
 	esac
 }
