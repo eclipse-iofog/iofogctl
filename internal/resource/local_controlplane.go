@@ -47,10 +47,6 @@ func (cp *LocalControlPlane) GetEndpoint() (string, error) {
 	return cp.Controller.GetEndpoint(), nil
 }
 
-func (cp *LocalControlPlane) GetAgentEndpoint() (string, error) {
-	return cp.GetEndpoint()
-}
-
 func (cp *LocalControlPlane) UpdateController(baseController Controller) error {
 	controller, ok := baseController.(*LocalController)
 	if !ok {

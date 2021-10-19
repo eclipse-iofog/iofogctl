@@ -63,10 +63,6 @@ func (cp *RemoteControlPlane) GetEndpoint() (string, error) {
 	return "", util.NewInternalError("No Controllers in Remote Control Plane had an endpoint available")
 }
 
-func (cp *RemoteControlPlane) GetAgentEndpoint() (string, error) {
-	return cp.GetEndpoint()
-}
-
 func (cp *RemoteControlPlane) UpdateController(baseController Controller) error {
 	controller, ok := baseController.(*RemoteController)
 	if !ok {

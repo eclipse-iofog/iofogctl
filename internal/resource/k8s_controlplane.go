@@ -26,7 +26,6 @@ type KubernetesControlPlane struct {
 	Replicas       Replicas               `yaml:"replicas,omitempty"`
 	Images         KubeImages             `yaml:"images,omitempty"`
 	Endpoint       string                 `yaml:"endpoint,omitempty"`
-	AgentEndpoint  string                 `yaml:"agentEndpoint,omitempty"`
 	Controller     ControllerConfig       `yaml:"controller,omitempty"`
 }
 
@@ -53,14 +52,6 @@ func (cp *KubernetesControlPlane) GetController(name string) (ret Controller, er
 }
 
 func (cp *KubernetesControlPlane) GetEndpoint() (string, error) {
-	return cp.Endpoint, nil
-}
-
-func (cp *KubernetesControlPlane) GetAgentEndpoint() (string, error) {
-	// If no Agent endpoint provided, assume same as default endpoint
-	if cp.AgentEndpoint != "" {
-		return cp.AgentEndpoint, nil
-	}
 	return cp.Endpoint, nil
 }
 
