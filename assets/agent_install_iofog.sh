@@ -74,7 +74,13 @@ do_install_iofog() {
 }
 
 do_start_iofog(){
-	sudo service iofog-agent start
+  if [ "$lsb_dist" = "centos" ] || [ "$lsb_dist" = "fedora" ];
+  then
+    sudo systemctl start iofog-agent
+  else
+     sudo service iofog-agent start
+  fi
+
 	local STATUS=""
 	local ITER=0
 	while [ "$STATUS" != "RUNNING" ] ; do
