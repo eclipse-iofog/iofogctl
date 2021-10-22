@@ -14,16 +14,11 @@
 package get
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-)
-
-const (
-	separateDelim = ", "
 )
 
 type applicationTemplateExecutor struct {
@@ -88,28 +83,5 @@ func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (tab
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	return
-}
-
-func encodeMicroservices(msvcs []client.MicroserviceInfo) (encoded string) {
-	for idx := range msvcs {
-		msvc := &msvcs[idx]
-		delim := separateDelim
-		if idx == 0 {
-			delim = ""
-		}
-		encoded = fmt.Sprintf("%s%s%s", encoded, delim, msvc.Name)
-	}
-	return
-}
-
-func encodeRoutes(routes []client.Route) (encoded string) {
-	for routeIdx, route := range routes {
-		delim := separateDelim
-		if routeIdx == 0 {
-			delim = ""
-		}
-		encoded = fmt.Sprintf("%s%s%s", encoded, delim, route.Name)
-	}
 	return
 }
