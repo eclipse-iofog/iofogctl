@@ -43,7 +43,7 @@ func newApplicationExecutor(controller IofogController, app interface{}, name st
 func (exe *applicationExecutor) execute() (err error) {
 	// Init remote resources
 	if err = exe.init(); err != nil {
-		return
+		return err
 	}
 
 	// Try application API
@@ -72,10 +72,7 @@ func (exe *applicationExecutor) init() (err error) {
 	} else {
 		exe.client, err = client.NewAndLogin(client.Options{BaseURL: baseURL}, exe.controller.Email, exe.controller.Password)
 	}
-	if err != nil {
-		return
-	}
-	return
+	return err
 }
 
 func (exe *applicationExecutor) create() (err error) {

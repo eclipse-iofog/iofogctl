@@ -36,7 +36,7 @@ var (
 
 const (
 	apiVersionGroup      = "iofog.org"
-	latestVersion        = "v2"
+	latestVersion        = "v3"
 	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
 	defaultDirname       = ".iofog/" + latestVersion
 	namespaceDirname     = "namespaces/"

@@ -20,8 +20,6 @@ import (
 	"io"
 	"mime/multipart"
 	"strings"
-
-	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/util"
 )
 
 // GetMicroserviceByName retrieves a microservice information using Controller REST API
@@ -164,39 +162,6 @@ func (clt *Client) DeleteMicroservicePortMapping(uuid string, portMapping *Micro
 // CreateMicroservicePortMapping creates a microservice port mapping using Controller REST API
 func (clt *Client) CreateMicroservicePortMapping(uuid string, portMapping *MicroservicePortMappingInfo) (err error) {
 	_, err = clt.doRequest("POST", fmt.Sprintf("/microservices/%s/port-mapping", uuid), portMapping)
-	return
-}
-
-func portMappingsToMap(mappings []MicroservicePortMappingInfo) map[int]MicroservicePortMappingInfo {
-	response := make(map[int]MicroservicePortMappingInfo)
-	for _, mapping := range mappings {
-		response[util.AssertInt(mapping.Internal)] = mapping
-	}
-	return response
-}
-
-func (clt *Client) updateMicroservicePortMapping(uuid string, newPortMappings []MicroservicePortMappingInfo) (err error) {
-	currentPortMappings, err := clt.GetMicroservicePortMapping(uuid)
-	if err != nil {
-		return
-	}
-
-	// Remove outdated ports
-	for idx := range currentPortMappings.PortMappings {
-		currentMapping := &currentPortMappings.PortMappings[idx]
-		if err = clt.DeleteMicroservicePortMapping(uuid, currentMapping); err != nil {
-			return
-		}
-	}
-
-	// Create missing mappings
-	for idx := range newPortMappings {
-		newMapping := &newPortMappings[idx]
-		if err = clt.CreateMicroservicePortMapping(uuid, newMapping); err != nil {
-			return
-		}
-	}
-
 	return
 }
 

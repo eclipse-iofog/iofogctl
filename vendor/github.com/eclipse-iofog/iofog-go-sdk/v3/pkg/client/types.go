@@ -90,8 +90,8 @@ type TemplateVariable struct {
 }
 
 type ApplicationTemplateInfo struct {
-	Microservices []MicroserviceInfo `json:"microservices"`
-	Routes        []Route            `json:"routes"`
+	Microservices []interface{} `json:"microservices"`
+	Routes        []interface{} `json:"routes"`
 }
 
 type ApplicationTemplateCreateResponse struct {

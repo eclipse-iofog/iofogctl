@@ -30,22 +30,28 @@ type httpDo struct {
 
 func (hd *httpDo) do(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
 	body, isIoReader := requestBody.(io.Reader)
-	// If body is not an io.Reader and the content type is json, do the marshalling
-	if encodeType, ok := headers["Content-Type"]; !isIoReader && ok && encodeType == "application/json" {
-		jsonBody := ""
-		if requestBody != nil {
-			var jsonBodyBytes []byte
-			jsonBodyBytes, err = json.Marshal(requestBody)
-			if err != nil {
-				return
+	encodeType, ok := headers["Content-Type"]
+	if ok && encodeType == "application/json" {
+		// If body is not an io.Reader and the content type is json, do the marshalling
+		if !isIoReader {
+			jsonBody := ""
+			if requestBody != nil {
+				var jsonBodyBytes []byte
+				jsonBodyBytes, err = json.Marshal(requestBody)
+				if err != nil {
+					return
+				}
+				jsonBody = string(jsonBodyBytes)
 			}
-			jsonBody = string(jsonBodyBytes)
-		}
 
-		Verbose(fmt.Sprintf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
-		body = strings.NewReader(jsonBody)
-	} else if !isIoReader {
-		return nil, NewInternalError("Failed to convert request body to io.Reader")
+			Verbose(fmt.Sprintf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
+			body = strings.NewReader(jsonBody)
+		}
+	} else {
+		if !isIoReader {
+			return nil, NewInternalError("Failed to convert request body to io.Reader")
+		}
+		Verbose(fmt.Sprintf("===> [%s] %s \nContent-Type: %s\n", method, url, encodeType))
 	}
 
 	// Instantiate request

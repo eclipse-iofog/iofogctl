@@ -69,28 +69,15 @@ func newMicroserviceExecutor(controller IofogController, msvc interface{}, appNa
 	return exe
 }
 
-// newMicroserviceExecutorWithClient (DEPRECATED) used by application deployment in order to reuse already initialised data
-func newMicroserviceExecutorWithClient(controller IofogController, msvc interface{}, appName, name string, clt *client.Client) *microserviceExecutor {
-	exe := &microserviceExecutor{
-		controller: controller,
-		msvc:       msvc,
-		name:       name,
-		appName:    appName,
-		client:     clt,
-	}
-
-	return exe
-}
-
 func (exe *microserviceExecutor) execute() (err error) {
 	// Init remote resources
 	if err = exe.init(); err != nil {
-		return
+		return err
 	}
 
 	// Deploy microservice
 	if _, err = exe.deploy(); err != nil {
-		return
+		return err
 	}
 	return nil
 }
@@ -106,13 +93,13 @@ func (exe *microserviceExecutor) init() (err error) {
 		exe.client, err = client.NewAndLogin(client.Options{BaseURL: baseURL}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
-		return
+		return err
 	}
 	var listMsvcs *client.MicroserviceListResponse
 	if exe.appName != "" {
 		listMsvcs, err = exe.client.GetMicroservicesByApplication(exe.appName)
 		if err != nil {
-			return
+			return err
 		}
 	}
 

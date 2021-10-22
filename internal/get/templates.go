@@ -15,6 +15,7 @@ package get
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
@@ -81,8 +82,8 @@ func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (tab
 		row := []string{
 			template.Name,
 			template.Description,
-			encodeMicroservices(template.Application.Microservices),
-			encodeRoutes(template.Application.Routes),
+			strconv.Itoa(len(template.Application.Microservices)),
+			strconv.Itoa(len(template.Application.Routes)),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}

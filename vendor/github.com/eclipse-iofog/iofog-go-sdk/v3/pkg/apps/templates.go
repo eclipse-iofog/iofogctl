@@ -43,7 +43,7 @@ func newApplicationTemplateExecutor(controller IofogController, controllerBaseUR
 func (exe *applicationTemplateExecutor) execute() (err error) {
 	// Init remote resources
 	if err = exe.init(); err != nil {
-		return
+		return err
 	}
 
 	// Deploy application
@@ -56,14 +56,11 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 	} else {
 		exe.client, err = client.NewAndLogin(client.Options{BaseURL: exe.baseURL}, exe.controller.Email, exe.controller.Password)
 	}
-	if err != nil {
-		return
-	}
 
-	return
+	return err
 }
 
-func (exe *applicationTemplateExecutor) deploy() (err error) {
+func (exe *applicationTemplateExecutor) deploy() error {
 	file := IofogHeader{
 		APIVersion: "iofog.org/v3",
 		Kind:       ApplicationTemplateKind,
@@ -85,10 +82,10 @@ func (exe *applicationTemplateExecutor) deploy() (err error) {
 		if _, err := exe.client.CreateApplicationTemplateFromYAML(bytes.NewReader(yamlBytes)); err != nil {
 			return err
 		}
-		return
+		return nil
 	}
 	if _, err := exe.client.UpdateApplicationTemplateFromYAML(exe.name, bytes.NewReader(yamlBytes)); err != nil {
 		return err
 	}
-	return
+	return nil
 }

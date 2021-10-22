@@ -49,7 +49,7 @@ NS="$NAMESPACE"
 @test "Deploy Control Plane" {
   startTest
   echo "---
-apiVersion: iofog.org/v2
+apiVersion: iofog.org/v3
 kind: KubernetesControlPlane
 metadata:
   name: ha-controlplane

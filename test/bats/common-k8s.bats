@@ -184,16 +184,15 @@
 @test "Change Microservice Ports" {
   startTest
   initApplicationFiles
+  initApplicationWithPortFile
   EXT_IP=$(waitForSvc "$NS" http-proxy)
-  # Change port
-  sed -i.bak  "s/public: 5000/public: 6000/g" test/conf/application.yaml
   iofogctl -v deploy -f test/conf/application.yaml
-  # Wait for port to update to 6000
+  # Wait for port to update to 6666
   PORT=""
   SECS=0
   MAX=60
   while [[ $SECS -lt $MAX && ! -z $PORT ]]; do
-    PORT=$(kctl describe svc http-proxy -n "$NS" | grep 6000/TCP)
+    PORT=$(kctl describe svc http-proxy -n "$NS" | grep 6666/TCP)
     SECS=$((SECS+1))
     sleep 1
   done
@@ -206,6 +205,7 @@
 @test "Delete Public Port" {
   startTest
   initApplicationFiles
+  initApplicationWithoutPortsFiles
   # Remove port info from the file
   sed -i.bak "s/.*ports:.*//g" test/conf/application.yaml
   sed -i.bak "s/.*external:.*//g" test/conf/application.yaml
