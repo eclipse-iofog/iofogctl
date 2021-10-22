@@ -134,7 +134,10 @@ function initInvalidApplicationFiles() {
           # The ui will be listening on port 80 (internal).
           - external: 5001
             internal: 81
-            public: 5001
+            public:
+              schemes:
+              - http
+              protocol: http
         volumes:
         - hostDestination: $VOL_INVALID_DEST
           containerDestination: $VOL_CONT_INVALID_DEST
@@ -205,7 +208,10 @@ function initApplicationFiles() {
           # The ui will be listening on port 80 (internal).
           - external: 5000
             internal: 80
-            public: 5000
+            public:
+              schemes:
+              - http
+              protocol: http
         volumes:
         - hostDestination: $VOL_DEST
           containerDestination: $VOL_CONT_DEST
@@ -424,8 +430,6 @@ spec:
       value: 80
     - key: external
       value: 7777
-    - key: public
-      value: 6666
     - key: turtle
       value:
         turtles:
@@ -521,7 +525,6 @@ spec:
             # The ui will be listening on port 80 (internal).
             - external: \"{{external}}\"
               internal: \"{{internal}}\"
-              public: \"{{public}}\"
           volumes:
           - hostDestination: $VOL_DEST
             containerDestination: $VOL_CONT_DEST

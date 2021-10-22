@@ -14,11 +14,15 @@
 package microservice
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofogctl/v3/internal/describe"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 func Execute(namespace, name, newName string) error {
@@ -38,16 +42,28 @@ func Execute(namespace, name, newName string) error {
 
 	util.SpinStart(fmt.Sprintf("Renaming microservice %s", name))
 
-	if _, err = clt.UpdateMicroservice(&client.MicroserviceUpdateRequest{
-		UUID: msvc.UUID,
-		Name: &newName,
-		// Bug in Controller, fails if empty because images should be an array
-		Images: msvc.Images,
-		// Ports and Routes get automatically updated by the SDK, to avoid deletion of port mapping or route, those fields are mandatory
-		Ports: msvc.Ports,
-	}); err != nil {
+	// Move
+	msvc.Name = newName
+
+	yamlMsvc, err := describe.MapClientMicroserviceToDeployMicroservice(msvc, clt)
+	if err != nil {
 		return err
 	}
+
+	file := apps.IofogHeader{
+		APIVersion: "iofog.org/v3",
+		Kind:       apps.MicroserviceKind,
+		Metadata: apps.HeaderMetadata{
+			Name: strings.Join([]string{msvc.Application, msvc.Name}, "/"),
+		},
+		Spec: yamlMsvc,
+	}
+	yamlBytes, err := yaml.Marshal(file)
+	if err != nil {
+		return err
+	}
+
+	_, err = clt.UpdateMicroserviceFromYAML(msvc.UUID, bytes.NewReader(yamlBytes))
 
 	return err
 }

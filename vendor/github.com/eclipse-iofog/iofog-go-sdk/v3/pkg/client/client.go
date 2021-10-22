@@ -141,7 +141,7 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 	return bytes, err
 }
 
-func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
+func (clt *Client) doRequestWithHeaders(method, requestPath string, request interface{}, headers map[string]string) ([]byte, error) {
 	// Copy the base URL
 	requestURL, err := url.Parse(clt.baseURL.String())
 	if err != nil {
@@ -158,11 +158,9 @@ func (clt *Client) doRequest(method, requestPath string, request interface{}) ([
 	default:
 		return nil, fmt.Errorf("failed to parse request URL %s", requestPath)
 	}
-	// Set headers
-	headers := map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": clt.accessToken,
-	}
+
+	// Set auth header
+	headers["Authorization"] = clt.accessToken
 
 	currentRetries := Retries{CustomMessage: make(map[string]int)}
 	if clt.retries.CustomMessage != nil {
@@ -172,6 +170,13 @@ func (clt *Client) doRequest(method, requestPath string, request interface{}) ([
 	}
 
 	return clt.doRequestWithRetries(currentRetries, method, requestURL.String(), headers, request)
+}
+
+func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	return clt.doRequestWithHeaders(method, requestPath, request, headers)
 }
 
 func (clt *Client) isLoggedIn() bool {

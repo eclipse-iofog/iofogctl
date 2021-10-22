@@ -19,7 +19,6 @@ import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -33,11 +32,12 @@ type Options struct {
 
 type remoteExecutor struct {
 	namespace    string
-	microservice *rsc.Microservice
+	microservice interface{}
+	name         string
 }
 
 func (exe *remoteExecutor) GetName() string {
-	return exe.microservice.Name
+	return exe.name
 }
 
 func (exe *remoteExecutor) Execute() error {
@@ -71,7 +71,13 @@ func (exe *remoteExecutor) Execute() error {
 		Password: controlPlane.GetUser().Password,
 		Token:    clt.GetAccessToken(),
 	}
-	return apps.DeployMicroservice(controller, exe.microservice)
+
+	appName, msvcName, err := apps.ParseFQMsvcName(exe.name)
+	if err != nil {
+		return err
+	}
+
+	return apps.DeployMicroservice(controller, exe.microservice, appName, msvcName)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -80,7 +86,7 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return exe, err
 	}
 	// Unmarshal file
-	var microservice rsc.Microservice
+	var microservice interface{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &microservice); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
@@ -91,15 +97,9 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return nil, err
 	}
 
-	if len(opt.Name) > 0 {
-		microservice.Name = opt.Name
-	}
-
-	if microservice.Images.Registry == "" {
-		microservice.Images.Registry = "remote"
-	}
-
 	return &remoteExecutor{
 		namespace:    opt.Namespace,
-		microservice: &microservice}, nil
+		microservice: &microservice,
+		name:         opt.Name,
+	}, nil
 }

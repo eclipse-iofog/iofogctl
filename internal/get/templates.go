@@ -90,7 +90,7 @@ func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (tab
 	return
 }
 
-func encodeMicroservices(msvcs []client.MicroserviceCreateRequest) (encoded string) {
+func encodeMicroservices(msvcs []client.MicroserviceInfo) (encoded string) {
 	for idx := range msvcs {
 		msvc := &msvcs[idx]
 		delim := separateDelim
@@ -102,7 +102,7 @@ func encodeMicroservices(msvcs []client.MicroserviceCreateRequest) (encoded stri
 	return
 }
 
-func encodeRoutes(routes []client.ApplicationRouteCreateRequest) (encoded string) {
+func encodeRoutes(routes []client.Route) (encoded string) {
 	for routeIdx, route := range routes {
 		delim := separateDelim
 		if routeIdx == 0 {

@@ -53,21 +53,21 @@ func (clt *Client) GetRoute(name string) (route Route, err error) {
 	return
 }
 
-func (clt *Client) CreateRoute(route Route) (err error) {
+func (clt *Client) CreateRoute(route *Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Create Route request")
 		return
 	}
 
 	// Send request
-	if _, err = clt.doRequest("POST", "/routes", &route); err != nil {
+	if _, err = clt.doRequest("POST", "/routes", route); err != nil {
 		return
 	}
 
 	return
 }
 
-func (clt *Client) UpdateRoute(route Route) (err error) {
+func (clt *Client) UpdateRoute(route *Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Update Route request")
 		return
@@ -80,7 +80,7 @@ func (clt *Client) UpdateRoute(route Route) (err error) {
 	return clt.CreateRoute(route)
 }
 
-func (clt *Client) PatchRoute(name string, route Route) (err error) {
+func (clt *Client) PatchRoute(name string, route *Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Update Route request")
 		return

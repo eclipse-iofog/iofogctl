@@ -38,7 +38,7 @@ func Execute(namespace, name, newName string) error {
 	util.SpinStart(fmt.Sprintf("Renaming route %s", name))
 	route.Name = newName
 
-	if err := clt.PatchRoute(name, route); err != nil {
+	if err := clt.PatchRoute(name, &route); err != nil {
 		return err
 	}
 

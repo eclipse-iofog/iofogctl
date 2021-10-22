@@ -19,7 +19,6 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -33,11 +32,12 @@ type Options struct {
 
 type remoteExecutor struct {
 	namespace string
-	template  rsc.ApplicationTemplate
+	template  interface{}
+	name      string
 }
 
 func (exe *remoteExecutor) GetName() string {
-	return exe.template.Name
+	return exe.name
 }
 
 func (exe *remoteExecutor) Execute() error {
@@ -78,7 +78,7 @@ func (exe *remoteExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	return apps.DeployApplicationTemplate(controller, baseURL, exe.template)
+	return apps.DeployApplicationTemplate(controller, baseURL, exe.template, exe.name)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -87,35 +87,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return exe, err
 	}
 	// Unmarshal file
-	template := rsc.ApplicationTemplate{}
+	var template interface{}
 	if err = yaml.Unmarshal(opt.Yaml, &template); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
-	// TODO: This is duplicated in internal/deploy/application
-	for _, route := range template.Application.Routes {
-		if err := util.IsLowerAlphanumeric("Route", route.Name); err != nil {
-			return nil, err
-		}
-	}
-
-	if len(opt.Name) > 0 {
-		template.Name = opt.Name
-	}
-
-	if err := util.IsLowerAlphanumeric("Application", template.Name); err != nil {
-		return nil, err
-	}
-
-	// TODO: This is duplicated in internal/deploy/application
-	// Update default msvc values
-	for idx := range template.Application.Microservices {
-		if template.Application.Microservices[idx].Images.Registry == "" {
-			template.Application.Microservices[idx].Images.Registry = "remote"
-		}
-	}
 
 	return &remoteExecutor{
 		namespace: opt.Namespace,
-		template:  template}, nil
+		template:  template,
+		name:      opt.Name,
+	}, nil
 }

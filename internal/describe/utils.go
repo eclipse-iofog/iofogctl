@@ -55,16 +55,16 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 
 	// Map port host to agent name
 	for idx, port := range msvc.Ports {
-		if port.Host != "" && port.Host != iofog.VanillaRouterAgentName {
-			hostAgent, err := clt.GetAgentByID(port.Host)
+		if port.Public != nil && port.Public.Router != nil && port.Public.Router.Host != "" && port.Public.Router.Host != iofog.VanillaRouterAgentName {
+			hostAgent, err := clt.GetAgentByID(port.Public.Router.Host)
 			var name string
 			if err != nil {
-				util.PrintNotify(fmt.Sprintf("Could not find Agent with UUID %s\n", port.Host))
-				name = "UNKNOWN_" + port.Host
+				util.PrintNotify(fmt.Sprintf("Could not find Agent with UUID %s\n", port.Public.Router.Host))
+				name = "UNKNOWN_" + port.Public.Router.Host
 			} else {
 				name = hostAgent.Name
 			}
-			msvc.Ports[idx].Host = name
+			msvc.Ports[idx].Public.Router.Host = name
 		}
 	}
 
@@ -135,21 +135,58 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	return msvc, err
 }
 
-func mapPorts(in []client.MicroservicePortMapping) (out []apps.MicroservicePortMapping) {
-	for _, port := range in {
-		out = append(out, apps.MicroservicePortMapping(port))
+func mapPublicPortInfo(in *client.MicroservicePublicPortRouterInfo) (out *apps.MicroservicePublicPortRouterInfo) {
+	if in == nil {
+		return nil
+	}
+	return &apps.MicroservicePublicPortRouterInfo{
+		Host: in.Host,
+		Port: in.Port,
+	}
+}
+
+func mapPublicPort(in *client.MicroservicePublicPortInfo) (out *apps.MicroservicePublicPortInfo) {
+	if in == nil {
+		return nil
+	}
+	return &apps.MicroservicePublicPortInfo{
+		Schemes:  in.Schemes,
+		Protocol: in.Protocol,
+		Links:    in.Links,
+		Router:   mapPublicPortInfo(in.Router),
+	}
+}
+
+func mapPort(in *client.MicroservicePortMappingInfo) (out *apps.MicroservicePortMapping) {
+	if in == nil {
+		return nil
+	}
+	return &apps.MicroservicePortMapping{
+		Internal: in.Internal,
+		External: in.External,
+		Protocol: in.Protocol,
+		Public:   mapPublicPort(in.Public),
+	}
+}
+
+func mapPorts(in []client.MicroservicePortMappingInfo) (out []apps.MicroservicePortMapping) {
+	for idx := range in {
+		port := mapPort(&in[idx])
+		if port != nil {
+			out = append(out, *port)
+		}
 	}
 	return
 }
 
-func mapVolumes(in []client.MicroserviceVolumeMapping) (out []apps.MicroserviceVolumeMapping) {
+func mapVolumes(in []client.MicroserviceVolumeMappingInfo) (out []apps.MicroserviceVolumeMapping) {
 	for _, vol := range in {
 		out = append(out, apps.MicroserviceVolumeMapping(vol))
 	}
 	return
 }
 
-func mapEnvs(in []client.MicroserviceEnvironment) (out []apps.MicroserviceEnvironment) {
+func mapEnvs(in []client.MicroserviceEnvironmentInfo) (out []apps.MicroserviceEnvironment) {
 	for _, env := range in {
 		out = append(out, apps.MicroserviceEnvironment(env))
 	}

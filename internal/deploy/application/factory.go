@@ -19,7 +19,6 @@ import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
 	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	"gopkg.in/yaml.v2"
@@ -33,11 +32,12 @@ type Options struct {
 
 type remoteExecutor struct {
 	namespace   string
-	application *rsc.Application
+	application interface{}
+	name        string
 }
 
 func (exe *remoteExecutor) GetName() string {
-	return exe.application.Name
+	return exe.name
 }
 
 func (exe *remoteExecutor) Execute() error {
@@ -73,7 +73,7 @@ func (exe *remoteExecutor) Execute() error {
 		Password: controlPlane.GetUser().Password,
 		Token:    clt.GetAccessToken(),
 	}
-	return apps.DeployApplication(controller, exe.application)
+	return apps.DeployApplication(controller, exe.application, exe.name)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -82,37 +82,15 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return exe, err
 	}
 	// Unmarshal file
-	application := rsc.Application{}
+	var application interface{}
 	if err = yaml.UnmarshalStrict(opt.Yaml, &application); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
-	for _, route := range application.Routes {
-		if err := util.IsLowerAlphanumeric("Route", route.Name); err != nil {
-			return nil, err
-		}
-	}
-
-	if len(opt.Name) > 0 {
-		application.Name = opt.Name
-	}
-
-	if err := util.IsLowerAlphanumeric("Application", application.Name); err != nil {
-		return nil, err
-	}
-
-	// Update default msvc values
-	for idx := range application.Microservices {
-		if application.Microservices[idx].Images == nil {
-			return nil, util.NewInputError(fmt.Sprintf("The microservice %s does not have an image. You must provide a valid microservice image to deploy",
-				application.Microservices[idx].Name))
-		}
-		if application.Microservices[idx].Images.Registry == "" {
-			application.Microservices[idx].Images.Registry = "remote"
-		}
-	}
 
 	return &remoteExecutor{
 		namespace:   opt.Namespace,
-		application: &application}, nil
+		application: &application,
+		name:        opt.Name,
+	}, nil
 }

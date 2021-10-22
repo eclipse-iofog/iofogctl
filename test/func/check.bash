@@ -203,7 +203,6 @@ function checkApplication() {
   local NAME_SUFFIX=${2:-""}
   local PORT_INT=${3:-80}
   local PORT_EXT=${4:-5000}
-  local PORT_PUB=${5:-5000}
   iofogctl -v -n "$NS_CHECK" get applications
   [[ "$APPLICATION_NAME" == $(iofogctl -v -n "$NS_CHECK" get applications | grep "$APPLICATION_NAME" | awk '{print $1}') ]]
   [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe application "$APPLICATION_NAME" | grep "name: $APPLICATION_NAME") ]]
@@ -237,7 +236,7 @@ function checkApplication() {
   cat test/conf/app_output.yaml | grep "ports:"
   cat test/conf/app_output.yaml | grep "external: $PORT_EXT"
   cat test/conf/app_output.yaml | grep "internal: $PORT_INT"
-  cat test/conf/app_output.yaml | grep "public: $PORT_PUB"
+  cat test/conf/app_output.yaml | grep "links:"
   cat test/conf/app_output.yaml | grep "volumes: \[\]"
   cat test/conf/app_output.yaml | grep "images:"
   cat test/conf/app_output.yaml | grep "x86: edgeworx/healthcare-heart-rate:x86-v1"

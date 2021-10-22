@@ -23,6 +23,9 @@ type HeaderMetadata struct {
 // Kind contains available types
 type Kind string
 
+// IofogHeader represent the file structure
+type IofogHeader Header
+
 // Available kind of deploy
 const (
 	ApplicationKind         Kind = "Application"
@@ -114,13 +117,26 @@ func deepCopyNestedMap(src, dest NestedMap) {
 }
 
 // +k8s:deepcopy-gen=true
+type MicroservicePublicPortRouterInfo struct {
+	Port int64  `json:"port"`
+	Host string `json:"host"`
+}
+
+// +k8s:deepcopy-gen=true
+type MicroservicePublicPortInfo struct {
+	Schemes  []string                          `json:"schemes"`
+	Links    []string                          `json:"links"`
+	Protocol string                            `json:"protocol"`
+	Enabled  bool                              `json:"enabled"`
+	Router   *MicroservicePublicPortRouterInfo `yaml:"router,omitempty" json:"router,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
 type MicroservicePortMapping struct {
-	Internal   interface{} `yaml:"internal" json:"internal"`           // +k8s:deepcopy-gen=ignore
-	External   interface{} `yaml:"external" json:"external"`           // +k8s:deepcopy-gen=ignore
-	Public     interface{} `yaml:"public,omitempty" json:"publicPort"` // +k8s:deepcopy-gen=ignore
-	Host       string      `yaml:"host,omitempty" json:"host"`
-	Protocol   string      `yaml:"protocol,omitempty" json:"protocol"`
-	PublicLink string      `yaml:"publicLink,omitempty" json:"publicLink"`
+	Internal int64                       `json:"internal"`
+	External int64                       `json:"external"`
+	Public   *MicroservicePublicPortInfo `yaml:"public,omitempty" json:"public,omitempty"`
+	Protocol string                      `json:"protocol,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true

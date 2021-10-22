@@ -14,8 +14,11 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 )
 
 // GetApplicationByName retrieve application information using the Controller REST API
@@ -31,22 +34,50 @@ func (clt *Client) GetApplicationByName(name string) (application *ApplicationIn
 	return
 }
 
-// CreateApplication creates a new application using the Controller REST API
-func (clt *Client) CreateApplication(request *ApplicationCreateRequest) (*ApplicationInfo, error) {
-	response := FlowCreateResponse{}
-	body, err := clt.doRequest("POST", "/application", request)
+// CreateApplicationFromYAML creates a new application using the Controller REST API
+// It sends the yaml file to Controller REST API
+func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, error) {
+	requestBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(requestBody)
+	part, _ := writer.CreateFormFile("application", "application.yaml")
+	_, err := io.Copy(part, file)
 	if err != nil {
 		return nil, err
 	}
+	writer.Close()
+
+	headers := map[string]string{
+		"Content-Type": writer.FormDataContentType(),
+	}
+	body, err := clt.doRequestWithHeaders("POST", "/application/yaml", requestBody, headers)
+
+	if err != nil {
+		return nil, err
+	}
+	response := FlowCreateResponse{}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
-	return clt.GetApplicationByName(request.Name)
+	return clt.GetApplicationByName(response.Name)
 }
 
-// UpdateApplication updates an application using the Controller REST API
-func (clt *Client) UpdateApplication(name string, request *ApplicationUpdateRequest) (*ApplicationInfo, error) {
-	_, err := clt.doRequest("PUT", fmt.Sprintf("/application/%s", name), *request)
+// UpdateApplicationFromYAML updates an application using the Controller REST API
+// It sends the yaml file to Controller REST API
+func (clt *Client) UpdateApplicationFromYAML(name string, file io.Reader) (*ApplicationInfo, error) {
+	requestBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(requestBody)
+	part, _ := writer.CreateFormFile("application", "application.yaml")
+	_, err := io.Copy(part, file)
+	if err != nil {
+		return nil, err
+	}
+	writer.Close()
+
+	headers := map[string]string{
+		"Content-Type": writer.FormDataContentType(),
+	}
+
+	_, err = clt.doRequestWithHeaders("PUT", fmt.Sprintf("/application/yaml/%s", name), requestBody, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +90,11 @@ func (clt *Client) PatchApplication(name string, request *ApplicationPatchReques
 	if err != nil {
 		return nil, err
 	}
-	return clt.GetApplicationByName(name)
+	newName := name
+	if request.Name != nil {
+		newName = *request.Name
+	}
+	return clt.GetApplicationByName(newName)
 }
 
 // StartApplication set the application as active using the Controller REST API

@@ -11,14 +11,16 @@ require (
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20210713200113-53dac8484e12
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20210713211750-10706a88ec49
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-beta1
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta1
 	github.com/eclipse-iofog/iofogctl v1.3.2 // indirect
+	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
+	github.com/skupperproject/skupper-cli v0.0.1-beta6 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
@@ -35,6 +37,7 @@ replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503
 
 // iofog-operator
 replace (
+	github.com/eclipse-iofog/iofog-go-sdk/v3 => github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20211022021531-d4e44c73af48
 	github.com/go-logr/logr => github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr => github.com/go-logr/zapr v0.3.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1

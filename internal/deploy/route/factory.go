@@ -62,7 +62,7 @@ func (exe *executor) Execute() (err error) {
 		return
 	}
 
-	if err = clt.UpdateRoute(client.Route{
+	if err = clt.UpdateRoute(&client.Route{
 		Name:                   exe.name,
 		SourceMicroserviceUUID: srcMsvcUUID,
 		DestMicroserviceUUID:   destMsvcUUID,

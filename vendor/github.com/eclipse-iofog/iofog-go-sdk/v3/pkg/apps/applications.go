@@ -14,39 +14,27 @@
 package apps
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"gopkg.in/yaml.v2"
 )
 
 type applicationExecutor struct {
-	controller         IofogController
-	app                *Application
-	microserviceByName map[string]*client.MicroserviceInfo
-	client             *client.Client
-	flowInfo           *client.FlowInfo
-	applicationInfo    *client.ApplicationInfo
-	agentsByName       map[string]*client.AgentInfo
-	catalogByID        map[int]*client.CatalogItemInfo
-	catalogByName      map[string]*client.CatalogItemInfo
-	registryByID       map[int]*client.RegistryInfo
+	controller      IofogController
+	app             interface{}
+	name            string
+	applicationInfo *client.ApplicationInfo
+	client          *client.Client
 }
 
-func microserviceArrayToClientMap(a []Microservice) (result map[string]*client.MicroserviceInfo) {
-	result = make(map[string]*client.MicroserviceInfo)
-	for i := 0; i < len(a); i++ {
-		// No need to fill information, we only need to know if the name exists
-		result[a[i].Name] = &client.MicroserviceInfo{}
-	}
-	return
-}
-
-func newApplicationExecutor(controller IofogController, app *Application) *applicationExecutor {
+func newApplicationExecutor(controller IofogController, app interface{}, name string) *applicationExecutor {
 	exe := &applicationExecutor{
-		controller:         controller,
-		app:                app,
-		microserviceByName: microserviceArrayToClientMap(app.Microservices),
+		controller: controller,
+		app:        app,
+		name:       name,
 	}
 
 	return exe
@@ -60,7 +48,7 @@ func (exe *applicationExecutor) execute() (err error) {
 
 	// Try application API
 	// Look for exisiting application
-	exe.applicationInfo, err = exe.client.GetApplicationByName(exe.app.Name)
+	exe.applicationInfo, err = exe.client.GetApplicationByName(exe.name)
 
 	// If not notfound error, return error
 	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
@@ -69,10 +57,6 @@ func (exe *applicationExecutor) execute() (err error) {
 
 	// Deploy application
 	if err := exe.deploy(); err != nil {
-		if _, ok := err.(*client.NotFoundError); ok {
-			// If notfound error, try legacy
-			return exe.deployLegacy()
-		}
 		return err
 	}
 	return nil
@@ -91,63 +75,43 @@ func (exe *applicationExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
-	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
-	if err != nil {
-		return
-	}
-
-	exe.agentsByName = make(map[string]*client.AgentInfo)
-	for i := 0; i < len(listAgents.Agents); i++ {
-		exe.agentsByName[listAgents.Agents[i].Name] = &listAgents.Agents[i]
-	}
-
 	return
 }
 
 func (exe *applicationExecutor) create() (err error) {
-	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices)
+	file := IofogHeader{
+		APIVersion: "iofog.org/v3",
+		Kind:       ApplicationKind,
+		Metadata: HeaderMetadata{
+			Name: exe.name,
+		},
+		Spec: exe.app,
+	}
+	yamlBytes, err := yaml.Marshal(file)
 	if err != nil {
 		return err
 	}
-	if microservices == nil {
-		microservices = []client.MicroserviceCreateRequest{}
-	}
-	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
-	if routes == nil {
-		routes = []client.ApplicationRouteCreateRequest{}
-	}
-	template := mapTemplateToClientTemplate(exe.app.Template)
-	request := &client.ApplicationCreateRequest{
-		Name:          exe.app.Name,
-		Microservices: microservices,
-		Routes:        &routes,
-		Template:      template,
-	}
-
-	if _, err = exe.client.CreateApplication(request); err != nil {
+	if _, err = exe.client.CreateApplicationFromYAML(bytes.NewReader(yamlBytes)); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (exe *applicationExecutor) update() (err error) {
-	// Convert Microservices and Routes
-	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices)
+	file := IofogHeader{
+		APIVersion: "iofog.org/v3",
+		Kind:       ApplicationKind,
+		Metadata: HeaderMetadata{
+			Name: exe.name,
+		},
+		Spec: exe.app,
+	}
+	yamlBytes, err := yaml.Marshal(file)
 	if err != nil {
 		return err
 	}
-	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
-	// Convert Template
-	template := mapTemplateToClientTemplate(exe.app.Template)
 
-	request := &client.ApplicationUpdateRequest{
-		Name:          &exe.app.Name,
-		Routes:        &routes,
-		Microservices: &microservices,
-		Template:      template,
-	}
-
-	if _, err = exe.client.UpdateApplication(exe.app.Name, request); err != nil {
+	if _, err = exe.client.UpdateApplicationFromYAML(exe.name, bytes.NewReader(yamlBytes)); err != nil {
 		return err
 	}
 	return nil
@@ -166,7 +130,7 @@ func (exe *applicationExecutor) deploy() (err error) {
 	}
 
 	// Start application
-	if _, err = exe.client.StartApplication(exe.app.Name); err != nil {
+	if _, err = exe.client.StartApplication(exe.name); err != nil {
 		return err
 	}
 	return nil

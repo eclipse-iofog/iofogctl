@@ -14,25 +14,27 @@
 package apps
 
 import (
+	"bytes"
 	"net/url"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"gopkg.in/yaml.v2"
 )
 
 type applicationTemplateExecutor struct {
-	controller         IofogController
-	baseURL            *url.URL
-	template           ApplicationTemplate
-	microserviceByName map[string]*client.MicroserviceInfo
-	client             *client.Client
+	controller IofogController
+	baseURL    *url.URL
+	template   interface{}
+	name       string
+	client     *client.Client
 }
 
-func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template ApplicationTemplate) *applicationTemplateExecutor {
+func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string) *applicationTemplateExecutor {
 	exe := &applicationTemplateExecutor{
-		controller:         controller,
-		baseURL:            controllerBaseURL,
-		template:           template,
-		microserviceByName: microserviceArrayToClientMap(template.Application.Microservices),
+		controller: controller,
+		baseURL:    controllerBaseURL,
+		name:       name,
+		template:   template,
 	}
 
 	return exe
@@ -62,24 +64,31 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 }
 
 func (exe *applicationTemplateExecutor) deploy() (err error) {
-	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.template.Application.Microservices)
+	file := IofogHeader{
+		APIVersion: "iofog.org/v3",
+		Kind:       ApplicationTemplateKind,
+		Metadata: HeaderMetadata{
+			Name: exe.name,
+		},
+		Spec: exe.template,
+	}
+	yamlBytes, err := yaml.Marshal(file)
 	if err != nil {
 		return err
 	}
-	routes := mapRoutesToClientRouteRequests(exe.template.Application.Routes)
-	variables := mapVariablesToClientVariables(exe.template.Variables)
-	request := &client.ApplicationTemplateUpdateRequest{
-		Description: exe.template.Description,
-		Name:        exe.template.Name,
-		Application: &client.ApplicationTemplateInfo{
-			Microservices: microservices,
-			Routes:        routes,
-		},
-		Variables: variables,
-	}
-
-	if _, err = exe.client.UpdateApplicationTemplate(request); err != nil {
+	existingAppTemplate, err := exe.client.GetApplicationTemplate(exe.name)
+	// If not notfound error, return error
+	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
 		return err
 	}
-	return nil
+	if existingAppTemplate == nil {
+		if _, err := exe.client.CreateApplicationTemplateFromYAML(bytes.NewReader(yamlBytes)); err != nil {
+			return err
+		}
+		return
+	}
+	if _, err := exe.client.UpdateApplicationTemplateFromYAML(exe.name, bytes.NewReader(yamlBytes)); err != nil {
+		return err
+	}
+	return
 }
