@@ -31,11 +31,11 @@ func validateRoutes(routes []string, microserviceByName map[string]*client.Micro
 	return routesUUIDs, nil
 }
 
-func createRoutes(routes []Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) (err error) { // nolint:deadcode,unused
+func createRoutes(routes []Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) error { // nolint:deadcode,unused
 	for _, route := range routes {
 		fromMsvc := microserviceByName[route.From]
 		toMsvc := microserviceByName[route.To]
-		if err = clt.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
+		if err := clt.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
 			return err
 		}
 	}

@@ -50,8 +50,13 @@ func (exe *routeExecutor) Execute() error {
 		return err
 	}
 
+	appName, routeName, err := clientutil.ParseFQName(exe.name, "Route")
+	if err != nil {
+		return err
+	}
+
 	// Get Route
-	route, err := clt.GetRoute(exe.name)
+	route, err := clt.GetRoute(appName, routeName)
 	if err != nil {
 		return err
 	}
@@ -77,6 +82,7 @@ func (exe *routeExecutor) Execute() error {
 		Spec: rsc.Route{
 			From: from,
 			To:   to,
+			Name: routeName,
 		},
 	}
 

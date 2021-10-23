@@ -23,8 +23,8 @@ import (
 )
 
 // GetMicroserviceByName retrieves a microservice information using Controller REST API
-func (clt *Client) GetMicroserviceByName(name string) (response *MicroserviceInfo, err error) {
-	listMsvcs, err := clt.GetAllMicroservices()
+func (clt *Client) GetMicroserviceByName(appName, name string) (response *MicroserviceInfo, err error) {
+	listMsvcs, err := clt.GetMicroservicesByApplication(appName)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (clt *Client) GetMicroserviceByName(name string) (response *MicroserviceInf
 			return &listMsvcs.Microservices[i], nil
 		}
 	}
-	return nil, NewNotFoundError(fmt.Sprintf("Could not find a microservice named %s", name))
+	return nil, NewNotFoundError(fmt.Sprintf("Could not find a microservice named %s/%s", appName, name))
 }
 
 // GetMicroserviceByID retrieves a microservice information using Controller REST API
@@ -55,7 +55,7 @@ func (clt *Client) GetMicroserviceByID(uuid string) (response *MicroserviceInfo,
 func (clt *Client) CreateMicroserviceFromYAML(file io.Reader) (*MicroserviceInfo, error) {
 	requestBody := &bytes.Buffer{}
 	writer := multipart.NewWriter(requestBody)
-	part, _ := writer.CreateFormFile("application", "application.yaml")
+	part, _ := writer.CreateFormFile("microservice", "microservice.yaml")
 	_, err := io.Copy(part, file)
 	if err != nil {
 		return nil, err

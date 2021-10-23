@@ -39,7 +39,12 @@ func (exe executor) Execute() (err error) {
 		return
 	}
 
-	if err = clt.DeleteRoute(exe.name); err != nil {
+	appName, routeName, err := clientutil.ParseFQName(exe.name, "Route")
+	if err != nil {
+		return err
+	}
+
+	if err = clt.DeleteRoute(appName, routeName); err != nil {
 		return
 	}
 	return

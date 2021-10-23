@@ -233,7 +233,7 @@ spec:
 
 @test "Microservice logs" {
   startTest
-  iofogctl -v logs microservice "$MSVC2_NAME" | grep "node index.js"
+  iofogctl -v logs microservice "$APPLICATION_NAME"/"$MSVC2_NAME" | grep "node index.js"
   stopTest
 }
 
@@ -267,7 +267,7 @@ spec:
 
 @test "Move microservice to another agent" {
   startTest
-  iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
+  iofogctl -v move microservice $APPLICATION_NAME/$MSVC2_NAME ${NAME}-1
   checkMovedMicroservice $MSVC2_NAME ${NAME}-1
   # Avoid checking RUNNING state of msvc on first agent
   waitForMsvc "$MSVC2_NAME" "$NS"

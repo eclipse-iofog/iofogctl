@@ -160,7 +160,7 @@
 
 @test "Move microservice to another agent" {
   startTest
-  iofogctl -v move microservice $MSVC2_NAME ${NAME}-1
+  iofogctl -v move microservice $APPLICATION_NAME/$MSVC2_NAME ${NAME}-1
   checkMovedMicroservice $MSVC2_NAME ${NAME}-1
   initAgents
   local SSH_KEY_PATH=$KEY_FILE
@@ -206,11 +206,6 @@
   startTest
   initApplicationFiles
   initApplicationWithoutPortsFiles
-  # Remove port info from the file
-  sed -i.bak "s/.*ports:.*//g" test/conf/application.yaml
-  sed -i.bak "s/.*external:.*//g" test/conf/application.yaml
-  sed -i.bak "s/.*internal:.*//g" test/conf/application.yaml
-  sed -i.bak "s/.*public:.*//g" test/conf/application.yaml
 
   # Update application
   iofogctl -v deploy -f test/conf/application.yaml

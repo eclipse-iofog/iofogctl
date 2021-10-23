@@ -27,7 +27,12 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
-	route, err := clt.GetRoute(name)
+	appName, routeName, err := clientutil.ParseFQName(name, "Route")
+	if err != nil {
+		return err
+	}
+
+	route, err := clt.GetRoute(appName, routeName)
 	if err != nil {
 		return err
 	}
@@ -37,8 +42,11 @@ func Execute(namespace, name, newName string) error {
 	}
 	util.SpinStart(fmt.Sprintf("Renaming route %s", name))
 	route.Name = newName
+	// Temporary fix
+	route.SourceMicroserviceUUID = ""
+	route.DestMicroserviceUUID = ""
 
-	if err := clt.PatchRoute(name, &route); err != nil {
+	if err := clt.PatchRoute(appName, routeName, &route); err != nil {
 		return err
 	}
 

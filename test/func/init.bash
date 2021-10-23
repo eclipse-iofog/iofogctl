@@ -20,7 +20,7 @@ function initMicroserviceFile() {
 apiVersion: iofog.org/v3
 kind: Microservice 
 metadata:
-  name: ${MICROSERVICE_NAME}
+  name: ${APPLICATION_NAME}/${MICROSERVICE_NAME}
 spec:
   agent:
     name: ${NAME}-0
@@ -51,7 +51,7 @@ function initRouteFile() {
 apiVersion: iofog.org/v3
 kind: Route
 metadata:
-  name: $ROUTE_NAME
+  name: $APPLICATION_NAME/$ROUTE_NAME
 spec:
   from: $MSVC1_NAME
   to: $MSVC2_NAME" > test/conf/route.yaml
@@ -62,7 +62,7 @@ function initMicroserviceUpdateFile() {
 apiVersion: iofog.org/v3
 kind: Microservice
 metadata:
-  name: ${MICROSERVICE_NAME}
+  name: ${APPLICATION_NAME}/${MICROSERVICE_NAME}
 spec:
   agent:
     name: ${NAME}-0
@@ -563,6 +563,8 @@ spec:
     - key: magic-number
       description: custom
       defaultValue: 123
+    - key: public-port
+      defaultValue: 6666
     - key: turtle
       description: custom
       defaultValue:
@@ -619,6 +621,12 @@ spec:
             # The ui will be listening on port 80 (internal).
             - external: \"{{external}}\"
               internal: \"{{internal}}\"
+              public:
+                schemes:
+                - http
+                protocol: http
+                router:
+                  port: \"{{public-port}}\"
           volumes:
           - hostDestination: $VOL_DEST
             containerDestination: $VOL_CONT_DEST

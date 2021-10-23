@@ -37,7 +37,7 @@ replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503
 
 // iofog-operator
 replace (
-	github.com/eclipse-iofog/iofog-go-sdk/v3 => github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20211022091900-05eb10151ad7
+	github.com/eclipse-iofog/iofog-go-sdk/v3 => github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20211023181200-87a3cca43740
 	github.com/go-logr/logr => github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr => github.com/go-logr/zapr v0.3.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1

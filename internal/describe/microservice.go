@@ -41,7 +41,13 @@ func (exe *microserviceExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
-	exe.msvc, err = exe.client.GetMicroserviceByName(exe.name)
+
+	appName, msvcName, err := clientutil.ParseFQName(exe.name, "Microservice")
+	if err != nil {
+		return err
+	}
+
+	exe.msvc, err = exe.client.GetMicroserviceByName(appName, msvcName)
 	return
 }
 

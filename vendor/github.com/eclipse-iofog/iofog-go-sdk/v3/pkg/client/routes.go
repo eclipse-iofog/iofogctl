@@ -33,14 +33,14 @@ func (clt *Client) ListRoutes() (response RouteListResponse, err error) {
 	return
 }
 
-func (clt *Client) GetRoute(name string) (route Route, err error) {
+func (clt *Client) GetRoute(appName, name string) (route Route, err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Get Route request")
 		return
 	}
 
 	// Send request
-	body, err := clt.doRequest("GET", fmt.Sprintf("/routes/%s", name), nil)
+	body, err := clt.doRequest("GET", fmt.Sprintf("/routes/%s/%s", appName, name), nil)
 	if err != nil {
 		return
 	}
@@ -73,35 +73,35 @@ func (clt *Client) UpdateRoute(route *Route) (err error) {
 		return
 	}
 
-	if _, err = clt.GetRoute(route.Name); err == nil {
-		return clt.PatchRoute(route.Name, route)
+	if _, err = clt.GetRoute(route.Application, route.Name); err == nil {
+		return clt.PatchRoute(route.Application, route.Name, route)
 	}
 
 	return clt.CreateRoute(route)
 }
 
-func (clt *Client) PatchRoute(name string, route *Route) (err error) {
+func (clt *Client) PatchRoute(appName, name string, route *Route) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Update Route request")
 		return
 	}
 
 	// Send request
-	if _, err = clt.doRequest("PATCH", fmt.Sprintf("/routes/%s", name), &route); err != nil {
+	if _, err = clt.doRequest("PATCH", fmt.Sprintf("/routes/%s/%s", appName, name), &route); err != nil {
 		return
 	}
 
 	return
 }
 
-func (clt *Client) DeleteRoute(name string) (err error) {
+func (clt *Client) DeleteRoute(appName, name string) (err error) {
 	if !clt.isLoggedIn() {
 		err = NewError("Controller client must be logged into perform Delete Route request")
 		return
 	}
 
 	// Send request
-	if _, err = clt.doRequest("DELETE", fmt.Sprintf("/routes/%s", name), nil); err != nil {
+	if _, err = clt.doRequest("DELETE", fmt.Sprintf("/routes/%s/%s", appName, name), nil); err != nil {
 		return
 	}
 

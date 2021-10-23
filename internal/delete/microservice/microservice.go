@@ -47,7 +47,12 @@ func (exe *Executor) Execute() (err error) {
 		return err
 	}
 
-	item, err := clt.GetMicroserviceByName(exe.name)
+	appName, msvcName, err := clientutil.ParseFQName(exe.name, "Microservice")
+	if err != nil {
+		return err
+	}
+
+	item, err := clt.GetMicroserviceByName(appName, msvcName)
 	if err != nil {
 		return err
 	}

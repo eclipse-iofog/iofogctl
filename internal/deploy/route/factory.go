@@ -34,6 +34,7 @@ type Options struct {
 type executor struct {
 	namespace string
 	name      string
+	appName   string
 	route     rsc.Route
 }
 
@@ -52,20 +53,11 @@ func (exe *executor) Execute() (err error) {
 		return
 	}
 
-	// Convert route details
-	srcMsvcUUID, err := clientutil.GetMicroserviceUUID(exe.namespace, exe.route.From)
-	if err != nil {
-		return
-	}
-	destMsvcUUID, err := clientutil.GetMicroserviceUUID(exe.namespace, exe.route.To)
-	if err != nil {
-		return
-	}
-
 	if err = clt.UpdateRoute(&client.Route{
-		Name:                   exe.name,
-		SourceMicroserviceUUID: srcMsvcUUID,
-		DestMicroserviceUUID:   destMsvcUUID,
+		Name:        exe.name,
+		From:        exe.route.From,
+		To:          exe.route.To,
+		Application: exe.appName,
 	}); err != nil {
 		return
 	}
@@ -83,19 +75,24 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	if route.Name == "" && opt.Name == "" {
 		return nil, util.NewInputError("Did not specify metadata.name or spec.name")
 	}
+
+	appName, routeName, err := clientutil.ParseFQName(opt.Name, "Route")
+	if err != nil {
+		return nil, err
+	}
+
 	if route.Name == "" {
-		route.Name = opt.Name
+		route.Name = routeName
 	}
-	if opt.Name == "" {
-		opt.Name = route.Name
-	}
-	if route.Name != opt.Name {
+
+	if route.Name != routeName {
 		return nil, util.NewInputError(fmt.Sprintf("Mismatch between metadata.name [%s] and spec.name [%s]", opt.Name, route.Name))
 	}
 
 	return &executor{
 		namespace: opt.Namespace,
-		name:      opt.Name,
+		name:      routeName,
+		appName:   appName,
 		route:     route,
 	}, nil
 }

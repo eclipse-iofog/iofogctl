@@ -42,7 +42,7 @@ func newApplicationExecutor(controller IofogController, app interface{}, name st
 
 func (exe *applicationExecutor) execute() (err error) {
 	// Init remote resources
-	if err = exe.init(); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 

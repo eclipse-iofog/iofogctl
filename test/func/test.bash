@@ -209,7 +209,7 @@ function testDefaultProxyConfig(){
   IP=""
   while [ $ITER -lt 10 ] && [ "$IP" != "$ACTUAL_IP" ]; do
     sleep 6
-    IP=$(iofogctl -n "$NS" -v describe microservice "$MSVC2_NAME" | grep "http://" | sed 's/.*http:\/\///g' | sed 's/:.*//g')
+    IP=$(iofogctl -n "$NS" -v describe microservice $APPLICATION_NAME/"$MSVC2_NAME" | grep "http://" | sed 's/.*http:\/\///g' | sed 's/:.*//g')
     ITER=$((ITER+1))
   done
   echo "Found IP: $IP"
@@ -327,7 +327,7 @@ function testApplicationTemplates(){
   # Deploy again and deploy application
   iofogctl --debug -n "$NS" deploy -f test/conf/app-template.yaml
   iofogctl --debug -n "$NS" deploy -f test/conf/templated-app.yaml
-  checkApplication "$NS" "-${APPLICATION_NAME}" 80 7777 6666
+  checkApplication "$NS" 80 7777 6666
 
   # Look for templated variables
   for CHECK in 12345 7777 6666 80 func-test-0 "rootHostAccess: false"; do

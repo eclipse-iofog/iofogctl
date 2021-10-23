@@ -159,8 +159,8 @@ NS="$NAMESPACE"
 @test "Rename and Delete Route" {
   startTest
   local NEW_ROUTE_NAME="route-2"
-  iofogctl -v -n "$NS" rename route "$ROUTE_NAME" "$NEW_ROUTE_NAME"
-  iofogctl -v -n "$NS" delete route "$NEW_ROUTE_NAME"
+  iofogctl -v -n "$NS" rename route $APPLICATION_NAME/"$ROUTE_NAME" "$NEW_ROUTE_NAME"
+  iofogctl -v -n "$NS" delete route $APPLICATION_NAME/"$NEW_ROUTE_NAME"
   checkRouteNegative "$NEW_ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
   checkRouteNegative "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
   stopTest

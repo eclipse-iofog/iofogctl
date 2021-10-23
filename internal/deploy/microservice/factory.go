@@ -72,7 +72,7 @@ func (exe *remoteExecutor) Execute() error {
 		Token:    clt.GetAccessToken(),
 	}
 
-	appName, msvcName, err := apps.ParseFQMsvcName(exe.name)
+	appName, msvcName, err := clientutil.ParseFQName(exe.name, "Microservice")
 	if err != nil {
 		return err
 	}
@@ -90,11 +90,6 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err = yaml.UnmarshalStrict(opt.Yaml, &microservice); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
-	}
-
-	// Check Name
-	if err := util.IsLowerAlphanumeric("Microservice", opt.Name); err != nil {
-		return nil, err
 	}
 
 	return &remoteExecutor{

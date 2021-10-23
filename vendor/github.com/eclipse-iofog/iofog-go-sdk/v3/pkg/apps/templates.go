@@ -40,9 +40,9 @@ func newApplicationTemplateExecutor(controller IofogController, controllerBaseUR
 	return exe
 }
 
-func (exe *applicationTemplateExecutor) execute() (err error) {
+func (exe *applicationTemplateExecutor) execute() error {
 	// Init remote resources
-	if err = exe.init(); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 

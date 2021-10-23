@@ -39,7 +39,12 @@ func Execute(namespace, name, agent string) error {
 		return err
 	}
 
-	msvc, err := clt.GetMicroserviceByName(name)
+	appName, msvcName, err := clientutil.ParseFQName(name, "Microservice")
+	if err != nil {
+		return err
+	}
+
+	msvc, err := clt.GetMicroserviceByName(appName, msvcName)
 	if err != nil {
 		return err
 	}

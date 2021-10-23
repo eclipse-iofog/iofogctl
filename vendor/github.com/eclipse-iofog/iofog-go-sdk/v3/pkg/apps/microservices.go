@@ -47,7 +47,10 @@ type microserviceExecutor struct {
 }
 
 func ParseFQMsvcName(fqName string) (appName, name string, err error) {
-	splittedName := strings.Split(name, "/")
+	if fqName == "" {
+		return "", "", NewInputError(fmt.Sprintf("Invalid microservice name %s", fqName))
+	}
+	splittedName := strings.Split(fqName, "/")
 	switch len(splittedName) {
 	case 1:
 		return "", splittedName[0], nil
@@ -69,14 +72,14 @@ func newMicroserviceExecutor(controller IofogController, msvc interface{}, appNa
 	return exe
 }
 
-func (exe *microserviceExecutor) execute() (err error) {
+func (exe *microserviceExecutor) execute() error {
 	// Init remote resources
-	if err = exe.init(); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 
 	// Deploy microservice
-	if _, err = exe.deploy(); err != nil {
+	if _, err := exe.deploy(); err != nil {
 		return err
 	}
 	return nil
@@ -95,12 +98,12 @@ func (exe *microserviceExecutor) init() (err error) {
 	if err != nil {
 		return err
 	}
-	var listMsvcs *client.MicroserviceListResponse
-	if exe.appName != "" {
-		listMsvcs, err = exe.client.GetMicroservicesByApplication(exe.appName)
-		if err != nil {
-			return err
-		}
+	if exe.appName == "" {
+		return NewInputError(fmt.Sprintf("Application name missing for microservice %s", exe.name))
+	}
+	listMsvcs, err := exe.client.GetMicroservicesByApplication(exe.appName)
+	if err != nil {
+		return err
 	}
 
 	for i := 0; i < len(listMsvcs.Microservices); i++ {

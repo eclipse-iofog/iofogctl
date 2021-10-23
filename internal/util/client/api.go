@@ -14,6 +14,7 @@
 package client
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -78,13 +79,37 @@ func GetMicroserviceName(namespace, uuid string) (name string, err error) {
 	return
 }
 
-func GetMicroserviceUUID(namespace, name string) (uuid string, err error) {
+func ParseFQName(fqName, resourceType string) (appName, name string, err error) {
+	if fqName == "" {
+		return "", "", util.NewInputError(fmt.Sprintf("Invalid %s name %s", resourceType, fqName))
+	}
+	splittedName := strings.Split(fqName, "/")
+	switch len(splittedName) {
+	case 1:
+		if err := util.IsLowerAlphanumeric(resourceType, splittedName[0]); err != nil {
+			return "", "", err
+		}
+		return "", splittedName[0], nil
+	case 2:
+		if err := util.IsLowerAlphanumeric("application", splittedName[0]); err != nil {
+			return "", "", err
+		}
+		if err := util.IsLowerAlphanumeric(resourceType, splittedName[1]); err != nil {
+			return "", "", err
+		}
+		return splittedName[0], splittedName[1], nil
+	default:
+		return "", "", util.NewInputError(fmt.Sprintf("Invalid %s name %s", resourceType, fqName))
+	}
+}
+
+func GetMicroserviceUUID(namespace, appName, name string) (uuid string, err error) {
 	clt, err := NewControllerClient(namespace)
 	if err != nil {
 		return
 	}
 
-	response, err := clt.GetMicroserviceByName(name)
+	response, err := clt.GetMicroserviceByName(appName, name)
 	if err != nil {
 		return
 	}

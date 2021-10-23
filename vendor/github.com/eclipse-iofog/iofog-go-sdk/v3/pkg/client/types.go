@@ -485,8 +485,8 @@ type RouteListResponse struct {
 type Route struct {
 	Name                   string `json:"name"`
 	Application            string `json:"application"`
-	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
-	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`
+	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid,omitempty"`
+	DestMicroserviceUUID   string `json:"destMicroserviceUuid,omitempty"`
 	From                   string `json:"from"`
 	To                     string `json:"to"`
 }

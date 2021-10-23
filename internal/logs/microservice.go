@@ -122,7 +122,7 @@ func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.Sec
 	return
 }
 
-func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, msvc client.MicroserviceInfo, err error) {
+func getAgentAndMicroservice(namespace, msvcFQName string) (agent rsc.Agent, msvc client.MicroserviceInfo, err error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return
@@ -133,8 +133,13 @@ func getAgentAndMicroservice(namespace, msvcName string) (agent rsc.Agent, msvc 
 		return
 	}
 
+	appName, msvcName, err := clientutil.ParseFQName(msvcFQName, "Microservice")
+	if err != nil {
+		return agent, msvc, err
+	}
+
 	// Get microservice details from Controller
-	msvcPtr, err := ctrlClient.GetMicroserviceByName(msvcName)
+	msvcPtr, err := ctrlClient.GetMicroserviceByName(appName, msvcName)
 	if err != nil {
 		return
 	}
