@@ -155,5 +155,5 @@ func getAgentAndMicroservice(namespace, msvcFQName string) (agent rsc.Agent, msv
 	if err != nil {
 		return
 	}
-	return
+	return agent, msvc, nil
 }
