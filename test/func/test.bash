@@ -209,7 +209,7 @@ function testDefaultProxyConfig(){
   IP=""
   while [ $ITER -lt 10 ] && [ "$IP" != "$ACTUAL_IP" ]; do
     sleep 6
-    IP=$(iofogctl -n "$NS" -v describe microservice $APPLICATION_NAME/"$MSVC2_NAME" | grep "http://" | sed 's/.*http:\/\///g' | sed 's/:.*//g')
+    IP=$(iofogctl -n "$NS" -v describe microservice $APPLICATION_NAME/"$MSVC2_NAME" | grep "\- http://" | sed 's/.*http:\/\///g' | sed 's/:.*//g')
     ITER=$((ITER+1))
   done
   echo "Found IP: $IP"

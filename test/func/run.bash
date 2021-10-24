@@ -3,8 +3,8 @@
 # These functions are designed to be used with the bats `run` command
 
 function curlMsvc(){
-    IP="$1"
-    curl -s --max-time 120 http://${IP}:5000/api/raw
+    PUBLIC_ENDPOINT="$1"
+    curl -s --max-time 120 ${PUBLIC_ENDPOINT}/api/raw
 }
 
 function jqMsvcArray(){

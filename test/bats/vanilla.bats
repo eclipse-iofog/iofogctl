@@ -261,7 +261,9 @@ spec:
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
   testDefaultProxyConfig "$EXT_IP"
-  hitMsvcEndpoint "$EXT_IP"
+  PUBLIC_ENDPOINT=$(iofogctl -n "$NS" -v describe microservice $APPLICATION_NAME/"$MSVC2_NAME" | grep "\- http://" | sed 's|.*http://|http://|g')
+  echo "PUBLIC_ENDPOINT: $PUBLIC_ENDPOINT"
+  hitMsvcEndpoint "$PUBLIC_ENDPOINT"
   stopTest
 }
 
@@ -288,7 +290,9 @@ spec:
   # Hit the endpoint
   EXT_IP=$VANILLA_HOST
   testDefaultProxyConfig "$EXT_IP"
-  hitMsvcEndpoint "$EXT_IP"
+  PUBLIC_ENDPOINT=$(iofogctl -n "$NS" -v describe microservice $APPLICATION_NAME/"$MSVC2_NAME" | grep "\- http://" | sed 's|.*http://|http://|g')
+  echo "PUBLIC_ENDPOINT: $PUBLIC_ENDPOINT"
+  hitMsvcEndpoint "$PUBLIC_ENDPOINT"
   stopTest
 }
 

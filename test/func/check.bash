@@ -414,12 +414,12 @@ function checkRenamedNamespace() {
 }
 
 function hitMsvcEndpoint() {
-  local IP="$1"
+  local PUBLIC_ENDPOINT="$1"
   local ITER=0
   local COUNT=0
   while [ $COUNT -eq 0 ] && [ $ITER -lt 24 ]; do
     sleep 10
-    run curlMsvc "$IP"
+    run curlMsvc "$PUBLIC_ENDPOINT"
     if [ $status -eq 0 ]; then
       RET="$output"
       echo "$RET"
