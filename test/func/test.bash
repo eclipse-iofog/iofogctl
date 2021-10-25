@@ -240,8 +240,9 @@ function testDefaultNamespace(){
 function testGenerateConnectionString(){
   local ADDR="$1"
   local CNCT=$(iofogctl -n "$NS" connect --generate)
-  echo "$CNCT"
-  [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email "$USER_EMAIL" --pass $USER_PW_B64 --b64" ]
+  echo "Wanted: $CNCT"
+  echo "Got: iofogctl connect --ecn-addr $ADDR --name remote --email $USER_EMAIL --pass $USER_PW_B64 --b64"
+  [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email $USER_EMAIL --pass $USER_PW_B64 --b64" ]
 }
 
 function testEdgeResources(){
@@ -317,6 +318,9 @@ function testApplicationTemplates(){
   iofogctl -v -n "$NS" deploy -f test/conf/app-template.yaml
   for CHECK in "$APP_TEMPLATE_NAME" "$APP_TEMPLATE_DESC" "2" "1"; do
     iofogctl -v -n "$NS" get application-templates | grep "$CHECK"
+  done
+  for CHECK in "123" "bobbing" "pineapple" "6666" "{{public-port}}"; do
+    echo "Wanted $CHECK"
     iofogctl -v -n "$NS" describe application-template "$APP_TEMPLATE_NAME" | grep "$CHECK"
   done
 
@@ -330,7 +334,8 @@ function testApplicationTemplates(){
   checkApplication "$NS" 80 7777 6666
 
   # Look for templated variables
-  for CHECK in 12345 7777 6666 80 func-test-0 "rootHostAccess: false"; do
+  for CHECK in 12345 7777 80 func-test-0 "rootHostAccess: false"; do
+    echo "Wanted $CHECK"
     iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "$CHECK"
   done
 

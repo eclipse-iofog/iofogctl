@@ -80,7 +80,7 @@
 @test "Generate connection string" {
   startTest
   local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
-  testGenerateConnectionString "http://$IP:51121"
+  testGenerateConnectionString "http://$IP:51121" # Disable this on local run
   CNCT=$(iofogctl -n "$NS" connect --generate)
   eval "$CNCT -n ${NS}-2"
   iofogctl disconnect -n "${NS}-2"

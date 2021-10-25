@@ -2,6 +2,8 @@
 
 function kctl(){
   KUBECONFIG="$TEST_KUBE_CONFIG" kubectl $@
+  # For local run use this
+  # kubectl $@
 }
 
 function print(){
