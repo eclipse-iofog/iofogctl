@@ -67,6 +67,13 @@ do_install_docker() {
 			$sh_c "apt-get update -y"
 			$sh_c "sudo apt install -y docker-ce"
 		;;
+    7|8)
+      $sh_c "sudo yum install -y yum-utils"
+      $sh_c "sudo yum-config-manager \
+            --add-repo \
+            https://download.docker.com/linux/centos/docker-ce.repo"
+      $sh_c "sudo yum install docker-ce docker-ce-cli containerd.io -y"
+    ;;
 		*)
 			curl -fsSL https://get.docker.com/ | sh
 		;;
