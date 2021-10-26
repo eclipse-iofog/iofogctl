@@ -273,6 +273,14 @@ function initDockerPullStatsApplicationFiles() {
 }
 
 function initApplicationFiles() {
+  initAgents
+  local AGENT_COUNT=${#AGENTS[@]}
+  local AGENT_1="${NAME}-0"
+  local AGENT_2="${NAME}-0"
+  if [ "$AGENT_COUNT" -gt 1 ]; then
+    AGENT_2="${NAME}-1"
+  fi
+
   MSVCS="
     microservices:
     - name: $MSVC1_NAME
