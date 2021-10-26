@@ -5,7 +5,7 @@ set -e
 start_docker() {
 	set +e
 	# check if docker is running
-	if ! $sh_c docker ps >/dev/null 2>&1; then
+	if ! $sh_c "docker ps" >/dev/null 2>&1; then
 		# Try init.d
 		$sh_c "/etc/init.d/docker start"
 		local err_code=$?
@@ -68,7 +68,7 @@ do_install_docker() {
 			$sh_c "sudo apt install -y docker-ce"
 		;;
     7|8)
-      $sh_c "sudo yum install -y yum-utils"
+      $sh_c "sudo yum install -y yum-utils || echo 'yum-utils already installed'"
       $sh_c "sudo yum-config-manager \
             --add-repo \
             https://download.docker.com/linux/centos/docker-ce.repo"
