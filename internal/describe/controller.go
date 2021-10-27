@@ -78,7 +78,7 @@ func (exe *controllerExecutor) Execute() error {
 
 func (exe *controllerExecutor) generateControllerHeader(kind config.Kind, controller rsc.Controller) config.Header {
 	return config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

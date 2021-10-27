@@ -62,7 +62,7 @@ func (exe *edgeResourceExecutor) Execute() error {
 
 	// Convert to YAML
 	header := config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.EdgeResourceKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
