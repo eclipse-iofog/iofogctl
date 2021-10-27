@@ -1,8 +1,13 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
+## [v3.0.0-beta2] - 27 October 2021
+
+* Use new controller routes to send YAML directly to controller for app and microservices
 * Fix Docker install for ioFog Agent install procedure for systems w/o init.d
+* Fix docker install for centos
+* Fix java install for centos
 * Add snapd Docker support in ioFog Agent install procedure
 
 ## [v3.0.0-beta1] - 10 September 2021

@@ -23,9 +23,9 @@ LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-beta2
 LDFLAGS += -X $(PREFIX).proxyTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).routerTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).controllerTag=3.0.0-beta4
-LDFLAGS += -X $(PREFIX).agentTag=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).agentTag=3.0.0-beta2
 LDFLAGS += -X $(PREFIX).controllerVersion=3.0.0-beta4
-LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-beta1
+LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-beta2
 LDFLAGS += -X $(PREFIX).repo=iofog
 GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0-beta2
 OPERATOR_MODULE = iofog-operator/v3@develop
