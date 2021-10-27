@@ -31,8 +31,8 @@ variables:
   router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:3.0.0-beta1'
   proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
   proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:3.0.0-beta1'
-  iofog_agent_version: '3.0.0-beta1'
-  controller_version: '3.0.0-beta1'
+  iofog_agent_version: '3.0.0-beta2'
+  controller_version: '3.0.0-beta4'
   version:
   agent_vm_list:
   controller_vm:
