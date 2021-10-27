@@ -47,7 +47,7 @@ func (exe *volumeExecutor) Execute() (err error) {
 	}
 
 	header := config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.VolumeKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

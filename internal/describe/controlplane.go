@@ -72,7 +72,7 @@ func (exe *controlPlaneExecutor) Execute() error {
 
 func (exe *controlPlaneExecutor) generateControlPlaneHeader(kind config.Kind, controlPlane rsc.ControlPlane) config.Header {
 	return config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

@@ -83,7 +83,7 @@ func (exe *registryExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.RegistryKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

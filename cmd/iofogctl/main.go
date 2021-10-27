@@ -20,6 +20,6 @@ import (
 )
 
 func main() {
-	util.Check(config.Init())
+	config.Init("")
 	util.Check(cmd.NewRootCommand().Execute())
 }

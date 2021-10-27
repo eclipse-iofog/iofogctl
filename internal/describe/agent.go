@@ -83,7 +83,7 @@ func (exe *agentExecutor) Execute() (err error) {
 		kind = config.RemoteAgentKind
 	}
 	header := config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       kind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,

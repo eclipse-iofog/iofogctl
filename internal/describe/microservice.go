@@ -71,7 +71,7 @@ func (exe *microserviceExecutor) Execute() error {
 	}
 
 	header := config.Header{
-		APIVersion: config.APIVersion(),
+		APIVersion: config.LatestAPIVersion,
 		Kind:       config.MicroserviceKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
