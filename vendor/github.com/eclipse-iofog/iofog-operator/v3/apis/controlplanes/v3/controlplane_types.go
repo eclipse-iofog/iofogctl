@@ -17,7 +17,16 @@ limitations under the License.
 package v3
 
 import (
+	"fmt"
+	"time"
+
+	cond "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	conditionReady     = "ready"
+	conditionDeploying = "" // Update iofogctl etc to set default state
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -28,12 +37,19 @@ type ControlPlaneSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	User       User       `json:"user"`
-	Database   Database   `json:"database,omitempty"`
-	Services   Services   `json:"services,omitempty"`
-	Replicas   Replicas   `json:"replicas,omitempty"`
-	Images     Images     `json:"images,omitempty"`
-	Ingresses  Ingresses  `json:"ingresses,omitempty"`
+	// User contains credentials for ioFog Controller
+	User User `json:"user"`
+	// Database is only used when ioFog Controller is configured to connect to an extrenal DB
+	Database Database `json:"database,omitempty"`
+	// Ingresses allow Router and Port Manager to configure endpoint addresses correctly
+	Ingresses Ingresses `json:"ingresses,omitempty"`
+	// Services should be LoadBalancer unless Ingress is being configured
+	Services Services `json:"services,omitempty"`
+	// Replicas of ioFog Controller should be 1 unless an external DB is configured
+	Replicas Replicas `json:"replicas,omitempty"`
+	// Images specifies which containers to run for each component of the ControlPlane
+	Images Images `json:"images,omitempty"`
+	// Controller contains runtime configuration for ioFog Controller
 	Controller Controller `json:"controller,omitempty"`
 }
 
@@ -77,10 +93,10 @@ type User struct {
 }
 
 type RouterIngress struct {
-	Ingress
-	MessagePort  int `json:"messagePort,omitempty"`
-	InteriorPort int `json:"interiorPort,omitempty"`
-	EdgePort     int `json:"edgePort,omitempty"`
+	Address      string `json:"address,omitempty"`
+	MessagePort  int    `json:"messagePort,omitempty"`
+	InteriorPort int    `json:"interiorPort,omitempty"`
+	EdgePort     int    `json:"edgePort,omitempty"`
 }
 
 type Ingress struct {
@@ -118,6 +134,54 @@ type ControlPlane struct {
 
 	Spec   ControlPlaneSpec   `json:"spec,omitempty"`
 	Status ControlPlaneStatus `json:"status,omitempty"`
+}
+
+func (cp *ControlPlane) setCondition(conditionType string) {
+	now := metav1.NewTime(time.Now())
+	// Clear all
+	for idx := range cp.Status.Conditions {
+		condition := &cp.Status.Conditions[idx]
+		if condition.Status == metav1.ConditionTrue {
+			condition.Status = metav1.ConditionFalse
+			condition.Reason = fmt.Sprintf("transition to %s", conditionType)
+			condition.LastTransitionTime = now
+		}
+	}
+	// Add / overwrite
+	newCondition := metav1.Condition{
+		Type:               conditionType,
+		Status:             metav1.ConditionTrue,
+		Reason:             "",
+		LastTransitionTime: now,
+	}
+	cond.SetStatusCondition(&cp.Status.Conditions, newCondition)
+}
+
+func (cp *ControlPlane) SetConditionDeploying() {
+	cp.setCondition(conditionDeploying)
+}
+
+func (cp *ControlPlane) SetConditionReady() {
+	cp.setCondition(conditionReady)
+}
+
+func (cp *ControlPlane) GetCondition() string {
+	state := ""
+	for _, condition := range cp.Status.Conditions {
+		if condition.Status == metav1.ConditionTrue {
+			state = condition.Type
+			break
+		}
+	}
+	return state
+}
+
+func (cp *ControlPlane) IsReady() bool {
+	return cp.GetCondition() == conditionReady
+}
+
+func (cp *ControlPlane) IsDeploying() bool {
+	return cp.GetCondition() == conditionDeploying
 }
 
 // +kubebuilder:object:root=true

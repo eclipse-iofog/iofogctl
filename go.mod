@@ -11,8 +11,8 @@ require (
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-beta1
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta1
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-beta2
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20211022002211-eed6891420f4
 	github.com/eclipse-iofog/iofogctl v1.3.2 // indirect
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/json-iterator/go v1.1.10
@@ -37,7 +37,6 @@ replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503
 
 // iofog-operator
 replace (
-	github.com/eclipse-iofog/iofog-go-sdk/v3 => github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-20211023181200-87a3cca43740
 	github.com/go-logr/logr => github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr => github.com/go-logr/zapr v0.3.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
