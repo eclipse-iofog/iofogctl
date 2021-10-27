@@ -24,13 +24,13 @@ import (
 )
 
 func SetDefaultNamespace(name string) (err error) {
-	if name == pkg.conf.DefaultNamespace {
+	if name == conf.DefaultNamespace {
 		return
 	}
 	// Check exists
 	for _, n := range GetNamespaces() {
 		if n == name {
-			pkg.conf.DefaultNamespace = name
+			conf.DefaultNamespace = name
 			return flushShared()
 		}
 	}
@@ -39,7 +39,7 @@ func SetDefaultNamespace(name string) (err error) {
 
 // GetNamespaces returns all namespaces in config
 func GetNamespaces() (namespaces []string) {
-	files, err := ioutil.ReadDir(pkg.namespaceDirectory)
+	files, err := ioutil.ReadDir(namespaceDirectory)
 	util.Check(err)
 
 	sort.Slice(files, func(i, j int) bool {
@@ -48,7 +48,7 @@ func GetNamespaces() (namespaces []string) {
 
 	for _, file := range files {
 		name := util.Before(file.Name(), ".yaml")
-		if name != pkg.detachedNamespace {
+		if name != detachedNamespace {
 			namespaces = append(namespaces, name)
 		}
 	}
@@ -56,11 +56,11 @@ func GetNamespaces() (namespaces []string) {
 }
 
 func GetDefaultNamespaceName() string {
-	return pkg.conf.DefaultNamespace
+	return conf.DefaultNamespace
 }
 
 func getNamespace(name string) (*rsc.Namespace, error) {
-	namespace, ok := pkg.namespaces[name]
+	namespace, ok := namespaces[name]
 	if !ok {
 		// Namespace has not been loaded from file, do so now
 		namespaceHeader := iofogctlNamespace{}
@@ -74,7 +74,7 @@ func getNamespace(name string) (*rsc.Namespace, error) {
 		if err != nil {
 			return nil, err
 		}
-		pkg.namespaces[name] = ns
+		namespaces[name] = ns
 		return ns, flushNamespaces()
 	}
 	// Return Namespace from memory
@@ -115,14 +115,14 @@ func AddNamespace(name, created string) error {
 	if err != nil {
 		return err
 	}
-	pkg.namespaces[name] = &newNamespace
+	namespaces[name] = &newNamespace
 	return nil
 }
 
 // DeleteNamespace removes a namespace including all the resources within it
 func DeleteNamespace(name string) error {
 	// Reset default namespace if required
-	if name == pkg.conf.DefaultNamespace {
+	if name == conf.DefaultNamespace {
 		if err := SetDefaultNamespace("default"); err != nil {
 			msg := "failed to reconfigure default namespace"
 			return errors.New(msg)
@@ -135,7 +135,7 @@ func DeleteNamespace(name string) error {
 		return util.NewNotFoundError(msg)
 	}
 
-	delete(pkg.namespaces, name)
+	delete(namespaces, name)
 
 	return nil
 }
@@ -151,7 +151,7 @@ func RenameNamespace(name, newName string) error {
 	if err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
 		return err
 	}
-	if name == pkg.conf.DefaultNamespace {
+	if name == conf.DefaultNamespace {
 		return SetDefaultNamespace(newName)
 	}
 
