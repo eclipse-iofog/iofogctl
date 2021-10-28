@@ -42,8 +42,9 @@ const (
 	namespaceDirname     = "namespaces/"
 	defaultFilename      = "config.yaml"
 	configV2             = "iofogctl/v2"
+	configV3             = "iofogctl/v3"
 	configV1             = "iofogctl/v1"
-	CurrentConfigVersion = configV2
+	CurrentConfigVersion = configV3
 	detachedNamespace    = "_detached"
 )
 
