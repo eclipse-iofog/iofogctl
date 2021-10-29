@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v3.0.0-beta3] - 29 October 2021
+* Config updated to V3
+
 ## [v3.0.0-beta2] - 27 October 2021
 
 * Use new controller routes to send YAML directly to controller for app and microservices
