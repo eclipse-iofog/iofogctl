@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v3.0.0-beta5] - 14 January 2022
+* Updated operator version to 3.0.0-beta3
+
 ## [v3.0.0-beta4] - 13 January 2022
 * Updated operator version to 3.0.0-beta2
 
