@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v3.0.0-beta4] - 13 January 2022
+* Updated operator version to 3.0.0-beta2
+
+
 ## [v3.0.0-beta3] - 29 October 2021
 * Config updated to V3
 
