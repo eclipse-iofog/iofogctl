@@ -2,58 +2,58 @@
 set -x
 set -e
 
-SUPPORT_MAP="
-x86_64-centos-7
-x86_64-centos-8
-x86_64-fedora-26
-x86_64-fedora-27
-x86_64-fedora-28
-x86_64-debian-wheezy
-x86_64-debian-jessie
-x86_64-debian-stretch
-x86_64-debian-buster
-x86_64-ubuntu-trusty
-x86_64-ubuntu-xenial
-x86_64-ubuntu-bionic
-x86_64-ubuntu-focal
-x86_64-ubuntu-artful
-s390x-ubuntu-xenial
-s390x-ubuntu-bionic
-s390x-ubuntu-focal
-s390x-ubuntu-artful
-ppc64le-ubuntu-xenial
-ppc64le-ubuntu-bionic
-ppc64le-ubuntu-focal
-ppc64le-ubuntu-artful
-aarch64-ubuntu-xenial
-aarch64-ubuntu-bionic
-aarch64-ubuntu-focal
-aarch64-debian-jessie
-aarch64-debian-stretch
-aarch64-debian-buster
-aarch64-fedora-26
-aarch64-fedora-27
-aarch64-fedora-28
-aarch64-centos-7
-armv6l-raspbian-jessie
-armv7l-raspbian-jessie
-armv6l-raspbian-stretch
-armv7l-raspbian-stretch
-armv6l-raspbian-buster
-armv7l-raspbian-buster
-armv7l-debian-jessie
-armv7l-debian-stretch
-armv7l-debian-buster
-armv7l-ubuntu-trusty
-armv7l-ubuntu-xenial
-armv7l-ubuntu-bionic
-armv7l-ubuntu-focal
-armv7l-ubuntu-artful
-aarch64-mendel-eagle
-aarch64-raspbian-buster
-"
+# SUPPORT_MAP="
+# x86_64-centos-7
+# x86_64-centos-8
+# x86_64-fedora-26
+# x86_64-fedora-27
+# x86_64-fedora-28
+# x86_64-debian-wheezy
+# x86_64-debian-jessie
+# x86_64-debian-stretch
+# x86_64-debian-buster
+# x86_64-ubuntu-trusty
+# x86_64-ubuntu-xenial
+# x86_64-ubuntu-bionic
+# x86_64-ubuntu-focal
+# x86_64-ubuntu-artful
+# s390x-ubuntu-xenial
+# s390x-ubuntu-bionic
+# s390x-ubuntu-focal
+# s390x-ubuntu-artful
+# ppc64le-ubuntu-xenial
+# ppc64le-ubuntu-bionic
+# ppc64le-ubuntu-focal
+# ppc64le-ubuntu-artful
+# aarch64-ubuntu-xenial
+# aarch64-ubuntu-bionic
+# aarch64-ubuntu-focal
+# aarch64-debian-jessie
+# aarch64-debian-stretch
+# aarch64-debian-buster
+# aarch64-fedora-26
+# aarch64-fedora-27
+# aarch64-fedora-28
+# aarch64-centos-7
+# armv6l-raspbian-jessie
+# armv7l-raspbian-jessie
+# armv6l-raspbian-stretch
+# armv7l-raspbian-stretch
+# armv6l-raspbian-buster
+# armv7l-raspbian-buster
+# armv7l-debian-jessie
+# armv7l-debian-stretch
+# armv7l-debian-buster
+# armv7l-ubuntu-trusty
+# armv7l-ubuntu-xenial
+# armv7l-ubuntu-bionic
+# armv7l-ubuntu-focal
+# armv7l-ubuntu-artful
+# aarch64-mendel-eagle
+# aarch64-raspbian-buster
+# "
 
-
+timestamp=$(date +%d-%m-%Y_%H-%M-%S)
 get_distribution() {
 	lsb_dist=""
 	# Every system that we officially support has /etc/os-release
@@ -177,6 +177,7 @@ init() {
 		;;
 
 		centos)
+			echo "Here inside checking distribution -> ${timestamp}"
 			if [ -z "$dist_version" ] && [ -r /etc/os-release ]; then
 				dist_version="$(. /etc/os-release && echo "$VERSION_ID")"
 			fi
@@ -212,16 +213,16 @@ init() {
 
 		EOF
 		exit 1
-	elif ! echo "$SUPPORT_MAP" | grep "$(uname -m)-$lsb_dist-$dist_version"; then
-		cat >&2 <<-'EOF'
+	# elif ! echo "$SUPPORT_MAP" | grep "$(uname -m)-$lsb_dist-$dist_version"; then
+	# 	cat >&2 <<-'EOF'
 
-		Either your platform is not easily detectable or is not supported by this
-		installer script.
-		Please visit the following URL for more detailed installation instructions:
+	# 	Either your platform is not easily detectable or is not supported by this
+	# 	installer script.
+	# 	Please visit the following URL for more detailed installation instructions:
 
-		https://iofog.org/docs
+	# 	https://iofog.org/docs
 
-		EOF
+	# 	EOF
 	fi
 
 }

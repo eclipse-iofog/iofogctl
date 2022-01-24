@@ -367,7 +367,7 @@ func AddTrailingSlash(in string) string {
 
 func SSHVerbose(msg string) {
 	if IsDebug() {
-		fmt.Printf("[SSH]: %s\n", msg)
+		fmt.Printf("[SSH]: %s : %s\n", time.Now().String(), msg)
 	}
 }
 
