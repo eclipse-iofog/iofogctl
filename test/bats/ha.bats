@@ -79,7 +79,6 @@ spec:
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
-  checkControllerK8s
   stopTest
 }
 

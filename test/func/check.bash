@@ -2,6 +2,7 @@
 
 function checkControllerK8s {
   local NS_CHECK=${1:-$NS}
+  kubectl wait --for=condition=Ready pods -l name=controller --timeout 1m || kubectl wait --for=condition=Ready pods -l name=controller --timeout 1m
   for NAME in $(kubectl get pods -n "$NS_CHECK" | grep controller | awk '{print $1}'); do
     [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
     iofogctl -v -n "$NS_CHECK" describe controller "$NAME" | grep "name: $NAME"
