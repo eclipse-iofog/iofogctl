@@ -31,7 +31,7 @@ export ROUTER_IMAGE='gcr.io/focal-freedom-236620/router:3.0.0-beta1'
 export ROUTER_ARM_IMAGE='gcr.io/focal-freedom-236620/router-arm:3.0.0-beta1'
 export PROXY_IMAGE='gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
 export PROXY_ARM_IMAGE='gcr.io/focal-freedom-236620/proxy-arm:3.0.0-beta1'
-export OPERATOR_IMAGE='gcr.io/focal-freedom-236620/operator:3.0.0-beta1'
+export OPERATOR_IMAGE='gcr.io/focal-freedom-236620/operator:3.0.0-beta5'
 export KUBELET_IMAGE='gcr.io/focal-freedom-236620/kubelet:3.0.0-beta1'
 
 # Controller version for vanilla deploys
