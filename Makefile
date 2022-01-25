@@ -19,7 +19,7 @@ PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 LDFLAGS += -X $(PREFIX).portManagerTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).kubeletTag=3.0.0-beta1
-LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-beta3
+LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-beta5
 LDFLAGS += -X $(PREFIX).proxyTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).routerTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).controllerTag=3.0.0-beta4
