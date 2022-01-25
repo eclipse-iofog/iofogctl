@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
+function waitForK8sController {
+  # Pod will restart once, so wait for either of them to be ready
+  kubectl wait --for=condition=Ready pods -l name=controller --timeout 1m || kubectl wait --for=condition=Ready pods -l name=controller --timeout 1m
+  kubectl wait --for=condition=Ready pods -l name=port-manager --timeout 1m
+  kubectl wait --for=condition=Ready pods -l name=router --timeout 1m
+}
+
 function checkControllerK8s {
+  waitForK8sController
   local NS_CHECK=${1:-$NS}
   for NAME in $(kubectl get pods -n "$NS_CHECK" | grep controller | awk '{print $1}'); do
     [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
