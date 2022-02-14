@@ -109,7 +109,7 @@ func (cl *SecureShellClient) Disconnect() error {
 
 func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
 	// Establish the session
-	SSHVerbose("Creating session...")
+	SSHVerbose("Creating session1...")
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return
@@ -178,7 +178,7 @@ func (cl *SecureShellClient) RunUntil(condition *regexp.Regexp, cmd string, igno
 		SSHVerbose(fmt.Sprintf("Try %v", iter))
 		// Establish the session
 		var session *ssh.Session
-		SSHVerbose("Creating session...")
+		SSHVerbose("Creating session2...")
 		session, err = cl.conn.NewSession()
 		if err != nil {
 			return
@@ -229,7 +229,7 @@ func (cl *SecureShellClient) CopyTo(reader io.Reader, destPath, destFilename, pe
 	}
 
 	// Establish the session
-	SSHVerbose("Creating session...")
+	SSHVerbose("Creating session3...")
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return err
