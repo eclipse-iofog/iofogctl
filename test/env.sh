@@ -42,7 +42,7 @@ export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 # Agent version for vanilla deploys
 export AGENT_VANILLA_VERSION='0.0.0-dev'
-export AGENT_REPO='iofog/iofog-agent-snapshots'
+export AGENT_REPO='iofog/iofog-agent-dev'
 # Token to access develop versions of Agent
 export AGENT_PACKAGE_CLOUD_TOKEN=""
 ######################################################################
