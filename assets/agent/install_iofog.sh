@@ -47,18 +47,14 @@ do_install_iofog() {
 	prefix=$([ -z "$token" ] && echo "" || echo "$token:@")
 	echo $lsb_dist
 	if [ "$lsb_dist" = "fedora" ] || [ "$lsb_dist" = "centos" ]; then
-			# curl -s "https://${prefix}packagecloud.io/install/repositories/$repo/script.rpm.sh" | $sh_c "bash"
-			# $sh_c "yum update -y"
-			# $sh_c "yum install -y iofog-agent-$agent_version-1.noarch"
-		echo "Starting agent installation -> ${timestamp}"
 		$sh_c "yum install yum-utils -y"
 		repo_any="$(echo $repo | tr "/" "_")"
 		echo "$repo_any"
 		repo_name="iofog_iofog-agent-dev"
-		repo_file="yum.repos.d/$repo_name.repo"
+		repo_file="yum.repos.d/$repo_any.repo"
 echo "[iofog_iofog-agent-dev]
 name=iofog_iofog-agent-dev
-baseurl=https://packagecloud.io/iofog/iofog-agent-dev/rpm_any/rpm_any/\$basearch
+baseurl=https://packagecloud.io/$repo/rpm_any/rpm_any/\$basearch
 repo_gpgcheck=1
 gpgcheck=0
 enabled=1
@@ -66,10 +62,9 @@ gpgkey=https://packagecloud.io/iofog/iofog-agent-dev/gpgkey
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 metadata_expire=300" > "/etc/$repo_file"
-		#$sh_c "yum update --disablerepo=* --enablerepo=iofog_iofog-agent-dev"
 		$sh_c "yum -q makecache -y --disablerepo='*' --enablerepo='iofog_iofog-agent-dev'"
-		$sh_c "yum install iofog-agent-3.0.0_dev_b18132-1.noarch -y"
-	else 
+		$sh_c "yum install -y iofog-agent-$agent_version-1.noarch"
+	else
 			repo_any=$(echo $repo | tr "/" "_")
 			echo $repo_any
 			gpg_key_url="https://packagecloud.io/$repo/gpgkey"
@@ -101,7 +96,7 @@ metadata_expire=300" > "/etc/$repo_file"
 }
 
 do_start_iofog(){
-	sudo service iofog-agent start
+	sudo service iofog-agent start 1> /dev/null
 	local STATUS=""
 	local ITER=0
 	while [ "$STATUS" != "RUNNING" ] ; do
@@ -115,7 +110,6 @@ do_start_iofog(){
 	    echo "${STATUS}"
 	done
 	sudo iofog-agent config -cf 10 -sf 50
-	exit 0
 }
 
 agent_version="$1"
