@@ -1,8 +1,31 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
+## [v3.0.0-beta7] - 23 February 2022
+* `iofog-agent` deployment updated to support `any/any` package instead of specific distros.
+* Default `iofog-agent` version updated to `3.0.0-beta6`
+
+
+## [v3.0.0-beta6] - 25 January 2022
+* Updated operator version to 3.0.0-beta5
+
+## [v3.0.0-beta5] - 14 January 2022
+* Updated operator version to 3.0.0-beta3
+
+## [v3.0.0-beta4] - 13 January 2022
+* Updated operator version to 3.0.0-beta2
+
+
+## [v3.0.0-beta3] - 29 October 2021
+* Config updated to V3
+
+## [v3.0.0-beta2] - 27 October 2021
+
+* Use new controller routes to send YAML directly to controller for app and microservices
 * Fix Docker install for ioFog Agent install procedure for systems w/o init.d
+* Fix docker install for centos
+* Fix java install for centos
 * Add snapd Docker support in ioFog Agent install procedure
 
 ## [v3.0.0-beta1] - 10 September 2021
@@ -167,7 +190,14 @@
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v2.0.0-beta3..HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta7..HEAD
+[v3.0.0-beta7]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta6..v3.0.0-beta7
+[v3.0.0-beta6]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta5..v3.0.0-beta6
+[v3.0.0-beta5]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta4..v3.0.0-beta5
+[v3.0.0-beta4]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta3..v3.0.0-beta4
+[v3.0.0-beta3]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta2..v3.0.0-beta3
+[v3.0.0-beta2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta1..v3.0.0-beta2
+[v3.0.0-beta1]: https://github.com/eclipse-iofog/iofogctl/compare/v2.0.1..v3.0.0-beta1
 [v2.0.0-rc1]: https://github.com/eclipse-iofog/iofogctl/compare/v2.0.0-beta4..v2.0.0-beta5
 [v2.0.0-beta5]: https://github.com/eclipse-iofog/iofogctl/compare/v2.0.0-beta4..v2.0.0-beta5
 [v2.0.0-beta4]: https://github.com/eclipse-iofog/iofogctl/compare/v2.0.0-beta3..v2.0.0-beta4

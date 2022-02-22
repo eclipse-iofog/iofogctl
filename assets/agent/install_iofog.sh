@@ -94,7 +94,8 @@ metadata_expire=300" > "/etc/$repo_file"
 }
 
 do_start_iofog(){
-	sudo service iofog-agent start 1> /dev/null
+	# shellcheck disable=SC2261
+	sudo service iofog-agent start > /dev/null 2&>1 &
 	local STATUS=""
 	local ITER=0
 	while [ "$STATUS" != "RUNNING" ] ; do
