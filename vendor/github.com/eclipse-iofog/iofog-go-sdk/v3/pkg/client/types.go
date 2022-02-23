@@ -313,6 +313,11 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type UpdateUserPasswordRequest struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
 type LoginResponse struct {
 	AccessToken string `json:"accessToken"`
 }

@@ -40,3 +40,13 @@ func (clt *Client) Login(request LoginRequest) (err error) {
 
 	return
 }
+
+func (clt *Client) UpdateUserPassword(request UpdateUserPasswordRequest) (err error) {
+	// Send request
+	_, err = clt.doRequest("PATCH", "/user/password", request)
+	if err != nil {
+		return
+	}
+
+	return
+}

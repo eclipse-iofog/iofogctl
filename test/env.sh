@@ -41,8 +41,8 @@ export CONTROLLER_REPO='iofog/iofog-controller-snapshots'
 export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 # Agent version for vanilla deploys
-export AGENT_VANILLA_VERSION='3.0.0-beta2'
-export AGENT_REPO='iofog/iofog-agent-snapshots'
+export AGENT_VANILLA_VERSION='3.0.0-beta6'
+export AGENT_REPO='iofog/iofog-agent-dev'
 # Token to access develop versions of Agent
 export AGENT_PACKAGE_CLOUD_TOKEN=""
 ######################################################################
