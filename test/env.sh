@@ -25,7 +25,7 @@ export KEY_FILE="~/.ssh/id_rsa"
 
 # Images of ioFog services deployed on Kubernetes cluster or local deploy
 export CONTROLLER_IMAGE='gcr.io/focal-freedom-236620/controller:3.0.0-beta4'
-export AGENT_IMAGE='gcr.io/focal-freedom-236620/agent:3.0.0-beta2'
+export AGENT_IMAGE='gcr.io/focal-freedom-236620/agent:3.0.0-beta6'
 export PORT_MANAGER_IMAGE='gcr.io/focal-freedom-236620/port-manager:3.0.0-beta1'
 export ROUTER_IMAGE='gcr.io/focal-freedom-236620/router:3.0.0-beta1'
 export ROUTER_ARM_IMAGE='gcr.io/focal-freedom-236620/router-arm:3.0.0-beta1'
@@ -42,7 +42,7 @@ export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
 
 # Agent version for vanilla deploys
 export AGENT_VANILLA_VERSION='3.0.0-beta6'
-export AGENT_REPO='iofog/iofog-agent-dev'
+export AGENT_REPO='iofog/iofog-agent'
 # Token to access develop versions of Agent
 export AGENT_PACKAGE_CLOUD_TOKEN=""
 ######################################################################
