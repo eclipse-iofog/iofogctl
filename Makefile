@@ -23,7 +23,7 @@ LDFLAGS += -X $(PREFIX).operatorTag=3.0.0-beta5
 LDFLAGS += -X $(PREFIX).proxyTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).routerTag=3.0.0-beta1
 LDFLAGS += -X $(PREFIX).controllerTag=3.0.0-beta4
-LDFLAGS += -X $(PREFIX).agentTag=3.0.0_beta6
+LDFLAGS += -X $(PREFIX).agentTag=3.0.0-beta6
 LDFLAGS += -X $(PREFIX).controllerVersion=3.0.0-beta4
 LDFLAGS += -X $(PREFIX).agentVersion=3.0.0-beta6
 LDFLAGS += -X $(PREFIX).repo=iofog
