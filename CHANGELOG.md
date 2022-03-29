@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v3.0.0-beta8] - 29 March 2022
+* Default `iofog-agent` version updated to `3.0.0-beta7`
+
 ## [v3.0.0-beta7] - 23 February 2022
 * `iofog-agent` deployment updated to support `any/any` package instead of specific distros.
 * Default `iofog-agent` version updated to `3.0.0-beta6`
@@ -190,7 +193,8 @@
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta7..HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta8..HEAD
+[v3.0.0-beta8]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta7..v3.0.0-beta8
 [v3.0.0-beta7]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta6..v3.0.0-beta7
 [v3.0.0-beta6]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta5..v3.0.0-beta6
 [v3.0.0-beta5]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta4..v3.0.0-beta5
