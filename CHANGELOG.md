@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [v3.0.0-beta8] - 29 March 2022
+## [v3.0.0-beta8] - 29 Mar 2022
 * Default `iofog-agent` version updated to `3.0.0-beta7`
 
 ## [v3.0.0-beta7] - 23 February 2022
