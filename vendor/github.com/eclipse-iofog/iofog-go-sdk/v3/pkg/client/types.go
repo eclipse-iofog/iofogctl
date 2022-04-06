@@ -401,6 +401,7 @@ type AgentInfo struct {
 	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency" yaml:"dockerPruningFrequency"`
 	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
 	Tags                      *[]string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	TimeZone                  string    `json:"timeZone" yaml:"timeZone"`
 }
 
 type RouterConfig struct {
@@ -433,6 +434,7 @@ type AgentConfiguration struct {
 	LogLevel                  *string  `json:"logLevel,omitempty" yaml:"logLevel"`
 	DockerPruningFrequency    *float64 `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
 	AvailableDiskThreshold    *float64 `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
+	TimeZone                  string   `json:"timeZone,omitempty" yaml:"timeZone"`
 }
 
 type AgentUpdateRequest struct {
