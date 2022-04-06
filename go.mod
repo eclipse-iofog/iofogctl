@@ -10,9 +10,8 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
-	github.com/eclipse-iofog/iofog-go-sdk/v2 v2.0.0-beta3.0.20210306092845-4d8568558b5d // indirect
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-beta2.0.20220116221831-d1a6b29bd120
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0-beta2.0.20220405032908-feceb5c7b126
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-20220120031100-d3432eede532
 	github.com/eclipse-iofog/iofogctl v1.3.2 // indirect
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/json-iterator/go v1.1.10

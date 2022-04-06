@@ -215,6 +215,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 			UpstreamRouters:           upstreamRoutersPtr,
 			NetworkRouter:             networkRouterPtr,
 			RouterConfig:              routerConfig,
+			TimeZone:                  agentInfo.TimeZone,
 		},
 	}
 
