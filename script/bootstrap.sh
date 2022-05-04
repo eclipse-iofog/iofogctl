@@ -35,7 +35,7 @@ fi
 # Is rice installed?
 if [ -z $(command -v rice) ]; then
     echo " Attempting to install 'rice'"
-    go install github.com/GeertJohan/go.rice
+    go install github.com/GeertJohan/go.rice@latest
     if [ -z $(command -v rice) ]; then
         echo ' Could not find command rice after installation - is $GOBIN in $PATH?'
     fi
@@ -72,7 +72,7 @@ if [ ! -z "$PIPELINE" ]; then
     ## Is kubernetes-cli installed?
     if ! checkForInstallation "kubectl"; then
         OS=$(uname -s | tr A-Z a-z)
-        K8S_VERSION=1.13.4
+        K8S_VERSION=1.22.7
         echoInfo " Attempting to install kubernetes-cli"
         curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v"$K8S_VERSION"/bin/"$OS"/amd64/kubectl
         chmod +x kubectl
@@ -81,7 +81,7 @@ if [ ! -z "$PIPELINE" ]; then
     # Is go-junit-report installed?
     if ! checkForInstallation "go-junit-report"; then
         echoInfo " Attempting to install 'go-junit-report'"
-        go install -mod=vendor github.com/jstemmer/go-junit-report
+        go install github.com/jstemmer/go-junit-report@latest
     fi
     ## TODO: gcloud
 fi
