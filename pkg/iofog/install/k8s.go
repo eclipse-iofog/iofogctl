@@ -26,7 +26,7 @@ import (
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	corev1 "k8s.io/api/core/v1"
-	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,18 +126,18 @@ func (k8s *Kubernetes) enableCustomResources() error {
 	// Control Plane and App
 	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv3.NewControlPlaneCustomResource(), iofogv3.NewAppCustomResource()} {
 		// Try create new
-		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
+		if _, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
 				return err
 			}
 			// Update
-			existingCRD, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ctx, crd.Name, metav1.GetOptions{})
+			existingCRD, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crd.Name, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
 			if !iofogv3.IsSupportedCustomResource(existingCRD) {
 				existingCRD.Spec.Versions = crd.Spec.Versions
-				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(ctx, existingCRD, metav1.UpdateOptions{}); err != nil {
+				if _, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Update(ctx, existingCRD, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			}
@@ -225,6 +225,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 			return
 		}
 	} else {
+		cp.SetConditionDeploying()
 		Verbose("Deploying new Control Plane")
 		if err = k8s.opClient.Create(context.Background(), &cp); err != nil {
 			return

@@ -1,7 +1,7 @@
 package apis
 
 import (
-	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -20,6 +20,18 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 		if idx == 0 {
 			versions[idx].Storage = true
 		}
+		versions[idx].Schema = &extsv1.CustomResourceValidation{
+			OpenAPIV3Schema: &extsv1.JSONSchemaProps{
+				Properties: map[string]extsv1.JSONSchemaProps{},
+				AdditionalProperties: &extsv1.JSONSchemaPropsOrBool{
+					Allows: true,
+				},
+				Required: []string{},
+			},
+		}
+		versions[idx].Subresources = &extsv1.CustomResourceSubresources{
+			Status: &extsv1.CustomResourceSubresourceStatus{},
+		}
 	}
 	return &extsv1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
@@ -35,9 +47,6 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 			},
 			Scope:    extsv1.NamespaceScoped,
 			Versions: versions,
-			Subresources: &extsv1.CustomResourceSubresources{
-				Status: &extsv1.CustomResourceSubresourceStatus{},
-			},
 		},
 	}
 }
@@ -66,9 +75,6 @@ func NewAppCustomResource() *extsv1.CustomResourceDefinition {
 			},
 			Scope:    extsv1.NamespaceScoped,
 			Versions: versions,
-			Subresources: &extsv1.CustomResourceSubresources{
-				Status: &extsv1.CustomResourceSubresourceStatus{},
-			},
 		},
 	}
 }
