@@ -201,6 +201,8 @@ github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5.0.20220504014559-1b42895
 github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5.0.20220504014559-1b42895c017e/go.mod h1:Rc6M/B7QLd+2fDzgrVYnkgsaE1FMoKbH6HA4Pdi+FEk=
 github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5.0.20220504020131-a4c77b256224 h1:3Q2NfS/yAgFA9zs7ac+XpECXra20TGXWjBm4dPgLREI=
 github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5.0.20220504020131-a4c77b256224/go.mod h1:Rc6M/B7QLd+2fDzgrVYnkgsaE1FMoKbH6HA4Pdi+FEk=
+github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5.0.20220504022040-a68ba4ecd8f0 h1:j0rpM49nd+8L7Xr8KK4E8tUlUtORPgDodSJzFisu7ds=
+github.com/eclipse-iofog/iofog-operator/v3 v3.0.0-beta5.0.20220504022040-a68ba4ecd8f0/go.mod h1:Rc6M/B7QLd+2fDzgrVYnkgsaE1FMoKbH6HA4Pdi+FEk=
 github.com/eclipse-iofog/iofogctl v1.3.2 h1:k38k0bpiGU57BVrdj6g0/1A93xSLl4Yp9jbX8Nlz6CM=
 github.com/eclipse-iofog/iofogctl v1.3.2/go.mod h1:qhUiKuc7PjbxPEgEpAHYArgUqlvIuHAb6DnuTDX6+tg=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=

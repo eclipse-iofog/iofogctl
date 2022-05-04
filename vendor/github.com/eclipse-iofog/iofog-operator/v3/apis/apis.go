@@ -14,6 +14,7 @@ import (
 func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 	apiVersions := []string{"v3", "v2"}
 	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
+	preserveUnknownFields := true
 	for idx, version := range apiVersions {
 		versions[idx].Name = version
 		versions[idx].Served = true
@@ -22,11 +23,9 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 		}
 		versions[idx].Schema = &extsv1.CustomResourceValidation{
 			OpenAPIV3Schema: &extsv1.JSONSchemaProps{
-				Properties: map[string]extsv1.JSONSchemaProps{},
-				AdditionalProperties: &extsv1.JSONSchemaPropsOrBool{
-					Allows: true,
-				},
-				Required: []string{},
+				Properties:             map[string]extsv1.JSONSchemaProps{},
+				XPreserveUnknownFields: &preserveUnknownFields,
+				Type:                   "object",
 			},
 		}
 		versions[idx].Subresources = &extsv1.CustomResourceSubresources{
@@ -53,12 +52,23 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 
 func NewAppCustomResource() *extsv1.CustomResourceDefinition {
 	apiVersions := []string{"v3", "v2", "v1"}
+	preserveUnknownFields := true
 	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
 	for idx, version := range apiVersions {
 		versions[idx].Name = version
 		versions[idx].Served = true
 		if idx == 0 {
 			versions[idx].Storage = true
+		}
+		versions[idx].Schema = &extsv1.CustomResourceValidation{
+			OpenAPIV3Schema: &extsv1.JSONSchemaProps{
+				Properties:             map[string]extsv1.JSONSchemaProps{},
+				XPreserveUnknownFields: &preserveUnknownFields,
+				Type:                   "object",
+			},
+		}
+		versions[idx].Subresources = &extsv1.CustomResourceSubresources{
+			Status: &extsv1.CustomResourceSubresourceStatus{},
 		}
 	}
 	return &extsv1.CustomResourceDefinition{
