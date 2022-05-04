@@ -35,7 +35,7 @@ fi
 # Is rice installed?
 if [ -z $(command -v rice) ]; then
     echo " Attempting to install 'rice'"
-    go install -mod=vendor github.com/GeertJohan/go.rice/rice
+    go install github.com/GeertJohan/go.rice
     if [ -z $(command -v rice) ]; then
         echo ' Could not find command rice after installation - is $GOBIN in $PATH?'
     fi
