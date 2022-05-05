@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -309,26 +308,38 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 			errCh <- util.NewInternalError("Error reading Operator Pod log stream " + errSuffix)
 			return
 		}
-		podLogsStr := buf.String()
-		finMsg := `Successfully Reconciled	{"reconcilerGroup": "iofog.org", "reconcilerKind": "ControlPlane", "controller": "controlplane", "name": "iofog", "namespace": "%s"}`
-		if strings.Contains(podLogsStr, fmt.Sprintf(finMsg, k8s.ns)) { // TODO: Decouple iofogctl-operator succ string
+
+		// Check controlplane resource status
+		var cp cpv3.ControlPlane
+		if err = k8s.opClient.Get(context.Background(), opclient.ObjectKey{
+			Name:      cpInstanceName,
+			Namespace: k8s.ns,
+		}, &cp); err != nil {
+			errCh <- util.NewInternalError("Error reading Control Plane resource " + errSuffix)
+			return
+		}
+
+		if cp.IsReady() {
 			errCh <- nil
 			return
 		}
-		errDelim := `ERROR` // TODO: Decouple iofogctl-operator err string
-		if strings.Contains(podLogsStr, errDelim) {
-			msg := ""
-			logLines := strings.Split(podLogsStr, "\n")
-			for _, line := range logLines {
-				// Error line pertains to this NS?
-				if strings.Contains(line, errDelim) && strings.Contains(line, fmt.Sprintf(`"namespace": "%s"`, k8s.ns)) {
-					msg = fmt.Sprintf("%s\n%s", msg, line)
-					errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
-					return
-				}
-			}
-			// Error pertains to another Control Plane
-		}
+
+		// podLogsStr := buf.String()
+		// Allow errors, need to fix iofog-operator to not have errors anymore
+		// errDelim := `ERROR` // TODO: Decouple iofogctl-operator err string
+		// if strings.Contains(podLogsStr, errDelim) {
+		// 	msg := ""
+		// 	logLines := strings.Split(podLogsStr, "\n")
+		// 	for _, line := range logLines {
+		// 		// Error line pertains to this NS?
+		// 		if strings.Contains(line, errDelim) && strings.Contains(line, fmt.Sprintf(`"namespace": "%s"`, k8s.ns)) {
+		// 			msg = fmt.Sprintf("%s\n%s", msg, line)
+		// 			errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
+		// 			return
+		// 		}
+		// 	}
+		// Error pertains to another Control Plane
+		// }
 
 		// Continue loop, wait for Router registration or error...
 	}
