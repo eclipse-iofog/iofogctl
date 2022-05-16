@@ -18,6 +18,7 @@ package v3
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -142,6 +143,10 @@ func (cp *ControlPlane) setCondition(conditionType string, log *logr.Logger) {
 	// Clear all
 	for idx := range cp.Status.Conditions {
 		condition := &cp.Status.Conditions[idx]
+		// Migration: all lower case, no spaces, no -
+		condition.Reason = strings.ToLower(condition.Reason)
+		condition.Reason = strings.Replace(condition.Reason, " ", "_", -1)
+		condition.Reason = strings.Replace(condition.Reason, "-", "_", -1)
 		if condition.Status == metav1.ConditionTrue {
 			condition.Status = metav1.ConditionFalse
 			condition.Reason = fmt.Sprintf("transition_to_%s", conditionType)
