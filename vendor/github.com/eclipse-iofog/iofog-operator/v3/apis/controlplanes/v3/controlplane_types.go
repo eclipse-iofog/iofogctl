@@ -18,15 +18,17 @@ package v3
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
 	cond "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
 	conditionReady     = "ready"
-	conditionDeploying = "" // Update iofogctl etc to set default state
+	conditionDeploying = "deploying"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -112,6 +114,7 @@ type Ingresses struct {
 type Controller struct {
 	PidBaseDir        string `json:"pidBaseDir,omitempty"`
 	EcnViewerPort     int    `json:"ecnViewerPort,omitempty"`
+	EcnViewerURL      string `json:"ecnViewerUrl,omitempty"`
 	PortProvider      string `json:"portProvider,omitempty"`
 	ECNName           string `json:"ecn,omitempty"`
 	PortAllocatorHost string `json:"portAllocatorHost,omitempty"`
@@ -126,7 +129,6 @@ type ControlPlaneStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
 // ControlPlane is the Schema for the controlplanes API
 type ControlPlane struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -136,14 +138,18 @@ type ControlPlane struct {
 	Status ControlPlaneStatus `json:"status,omitempty"`
 }
 
-func (cp *ControlPlane) setCondition(conditionType string) {
+func (cp *ControlPlane) setCondition(conditionType string, log *logr.Logger) {
 	now := metav1.NewTime(time.Now())
 	// Clear all
 	for idx := range cp.Status.Conditions {
 		condition := &cp.Status.Conditions[idx]
+		// Migration: all lower case, no spaces, no -
+		condition.Reason = strings.ToLower(condition.Reason)
+		condition.Reason = strings.Replace(condition.Reason, " ", "_", -1)
+		condition.Reason = strings.Replace(condition.Reason, "-", "_", -1)
 		if condition.Status == metav1.ConditionTrue {
 			condition.Status = metav1.ConditionFalse
-			condition.Reason = fmt.Sprintf("transition to %s", conditionType)
+			condition.Reason = fmt.Sprintf("transition_to_%s", conditionType)
 			condition.LastTransitionTime = now
 		}
 	}
@@ -151,22 +157,25 @@ func (cp *ControlPlane) setCondition(conditionType string) {
 	newCondition := metav1.Condition{
 		Type:               conditionType,
 		Status:             metav1.ConditionTrue,
-		Reason:             "",
+		Reason:             "initial_status",
 		LastTransitionTime: now,
+	}
+	if log != nil {
+		log.Info(fmt.Sprintf("reconcileDeploying() ControlPlane %s setCondition %v -- Existing conditions %v", cp.Name, newCondition, cp.Status.Conditions))
 	}
 	cond.SetStatusCondition(&cp.Status.Conditions, newCondition)
 }
 
 func (cp *ControlPlane) SetConditionDeploying() {
-	cp.setCondition(conditionDeploying)
+	cp.setCondition(conditionDeploying, nil)
 }
 
-func (cp *ControlPlane) SetConditionReady() {
-	cp.setCondition(conditionReady)
+func (cp *ControlPlane) SetConditionReady(log *logr.Logger) {
+	cp.setCondition(conditionReady, log)
 }
 
 func (cp *ControlPlane) GetCondition() string {
-	state := ""
+	state := conditionDeploying
 	for _, condition := range cp.Status.Conditions {
 		if condition.Status == metav1.ConditionTrue {
 			state = condition.Type

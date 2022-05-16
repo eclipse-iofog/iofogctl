@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -26,7 +25,7 @@ import (
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
 	corev1 "k8s.io/api/core/v1"
-	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,18 +125,18 @@ func (k8s *Kubernetes) enableCustomResources() error {
 	// Control Plane and App
 	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv3.NewControlPlaneCustomResource(), iofogv3.NewAppCustomResource()} {
 		// Try create new
-		if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
+		if _, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
 				return err
 			}
 			// Update
-			existingCRD, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ctx, crd.Name, metav1.GetOptions{})
+			existingCRD, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crd.Name, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
 			if !iofogv3.IsSupportedCustomResource(existingCRD) {
 				existingCRD.Spec.Versions = crd.Spec.Versions
-				if _, err := k8s.extsClientset.ApiextensionsV1beta1().CustomResourceDefinitions().Update(ctx, existingCRD, metav1.UpdateOptions{}); err != nil {
+				if _, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Update(ctx, existingCRD, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			}
@@ -225,6 +224,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 			return
 		}
 	} else {
+		cp.SetConditionDeploying()
 		Verbose("Deploying new Control Plane")
 		if err = k8s.opClient.Create(context.Background(), &cp); err != nil {
 			return
@@ -308,26 +308,38 @@ func (k8s *Kubernetes) monitorOperator(errCh chan error) {
 			errCh <- util.NewInternalError("Error reading Operator Pod log stream " + errSuffix)
 			return
 		}
-		podLogsStr := buf.String()
-		finMsg := `Successfully Reconciled	{"reconcilerGroup": "iofog.org", "reconcilerKind": "ControlPlane", "controller": "controlplane", "name": "iofog", "namespace": "%s"}`
-		if strings.Contains(podLogsStr, fmt.Sprintf(finMsg, k8s.ns)) { // TODO: Decouple iofogctl-operator succ string
+
+		// Check controlplane resource status
+		var cp cpv3.ControlPlane
+		if err = k8s.opClient.Get(context.Background(), opclient.ObjectKey{
+			Name:      cpInstanceName,
+			Namespace: k8s.ns,
+		}, &cp); err != nil {
+			errCh <- util.NewInternalError("Error reading Control Plane resource " + errSuffix)
+			return
+		}
+
+		if cp.IsReady() {
 			errCh <- nil
 			return
 		}
-		errDelim := `ERROR` // TODO: Decouple iofogctl-operator err string
-		if strings.Contains(podLogsStr, errDelim) {
-			msg := ""
-			logLines := strings.Split(podLogsStr, "\n")
-			for _, line := range logLines {
-				// Error line pertains to this NS?
-				if strings.Contains(line, errDelim) && strings.Contains(line, fmt.Sprintf(`"namespace": "%s"`, k8s.ns)) {
-					msg = fmt.Sprintf("%s\n%s", msg, line)
-					errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
-					return
-				}
-			}
-			// Error pertains to another Control Plane
-		}
+
+		// podLogsStr := buf.String()
+		// Allow errors, need to fix iofog-operator to not have errors anymore
+		// errDelim := `ERROR` // TODO: Decouple iofogctl-operator err string
+		// if strings.Contains(podLogsStr, errDelim) {
+		// 	msg := ""
+		// 	logLines := strings.Split(podLogsStr, "\n")
+		// 	for _, line := range logLines {
+		// 		// Error line pertains to this NS?
+		// 		if strings.Contains(line, errDelim) && strings.Contains(line, fmt.Sprintf(`"namespace": "%s"`, k8s.ns)) {
+		// 			msg = fmt.Sprintf("%s\n%s", msg, line)
+		// 			errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
+		// 			return
+		// 		}
+		// 	}
+		// Error pertains to another Control Plane
+		// }
 
 		// Continue loop, wait for Router registration or error...
 	}

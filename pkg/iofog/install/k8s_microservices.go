@@ -68,7 +68,11 @@ func newOperatorMicroservice() *microservice {
 				},
 				Resources: []string{
 					"apps",
+					"applications",
+					"applications/status",
 					"controlplanes",
+					"apps/status",
+					"controlplanes/status",
 				},
 				Verbs: []string{
 					"list",
@@ -83,6 +87,17 @@ func newOperatorMicroservice() *microservice {
 				},
 				Resources: []string{
 					"deployments",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"coordination.k8s.io",
+				},
+				Resources: []string{
+					"leases",
 				},
 				Verbs: []string{
 					"*",

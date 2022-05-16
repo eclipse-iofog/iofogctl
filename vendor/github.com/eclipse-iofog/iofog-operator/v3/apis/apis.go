@@ -1,7 +1,7 @@
 package apis
 
 import (
-	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -14,11 +14,22 @@ import (
 func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 	apiVersions := []string{"v3", "v2"}
 	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
+	preserveUnknownFields := true
 	for idx, version := range apiVersions {
 		versions[idx].Name = version
 		versions[idx].Served = true
 		if idx == 0 {
 			versions[idx].Storage = true
+		}
+		versions[idx].Schema = &extsv1.CustomResourceValidation{
+			OpenAPIV3Schema: &extsv1.JSONSchemaProps{
+				Properties:             map[string]extsv1.JSONSchemaProps{},
+				XPreserveUnknownFields: &preserveUnknownFields,
+				Type:                   "object",
+			},
+		}
+		versions[idx].Subresources = &extsv1.CustomResourceSubresources{
+			Status: &extsv1.CustomResourceSubresourceStatus{},
 		}
 	}
 	return &extsv1.CustomResourceDefinition{
@@ -35,21 +46,29 @@ func NewControlPlaneCustomResource() *extsv1.CustomResourceDefinition {
 			},
 			Scope:    extsv1.NamespaceScoped,
 			Versions: versions,
-			Subresources: &extsv1.CustomResourceSubresources{
-				Status: &extsv1.CustomResourceSubresourceStatus{},
-			},
 		},
 	}
 }
 
 func NewAppCustomResource() *extsv1.CustomResourceDefinition {
 	apiVersions := []string{"v3", "v2", "v1"}
+	preserveUnknownFields := true
 	versions := make([]extsv1.CustomResourceDefinitionVersion, len(apiVersions))
 	for idx, version := range apiVersions {
 		versions[idx].Name = version
 		versions[idx].Served = true
 		if idx == 0 {
 			versions[idx].Storage = true
+		}
+		versions[idx].Schema = &extsv1.CustomResourceValidation{
+			OpenAPIV3Schema: &extsv1.JSONSchemaProps{
+				Properties:             map[string]extsv1.JSONSchemaProps{},
+				XPreserveUnknownFields: &preserveUnknownFields,
+				Type:                   "object",
+			},
+		}
+		versions[idx].Subresources = &extsv1.CustomResourceSubresources{
+			Status: &extsv1.CustomResourceSubresourceStatus{},
 		}
 	}
 	return &extsv1.CustomResourceDefinition{
@@ -66,9 +85,6 @@ func NewAppCustomResource() *extsv1.CustomResourceDefinition {
 			},
 			Scope:    extsv1.NamespaceScoped,
 			Versions: versions,
-			Subresources: &extsv1.CustomResourceSubresources{
-				Status: &extsv1.CustomResourceSubresourceStatus{},
-			},
 		},
 	}
 }

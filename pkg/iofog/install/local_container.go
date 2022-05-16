@@ -359,7 +359,7 @@ func (lc *LocalContainer) DeployContainer(containerConfig *LocalContainerConfig)
 		}
 	}
 
-	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, containerConfig.ContainerName)
+	container, err := lc.client.ContainerCreate(ctx, dockerContainerConfig, hostConfig, nil, nil, containerConfig.ContainerName)
 	if err != nil {
 		return "", util.NewError(fmt.Sprintf("Failed to create container: %v\n", err))
 	}

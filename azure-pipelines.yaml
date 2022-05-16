@@ -16,23 +16,23 @@ trigger:
 variables:
   build: $(Build.BuildId)
   jobuuid: $(Build.BuildId)$(Agent.Id)
-  GOROOT: '/usr/local/go1.16'
+  GOROOT: '/usr/local/go1.17.9'
   GOPATH: '/tmp/go'
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.0-beta4'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.0-beta4'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:3.0.0-beta7'
-  operator_image: 'gcr.io/focal-freedom-236620/operator:3.0.0-beta5'
-  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:3.0.0-beta1'
-  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:3.0.0-beta1'
-  router_image: 'gcr.io/focal-freedom-236620/router:3.0.0-beta1'
-  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:3.0.0-beta1'
-  proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
-  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:3.0.0-beta1'
-  iofog_agent_version: '3.0.0-beta7'
-  controller_version: '3.0.0-beta4'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:master'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
+  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:develop'
+  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:develop'
+  router_image: 'gcr.io/focal-freedom-236620/router:develop'
+  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:develop'
+  proxy_image: 'gcr.io/focal-freedom-236620/proxy:develop'
+  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:develop'
+  iofog_agent_version: '0.0.0-dev'
+  controller_version: '0.0.0-dev'
   version:
   agent_vm_list:
   controller_vm:
