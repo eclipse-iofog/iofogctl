@@ -224,7 +224,7 @@ func (k8s *Kubernetes) CreateControlPlane(conf *ControllerConfig) (endpoint stri
 			return
 		}
 	} else {
-		cp.SetConditionDeploying()
+		cp.SetConditionDeploying(nil)
 		Verbose("Deploying new Control Plane")
 		if err = k8s.opClient.Create(context.Background(), &cp); err != nil {
 			return
