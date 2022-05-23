@@ -22,9 +22,9 @@ variables:
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
   controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.1'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.2'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.3'
   agent_image: 'gcr.io/focal-freedom-236620/agent:3.0.1'
-  operator_image: 'gcr.io/focal-freedom-236620/operator:3.0.0'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:3.0.1'
   kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:3.0.0-beta1'
   port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:3.0.0'
   router_image: 'gcr.io/focal-freedom-236620/router:3.0.0'
