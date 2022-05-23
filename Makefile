@@ -19,7 +19,7 @@ PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 LDFLAGS += -X $(PREFIX).portManagerTag=3.0.0
 LDFLAGS += -X $(PREFIX).kubeletTag=3.0.0-beta1
-LDFLAGS += -X $(PREFIX).operatorTag=3.0.0
+LDFLAGS += -X $(PREFIX).operatorTag=3.0.1
 LDFLAGS += -X $(PREFIX).proxyTag=3.0.0
 LDFLAGS += -X $(PREFIX).routerTag=3.0.0
 LDFLAGS += -X $(PREFIX).controllerTag=3.0.1
@@ -28,7 +28,7 @@ LDFLAGS += -X $(PREFIX).controllerVersion=3.0.1
 LDFLAGS += -X $(PREFIX).agentVersion=3.0.1
 LDFLAGS += -X $(PREFIX).repo=iofog
 GO_SDK_MODULE = iofog-go-sdk/v3@v3.0.0
-OPERATOR_MODULE = iofog-operator/v3@v3.0.0
+OPERATOR_MODULE = iofog-operator/v3@v3.0.1
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml

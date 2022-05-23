@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v20.10.14+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.0.0
-	github.com/eclipse-iofog/iofog-operator/v3 v3.0.0
+	github.com/eclipse-iofog/iofog-operator/v3 v3.0.1
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
