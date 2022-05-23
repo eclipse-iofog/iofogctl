@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LATEST_TAG=$(git for-each-ref refs/tags --sort=-taggerdate --format='%(refname)' | tail -n1 | sed "s|refs/tags/||")
+LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
 MAJOR=$(echo "$LATEST_TAG" | tr -d "v" | sed "s|-.*||" | sed -E "s|(.)\..\..|\1|g")
 MINOR=$(echo "$LATEST_TAG" | tr -d "v" | sed "s|-.*||" | sed -E "s|.\.(.)\..|\1|g")
 PATCH=$(echo "$LATEST_TAG" | tr -d "v" | sed "s|-.*||" | sed -E "s|.\..\.(.)|\1|g")
