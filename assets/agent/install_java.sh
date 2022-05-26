@@ -25,8 +25,7 @@ do_install_java() {
 	fi
 	case "$lsb_dist" in
 		ubuntu)
-			$sh_c "add-apt-repository ppa:openjdk-r/ppa -y"
-			$sh_c "apt-get update"
+			$sh_c "apt-get update -y"
 			$sh_c "apt install -y openjdk-11-jdk"
 		;;
 		debian|mendel)
