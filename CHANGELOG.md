@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 
+## [v3.0.1] - 27 May 2022
+* Updated openjdk-11 installation on Ubuntu
+
 ## [v3.0.0] - 23 May 2022
 * Updated components for 3.0.0 release.
 
-## [v3.0.0-beta8] - 29 Mar 2022
+## [v3.0.0-beta8] - 29 March 2022
 * Default `iofog-agent` version updated to `3.0.0-beta7`
 
 ## [v3.0.0-beta7] - 23 February 2022
@@ -40,7 +43,7 @@
 * Fix Debian Stretch Docker installation
 * Fix Debian Buster apt update release info issue for Agent install
 
-## [v3.0.0-alpha1] - 25 March 2021
+## [v3.0.0-alpha1] - 11 March 2021
 
 * Add Application Template support
 * Add Agent `upgrade` and `rollback` commands
