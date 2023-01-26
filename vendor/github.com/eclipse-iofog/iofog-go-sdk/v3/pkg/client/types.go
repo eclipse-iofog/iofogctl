@@ -205,10 +205,17 @@ type MicroservicePublicPortInfo struct {
 	Router   *MicroservicePublicPortRouterInfo `json:"router,omitempty"`
 }
 
+type MicroserviceProxyPortInfo struct {
+	Host     string `json:"host"`
+	Port     int64  `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
 type MicroservicePortMappingInfo struct {
 	Internal int64                       `json:"internal"`
 	External int64                       `json:"external"`
 	Public   *MicroservicePublicPortInfo `json:"public,omitempty"`
+	Proxy    *MicroserviceProxyPortInfo  `json:"proxy,omitempty"`
 	Protocol string                      `json:"protocol,omitempty"`
 }
 
