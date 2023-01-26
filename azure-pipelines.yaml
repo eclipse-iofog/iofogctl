@@ -21,7 +21,7 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.1'
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:master'
   agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
   operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
