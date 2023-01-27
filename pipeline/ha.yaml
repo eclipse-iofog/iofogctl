@@ -1,7 +1,7 @@
 jobs:
 - job: HA
   pool:
-    vmImage: 'Ubuntu-18.04'
+    vmImage: 'Ubuntu-20.04'
   steps:
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Build Artifacts'
@@ -21,6 +21,17 @@ jobs:
       agent_count: 2
       controller_count: 0
   - script: |
+      set -e
+      keyFilePath="$(Agent.TempDirectory)/azure-gcp.json"
+      
+      # Install gcloud-auth-plugin
+      echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+      curl -f https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      sudo apt-get update && sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+      
+      gcloud components list
+      
+      gcloud --quiet auth activate-service-account --key-file="${keyFilePath}"
       gcloud --quiet container clusters get-credentials $(gcp.cluster.name) --region $(gcp.cluster.region)
     displayName: 'Connect to cluster'
   - template: steps/configure-remote-tests.yaml
