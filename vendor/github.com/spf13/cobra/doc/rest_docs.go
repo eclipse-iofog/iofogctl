@@ -1,10 +1,9 @@
-// Copyright 2013-2022 The Cobra Authors
+//Copyright 2015 Red Hat Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,7 +70,7 @@ func GenReSTCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string, str
 	if len(long) == 0 {
 		long = short
 	}
-	ref := strings.ReplaceAll(name, " ", "_")
+	ref := strings.Replace(name, " ", "_", -1)
 
 	buf.WriteString(".. _" + ref + ":\n\n")
 	buf.WriteString(name + "\n")
@@ -100,7 +99,7 @@ func GenReSTCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string, str
 		if cmd.HasParent() {
 			parent := cmd.Parent()
 			pname := parent.CommandPath()
-			ref = strings.ReplaceAll(pname, " ", "_")
+			ref = strings.Replace(pname, " ", "_", -1)
 			buf.WriteString(fmt.Sprintf("* %s \t - %s\n", linkHandler(pname, ref), parent.Short))
 			cmd.VisitParents(func(c *cobra.Command) {
 				if c.DisableAutoGenTag {
@@ -117,7 +116,7 @@ func GenReSTCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string, str
 				continue
 			}
 			cname := name + " " + child.Name()
-			ref = strings.ReplaceAll(cname, " ", "_")
+			ref = strings.Replace(cname, " ", "_", -1)
 			buf.WriteString(fmt.Sprintf("* %s \t - %s\n", linkHandler(cname, ref), child.Short))
 		}
 		buf.WriteString("\n")
@@ -152,7 +151,7 @@ func GenReSTTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string
 		}
 	}
 
-	basename := strings.ReplaceAll(cmd.CommandPath(), " ", "_") + ".rst"
+	basename := strings.Replace(cmd.CommandPath(), " ", "_", -1) + ".rst"
 	filename := filepath.Join(dir, basename)
 	f, err := os.Create(filename)
 	if err != nil {
