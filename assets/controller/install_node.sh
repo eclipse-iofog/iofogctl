@@ -22,8 +22,8 @@ install_node() {
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 	fi
-	nvm install v10.16.3
-	nvm use v10.16.3
+	nvm install  v14.19.0
+	nvm use  v14.19.0
 	ln -Ffs $(which node) /usr/local/bin/node
 	ln -Ffs $(which npm) /usr/local/bin/npm
 

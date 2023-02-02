@@ -24,7 +24,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ApplicationSpec defines the desired state of Application
+// ApplicationSpec defines the desired state of Application.
 type ApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
@@ -34,7 +34,7 @@ type ApplicationSpec struct {
 	Replicas      int32               `json:"replicas"`
 }
 
-// ApplicationStatus defines the observed state of Application
+// ApplicationStatus defines the observed state of Application.
 type ApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
@@ -47,7 +47,7 @@ type ApplicationStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// Application is the Schema for the applications API
+// Application is the Schema for the applications API.
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -58,13 +58,13 @@ type Application struct {
 
 // +kubebuilder:object:root=true
 
-// ApplicationList contains a list of Application
+// ApplicationList contains a list of Application.
 type ApplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Application `json:"items"`
 }
 
-func init() {
+func init() { //nolint:gochecknoinits
 	SchemeBuilder.Register(&Application{}, &ApplicationList{})
 }

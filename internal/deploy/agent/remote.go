@@ -75,9 +75,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 	return agent.Configure(controllerEndpoint, user)
 }
 
-//
 // Deploy iofog-agent stack on an agent host
-//
 func (exe *remoteExecutor) Execute() (err error) {
 	// Get Control Plane
 	ns, err := config.GetNamespace(exe.namespace)

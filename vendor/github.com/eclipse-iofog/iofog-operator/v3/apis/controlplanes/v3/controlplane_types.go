@@ -34,14 +34,14 @@ const (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ControlPlaneSpec defines the desired state of ControlPlane
+// ControlPlaneSpec defines the desired state of ControlPlane.
 type ControlPlaneSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	// User contains credentials for ioFog Controller
 	User User `json:"user"`
-	// Database is only used when ioFog Controller is configured to connect to an extrenal DB
+	// Database is only used when ioFog Controller is configured to connect to an external DB.
 	Database Database `json:"database,omitempty"`
 	// Ingresses allow Router and Port Manager to configure endpoint addresses correctly
 	Ingresses Ingresses `json:"ingresses,omitempty"`
@@ -76,6 +76,7 @@ type Images struct {
 	Router      string `json:"router,omitempty"`
 	PortManager string `json:"portManager,omitempty"`
 	Proxy       string `json:"proxy,omitempty"`
+	PortRouter  string `json:"portRouter,omitempty"`
 }
 
 type Database struct {
@@ -118,9 +119,11 @@ type Controller struct {
 	PortProvider      string `json:"portProvider,omitempty"`
 	ECNName           string `json:"ecn,omitempty"`
 	PortAllocatorHost string `json:"portAllocatorHost,omitempty"`
+	ProxyBrokerURL    string `json:"proxyBrokerUrl,omitempty"`
+	ProxyBrokerToken  string `json:"proxyBrokerToken,omitempty"`
 }
 
-// ControlPlaneStatus defines the observed state of ControlPlane
+// ControlPlaneStatus defines the observed state of ControlPlane.
 type ControlPlaneStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -129,7 +132,7 @@ type ControlPlaneStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// ControlPlane is the Schema for the controlplanes API
+// ControlPlane is the Schema for the controlplanes API.
 type ControlPlane struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -147,6 +150,7 @@ func (cp *ControlPlane) setCondition(conditionType string, log *logr.Logger) {
 		condition.Reason = strings.ToLower(condition.Reason)
 		condition.Reason = strings.Replace(condition.Reason, " ", "_", -1)
 		condition.Reason = strings.Replace(condition.Reason, "-", "_", -1)
+
 		if condition.Status == metav1.ConditionTrue {
 			condition.Status = metav1.ConditionFalse
 			condition.Reason = fmt.Sprintf("transition_to_%s", conditionType)
@@ -160,9 +164,11 @@ func (cp *ControlPlane) setCondition(conditionType string, log *logr.Logger) {
 		Reason:             "initial_status",
 		LastTransitionTime: now,
 	}
+
 	if log != nil {
 		log.Info(fmt.Sprintf("reconcileDeploying() ControlPlane %s setCondition %v -- Existing conditions %v", cp.Name, newCondition, cp.Status.Conditions))
 	}
+
 	cond.SetStatusCondition(&cp.Status.Conditions, newCondition)
 }
 
@@ -176,12 +182,15 @@ func (cp *ControlPlane) SetConditionReady(log *logr.Logger) {
 
 func (cp *ControlPlane) GetCondition() string {
 	state := conditionDeploying
+
 	for _, condition := range cp.Status.Conditions {
 		if condition.Status == metav1.ConditionTrue {
 			state = condition.Type
+
 			break
 		}
 	}
+
 	return state
 }
 
@@ -195,13 +204,13 @@ func (cp *ControlPlane) IsDeploying() bool {
 
 // +kubebuilder:object:root=true
 
-// ControlPlaneList contains a list of ControlPlane
+// ControlPlaneList contains a list of ControlPlane.
 type ControlPlaneList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ControlPlane `json:"items"`
 }
 
-func init() {
+func init() { //nolint:gochecknoinits
 	SchemeBuilder.Register(&ControlPlane{}, &ControlPlaneList{})
 }
