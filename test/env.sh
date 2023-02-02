@@ -38,7 +38,7 @@ export KUBELET_IMAGE='gcr.io/focal-freedom-236620/kubelet:develop'
 export CONTROLLER_VANILLA_VERSION='0.0.0-dev'
 export CONTROLLER_REPO='iofog/iofog-controller-snapshots'
 # Token to access develop versions of Controller
-export CONTROLLER_PACKAGE_CLOUD_TOKEN=""
+export CONTROLLER_PACKAGE_CLOUD_TOKEN="3b4ee4b0aac01b954034e1e1c628fcbe7113b299c9934424"
 
 # Agent version for vanilla deploys
 export AGENT_VANILLA_VERSION='0.0.0-dev'
