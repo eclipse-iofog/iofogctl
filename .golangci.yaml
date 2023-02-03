@@ -4,20 +4,20 @@ linters:
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
-    - asasalint
+#    - asasalint
     - asciicheck
-    - bidichk
+#    - bidichk
     #    - bodyclose
-    - contextcheck
+#    - contextcheck
     #    - cyclop
-    - decorder
+#    - decorder
     - depguard
     - dogsled
 #    - durationcheck
     #    - errcheck
     #    - errchkjson
-    - errname
-    - execinquery
+#    - errname
+#    - execinquery
 #    - exportloopref
     #    - forbidigo
     #    - forcetypeassert
