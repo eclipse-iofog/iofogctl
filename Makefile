@@ -33,12 +33,6 @@ REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
 
-# Go variables
-export CGO_ENABLED ?= 0
-export GOOS ?= $(OS)
-export GOARCH ?= amd64
-GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
-
 .PHONY: all
 all: bootstrap build install ## Bootstrap env, build and install binary
 
@@ -48,7 +42,7 @@ bootstrap: ## Bootstrap environment
 	@script/bootstrap.sh
 
 .PHONY: build
-build: GOARGS += -mod=vendor -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
+build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: fmt ## Build the binary
 	@cd pkg/util && rice embed-go
 	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
@@ -57,37 +51,30 @@ build: fmt ## Build the binary
 install: ## Install the iofogctl binary to /usr/local/bin
 	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
 
-.PHONY: modules
-modules: ## Get modules
-	@for module in $(OPERATOR_MODULE) $(GO_SDK_MODULE) ; do \
-		go get github.com/eclipse-iofog/$$module; \
-	done
-	@go get github.com/eclipse-iofog/iofogctl@v1.3
-
-.PHONY: get
-get: export GOFLAGS=-mod=vendor
-get: ## Pull modules
-
-.PHONY: vendor
-vendor: modules ## Vendor all modules
-	@go mod vendor
-	@for module in GeertJohan; do \
-		git checkout -- vendor/github.com/$$module; \
-	done
-
 .PHONY: lint
-lint: fmt ## Lint the source
-	@golangci-lint run --timeout 5m0s
+lint: golangci-lint fmt ## Lint the source
+	@$(GOLANGCI_LINT) run --timeout 5m0s
+
+golangci-lint: ## Install golangci
+ifeq (, $(shell which golangci-lint))
+	@{ \
+	set -e ;\
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1 ;\
+	}
+GOLANGCI_LINT=$(GOBIN)/golangci-lint
+else
+GOLANGCI_LINT=$(shell which golangci-lint)
+endif
 
 .PHONY: fmt
 fmt: ## Format the source
-	@gofmt -s -w $(GOFILES_NOVENDOR)
+	@gofmt -s -w .
 
 .PHONY: test
 test: ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; find ./internal ./pkg -name '*_test.go' -not -path vendor | sed -E "s|(/.*/).*_test.go|\1|g" | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -coverprofile=$(REPORTS_DIR)/coverage.txt -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; find ./internal ./pkg -name '*_test.go' -not -path vendor | sed -E "s|(/.*/).*_test.go|\1|g" | xargs -n1 go test -ldflags "$(LDFLAGS)" -coverprofile=$(REPORTS_DIR)/coverage.txt -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list

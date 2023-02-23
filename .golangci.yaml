@@ -1,16 +1,121 @@
+
+linters:
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
+  disable-all: true
+  enable:
+#    - asasalint
+    - asciicheck
+#    - bidichk
+    #    - bodyclose
+#    - contextcheck
+    #    - cyclop
+#    - decorder
+    - depguard
+    - dogsled
+#    - durationcheck
+    #    - errcheck
+    #    - errchkjson
+#    - errname
+#    - execinquery
+#    - exportloopref
+    #    - forbidigo
+    #    - forcetypeassert
+    - funlen
+    #    - revive
+    - typecheck
+    #    - dupl
+    #    - dupword
+    #    - errorlint
+    #    - exhaustruct
+    #    - gochecknoglobals
+    #    - gochecknoinits
+    #    - gocognit
+    - goconst
+    #    - gocritic # probably should re-enable this
+    - gocyclo
+    #    - godot
+    #    - godox # disabling because we have WAY too many TODOs etc.
+    #    - goerr113 # TODO: reenable
+    #    - gofmt
+    #    - gofumpt # not using this
+    - goheader
+#    - goimports
+#    - gomnd
+#    - gomoddirectives
+#    - gomodguard
+#    - goprintffuncname
+#    - gosec
+#    - gosimple
+#    - govet
+#    - grouper
+#    - ifshort
+#    - importas
+#    - ineffassign
+#    - interfacebloat
+#    - interfacer
+#    - ireturn
+#    - lll
+#    - loggercheck
+#    - maintidx
+#    - makezero
+#    - maligned
+#    - misspell
+#    - nakedret
+#    - nestif
+#    - nilerr
+#    - nilnil
+#    - nlreturn
+#    - noctx
+#    - nolintlint
+#    - nonamedreturns
+#    - nosnakecase
+#    - nosprintfhostport
+#    - paralleltest
+#    - prealloc
+#    - predeclared
+#    - promlinter
+#    - reassign
+#    - rowserrcheck
+#    - scopelint
+#    - sqlclosecheck
+#    - staticcheck
+#    - structcheck
+#    - stylecheck
+#    - tagliatelle
+#    - tenv
+#    - testableexamples
+#    - testpackage
+#    - thelper
+#    - tparallel
+#    - unconvert
+#    - unparam
+#    - unused
+#    - usestdlibvars
+#    - varcheck
+#    - varnamelen
+#    - wastedassign
+#    - whitespace
+#    - wrapcheck
+#    - wsl
+
+
 linters-settings:
+  cyclop:
+    max-complexity: 30
+    skip-tests: true
   depguard:
     list-type: blacklist
     packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-#      - github.com/sirupsen/logrus
+    # logging is allowed only by logutils.Log, logrus
+    # is allowed to use only in logutils package
+    #      - github.com/sirupsen/logrus
     packages-with-error-message:
-#      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+  #      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
   dupl:
     threshold: 100
   funlen:
-    lines: 200
+    lines: 250
     statements: 100
   goconst:
     min-len: 2
@@ -33,10 +138,28 @@ linters-settings:
     min-complexity: 36
   gocyclo:
     min-complexity: 36
+  godox:
+    # Report any comments starting with keywords, this is useful for TODO or FIXME comments that
+    # might be left in the code accidentally and should be resolved before merging.
+    # Default: ["TODO", "BUG", "FIXME"]
+    keywords:
+      - TODO
+      - BUG
+      - FIXME
+  gofmt:
+    # Simplify code: gofmt with `-s` option.
+    # Default: true
+    simplify: true
+    # Apply the rewrite rules to the source before reformatting.
+    # https://pkg.go.dev/cmd/gofmt
+    # Default: []
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
+      - pattern: 'a[b:len(a)]'
+        replacement: 'a[b:]'
   goimports:
-#    local-prefixes: github.com/golangci/golangci-lint
-  golint:
-    min-confidence: 0
+  #    local-prefixes: github.com/golangci/golangci-lint
   gomnd:
     settings:
       mnd:
@@ -53,52 +176,18 @@ linters-settings:
     suggest-new: true
   misspell:
     locale: US
+  nestif:
+    min-complexity: 10
 
-linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
-  enable:
-    - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-#    - dupl
-    - errcheck
-    - funlen
-#    - gochecknoinits
-    - goconst
-    - gocritic
-    - gocyclo
-    - gofmt
-    - goimports
-    - golint
-#    - gomnd
-    - goprintffuncname
-#    - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - interfacer
-    - lll
-#    - misspell
-    - nakedret
-    - rowserrcheck
-    - scopelint
-    - staticcheck
-    - structcheck
-    - stylecheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
-    - whitespace
-#    - gochecknoglobals
-    - gocognit
-#    - godox
-#    - maligned
-    - prealloc
+  varnamelen:
+    # The longest distance, in source lines, that is being considered a "small scope".
+    # Variables used in at most this many lines will be ignored.
+    # Default: 5
+    max-distance: 50
+    # The minimum length of a variable's name that is considered "long".
+    # Variable names that are at least this long will be ignored.
+    # Default: 3
+    min-name-length: 2
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
@@ -112,22 +201,19 @@ issues:
         - dupl
         - funlen
 
-    - linters:
-      - gosec
-      text: "G[202]"
-      text: "G[101]"
-
-
 run:
   skip-files:
-   - ".*_test.go"
-   - ".*rice-box.*"
-  modules-download-mode: vendor
+    # auto-generated
+    - ".*_test.go"
+
+
+
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 service:
-  golangci-lint-version: 1.31.x # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.50.1 # use the fixed version to not introduce new linters unexpectedly
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"
+
 

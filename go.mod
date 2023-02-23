@@ -12,7 +12,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
 	gopkg.in/yaml.v2 v2.4.0
