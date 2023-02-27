@@ -28,35 +28,35 @@ builds:
     goarch:
       - amd64
       - arm64
-#
-#  - id: build_linux
-#    binary: iofogctl
-#    main: ./cmd/iofogctl/main.go
-#    goos:
-#      - linux
-#    goarch:
-#      - amd64
-#      - arm64
-#      - arm
-#    goarm:
-#      - 6
-#      - 7
-#    ldflags: -extldflags -static -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-#    flags:
-#      - -v
-#
+
+  - id: build_linux
+    binary: iofogctl
+    main: ./cmd/iofogctl/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
+    ldflags: -extldflags -static -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+    flags:
+      - -v
+
 
 
 archives:
-#  -
-#    id: linux
-#    builds:
-#      - build_linux
-#    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-#    format: tar.gz
-#    files:
-#      - README.md
-#      - LICENSE
+  -
+    id: linux
+    builds:
+      - build_linux
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format: tar.gz
+    files:
+      - README.md
+      - LICENSE
   -
     id: macos
     builds:
