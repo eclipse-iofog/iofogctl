@@ -48,14 +48,12 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: linux
-      arch: amd64
-      job_name: linux
-  - template: pipeline/build.yaml
+  - template: pipeline/build-osx.yaml
     parameters:
       os: darwin
       arch: amd64
       job_name: darwin_amd64
-  - template: pipeline/build.yaml
+  - template: pipeline/build-osx.yaml
     parameters:
       os: darwin
       arch: arm64
@@ -63,8 +61,6 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: windows
-      arch: amd64
-      job_name: windows
 
 - stage: Test
   jobs:

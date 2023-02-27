@@ -1,10 +1,8 @@
 parameters:
   os: ''
-  arch: 'amd64'
-  job_name: ''
 
 jobs:
-- job: ${{ parameters.job_name }}
+- job: ${{ parameters.os }}
   pool:
     vmImage: 'Ubuntu-20.04'
   steps:
@@ -13,20 +11,10 @@ jobs:
   - script: |
       . version.sh && export MAJOR && export MINOR && export PATCH && export SUFFIX
       echo "version: $MAJOR.$MINOR.$PATCH$SUFFIX"
-      GOARCH=${{ parameters.arch }} GOOS=${{ parameters.os }} make lint build
+      GOARCH=amd64 GOOS=${{ parameters.os }} make lint build
       echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
     displayName: 'Build Binary'
-#  - script: |
-#      set -e
-#      go install github.com/goreleaser/goreleaser@v1.1.0
-#    displayName: 'iofogctl: Install Goreleaser'
-#  - script: |
-#      set -e
-#      goreleaser --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-#    displayName: 'iofogctl: Build mac packages'
-#    env:
-#      GITHUB_TOKEN: $(github_token)
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: './bin'
-      artifactName: ${{ parameters.os }}_${{ parameters.arch }}
+      artifactName: ${{ parameters.os }}
