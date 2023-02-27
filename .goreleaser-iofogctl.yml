@@ -1,0 +1,169 @@
+# goreleaser config for iofogctl. See: https://goreleaser.com
+#
+# To execute goreleaser, use the mage targets:
+#
+#  $ mage iofogctl:snapshot
+#  $ mage iofogctl:release
+#
+# The snapshot target builds the installation packages (brew, rpm,
+# deb, etc), into the dist dir.
+# The release target does the same, but also publishes the packages.
+#
+# See README.md for more.
+project_name: iofogctl
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go version
+
+builds:
+  - id: build_macos
+    ldflags: -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+    binary: iofogctl
+    env:
+    main: ./cmd/iofogctl/main.go
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+  - id: build_linux
+    binary: iofogctl
+    main: ./cmd/iofogctl/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
+    ldflags: -extldflags -static -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+    flags:
+      - -v
+
+
+  - id: build_windows
+    ldflags: -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+    binary: iofogctl
+    env:
+    main: ./cmd/iofogctl/main.go
+    goos:
+      - windows
+    goarch:
+      - amd64
+
+archives:
+  -
+    id: linux
+    builds:
+      - build_linux
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format: tar.gz
+    files:
+      - README.md
+      - LICENSE
+  -
+    id: macos
+    builds:
+      - build_macos
+    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+    format: tar.gz
+    files:
+      - README.md
+      - LICENSE
+    replacements:
+      darwin: macos
+  -
+    id: windows
+    builds:
+      - build_windows
+    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+    format: zip
+    files:
+      - README.md
+      - LICENSE
+
+
+checksum:
+  name_template: "{{.ProjectName}}-checksums.txt"
+
+snapshot:
+  name_template: "{{ .Version }}-SNAPSHOT"
+
+changelog:
+  skip: true
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^dev:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
+
+
+release:
+  github:
+    owner: eclipse-iofog
+    name: iofogctl
+
+  # If set to true, will not auto-publish the release. Default is false.
+  draft: false
+
+  # If set to auto, will mark the release as not ready for production
+  # in case there is an indicator for this in the tag e.g. v1.0.0-rc1
+  # If set to true, will mark the release as not ready for production.
+  # Default is false.
+  prerelease: auto
+
+brews:
+  -
+    name: iofogctl
+    homepage: "https://github.com/eclipse-iofog/iofogctl"
+    description: "CLI for iofog"
+
+    tap:
+      owner: eclipse-iofog
+      name: homebrew-iofogctl
+
+    url_template: "https://github.com/eclipse-iofog/iofogctl/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+
+    commit_author:
+      name: neha
+      email: neha@edgeworx.io
+
+    folder: Formula
+
+    test: |
+      system "#{bin}/iofogctl version"
+    install: |
+      bin.install "iofogctl"
+    skip_upload: false
+
+nfpms:
+  -
+    builds: ['build_linux']
+    homepage:  "https://github.com/eclipse-iofog/iofogctl"
+    description: CLI for iofog
+    maintainer: Eclipse
+    vendor: Edgeworx
+
+
+    formats:
+      - deb
+      - rpm
+
+    overrides:
+      deb:
+        file_name_template: "{{ .ConventionalFileName }}"
+      rpm:
+        # Note: file_name_template must have this EXACT format
+        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
+        replacements:
+          amd64: x86_64
+          arm64: aarch64

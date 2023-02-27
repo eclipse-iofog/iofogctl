@@ -33,6 +33,11 @@ REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
 
+PKG_BUILDINFO=github.com/eclipse-iofog/iofogctl/buildinfo
+BUILD_VERSION=$(shell git describe --tags `git rev-list --tags --max-count=1`)
+BUILD_COMMIT=$(shell git rev-parse --short HEAD)
+BUILD_TIMESTAMP=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+
 .PHONY: all
 all: bootstrap build install ## Bootstrap env, build and install binary
 
@@ -49,7 +54,8 @@ build: fmt ## Build the binary
 
 .PHONY: install
 install: ## Install the iofogctl binary to /usr/local/bin
-	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
+	@#sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
+	go install -ldflags "-X $(PKG_BUILDINFO).Timestamp=$(BUILD_TIMESTAMP)" ./cmd/iofogctl/
 
 .PHONY: lint
 lint: golangci-lint fmt ## Lint the source
