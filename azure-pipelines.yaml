@@ -52,6 +52,10 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: darwin
+      arch: amd64
+  - template: pipeline/build.yaml
+    parameters:
+      os: darwin
       arch: arm64
   - template: pipeline/build.yaml
     parameters:
