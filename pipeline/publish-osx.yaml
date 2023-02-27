@@ -14,12 +14,21 @@ jobs:
   - script: |
       . version.sh
       short_version=$MAJOR.$MINOR.$PATCH
-      tar -zcf iofogctl.tar.gz darwin/iofogctl
+      tar -zcf iofogctl_amd64.tar.gz darwin_amd64/iofogctl
       checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
-      gsutil cp iofogctl.tar.gz gs://$(gcp.bucket.osx)/$short_version/
-      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl.tar.gz
-      gsutil cp darwin/iofogctl gs://$(gcp.bucket.osx)/$short_version/
-      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl
+      gsutil cp iofogctl_amd64.tar.gz gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_amd64.tar.gz
+      gsutil cp darwin_amd64/iofogctl gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_amd64
+      
+      
+      tar -zcf iofogctl_arm64.tar.gz darwin_arm64/iofogctl
+      checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
+      gsutil cp iofogctl_arm64.tar.gz gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_arm64.tar.gz
+      gsutil cp darwin_arm64/iofogctl gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_arm64
+      
       git config --global user.email "serge@edgeworx.io"
       git config --global user.name "Serge Radinovich"
       git clone git@github.com:eclipse-iofog/homebrew-iofogctl.git

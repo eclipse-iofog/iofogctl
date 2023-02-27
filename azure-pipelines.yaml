@@ -61,6 +61,7 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: windows
+  - template: pipeline/publish-osx.yaml
 
 - stage: Test
   jobs:
