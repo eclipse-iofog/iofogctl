@@ -28,44 +28,35 @@ builds:
     goarch:
       - amd64
       - arm64
+#
+#  - id: build_linux
+#    binary: iofogctl
+#    main: ./cmd/iofogctl/main.go
+#    goos:
+#      - linux
+#    goarch:
+#      - amd64
+#      - arm64
+#      - arm
+#    goarm:
+#      - 6
+#      - 7
+#    ldflags: -extldflags -static -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
+#    flags:
+#      - -v
+#
 
-  - id: build_linux
-    binary: iofogctl
-    main: ./cmd/iofogctl/main.go
-    goos:
-      - linux
-    goarch:
-      - amd64
-      - arm64
-      - arm
-    goarm:
-      - 6
-      - 7
-    ldflags: -extldflags -static -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-    flags:
-      - -v
-
-
-  - id: build_windows
-    ldflags: -s -w -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-    binary: iofogctl
-    env:
-    main: ./cmd/iofogctl/main.go
-    goos:
-      - windows
-    goarch:
-      - amd64
 
 archives:
-  -
-    id: linux
-    builds:
-      - build_linux
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    format: tar.gz
-    files:
-      - README.md
-      - LICENSE
+#  -
+#    id: linux
+#    builds:
+#      - build_linux
+#    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+#    format: tar.gz
+#    files:
+#      - README.md
+#      - LICENSE
   -
     id: macos
     builds:
@@ -77,16 +68,6 @@ archives:
       - LICENSE
     replacements:
       darwin: macos
-  -
-    id: windows
-    builds:
-      - build_windows
-    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
-    format: zip
-    files:
-      - README.md
-      - LICENSE
-
 
 checksum:
   name_template: "{{.ProjectName}}-checksums.txt"
@@ -145,25 +126,25 @@ brews:
       bin.install "iofogctl"
     skip_upload: false
 
-nfpms:
-  -
-    builds: ['build_linux']
-    homepage:  "https://github.com/eclipse-iofog/iofogctl"
-    description: CLI for iofog
-    maintainer: Eclipse
-    vendor: Edgeworx
-
-
-    formats:
-      - deb
-      - rpm
-
-    overrides:
-      deb:
-        file_name_template: "{{ .ConventionalFileName }}"
-      rpm:
-        # Note: file_name_template must have this EXACT format
-        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
-        replacements:
-          amd64: x86_64
-          arm64: aarch64
+#nfpms:
+#  -
+#    builds: ['build_linux']
+#    homepage:  "https://github.com/eclipse-iofog/iofogctl"
+#    description: CLI for iofog
+#    maintainer: Eclipse
+#    vendor: Edgeworx
+#
+#
+#    formats:
+#      - deb
+#      - rpm
+#
+#    overrides:
+#      deb:
+#        file_name_template: "{{ .ConventionalFileName }}"
+#      rpm:
+#        # Note: file_name_template must have this EXACT format
+#        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
+#        replacements:
+#          amd64: x86_64
+#          arm64: aarch64

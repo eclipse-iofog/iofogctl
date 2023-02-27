@@ -14,6 +14,14 @@ jobs:
       GOARCH=amd64 GOOS=${{ parameters.os }} make lint build
       echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
     displayName: 'Build Binary'
+  - script: |
+      set -e
+      go install github.com/goreleaser/goreleaser@v1.1.0
+    displayName: 'iofogctl: Install Goreleaser'
+  - script: |
+      set -e
+      goreleaser --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+    displayName: 'iofogctl: Build mac packages'
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: './bin'

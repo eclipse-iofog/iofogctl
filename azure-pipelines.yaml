@@ -57,10 +57,6 @@ stages:
     parameters:
       os: windows
       arch: amd64
-  - script: |
-      set -e
-      go install github.com/goreleaser/goreleaser@v1.1.0
-    displayName: 'edgectl: Install Goreleaser'
 
 - stage: Test
   jobs:
