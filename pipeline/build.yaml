@@ -1,9 +1,10 @@
 parameters:
   os: ''
   arch: 'amd64'
+  job_name: ''
 
 jobs:
-- job: ${{ parameters.os }}
+- job: ${{ parameters.job_name }}
   pool:
     vmImage: 'Ubuntu-20.04'
   steps:
