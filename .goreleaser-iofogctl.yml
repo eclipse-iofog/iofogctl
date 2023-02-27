@@ -126,25 +126,25 @@ brews:
       bin.install "iofogctl"
     skip_upload: false
 
-#nfpms:
-#  -
-#    builds: ['build_linux']
-#    homepage:  "https://github.com/eclipse-iofog/iofogctl"
-#    description: CLI for iofog
-#    maintainer: Eclipse
-#    vendor: Edgeworx
-#
-#
-#    formats:
-#      - deb
-#      - rpm
-#
-#    overrides:
-#      deb:
-#        file_name_template: "{{ .ConventionalFileName }}"
-#      rpm:
-#        # Note: file_name_template must have this EXACT format
-#        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
-#        replacements:
-#          amd64: x86_64
-#          arm64: aarch64
+nfpms:
+  -
+    builds: ['build_linux']
+    homepage:  "https://github.com/eclipse-iofog/iofogctl"
+    description: CLI for iofog
+    maintainer: Eclipse
+    vendor: Edgeworx
+
+
+    formats:
+      - deb
+      - rpm
+
+    overrides:
+      deb:
+        file_name_template: "{{ .ConventionalFileName }}"
+      rpm:
+        # Note: file_name_template must have this EXACT format
+        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
+        replacements:
+          amd64: x86_64
+          arm64: aarch64

@@ -61,7 +61,19 @@ stages:
   - template: pipeline/build.yaml
     parameters:
       os: windows
+
+- stage: Publish1
+  jobs:
   - template: pipeline/publish-osx.yaml
+    parameters:
+      os: darwin
+      arch: amd64
+      job_name: darwin_amd64
+  - template: pipeline/publish-osx.yaml
+    parameters:
+      os: darwin
+      arch: arm64
+      job_name: darwin_arm64
 
 - stage: Test
   jobs:

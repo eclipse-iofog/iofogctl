@@ -1,12 +1,12 @@
 jobs:
-- job: OSX
+- job: OSX_${{ parameters.job_name }}
   pool:
     vmImage: 'Ubuntu-20.04'
   steps:
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Build Artifacts'
     inputs:
-      artifactName: darwin
+      artifactName: ${{ parameters.os }}_${{ parameters.arch }}
       downloadPath: $(System.DefaultWorkingDirectory)
   - template: steps/init-gcloud-steps.yaml
   - template: steps/version.yaml
@@ -14,20 +14,12 @@ jobs:
   - script: |
       . version.sh
       short_version=$MAJOR.$MINOR.$PATCH
-      tar -zcf iofogctl_amd64.tar.gz darwin_amd64/iofogctl
-      checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
-      gsutil cp iofogctl_amd64.tar.gz gs://$(gcp.bucket.osx)/$short_version/
-      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_amd64.tar.gz
-      gsutil cp darwin_amd64/iofogctl gs://$(gcp.bucket.osx)/$short_version/
-      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_amd64
-      
-      
-      tar -zcf iofogctl_arm64.tar.gz darwin_arm64/iofogctl
-      checksum=$(shasum -a 256 iofogctl.tar.gz | awk '{ print $1 }')
-      gsutil cp iofogctl_arm64.tar.gz gs://$(gcp.bucket.osx)/$short_version/
-      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_arm64.tar.gz
-      gsutil cp darwin_arm64/iofogctl gs://$(gcp.bucket.osx)/$short_version/
-      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_arm64
+      tar -zcf iofogctl_${{ parameters.arch }}.tar.gz ${{ parameters.os }}_${{ parameters.arch }}/iofogctl
+      checksum=$(shasum -a 256 iofogctl_${{ parameters.arch }}.tar.gz | awk '{ print $1 }')
+      gsutil cp iofogctl_${{ parameters.arch }}.tar.gz gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_${{ parameters.arch }}.tar.gz
+      gsutil cp ${{ parameters.os }}_${{ parameters.arch }}/iofogctl gs://$(gcp.bucket.osx)/$short_version/
+      gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_${{ parameters.arch }}
       
       git config --global user.email "serge@edgeworx.io"
       git config --global user.name "Serge Radinovich"
