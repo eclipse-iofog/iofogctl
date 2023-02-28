@@ -1,5 +1,5 @@
 jobs:
-- job: OSX_${{ parameters.job_name }}
+- job: OSX-${{ parameters.arch }}
   pool:
     vmImage: 'Ubuntu-20.04'
   steps:
@@ -20,6 +20,8 @@ jobs:
       gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_${{ parameters.arch }}.tar.gz
       gsutil cp ${{ parameters.os }}_${{ parameters.arch }}/iofogctl gs://$(gcp.bucket.osx)/$short_version/
       gsutil acl set public-read  gs://$(gcp.bucket.osx)/$short_version/iofogctl_${{ parameters.arch }}
+      
+
       
       git config --global user.email "serge@edgeworx.io"
       git config --global user.name "Serge Radinovich"
