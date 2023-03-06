@@ -45,35 +45,59 @@ stages:
 
 - stage: Build
   jobs:
-  - template: pipeline/build.yaml
-    parameters:
-      os: linux
-  - template: pipeline/build-osx.yaml
-    parameters:
-      os: darwin
-      arch: amd64
-      job_name: darwin_amd64
-  - template: pipeline/build-osx.yaml
-    parameters:
-      os: darwin
-      arch: arm64
-      job_name: darwin_arm64
-  - template: pipeline/build.yaml
-    parameters:
-      os: windows
+  pool:
+    vmImage: 'Ubuntu-20.04'
+  steps:
+    - template: steps/prebuild.yaml
+    - template: steps/version.yaml
+    - script: |
+        set -e
+        mkdir -p '$(GOBIN)'
+        mkdir -p '$(GOPATH)/pkg'
+        echo '##vso[task.prependpath]$(GOBIN)'
+        echo '##vso[task.prependpath]$(GOROOT)/bin'
+      displayName: 'Set up the Go workspace'
+    - task: GoTool@0
+      inputs:
+        version: '1.19'
+        goPath: $(GOPATH)
+        goBin: $(GOBIN)
+      displayName: 'Install Golang'
 
-- stage: Publish1
-  jobs:
-  - template: pipeline/publish-osx.yaml
-    parameters:
-      os: darwin
-      arch: amd64
-      job_name: darwin_amd64
-  - template: pipeline/publish-osx.yaml
-    parameters:
-      os: darwin
-      arch: arm64
-      job_name: darwin_arm64
+    - script: |
+        set -e
+        go install github.com/goreleaser/goreleaser@v1.1.0
+      displayName: 'iofogctl: Install Goreleaser'
+    - script: |
+        set -e
+        goreleaser --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+      displayName: 'iofogctl: Build packages'
+      env:
+        GITHUB_TOKEN: $(github_token)
+    - task: PublishBuildArtifacts@1
+      condition: always()
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/bin'
+        ArtifactName: edgectl_dev_binaries
+      displayName: 'Publish edgectl binaries'
+
+
+  #  - template: pipeline/build.yaml
+#    parameters:
+#      os: linux
+#  - template: pipeline/build-osx.yaml
+#    parameters:
+#      os: darwin
+#      arch: amd64
+#      job_name: darwin_amd64
+#  - template: pipeline/build-osx.yaml
+#    parameters:
+#      os: darwin
+#      arch: arm64
+#      job_name: darwin_arm64
+#  - template: pipeline/build.yaml
+#    parameters:
+#      os: windows
 
 - stage: Test
   jobs:

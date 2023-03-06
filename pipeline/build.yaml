@@ -6,15 +6,15 @@ jobs:
   pool:
     vmImage: 'Ubuntu-20.04'
   steps:
-  - template: steps/prebuild.yaml
-  - template: steps/version.yaml
-  - script: |
-      . version.sh && export MAJOR && export MINOR && export PATCH && export SUFFIX
-      echo "version: $MAJOR.$MINOR.$PATCH$SUFFIX"
-      GOARCH=amd64 GOOS=${{ parameters.os }} make lint build
-      echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
-    displayName: 'Build Binary'
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathtoPublish: './bin'
-      artifactName: ${{ parameters.os }}
+      - template: steps/prebuild.yaml
+      - template: steps/version.yaml
+      - script: |
+          . version.sh && export MAJOR && export MINOR && export PATCH && export SUFFIX
+          echo "version: $MAJOR.$MINOR.$PATCH$SUFFIX"
+          GOARCH=amd64 GOOS=${{ parameters.os }} make lint build
+          echo $MAJOR.$MINOR.$PATCH$SUFFIX > bin/version
+        displayName: 'Build Binary'
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathtoPublish: './bin'
+          artifactName: ${{ parameters.os }}
