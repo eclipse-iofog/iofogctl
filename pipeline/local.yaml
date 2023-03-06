@@ -12,7 +12,7 @@ jobs:
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Build Artifacts'
     inputs:
-      artifactName: linux
+      artifactName: iofogctl
       downloadPath: $(System.DefaultWorkingDirectory)
   - script: |
       sudo cp linux/iofogctl /usr/local/bin/

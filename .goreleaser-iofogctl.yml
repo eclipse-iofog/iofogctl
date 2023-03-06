@@ -78,6 +78,29 @@ builds:
     flags:
       - -v
 
+  - id: build_windows
+    ldflags:
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=$(Version)"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.commit=$(COMMIT)"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.date=$(BUILD_DATE)"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.platform=$(GOOS)/$(GOARCH)"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.portManagerTag=3.0.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.kubeletTag=3.0.0-beta1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.operatorTag=3.0.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.proxyTag=3.0.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.routerTag=3.0.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerTag=3.0.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentTag=3.0.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerVersion=3.0.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentVersion=3.0.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.repo=iofog"
+    binary: iofogctl
+    env:
+    main: ./cmd/iofogctl/main.go
+    goos:
+      - windows
+    goarch:
+      - amd64
 
 
 archives:
