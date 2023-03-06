@@ -12,7 +12,7 @@ steps:
     artifactName: iofogctl
     downloadPath: $(System.DefaultWorkingDirectory)
 - script: |
-    sudo cp $(System.DefaultWorkingDirectory)/linux/iofogctl /usr/local/bin/
+    sudo cp iofogctl/build_linux_linux_amd64/iofogctl /usr/local/bin/
     sudo chmod 0755 /usr/local/bin/iofogctl
 - template: postinstall.yaml
 - template: init-ssh.yaml
