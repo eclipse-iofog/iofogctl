@@ -71,8 +71,9 @@ stages:
         displayName: 'iofogctl: Install Goreleaser'
       - script: |
           set -e
-          goreleaser --rm-dist --snapshot --debug --config ./.goreleaser-iofogctl.yml
-        displayName: 'iofogctl: Build packages'
+          goreleaser release --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+          ./.packagecloud-publish.sh
+        displayName: 'iofogctl: Build and release packages'
         env:
           GITHUB_TOKEN: $(github_token)
       - task: PublishBuildArtifacts@1
@@ -99,22 +100,22 @@ stages:
 #  - template: pipeline/build.yaml
 #    parameters:
 #      os: windows
-
-- stage: Test
-  jobs:
-  - template: pipeline/win-k8s.yaml
-#  - template: pipeline/win-vanilla.yaml
-  - template: pipeline/local.yaml
-  - template: pipeline/k8s.yaml
-  - template: pipeline/ha.yaml
-  - template: pipeline/vanilla.yaml
-    parameters:
-      job_name: Vanilla
-      id: $(jobuuid)
-      distro: $(gcp.vm.distro.stretch)
-      repo: $(gcp.vm.repo.debian)
-      agent_count: 2
-      controller_count: 1
+#
+#- stage: Test
+#  jobs:
+#  - template: pipeline/win-k8s.yaml
+##  - template: pipeline/win-vanilla.yaml
+#  - template: pipeline/local.yaml
+#  - template: pipeline/k8s.yaml
+#  - template: pipeline/ha.yaml
+#  - template: pipeline/vanilla.yaml
+#    parameters:
+#      job_name: Vanilla
+#      id: $(jobuuid)
+#      distro: $(gcp.vm.distro.stretch)
+#      repo: $(gcp.vm.repo.debian)
+#      agent_count: 2
+#      controller_count: 1
 #  - template: pipeline/vanilla.yaml
 #    parameters:
 #      job_name: Vanilla_Buster
@@ -124,16 +125,16 @@ stages:
 #      agent_count: 2
 #      controller_count: 1
 
-- stage: Publish
-  jobs:
-  - job: Publish
-    pool:
-      vmImage: 'Ubuntu-20.04'
-    steps:
-      - script: |
-          goreleaser release --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-          ./.packagecloud-publish.sh
-        displayName: 'Publish iofogctl binaries'
+#- stage: Publish
+#  jobs:
+#  - job: Publish
+#    pool:
+#      vmImage: 'Ubuntu-20.04'
+#    steps:
+#      - script: |
+#          goreleaser release --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+#          ./.packagecloud-publish.sh
+#        displayName: 'Publish iofogctl binaries'
 #  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
 #  jobs:
 #  - template: pipeline/publish-linux.yaml
