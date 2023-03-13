@@ -183,6 +183,8 @@ stages:
             ./.packagecloud-publish.sh
           displayName: 'iofogctl: Build and Release dev only packages'
           env:
+            PACKAGECLOUD_TOKEN: $(packagecloud_token)
+            PACKAGECLOUD_REPO: "iofog/iofogctl-snapshots"
             GITHUB_TOKEN: $(github_token)
         - task: PublishBuildArtifacts@1
           condition: always()
@@ -225,6 +227,8 @@ stages:
             ./.packagecloud-publish.sh
           displayName: 'iofogctl: Build and Release packages'
           env:
+            PACKAGECLOUD_TOKEN: $(packagecloud_token)
+            PACKAGECLOUD_REPO: "iofog/iofogctl"
             GITHUB_TOKEN: $(github_token)
         - task: PublishBuildArtifacts@1
           condition: always()

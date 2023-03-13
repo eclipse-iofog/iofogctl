@@ -10,12 +10,12 @@ set -e
 echo ""
 echo "*************** Publish to packagecloud.io ***************"
 
-#if [[ -z "$PACKAGECLOUD_TOKEN" ]]; then
-#    echo "Must provide PACKAGECLOUD_TOKEN envar" 1>&2
-#    exit 1
-#fi
+if [[ -z "$PACKAGECLOUD_TOKEN" ]]; then
+    echo "Must provide PACKAGECLOUD_TOKEN envar" 1>&2
+    exit 1
+fi
 
-repo="${PACKAGECLOUD_REPO:-iofog/iofogctl-snapshots}"
+repo="${PACKAGECLOUD_REPO}"
 echo "Using packagecloud repo: $repo"
 
 pushd ./dist > /dev/null
