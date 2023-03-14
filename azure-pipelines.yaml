@@ -44,117 +44,67 @@ variables:
 
 stages:
 
-- stage: Build
-  jobs:
-  - job: Build
-    pool:
-      vmImage: 'Ubuntu-20.04'
-    steps:
-      - template: pipeline/steps/prebuild.yaml
-      - template: pipeline/steps/version.yaml
-      - script: |
-          set -e
-          mkdir -p '$(GOBIN)'
-          mkdir -p '$(GOPATH)/pkg'
-          echo '##vso[task.prependpath]$(GOBIN)'
-          echo '##vso[task.prependpath]$(GOROOT)/bin'
-        displayName: 'Set up the Go workspace'
-      - task: GoTool@0
-        inputs:
-          version: '1.19'
-          goPath: $(GOPATH)
-          goBin: $(GOBIN)
-        displayName: 'Install Golang'
-
-      - script: |
-          set -e
-          go install github.com/goreleaser/goreleaser@v1.1.0
-        displayName: 'iofogctl: Install Goreleaser'
-#      - script: |
-#          set -e
-#          go install github.com/edgeworx/packagecloud@v0.1.1
-#        displayName: 'iofogctl: Install packagecloud'
-      - script: |
-          set -e
-          goreleaser --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-        displayName: 'iofogctl: Build packages'
-        env:
-          GITHUB_TOKEN: $(github_token)
-      - task: PublishBuildArtifacts@1
-        condition: always()
-        inputs:
-          PathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
-          ArtifactName: iofogctl
-        displayName: 'Publish iofogctl binaries'
-
-
-  #  - template: pipeline/build.yaml
-#    parameters:
-#      os: linux
-#  - template: pipeline/build-osx.yaml
-#    parameters:
-#      os: darwin
-#      arch: amd64
-#      job_name: darwin_amd64
-#  - template: pipeline/build-osx.yaml
-#    parameters:
-#      os: darwin
-#      arch: arm64
-#      job_name: darwin_arm64
-#  - template: pipeline/build.yaml
-#    parameters:
-#      os: windows
-#
-- stage: Test
-  jobs:
-  - template: pipeline/win-k8s.yaml
-#  - template: pipeline/win-vanilla.yaml
-  - template: pipeline/local.yaml
-  - template: pipeline/k8s.yaml
-  - template: pipeline/ha.yaml
-  - template: pipeline/vanilla.yaml
-    parameters:
-      job_name: Vanilla
-      id: $(jobuuid)
-      distro: $(gcp.vm.distro.stretch)
-      repo: $(gcp.vm.repo.debian)
-      agent_count: 2
-      controller_count: 1
-#  - template: pipeline/vanilla.yaml
-#    parameters:
-#      job_name: Vanilla_Buster
-#      id: $(jobuuid)
-#      distro: $(gcp.vm.distro.buster)
-#      repo: $(gcp.vm.repo.debian)
-#      agent_count: 2
-#      controller_count: 1
-
-
-#- stage: Publish
+#- stage: Build
 #  jobs:
-#  - job: Publish
+#  - job: Build
 #    pool:
 #      vmImage: 'Ubuntu-20.04'
 #    steps:
+#      - template: pipeline/steps/prebuild.yaml
+#      - template: pipeline/steps/version.yaml
 #      - script: |
-#          goreleaser release --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-#          ./.packagecloud-publish.sh
+#          set -e
+#          mkdir -p '$(GOBIN)'
+#          mkdir -p '$(GOPATH)/pkg'
+#          echo '##vso[task.prependpath]$(GOBIN)'
+#          echo '##vso[task.prependpath]$(GOROOT)/bin'
+#        displayName: 'Set up the Go workspace'
+#      - task: GoTool@0
+#        inputs:
+#          version: '1.19'
+#          goPath: $(GOPATH)
+#          goBin: $(GOBIN)
+#        displayName: 'Install Golang'
+#
+#      - script: |
+#          set -e
+#          go install github.com/goreleaser/goreleaser@v1.1.0
+#        displayName: 'iofogctl: Install Goreleaser'
+#      - script: |
+#          set -e
+#          goreleaser --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+#        displayName: 'iofogctl: Build packages'
+#        env:
+#          GITHUB_TOKEN: $(github_token)
+#      - task: PublishBuildArtifacts@1
+#        condition: always()
+#        inputs:
+#          PathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
+#          ArtifactName: iofogctl
 #        displayName: 'Publish iofogctl binaries'
-#  condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+#
+#- stage: Test
 #  jobs:
-#  - template: pipeline/publish-linux.yaml
-#  - template: pipeline/publish-osx.yaml
-#  - template: pipeline/publish-debian.yaml
-#  - template: pipeline/publish-rpm.yaml
-#  - template: pipeline/publish-win.yaml
+#  - template: pipeline/win-k8s.yaml
+##  - template: pipeline/win-vanilla.yaml
+#  - template: pipeline/local.yaml
+#  - template: pipeline/k8s.yaml
+#  - template: pipeline/ha.yaml
+#  - template: pipeline/vanilla.yaml
+#    parameters:
+#      job_name: Vanilla
+#      id: $(jobuuid)
+#      distro: $(gcp.vm.distro.stretch)
+#      repo: $(gcp.vm.repo.debian)
+#      agent_count: 2
+#      controller_count: 1
 - stage: Publish
   jobs:
     - job: Publish_Iofogctl_Dev
-      condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
+#      condition: or(and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop')), and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/')))
       pool:
         vmImage: 'Ubuntu-22.04'
       steps:
-        - template: pipeline/steps/prebuild.yaml
         - template: pipeline/steps/version.yaml
         - script: |
             set -e
@@ -193,46 +143,45 @@ stages:
             ArtifactName: iofogctl_dev
           displayName: 'Publish iofogctl binaries'
 
-    - job: Publish_Iofogctl_Prod
-      condition: and(succeeded(), eq(variables['isTaggedCommit'], true))
-      pool:
-        vmImage: 'Ubuntu-22.04'
-      steps:
-        - template: pipeline/steps/prebuild.yaml
-        - template: pipeline/steps/version.yaml
-        - script: |
-            set -e
-            mkdir -p '$(GOBIN)'
-            mkdir -p '$(GOPATH)/pkg'
-            echo '##vso[task.prependpath]$(GOBIN)'
-            echo '##vso[task.prependpath]$(GOROOT)/bin'
-          displayName: 'Set up the Go workspace'
-        - task: GoTool@0
-          inputs:
-            version: '1.19'
-            goPath: $(GOPATH)
-            goBin: $(GOBIN)
-          displayName: 'Install Golang'
-
-        - script: |
-            set -e
-            go install github.com/goreleaser/goreleaser@v1.1.0
-          displayName: 'iofogctl: Install Goreleaser'
-        - script: |
-            go install github.com/edgeworx/packagecloud@v0.1.1
-          displayName: 'iofogctl: Install packagecloud CLI'
-        - script: |
-            set -e
-            goreleaser --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-            ./.packagecloud-publish.sh
-          displayName: 'iofogctl: Build and Release packages'
-          env:
-            PACKAGECLOUD_TOKEN: $(packagecloud_token)
-            PACKAGECLOUD_REPO: "iofog/iofogctl"
-            GITHUB_TOKEN: $(github_token)
-        - task: PublishBuildArtifacts@1
-          condition: always()
-          inputs:
-            PathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
-            ArtifactName: iofogctl
-          displayName: 'Publish iofogctl binaries'
+#    - job: Publish_Iofogctl_Prod
+#      condition: and(succeeded(), eq(variables['isTaggedCommit'], true))
+#      pool:
+#        vmImage: 'Ubuntu-22.04'
+#      steps:
+#        - template: pipeline/steps/version.yaml
+#        - script: |
+#            set -e
+#            mkdir -p '$(GOBIN)'
+#            mkdir -p '$(GOPATH)/pkg'
+#            echo '##vso[task.prependpath]$(GOBIN)'
+#            echo '##vso[task.prependpath]$(GOROOT)/bin'
+#          displayName: 'Set up the Go workspace'
+#        - task: GoTool@0
+#          inputs:
+#            version: '1.19'
+#            goPath: $(GOPATH)
+#            goBin: $(GOBIN)
+#          displayName: 'Install Golang'
+#
+#        - script: |
+#            set -e
+#            go install github.com/goreleaser/goreleaser@v1.1.0
+#          displayName: 'iofogctl: Install Goreleaser'
+#        - script: |
+#            go install github.com/edgeworx/packagecloud@v0.1.1
+#          displayName: 'iofogctl: Install packagecloud CLI'
+#        - script: |
+#            set -e
+#            goreleaser --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+#            ./.packagecloud-publish.sh
+#          displayName: 'iofogctl: Build and Release packages'
+#          env:
+#            PACKAGECLOUD_TOKEN: $(packagecloud_token)
+#            PACKAGECLOUD_REPO: "iofog/iofogctl"
+#            GITHUB_TOKEN: $(github_token)
+#        - task: PublishBuildArtifacts@1
+#          condition: always()
+#          inputs:
+#            PathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
+#            ArtifactName: iofogctl
+#          displayName: 'Publish iofogctl binaries'

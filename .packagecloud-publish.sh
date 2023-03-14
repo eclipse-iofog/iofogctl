@@ -15,7 +15,7 @@ if [[ -z "$PACKAGECLOUD_TOKEN" ]]; then
     exit 1
 fi
 
-repo="${PACKAGECLOUD_REPO}"
+repo="${PACKAGECLOUD_REPO:-iofog/iofogctl-snapshots}"
 echo "Using packagecloud repo: $repo"
 
 pushd ./dist > /dev/null
@@ -49,6 +49,7 @@ function deb() {
     for distro_version in "${distro_versions[@]}"; do
       sleepStutter
       repo_full_path="$repo/$distro_version"
+      echo $repo_full_path
       {
         packagecloud push --overwrite "${repo_full_path}" "${package}" 2> >(tee -a $failed_push_file >&2)
       } &
