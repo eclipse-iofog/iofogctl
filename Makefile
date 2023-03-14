@@ -50,7 +50,7 @@ build: fmt ## Build the binary
 .PHONY: install
 install: ## Install the iofogctl binary to /usr/local/bin
 	@#sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
-	go install -ldflags "-X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE)" ./cmd/iofogctl/
+	go install -ldflags "$(LDFLAGS)" ./cmd/iofogctl/
 
 .PHONY: lint
 lint: golangci-lint fmt ## Lint the source
