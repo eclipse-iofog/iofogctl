@@ -24,7 +24,6 @@ install_node() {
 	fi
 	nvm install  v17.9.1
 	nvm use  v17.9.1
-	curl https://registry.npmjs.org/npm/-/npm-8.19.4.tgz -O
 	ln -Ffs $(which node) /usr/local/bin/node
 	ln -Ffs $(which npm) /usr/local/bin/npm
 
