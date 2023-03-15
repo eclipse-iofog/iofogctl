@@ -87,7 +87,7 @@ deploy_controller() {
 	if [ -z $version ]; then
 		npm install -g -f iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
-	  npm install npm@8.19.4 --registry https://registry.npmjs.org
+	  npm config set registry https://registry.npmjs.org/
 		npm install -g -f "iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
 	fi
 
