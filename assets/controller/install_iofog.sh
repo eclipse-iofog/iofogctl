@@ -50,7 +50,7 @@ install_deps() {
         install_package "build-essential"
 	fi
 
-	if [ -z "$(command -v python)" ]; then
+	if [ -z "$(command -v python2)" ]; then
         install_package "python"
 	fi
 }
@@ -61,13 +61,14 @@ deploy_controller() {
 		lsof -ti tcp:51121 | xargs kill
 	fi
 
-	# If token is provided, set up private repo
+#	 If token is provided, set up private repo
 	if [ ! -z $token ]; then
 		if [ ! -z $(npmrc | grep iofog) ]; then
 			npmrc -c iofog
 			npmrc iofog
 		fi
-		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh | force_npm=1 bash
+		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7368735 | force_npm=1 bash
+#		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh | force_npm=1 bash
 		mv ~/.npmrc ~/.npmrcs/npmrc
 		ln -s ~/.npmrcs/npmrc ~/.npmrc
 	else
@@ -77,7 +78,7 @@ deploy_controller() {
 	# Save DB
 	if [ -f "$INSTALL_DIR/controller/lib/node_modules/iofogcontroller/package.json" ]; then
 		# If iofog-controller is not running, it will fail to stop - ignore that failure.
-		node $INSTALL_DIR/controller/lib/node_modules/iofogcontroller/scripts/scripts-api.js preuninstall > /dev/null 2>&1 || true
+		node $INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/scripts/scripts-api.js preuninstall > /dev/null 2>&1 || true
 	fi
 
 	# Install in temporary location
@@ -87,6 +88,7 @@ deploy_controller() {
 		npm install -g -f @iofog/iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
 		npm install -g -f "@iofog/iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
+#		npm install -g -f "iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
 	fi
 	# Move files into $INSTALL_DIR/controller
 	mkdir -p "$INSTALL_DIR/"
@@ -95,7 +97,7 @@ deploy_controller() {
 
 	# Restore DB
 	if [ -f "$INSTALL_DIR/controller/lib/node_modules/iofogcontroller/package.json" ]; then
-		node $INSTALL_DIR/controller/lib/node_modules/iofogcontroller/scripts/scripts-api.js postinstall > /dev/null 2>&1 || true
+		node $INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/scripts/scripts-api.js postinstall > /dev/null 2>&1 || true
 	fi
 
 	# Symbolic links
