@@ -68,7 +68,6 @@ deploy_controller() {
 			npmrc iofog
 		fi
 		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7368735 | force_npm=1 bash
-#		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh | force_npm=1 bash
 		mv ~/.npmrc ~/.npmrcs/npmrc
 		ln -s ~/.npmrcs/npmrc ~/.npmrc
 	else
@@ -88,7 +87,6 @@ deploy_controller() {
 		npm install -g -f @iofog/iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
 		npm install -g -f "@iofog/iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
-#		npm install -g -f "iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
 	fi
 	# Move files into $INSTALL_DIR/controller
 	mkdir -p "$INSTALL_DIR/"

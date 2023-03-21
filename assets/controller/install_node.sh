@@ -15,10 +15,9 @@ load_existing_nvm() {
 }
 
 install_node() {
-	# nvm
 	load_existing_nvm
 	if [ -z "$(command -v nvm)" ]; then
-		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 		export NVM_DIR="${HOME}/.nvm"
 		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 	fi
