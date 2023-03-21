@@ -76,7 +76,7 @@ deploy_controller() {
 	fi
 
 	# Save DB
-	if [ -f "$INSTALL_DIR/controller/lib/node_modules/iofogcontroller/package.json" ]; then
+	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/package.json" ]; then
 		# If iofog-controller is not running, it will fail to stop - ignore that failure.
 		node $INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/scripts/scripts-api.js preuninstall > /dev/null 2>&1 || true
 	fi
@@ -96,7 +96,7 @@ deploy_controller() {
 	mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
 
 	# Restore DB
-	if [ -f "$INSTALL_DIR/controller/lib/node_modules/iofogcontroller/package.json" ]; then
+	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/package.json" ]; then
 		node $INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/scripts/scripts-api.js postinstall > /dev/null 2>&1 || true
 	fi
 
