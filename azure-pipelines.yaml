@@ -93,7 +93,7 @@ stages:
   - template: pipeline/vanilla.yaml
     parameters:
       job_name: Vanilla
-      id: $(jobuuid)-bulls
+      id: $(jobuuid)
       distro: $(gcp.vm.distro.bullseye)
       repo: $(gcp.vm.repo.debian)
       agent_count: 2
