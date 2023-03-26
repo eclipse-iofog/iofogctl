@@ -6,8 +6,8 @@ reports/*
 test.txt
 test-report.xml
 
-*rice-box.go
 .vscode/*
 dist/
 vendor/
 bats-core/
+.DS_Store
