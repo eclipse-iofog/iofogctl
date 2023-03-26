@@ -28,6 +28,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    hooks:
+      pre: cd /home/vsts/work/1/s/pkg/util && rice embed-go
     ldflags:
       - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=v{{.Version}}"
       - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.commit={{ .ShortCommit }}"
@@ -56,6 +58,8 @@ builds:
     goarm:
       - 6
       - 7
+    hooks:
+      pre: cd /home/vsts/work/1/s/pkg/util && rice embed-go
     ldflags:
       - -extldflags -static
       - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=v{{.Version}}"
@@ -84,6 +88,8 @@ builds:
       - windows
     goarch:
       - amd64
+    hooks:
+      pre: cd /home/vsts/work/1/s/pkg/util && rice embed-go
     ldflags:
       - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=v{{.Version}}"
       - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.commit={{ .ShortCommit }}"
