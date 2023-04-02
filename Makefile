@@ -14,7 +14,7 @@ DEV_SUFFIX = -dev
 SUFFIX ?= $(shell [ -z "$(shell git tag --points-at HEAD)" ] && echo "$(DEV_SUFFIX)" || echo "$(TAG_SUFFIX)")
 VERSION ?= $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
-BUILD_DATE ?= $(shell date +%FT%T%z)
+BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 PREFIX = github.com/eclipse-iofog/iofogctl/v3/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 LDFLAGS += -X $(PREFIX).portManagerTag=3.0.0
@@ -48,8 +48,8 @@ build: fmt ## Build the binary
 	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
 
 .PHONY: install
-install: ## Install the iofogctl binary to /usr/local/bin
-	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
+install:
+	go install -ldflags "$(LDFLAGS)" ./cmd/iofogctl/
 
 .PHONY: lint
 lint: golangci-lint fmt ## Lint the source
