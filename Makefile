@@ -48,8 +48,7 @@ build: fmt ## Build the binary
 	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
 
 .PHONY: install
-install: ## Install the iofogctl binary to /usr/local/bin
-	@#sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin
+install:
 	go install -ldflags "$(LDFLAGS)" ./cmd/iofogctl/
 
 .PHONY: lint
