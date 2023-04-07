@@ -157,3 +157,10 @@ make test
 ```
 
 This will output a JUnit compatible file into `reports/TEST-iofogctl.xml` that can be imported in most CI systems.
+
+## Embed assets
+
+Run project build:
+```
+make build
+```
