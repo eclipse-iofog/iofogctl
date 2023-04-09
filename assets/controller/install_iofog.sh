@@ -66,14 +66,15 @@ deploy_controller() {
 		if [ ! -z $(npmrc | grep iofog) ]; then
 			npmrc -c iofog
 			npmrc iofog
+			echo "here"
 		fi
-		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7368735 | force_npm=1 bash
+		echo "here1"
+		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7463817 | force_npm=1 bash
 		mv ~/.npmrc ~/.npmrcs/npmrc
 		ln -s ~/.npmrcs/npmrc ~/.npmrc
 	else
 		npmrc default
 	fi
-
 	# Save DB
 	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/package.json" ]; then
 		# If iofog-controller is not running, it will fail to stop - ignore that failure.
