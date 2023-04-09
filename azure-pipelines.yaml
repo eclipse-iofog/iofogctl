@@ -21,7 +21,7 @@ variables:
   GOBIN:  '$(GOPATH)/bin'
   ref: $(Build.SourceBranch)
   branch: $(Build.SourceBranchName)
-  controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.3'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:3.0.4'
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:3.0.3'
   agent_image: 'gcr.io/focal-freedom-236620/agent:3.0.1'
   operator_image: 'gcr.io/focal-freedom-236620/operator:3.2.0'
@@ -32,7 +32,7 @@ variables:
   proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0'
   proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:3.0.0'
   iofog_agent_version: '3.0.1'
-  controller_version: '3.0.3'
+  controller_version: '3.0.4'
   version:
   agent_vm_list:
   controller_vm:
