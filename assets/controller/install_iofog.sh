@@ -66,9 +66,7 @@ deploy_controller() {
 		if [ ! -z $(npmrc | grep iofog) ]; then
 			npmrc -c iofog
 			npmrc iofog
-			echo "here"
 		fi
-		echo "here1"
 		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7463817 | force_npm=1 bash
 		mv ~/.npmrc ~/.npmrcs/npmrc
 		ln -s ~/.npmrcs/npmrc ~/.npmrc
