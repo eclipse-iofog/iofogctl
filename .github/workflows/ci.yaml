@@ -1,0 +1,86 @@
+name: CI
+on:
+  push:
+    branches:
+      - develop
+      - release*
+    tags: [v*]
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+  pull_request:
+    # Sequence of patterns matched against refs/heads
+    branches:
+      - develop
+      - release*
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+env:
+  PROJECT: 'focal-freedom-236620'
+  IMAGE_NAME: 'operator'
+  GKE_CLUSTER: 'iofogctl-ci'
+  GKE_ZONE: 'us-central1-a'
+  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:master'
+  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
+  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:develop'
+  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:develop'
+  router_image: 'gcr.io/focal-freedom-236620/router:develop'
+  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:develop'
+  proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
+  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:develop'
+  iofog_agent_version: '0.0.0-dev'
+  controller_version: '0.0.0-dev'
+  version:
+  agent_vm_list:
+  controller_vm:
+  windows_ssh_key_path: 'C:/Users/$(azure.windows.user)/.ssh'
+  ssh_key_file: 'id_rsa'
+  windows_kube_config_path: 'C:/Users/$(azure.windows.user)/.kube/config'
+  bash_kube_config_path: '/root/.kube/config'
+
+jobs:
+  Build:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
+    name: Build
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.18'
+          cache: false
+      - run: go version
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.50.1
+          args: --timeout=5m0s
+      - name: Run bootstrap
+        run: PIPELINE=1 script/bootstrap.sh
+      - run: make test
+      - name: iofogctl build packages GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: 1.1.0
+          args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+#      - name: iofogctl build packages
+#        shell: bash
+#        id: build_package
+#        run: |
+#          set -e
+#          goreleaser --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: iofogctl
+          path: ${{ github.workspace }}/dist
