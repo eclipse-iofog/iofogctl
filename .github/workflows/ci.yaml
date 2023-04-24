@@ -23,9 +23,9 @@ env:
   IMAGE_NAME: 'operator'
   GKE_CLUSTER: 'iofogctl-ci'
   GKE_ZONE: 'us-central1-a'
-  controller_image: 'gcr.io/focal-freedom-236620/controller:develop'
+  controller_image: 'ghcr.io/eclipse-iofog/controller:3.0.4-53'
   enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:master'
-  agent_image: 'gcr.io/focal-freedom-236620/agent:develop'
+  agent_image: 'ghcr.io/eclipse-iofog/agent:3.0.1-24'
   operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
   kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:develop'
   port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:develop'
@@ -76,38 +76,51 @@ jobs:
         with:
           name: iofogctl
           path: ${{ github.workspace }}/dist
-  Windows_Test:
+  Test:
     needs: Build
-    runs-on: windows-latest
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'read'
     steps:
-      - name: Display the path
-        run: echo %PATH%
-        shell: cmd
       - uses: actions/checkout@v3
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ secrets.PAT }}
+      - name: 'Pull develop ghcr docker image'
+        run: |
+          docker pull ${{ env.controller_image }}
+          docker pull ${{ env.agent_image }}
       - uses: actions/download-artifact@v2
         with:
          name: iofogctl
       - run: ls
       - name: Prepare iofogctl binary
-        shell: cmd
+        shell: bash
         run: |
-          echo "::add-path::${{ github.workspace }}/build_windows_windows_amd64/iofogctl/iofogctl"
-          ${{ github.workspace }}/build_windows_windows_amd64/iofogctl version
-      - name: Setup BATS
-        uses: mig4/setup-bats@v1
-        with:
-          bats-version: 1.2.1
-      - run: bats --version
-      - uses: azure/setup-kubectl@v3
-        id: install
-      - uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
-        with:
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
-          project_id: ${{ env.PROJECT }}
-      - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_ZONE }}
-          credentials: ${{ secrets.GKE_SA_KEY }}
-      - name: run Functional Test
-        run: sh test/run.bash k8s
+          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
+          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
+          sudo chmod 0755 /usr/local/bin/iofogctl
+      - run: sudo apt-get install -y jq
+      - name: Verify iofogctl
+        run: |
+          which iofogctl
+          iofogctl version
+      - run: ./pipeline/steps/configure-env.sh
+      - name: Install test deps
+        shell: bash
+        run: |
+          git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
+          sudo npm i -g tap-junit
+      - name: Run smoke test
+        run: test/run.bash smoke
+      - name: Run functional Test
+        shell: bash
+        run: |
+          set -o pipefail
+          test/run.bash local | tee test/conf/results-local.tap
+      - run:  docker system prune -af
