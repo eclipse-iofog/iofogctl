@@ -53,8 +53,6 @@ jobs:
     name: Build
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v4
         with:
           go-version: '1.18'
@@ -73,14 +71,43 @@ jobs:
         with:
           version: 1.1.0
           args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-#      - name: iofogctl build packages
-#        shell: bash
-#        id: build_package
-#        run: |
-#          set -e
-#          goreleaser --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: iofogctl
           path: ${{ github.workspace }}/dist
+  Windows_Test:
+    needs: Build
+    runs-on: windows-latest
+    steps:
+      - name: Display the path
+        run: echo %PATH%
+        shell: cmd
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v2
+        with:
+         name: iofogctl
+      - run: ls
+      - name: Prepare iofogctl binary
+        shell: cmd
+        run: |
+          echo "::add-path::${{ github.workspace }}/build_windows_windows_amd64/iofogctl/iofogctl"
+          ${{ github.workspace }}/build_windows_windows_amd64/iofogctl version
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.2.1
+      - run: bats --version
+      - uses: azure/setup-kubectl@v3
+        id: install
+      - uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+        with:
+          service_account_key: ${{ secrets.GKE_SA_KEY }}
+          project_id: ${{ env.PROJECT }}
+      - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+          credentials: ${{ secrets.GKE_SA_KEY }}
+      - name: run Functional Test
+        run: sh test/run.bash k8s
