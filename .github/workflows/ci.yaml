@@ -40,96 +40,115 @@ env:
   controller_vm:
 
 jobs:
-#  Build:
-#    runs-on: ubuntu-20.04
-#    permissions:
-#      contents: 'read'
-#      id-token: 'write'
-#      packages: 'write'
-#    name: Build
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: '1.18'
-#          cache: false
-#      - run: go version
-#      - name: golangci-lint
-#        uses: golangci/golangci-lint-action@v3
-#        with:
-#          version: v1.50.1
-#          args: --timeout=5m0s
-#      - name: Run bootstrap
-#        run: PIPELINE=1 script/bootstrap.sh
-#      - run: make test
-#      - name: iofogctl build packages GoReleaser
-#        uses: goreleaser/goreleaser-action@v4
-#        with:
-#          version: 1.1.0
-#          args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-#      - name: Upload Artifact
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: iofogctl
-#          path: ${{ github.workspace }}/dist
-#  Test:
-#    needs: Build
-#    runs-on: ubuntu-20.04
-#    permissions:
-#      contents: 'read'
-#      id-token: 'write'
-#      packages: 'read'
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Login to Github Container Registry
-#        uses: docker/login-action@v2
-#        with:
-#          registry: "ghcr.io"
-#          username: ${{ github.actor }}
-#          password: ${{ secrets.PAT }}
-#      - name: 'Pull develop ghcr docker image'
-#        run: |
-#          docker pull ${{ env.controller_image }}
-#          docker pull ${{ env.agent_image }}
-#      - uses: actions/download-artifact@v2
-#        with:
-#         name: iofogctl
-#      - run: ls
-#      - name: Prepare iofogctl binary
-#        shell: bash
-#        run: |
-#          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
-#          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
-#          sudo chmod 0755 /usr/local/bin/iofogctl
-#      - run: sudo apt-get install -y jq
-#      - name: Verify iofogctl
-#        run: |
-#          which iofogctl
-#          iofogctl version
-#      - run: ./pipeline/steps/configure-env.sh
-#      - name: Install test deps
-#        shell: bash
-#        run: |
-#          git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
-#          sudo npm i -g tap-junit
-#      - name: Run smoke test
-#        run: test/run.bash smoke
-#      - name: Run functional Test
-#        shell: bash
-#        run: |
-#          set -o pipefail
-#          test/run.bash local | tee test/conf/results-local.tap
-#      - name: 'Convert test output from TAP to JUnit'
-#        shell: bash
-#        run: |
-#          tap-junit -i test/conf/results-local.tap -o test/conf -s Local -n results-local.xml || true
-#      - name: 'Clean local docker'
-#        if: always()
-#        run:  docker system prune -af
+  Build:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
+    name: Build
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.18'
+          cache: false
+      - run: go version
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.50.1
+          args: --timeout=5m0s
+      - name: Run bootstrap
+        run: PIPELINE=1 script/bootstrap.sh
+      - run: make test
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: v0.0.0
+      - name: Set image tag
+        shell: bash
+        id: tags
+        run: |
+          if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
+            echo "VERSION=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
+          else
+             echo "VERSION=${{ steps.previoustag.outputs.tag }}-dev" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Get image tag
+        run: |
+          echo ${{ steps.tags.outputs.VERSION }}
+      - name: iofogctl build packages GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: 1.1.0
+          args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: iofogctl
+          path: ${{ github.workspace }}/dist
+  Test:
+    needs: Build
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'read'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ secrets.PAT }}
+      - name: 'Pull develop ghcr docker image'
+        run: |
+          docker pull ${{ env.controller_image }}
+          docker pull ${{ env.agent_image }}
+      - uses: actions/download-artifact@v2
+        with:
+         name: iofogctl
+      - run: ls
+      - name: Prepare iofogctl binary
+        shell: bash
+        run: |
+          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
+          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
+          sudo chmod 0755 /usr/local/bin/iofogctl
+      - run: sudo apt-get install -y jq
+      - name: Verify iofogctl
+        run: |
+          which iofogctl
+          iofogctl version
+      - run: ./pipeline/steps/configure-env.sh
+      - name: Install test deps
+        shell: bash
+        run: |
+          git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
+          sudo npm i -g tap-junit
+      - name: Run smoke test
+        run: test/run.bash smoke
+      - name: Run functional Test
+        shell: bash
+        run: |
+          set -o pipefail
+          test/run.bash local | tee test/conf/results-local.tap
+      - name: 'Convert test output from TAP to JUnit'
+        shell: bash
+        run: |
+          tap-junit -i test/conf/results-local.tap -o test/conf -s Local -n results-local.xml || true
+      - name: 'Clean local docker'
+        if: always()
+        run:  docker system prune -af
 
   Publish_Iofogctl_Dev:
-#    needs: [Build, Test]
-#    if: (needs.Tests.result == 'success') && (github.ref == 'refs/heads/develop') || contains(github.ref_name, '^v.*')
+    needs: [Build, Test]
+    if: (needs.Tests.result == 'success') && (github.ref == 'refs/heads/develop') || contains(github.ref_name, '^v.*')
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -144,33 +163,20 @@ jobs:
         with:
           go-version: '1.18'
           cache: false
-      - name: 'Get Previous tag'
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        with:
-          fallback: v0.0.0
-      - name: Set image tag
-        shell: bash
-        id: tags
-        run: |
-          if [[ ${{ github.ref_name }} =~ ^v.* ]] ; then
-            echo "VERSION=${{ github.ref_name }}" >> "${GITHUB_ENV}"
-          else
-             echo "VERSION=${{ steps.previoustag.outputs.tag }}-dev" >> "${GITHUB_ENV}"
-          fi
       - name: Get image tag
         run: |
-          echo ${{ env.VERSION }}
+          echo ${{ needs.Build.outputs.VERSION }}
       - name: iofogctl build packages GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
           version: 1.1.0
           args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl-dev.yml
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.Build.outputs.VERSION }}
       - name: Install Packagecloud cli
         run: go install github.com/edgeworx/packagecloud@v0.1.1
       - run:  ./.packagecloud-publish.sh
+        continue-on-error: true
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.packagecloud_token }}
           PACKAGECLOUD_REPO: "iofog/iofogctl-snapshots"
@@ -180,4 +186,37 @@ jobs:
         with:
           name: iofogctl_dev
           path: ${{ github.workspace }}/dist
+
+  Publish_Iofogctl_Prod:
+    needs: [Build, Test]
+    if: (needs.Tests.result == 'success') && contains(github.ref_name, '^v.*')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
+    name: Publish Iofogctl Prod
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.18'
+          cache: false
+      - name: iofogctl build packages GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: 1.1.0
+          args: --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+        env:
+          VERSION: ${{ needs.Build.outputs.VERSION }}
+      - name: Install Packagecloud cli
+        run: go install github.com/edgeworx/packagecloud@v0.1.1
+      - run: ./.packagecloud-publish.sh
+        continue-on-error: true
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.packagecloud_token }}
+          PACKAGECLOUD_REPO: "iofog/iofogctl"
+          GITHUB_TOKEN: ${{ github.token }}
 
