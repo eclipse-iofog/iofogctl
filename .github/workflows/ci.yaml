@@ -145,7 +145,7 @@ jobs:
 
   Publish_Iofogctl_Dev:
     needs: [Build, Test]
-    if: (needs.Tests.result == 'success') && (github.ref == 'refs/heads/develop') || contains(github.ref_name, '^v.*')
+    if: (github.ref == 'refs/heads/develop') || contains(github.ref_name, '^v.*')
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -186,7 +186,7 @@ jobs:
 
   Publish_Iofogctl_Prod:
     needs: [Build, Test]
-    if: (needs.Tests.result == 'success') && contains(github.ref_name, '^v.*')
+    if: contains(github.ref_name, '^v.*')
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
