@@ -142,9 +142,6 @@ jobs:
         shell: bash
         run: |
           tap-junit -i test/conf/results-local.tap -o test/conf -s Local -n results-local.xml || true
-      - name: 'Clean local docker'
-        if: always()
-        run:  docker system prune -af
 
   Publish_Iofogctl_Dev:
     needs: [Build, Test]
