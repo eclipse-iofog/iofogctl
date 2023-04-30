@@ -39,7 +39,7 @@ function deb() {
   echo "$packages"
   echo ""
   declare -a distro_versions=(
-    "ubuntu/focal" "ubuntu/xenial" "ubuntu/bionic" "ubuntu/trusty"
+    "ubuntu/focal" "ubuntu/xenial" "ubuntu/bionic" "ubuntu/trusty" "ubuntu/jammy"
     "debian/stretch" "debian/buster" "debian/bullseye"
     "raspbian/stretch" "raspbian/buster" "raspbian/bullseye"
     "any/any"
