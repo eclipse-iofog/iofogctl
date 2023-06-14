@@ -30,7 +30,7 @@ start_docker() {
 do_configure_overlay() {
 	local driver="$DOCKER_STORAGE_DRIVER"
 	if [ -z "$driver" ]; then
-		driver="overlay"
+		driver="overlay2"
 	fi
 	echo "# Configuring /etc/systemd/system/docker.service.d/overlay.conf..."
 	if [ "$lsb_dist" = "raspbian" ] || [ "$(uname -m)" = "armv7l" ] || [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv8" ]; then
