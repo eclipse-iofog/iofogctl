@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/GeertJohan/go.rice v1.0.2
 	github.com/briandowns/spinner v1.18.1
-	github.com/docker/docker v20.10.24+incompatible
+	github.com/docker/docker v20.10.27+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.1.0
 	github.com/eclipse-iofog/iofog-operator/v3 v3.1.1
