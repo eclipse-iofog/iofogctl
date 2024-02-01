@@ -30,7 +30,7 @@ do_install_java() {
 		;;
 		debian|mendel)
 			$sh_c "apt-get update"
-			$sh_c "apt install -y openjdk-11-jdk"
+			$sh_c "apt install -y openjdk-17-jdk"
 		;;
 		raspbian)
 		  if [ "$os_arch" = "32" ]; then
@@ -38,7 +38,7 @@ do_install_java() {
 		    $sh_c "apt-get install openjdk-8-jdk -y"
 		  else
 		    $sh_c "apt-get update"
-		    $sh_c "apt install -y openjdk-11-jdk"
+		    $sh_c "apt install -y openjdk-17-jdk"
 		  fi
 		;;
 		fedora|centos)
