@@ -26,23 +26,18 @@ do_install_java() {
 	case "$lsb_dist" in
 		ubuntu)
 			$sh_c "apt-get update -y"
-			$sh_c "apt install -y openjdk-11-jdk"
+			$sh_c "apt install -y openjdk-17-jdk"
 		;;
 		debian|mendel)
 			$sh_c "apt-get update"
-			$sh_c "apt install -y openjdk-11-jdk"
+			$sh_c "apt install -y openjdk-17-jdk"
 		;;
 		raspbian)
-		  if [ "$os_arch" = "32" ]; then
-		    $sh_c "apt-get update"
-		    $sh_c "apt-get install openjdk-8-jdk -y"
-		  else
-		    $sh_c "apt-get update"
-		    $sh_c "apt install -y openjdk-11-jdk"
-		  fi
+		  $sh_c "apt-get update"
+		  $sh_c "apt-get install openjdk-17-jdk -y"
 		;;
 		fedora|centos)
-			$sh_c "yum install -y java-11-openjdk"
+			$sh_c "yum install -y java-17-openjdk"
 		;;
 	esac
 }
