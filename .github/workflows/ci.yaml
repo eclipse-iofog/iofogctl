@@ -145,7 +145,7 @@ jobs:
 
   Publish_Iofogctl_Dev:
     needs: [Build, Test]
-    if: (github.ref == 'refs/heads/develop') || contains(github.ref_name, '^v.*')
+    if: ${{ github.ref_name == 'develop' || startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -186,7 +186,7 @@ jobs:
 
   Publish_Iofogctl_Prod:
     needs: [Build, Test]
-    if: contains(github.ref_name, '^v.*')
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
