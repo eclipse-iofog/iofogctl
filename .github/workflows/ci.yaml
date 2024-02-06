@@ -208,7 +208,7 @@ jobs:
           args: --rm-dist --debug --config ./.goreleaser-iofogctl.yml
         env:
           VERSION: ${{ needs.Build.outputs.VERSION }}
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.iofogctl_pat }}
       - name: Install Packagecloud cli
         run: go install github.com/edgeworx/packagecloud@v0.1.1
       - run: ./.packagecloud-publish.sh
