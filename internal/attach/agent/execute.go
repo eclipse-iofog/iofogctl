@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,14 +17,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
-	deploy "github.com/eclipse-iofog/iofogctl/v3/internal/deploy/agent"
-	deployagentconfig "github.com/eclipse-iofog/iofogctl/v3/internal/deploy/agentconfig"
+	deploy "github.com/eclipse-iofog/iofogctl/internal/deploy/agent"
+	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agentconfig"
 )
 
 type Options struct {
@@ -55,7 +55,8 @@ func (exe *executor) fail(inErr error) error {
 	if err != nil {
 		return fmt.Errorf("%s\nFailed to create Controller API client: %s", inErr.Error(), err.Error())
 	}
-	agent, err := iofogclient.GetAgentByName(exe.opt.Name, false)
+	// agent, err := iofogclient.GetAgentByName(exe.opt.Name, false)
+	agent, err := iofogclient.GetAgentByName(exe.opt.Name)
 	if err != nil {
 		msg := "%s\nFailed to get newly created Agent by name: %s"
 		return fmt.Errorf(msg, inErr.Error(), err.Error())

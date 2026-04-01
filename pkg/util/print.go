@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,6 +16,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"sync"
 )
 
 // These are the colors we'll use in pretty printing output
@@ -24,6 +25,8 @@ const CSkyblue = "\033[38;5;117m"
 const CDeepskyblue = "\033[48;5;25m"
 const Red = "\033[38;5;1m"
 const Green = "\033[38;5;28m"
+
+var progressPrintMu sync.Mutex
 
 // Print a 'message' with CSkyblue color text
 func PrintInfo(message string) {
@@ -42,6 +45,23 @@ func PrintNotify(message string) {
 	fmt.Fprintf(os.Stderr, CSkyblue+"! "+message+NoFormat+"\n")
 	if wasRunning {
 		SpinUnpause()
+	}
+}
+
+// PrintProgress prints inline progress updates with color and handles spinner state.
+func PrintProgress(label string, percent int, done bool) {
+	if percent < 0 {
+		percent = 0
+	}
+	if percent > 100 {
+		percent = 100
+	}
+	progressPrintMu.Lock()
+	defer progressPrintMu.Unlock()
+
+	fmt.Printf("\r%s%s: %3d%%%s", CSkyblue, label, percent, NoFormat)
+	if done {
+		fmt.Print("\n")
 	}
 }
 

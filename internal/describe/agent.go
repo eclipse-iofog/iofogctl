@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,11 +14,11 @@
 package describe
 
 import (
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentExecutor struct {
@@ -65,10 +65,11 @@ func (exe *agentExecutor) Execute() (err error) {
 
 	var tags *[]string
 	var agentConfig rsc.AgentConfiguration
+	var agentStatus rsc.AgentStatus
 	// Detached Agents don't have a UUID
 	if agent.GetUUID() != "" {
 		// Get Agent configuration
-		agentConfig, tags, err = clientutil.GetAgentConfig(exe.name, exe.namespace)
+		agentConfig, tags, agentStatus, err = clientutil.GetAgentConfig(exe.name, exe.namespace)
 		if err != nil {
 			return err
 		}
@@ -82,6 +83,10 @@ func (exe *agentExecutor) Execute() (err error) {
 	case *rsc.RemoteAgent:
 		kind = config.RemoteAgentKind
 	}
+
+	// Format agent status for human-readable output
+	formattedStatus := FormatAgentStatus(agentStatus)
+
 	header := config.Header{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       kind,
@@ -90,7 +95,8 @@ func (exe *agentExecutor) Execute() (err error) {
 			Name:      exe.name,
 			Tags:      tags,
 		},
-		Spec: agent,
+		Spec:   agent,
+		Status: formattedStatus,
 	}
 
 	if exe.filename == "" {

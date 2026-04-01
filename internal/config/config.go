@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,12 +16,12 @@ package config
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -40,10 +40,10 @@ const (
 	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
 	defaultDirname       = ".iofog/" + latestVersion
 	namespaceDirname     = "namespaces/"
+	offlineImagesDirname = "offline-images"
+	airgapImagesDirname  = "airgap-images"
 	defaultFilename      = "config.yaml"
-	configV2             = "iofogctl/v2"
 	configV3             = "iofogctl/v3"
-	configV1             = "iofogctl/v1"
 	CurrentConfigVersion = configV3
 	detachedNamespace    = "_detached"
 )
@@ -120,26 +120,16 @@ func getNamespaceFile(name string) string {
 	return path.Join(namespaceDirectory, name+".yaml")
 }
 
-func updateConfigToV2(header *iofogctlConfig) {
-	if header != nil {
-		header.APIVersion = configV2
-	}
-}
-
 func getConfigFromHeader(header *iofogctlConfig) (conf configuration, err error) {
 	switch header.APIVersion {
 	case CurrentConfigVersion:
 		// All good
 		break
-	// Example for further maintenance
-	// case PreviousConfigVersion
-	// 	updateFromPreviousVersion()
-	// 	break
-	case configV1:
-		updateConfigToV2(header)
-		return getConfigFromHeader(header)
-	default:
-		return conf, util.NewInputError("Invalid iofogctl config version")
+		// Example for further maintenance
+		// case PreviousConfigVersion
+		// 	updateFromPreviousVersion()
+		// 	break
+
 	}
 	bytes, err := yaml.Marshal(header.Spec)
 	if err != nil {
@@ -157,12 +147,7 @@ func getNamespaceFromHeader(header *iofogctlNamespace) (ns *rsc.Namespace, err e
 	case CurrentConfigVersion:
 		// All good
 		break
-	case configV1:
-		err = util.NewError("Namespace file is out of date.")
-		return
-	default:
-		err = util.NewInputError("Invalid iofogctl config version")
-		return
+
 	}
 	// Unmarshal Namespace spec
 	bytes, err := yaml.Marshal(header.Spec)
@@ -179,7 +164,7 @@ func getNamespaceFromHeader(header *iofogctlNamespace) (ns *rsc.Namespace, err e
 func getConfigYAMLFile(conf configuration) ([]byte, error) {
 	confHeader := iofogctlConfig{
 		Header: Header{
-			Kind:       IofogctlConfigKind,
+			Kind:       iofogctlConfigKind,
 			APIVersion: CurrentConfigVersion,
 			Spec:       conf,
 		},
@@ -191,7 +176,7 @@ func getConfigYAMLFile(conf configuration) ([]byte, error) {
 func getNamespaceYAMLFile(ns *rsc.Namespace) ([]byte, error) {
 	namespaceHeader := iofogctlNamespace{
 		Header{
-			Kind:       IofogctlNamespaceKind,
+			Kind:       iofogctlNamespaceKind,
 			APIVersion: CurrentConfigVersion,
 			Metadata: HeaderMetadata{
 				Name: ns.Name,
@@ -210,7 +195,7 @@ func flushNamespaces() error {
 			return err
 		}
 		// Overwrite the file
-		err = ioutil.WriteFile(getNamespaceFile(ns.Name), marshal, 0644)
+		err = os.WriteFile(getNamespaceFile(ns.Name), marshal, 0644)
 		if err != nil {
 			return err
 		}
@@ -225,7 +210,7 @@ func flushShared() error {
 		return nil
 	}
 	// Overwrite the file
-	err = ioutil.WriteFile(configFilename, marshal, 0644)
+	err = os.WriteFile(configFilename, marshal, 0644)
 	if err != nil {
 		return nil
 	}
@@ -237,9 +222,41 @@ func Flush() error {
 	return flushNamespaces()
 }
 
+// GetOfflineImageNamespaceDir returns the directory path used to store OfflineImage artifacts for a namespace.
+func GetOfflineImageNamespaceDir(namespace string) string {
+	return path.Join(configFolder, offlineImagesDirname, namespace)
+}
+
+// GetOfflineImageCacheDir returns the directory path for a specific OfflineImage resource and platform.
+func GetOfflineImageCacheDir(namespace, resourceName, platform string) string {
+	pathElems := []string{configFolder, offlineImagesDirname, namespace}
+	if resourceName != "" {
+		pathElems = append(pathElems, resourceName)
+	}
+	if platform != "" {
+		pathElems = append(pathElems, platform)
+	}
+	return path.Join(pathElems...)
+}
+
+// GetAirgapImageCacheDir returns the directory path for a specific airgap image (namespace, imageRef, platform).
+// Image ref and platform are sanitized for use in the path (e.g. / and : replaced with _).
+func GetAirgapImageCacheDir(namespace, imageRef, platform string) string {
+	sanitizedRef := strings.ReplaceAll(strings.ReplaceAll(imageRef, "/", "_"), ":", "_")
+	sanitizedPlatform := strings.ReplaceAll(platform, "/", "_")
+	pathElems := []string{configFolder, airgapImagesDirname, namespace}
+	if sanitizedRef != "" {
+		pathElems = append(pathElems, sanitizedRef)
+	}
+	if sanitizedPlatform != "" {
+		pathElems = append(pathElems, sanitizedPlatform)
+	}
+	return path.Join(pathElems...)
+}
+
 func ValidateHeader(header *Header) error {
 	if header.APIVersion != LatestAPIVersion {
-		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See https://iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
 	}
 	return nil
 }

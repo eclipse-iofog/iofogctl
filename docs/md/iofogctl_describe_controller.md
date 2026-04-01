@@ -1,6 +1,6 @@
 ## iofogctl describe controller
 
-Get detailed information about a  Controller
+Get detailed information about a Controller
 
 ### Synopsis
 

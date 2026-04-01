@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,11 +23,15 @@ const (
 	ControllerHostECNViewerPort       = 8008
 	ControllerHostECNViewerPortString = "8008"
 
-	DefaultHTTPPort       = 80
-	DefaultHTTPPortString = "80"
+	DefaultHTTPPort       = 8008
+	DefaultHTTPPortString = "8008"
 
-	ConnectorPort       = 8080
-	ConnectorPortString = "8080"
-
+	// VanillaRemoteAgentName string = "0-controlplane"
 	VanillaRouterAgentName string = client.DefaultRouterName
+	VanillaNatsAgentName   string = client.DefaultNatsServerName
+	VanillaLocalAgentName  string = "local-agent"
+
+	// RouterMode values
+	RouterModeInterior string = "interior"
+	NatsModeServer     string = "server"
 )

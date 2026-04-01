@@ -1,6 +1,6 @@
 ## iofogctl describe registry
 
-Get detailed information about a  Microservice Registry
+Get detailed information about a Microservice Registry
 
 ### Synopsis
 

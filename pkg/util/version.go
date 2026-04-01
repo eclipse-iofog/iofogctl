@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,28 +24,24 @@ var (
 
 	repo = "undefined"
 
-	controllerTag  = "undefined"
-	agentTag       = "undefined"
-	operatorTag    = "undefined"
-	kubeletTag     = "undefined"
-	routerTag      = "undefined"
-	portManagerTag = "undefined"
-	proxyTag       = "undefined"
-
+	controllerTag     = "undefined"
+	agentTag          = "undefined"
+	operatorTag       = "undefined"
+	routerTag         = "undefined"
+	natsTag           = "undefined"
 	controllerVersion = "undefined"
 	agentVersion      = "undefined"
+	debuggerTag       = "undefined"
 )
 
 const (
-	controllerImage  = "controller"
-	agentImage       = "agent"
-	operatorImage    = "operator"
-	kubeletImage     = "kubelet"
-	portManagerImage = "port-manager"
-	proxyImage       = "proxy"
-	proxyARMImage    = "proxy-arm"
-	routerImage      = "router"
-	routerARMImage   = "router-arm"
+	controllerImage = "controller"
+	agentImage      = "agent"
+	operatorImage   = "operator"
+	routerImage     = "router"
+	routerARMImage  = "router"
+	natsImage       = "nats"
+	debuggerImage   = "node-debugger"
 )
 
 type Version struct {
@@ -72,11 +68,7 @@ func GetControllerImage() string {
 }
 func GetAgentImage() string     { return fmt.Sprintf("%s/%s:%s", repo, agentImage, agentTag) }
 func GetOperatorImage() string  { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
-func GetKubeletImage() string   { return fmt.Sprintf("%s/%s:%s", repo, kubeletImage, kubeletTag) }
 func GetRouterImage() string    { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
 func GetRouterARMImage() string { return fmt.Sprintf("%s/%s:%s", repo, routerARMImage, routerTag) }
-func GetPortManagerImage() string {
-	return fmt.Sprintf("%s/%s:%s", repo, portManagerImage, portManagerTag)
-}
-func GetProxyImage() string    { return fmt.Sprintf("%s/%s:%s", repo, proxyImage, proxyTag) }
-func GetProxyARMImage() string { return fmt.Sprintf("%s/%s:%s", repo, proxyARMImage, proxyTag) }
+func GetNatsImage() string      { return fmt.Sprintf("%s/%s:%s", repo, natsImage, natsTag) }
+func GetDebuggerImage() string  { return fmt.Sprintf("%s/%s:%s", repo, debuggerImage, debuggerTag) }

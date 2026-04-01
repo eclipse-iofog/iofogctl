@@ -2,8 +2,8 @@ package connectcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func Connect(ctrlPlane rsc.ControlPlane, endpoint string, ns *rsc.Namespace) error {
@@ -12,11 +12,12 @@ func Connect(ctrlPlane rsc.ControlPlane, endpoint string, ns *rsc.Namespace) err
 	if err != nil {
 		return err
 	}
+	util.SpinHandlePrompt()
 	ctrl, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().GetRawPassword())
 	if err != nil {
 		return err
 	}
-
+	util.SpinHandlePromptComplete()
 	// Get Agents
 	listAgentsResponse, err := ctrl.ListAgents(client.ListAgentsRequest{})
 	if err != nil {

@@ -23,7 +23,7 @@ iofogctl delete namespace NAME
 ### Options
 
 ```
-      --force   Force deletion of all resources within the namespace
+      --force   Force deletion of all resources within the Namespace
   -h, --help    help for namespace
 ```
 

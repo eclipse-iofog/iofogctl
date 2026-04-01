@@ -334,7 +334,7 @@ function testApplicationTemplates(){
   checkApplication "$NS" 80 7777 6666
 
   # Look for templated variables
-  for CHECK in 12345 7777 80 func-test-0 "rootHostAccess: false"; do
+  for CHECK in 12345 7777 80 func-test-0 "hostNetworkMode: false"; do
     echo "Wanted $CHECK"
     iofogctl -v -n "$NS" describe application "$APPLICATION_NAME" | grep "$CHECK"
   done

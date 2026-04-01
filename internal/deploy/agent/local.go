@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
@@ -36,8 +36,11 @@ func newLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (*
 	if err != nil {
 		return nil, err
 	}
+	if agent.Config == nil {
+		agent.Config = &rsc.AgentConfiguration{}
+	}
 	// Get Controller LocalContainerConfig
-	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{})
+	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{}, install.Auth{}, install.Database{}, install.Events{}, nil)
 	return &localExecutor{
 		isSystem:  isSystem,
 		namespace: namespace,
@@ -51,7 +54,9 @@ func newLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (*
 				User:     agent.Container.Credentials.User,
 				Password: agent.Container.Credentials.Password,
 			},
-			isSystem),
+			isSystem,
+			agent.Config.TimeZone,
+		),
 	}, nil
 }
 

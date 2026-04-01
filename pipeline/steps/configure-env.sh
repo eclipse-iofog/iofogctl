@@ -4,7 +4,6 @@
     sed -i "s|CONTROLLER_IMAGE=.*|CONTROLLER_IMAGE=\"${{ env.controller_image }}\"|g" test/env.sh
     sed -i "s|CONTROLLER_VANILLA_VERSION=.*|CONTROLLER_VANILLA_VERSION=\"${{ env.controller_version }}\"|g" test/env.sh
     sed -i "s|OPERATOR_IMAGE=.*|OPERATOR_IMAGE=\"${{ env.operator_image }}\"|g" test/env.sh
-    sed -i "s|KUBELET_IMAGE=.*|KUBELET_IMAGE=\"${{ env.kubelet_image }}\"|g" test/env.sh
     sed -i "s|PORT_MANAGER_IMAGE=.*|PORT_MANAGER_IMAGE=\"${{ env.port_manager_image }}\"|g" test/env.sh
     sed -i "s|AGENT_IMAGE=.*|AGENT_IMAGE=\"${{ env.agent_image }}\"|g" test/env.sh
     sed -i "s|ROUTER_IMAGE=.*|ROUTER_IMAGE=\"${{ env.router_image }}\"|g" test/env.sh

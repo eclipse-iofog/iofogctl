@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	detach "github.com/eclipse-iofog/iofogctl/v3/internal/detach/agent"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	detach "github.com/eclipse-iofog/iofogctl/internal/detach/agent"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 

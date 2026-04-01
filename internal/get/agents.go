@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,10 +18,10 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentExecutor struct {
@@ -99,6 +99,10 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 		"UPTIME",
 		"VERSION",
 		"ADDR",
+		"MODE",
+		"TYPE",
+		"ENGINE",
+		// "VOLUME-MOUNTS",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
@@ -113,6 +117,8 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 				"-",
 				"-",
 				agent.IPAddressExternal,
+				"-",
+				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {
@@ -121,6 +127,12 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 				age = backendAge
 			}
 			uptime := time.Duration(agent.UptimeMs) * time.Millisecond
+			var mode string
+			if agent.IsSystem {
+				mode = "System"
+			} else {
+				mode = "Node"
+			}
 			row := []string{
 				agent.Name,
 				agent.DaemonStatus,
@@ -128,12 +140,28 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 				util.FormatDuration(uptime),
 				agent.Version,
 				agent.Host,
+				mode,
+				agent.DeploymentType,
+				agent.ContainerEngine,
+				// formatVolumeMounts(agent.VolumeMounts),
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		}
 	}
 	return table, err
 }
+
+// func formatVolumeMounts(volumeMounts []client.VolumeMountInfo) string {
+// 	if len(volumeMounts) == 0 {
+// 		return "-"
+// 	}
+
+// 	var names []string
+// 	for _, vm := range volumeMounts {
+// 		names = append(names, vm.Name)
+// 	}
+// 	return strings.Join(names, ", ")
+// }
 
 func printDetached() {
 	fmt.Printf("DETACHED RESOURCES\n\n")

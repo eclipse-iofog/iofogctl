@@ -24,5 +24,6 @@ Starts a resource
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl start application](iofogctl_start_application.md)	 - Starts an application
+* [iofogctl start microservice](iofogctl_start_microservice.md)	 - Starts an microservice
 
 

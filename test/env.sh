@@ -32,7 +32,6 @@ export ROUTER_ARM_IMAGE='gcr.io/focal-freedom-236620/router-arm:develop'
 export PROXY_IMAGE='gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
 export PROXY_ARM_IMAGE='gcr.io/focal-freedom-236620/proxy-arm:develop'
 export OPERATOR_IMAGE='gcr.io/focal-freedom-236620/operator:develop'
-export KUBELET_IMAGE='gcr.io/focal-freedom-236620/kubelet:develop'
 
 # Controller version for vanilla deploys
 export CONTROLLER_VANILLA_VERSION='0.0.0-dev'
@@ -80,7 +79,6 @@ echo "${!ROUTER_IMAGE*}: " "$ROUTER_IMAGE"
 echo "${!PROXY_IMAGE*}: " "$PROXY_IMAGE"
 echo "${!AGENT_IMAGE*}: " "$AGENT_IMAGE"
 echo "${!OPERATOR_IMAGE*}: " "$OPERATOR_IMAGE"
-echo "${!KUBELET_IMAGE*}: " "$KUBELET_IMAGE"
 echo "${!DB_PROVIDER*}: " "$DB_PROVIDER"
 echo "${!DB_USER*}: " "$DB_USER"
 echo "${!DB_HOST*}: " "$DB_HOST"

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,11 +18,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	connectcontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/connect/controlplane"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	connectcontrolplane "github.com/eclipse-iofog/iofogctl/internal/connect/controlplane"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteExecutor struct {
@@ -144,8 +144,8 @@ func formatEndpoint(endpoint string) (*url.URL, error) {
 func validate(controlPlane rsc.ControlPlane) (err error) {
 	// Validate user
 	user := controlPlane.GetUser()
-	if user.Password == "" || user.Email == "" {
-		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty values in email and password fields")
+	if user.Email == "" {
+		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty value in email field")
 	}
 	// Validate Controllers
 	if len(controlPlane.GetControllers()) == 0 {

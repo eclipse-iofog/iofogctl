@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package cmd
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/internal/describe"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/describe"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ func newDescribeRegistryCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "registry NAME",
-		Short:   "Get detailed information about a  Microservice Registry",
+		Short:   "Get detailed information about a Microservice Registry",
 		Long:    `Get detailed information about a Microservice Registry.`,
 		Example: `iofogctl describe registry NAME`,
 		Args:    cobra.ExactArgs(1),

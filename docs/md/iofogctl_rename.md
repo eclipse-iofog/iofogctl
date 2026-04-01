@@ -29,6 +29,5 @@ Rename the iofog resources that are currently deployed
 * [iofogctl rename edge-resource](iofogctl_rename_edge-resource.md)	 - Rename an Edge Resource
 * [iofogctl rename microservice](iofogctl_rename_microservice.md)	 - Rename a Microservice
 * [iofogctl rename namespace](iofogctl_rename_namespace.md)	 - Rename a Namespace
-* [iofogctl rename route](iofogctl_rename_route.md)	 - Rename a Route
 
 

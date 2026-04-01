@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,8 +16,8 @@ package describe
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
@@ -45,16 +45,32 @@ func NewExecutor(opt *Options) (execute.Executor, error) {
 		return newAgentConfigExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "microservice":
 		return newMicroserviceExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "system-microservice":
+		return newSystemMicroserviceExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "application-template":
 		return newApplicationTemplateExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "application":
 		return newApplicationExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "volume":
 		return newVolumeExecutor(opt.Namespace, opt.Name, opt.Filename), nil
-	case "route":
-		return newRouteExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "edge-resource":
 		return newEdgeResourceExecutor(opt.Namespace, opt.Name, opt.Version, opt.Filename), nil
+	case "secret":
+		return newSecretExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "configmap":
+		return newConfigMapExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "service":
+		return newServiceExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "volume-mount":
+		return newVolumeMountExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "certificate":
+		return newCertificateExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "role":
+		return newRoleExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "rolebinding":
+		return newRoleBindingExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "serviceaccount":
+		return newServiceAccountExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	default:
 		return nil, util.NewInputError(fmt.Sprintf("Unknown resources: %s", opt.Resource))
 	}

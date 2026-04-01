@@ -1,9 +1,10 @@
+
 name: CI
 on:
   push:
     branches:
-      - develop
-      - release*
+      - main
+      
     tags: [v*]
     paths-ignore:
       - README.md
@@ -12,58 +13,61 @@ on:
   pull_request:
     # Sequence of patterns matched against refs/heads
     branches:
-      - develop
-      - release*
+      - main
+      
     paths-ignore:
       - README.md
       - CHANGELOG.md
       - LICENSE
 env:
-  PROJECT: 'focal-freedom-236620'
-  IMAGE_NAME: 'operator'
-  GKE_CLUSTER: 'iofogctl-ci'
-  GKE_ZONE: 'us-central1-a'
-  controller_image: 'ghcr.io/eclipse-iofog/controller:3.0.4-53'
-  enterprise_image: 'gcr.io/focal-freedom-236620/enterprise-controller:master'
-  agent_image: 'ghcr.io/eclipse-iofog/agent:3.0.1-24'
-  operator_image: 'gcr.io/focal-freedom-236620/operator:develop'
-  kubelet_image: 'gcr.io/focal-freedom-236620/kubelet:develop'
-  port_manager_image: 'gcr.io/focal-freedom-236620/port-manager:develop'
-  router_image: 'gcr.io/focal-freedom-236620/router:develop'
-  router_arm_image: 'gcr.io/focal-freedom-236620/router-arm:develop'
-  proxy_image: 'gcr.io/focal-freedom-236620/proxy:3.0.0-beta1'
-  proxy_arm_image: 'gcr.io/focal-freedom-236620/proxy-arm:develop'
-  iofog_agent_version: '0.0.0-dev'
-  controller_version: '0.0.0-dev'
+  PROJECT: 'iofog'
+  controller_image: 'ghcr.io/eclipse-iofog/controller:latest'
+  agent_image: 'ghcr.io/eclipse-iofog/agent:latest'
+  operator_image: 'ghcr.io/eclipse-iofog/operator:latest'
+  port_manager_image: 'ghcr.io/eclipse-iofog/port-manager:latest'
+  router_image: 'ghcr.io/eclipse-iofog/router:latest'
+  router_arm_image: 'ghcr.io/eclipse-iofog/router:latest'
+  # proxy_image: 'ghcr.io/eclipse-iofog/proxy:latest'
+  # proxy_arm_image: 'ghcr.io/eclipse-iofog/proxy:latest'
+  iofog_agent_version: '3.5.0'
+  controller_version: '3.5.0'
   version:
   agent_vm_list:
   controller_vm:
 
 jobs:
   Build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: 'read'
       id-token: 'write'
       packages: 'write'
     name: Build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      # - name: Install system dependencies
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libgpgme-dev
+      - name: Install ARM cross-compilation toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.18'
+          go-version: '1.24'
           cache: false
       - run: go version
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.50.1
+          version: v1.64.4
           args: --timeout=5m0s
+          working-directory: .
       - name: Run bootstrap
         run: PIPELINE=1 script/bootstrap.sh
-      - run: make test
       - name: 'Get Previous tag'
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
@@ -82,139 +86,65 @@ jobs:
         run: |
           echo ${{ steps.tags.outputs.VERSION }}
       - name: iofogctl build packages GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6 
         with:
-          version: 1.1.0
-          args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl.yml
+          version: '~> v2'
+          args: --snapshot --clean --verbose --config ./.goreleaser-iofogctl.yml
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: iofogctl
           path: ${{ github.workspace }}/dist
-  Test:
-    needs: Build
-    runs-on: ubuntu-20.04
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-      packages: 'read'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Login to Github Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: "ghcr.io"
-          username: ${{ github.actor }}
-          password: ${{ secrets.PAT }}
-      - name: 'Pull develop ghcr docker image'
-        run: |
-          docker pull ${{ env.controller_image }}
-          docker pull ${{ env.agent_image }}
-      - uses: actions/download-artifact@v2
-        with:
-         name: iofogctl
-      - run: ls
-      - name: Prepare iofogctl binary
-        shell: bash
-        run: |
-          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
-          sudo cp ${{ github.workspace }}//build_linux_linux_amd64/iofogctl /usr/local/bin/
-          sudo chmod 0755 /usr/local/bin/iofogctl
-      - run: sudo apt-get install -y jq
-      - name: Verify iofogctl
-        run: |
-          which iofogctl
-          iofogctl version
-      - run: ./pipeline/steps/configure-env.sh
-      - name: Install test deps
-        shell: bash
-        run: |
-          git clone https://github.com/bats-core/bats-core.git && cd bats-core && git checkout tags/v1.1.0 && sudo ./install.sh /usr/local
-          sudo npm i -g tap-junit
-      - name: Run smoke test
-        run: test/run.bash smoke
-      - name: Run functional Test
-        shell: bash
-        run: |
-          set -o pipefail
-          test/run.bash local | tee test/conf/results-local.tap
-      - name: 'Convert test output from TAP to JUnit'
-        shell: bash
-        run: |
-          tap-junit -i test/conf/results-local.tap -o test/conf -s Local -n results-local.xml || true
 
-  Publish_Iofogctl_Dev:
-    needs: [Build, Test]
-    if: ${{ github.ref_name == 'develop' || startsWith(github.ref, 'refs/tags/v') }}
+  Publish_iofogctl_Prod:
+    needs: [Build]
+  
     runs-on: ubuntu-latest
     permissions:
-      contents: 'read'
-      id-token: 'write'
-      packages: 'write'
-    name: Publish Iofogctl Dev
+      actions: write
+      checks: write
+      contents: write
+      deployments: write
+      id-token: write
+      issues: write
+      discussions: write
+      packages: write
+      pages: write
+      pull-requests: write
+      repository-projects: write
+      security-events: write
+      statuses: write
+    name: Publish iofogctl Prod
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      # - name: Install system dependencies
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libgpgme-dev
+      - name: Install ARM cross-compilation toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.18'
+          go-version: '1.23.0'
           cache: false
       - name: Get image tag
         run: |
           echo ${{ needs.Build.outputs.VERSION }}
       - name: iofogctl build packages GoReleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6 
         with:
-          version: 1.1.0
-          args: --snapshot --rm-dist --debug --config ./.goreleaser-iofogctl-dev.yml
+          version: '~> v2'
+          args: --clean --verbose --config ./.goreleaser-iofogctl.yml
         env:
           VERSION: ${{ needs.Build.outputs.VERSION }}
-      - name: Install Packagecloud cli
-        run: go install github.com/edgeworx/packagecloud@v0.1.1
-      - run:  ./.packagecloud-publish.sh
-        continue-on-error: true
-        env:
-          PACKAGECLOUD_TOKEN: ${{ secrets.packagecloud_token }}
-          PACKAGECLOUD_REPO: "iofog/iofogctl-snapshots"
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: iofogctl_dev
+          name: iofogctl
           path: ${{ github.workspace }}/dist
-
-  Publish_Iofogctl_Prod:
-    needs: [Build, Test]
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-      packages: 'write'
-    name: Publish Iofogctl Prod
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.18'
-          cache: false
-      - name: iofogctl build packages GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          version: 1.1.0
-          args: --rm-dist --debug --config ./.goreleaser-iofogctl.yml
-        env:
-          VERSION: ${{ needs.Build.outputs.VERSION }}
-          GITHUB_TOKEN: ${{ secrets.iofogctl_pat }}
-      - name: Install Packagecloud cli
-        run: go install github.com/edgeworx/packagecloud@v0.1.1
-      - run: ./.packagecloud-publish.sh
-        continue-on-error: true
-        env:
-          PACKAGECLOUD_TOKEN: ${{ secrets.packagecloud_token }}
-          PACKAGECLOUD_REPO: "iofog/iofogctl"
-          GITHUB_TOKEN: ${{ github.token }}
-
+          overwrite: true

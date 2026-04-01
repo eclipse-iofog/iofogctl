@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,13 +14,13 @@
 package deletecontroller
 
 import (
-	"fmt"
+	// "fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	// "github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type RemoteExecutor struct {
@@ -54,19 +54,19 @@ func (exe *RemoteExecutor) Execute() error {
 		return util.NewInternalError("Could not assert Controller type to Remote Controller")
 	}
 
-	// Try to remove default router
-	sshAgent, err := install.NewRemoteAgent(ctrl.SSH.User,
-		ctrl.Host,
-		ctrl.SSH.Port,
-		ctrl.SSH.KeyFile,
-		iofog.VanillaRouterAgentName,
-		"")
-	if err != nil {
-		return err
-	}
-	if err = sshAgent.Uninstall(); err != nil {
-		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRouterAgentName, err.Error()))
-	}
+	// Try to remove default router TODO: skipping right now as systemAgent is not deployed with isSystem
+	// sshAgent, err := install.NewRemoteAgent(ctrl.SSH.User,
+	// 	ctrl.Host,
+	// 	ctrl.SSH.Port,
+	// 	ctrl.SSH.KeyFile,
+	// 	iofog.VanillaRemoteAgentName,
+	// 	"")
+	// if err != nil {
+	// 	return err
+	// }
+	// if err = sshAgent.Uninstall(); err != nil {
+	// 	util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRemoteAgentName, err.Error()))
+	// }
 
 	// Instantiate Controller uninstaller
 	controllerOptions := &install.ControllerOptions{

@@ -51,8 +51,31 @@ install_deps() {
 	fi
 
 	if [ -z "$(command -v python2)" ]; then
-        install_package "python"
+        install_package "python2"
 	fi
+
+	if [ -z "$(command -v python3)" ]; then
+        install_package "python3"
+	fi
+
+	if [ -z "$(command -v python-is-python3)" ]; then
+        install_package "python-is-python3"
+	fi
+}
+
+create_logrotate() {
+    cat <<EOF > /etc/logrotate.d/iofog-controller
+/var/log/iofog-controller/iofog-controller.log {
+  rotate 10
+  size 100m
+  compress
+  notifempty
+  missingok
+  postrotate
+      kill -HUP `cat $INSTALL_DIR/controller/lib/node_modules/@eclipse-iofog/iofogcontroller/src/iofog-controller.pid`
+}
+EOF
+    chmod 644 /etc/logrotate.d/iofog-controller
 }
 
 deploy_controller() {
@@ -61,32 +84,31 @@ deploy_controller() {
 		lsof -ti tcp:51121 | xargs kill
 	fi
 
-#	 If token is provided, set up private repo
-	if [ ! -z $token ]; then
-		if [ ! -z $(npmrc | grep iofog) ]; then
-			npmrc -c iofog
-			npmrc iofog
-		fi
-		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7368735 | force_npm=1 bash
-		mv ~/.npmrc ~/.npmrcs/npmrc
-		ln -s ~/.npmrcs/npmrc ~/.npmrc
-	else
-		npmrc default
-	fi
-
+# #	 If token is provided, set up private repo
+# 	if [ ! -z $token ]; then
+# 		if [ ! -z $(npmrc | grep iofog) ]; then
+# 			npmrc -c iofog
+# 			npmrc iofog
+# 		fi
+# 		curl -s https://"$token":@packagecloud.io/install/repositories/"$repo"/script.node.sh?package_id=7463817 | force_npm=1 bash
+# 		mv ~/.npmrc ~/.npmrcs/npmrc
+# 		ln -s ~/.npmrcs/npmrc ~/.npmrc
+# 	else
+# 		npmrc default
+# 	fi
 	# Save DB
-	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/package.json" ]; then
+	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@eclipse-iofog/iofogcontroller/package.json" ]; then
 		# If iofog-controller is not running, it will fail to stop - ignore that failure.
-		node $INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/scripts/scripts-api.js preuninstall > /dev/null 2>&1 || true
+		node $INSTALL_DIR/controller/lib/node_modules/@eclipse-iofog/iofogcontroller/scripts/scripts-api.js preuninstall > /dev/null 2>&1 || true
 	fi
 
 	# Install in temporary location
 	mkdir -p "$TMP_DIR/controller"
 	chmod 0777 "$TMP_DIR/controller"
 	if [ -z $version ]; then
-		npm install -g -f @iofog/iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
+		npm install -g -f @eclipse-iofog/iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	else
-		npm install -g -f "@iofog/iofogcontroller@$version" --unsafe-perm --prefix "$TMP_DIR/controller"
+		npm install -g -f @eclipse-iofog/iofogcontroller --unsafe-perm --prefix "$TMP_DIR/controller"
 	fi
 	# Move files into $INSTALL_DIR/controller
 	mkdir -p "$INSTALL_DIR/"
@@ -94,8 +116,8 @@ deploy_controller() {
 	mv "$TMP_DIR/controller/" "$INSTALL_DIR/"
 
 	# Restore DB
-	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/package.json" ]; then
-		node $INSTALL_DIR/controller/lib/node_modules/@iofog/iofogcontroller/scripts/scripts-api.js postinstall > /dev/null 2>&1 || true
+	if [ -f "$INSTALL_DIR/controller/lib/node_modules/@eclipse-iofog/iofogcontroller/package.json" ]; then
+		node $INSTALL_DIR/controller/lib/node_modules/@eclipse-iofog/iofogcontroller/scripts/scripts-api.js postinstall > /dev/null 2>&1 || true
 	fi
 
 	# Symbolic links
@@ -116,8 +138,9 @@ deploy_controller() {
 
 # main
 version="$1"
-repo=$([ -z "$2" ] && echo "iofog/iofog-controller-snapshots" || echo "$2")
-token="$3"
+# repo=$([ -z "$2" ] && echo "iofog/iofog-controller-snapshots" || echo "$2")
+# token="$3"
 
 install_deps
+create_logrotate
 deploy_controller

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,8 +16,8 @@ package cmd
 import (
 	"errors"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/deploy"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/deploy"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +35,12 @@ func newDeployCommand() *cobra.Command {
           edge-resource.yaml
           catalog.yaml
           volume.yaml
-          route.yaml`,
+          route.yaml
+          secret.yaml
+          configmap.yaml
+          service.yaml
+          volume-mount.yaml`,
+
 		Args:  cobra.ExactArgs(0),
 		Short: "Deploy Edge Compute Network components on existing infrastructure",
 		Long: `Deploy Edge Compute Network components on existing infrastructure.
@@ -60,6 +65,8 @@ Visit iofog.org to view all YAML specifications usable with this command.`,
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", pkg.flagDescYaml)
+	cmd.Flags().BoolVar(&opt.NoCache, "no-cache", false, "Disable caching for OfflineImage images after download")
+	cmd.Flags().IntVar(&opt.TransferPool, "transfer-pool", 2, "Maximum number of concurrent OfflineImage transfers")
 
 	return cmd
 }

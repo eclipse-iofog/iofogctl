@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,20 +14,22 @@
 package deployagentconfig
 
 import (
+	// "errors"
 	"fmt"
 	"net/url"
 	"strings"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/v3/internal/util"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"gopkg.in/yaml.v2"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Options struct {
@@ -95,7 +97,7 @@ func (exe *RemoteExecutor) GetName() string {
 	return exe.name
 }
 
-func isOverridingSystemAgent(controllerHost, agentHost string, isSystem bool) (err error) {
+func isOverridingSystemAgent(controllerHost, agentHost, agentName string, isSystem bool) (err error) {
 	// Generate controller endpoint
 	controllerURL, err := url.Parse(controllerHost)
 	if err != nil || controllerURL.Host == "" {
@@ -111,7 +113,7 @@ func isOverridingSystemAgent(controllerHost, agentHost string, isSystem bool) (e
 			return err
 		}
 	}
-	if agentURL.Hostname() == controllerURL.Hostname() && !isSystem {
+	if agentURL.Hostname() == controllerURL.Hostname() && isSystem == false && agentName != iofog.VanillaLocalAgentName {
 		return util.NewConflictError("Cannot deploy an agent on the same host than the Controller\n")
 	}
 	return nil
@@ -119,15 +121,6 @@ func isOverridingSystemAgent(controllerHost, agentHost string, isSystem bool) (e
 
 func (exe *RemoteExecutor) Execute() error {
 	isSystem := iutil.IsSystemAgent(exe.agentConfig)
-	if !isSystem || install.IsVerbose() {
-		util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
-	}
-
-	// Check controller is reachable
-	clt, err := clientutil.NewControllerClient(exe.namespace)
-	if err != nil {
-		return err
-	}
 
 	// Check we are not about to override Vanilla system agent
 	ns, err := config.GetNamespace(exe.namespace)
@@ -139,30 +132,51 @@ func (exe *RemoteExecutor) Execute() error {
 		util.PrintError("You must deploy a Controller to a namespace before deploying any Agents")
 		return err
 	}
+
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		fmt.Println("Error occurred while fetching endpoint from controlplane", err)
+		return err
+	}
+
+	if !isSystem || install.IsVerbose() {
+		util.SpinStart(fmt.Sprintf("Deploying agent %s configuration", exe.GetName()))
+	}
+
 	host := ""
 	if exe.agentConfig.Host != nil {
 		host = *exe.agentConfig.Host
 	}
-	endpoint, err := controlPlane.GetEndpoint()
-	if err != nil {
-		return err
-	}
-	if err := isOverridingSystemAgent(endpoint, host, isSystem); err != nil {
+
+	if err := isOverridingSystemAgent(endpoint, host, exe.name, isSystem); err != nil {
 		return err
 	}
 
-	// Get the Agent in question
-	agent, err := clt.GetAgentByName(exe.name, isSystem)
-	// TODO: replace this check with built-in IsNewNotFound() func from go-sdk
-	if err != nil && !strings.Contains(err.Error(), "not find agent") {
+	// Get the Agent in question with auth retry
+	var agent *client.AgentInfo
+	err = clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
+		var err error
+		agent, err = ctrlClient.GetAgentByName(exe.name)
+		// TODO: replace this check with built-in IsNewNotFound() func from go-sdk
+		if err != nil && !strings.Contains(err.Error(), "not find agent") {
+			return err
+		}
+		return nil // Return nil for "not found" errors as they are expected
+	})
+	if err != nil {
 		return err
 	}
 	ip := ""
 	if agent != nil {
 		ip = agent.IPAddressExternal
 	}
-	// Get all other non-system Agents
-	agentList, err := clt.ListAgents(client.ListAgentsRequest{})
+	// Get all other non-system Agents with auth retry
+	var agentList client.ListAgentsResponse
+	err = clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
+		var err error
+		agentList, err = ctrlClient.ListAgents(client.ListAgentsRequest{})
+		return err
+	})
 	if err != nil {
 		return err
 	}
@@ -173,13 +187,23 @@ func (exe *RemoteExecutor) Execute() error {
 
 	// Create if Agent does not exist
 	if agent == nil {
-		uuid, err := createAgentFromConfiguration(exe.agentConfig, exe.tags, exe.name, clt)
+		var uuid string
+		err = clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
+			var err error
+			uuid, err = createAgentFromConfiguration(exe.agentConfig, exe.tags, exe.name, ctrlClient)
+			return err
+		})
+		if err != nil {
+			return err
+		}
 		exe.uuid = uuid
-		return err
+		return nil
 	}
 	// Update existing Agent
 	exe.uuid = agent.UUID
-	return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, clt)
+	return clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
+		return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, ctrlClient)
+	})
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

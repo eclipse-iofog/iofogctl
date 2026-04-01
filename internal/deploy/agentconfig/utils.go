@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,17 +17,22 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type RouterMode string
+
+type NatsMode string
 
 const (
 	EdgeRouter     RouterMode = "edge"
 	InteriorRouter RouterMode = "interior"
 	NoneRouter     RouterMode = "none"
+	NatsNone       NatsMode   = "none"
+	NatsLeaf       NatsMode   = "leaf"
+	NatsServer     NatsMode   = "server"
 )
 
 func getRouterMode(config *rsc.AgentConfiguration) RouterMode {
@@ -37,8 +42,16 @@ func getRouterMode(config *rsc.AgentConfiguration) RouterMode {
 	return EdgeRouter
 }
 
+func getNatsMode(config *rsc.AgentConfiguration) NatsMode {
+	if config.NatsConfig.NatsMode != nil {
+		return NatsMode(*config.NatsConfig.NatsMode)
+	}
+	return NatsLeaf
+}
+
 func Validate(config *rsc.AgentConfiguration) error {
 	routerMode := getRouterMode(config)
+	natsMode := getNatsMode(config)
 
 	if routerMode != EdgeRouter && routerMode != InteriorRouter && routerMode != NoneRouter {
 		msg := "agent config %s validation failed. RouterMode has to be one of edge, interior, none. Default is: edge"
@@ -56,11 +69,18 @@ func Validate(config *rsc.AgentConfiguration) error {
 		msg := "agent config %s validation failed. Cannot have an edgeRouterPort or interRouterPort if routerMode is different from interior. Current router mode is: %s"
 		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
 	}
+	if natsMode != NatsServer && (config.NatsConfig.NatsClusterPort != nil) {
+		msg := "agent config %s validation failed. Cannot have a natsClusterPort if natsMode is different from server"
+		return util.NewInputError(fmt.Sprintf(msg, config.Name))
+	}
 
 	return nil
 }
 
 func findAgentUUIDInList(list []client.AgentInfo, name string) (uuid string, err error) {
+	// if name == iofog.VanillaRemoteAgentName {
+	// 	return name, nil
+	// }
 	if name == iofog.VanillaRouterAgentName {
 		return name, nil
 	}
@@ -95,6 +115,19 @@ func Process(agentConfig *rsc.AgentConfiguration, name, agentIP string, otherAge
 			return err
 		}
 		agentConfig.NetworkRouter = &uuid
+	}
+	if agentConfig.UpstreamNatsServers != nil {
+		upstreamNatsServersUUID := []string{}
+		for _, agentName := range *agentConfig.UpstreamNatsServers {
+			uuid, err := findAgentUUIDInList(otherAgents, agentName)
+			if err != nil {
+				// Keep raw value for controller-reserved NATS hub aliases.
+				upstreamNatsServersUUID = append(upstreamNatsServersUUID, agentName)
+				continue
+			}
+			upstreamNatsServersUUID = append(upstreamNatsServersUUID, uuid)
+		}
+		agentConfig.UpstreamNatsServers = &upstreamNatsServersUUID
 	}
 
 	if routerMode != NoneRouter && agentConfig.Host == nil {
@@ -147,6 +180,18 @@ func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]strin
 	if agentConfig != nil {
 		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 		updateAgentConfigRequest.UUID = uuid
+
+		// Get current agent info to preserve host value only if not explicitly set in config
+		agentInfo, getErr := clt.GetAgentByID(uuid)
+		if getErr != nil {
+			return getErr
+		}
+
+		// Only preserve the original host value if the config doesn't explicitly set a host
+		if agentConfig.Host == nil {
+			host := agentInfo.Host
+			updateAgentConfigRequest.Host = &host
+		}
 
 		if _, err = clt.UpdateAgent(&updateAgentConfigRequest); err != nil {
 			return

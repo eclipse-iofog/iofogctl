@@ -26,7 +26,7 @@ iofogctl detach agent NAME
 ### Options
 
 ```
-      --force   Detach Agent, even if it still uses resources
+      --force   Detach Agent even if it is running Microservices
   -h, --help    help for agent
 ```
 

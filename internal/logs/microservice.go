@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,27 +14,30 @@
 package logs
 
 import (
-	"bytes"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	ws "github.com/eclipse-iofog/iofogctl/internal/util/websocket"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type remoteMicroserviceExecutor struct {
 	namespace string
 	name      string
+	logConfig *LogTailConfig
 }
 
-func newRemoteMicroserviceExecutor(namespace, name string) *remoteMicroserviceExecutor {
+func newRemoteMicroserviceExecutor(namespace, name string, logConfig *LogTailConfig) *remoteMicroserviceExecutor {
 	m := &remoteMicroserviceExecutor{}
 	m.namespace = namespace
 	m.name = name
+	m.logConfig = logConfig
 	return m
 }
 
@@ -44,7 +47,7 @@ func (ms *remoteMicroserviceExecutor) GetName() string {
 
 func (ms *remoteMicroserviceExecutor) Execute() error {
 	// Get image name of the microservice and details of the Agent its deployed on
-	baseAgent, msvc, err := getAgentAndMicroservice(ms.namespace, ms.name)
+	baseAgent, msvc, isSystem, err := getAgentAndMicroservice(ms.namespace, ms.name)
 	if err != nil {
 		return err
 	}
@@ -53,7 +56,7 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		return util.NewError("The microservice is not currently running")
 	}
 
-	switch agent := baseAgent.(type) {
+	switch baseAgent.(type) {
 	case *rsc.LocalAgent:
 		lc, err := install.NewLocalContainerClient()
 		if err != nil {
@@ -69,60 +72,90 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 
 		return nil
 	case *rsc.RemoteAgent:
-		// Verify we can SSH into the Agent
-		if err := agent.ValidateSSH(); err != nil {
-			return err
-		}
+		// Use WebSocket to stream logs from Controller
+		util.SpinStart("Connecting to Microservice Logs")
 
-		// SSH into the Agent and get the logs
-		ssh, err := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+		// Init controller client
+		clt, err := clientutil.NewControllerClient(ms.namespace)
 		if err != nil {
-			return err
-		}
-		ssh.SetPort(agent.SSH.Port)
-		if err := ssh.Connect(); err != nil {
+			util.SpinHandlePromptComplete()
 			return err
 		}
 
-		// Notify the user of the containers that are up
-		containerName := "iofog_" + msvc.UUID
-		out, err := ms.runDockerCommand(fmt.Sprintf("docker ps | grep %s", containerName), ssh)
-		if err != nil {
-			return err
+		// Create WebSocket client (using microservice UUID)
+		wsClient := ws.NewClient(msvc.UUID)
+
+		// Get controller endpoint
+		controllerURL := clt.GetBaseURL()
+		// Convert http(s):// to ws(s)://
+		wsURL := strings.Replace(controllerURL, "http://", "ws://", 1)
+		wsURL = strings.Replace(wsURL, "https://", "wss://", 1)
+		if isSystem {
+			wsURL = fmt.Sprintf("%s/microservices/system/%s/logs", wsURL, msvc.UUID)
+		} else {
+			wsURL = fmt.Sprintf("%s/microservices/%s/logs", wsURL, msvc.UUID)
 		}
 
-		// Execute the command
-		cmd := fmt.Sprintf("docker ps | grep %s | awk 'FNR == 1 {print $1}' | xargs docker logs", containerName)
-		out, err = ms.runDockerCommand(cmd, ssh)
-		if err != nil {
-			return err
+		// Append query parameters from log config
+		if ms.logConfig != nil {
+			queryString := ms.logConfig.BuildQueryString()
+			if queryString != "" {
+				wsURL = fmt.Sprintf("%s?%s", wsURL, queryString)
+			}
 		}
 
-		// Output stdout of the logs
-		fmt.Println(out.String())
+		// Set up headers
+		headers := http.Header{}
+		headers.Set("Authorization", fmt.Sprintf("Bearer %s", clt.GetAccessToken()))
+		util.SpinHandlePrompt()
+		// Connect to WebSocket
+		if err := wsClient.Connect(wsURL, headers); err != nil {
+			util.SpinHandlePromptComplete()
+			return util.NewError(fmt.Sprintf("failed to connect to WebSocket: %v", err))
+		}
+
+		// Create and start log stream
+		logStream := NewLogStream(wsClient)
+
+		// Check for initial connection error
+		if err := wsClient.GetError(); err != nil {
+			util.SpinHandlePromptComplete()
+			formattedErr := formatWebSocketError(err)
+			return util.NewError(formattedErr)
+		}
+
+		if err := logStream.Start(); err != nil {
+			util.SpinHandlePromptComplete()
+			formattedErr := formatWebSocketError(err)
+			return util.NewError(formattedErr)
+		}
+
+		// Wait for stream to finish
+		<-wsClient.GetDone()
+		util.SpinHandlePromptComplete()
 	}
 
 	return nil
 }
 
-func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.SecureShellClient) (stdout bytes.Buffer, err error) {
-	stdout, err = ssh.Run(cmd)
-	if err != nil {
-		if !strings.Contains(strings.ToLower(err.Error()), "permission denied") {
-			return
-		}
-		// Retry with sudo
-		cmd = strings.Replace(cmd, "docker", "sudo docker", -1)
+// func (ms *remoteMicroserviceExecutor) runDockerCommand(cmd string, ssh *util.SecureShellClient) (stdout bytes.Buffer, err error) {
+// 	stdout, err = ssh.Run(cmd)
+// 	if err != nil {
+// 		if !strings.Contains(strings.ToLower(err.Error()), "permission denied") {
+// 			return
+// 		}
+// 		// Retry with sudo
+// 		cmd = strings.Replace(cmd, "docker", "sudo docker", -1)
 
-		stdout, err = ssh.Run(cmd)
-		if err != nil {
-			return
-		}
-	}
-	return
-}
+// 		stdout, err = ssh.Run(cmd)
+// 		if err != nil {
+// 			return
+// 		}
+// 	}
+// 	return
+// }
 
-func getAgentAndMicroservice(namespace, msvcFQName string) (agent rsc.Agent, msvc client.MicroserviceInfo, err error) {
+func getAgentAndMicroservice(namespace, msvcFQName string) (agent rsc.Agent, msvc client.MicroserviceInfo, isSystem bool, err error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return
@@ -135,13 +168,25 @@ func getAgentAndMicroservice(namespace, msvcFQName string) (agent rsc.Agent, msv
 
 	appName, msvcName, err := clientutil.ParseFQName(msvcFQName, "Microservice")
 	if err != nil {
-		return agent, msvc, err
+		return agent, msvc, false, err
 	}
 
 	// Get microservice details from Controller
 	msvcPtr, err := ctrlClient.GetMicroserviceByName(appName, msvcName)
+	isSystem = false
 	if err != nil {
-		return
+		// Check if error indicates application not found
+		if strings.Contains(err.Error(), "Invalid application id") {
+			// Try system application
+			msvcPtr, err = ctrlClient.GetSystemMicroserviceByName(appName, msvcName)
+			if err != nil {
+				return
+			}
+			isSystem = true
+		} else {
+			// Return other types of errors
+			return
+		}
 	}
 
 	msvc = *msvcPtr
@@ -155,5 +200,5 @@ func getAgentAndMicroservice(namespace, msvcFQName string) (agent rsc.Agent, msv
 	if err != nil {
 		return
 	}
-	return agent, msvc, nil
+	return agent, msvc, isSystem, nil
 }

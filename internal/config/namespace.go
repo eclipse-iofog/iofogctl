@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,12 +15,11 @@ package config
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"sort"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func SetDefaultNamespace(name string) (err error) {
@@ -39,11 +38,19 @@ func SetDefaultNamespace(name string) (err error) {
 
 // GetNamespaces returns all namespaces in config
 func GetNamespaces() (namespaces []string) {
-	files, err := ioutil.ReadDir(namespaceDirectory)
+	files, err := os.ReadDir(namespaceDirectory)
 	util.Check(err)
 
 	sort.Slice(files, func(i, j int) bool {
-		return files[i].ModTime().Before(files[j].ModTime())
+		infoI, err := files[i].Info()
+		if err != nil {
+			return false
+		}
+		infoJ, err := files[j].Info()
+		if err != nil {
+			return false
+		}
+		return infoI.ModTime().After(infoJ.ModTime())
 	})
 
 	for _, file := range files {
@@ -111,11 +118,50 @@ func AddNamespace(name, created string) error {
 		return err
 	}
 	// Overwrite the file
-	err = ioutil.WriteFile(getNamespaceFile(name), marshal, 0644)
+	err = os.WriteFile(getNamespaceFile(name), marshal, 0644)
 	if err != nil {
 		return err
 	}
 	namespaces[name] = &newNamespace
+	return nil
+}
+
+// UpdateUser modifies the user data of an existing namespace
+func UpdateUser(name, accessToken, refreshToken string) error {
+	// Fetch the existing namespace
+	ns, err := getNamespace(name)
+	if err != nil {
+		return err // Namespace not found
+	}
+
+	if ns.KubernetesControlPlane != nil {
+		ns.KubernetesControlPlane.IofogUser.AccessToken = accessToken
+		ns.KubernetesControlPlane.IofogUser.RefreshToken = refreshToken
+	}
+	if ns.RemoteControlPlane != nil {
+		ns.RemoteControlPlane.IofogUser.AccessToken = accessToken
+		ns.RemoteControlPlane.IofogUser.RefreshToken = refreshToken
+	}
+	if ns.LocalControlPlane != nil {
+		ns.LocalControlPlane.IofogUser.AccessToken = accessToken
+		ns.LocalControlPlane.IofogUser.RefreshToken = refreshToken
+	}
+
+	// Marshal the updated namespace into YAML
+	marshal, err := getNamespaceYAMLFile(ns)
+	if err != nil {
+		return err // Error in marshaling
+	}
+
+	// Write the updated YAML data back to the file
+	err = os.WriteFile(getNamespaceFile(name), marshal, 0644)
+	if err != nil {
+		return err // Error in writing to the file
+	}
+
+	// Update the in-memory cache
+	namespaces[name] = ns
+
 	return nil
 }
 

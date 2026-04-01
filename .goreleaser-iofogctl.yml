@@ -10,10 +10,11 @@
 # The release target does the same, but also publishes the packages.
 #
 # See README.md for more.
+version: 2
 project_name: iofogctl
 env:
   - GO111MODULE=on
-  - CGO_ENABLED=0
+  - CGO_ENABLED=1
 before:
   hooks:
     - go version
@@ -22,115 +23,172 @@ builds:
   - id: build_macos
     binary: iofogctl
     env:
+      - CGO_ENABLED=0
     main: ./cmd/iofogctl/main.go
     goos:
       - darwin
     goarch:
       - amd64
       - arm64
+    flags:
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
     ldflags:
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=v{{.Version}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.commit={{ .ShortCommit }}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.date={{.Date}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.platform={{.Os}}/{{.Arch}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.portManagerTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.kubeletTag=3.0.0-beta1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.operatorTag=3.2.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.proxyTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.routerTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerTag=3.0.4"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentTag=3.0.1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerVersion=3.0.4"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentVersion=3.0.1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.repo=iofog"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber=v{{.Version}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{.Date}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{.Os}}/{{.Arch}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentVersion=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.debuggerTag=latest"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag=3.6.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.repo=ghcr.io/eclipse-iofog"
 
-  - id: build_linux
+  - id: build_linux_amd64
     binary: iofogctl
     main: ./cmd/iofogctl/
     goos:
       - linux
     goarch:
       - amd64
+    flags:
+      - -v
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags:
+      - -extldflags -static
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber=v{{.Version}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{.Date}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{.Os}}/{{.Arch}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentVersion=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag=3.6.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.repo=ghcr.io/eclipse-iofog"
+
+  - id: build_linux_arm64
+    binary: iofogctl
+    main: ./cmd/iofogctl/
+    goos:
+      - linux
+    goarch:
       - arm64
+    env:
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+      - CGO_ENABLED=1
+    flags:
+      - -v
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags:
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber=v{{.Version}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{.Date}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{.Os}}/{{.Arch}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentVersion=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag=3.6.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.repo=ghcr.io/eclipse-iofog"
+
+  - id: build_linux_arm
+    binary: iofogctl
+    main: ./cmd/iofogctl/
+    goos:
+      - linux
+    goarch:
       - arm
     goarm:
       - 6
       - 7
-    ldflags:
-      - -extldflags -static
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=v{{.Version}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.commit={{ .ShortCommit }}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.date={{.Date}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.platform={{.Os}}/{{.Arch}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.portManagerTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.kubeletTag=3.0.0-beta1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.operatorTag=3.2.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.proxyTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.routerTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerTag=3.0.4"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentTag=3.0.1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerVersion=3.0.4"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentVersion=3.0.1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.repo=iofog"
-
+    env:
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf-g++
+      - CGO_ENABLED=1
     flags:
       - -v
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags:
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber=v{{.Version}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{.Date}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{.Os}}/{{.Arch}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentVersion=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.debuggerTag=latest"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag=3.6.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.repo=ghcr.io/eclipse-iofog"
 
   - id: build_windows
     binary: iofogctl
     env:
+      - CGO_ENABLED=0
     main: ./cmd/iofogctl/main.go
     goos:
       - windows
     goarch:
       - amd64
+    flags:
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
     ldflags:
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.versionNumber=v{{.Version}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.commit={{ .ShortCommit }}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.date={{.Date}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.platform={{.Os}}/{{.Arch}}"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.portManagerTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.kubeletTag=3.0.0-beta1"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.operatorTag=3.2.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.proxyTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.routerTag=3.0.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerTag=3.0.4"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentTag=3.1.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.controllerVersion=3.0.4"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.agentVersion=3.1.0"
-      - -s -w -X "github.com/eclipse-iofog/iofogctl/v3/pkg/util.repo=iofog"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber=v{{.Version}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{.Date}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{.Os}}/{{.Arch}}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentTag=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion=3.7.1"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.agentVersion=3.7.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.debuggerTag=latest"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag=3.6.0"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.repo=ghcr.io/eclipse-iofog"
 
 
 archives:
   -
     id: linux
-    builds:
-      - build_linux
+    ids:
+      - build_linux_amd64
+      - build_linux_arm64
+      - build_linux_arm
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    format: tar.gz
+    formats: [ 'tar.gz' ]
     files:
       - README.md
       - LICENSE
   -
     id: macos
-    builds:
+    ids:
       - build_macos
-    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
-    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ if eq .Os `darwin` }}macos{{ else }}{{ .Os }}{{ end }}_{{ .Arch }}"
+    formats: [ 'tar.gz' ]
     files:
       - README.md
       - LICENSE
-    replacements:
-      darwin: macos
 
 checksum:
   name_template: "{{.ProjectName}}-checksums.txt"
 
 snapshot:
-  name_template: "{{ .Version }}-SNAPSHOT"
+  version_template: "{{ .Version }}-SNAPSHOT"
 
 changelog:
-  skip: true
+  disable: true
   sort: asc
   filters:
     exclude:
@@ -160,19 +218,21 @@ brews:
   -
     name: iofogctl
     homepage: "https://github.com/eclipse-iofog/iofogctl"
-    description: "CLI for iofog"
+    description: "CLI for ioFog"
+    goarm: 6
 
-    tap:
+    repository:
       owner: eclipse-iofog
       name: homebrew-iofogctl
+      
 
     url_template: "https://github.com/eclipse-iofog/iofogctl/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
 
     commit_author:
-      name: neha
-      email: neha@edgeworx.io
+      name: emirhandurmus
+      email: emirhan.durmus@datasance.com
 
-    folder: Formula
+    directory: Formula
 
     test: |
       system "#{bin}/iofogctl version"
@@ -182,23 +242,22 @@ brews:
 
 nfpms:
   -
-    builds: ['build_linux']
+    ids: ['build_linux_amd64', 'build_linux_arm64', 'build_linux_arm']
     homepage:  "https://github.com/eclipse-iofog/iofogctl"
-    description: CLI for iofog
-    maintainer: Eclipse
-    vendor: Edgeworx
+    description: CLI for ioFog
+    maintainer: Contributors to the Eclipse ioFog Project
+    vendor: Datasance
 
 
     formats:
       - deb
       - rpm
+      - apk
 
     overrides:
       deb:
-        file_name_template: "{{ .ConventionalFileName }}"
+        file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
       rpm:
-        # Note: file_name_template must have this EXACT format
-        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
-        replacements:
-          amd64: x86_64
-          arm64: aarch64
+         file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ if eq .Arch `amd64` }}x86_64{{ else if eq .Arch `arm64` }}aarch64{{ else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
+      apk:
+        file_name_template: "{{ .ConventionalFileName }}"

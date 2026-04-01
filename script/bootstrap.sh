@@ -57,6 +57,20 @@ if ! checkForInstallation "jq"; then
     fi
 fi
 
+# Are gpgme headers installed?
+# Note: GPGME is not required when using the containers_image_openpgp build tag (default)
+# This check is kept for optional GPGME support if needed
+if ! pkg-config --exists gpgme; then
+    echoInfo " GPGME not found (optional - not needed with containers_image_openpgp build tag)"
+    # Uncomment below if you want to build with GPGME support (without containers_image_openpgp tag)
+    # if [ "$(uname -s)" = "Darwin" ]; then
+    #     brew install gpgme
+    # else
+    #     sudo apt-get update
+    #     sudo apt-get install -y libgpgme-dev
+    # fi
+fi
+
 # Is go lint installed?
 if ! checkForInstallation "golangci-lint"; then
     if [ "$(uname -s)" = "Darwin" ]; then

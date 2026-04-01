@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type RemoteSystemMicroservices = install.RemoteSystemMicroservices
@@ -23,13 +23,25 @@ type RemoteSystemMicroservices = install.RemoteSystemMicroservices
 type RemoteControlPlane struct {
 	IofogUser           IofogUser                 `yaml:"iofogUser"`
 	Controllers         []RemoteController        `yaml:"controllers"`
-	Database            Database                  `yaml:"database,omitempty"`
+	Database            Database                  `yaml:"database"`
+	Auth                Auth                      `yaml:"auth"`
+	Events              Events                    `yaml:"events,omitempty"`
 	Package             Package                   `yaml:"package,omitempty"`
-	SystemAgent         Package                   `yaml:"systemAgent,omitempty"`
 	SystemMicroservices RemoteSystemMicroservices `yaml:"systemMicroservices,omitempty"`
+	Nats                *NatsEnabledConfig        `yaml:"nats,omitempty"`
+	Vault               *VaultSpec                `yaml:"vault,omitempty"`
+	Endpoint            string                    `yaml:"endpoint,omitempty"`
+	Airgap              bool                      `yaml:"airgap,omitempty"`
 }
 
 func (cp *RemoteControlPlane) GetUser() IofogUser {
+	return cp.IofogUser
+}
+
+func (cp *RemoteControlPlane) UpdateUserTokens(accessToken, refreshToken string) IofogUser {
+	cp.IofogUser.AccessToken = accessToken
+	cp.IofogUser.RefreshToken = refreshToken
+
 	return cp.IofogUser
 }
 
@@ -52,6 +64,12 @@ func (cp *RemoteControlPlane) GetController(name string) (ret Controller, err er
 }
 
 func (cp *RemoteControlPlane) GetEndpoint() (string, error) {
+	// 1. Check if external endpoint (load balancer) is configured
+	if cp.Endpoint != "" {
+		return cp.Endpoint, nil
+	}
+
+	// 2. Fall back to existing logic (first controller with endpoint)
 	if len(cp.Controllers) == 0 {
 		return "", util.NewInternalError("Control Plane does not have any Controllers")
 	}
@@ -116,9 +134,14 @@ func (cp *RemoteControlPlane) Clone() ControlPlane {
 	return &RemoteControlPlane{
 		IofogUser:           cp.IofogUser,
 		Database:            cp.Database,
+		Auth:                cp.Auth,
+		Events:              cp.Events,
 		Package:             cp.Package,
-		SystemAgent:         cp.SystemAgent,
 		SystemMicroservices: cp.SystemMicroservices,
+		Nats:                cp.Nats,
+		Vault:               cp.Vault,
 		Controllers:         controllers,
+		Endpoint:            cp.Endpoint,
+		Airgap:              cp.Airgap,
 	}
 }

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,12 +15,12 @@ package install
 
 import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Agent interface {
 	Bootstrap() error
-	getProvisionKey(string, IofogUser) (string, string, error)
+	getProvisionKey(string, IofogUser) (string, string, string, error)
 }
 
 // defaultAgent implements commong behavior
@@ -29,31 +29,33 @@ type defaultAgent struct {
 	uuid string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, caCert string, err error) {
 	// Connect to controller
 	baseURL, err := util.GetBaseURL(controllerEndpoint)
 	if err != nil {
 		return
 	}
-	ctrl, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, user.Email, user.Password)
+	// Log in
+	util.SpinHandlePrompt()
+	ctrl, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.Password)
 	if err != nil {
 		return
 	}
-
-	// Log in
+	util.SpinHandlePromptComplete()
 	Verbose("Accessing Controller to generate Provisioning Key")
-	loginRequest := client.LoginRequest{
-		Email:    user.Email,
-		Password: user.Password,
-	}
-	if err = ctrl.Login(loginRequest); err != nil {
-		return
-	}
+	// loginRequest := client.LoginRequest{
+	// 	Email:    user.Email,
+	// 	Password: user.Password,
+	// }
+	// if err = ctrl.Login(loginRequest); err != nil {
+	// 	return
+	// }
 
 	// System agents have uuid passed through, normal agents dont
 	if agent.uuid == "" {
 		var agentInfo *client.AgentInfo
-		agentInfo, err = ctrl.GetAgentByName(agent.name, false)
+		// agentInfo, err = ctrl.GetAgentByName(agent.name, false)
+		agentInfo, err = ctrl.GetAgentByName(agent.name)
 		if err != nil {
 			return
 		}
@@ -66,5 +68,6 @@ func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user Iofog
 		return
 	}
 	key = provisionResponse.Key
-	return key, err
+	caCert = provisionResponse.CaCert
+	return key, caCert, err
 }

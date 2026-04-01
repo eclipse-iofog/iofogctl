@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package get
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 )
 
 type tableFunc = func(string, tableChannel)
@@ -25,8 +25,10 @@ var (
 		getControllerTable,
 		getAgentTable,
 		getApplicationTable,
+		getSystemApplicationTable,
 		getVolumeTable,
-		getRouteTable,
+		getServiceTable,
+		getVolumeMountTable,
 	}
 )
 
@@ -114,6 +116,18 @@ func getApplicationTable(namespace string, tableChan tableChannel) {
 	}
 }
 
+func getSystemApplicationTable(namespace string, tableChan tableChannel) {
+	appExe := newSystemApplicationExecutor(namespace)
+	if err := appExe.init(); err != nil {
+		tableChan <- tableQuery{err: err}
+		return
+	}
+	table := appExe.generateSystemApplicationOutput()
+	tableChan <- tableQuery{
+		table: table,
+	}
+}
+
 func getVolumeTable(namespace string, tableChan tableChannel) {
 	table, err := generateVolumeOutput(namespace)
 	tableChan <- tableQuery{
@@ -122,16 +136,27 @@ func getVolumeTable(namespace string, tableChan tableChannel) {
 	}
 }
 
-func getRouteTable(namespace string, tableChan tableChannel) {
-	table, err := generateRouteOutput(namespace)
+func getEdgeResourceTable(namespace string, tableChan tableChannel) {
+	table, err := generateEdgeResourceOutput(namespace)
 	tableChan <- tableQuery{
 		table: table,
 		err:   err,
 	}
 }
 
-func getEdgeResourceTable(namespace string, tableChan tableChannel) {
-	table, err := generateEdgeResourceOutput(namespace)
+func getServiceTable(namespace string, tableChan tableChannel) {
+	table, err := generateServicesOutput(namespace)
+	if err != nil {
+		tableChan <- tableQuery{err: err}
+		return
+	}
+	tableChan <- tableQuery{
+		table: table,
+	}
+}
+
+func getVolumeMountTable(namespace string, tableChan tableChannel) {
+	table, err := generateVolumeMountsOutput(namespace)
 	tableChan <- tableQuery{
 		table: table,
 		err:   err,

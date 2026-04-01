@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,18 +16,19 @@ package deployagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	agentconfig "github.com/eclipse-iofog/iofogctl/v3/internal/deploy/agentconfig"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	agentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agentconfig"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type AgentDeployExecutor interface {
 	execute.Executor
 	GetHost() string
 	GetTags() *[]string
+	GetConfig() *rsc.AgentConfiguration
 }
 
 type facadeExecutor struct {
@@ -44,6 +45,10 @@ func (facade *facadeExecutor) GetHost() string {
 
 func (facade *facadeExecutor) GetTags() *[]string {
 	return facade.tags
+}
+
+func (facade *facadeExecutor) GetConfig() *rsc.AgentConfiguration {
+	return facade.agent.GetConfig()
 }
 
 func (facade *facadeExecutor) Execute() (err error) {
@@ -69,12 +74,10 @@ func (facade *facadeExecutor) Execute() (err error) {
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
-
-	// Don't add system agent to the namespace config file
-	if !facade.isSystem {
-		if err = ns.UpdateAgent(facade.agent); err != nil {
-			return
-		}
+	// Update: Include system agents in namespace file
+	// System agents should be saved to namespace file for consistency and management
+	if err = ns.UpdateAgent(facade.agent); err != nil {
+		return
 	}
 
 	// Set Agent configuration if provided

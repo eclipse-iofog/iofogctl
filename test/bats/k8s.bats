@@ -14,7 +14,6 @@
 # ROUTER_IMAGE
 # SCHEDULER_IMAGE
 # OPERATOR_IMAGE
-# KUBELET_IMAGE
 
 . test/func/include.bash
 
@@ -67,8 +66,7 @@ spec:
     operator: $OPERATOR_IMAGE
     portManager: $PORT_MANAGER_IMAGE
     proxy: $PROXY_IMAGE
-    router: $ROUTER_IMAGE
-    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+    router: $ROUTER_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
@@ -155,8 +153,7 @@ spec:
     operator: $OPERATOR_IMAGE
     portManager: $PORT_MANAGER_IMAGE
     proxy: $PROXY_IMAGE
-    router: $ROUTER_IMAGE
-    kubelet: $KUBELET_IMAGE" > test/conf/k8s.yaml
+    router: $ROUTER_IMAGE" > test/conf/k8s.yaml
 
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s

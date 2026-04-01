@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,10 +17,10 @@ import (
 	"fmt"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -68,10 +68,11 @@ func (exe *remoteExecutor) Execute() error {
 	}
 
 	controller := apps.IofogController{
-		Endpoint: endpoint,
-		Email:    controlPlane.GetUser().Email,
-		Password: controlPlane.GetUser().Password,
-		Token:    clt.GetAccessToken(),
+		Endpoint:     endpoint,
+		Email:        controlPlane.GetUser().Email,
+		Password:     controlPlane.GetUser().Password,
+		Token:        clt.GetAccessToken(),
+		RefreshToken: clt.GetRefreshToken(),
 	}
 	return apps.DeployApplication(controller, exe.application, exe.name)
 }

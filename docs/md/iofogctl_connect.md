@@ -31,8 +31,8 @@ iofogctl connect --generate
       --b64               Indicate whether input password (--pass) is base64 encoded or not
       --ecn-addr string   URL of Edge Compute Network to connect to
       --email string      ioFog user email address
-  -f, --file string       YAML file containing resource definitions for Controllers, Agents, and Microservice to deploy
-      --force             Overwrite existing namespace
+  -f, --file string       YAML file containing specifications for ioFog resources to deploy
+      --force             Overwrite existing Namespace
       --generate          Generate a connection string that can be used to connect to this ECN
   -h, --help              help for connect
       --kube string       Kubernetes config file. Typically ~/.kube/config

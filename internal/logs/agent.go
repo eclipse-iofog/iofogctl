@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,23 +15,28 @@ package logs
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	ws "github.com/eclipse-iofog/iofogctl/internal/util/websocket"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentExecutor struct {
 	namespace string
 	name      string
+	logConfig *LogTailConfig
 }
 
-func newAgentExecutor(namespace, name string) *agentExecutor {
+func newAgentExecutor(namespace, name string, logConfig *LogTailConfig) *agentExecutor {
 	exe := &agentExecutor{}
 	exe.namespace = namespace
 	exe.name = name
+	exe.logConfig = logConfig
 	return exe
 }
 
@@ -55,7 +60,7 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	switch agent := baseAgent.(type) {
+	switch baseAgent.(type) {
 	case *rsc.LocalAgent:
 		lc, err := install.NewLocalContainerClient()
 		if err != nil {
@@ -71,26 +76,70 @@ func (exe *agentExecutor) Execute() error {
 
 		return nil
 	case *rsc.RemoteAgent:
-		// Establish SSH connection
-		if err := agent.ValidateSSH(); err != nil {
-			return err
-		}
-		ssh, err := util.NewSecureShellClient(agent.SSH.User, agent.Host, agent.SSH.KeyFile)
+		// Use WebSocket to stream logs from Controller
+		util.SpinStart("Connecting to Agent Logs")
+
+		// Init controller client
+		clt, err := clientutil.NewControllerClient(exe.namespace)
 		if err != nil {
-			return err
-		}
-		ssh.SetPort(agent.SSH.Port)
-		err = ssh.Connect()
-		if err != nil {
+			util.SpinHandlePromptComplete()
 			return err
 		}
 
-		// Get logs
-		out, err := ssh.Run("sudo cat /var/log/iofog-agent/iofog-agent.0.log")
+		// Get agent UUID from controller
+		agentInfo, err := clt.GetAgentByName(exe.name)
 		if err != nil {
-			return err
+			util.SpinHandlePromptComplete()
+			return fmt.Errorf("failed to get Agent by name: %s", err.Error())
 		}
-		fmt.Print(out.String())
+
+		// Create WebSocket client (using agent UUID as identifier)
+		wsClient := ws.NewClient(agentInfo.UUID)
+
+		// Get controller endpoint
+		controllerURL := clt.GetBaseURL()
+		// Convert http(s):// to ws(s)://
+		wsURL := strings.Replace(controllerURL, "http://", "ws://", 1)
+		wsURL = strings.Replace(wsURL, "https://", "wss://", 1)
+		wsURL = fmt.Sprintf("%s/iofog/%s/logs", wsURL, agentInfo.UUID)
+
+		// Append query parameters from log config
+		if exe.logConfig != nil {
+			queryString := exe.logConfig.BuildQueryString()
+			if queryString != "" {
+				wsURL = fmt.Sprintf("%s?%s", wsURL, queryString)
+			}
+		}
+
+		// Set up headers
+		headers := http.Header{}
+		headers.Set("Authorization", fmt.Sprintf("Bearer %s", clt.GetAccessToken()))
+		util.SpinHandlePrompt()
+		// Connect to WebSocket
+		if err := wsClient.Connect(wsURL, headers); err != nil {
+			util.SpinHandlePromptComplete()
+			return util.NewError(fmt.Sprintf("failed to connect to WebSocket: %v", err))
+		}
+
+		// Create and start log stream
+		logStream := NewLogStream(wsClient)
+
+		// Check for initial connection error
+		if err := wsClient.GetError(); err != nil {
+			util.SpinHandlePromptComplete()
+			formattedErr := formatWebSocketError(err)
+			return util.NewError(formattedErr)
+		}
+
+		if err := logStream.Start(); err != nil {
+			util.SpinHandlePromptComplete()
+			formattedErr := formatWebSocketError(err)
+			return util.NewError(formattedErr)
+		}
+
+		// Wait for stream to finish
+		<-wsClient.GetDone()
+		util.SpinHandlePromptComplete()
 	}
 
 	return nil

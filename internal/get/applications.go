@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,9 +17,9 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type applicationExecutor struct {
@@ -27,12 +27,14 @@ type applicationExecutor struct {
 	client              *client.Client
 	flows               []client.FlowInfo
 	msvcsPerApplication map[int][]*client.MicroserviceInfo
+	natsPerApplication  map[int]*client.ApplicationNatsConfig
 }
 
 func newApplicationExecutor(namespace string) *applicationExecutor {
 	c := &applicationExecutor{}
 	c.namespace = namespace
 	c.msvcsPerApplication = make(map[int][]*client.MicroserviceInfo)
+	c.natsPerApplication = make(map[int]*client.ApplicationNatsConfig)
 	return c
 }
 
@@ -84,6 +86,7 @@ func (exe *applicationExecutor) init() (err error) {
 			UserID:      application.UserID,
 			ID:          application.ID,
 		})
+		exe.natsPerApplication[application.ID] = application.NatsConfig
 		listMsvcs, err := exe.client.GetMicroservicesByApplication(application.Name)
 		if err != nil {
 			return err
@@ -104,7 +107,7 @@ func (exe *applicationExecutor) init() (err error) {
 func (exe *applicationExecutor) generateApplicationOutput() (table [][]string) {
 	// Generate table and headers
 	table = make([][]string, len(exe.flows)+1)
-	headers := []string{"APPLICATION", "RUNNING", "MICROSERVICES"}
+	headers := []string{"APPLICATION", "RUNNING", "NATS ACCESS", "MICROSERVICES"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
@@ -131,10 +134,15 @@ func (exe *applicationExecutor) generateApplicationOutput() (table [][]string) {
 		}
 
 		status := fmt.Sprintf("%d/%d", runningMsvcs, nbMsvcs)
+		natsAccess := "false"
+		if natsConfig := exe.natsPerApplication[flow.ID]; natsConfig != nil && natsConfig.NatsAccess {
+			natsAccess = "true"
+		}
 
 		row := []string{
 			flow.Name,
 			status,
+			natsAccess,
 			msvcs,
 		}
 		table[idx+1] = append(table[idx+1], row...)

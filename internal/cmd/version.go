@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,7 +16,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func newVersionCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ecnFlag, err := cmd.Flags().GetBool("ecn")
 			util.Check(err)
-			util.PrintInfo("iofogctl - Copyright (C) 2019-2023, Edgeworx, Inc.\n")
+			util.PrintInfo("iofogctl - Copyright (C) 2023 Contributors to the Eclipse ioFog Project\n")
 			_ = util.Print(util.GetVersion())
 			if ecnFlag {
 				fmt.Println("")
@@ -37,9 +37,6 @@ func newVersionCommand() *cobra.Command {
 				fmt.Println(util.GetControllerImage())
 				fmt.Println(util.GetAgentImage())
 				fmt.Println(util.GetOperatorImage())
-				fmt.Println(util.GetKubeletImage())
-				fmt.Println(util.GetPortManagerImage())
-				fmt.Println(util.GetProxyImage())
 				fmt.Println(util.GetRouterImage())
 			}
 		},

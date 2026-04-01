@@ -9,14 +9,14 @@ do_check_install() {
         java_major_version="$(java --version | head -n1 | awk '{print $2}' | cut -d. -f1)"
         java_minor_version="$(java --version | head -n1 | awk '{print $2}' | cut -d. -f2)"
 	fi
-	if [ "$java_major_version" -ge "11" ]  && [ "$java_minor_version" -ge "0" ]; then
+	if [ "$java_major_version" -ge "17" ]  && [ "$java_minor_version" -ge "0" ]; then
 		echo "Java $java_major_version.$java_minor_version  already installed."
 		exit 0
 	fi
 }
 
 do_install_java() {
-	echo "# Installing java 11..."
+	echo "# Installing java 17..."
 	echo ""
 	os_arch=$(getconf LONG_BIT)
 	is_arm=""
@@ -24,25 +24,20 @@ do_install_java() {
 		is_arm="-arm"
 	fi
 	case "$lsb_dist" in
-		ubuntu)
+		ubuntu|debian|raspbian|mendel)
 			$sh_c "apt-get update -y"
-			$sh_c "apt install -y openjdk-11-jdk"
+			$sh_c "apt install -y openjdk-17-jdk"
 		;;
-		debian|mendel)
-			$sh_c "apt-get update"
-			$sh_c "apt install -y openjdk-11-jdk"
+		fedora|centos|rhel|ol)
+			$sh_c "yum install -y java-17-openjdk"
 		;;
-		raspbian)
-		  if [ "$os_arch" = "32" ]; then
-		    $sh_c "apt-get update"
-		    $sh_c "apt-get install openjdk-8-jdk -y"
-		  else
-		    $sh_c "apt-get update"
-		    $sh_c "apt install -y openjdk-11-jdk"
-		  fi
+		sles|opensuse*)
+			$sh_c "zypper refresh"
+			$sh_c "zypper install -y java-17-openjdk"
 		;;
-		fedora|centos)
-			$sh_c "yum install -y java-11-openjdk"
+		*)
+			echo "Unsupported distribution: $lsb_dist"
+			exit 1
 		;;
 	esac
 }
@@ -50,11 +45,18 @@ do_install_java() {
 do_install_deps() {
 	local installer=""
 	case "$lsb_dist" in
-		ubuntu|debian|raspbian)
+		ubuntu|debian|raspbian|mendel)
 			installer="apt"
 		;;
-		fedora|centos)
+		fedora|centos|rhel|ol)
 			installer="yum"
+		;;
+		sles|opensuse*)
+			installer="zypper"
+		;;
+		*)
+			echo "Unsupported distribution: $lsb_dist"
+			exit 1
 		;;
 	esac
 

@@ -9,14 +9,18 @@ do_uninstall_iofog() {
 	echo "# Removing ioFog agent..."
 
 	case "$lsb_dist" in
-		ubuntu)
+		ubuntu|debian|raspbian)
 			$sh_c "apt-get -y --purge autoremove iofog-agent"
 			;;
-		fedora|centos)
+		fedora|centos|rhel|ol)
 			$sh_c "yum remove -y iofog-agent"
 			;;
-		debian|raspbian)
-			$sh_c "apt-get -y --purge autoremove iofog-agent"
+		sles|opensuse)
+			$sh_c "zypper remove -y iofog-agent"
+			;;
+		*)
+			echo "Error: Unsupported Linux distribution: $lsb_dist"
+			exit 1
 			;;
 	esac
 

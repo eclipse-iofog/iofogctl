@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,8 +14,8 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type AgentScripts struct {
@@ -33,6 +33,7 @@ type RemoteAgent struct {
 	Config             *AgentConfiguration `yaml:"config,omitempty"`
 	Scripts            *AgentScripts       `yaml:"scripts,omitempty"`
 	ControllerEndpoint string              `yaml:"controllerEndpoint,omitempty"`
+	Airgap             bool                `yaml:"airgap,omitempty"`
 }
 
 func (agent *RemoteAgent) GetName() string {
@@ -110,6 +111,7 @@ func (agent *RemoteAgent) Clone() Agent {
 		Scripts:            scripts,
 		Config:             config,
 		ControllerEndpoint: agent.ControllerEndpoint,
+		Airgap:             agent.Airgap,
 	}
 }
 

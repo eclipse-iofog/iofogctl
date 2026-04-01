@@ -60,38 +60,42 @@ Current options include:
 Welcome to the cool new iofogctl Cli!
 
 Use `iofogctl version` to display the current version.
-
-
+                                                   
 Usage:
   iofogctl [flags]
   iofogctl [command]
 
 Available Commands:
-  attach        Attach an existing ioFog resource to Control Plane
+  attach        Attach one ioFog resource to another
+  completion    Generate the autocompletion script for the specified shell
   configure     Configure iofogctl or ioFog resources
   connect       Connect to an existing Control Plane
   create        Create a resource
   delete        Delete an existing ioFog resource
   deploy        Deploy Edge Compute Network components on existing infrastructure
-  describe      Get detailed information of existing resources
-  detach        Detach an existing ioFog resource from its ECN
+  describe      Get detailed information of an existing resources
+  detach        Detach one ioFog resource from another
   disconnect    Disconnect from an ioFog cluster
+  exec          Connect to an Exec Session of a resource
   get           Get information of existing resources
   help          Help about any command
   legacy        Execute commands using legacy CLI
   logs          Get log contents of deployed resource
   move          Move an existing resources inside the current Namespace
   prune         prune ioFog resources
+  rebuild       Rebuilds a microservice or system-microservice
   rename        Rename the iofog resources that are currently deployed
+  rollback      Rollback ioFog resources
   start         Starts a resource
   stop          Stops a resource
+  upgrade       Upgrade ioFog resources
   version       Get CLI application version
   view          Open ECN Viewer
 
 Flags:
       --detached           Use/Show detached resources
+      --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
   -h, --help               help for iofogctl
-      --http-verbose       Toggle for displaying verbose output of API client
   -n, --namespace string   Namespace to execute respective command within (default "default")
   -v, --verbose            Toggle for displaying verbose output of iofogctl
 
@@ -130,7 +134,7 @@ echo "$HOME/.iofog/completion.bash.sh" >> $HOME/.bash_profile
 
 This project uses go modules so it must be built from outside of your $GOPATH.
 
-Go 1.16+ is a prerequisite. Install all other dependancies with:
+Go 1.19+ is a prerequisite. Install all other dependancies with:
 ```
 make bootstrap
 ```

@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
