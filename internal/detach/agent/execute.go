@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,11 +16,11 @@ package detachagent
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type executor struct {
@@ -101,13 +101,14 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	}
 
 	// Get Config before deletion
-	agentConfig, _, err := clientutil.GetAgentConfig(exe.name, exe.namespace)
+	agentConfig, _, _, err := clientutil.GetAgentConfig(exe.name, exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	// Get UUID for deletion
-	agentInfo, err := ctrl.GetAgentByName(exe.name, false)
+	// agentInfo, err := ctrl.GetAgentByName(exe.name, false)
+	agentInfo, err := ctrl.GetAgentByName(exe.name)
 	if err != nil {
 		return err
 	}

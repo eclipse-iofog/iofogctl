@@ -31,5 +31,7 @@ detach
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl detach agent](iofogctl_detach_agent.md)	 - Detaches an Agent
 * [iofogctl detach edge-resource](iofogctl_detach_edge-resource.md)	 - Detaches an Edge Resource from an Agent
+* [iofogctl detach exec](iofogctl_detach_exec.md)	 - Detach an Exec Session to a resource
+* [iofogctl detach volume-mount](iofogctl_detach_volume-mount.md)	 - Detach a Volume Mount from existing Agents
 
 

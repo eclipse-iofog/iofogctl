@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,15 +14,27 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type LocalControlPlane struct {
-	IofogUser  IofogUser        `yaml:"iofogUser"`
-	Controller *LocalController `yaml:"controller,omitempty"`
+	IofogUser           IofogUser                 `yaml:"iofogUser"`
+	Controller          *LocalController          `yaml:"controller,omitempty"`
+	Database            Database                  `yaml:"database"`
+	Auth                Auth                      `yaml:"auth"`
+	Events              Events                    `yaml:"events,omitempty"`
+	SystemMicroservices *LocalSystemMicroservices `yaml:"systemMicroservices,omitempty"`
+	Nats                *NatsEnabledConfig        `yaml:"nats,omitempty"`
 }
 
 func (cp *LocalControlPlane) GetUser() IofogUser {
+	return cp.IofogUser
+}
+
+func (cp *LocalControlPlane) UpdateUserTokens(accessToken, refreshToken string) IofogUser {
+	cp.IofogUser.AccessToken = accessToken
+	cp.IofogUser.RefreshToken = refreshToken
+
 	return cp.IofogUser
 }
 
@@ -78,8 +90,20 @@ func (cp *LocalControlPlane) Sanitize() error {
 }
 
 func (cp *LocalControlPlane) Clone() ControlPlane {
+	var sys *LocalSystemMicroservices
+	if cp.SystemMicroservices != nil {
+		sys = &LocalSystemMicroservices{
+			Router: cp.SystemMicroservices.Router,
+			Nats:   cp.SystemMicroservices.Nats,
+		}
+	}
 	return &LocalControlPlane{
-		IofogUser:  cp.IofogUser,
-		Controller: cp.Controller.Clone().(*LocalController),
+		IofogUser:           cp.IofogUser,
+		Controller:          cp.Controller.Clone().(*LocalController),
+		Database:            cp.Database,
+		Auth:                cp.Auth,
+		Events:              cp.Events,
+		SystemMicroservices: sys,
+		Nats:                cp.Nats,
 	}
 }

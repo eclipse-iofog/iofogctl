@@ -2,10 +2,6 @@
 
 Get CLI application version
 
-### Synopsis
-
-Get CLI application version
-
 ```
 iofogctl version [flags]
 ```

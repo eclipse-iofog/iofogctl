@@ -19,6 +19,7 @@ iofogctl describe agent NAME
 ### Options
 
 ```
+      --detached             Specify command is to run against detached resources
   -h, --help                 help for agent
   -o, --output-file string   YAML output file
 ```

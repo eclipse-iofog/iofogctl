@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,8 +17,8 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 )
 
 type applicationTemplateExecutor struct {
@@ -69,16 +69,24 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 func (exe *applicationTemplateExecutor) generateApplicationTemplateOutput() (table [][]string) {
 	// Generate table and headers
 	table = make([][]string, len(exe.templates)+1)
-	headers := []string{"TEMPLATE", "DESCRIPTION", "MICROSERVICES", "ROUTES"}
+	headers := []string{"TEMPLATE", "DESCRIPTION", "MICROSERVICES", "NATS ACCESS"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
 	for idx, template := range exe.templates {
+		microserviceCount := 0
+		if template.Application != nil {
+			microserviceCount = len(template.Application.Microservices)
+		}
+		natsAccess := "false"
+		if template.Application != nil && template.Application.NatsConfig != nil && template.Application.NatsConfig.NatsAccess {
+			natsAccess = "true"
+		}
 		row := []string{
 			template.Name,
 			template.Description,
-			strconv.Itoa(len(template.Application.Microservices)),
-			strconv.Itoa(len(template.Application.Routes)),
+			strconv.Itoa(microserviceCount),
+			natsAccess,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}

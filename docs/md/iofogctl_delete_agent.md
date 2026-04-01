@@ -26,7 +26,7 @@ iofogctl delete agent NAME
 
 ```
       --detached   Specify command is to run against detached resources
-      --force      Remove even if there are still resource running on the Agent
+      --force      Remove even if there are still Microservices running on the Agent
   -h, --help       help for agent
 ```
 

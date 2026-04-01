@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,18 +17,18 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 )
 
 type localExecutor struct {
 	namespace             string
 	ctrl                  *rsc.LocalController
-	ctrlPlane             rsc.ControlPlane
+	ctrlPlane             *rsc.LocalControlPlane
 	client                *install.LocalContainer
 	localControllerConfig *install.LocalContainerConfig
 	containersNames       []string
@@ -61,15 +61,25 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	if err != nil {
 		return nil, err
 	}
-	controlPlane, err := ns.GetControlPlane()
+	// controlPlane, err := ns.GetControlPlane()
+	// if err != nil {
+	// 	return
+	// }
+
+	baseControlPlane, err := ns.GetControlPlane()
 	if err != nil {
+		return
+	}
+	controlPlane, ok := baseControlPlane.(*rsc.LocalControlPlane)
+	if !ok {
+		err = util.NewError("Could not convert Control Plane to Remote Control Plane")
 		return
 	}
 
 	return NewExecutorWithoutParsing(opt.Namespace, controlPlane, &controller)
 }
 
-func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, controller *rsc.LocalController) (exe execute.Executor, err error) {
+func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.LocalControlPlane, controller *rsc.LocalController) (exe execute.Executor, err error) {
 	_, err = config.GetNamespace(namespace)
 	if err != nil {
 		return
@@ -87,7 +97,7 @@ func NewExecutorWithoutParsing(namespace string, controlPlane rsc.ControlPlane, 
 }
 
 // TODO: Rewrite this pkg, don't need ctrl coming in here
-func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.LocalController, client *install.LocalContainer) *localExecutor {
+func newExecutor(namespace string, controlPlane *rsc.LocalControlPlane, ctrl *rsc.LocalController, client *install.LocalContainer) *localExecutor {
 	return &localExecutor{
 		namespace: namespace,
 		ctrl:      ctrl,
@@ -95,7 +105,29 @@ func newExecutor(namespace string, controlPlane rsc.ControlPlane, ctrl *rsc.Loca
 		localControllerConfig: install.NewLocalControllerConfig(ctrl.Container.Image, install.Credentials{
 			User:     ctrl.Container.Credentials.User,
 			Password: ctrl.Container.Credentials.Password,
-		}),
+		}, install.Auth{
+			URL:              controlPlane.Auth.URL,
+			Realm:            controlPlane.Auth.Realm,
+			SSL:              controlPlane.Auth.SSL,
+			RealmKey:         controlPlane.Auth.RealmKey,
+			ControllerClient: controlPlane.Auth.ControllerClient,
+			ControllerSecret: controlPlane.Auth.ControllerSecret,
+			ViewerClient:     controlPlane.Auth.ViewerClient,
+		}, install.Database{
+			Provider:     controlPlane.Database.Provider,
+			Host:         controlPlane.Database.Host,
+			Port:         controlPlane.Database.Port,
+			User:         controlPlane.Database.User,
+			Password:     controlPlane.Database.Password,
+			DatabaseName: controlPlane.Database.DatabaseName,
+			SSL:          controlPlane.Database.SSL,
+			CA:           controlPlane.Database.CA,
+		}, install.Events{
+			AuditEnabled:     controlPlane.Events.AuditEnabled,
+			RetentionDays:    controlPlane.Events.RetentionDays,
+			CleanupInterval:  controlPlane.Events.CleanupInterval,
+			CaptureIpAddress: controlPlane.Events.CaptureIpAddress,
+		}, localSystemImagesToInstall(controlPlane.SystemMicroservices, controlPlane.Nats)),
 		iofogUser: controlPlane.GetUser(),
 		ctrlPlane: controlPlane,
 	}
@@ -157,7 +189,8 @@ func (exe *localExecutor) Execute() error {
 
 	// Update controller (its a pointer, this is returned to caller)
 	controllerContainerConfig := exe.localControllerConfig
-	endpoint, err := util.GetControllerEndpoint(fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host))
+	// Local controllers typically use HTTP by default
+	endpoint, err := util.GetControllerEndpoint(fmt.Sprintf("%s:%s", controllerContainerConfig.Host, controllerContainerConfig.Ports[0].Host), false)
 	if err != nil {
 		return err
 	}
@@ -165,6 +198,19 @@ func (exe *localExecutor) Execute() error {
 	exe.ctrl.Endpoint = endpoint
 	exe.ctrl.Created = util.NowUTC()
 	return exe.ctrlPlane.UpdateController(exe.ctrl)
+}
+
+func localSystemImagesToInstall(s *rsc.LocalSystemMicroservices, nats *rsc.NatsEnabledConfig) *install.LocalSystemImages {
+	// Always pass a non-nil struct so local controller gets default NATS_IMAGE_1/2 and NATS_ENABLED when not overridden
+	out := &install.LocalSystemImages{}
+	if s != nil {
+		out.Router = s.Router
+		out.Nats = s.Nats
+	}
+	if nats != nil && nats.Enabled != nil {
+		out.NatsEnabled = nats.Enabled
+	}
+	return out
 }
 
 func Validate(ctrl rsc.Controller) error {

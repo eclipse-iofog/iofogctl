@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,10 +14,10 @@
 package describe
 
 import (
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type agentConfigExecutor struct {
@@ -39,10 +39,14 @@ func (exe *agentConfigExecutor) GetName() string {
 }
 
 func (exe *agentConfigExecutor) Execute() error {
-	agentConfig, tags, err := clientutil.GetAgentConfig(exe.name, exe.namespace)
+	agentConfig, tags, agentStatus, err := clientutil.GetAgentConfig(exe.name, exe.namespace)
 	if err != nil {
 		return err
 	}
+
+	// Format agent status for human-readable output
+	formattedStatus := FormatAgentStatus(agentStatus)
+
 	header := config.Header{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       config.AgentConfigKind,
@@ -51,7 +55,8 @@ func (exe *agentConfigExecutor) Execute() error {
 			Name:      exe.name,
 			Tags:      tags,
 		},
-		Spec: agentConfig,
+		Spec:   agentConfig,
+		Status: formattedStatus,
 	}
 
 	if exe.filename == "" {

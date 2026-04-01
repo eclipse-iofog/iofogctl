@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,14 +14,13 @@
 package describe
 
 import (
-	"fmt"
 	"strconv"
 
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type registryExecutor struct {
@@ -53,33 +52,19 @@ func (exe *registryExecutor) Execute() error {
 		return err
 	}
 
-	registriesList, err := ctrl.ListRegistries()
+	r, err := ctrl.GetRegistry(exe.id)
 	if err != nil {
 		return err
 	}
 
-	var registry rsc.Registry
-	var private bool
-
-	for _, r := range registriesList.Registries {
-		if r.ID == exe.id {
-			private = !r.IsPublic
-			registry = rsc.Registry{
-				URL:          &r.URL,
-				ID:           r.ID,
-				Private:      &private,
-				Username:     &r.Username,
-				Email:        &r.Email,
-				Password:     nil,
-				RequiresCert: &r.RequiresCert,
-				Certificate:  &r.Certificate,
-			}
-			break
-		}
-	}
-
-	if registry.ID == 0 {
-		return util.NewNotFoundError(fmt.Sprintf("Could not find registry with ID %d", exe.id))
+	private := !r.IsPublic
+	registry := rsc.Registry{
+		URL:      &r.URL,
+		ID:       r.ID,
+		Private:  &private,
+		Username: &r.Username,
+		Email:    &r.Email,
+		Password: &r.Password,
 	}
 
 	header := config.Header{

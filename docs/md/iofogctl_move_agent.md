@@ -19,7 +19,7 @@ iofogctl move agent NAME DEST_NAMESPACE
 ### Options
 
 ```
-      --force   Move Agent, even if it still uses resources
+      --force   Move Agent even if it is running Microservices
   -h, --help    help for agent
 ```
 

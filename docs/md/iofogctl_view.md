@@ -2,10 +2,6 @@
 
 Open ECN Viewer
 
-### Synopsis
-
-Open ECN Viewer
-
 ```
 iofogctl view [flags]
 ```

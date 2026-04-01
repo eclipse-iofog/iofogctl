@@ -1,6 +1,6 @@
 ## iofogctl describe microservice
 
-Get detailed information about a  Microservice
+Get detailed information about a Microservice
 
 ### Synopsis
 

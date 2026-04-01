@@ -29,7 +29,7 @@ spec:
     x86: edgeworx/healthcare-heart-rate:test
     registry: remote # public docker
   container:
-    rootHostAccess: false
+    hostNetworkMode: false
     volumes:
       - hostDestination: /tmp/microservice
         containerDestination: /tmp
@@ -71,7 +71,7 @@ spec:
     x86: edgeworx/healthcare-heart-rate:test
     registry: remote # public docker
   container:
-    rootHostAccess: false
+    hostNetworkMode: false
     volumes:
       - hostDestination: /tmp/updatedmicroservice
         containerDestination: /tmp
@@ -115,7 +115,7 @@ function initApplicationWithPortFile() {
         x86: edgeworx/healthcare-heart-rate:x86-v1
         registry: remote # public docker
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports: []
       config:
         test_mode: true
@@ -129,7 +129,7 @@ function initApplicationWithPortFile() {
         x86: edgeworx/healthcare-heart-rate-ui:x86
         registry: remote
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports:
           # The ui will be listening on port 80 (internal).
           - external: 5000
@@ -167,7 +167,7 @@ function initApplicationWithoutPortsFiles() {
         x86: edgeworx/healthcare-heart-rate:x86-v1
         registry: remote # public docker
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports: []
       config:
         test_mode: true
@@ -181,7 +181,7 @@ function initApplicationWithoutPortsFiles() {
         x86: edgeworx/healthcare-heart-rate-ui:x86
         registry: remote
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         volumes:
         - hostDestination: $VOL_DEST
           containerDestination: $VOL_CONT_DEST
@@ -209,7 +209,7 @@ function initInvalidApplicationFiles() {
         x86: edgeworx/healthcare-heart-rate:x86-v1
         registry: remote # public docker
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports: []
       config:
         test_mode: true
@@ -223,7 +223,7 @@ function initInvalidApplicationFiles() {
         x86: edgeworx/healthcare-heart-rate-ui:x86
         registry: remote
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports:
           # The ui will be listening on port 80 (internal).
           - external: 5001
@@ -258,7 +258,7 @@ function initDockerPullStatsApplicationFiles() {
         x86: edgeworx/thermal-edge-ai-2-arm:2.0.2
         registry: remote # public docker
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports: []
       config:
         test_mode: true
@@ -283,7 +283,7 @@ function initApplicationFiles() {
         x86: edgeworx/healthcare-heart-rate:x86-v1
         registry: remote # public docker
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports: []
       config:
         test_mode: true
@@ -297,7 +297,7 @@ function initApplicationFiles() {
         x86: edgeworx/healthcare-heart-rate-ui:x86
         registry: remote
       container:
-        rootHostAccess: false
+        hostNetworkMode: false
         ports:
           # The ui will be listening on port 80 (internal).
           - external: 5000
@@ -600,7 +600,7 @@ spec:
           x86: edgeworx/healthcare-heart-rate:x86-v1
           registry: remote # public docker
         container:
-          rootHostAccess: \"{{root-host-access}}\"
+          hostNetworkMode: \"{{root-host-access}}\"
           ports: []
         config:
           test_mode: true
@@ -616,7 +616,7 @@ spec:
           x86: edgeworx/healthcare-heart-rate-ui:x86
           registry: remote
         container:
-          rootHostAccess: false
+          hostNetworkMode: false
           ports:
             # The ui will be listening on port 80 (internal).
             - external: \"{{external}}\"

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,16 +14,20 @@
 package logs
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(resourceType, namespace, name string) (execute.Executor, error) {
+func NewExecutor(resourceType, namespace, name string, logConfig *LogTailConfig) (execute.Executor, error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
+	}
+	// Use default config if nil
+	if logConfig == nil {
+		logConfig = DefaultLogTailConfig()
 	}
 	switch resourceType {
 	case "controller":
@@ -40,12 +44,12 @@ func NewExecutor(resourceType, namespace, name string) (execute.Executor, error)
 			return newLocalControllerExecutor(controlPlane, namespace, name), nil
 		}
 	case "agent":
-		return newAgentExecutor(namespace, name), nil
+		return newAgentExecutor(namespace, name, logConfig), nil
 	case "microservice":
 		if len(ns.GetControllers()) == 0 {
 			return nil, util.NewError("No Controllers found in namespace " + namespace)
 		}
-		return newRemoteMicroserviceExecutor(namespace, name), nil
+		return newRemoteMicroserviceExecutor(namespace, name, logConfig), nil
 	}
 	msg := "Unknown resource: '" + resourceType + "'"
 	return nil, util.NewInputError(msg)

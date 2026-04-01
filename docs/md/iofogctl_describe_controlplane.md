@@ -1,6 +1,6 @@
 ## iofogctl describe controlplane
 
-Get detailed information about a  Control Plane
+Get detailed information about a Control Plane
 
 ### Synopsis
 

@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,7 +14,7 @@
 package install
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
@@ -25,12 +25,13 @@ const (
 )
 
 type microservice struct {
-	name       string
-	IP         string
-	ports      []int32
-	replicas   int32
-	containers []container
-	rbacRules  []rbacv1.PolicyRule
+	name            string
+	Address         string
+	ports           []int32
+	imagePullSecret string
+	replicas        int32
+	containers      []container
+	rbacRules       []rbacv1.PolicyRule
 }
 
 type container struct {
@@ -64,6 +65,18 @@ func newOperatorMicroservice() *microservice {
 			},
 			{
 				APIGroups: []string{
+					"networking.k8s.io",
+				},
+				Resources: []string{
+					"ingresses",
+					"ingresses/status",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
 					"iofog.org",
 				},
 				Resources: []string{
@@ -73,6 +86,9 @@ func newOperatorMicroservice() *microservice {
 					"controlplanes",
 					"apps/status",
 					"controlplanes/status",
+					"apps/finalizers",
+					"applications/finalizers",
+					"controlplanes/finalizers",
 				},
 				Verbs: []string{
 					"list",
@@ -87,6 +103,7 @@ func newOperatorMicroservice() *microservice {
 				},
 				Resources: []string{
 					"deployments",
+					"statefulsets",
 				},
 				Verbs: []string{
 					"*",

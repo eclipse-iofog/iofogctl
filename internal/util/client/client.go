@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,12 +15,13 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // clientCacheRoutine handles concurrent requests for a cached Controller client
@@ -181,7 +182,56 @@ func syncAgentInfo(namespace string) error {
 }
 
 func newControllerClient(namespace string) (*client.Client, error) {
-	// Get endpoint
+
+	// Try to get the client from the cache first
+	if cachedClient, found := pkg.clientCache[namespace]; found {
+
+		// If a cached client exists, use SessionLogin to refresh the session
+		ns, err := config.GetNamespace(namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		controlPlane, err := ns.GetControlPlane()
+		if err != nil {
+			return nil, err
+		}
+
+		endpoint, err := controlPlane.GetEndpoint()
+		if err != nil {
+			return nil, err
+		}
+
+		user := controlPlane.GetUser()
+
+		// Get base URL
+		baseURL, err := util.GetBaseURL(endpoint)
+		if err != nil {
+			return nil, err
+		}
+
+		// Use the refresh token from the cached client
+		refreshToken := cachedClient.GetRefreshToken()
+		user.AccessToken = cachedClient.GetAccessToken()
+		user.RefreshToken = cachedClient.GetRefreshToken()
+		// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
+		config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+
+		// Use SessionLogin to attempt to refresh the session
+		util.SpinHandlePrompt()
+		refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, refreshToken, user.Email, user.GetRawPassword())
+		if err != nil {
+			fmt.Println("Error: Failed to refresh session:", err)
+			return nil, fmt.Errorf("failed to refresh session: %v", err)
+		}
+		util.SpinHandlePromptComplete()
+		// Update the cached client with the refreshed session
+		pkg.clientCache[namespace] = refreshedClient
+		config.Flush()
+		return refreshedClient, nil
+	}
+
+	// If no cached client, proceed with NewAndLogin to create a new client
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
@@ -200,17 +250,51 @@ func newControllerClient(namespace string) (*client.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachedClient, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, user.Email, user.GetRawPassword())
+
+	// Create a new client and login
+	util.SpinHandlePrompt()
+	newClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
 	if err != nil {
 		return nil, err
 	}
-	pkg.clientCache[namespace] = cachedClient
+	util.SpinHandlePromptComplete()
+	user.AccessToken = newClient.GetAccessToken()
+	user.RefreshToken = newClient.GetRefreshToken()
+	// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
+	config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
-	return cachedClient, nil
+	// Flush the config and handle errors
+	if err := config.Flush(); err != nil {
+		return nil, fmt.Errorf("failed to flush config: %v", err)
+	}
+
+	return newClient, nil
 }
 
 func getBackendAgents(namespace string, ioClient *client.Client) ([]client.AgentInfo, error) {
-	agentList, err := ioClient.ListAgents(client.ListAgentsRequest{})
+	var agentList client.ListAgentsResponse
+	var err error
+
+	// Try the operation
+	agentList, err = ioClient.ListAgents(client.ListAgentsRequest{})
+	if err == nil {
+		pkg.agentCache[namespace] = agentList.Agents
+		return agentList.Agents, nil
+	}
+
+	// Check if it's an authentication error
+	if !isAuthenticationError(err) {
+		return nil, err
+	}
+
+	// Refresh authentication and retry
+	refreshedClient, refreshErr := refreshClientAuthentication(namespace)
+	if refreshErr != nil {
+		return nil, fmt.Errorf("authentication error occurred and failed to refresh: %v (refresh error: %v)", err, refreshErr)
+	}
+
+	// Retry the operation with refreshed client
+	agentList, err = refreshedClient.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +302,10 @@ func getBackendAgents(namespace string, ioClient *client.Client) ([]client.Agent
 	return agentList.Agents, nil
 }
 
-func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid string) (name string) {
+func getRouterAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid string) (name string) {
+	// if uuid == iofog.VanillaRemoteAgentName {
+	// 	return uuid
+	// }
 	if uuid == iofog.VanillaRouterAgentName {
 		return uuid
 	}
@@ -230,4 +317,122 @@ func getAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid strin
 		name = agent.Name
 	}
 	return
+}
+
+func getNatsAgentNameFromUUID(agentMapByUUID map[string]client.AgentInfo, uuid string) (name string) {
+
+	if uuid == iofog.VanillaNatsAgentName {
+		return uuid
+	}
+	agent, found := agentMapByUUID[uuid]
+	if !found {
+		util.PrintNotify(fmt.Sprintf("Could not find NATS: %s\n", uuid))
+		name = "UNKNOWN NATS: " + uuid
+	} else {
+		name = agent.Name
+	}
+	return
+}
+
+// isAuthenticationError checks if an error is an authentication/authorization error
+func isAuthenticationError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := strings.ToLower(err.Error())
+	// Check for common authentication error patterns
+	return strings.Contains(errStr, "access denied") ||
+		strings.Contains(errStr, "accessdenied") ||
+		strings.Contains(errStr, "Access Denied") ||
+		strings.Contains(errStr, "AccessDenied") ||
+		strings.Contains(errStr, "Access denied") ||
+		strings.Contains(errStr, "unauthorized") ||
+		strings.Contains(errStr, "Unauthorized") ||
+		strings.Contains(errStr, "forbidden") ||
+		strings.Contains(errStr, "Forbidden") ||
+		strings.Contains(errStr, "authentication failed") ||
+		strings.Contains(errStr, "Authentication failed") ||
+		strings.Contains(errStr, "401") ||
+		strings.Contains(errStr, "403") ||
+		strings.Contains(errStr, "token expired") ||
+		strings.Contains(errStr, "tokenexpired") ||
+		strings.Contains(errStr, "invalid token") ||
+		strings.Contains(errStr, "invalidtoken")
+}
+
+// refreshClientAuthentication refreshes the client authentication for a namespace
+func refreshClientAuthentication(namespace string) (*client.Client, error) {
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	controlPlane, err := ns.GetControlPlane()
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint, err := controlPlane.GetEndpoint()
+	if err != nil {
+		return nil, err
+	}
+
+	user := controlPlane.GetUser()
+	baseURL, err := util.GetBaseURL(endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	// Re-authenticate using SessionLogin
+	util.SpinHandlePrompt()
+	refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
+	if err != nil {
+		util.SpinHandlePromptComplete()
+		return nil, fmt.Errorf("failed to refresh authentication: %v", err)
+	}
+	util.SpinHandlePromptComplete()
+
+	// Update tokens in config
+	user.AccessToken = refreshedClient.GetAccessToken()
+	user.RefreshToken = refreshedClient.GetRefreshToken()
+	config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+
+	// Update cached client
+	pkg.clientCache[namespace] = refreshedClient
+
+	// Flush config
+	if err := config.Flush(); err != nil {
+		return nil, fmt.Errorf("failed to flush config: %v", err)
+	}
+
+	return refreshedClient, nil
+}
+
+// ExecuteWithAuthRetry executes a function that uses a client, and retries with refreshed auth if auth error occurs
+func ExecuteWithAuthRetry(namespace string, operation func(*client.Client) error) error {
+	// Get client
+	ioClient, err := NewControllerClient(namespace)
+	if err != nil {
+		return err
+	}
+
+	// Try the operation
+	err = operation(ioClient)
+	if err == nil {
+		return nil
+	}
+
+	// Check if it's an authentication error
+	if !isAuthenticationError(err) {
+		return err
+	}
+
+	// Refresh authentication and retry
+	refreshedClient, refreshErr := refreshClientAuthentication(namespace)
+	if refreshErr != nil {
+		return fmt.Errorf("authentication error occurred and failed to refresh: %v (refresh error: %v)", err, refreshErr)
+	}
+
+	// Retry the operation with refreshed client
+	return operation(refreshedClient)
 }

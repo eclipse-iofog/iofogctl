@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,13 +14,12 @@
 package describe
 
 import (
-	"fmt"
-
+	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	rsc "github.com/eclipse-iofog/iofogctl/v3/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type applicationExecutor struct {
@@ -30,8 +29,8 @@ type applicationExecutor struct {
 	flow      *client.FlowInfo
 	client    *client.Client
 	msvcs     []*client.MicroserviceInfo
-	routes    []client.Route
 	msvcPerID map[string]*client.MicroserviceInfo
+	natsCfg   *client.ApplicationNatsConfig
 }
 
 func newApplicationExecutor(namespace, name, filename string) *applicationExecutor {
@@ -47,12 +46,6 @@ func (exe *applicationExecutor) init() (err error) {
 	if err != nil {
 		return
 	}
-
-	routeList, err := exe.client.ListRoutes()
-	if err != nil {
-		return err
-	}
-	exe.routes = routeList.Routes
 
 	application, err := exe.client.GetApplicationByName(exe.name)
 	// If not found error, try legacy
@@ -72,6 +65,7 @@ func (exe *applicationExecutor) init() (err error) {
 		UserID:      application.UserID,
 		ID:          application.ID,
 	}
+	exe.natsCfg = application.NatsConfig
 	msvcListResponse, err := exe.client.GetMicroservicesByApplication(exe.name)
 	if err != nil {
 		return err
@@ -89,7 +83,6 @@ func (exe *applicationExecutor) init() (err error) {
 	for i := 0; i < len(exe.msvcs); i++ {
 		exe.msvcPerID[exe.msvcs[i].UUID] = exe.msvcs[i]
 	}
-
 	return err
 }
 
@@ -104,10 +97,9 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	yamlMsvcs := []rsc.Microservice{}
-	yamlRoutes := []rsc.Route{}
-
+	var natsCfg *apps.ApplicationNatsConfig
 	for idx := range exe.msvcs {
-		yamlMsvc, err := MapClientMicroserviceToDeployMicroservice(exe.msvcs[idx], exe.client)
+		yamlMsvc, _, _, err := MapClientMicroserviceToDeployMicroservice(exe.msvcs[idx], exe.client)
 		if err != nil {
 			return err
 		}
@@ -115,26 +107,17 @@ func (exe *applicationExecutor) Execute() error {
 		yamlMsvc.Flow = nil
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
-
-	for _, route := range exe.routes {
-		from, okSrc := exe.msvcPerID[route.SourceMicroserviceUUID]
-		to, okDest := exe.msvcPerID[route.DestMicroserviceUUID]
-		if okSrc {
-			if !okDest {
-				return util.NewNotFoundError(fmt.Sprintf("Route %s contains a destination microservice that could not be found in the application", route.Name))
-			}
-			yamlRoutes = append(yamlRoutes, rsc.Route{
-				Name: route.Name,
-				From: from.Name,
-				To:   to.Name,
-			})
+	if exe.natsCfg != nil {
+		natsCfg = &apps.ApplicationNatsConfig{
+			NatsAccess: exe.natsCfg.NatsAccess,
+			NatsRule:   exe.natsCfg.NatsRule,
 		}
 	}
 
 	application := rsc.Application{
 		Name:          exe.flow.Name,
 		Microservices: yamlMsvcs,
-		Routes:        yamlRoutes,
+		NatsConfig:    natsCfg,
 		ID:            exe.flow.ID,
 	}
 

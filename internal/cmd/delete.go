@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,8 +16,8 @@ package cmd
 import (
 	"errors"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/delete"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/delete"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -60,8 +60,17 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteRegistryCommand(),
 		newDeleteMicroserviceCommand(),
 		newDeleteVolumeCommand(),
-		newDeleteRouteCommand(),
 		newDeleteEdgeResourceCommand(),
+		newDeleteSecretCommand(),
+		newDeleteConfigMapCommand(),
+		newDeleteRoleCommand(),
+		newDeleteRoleBindingCommand(),
+		newDeleteServiceAccountCommand(),
+		newDeleteNatsAccountRuleCommand(),
+		newDeleteNatsUserRuleCommand(),
+		newDeleteServiceCommand(),
+		newDeleteVolumeMountCommand(),
+		newDeleteCertificateCommand(),
 	)
 
 	// Register flags

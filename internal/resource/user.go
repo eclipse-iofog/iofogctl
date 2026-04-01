@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,10 +19,12 @@ import (
 
 // IofogUser contains information about users registered against a controller
 type IofogUser struct {
-	Name     string `yaml:"name,omitempty"`
-	Surname  string `yaml:"surname,omitempty"`
-	Email    string `yaml:"email,omitempty"`
-	Password string `yaml:"password,omitempty"`
+	Name         string `yaml:"name,omitempty"`
+	Surname      string `yaml:"surname,omitempty"`
+	Email        string `yaml:"email,omitempty"`
+	Password     string `yaml:"password,omitempty"`
+	AccessToken  string `yaml:"accessToken,omitempty"`
+	RefreshToken string `yaml:"refreshToken,omitempty"`
 }
 
 func (user *IofogUser) EncodePassword() {

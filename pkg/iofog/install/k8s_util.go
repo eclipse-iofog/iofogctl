@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,6 +21,15 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// operatorDeploymentLabels are applied to the iofog-operator Deployment and Pod template.
+var operatorDeploymentLabels = map[string]string{
+	"app.kubernetes.io/name":       "iofog",
+	"app.kubernetes.io/instance":   "iofog",
+	"app.kubernetes.io/component":  "iofog-operator",
+	"app.kubernetes.io/managed-by": "iofogctl",
+	"iofog.org/component":          "iofog-operator",
+}
+
 func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 	maxUnavailable := intstr.FromInt(0)
 	maxSurge := intstr.FromInt(1)
@@ -31,13 +40,19 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 			MaxSurge:       &maxSurge,
 		},
 	}
+	depLabels := map[string]string{"name": ms.name}
+	podLabels := map[string]string{"name": ms.name}
+	if ms.name == "iofog-operator" {
+		for k, v := range operatorDeploymentLabels {
+			depLabels[k] = v
+			podLabels[k] = v
+		}
+	}
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
 			Namespace: namespace,
-			Labels: map[string]string{
-				"name": ms.name,
-			},
+			Labels:    depLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &ms.replicas,
@@ -49,9 +64,7 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 			Strategy: strategy,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"name": ms.name,
-					},
+					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: ms.name,
@@ -78,12 +91,20 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 }
 
 func newServiceAccount(namespace string, ms *microservice) *corev1.ServiceAccount {
-	return &corev1.ServiceAccount{
+	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ms.name,
 			Namespace: namespace,
 		},
 	}
+	// If imagePullSecret is provided, add it to the ImagePullSecrets field
+	if ms.imagePullSecret != "" {
+		sa.ImagePullSecrets = []corev1.LocalObjectReference{
+			{Name: ms.imagePullSecret},
+		}
+	}
+
+	return sa
 }
 
 func newRoleBinding(namespace string, ms *microservice) *rbacv1.RoleBinding {

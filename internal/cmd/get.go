@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,9 +16,9 @@ package cmd
 import (
 	"errors"
 
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/get"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/get"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -31,11 +31,24 @@ func newGetCommand() *cobra.Command {
 		"edge-resources",
 		"application-templates",
 		"applications",
+		"system-applications",
 		"microservices",
+		"system-microservices",
 		"catalog",
 		"registries",
 		"volumes",
-		"routes",
+		"secrets",
+		"configmaps",
+		"services",
+		"volume-mounts",
+		"certificates",
+		"roles",
+		"rolebindings",
+		"serviceaccounts",
+		"nats-accounts",
+		"nats-users",
+		"nats-account-rules",
+		"nats-user-rules",
 	}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE",
@@ -50,13 +63,26 @@ Resources like Agents will require a working Controller in the namespace to disp
              edge-resources
              application-templates
              applications
+             system-applications
              microservices
+             system-microservices
              catalog
              registries
              volumes
-             routes`,
+             secrets
+             configmaps
+             services
+             volume-mounts
+             certificates
+             roles
+             rolebindings
+             serviceaccounts
+             nats-accounts
+             nats-users
+             nats-account-rules
+             nats-user-rules`,
 		ValidArgs: validResources,
-		Args:      cobra.ExactValidArgs(1),
+		Args:      cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg
 			resource := args[0]

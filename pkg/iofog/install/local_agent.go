@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,7 +16,7 @@ package install
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // LocalAgent uses Container exec commands
@@ -50,7 +50,7 @@ func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (s
 		controllerEndpoint = localControllerEndpoint
 	}
 
-	key, err := agent.getProvisionKey(provisioningEndpoint, user)
+	key, caCert, err := agent.getProvisionKey(provisioningEndpoint, user)
 	if err != nil {
 		return "", err
 	}
@@ -63,9 +63,15 @@ func (agent *LocalAgent) Configure(controllerEndpoint string, user IofogUser) (s
 	cmds := [][]string{
 		{"iofog-agent", "config", "-idc", "off"},
 		{"iofog-agent", "config", "-a", controllerBaseURL.String()},
-		{"iofog-agent", "provision", key},
-		{"iofog-agent", "config", "-sf", "10", "-cf", "10"},
 	}
+
+	// Only add cert command if caCert is not empty
+	if caCert != "" {
+		cmds = append(cmds, []string{"iofog-agent", "cert", caCert})
+	}
+
+	cmds = append(cmds, []string{"iofog-agent", "provision", key})
+	cmds = append(cmds, []string{"iofog-agent", "config", "-sf", "10", "-cf", "10"})
 
 	// Execute commands
 	for _, cmd := range cmds {

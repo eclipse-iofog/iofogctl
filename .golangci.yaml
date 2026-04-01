@@ -105,13 +105,30 @@ linters-settings:
     max-complexity: 30
     skip-tests: true
   depguard:
-    list-type: blacklist
-    packages:
-    # logging is allowed only by logutils.Log, logrus
-    # is allowed to use only in logutils package
-    #      - github.com/sirupsen/logrus
-    packages-with-error-message:
-  #      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+    rules:
+      main:
+        list-mode: strict
+        files:
+          - $all
+          - "!$test"
+        allow:
+          - $gostd
+          - github.com/eclipse-iofog/iofogctl
+          - github.com/eclipse-iofog/iofog-go-sdk/v3
+          - github.com/eclipse-iofog/iofog-operator
+          - github.com/spf13/cobra
+          - github.com/mitchellh/go-homedir
+          - github.com/pkg
+          - github.com/twmb/algoimpl
+          - github.com/containers/image
+          - github.com/opencontainers/go-digest
+          - github.com/gorilla/websocket
+          - github.com/vmihailenco/msgpack
+          - github.com/docker
+          - k8s.io
+          - sigs.k8s.io/controller-runtime
+          - github.com/GeertJohan/go.rice
+          - github.com/briandowns/spinner
   dupl:
     threshold: 100
   funlen:
@@ -119,7 +136,7 @@ linters-settings:
     statements: 100
   goconst:
     min-len: 2
-    min-occurrences: 3
+    min-occurrences: 5
   gocritic:
     enabled-tags:
       - diagnostic
@@ -135,9 +152,9 @@ linters-settings:
       - wrapperFunc
   gocognit:
     # minimal code complexity to report, 30 by default (but we recommend 10-20)
-    min-complexity: 36
+    min-complexity: 30
   gocyclo:
-    min-complexity: 36
+    min-complexity: 30
   godox:
     # Report any comments starting with keywords, this is useful for TODO or FIXME comments that
     # might be left in the code accidentally and should be resolved before merging.
@@ -212,8 +229,7 @@ run:
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 service:
-  golangci-lint-version: 1.50.1 # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.64.4 # use the fixed version to not introduce new linters unexpectedly
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"
-
 

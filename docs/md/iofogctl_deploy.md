@@ -22,13 +22,19 @@ deploy -f ecn.yaml
           catalog.yaml
           volume.yaml
           route.yaml
+          secret.yaml
+          configmap.yaml
+          service.yaml
+          volume-mount.yaml
 ```
 
 ### Options
 
 ```
-  -f, --file string   YAML file containing specifications for ioFog resources to deploy
-  -h, --help          help for deploy
+  -f, --file string         YAML file containing specifications for ioFog resources to deploy
+  -h, --help                help for deploy
+      --no-cache            Disable caching for OfflineImage images after download
+      --transfer-pool int   Maximum number of concurrent OfflineImage transfers (default 2)
 ```
 
 ### Options inherited from parent commands

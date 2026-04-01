@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,9 +19,9 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/describe"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/describe"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -49,7 +49,8 @@ func Execute(namespace, name, agent string) error {
 		return err
 	}
 
-	destAgent, err := clt.GetAgentByName(agent, false)
+	// destAgent, err := clt.GetAgentByName(agent, false)
+	destAgent, err := clt.GetAgentByName(agent)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func Execute(namespace, name, agent string) error {
 	// Move
 	msvc.AgentUUID = destAgent.UUID
 
-	yamlMsvc, err := describe.MapClientMicroserviceToDeployMicroservice(msvc, clt)
+	yamlMsvc, _, _, err := describe.MapClientMicroserviceToDeployMicroservice(msvc, clt)
 	if err != nil {
 		return err
 	}

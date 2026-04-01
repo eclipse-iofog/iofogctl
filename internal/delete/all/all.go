@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,13 +14,13 @@
 package deleteall
 
 import (
-	"github.com/eclipse-iofog/iofogctl/v3/internal/config"
-	deleteagent "github.com/eclipse-iofog/iofogctl/v3/internal/delete/agent"
-	deletecontrolplane "github.com/eclipse-iofog/iofogctl/v3/internal/delete/controlplane"
-	deletevolume "github.com/eclipse-iofog/iofogctl/v3/internal/delete/volume"
-	"github.com/eclipse-iofog/iofogctl/v3/internal/execute"
-	clientutil "github.com/eclipse-iofog/iofogctl/v3/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/v3/pkg/util"
+	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
+	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
+	deletevolume "github.com/eclipse-iofog/iofogctl/internal/delete/volume"
+	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func Execute(namespace string, useDetached, force bool) error {
@@ -88,7 +88,7 @@ func Execute(namespace string, useDetached, force bool) error {
 
 	if !useDetached {
 		// Delete Controllers
-		util.SpinStart("Deleting Control Plane")
+		util.SpinStart("Deleting Control Plane ")
 		exe, err := deletecontrolplane.NewExecutor(namespace)
 		if err != nil {
 			return err

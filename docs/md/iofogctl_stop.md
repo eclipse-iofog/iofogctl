@@ -24,5 +24,6 @@ Stops a resource
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl stop application](iofogctl_stop_application.md)	 - Stop an application
+* [iofogctl stop microservice](iofogctl_stop_microservice.md)	 - Stop an microservice
 
 

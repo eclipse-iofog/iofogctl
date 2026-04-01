@@ -1,6 +1,6 @@
 ## iofogctl describe volume
 
-Get detailed information about a  Volume
+Get detailed information about a Volume
 
 ### Synopsis
 

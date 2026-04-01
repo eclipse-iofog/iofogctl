@@ -22,11 +22,24 @@ iofogctl get all
              edge-resources
              application-templates
              applications
+             system-applications
              microservices
+             system-microservices
              catalog
              registries
              volumes
-             routes
+             secrets
+             configmaps
+             services
+             volume-mounts
+             certificates
+             roles
+             rolebindings
+             serviceaccounts
+             nats-accounts
+             nats-users
+             nats-account-rules
+             nats-user-rules
 ```
 
 ### Options

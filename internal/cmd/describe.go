@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2020 Edgeworx, Inc.
+ *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -37,11 +37,23 @@ Most resources require a working Controller in the Namespace in order to be desc
 		newDescribeRegistryCommand(),
 		newDescribeAgentConfigCommand(),
 		newDescribeMicroserviceCommand(),
+		newDescribeSystemMicroserviceCommand(),
 		newDescribeApplicationCommand(),
 		newDescribeApplicationTemplateCommand(),
 		newDescribeVolumeCommand(),
-		newDescribeRouteCommand(),
 		newDescribeEdgeResourceCommand(),
+		newDescribeSecretCommand(),
+		newDescribeConfigMapCommand(),
+		newDescribeServiceCommand(),
+		newDescribeVolumeMountCommand(),
+		newDescribeCertificateCommand(),
+		newDescribeRoleCommand(),
+		newDescribeRoleBindingCommand(),
+		newDescribeServiceAccountCommand(),
+		newDescribeNatsAccountCommand(),
+		newDescribeNatsUserCommand(),
+		newDescribeNatsAccountRuleCommand(),
+		newDescribeNatsUserRuleCommand(),
 	)
 
 	// Register Flags
