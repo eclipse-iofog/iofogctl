@@ -143,7 +143,7 @@ jobs:
           args: --clean --verbose --config ./.goreleaser-iofogctl.yml
         env:
           VERSION: ${{ needs.Build.outputs.VERSION }}
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
