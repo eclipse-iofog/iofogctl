@@ -3,7 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - develop
+      - release*
       
     tags: [v*]
     paths-ignore:
@@ -13,7 +14,8 @@ on:
   pull_request:
     # Sequence of patterns matched against refs/heads
     branches:
-      - main
+      - develop
+      - release*
       
     paths-ignore:
       - README.md
