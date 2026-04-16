@@ -57,10 +57,11 @@ Current options include:
 
 
 
-Welcome to the cool new iofogctl Cli!
+Iofogctl is the CLI for ioFog. Think of it as a mix between terraform and kubectl.
 
 Use `iofogctl version` to display the current version.
-                                                   
+
+
 Usage:
   iofogctl [flags]
   iofogctl [command]
@@ -82,6 +83,7 @@ Available Commands:
   legacy        Execute commands using legacy CLI
   logs          Get log contents of deployed resource
   move          Move an existing resources inside the current Namespace
+  nats          Manage NATS resources
   prune         prune ioFog resources
   rebuild       Rebuilds a microservice or system-microservice
   rename        Rename the iofog resources that are currently deployed
@@ -93,7 +95,6 @@ Available Commands:
   view          Open ECN Viewer
 
 Flags:
-      --detached           Use/Show detached resources
       --debug              Toggle for displaying verbose output of API clients (HTTP and SSH)
   -h, --help               help for iofogctl
   -n, --namespace string   Namespace to execute respective command within (default "default")

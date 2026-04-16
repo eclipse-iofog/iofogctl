@@ -78,10 +78,10 @@ github.com/docker/go-metrics v0.0.1 h1:AgB/0SvBxihN0X8OR4SjsblXkbMvalQ8cjmtKQ2rQ
 github.com/docker/go-metrics v0.0.1/go.mod h1:cG1hvH2utMXtqgqqYE9plW6lDxS3/5ayHzueweSI3Vw=
 github.com/docker/go-units v0.5.0 h1:69rxXcBk27SvSaaxTtLh/8llcHD8vYHT7WSdRZ/jvr4=
 github.com/docker/go-units v0.5.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
-github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0-beta.0 h1:wjzFAC/XeqCnlJNT6T+5wQRcevUed46eiPChQxsKnHI=
-github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0-beta.0/go.mod h1:QMKVbhVHxFNCVTDgfg/bMsi8ZFxG1/yZgpn1RymlSQc=
-github.com/eclipse-iofog/iofog-operator/v3 v3.7.1-beta.1 h1:h6JuTQY6D9kp1JxamE9I7eCRYkhrzqqwE865yfLhxEU=
-github.com/eclipse-iofog/iofog-operator/v3 v3.7.1-beta.1/go.mod h1:r5Jp1ToVbxH1jTz7yHi9yUmdQGSzaUuF3+UR0/x9RmY=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0 h1:uxShVC0dxiDVAphCn6cNlV5m1T+ZV6aMOMVjHsPhuwE=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0/go.mod h1:QMKVbhVHxFNCVTDgfg/bMsi8ZFxG1/yZgpn1RymlSQc=
+github.com/eclipse-iofog/iofog-operator/v3 v3.7.2 h1:zIL8xM4X1wrbbPnzu/mrJ0Q5l2xN9PCjqYVo/J+xIFo=
+github.com/eclipse-iofog/iofog-operator/v3 v3.7.2/go.mod h1:9XGWMGrjCiBoSA772L1bDvjPmBX2W5j4aJI303t1NPc=
 github.com/emicklei/go-restful/v3 v3.11.0 h1:rAQeMHw1c7zTmncogyy8VvRZwtkmkZ4FxERmMY4rD+g=
 github.com/emicklei/go-restful/v3 v3.11.0/go.mod h1:6n3XBCmQQb25CM2LCACGz8ukIrRry+4bhvbpWn3mrbc=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=

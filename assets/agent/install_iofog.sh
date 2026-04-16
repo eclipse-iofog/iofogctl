@@ -18,7 +18,29 @@ do_stop_iofog() {
 	fi
 }
 
-
+do_set_iofog_repo() {
+    echo "# Setting up Eclipse ioFog repository for $lsb_dist..."
+    
+    case "$lsb_dist" in
+        fedora|centos|rhel|ol|sles|opensuse*)
+            # RPM-based distros
+            $sh_c "cd /etc/yum.repos.d && curl -s https://iofog.datasance.com/iofog.repo -LO"
+            if [ "$lsb_dist" = "fedora" ] || [ "$lsb_dist" = "centos" ] || [ "$lsb_dist" = "rhel" ] || [ "$lsb_dist" = "ol" ]; then
+                $sh_c "yum update -y"
+            else
+                $sh_c "zypper refresh"
+            fi
+        ;;
+        debian|ubuntu|raspbian|*)
+            # DEB-based distros
+            $sh_c "apt update -qy"
+            $sh_c "apt install -qy debian-archive-keyring apt-transport-https"
+            $sh_c "wget -qO- https://iofog.datasance.com/iofog.gpg | tee /etc/apt/trusted.gpg.d/iofog.gpg >/dev/null"
+            $sh_c "echo 'deb [arch=all signed-by=/etc/apt/trusted.gpg.d/iofog.gpg] https://iofog.datasance.com/deb stable main' | tee /etc/apt/sources.list.d/iofog.list >/dev/null"
+            $sh_c "apt update -qy"
+        ;;
+    esac
+}
 
 do_install_iofog() {
 	AGENT_CONFIG_FOLDER=/etc/iofog-agent
@@ -98,5 +120,9 @@ fi
 
 do_check_install
 do_stop_iofog
+# Set up Datasance repository and WASM only on package-managed OSes
+if [ "$PACKAGE_TYPE" = "deb" ] || [ "$PACKAGE_TYPE" = "rpm" ]; then
+    do_set_iofog_repo
+fi
 do_install_iofog
 do_start_iofog

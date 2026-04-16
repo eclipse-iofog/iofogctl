@@ -10,8 +10,8 @@ require (
 	github.com/containers/image/v5 v5.32.1
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0-beta.0
-	github.com/eclipse-iofog/iofog-operator/v3 v3.7.1-beta.1
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0
+	github.com/eclipse-iofog/iofog-operator/v3 v3.7.2
 	github.com/gorilla/websocket v1.5.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/go-digest v1.0.0
