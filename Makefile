@@ -19,17 +19,17 @@ COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).operatorTag=3.7.1
+LDFLAGS += -X $(PREFIX).operatorTag=3.7.2
 LDFLAGS += -X $(PREFIX).routerTag=3.7.0
-LDFLAGS += -X $(PREFIX).controllerTag=3.7.1
+LDFLAGS += -X $(PREFIX).controllerTag=3.7.3
 LDFLAGS += -X $(PREFIX).agentTag=3.7.0
-LDFLAGS += -X $(PREFIX).controllerVersion=3.7.1
+LDFLAGS += -X $(PREFIX).controllerVersion=3.7.3
 LDFLAGS += -X $(PREFIX).agentVersion=3.7.0
 LDFLAGS += -X $(PREFIX).debuggerTag=latest
 LDFLAGS += -X $(PREFIX).natsTag=2.12.4
 LDFLAGS += -X $(PREFIX).repo=ghcr.io/eclipse-iofog
 GO_SDK_MODULE = iofog-go-sdk/v3@v3.7.0
-OPERATOR_MODULE = iofog-operator/v3@v3.7.1
+OPERATOR_MODULE = iofog-operator/v3@v3.7.2
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
