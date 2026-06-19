@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package util
 
 import "fmt"
@@ -22,21 +9,27 @@ var (
 	commit        = "undefined"
 	date          = "undefined"
 
-	repo = "undefined"
+	cliBinaryName   = "iofogctl"
+	cliCrdGroup     = "iofog.org"
+	cliApiVersion   = "iofog.org/v3"
+	imageRegistry   = "ghcr.io/eclipse-iofog"
+	cliDocsUrl      = "https://iofog.org"
+	packageRepoBase = "https://packagecloud.io/iofog"
+	ociSourceRepo   = "https://github.com/eclipse-iofog/iofogctl"
 
 	controllerTag     = "undefined"
-	agentTag          = "undefined"
 	operatorTag       = "undefined"
 	routerTag         = "undefined"
 	natsTag           = "undefined"
+	edgeletTag        = "undefined"
 	controllerVersion = "undefined"
-	agentVersion      = "undefined"
+	edgeletVersion    = "undefined"
 	debuggerTag       = "undefined"
 )
 
 const (
 	controllerImage = "controller"
-	agentImage      = "agent"
+	edgeletImage    = "edgelet"
 	operatorImage   = "operator"
 	routerImage     = "router"
 	routerARMImage  = "router"
@@ -60,15 +53,39 @@ func GetVersion() Version {
 	}
 }
 
+func GetCliBinaryName() string   { return cliBinaryName }
+func GetCliCrdGroup() string     { return cliCrdGroup }
+func GetCliApiVersion() string   { return cliApiVersion }
+func GetImageRegistry() string   { return imageRegistry }
+func GetCliDocsUrl() string      { return cliDocsUrl }
+func GetPackageRepoBase() string { return packageRepoBase }
+func GetOciSourceRepo() string   { return ociSourceRepo }
+
 func GetControllerVersion() string { return controllerVersion }
-func GetAgentVersion() string      { return agentVersion }
+func GetEdgeletVersion() string    { return edgeletVersion }
 
 func GetControllerImage() string {
-	return fmt.Sprintf("%s/%s:%s", repo, controllerImage, controllerTag)
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, controllerImage, controllerTag)
 }
-func GetAgentImage() string     { return fmt.Sprintf("%s/%s:%s", repo, agentImage, agentTag) }
-func GetOperatorImage() string  { return fmt.Sprintf("%s/%s:%s", repo, operatorImage, operatorTag) }
-func GetRouterImage() string    { return fmt.Sprintf("%s/%s:%s", repo, routerImage, routerTag) }
-func GetRouterARMImage() string { return fmt.Sprintf("%s/%s:%s", repo, routerARMImage, routerTag) }
-func GetNatsImage() string      { return fmt.Sprintf("%s/%s:%s", repo, natsImage, natsTag) }
-func GetDebuggerImage() string  { return fmt.Sprintf("%s/%s:%s", repo, debuggerImage, debuggerTag) }
+func GetEdgeletImage() string {
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, edgeletImage, edgeletTag)
+}
+func GetOperatorImage() string {
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, operatorImage, operatorTag)
+}
+func GetRouterImage() string {
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, routerImage, routerTag)
+}
+func GetRouterARMImage() string {
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, routerARMImage, routerTag)
+}
+func GetNatsImage() string {
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, natsImage, natsTag)
+}
+func GetDebuggerImage() string {
+	return fmt.Sprintf("%s/%s:%s", imageRegistry, debuggerImage, debuggerTag)
+}
+
+// Deprecated: Compatibility wrappers for Phase 1 compilation. Will be removed in Phase 4/5.
+func GetAgentImage() string   { return GetEdgeletImage() }
+func GetAgentVersion() string { return GetEdgeletVersion() }

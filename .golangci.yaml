@@ -127,7 +127,6 @@ linters-settings:
           - github.com/docker
           - k8s.io
           - sigs.k8s.io/controller-runtime
-          - github.com/GeertJohan/go.rice
           - github.com/briandowns/spinner
   dupl:
     threshold: 100

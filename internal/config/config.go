@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package config
 
 import (
@@ -34,10 +21,13 @@ var (
 	namespaces         map[string]*rsc.Namespace
 )
 
+var (
+	apiVersionGroup  = "iofog.org"
+	LatestAPIVersion = "iofog.org/v3"
+)
+
 const (
-	apiVersionGroup      = "iofog.org"
 	latestVersion        = "v3"
-	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
 	defaultDirname       = ".iofog/" + latestVersion
 	namespaceDirname     = "namespaces/"
 	offlineImagesDirname = "offline-images"
@@ -47,6 +37,11 @@ const (
 	CurrentConfigVersion = configV3
 	detachedNamespace    = "_detached"
 )
+
+func init() {
+	apiVersionGroup = util.GetCliCrdGroup()
+	LatestAPIVersion = util.GetCliApiVersion()
+}
 
 // Init initializes config, namespace and unmarshalls the files
 func Init(configFolderArg string) {
@@ -256,7 +251,7 @@ func GetAirgapImageCacheDir(namespace, imageRef, platform string) string {
 
 func ValidateHeader(header *Header) error {
 	if header.APIVersion != LatestAPIVersion {
-		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See https://iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See %s for specification details.", header.APIVersion, LatestAPIVersion, util.GetCliDocsUrl()))
 	}
 	return nil
 }

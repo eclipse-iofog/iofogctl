@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -27,15 +14,15 @@ func newVersionCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ecnFlag, err := cmd.Flags().GetBool("ecn")
 			util.Check(err)
-			util.PrintInfo("iofogctl - Copyright (C) 2023 Contributors to the Eclipse ioFog Project\n")
+			util.PrintInfo(fmt.Sprintf("%s - Copyright (C) 2026 Contributors\n", util.GetCliBinaryName()))
 			_ = util.Print(util.GetVersion())
 			if ecnFlag {
 				fmt.Println("")
 				fmt.Println("controller@" + util.GetControllerVersion())
-				fmt.Println("agent@" + util.GetAgentVersion())
+				fmt.Println("edgelet@" + util.GetEdgeletVersion())
 				fmt.Println("")
 				fmt.Println(util.GetControllerImage())
-				fmt.Println(util.GetAgentImage())
+				fmt.Println(util.GetEdgeletImage())
 				fmt.Println(util.GetOperatorImage())
 				fmt.Println(util.GetRouterImage())
 			}

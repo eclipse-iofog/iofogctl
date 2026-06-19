@@ -32,15 +32,6 @@ if ! checkForInstallation "go"; then
     exit 1
 fi
 
-# Is rice installed?
-if [ -z $(command -v rice) ]; then
-    echo " Attempting to install 'rice'"
-    go install github.com/GeertJohan/go.rice/rice@latest
-    if [ -z $(command -v rice) ]; then
-        echo ' Could not find command rice after installation - is $GOBIN in $PATH?'
-    fi
-fi
-
 # Is bats installed?
 if ! checkForInstallation "bats"; then
     echoInfo " Attempting to install 'bats'"

@@ -1,10 +1,16 @@
 SHELL = /bin/bash
 OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
+GOOS ?= $(shell go env GOOS)
+GOARCH ?= $(shell go env GOARCH)
 
 # Build variables
-BINARY_NAME = iofogctl
+include versions.mk
+
+# Build variables
+FLAVOR ?= iofog
+BINARY_NAME ?= iofogctl
 BUILD_DIR ?= bin
-PACKAGE_DIR = cmd/iofogctl
+PACKAGE_DIR ?= cmd/iofogctl
 GOTAGS ?= containers_image_openpgp,exclude_graphdriver_btrfs
 export CGO_ENABLED=1
 LATEST_TAG = $(shell git for-each-ref refs/tags --sort=-taggerdate --format='%(refname)' | tail -n1 | sed "s|refs/tags/||")
@@ -18,18 +24,42 @@ VERSION ?= $(MAJOR).$(MINOR).$(PATCH)$(SUFFIX)
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
+
+ifeq ($(FLAVOR),datasance)
+  CLI_BINARY_NAME = potctl
+  CLI_CRD_GROUP = datasance.com
+  CLI_API_VERSION = datasance.com/v3
+  IMAGE_REGISTRY = ghcr.io/datasance
+  CLI_DOCS_URL = https://docs.datasance.com
+  PACKAGE_REPO_BASE = downloads.datasance.com
+  OCI_SOURCE_REPO = https://github.com/Datasance/potctl
+else
+  CLI_BINARY_NAME = iofogctl
+  CLI_CRD_GROUP = iofog.org
+  CLI_API_VERSION = iofog.org/v3
+  IMAGE_REGISTRY = ghcr.io/eclipse-iofog
+  CLI_DOCS_URL = https://iofog.org
+  PACKAGE_REPO_BASE = https://packagecloud.io/iofog
+  OCI_SOURCE_REPO = https://github.com/eclipse-iofog/iofogctl
+endif
+
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
-LDFLAGS += -X $(PREFIX).operatorTag=3.7.1
-LDFLAGS += -X $(PREFIX).routerTag=3.7.0
-LDFLAGS += -X $(PREFIX).controllerTag=3.7.1
-LDFLAGS += -X $(PREFIX).agentTag=3.7.0
-LDFLAGS += -X $(PREFIX).controllerVersion=3.7.1
-LDFLAGS += -X $(PREFIX).agentVersion=3.7.0
+LDFLAGS += -X $(PREFIX).cliBinaryName=$(CLI_BINARY_NAME)
+LDFLAGS += -X $(PREFIX).cliCrdGroup=$(CLI_CRD_GROUP)
+LDFLAGS += -X $(PREFIX).cliApiVersion=$(CLI_API_VERSION)
+LDFLAGS += -X $(PREFIX).imageRegistry=$(IMAGE_REGISTRY)
+LDFLAGS += -X $(PREFIX).cliDocsUrl=$(CLI_DOCS_URL)
+LDFLAGS += -X $(PREFIX).packageRepoBase=$(PACKAGE_REPO_BASE)
+LDFLAGS += -X $(PREFIX).ociSourceRepo=$(OCI_SOURCE_REPO)
+LDFLAGS += -X $(PREFIX).operatorTag=$(OPERATOR_VERSION)
+LDFLAGS += -X $(PREFIX).routerTag=$(ROUTER_VERSION)
+LDFLAGS += -X $(PREFIX).controllerTag=$(CONTROLLER_VERSION)
+LDFLAGS += -X $(PREFIX).natsTag=$(NATS_VERSION)
+LDFLAGS += -X $(PREFIX).edgeletTag=$(EDGELET_VERSION)
+LDFLAGS += -X $(PREFIX).controllerVersion=$(CONTROLLER_VERSION)
+LDFLAGS += -X $(PREFIX).edgeletVersion=$(EDGELET_VERSION)
 LDFLAGS += -X $(PREFIX).debuggerTag=latest
-LDFLAGS += -X $(PREFIX).natsTag=2.12.4
-LDFLAGS += -X $(PREFIX).repo=ghcr.io/eclipse-iofog
-GO_SDK_MODULE = iofog-go-sdk/v3@v3.7.0
-OPERATOR_MODULE = iofog-operator/v3@v3.7.1
+
 REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
@@ -49,15 +79,22 @@ verify-gpgme:
 		exit 1; \
 	fi
 
+.PHONY: potctl
+potctl: ## Build potctl binary
+	@$(MAKE) FLAVOR=datasance BINARY_NAME=potctl PACKAGE_DIR=cmd/potctl build
+
+.PHONY: iofogctl
+iofogctl: ## Build iofogctl binary
+	@$(MAKE) FLAVOR=iofog BINARY_NAME=iofogctl PACKAGE_DIR=cmd/iofogctl build
+
 .PHONY: build
 build: GOARGS += -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)
 build: fmt ## Build the binary
-	@cd pkg/util && rice embed-go
 	@go build -v $(GOARGS) $(PACKAGE_DIR)/main.go
 
 .PHONY: install
 install: ## Install the binary
-	@GOBIN=$$(go env GOPATH)/bin go install -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" ./cmd/iofogctl/
+	@GOBIN=$$(go env GOPATH)/bin go install -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)" ./$(PACKAGE_DIR)/
 
 .PHONY: lint
 lint: golangci-lint fmt ## Lint the source

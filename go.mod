@@ -1,11 +1,8 @@
 module github.com/eclipse-iofog/iofogctl
 
-go 1.24.0
-
-toolchain go1.24.3
+go 1.26.4
 
 require (
-	github.com/GeertJohan/go.rice v1.0.2
 	github.com/briandowns/spinner v1.23.1
 	github.com/containers/image/v5 v5.32.1
 	github.com/docker/docker v27.4.1+incompatible
@@ -50,7 +47,6 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20231217050601-ba74d44ecf5f // indirect
 	github.com/cyphar/filepath-securejoin v0.3.1 // indirect
-	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect

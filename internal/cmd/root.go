@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -21,26 +8,44 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const TitleHeader = "     _       ____                 __  __    \n" +
+const iofogctlTitleHeader = "     _       ____                 __  __    \n" +
 	"    (_)___  / __/___  ____  _____/ /_/ / 	 \n" +
 	"   / / __ \\/ /_/ __ \\/ __ `/ ___/ __/ /   \n" +
 	"  / / /_/ / __/ /_/ / /_/ / /__/ /_/ /   	 \n" +
 	" /_/\\____/_/  \\____/\\__, /\\___/\\__/_/  \n" +
 	"                   /____/                   \n"
 
-const TitleMessage = "iofogctl is the CLI for ioFog. Think of it as a mix between terraform and kubectl.\n" +
+const iofogctlTitleMessage = "iofogctl is the CLI for ioFog. Think of it as a mix between terraform and kubectl.\n" +
 	"\n" +
 	"Use `iofogctl version` to display the current version.\n\n"
 
+const potctlTitleHeader = "\n" +
+	"██████╗  ██████╗ ████████╗ ██████╗████████╗██╗     \n" +
+	"██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝╚══██╔══╝██║     \n" +
+	"██████╔╝██║   ██║   ██║   ██║        ██║   ██║     \n" +
+	"██╔═══╝ ██║   ██║   ██║   ██║        ██║   ██║     \n" +
+	"██║     ╚██████╔╝   ██║   ╚██████╗   ██║   ███████╗\n" +
+	"╚═╝      ╚═════╝    ╚═╝    ╚═════╝   ╚═╝   ╚══════╝\n"
+
+const potctlTitleMessage = "potctl is the CLI for Datasance PoT. Think of it as a mix between terraform and kubectl.\n" +
+	"\n" +
+	"Use `potctl version` to display the current version.\n\n"
+
 func printHeader() {
-	util.PrintInfo(TitleHeader)
-	util.PrintInfo("\n")
-	util.PrintInfo(TitleMessage)
+	if util.GetCliBinaryName() == "potctl" {
+		util.PrintInfo(potctlTitleHeader)
+		util.PrintInfo("\n")
+		util.PrintInfo(potctlTitleMessage)
+	} else {
+		util.PrintInfo(iofogctlTitleHeader)
+		util.PrintInfo("\n")
+		util.PrintInfo(iofogctlTitleMessage)
+	}
 }
 
 func NewRootCommand() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use: "iofogctl",
+		Use: util.GetCliBinaryName(),
 		//Short: "ioFog Unified Command Line Interface",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			printHeader()
@@ -58,7 +63,7 @@ func NewRootCommand() *cobra.Command {
 	cobra.OnInitialize(initialize)
 
 	// Global flags
-	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of iofogctl")
+	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Toggle for displaying verbose output of "+util.GetCliBinaryName())
 	cmd.PersistentFlags().BoolVar(&debug, "debug", false, "Toggle for displaying verbose output of API clients (HTTP and SSH)")
 	cmd.PersistentFlags().StringP("namespace", "n", config.GetDefaultNamespaceName(), "Namespace to execute respective command within")
 
