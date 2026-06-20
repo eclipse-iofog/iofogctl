@@ -43,7 +43,7 @@ func Execute(namespace, name, newName string) error {
 	}
 
 	file := apps.IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: util.GetCliApiVersion(),
 		Kind:       apps.MicroserviceKind,
 		Metadata: apps.HeaderMetadata{
 			Name: strings.Join([]string{msvc.Application, msvc.Name}, "/"),

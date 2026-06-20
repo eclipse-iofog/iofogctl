@@ -22,8 +22,8 @@ var (
 )
 
 var (
-	apiVersionGroup  = "iofog.org"
-	LatestAPIVersion = "iofog.org/v3"
+	apiVersionGroup  string
+	LatestAPIVersion string
 )
 
 const (
