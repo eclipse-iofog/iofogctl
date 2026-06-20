@@ -1,234 +1,143 @@
+# golangci-lint v2 — Go 1.26.4, module github.com/eclipse-iofog/iofogctl
+#
+# Layers:
+#   1. edgelet/.golangci.yaml parity (govet, revive, staticcheck, errcheck, misspell, errorlint)
+#   2. iofogctl addons: depguard import allowlist + golang.org/x/* + gopkg.in/yaml.v2
+#   3. Legacy monolith exemptions (revive rules + ST1003) — re-enable incrementally
 
-linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
-  enable:
-#    - asasalint
-    - asciicheck
-#    - bidichk
-    #    - bodyclose
-#    - contextcheck
-    #    - cyclop
-#    - decorder
-    - depguard
-    - dogsled
-#    - durationcheck
-    #    - errcheck
-    #    - errchkjson
-#    - errname
-#    - execinquery
-#    - exportloopref
-    #    - forbidigo
-    #    - forcetypeassert
-    - funlen
-    #    - revive
-    - typecheck
-    #    - dupl
-    #    - dupword
-    #    - errorlint
-    #    - exhaustruct
-    #    - gochecknoglobals
-    #    - gochecknoinits
-    #    - gocognit
-    - goconst
-    #    - gocritic # probably should re-enable this
-    - gocyclo
-    #    - godot
-    #    - godox # disabling because we have WAY too many TODOs etc.
-    #    - goerr113 # TODO: reenable
-    #    - gofmt
-    #    - gofumpt # not using this
-    - goheader
-#    - goimports
-#    - gomnd
-#    - gomoddirectives
-#    - gomodguard
-#    - goprintffuncname
-#    - gosec
-#    - gosimple
-#    - govet
-#    - grouper
-#    - ifshort
-#    - importas
-#    - ineffassign
-#    - interfacebloat
-#    - interfacer
-#    - ireturn
-#    - lll
-#    - loggercheck
-#    - maintidx
-#    - makezero
-#    - maligned
-#    - misspell
-#    - nakedret
-#    - nestif
-#    - nilerr
-#    - nilnil
-#    - nlreturn
-#    - noctx
-#    - nolintlint
-#    - nonamedreturns
-#    - nosnakecase
-#    - nosprintfhostport
-#    - paralleltest
-#    - prealloc
-#    - predeclared
-#    - promlinter
-#    - reassign
-#    - rowserrcheck
-#    - scopelint
-#    - sqlclosecheck
-#    - staticcheck
-#    - structcheck
-#    - stylecheck
-#    - tagliatelle
-#    - tenv
-#    - testableexamples
-#    - testpackage
-#    - thelper
-#    - tparallel
-#    - unconvert
-#    - unparam
-#    - unused
-#    - usestdlibvars
-#    - varcheck
-#    - varnamelen
-#    - wastedassign
-#    - whitespace
-#    - wrapcheck
-#    - wsl
-
-
-linters-settings:
-  cyclop:
-    max-complexity: 30
-    skip-tests: true
-  depguard:
-    rules:
-      main:
-        list-mode: strict
-        files:
-          - $all
-          - "!$test"
-        allow:
-          - $gostd
-          - github.com/eclipse-iofog/iofogctl
-          - github.com/eclipse-iofog/iofog-go-sdk/v3
-          - github.com/eclipse-iofog/iofog-operator
-          - github.com/spf13/cobra
-          - github.com/mitchellh/go-homedir
-          - github.com/pkg
-          - github.com/twmb/algoimpl
-          - github.com/containers/image
-          - github.com/opencontainers/go-digest
-          - github.com/gorilla/websocket
-          - github.com/vmihailenco/msgpack
-          - github.com/docker
-          - k8s.io
-          - sigs.k8s.io/controller-runtime
-          - github.com/briandowns/spinner
-  dupl:
-    threshold: 100
-  funlen:
-    lines: 250
-    statements: 100
-  goconst:
-    min-len: 2
-    min-occurrences: 5
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
-  gocognit:
-    # minimal code complexity to report, 30 by default (but we recommend 10-20)
-    min-complexity: 30
-  gocyclo:
-    min-complexity: 30
-  godox:
-    # Report any comments starting with keywords, this is useful for TODO or FIXME comments that
-    # might be left in the code accidentally and should be resolved before merging.
-    # Default: ["TODO", "BUG", "FIXME"]
-    keywords:
-      - TODO
-      - BUG
-      - FIXME
-  gofmt:
-    # Simplify code: gofmt with `-s` option.
-    # Default: true
-    simplify: true
-    # Apply the rewrite rules to the source before reformatting.
-    # https://pkg.go.dev/cmd/gofmt
-    # Default: []
-    rewrite-rules:
-      - pattern: 'interface{}'
-        replacement: 'any'
-      - pattern: 'a[b:len(a)]'
-        replacement: 'a[b:]'
-  goimports:
-  #    local-prefixes: github.com/golangci/golangci-lint
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
-  govet:
-    check-shadowing: false
-    settings:
-      printf:
-        funcs:
-  lll:
-    line-length: 180
-  maligned:
-    suggest-new: true
-  misspell:
-    locale: US
-  nestif:
-    min-complexity: 10
-
-  varnamelen:
-    # The longest distance, in source lines, that is being considered a "small scope".
-    # Variables used in at most this many lines will be ignored.
-    # Default: 5
-    max-distance: 50
-    # The minimum length of a variable's name that is considered "long".
-    # Variable names that are at least this long will be ignored.
-    # Default: 3
-    min-name-length: 2
+version: "2"
 
 issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-        - lll
-        - maligned
-        - gocyclo
-        - dupl
-        - funlen
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - ^\.cursor/
+      - ^vendor/
+
+linters:
+  default: none
+  enable:
+    - govet
+    - revive
+    - staticcheck
+    - errcheck
+    - misspell
+    - errorlint
+    - depguard
+  settings:
+    revive:
+      enable-all-rules: true
+      rules:
+        - {name: add-constant, disabled: true}
+        - {name: argument-limit, disabled: true}
+        - {name: cognitive-complexity, disabled: true}
+        - {name: confusing-naming, disabled: true}
+        - {name: confusing-results, disabled: true}
+        - {name: cyclomatic, disabled: true}
+        - {name: early-return, disabled: true}
+        - {name: empty-block, disabled: true}
+        - {name: enforce-switch-style, disabled: true}
+        - {name: flag-parameter, disabled: true}
+        - {name: function-length, disabled: true}
+        - {name: function-result-limit, disabled: true}
+        - {name: import-shadowing, disabled: true}
+        - {name: line-length-limit, disabled: true}
+        - {name: max-control-nesting, disabled: true}
+        - {name: max-public-structs, disabled: true}
+        - {name: redundant-import-alias, disabled: true}
+        - {name: unsecure-url-scheme, disabled: true}
+        - {name: unused-parameter, disabled: true}
+        - {name: unused-receiver, disabled: true}
+        - {name: use-waitgroup-go, disabled: true}
+        - {name: var-naming, disabled: true}
+        # iofogctl legacy monolith — re-enable in hygiene sprint
+        - {name: bare-return, disabled: true}
+        - {name: package-directory-mismatch, disabled: true}
+        - {name: if-return, disabled: true}
+        - {name: unhandled-error, disabled: true}
+        - {name: use-fmt-print, disabled: true}
+        - {name: deep-exit, disabled: true}
+        - {name: unexported-naming, disabled: true}
+        - {name: use-any, disabled: true}
+        - {name: empty-lines, disabled: true}
+        - {name: comment-spacings, disabled: true}
+        - {name: unnecessary-stmt, disabled: true}
+        - {name: useless-break, disabled: true}
+        - {name: use-slices-sort, disabled: true}
+        - {name: identical-switch-branches, disabled: true}
+        - {name: indent-error-flow, disabled: true}
+        - {name: identical-ifelseif-branches, disabled: true}
+        - {name: use-errors-new, disabled: true}
+        - {name: struct-tag, disabled: true}
+        - {name: get-return, disabled: true}
+        - {name: unchecked-type-assertion, disabled: true}
+        - {name: unnecessary-format, disabled: true}
+        - {name: identical-branches, disabled: true}
+        - {name: datarace, disabled: true}
+        - {name: package-naming, disabled: true}
+        - {name: import-alias-naming, disabled: true}
+        - {name: defer, disabled: true}
+        - {name: var-declaration, disabled: true}
+        - {name: unreachable-code, disabled: true}
+        - {name: redundant-build-tag, disabled: true}
+        - {name: redefines-builtin-id, disabled: true}
+    staticcheck:
+      checks:
+        - all
+        - -SA1019
+        - -ST1003
+    misspell:
+      locale: US
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+    depguard:
+      rules:
+        main:
+          list-mode: strict
+          files:
+            - $all
+            - "!$test"
+          allow:
+            - $gostd
+            - github.com/eclipse-iofog/iofogctl
+            - github.com/eclipse-iofog/iofog-go-sdk/v3
+            - github.com/eclipse-iofog/iofog-operator
+            - github.com/spf13/cobra
+            - github.com/mitchellh/go-homedir
+            - github.com/pkg
+            - github.com/twmb/algoimpl
+            - github.com/containers/image
+            - github.com/opencontainers/go-digest
+            - github.com/gorilla/websocket
+            - github.com/vmihailenco/msgpack
+            - github.com/docker
+            - k8s.io
+            - sigs.k8s.io/controller-runtime
+            - github.com/briandowns/spinner
+            - gopkg.in/yaml.v2
+            - golang.org/x/crypto
+            - golang.org/x/oauth2
+            - golang.org/x/sys
+            - golang.org/x/term
+  exclusions:
+    generated: lax
+    paths:
+      - ^\.cursor/
+      - ^vendor/
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
 
 run:
-  skip-files:
-    # auto-generated
-    - ".*_test.go"
-
-
-
-
-# golangci.com configuration
-# https://github.com/golangci/golangci/wiki/Configuration
-service:
-  golangci-lint-version: 1.64.4 # use the fixed version to not introduce new linters unexpectedly
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"
-
+  timeout: 5m
