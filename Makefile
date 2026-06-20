@@ -60,7 +60,9 @@ LDFLAGS += -X $(PREFIX).controllerVersion=$(CONTROLLER_VERSION)
 LDFLAGS += -X $(PREFIX).edgeletVersion=$(EDGELET_VERSION)
 LDFLAGS += -X $(PREFIX).debuggerTag=latest
 
-REPORTS_DIR ?= reports
+GOLANGCI_LINT_VERSION ?= v2.12.2
+GOVULNCHECK_VERSION ?= v1.1.4
+GOSEC_SCOPE ?= ./cmd/... ./internal/... ./pkg/...
 TEST_RESULTS ?= TEST-iofogctl.txt
 TEST_REPORT ?= TEST-iofogctl.xml
 
@@ -104,7 +106,7 @@ golangci-lint: ## Install golangci
 ifeq (, $(shell which golangci-lint))
 	@{ \
 	set -e ;\
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.4 ;\
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) ;\
 	}
 GOLANGCI_LINT=$(GOBIN)/golangci-lint
 else
@@ -114,6 +116,37 @@ endif
 .PHONY: fmt
 fmt: ## Format the source
 	@gofmt -s -w .
+
+.PHONY: test-unit
+test-unit: ## Run unit tests (short mode)
+	go test ./internal/... ./pkg/... -short -count=1 -tags "$(GOTAGS)" -ldflags "$(LDFLAGS)"
+
+.PHONY: smoke
+smoke: build ## Smoke test: version and help
+	@$(BUILD_DIR)/$(BINARY_NAME) version
+	@$(BUILD_DIR)/$(BINARY_NAME) --help
+	@$(BUILD_DIR)/$(BINARY_NAME) deploy --help
+
+.PHONY: grep-gates
+grep-gates: ## Fail on hardcoded flavor strings in internal/
+	@chmod +x scripts/ci/grep-gates.sh
+	@scripts/ci/grep-gates.sh
+
+.PHONY: vulncheck
+vulncheck: ## Run govulncheck on module paths
+	@if ! command -v govulncheck >/dev/null 2>&1; then \
+		go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION); \
+	fi
+	@chmod +x scripts/vulncheck.sh
+	@scripts/vulncheck.sh
+	@go mod verify
+
+.PHONY: security-code
+security-code: ## Run gosec static analysis
+	@if ! command -v gosec >/dev/null 2>&1; then \
+		go install github.com/securego/gosec/v2/cmd/gosec@latest; \
+	fi
+	@gosec $(GOSEC_SCOPE)
 
 .PHONY: test
 test: ## Run unit tests
