@@ -1,8 +1,9 @@
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"testing"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 const (
@@ -168,7 +169,7 @@ func TestLocalControlPlane(t *testing.T) {
 	}); err != nil {
 		t.Error(err)
 	}
-	cp.Sanitize()
+	_ = cp.Sanitize()
 
 	if endpoint, err := cp.GetEndpoint(); err != nil || !util.IsLocalHost(endpoint) {
 		t.Errorf("Wrong endpoint: %s", endpoint)

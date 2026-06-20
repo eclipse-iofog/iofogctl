@@ -34,6 +34,15 @@ contributions are always welcome!
 
 Please run `make init` in order to initialise git hooks
 
+## Continuous integration
+
+CI runs on **GitHub Actions** (`.github/workflows/`). Azure Pipelines and the legacy `pipeline/` tree were retired in v3.8 Phase 2.
+
+- **Datasance/potctl:** PR builds both `potctl` and `iofogctl`
+- **eclipse-iofog/iofogctl:** PR builds `iofogctl` only — see `.cursor/cli/docs/eclipse-ci-sync.md`
+
+Local checks: `make lint`, `make test-unit`, `make grep-gates`, `make security-code`, `make vulncheck`
+
 ## Eclipse Contributor Agreement
 
 Before your contribution can be accepted by the project team contributors must

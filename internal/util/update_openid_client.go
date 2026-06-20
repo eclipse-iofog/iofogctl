@@ -50,19 +50,19 @@ func UpdateECNViewerClientRootURL(auth resource.Auth, newRootURL string) error {
 	ctx := context.Background()
 	token, err := config.Token(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to obtain access token: %v", err)
+		return fmt.Errorf("failed to obtain access token: %w", err)
 	}
 
 	// Get the client ID (internal Keycloak ID) for the viewer client
 	clientID, err := getKeycloakClientID(auth, auth.ViewerClient, token.AccessToken)
 	if err != nil {
-		return fmt.Errorf("failed to get client ID: %v", err)
+		return fmt.Errorf("failed to get client ID: %w", err)
 	}
 
 	// Update the root URL directly
 	err = updateClientRootURL(auth, clientID, newRootURL, token.AccessToken)
 	if err != nil {
-		return fmt.Errorf("failed to update client root URL: %v", err)
+		return fmt.Errorf("failed to update client root URL: %w", err)
 	}
 
 	return nil
@@ -76,7 +76,7 @@ func getKeycloakClientID(auth resource.Auth, clientID, adminToken string) (strin
 	// Create request
 	req, err := http.NewRequest("GET", adminURL, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create get client request: %v", err)
+		return "", fmt.Errorf("failed to create get client request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+adminToken)
@@ -86,7 +86,7 @@ func getKeycloakClientID(auth resource.Auth, clientID, adminToken string) (strin
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to execute get client request: %v", err)
+		return "", fmt.Errorf("failed to execute get client request: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -99,7 +99,7 @@ func getKeycloakClientID(auth resource.Auth, clientID, adminToken string) (strin
 	// Parse response to find the specific client
 	var clients []map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&clients); err != nil {
-		return "", fmt.Errorf("failed to decode clients response: %v", err)
+		return "", fmt.Errorf("failed to decode clients response: %w", err)
 	}
 
 	// Find the client with matching clientID
@@ -127,13 +127,13 @@ func updateClientRootURL(auth resource.Auth, clientID, newRootURL, adminToken st
 	// Marshal to JSON
 	payloadJSON, err := json.Marshal(updatePayload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal update payload: %v", err)
+		return fmt.Errorf("failed to marshal update payload: %w", err)
 	}
 
 	// Create request
 	req, err := http.NewRequest("PUT", adminURL, bytes.NewBuffer(payloadJSON))
 	if err != nil {
-		return fmt.Errorf("failed to create update client request: %v", err)
+		return fmt.Errorf("failed to create update client request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+adminToken)
@@ -144,7 +144,7 @@ func updateClientRootURL(auth resource.Auth, clientID, newRootURL, adminToken st
 	httpClient := &http.Client{Timeout: 30 * time.Second}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to execute update client request: %v", err)
+		return fmt.Errorf("failed to execute update client request: %w", err)
 	}
 	defer resp.Body.Close()
 

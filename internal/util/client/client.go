@@ -202,14 +202,14 @@ func newControllerClient(namespace string) (*client.Client, error) {
 		user.AccessToken = cachedClient.GetAccessToken()
 		user.RefreshToken = cachedClient.GetRefreshToken()
 		// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
-		config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+		_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
 		// Use SessionLogin to attempt to refresh the session
 		util.SpinHandlePrompt()
 		refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, refreshToken, user.Email, user.GetRawPassword())
 		if err != nil {
 			fmt.Println("Error: Failed to refresh session:", err)
-			return nil, fmt.Errorf("failed to refresh session: %v", err)
+			return nil, fmt.Errorf("failed to refresh session: %w", err)
 		}
 		util.SpinHandlePromptComplete()
 		// Update the cached client with the refreshed session
@@ -248,11 +248,11 @@ func newControllerClient(namespace string) (*client.Client, error) {
 	user.AccessToken = newClient.GetAccessToken()
 	user.RefreshToken = newClient.GetRefreshToken()
 	// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
-	config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+	_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
 	// Flush the config and handle errors
 	if err := config.Flush(); err != nil {
-		return nil, fmt.Errorf("failed to flush config: %v", err)
+		return nil, fmt.Errorf("failed to flush config: %w", err)
 	}
 
 	return newClient, nil
@@ -277,7 +277,7 @@ func getBackendAgents(namespace string, ioClient *client.Client) ([]client.Agent
 	// Refresh authentication and retry
 	refreshedClient, refreshErr := refreshClientAuthentication(namespace)
 	if refreshErr != nil {
-		return nil, fmt.Errorf("authentication error occurred and failed to refresh: %v (refresh error: %v)", err, refreshErr)
+		return nil, fmt.Errorf("authentication error occurred and failed to refresh: %w (refresh error: %w)", err, refreshErr)
 	}
 
 	// Retry the operation with refreshed client
@@ -375,21 +375,21 @@ func refreshClientAuthentication(namespace string) (*client.Client, error) {
 	refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
 	if err != nil {
 		util.SpinHandlePromptComplete()
-		return nil, fmt.Errorf("failed to refresh authentication: %v", err)
+		return nil, fmt.Errorf("failed to refresh authentication: %w", err)
 	}
 	util.SpinHandlePromptComplete()
 
 	// Update tokens in config
 	user.AccessToken = refreshedClient.GetAccessToken()
 	user.RefreshToken = refreshedClient.GetRefreshToken()
-	config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+	_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
 	// Update cached client
 	pkg.clientCache[namespace] = refreshedClient
 
 	// Flush config
 	if err := config.Flush(); err != nil {
-		return nil, fmt.Errorf("failed to flush config: %v", err)
+		return nil, fmt.Errorf("failed to flush config: %w", err)
 	}
 
 	return refreshedClient, nil
@@ -417,7 +417,7 @@ func ExecuteWithAuthRetry(namespace string, operation func(*client.Client) error
 	// Refresh authentication and retry
 	refreshedClient, refreshErr := refreshClientAuthentication(namespace)
 	if refreshErr != nil {
-		return fmt.Errorf("authentication error occurred and failed to refresh: %v (refresh error: %v)", err, refreshErr)
+		return fmt.Errorf("authentication error occurred and failed to refresh: %w (refresh error: %w)", err, refreshErr)
 	}
 
 	// Retry the operation with refreshed client

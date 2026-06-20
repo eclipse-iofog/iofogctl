@@ -41,8 +41,7 @@ func (exe *agentExecutor) Execute() error {
 
 	agent, err := clt.GetAgentByName(exe.name)
 	if err != nil {
-		msg := "%s\nFailed to get Agent by name: %s"
-		return fmt.Errorf(msg, err.Error())
+		return fmt.Errorf("failed to get Agent by name: %w", err)
 	}
 
 	appName := fmt.Sprintf("system-%s", agent.Name)

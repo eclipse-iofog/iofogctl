@@ -326,7 +326,7 @@ func (ctrl *Controller) CopyScript(srcDir, filename, destDir string) (err error)
 		return err
 	}
 
-	// Copy to /tmp for backwards compatability
+	// Copy to /tmp for backwards compatibility
 	reader := strings.NewReader(staticFile)
 	if err := ctrl.ssh.CopyTo(reader, destDir, filename, "0775", int64(len(staticFile))); err != nil {
 		return err

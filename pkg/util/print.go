@@ -19,7 +19,7 @@ var progressPrintMu sync.Mutex
 func PrintInfo(message string) {
 	wasRunning := SpinPause()
 	message = FirstToUpper(message)
-	fmt.Printf(CSkyblue + message + NoFormat + "\n")
+	fmt.Print(CSkyblue + message + NoFormat + "\n")
 	if wasRunning {
 		SpinUnpause()
 	}
@@ -29,7 +29,7 @@ func PrintInfo(message string) {
 func PrintNotify(message string) {
 	wasRunning := SpinPause()
 	message = FirstToUpper(message)
-	fmt.Fprintf(os.Stderr, CSkyblue+"! "+message+NoFormat+"\n")
+	fmt.Fprintf(os.Stderr, "%s", CSkyblue+"! "+message+NoFormat+"\n")
 	if wasRunning {
 		SpinUnpause()
 	}
@@ -56,12 +56,12 @@ func PrintProgress(label string, percent int, done bool) {
 func PrintSuccess(message string) {
 	SpinStop()
 	message = FirstToUpper(message)
-	fmt.Printf(Green + "✔ " + message + NoFormat + "\n")
+	fmt.Print(Green + "✔ " + message + NoFormat + "\n")
 }
 
 // Print 'message' with red color text
 func PrintError(message string) {
 	SpinStop()
 	message = FirstToUpper(message)
-	fmt.Fprintf(os.Stderr, Red+"✘ "+message+NoFormat+"\n")
+	fmt.Fprintf(os.Stderr, "%s", Red+"✘ "+message+NoFormat+"\n")
 }

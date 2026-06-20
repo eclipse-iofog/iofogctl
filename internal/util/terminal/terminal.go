@@ -137,7 +137,7 @@ func (t *Terminal) handleInput(data []byte) bool {
 
 	// Send everything as stdin to remote terminal
 	msg := ws.NewMessage(ws.MessageTypeStdin, data, t.wsClient.GetMicroserviceUUID(), t.wsClient.GetExecID())
-	t.wsClient.SendMessage(msg)
+	_ = t.wsClient.SendMessage(msg)
 	return false
 }
 
@@ -161,7 +161,7 @@ func (t *Terminal) redrawInputLine() {
 		os.Stdout.Write([]byte(t.prompt)) // Move past prompt
 	}
 	if t.cursorPos > 0 {
-		os.Stdout.Write([]byte(fmt.Sprintf("\x1b[%dC", t.cursorPos))) // Move to cursor position
+		fmt.Fprintf(os.Stdout, "\x1b[%dC", t.cursorPos) // Move to cursor position
 	}
 	os.Stdout.Sync()
 }
@@ -231,7 +231,7 @@ func (t *Terminal) cleanup() {
 			t.wsClient.Close()
 		}
 		if t.oldState != nil {
-			term.Restore(int(os.Stdin.Fd()), t.oldState)
+			_ = term.Restore(int(os.Stdin.Fd()), t.oldState)
 			t.oldState = nil
 		}
 	})
@@ -241,7 +241,7 @@ func (t *Terminal) Start() error {
 	var err error
 	t.oldState, err = term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		return fmt.Errorf("failed to set terminal to raw mode: %v", err)
+		return fmt.Errorf("failed to set terminal to raw mode: %w", err)
 	}
 	defer t.cleanup()
 

@@ -29,6 +29,7 @@ func newViewCommand() *cobra.Command {
 				os.Exit(1)
 			}
 			cp, err := ns.GetControlPlane()
+			util.Check(err)
 			cpEndpoint, err := cp.GetEndpoint()
 			if err != nil {
 				util.PrintError("Failed to get Control Plane endpoint: " + err.Error())

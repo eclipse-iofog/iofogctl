@@ -799,10 +799,8 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	if err != nil {
 		return "", err
 	}
-	isViewerDns := false
-	if k8s.isViewerDns != nil && *k8s.isViewerDns {
-		isViewerDns = true
-	}
+	isViewerDns := k8s.isViewerDns != nil && *k8s.isViewerDns
+
 	formattedURL, err := k8s.formatEndpoint(ip, port, isViewerDns)
 	if err != nil {
 		return "", err
@@ -810,10 +808,7 @@ func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	endpoint = formattedURL.String()
 
 	// Check if HTTPS is enabled
-	useHTTPS := false
-	if k8s.httpsEnabled != nil && *k8s.httpsEnabled {
-		useHTTPS = true
-	}
+	useHTTPS := k8s.httpsEnabled != nil && *k8s.httpsEnabled
 
 	return util.GetControllerEndpoint(endpoint, useHTTPS)
 }

@@ -1,6 +1,8 @@
 package deleteapplication
 
 import (
+	"errors"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -45,7 +47,8 @@ func (exe *Executor) Execute() (err error) {
 
 	err = exe.client.DeleteApplication(exe.name)
 	// If notfound error, try legacy
-	if _, ok := err.(*client.NotFoundError); ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		return exe.deleteLegacy()
 	}
 	return err

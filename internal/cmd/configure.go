@@ -55,7 +55,7 @@ iofogctl configure controlplane --kube FILE`,
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully configured %s %s", opt.ResourceType, opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Successfully configured %s %s", opt.ResourceType, opt.Name))
 		},
 	}
 	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host")

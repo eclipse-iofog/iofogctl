@@ -219,7 +219,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 			return fmt.Errorf("failed to resolve platform: %w", err)
 		}
 
-		engine, err := deployairgap.ResolveContainerEngine(exe.agent.Config.AgentConfiguration.ContainerEngine)
+		engine, err := deployairgap.ResolveContainerEngine(exe.agent.Config.ContainerEngine)
 		if err != nil {
 			return fmt.Errorf("failed to resolve container engine: %w", err)
 		}

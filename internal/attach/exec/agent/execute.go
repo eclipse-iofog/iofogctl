@@ -44,8 +44,7 @@ func (exe *executor) Execute() error {
 
 	agent, err := clt.GetAgentByName(exe.name)
 	if err != nil {
-		msg := "%s\nFailed to get Agent by name: %s"
-		return fmt.Errorf(msg, err.Error())
+		return fmt.Errorf("failed to get Agent by name: %w", err)
 	}
 
 	// Attach Exec Session to Microservice
@@ -55,8 +54,7 @@ func (exe *executor) Execute() error {
 	}
 	err = clt.AttachExecToAgent(&req)
 	if err != nil {
-		msg := "%s\nFailed to attach Exec Session to Agent: %s"
-		return fmt.Errorf(msg, err.Error())
+		return fmt.Errorf("failed to attach Exec Session to Agent: %w", err)
 	}
 
 	return nil

@@ -39,32 +39,32 @@ const (
 
 // applySystemAgentNatsDefaults sets NATS config defaults for system agents when not provided (natsMode=server, ports, JsStorageSize, JsMemoryStoreSize).
 func applySystemAgentNatsDefaults(cfg *rsc.AgentConfiguration) {
-	if cfg.NatsConfig.NatsMode == nil {
-		cfg.NatsConfig.NatsMode = iutil.MakeStrPtr(iofog.NatsModeServer)
+	if cfg.NatsMode == nil {
+		cfg.NatsMode = iutil.MakeStrPtr(iofog.NatsModeServer)
 	} else {
 		// Force server mode for system agents (like router interior)
-		cfg.NatsConfig.NatsMode = iutil.MakeStrPtr(iofog.NatsModeServer)
+		cfg.NatsMode = iutil.MakeStrPtr(iofog.NatsModeServer)
 	}
-	if cfg.NatsConfig.NatsServerPort == nil {
-		cfg.NatsConfig.NatsServerPort = iutil.MakeIntPtr(defaultNatsServerPort)
+	if cfg.NatsServerPort == nil {
+		cfg.NatsServerPort = iutil.MakeIntPtr(defaultNatsServerPort)
 	}
-	if cfg.NatsConfig.NatsClusterPort == nil {
-		cfg.NatsConfig.NatsClusterPort = iutil.MakeIntPtr(defaultNatsClusterPort)
+	if cfg.NatsClusterPort == nil {
+		cfg.NatsClusterPort = iutil.MakeIntPtr(defaultNatsClusterPort)
 	}
-	if cfg.NatsConfig.NatsLeafPort == nil {
-		cfg.NatsConfig.NatsLeafPort = iutil.MakeIntPtr(defaultNatsLeafPort)
+	if cfg.NatsLeafPort == nil {
+		cfg.NatsLeafPort = iutil.MakeIntPtr(defaultNatsLeafPort)
 	}
-	if cfg.NatsConfig.NatsMqttPort == nil {
+	if cfg.NatsMqttPort == nil {
 		cfg.NatsMqttPort = iutil.MakeIntPtr(defaultNatsMqttPort)
 	}
-	if cfg.NatsConfig.NatsHttpPort == nil {
-		cfg.NatsConfig.NatsHttpPort = iutil.MakeIntPtr(defaultNatsHttpPort)
+	if cfg.NatsHttpPort == nil {
+		cfg.NatsHttpPort = iutil.MakeIntPtr(defaultNatsHttpPort)
 	}
-	if cfg.NatsConfig.JsStorageSize == nil {
-		cfg.NatsConfig.JsStorageSize = iutil.MakeStrPtr(defaultJsStorageSize)
+	if cfg.JsStorageSize == nil {
+		cfg.JsStorageSize = iutil.MakeStrPtr(defaultJsStorageSize)
 	}
-	if cfg.NatsConfig.JsMemoryStoreSize == nil {
-		cfg.NatsConfig.JsMemoryStoreSize = iutil.MakeStrPtr(defaultJsMemoryStoreSize)
+	if cfg.JsMemoryStoreSize == nil {
+		cfg.JsMemoryStoreSize = iutil.MakeStrPtr(defaultJsMemoryStoreSize)
 	}
 }
 
@@ -87,9 +87,9 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 	install.Verbose("Deploying system agent for controller " + ctrl.Name)
 	// If DeploymentType is nil, default to "container"
 	var deploymentType string
-	if systemAgentConfig != nil && systemAgentConfig.AgentConfiguration != nil && systemAgentConfig.AgentConfiguration.AgentConfiguration.DeploymentType != nil {
+	if systemAgentConfig != nil && systemAgentConfig.AgentConfiguration != nil && systemAgentConfig.AgentConfiguration.DeploymentType != nil {
 		// Use DeploymentType from provided configuration
-		deploymentType = *systemAgentConfig.AgentConfiguration.AgentConfiguration.DeploymentType
+		deploymentType = *systemAgentConfig.AgentConfiguration.DeploymentType
 	} else if systemAgentConfig != nil && systemAgentConfig.Package.Container.Image != "" {
 		// If container image is specified, use container
 		deploymentType = deploymentTypeContainer
@@ -110,8 +110,8 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 		// Ensure IsSystem is always true for system agents
 		deployAgentConfig.IsSystem = iutil.MakeBoolPtr(true)
 		// Ensure DeploymentType is set (default to container if nil)
-		if deployAgentConfig.AgentConfiguration.DeploymentType == nil {
-			deployAgentConfig.AgentConfiguration.DeploymentType = iutil.MakeStrPtr(deploymentType)
+		if deployAgentConfig.DeploymentType == nil {
+			deployAgentConfig.DeploymentType = iutil.MakeStrPtr(deploymentType)
 		}
 	} else {
 		// Use defaults with configurable ports (router mode always interior)
@@ -140,27 +140,27 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 	}
 
 	// Ensure router mode is always "interior" for system agents
-	if deployAgentConfig.RouterConfig.RouterMode == nil {
+	if deployAgentConfig.RouterMode == nil {
 		interior := iofog.RouterModeInterior
-		deployAgentConfig.RouterConfig.RouterMode = &interior
-	} else if *deployAgentConfig.RouterConfig.RouterMode != iofog.RouterModeInterior {
+		deployAgentConfig.RouterMode = &interior
+	} else if *deployAgentConfig.RouterMode != iofog.RouterModeInterior {
 		// Force to interior mode
 		interior := iofog.RouterModeInterior
-		deployAgentConfig.RouterConfig.RouterMode = &interior
+		deployAgentConfig.RouterMode = &interior
 	}
 
-	if deployAgentConfig.RouterConfig.EdgeRouterPort == nil {
+	if deployAgentConfig.EdgeRouterPort == nil {
 		edgeRouterPort := 45671
-		deployAgentConfig.RouterConfig.EdgeRouterPort = &edgeRouterPort
+		deployAgentConfig.EdgeRouterPort = &edgeRouterPort
 	}
-	if deployAgentConfig.RouterConfig.InterRouterPort == nil {
+	if deployAgentConfig.InterRouterPort == nil {
 		interRouterPort := 55671
-		deployAgentConfig.RouterConfig.InterRouterPort = &interRouterPort
+		deployAgentConfig.InterRouterPort = &interRouterPort
 	}
 
-	if deployAgentConfig.RouterConfig.MessagingPort == nil {
+	if deployAgentConfig.MessagingPort == nil {
 		messagingPort := 5671
-		deployAgentConfig.RouterConfig.MessagingPort = &messagingPort
+		deployAgentConfig.MessagingPort = &messagingPort
 	}
 
 	// System agents run NATS in server mode (like router interior). Apply default natsConfig when not provided.
@@ -202,9 +202,9 @@ func deployNextSystemAgent(namespace string, ctrl *rsc.RemoteController, systemA
 	install.Verbose("Deploying next-system agent for controller " + ctrl.Name)
 	// If DeploymentType is nil, default to "container"
 	var deploymentType string
-	if systemAgentConfig != nil && systemAgentConfig.AgentConfiguration != nil && systemAgentConfig.AgentConfiguration.AgentConfiguration.DeploymentType != nil {
+	if systemAgentConfig != nil && systemAgentConfig.AgentConfiguration != nil && systemAgentConfig.AgentConfiguration.DeploymentType != nil {
 		// Use DeploymentType from provided configuration
-		deploymentType = *systemAgentConfig.AgentConfiguration.AgentConfiguration.DeploymentType
+		deploymentType = *systemAgentConfig.AgentConfiguration.DeploymentType
 	} else if systemAgentConfig != nil && systemAgentConfig.Package.Container.Image != "" {
 		// If container image is specified, use container
 		deploymentType = deploymentTypeContainer
@@ -225,8 +225,8 @@ func deployNextSystemAgent(namespace string, ctrl *rsc.RemoteController, systemA
 		// Ensure IsSystem is always true for system agents
 		deployAgentConfig.IsSystem = iutil.MakeBoolPtr(true)
 		// Ensure DeploymentType is set (default to container if nil)
-		if deployAgentConfig.AgentConfiguration.DeploymentType == nil {
-			deployAgentConfig.AgentConfiguration.DeploymentType = iutil.MakeStrPtr(deploymentType)
+		if deployAgentConfig.DeploymentType == nil {
+			deployAgentConfig.DeploymentType = iutil.MakeStrPtr(deploymentType)
 		}
 		// Override upstream routers for non-first controllers
 		if deployAgentConfig.UpstreamRouters == nil {
@@ -287,26 +287,26 @@ func deployNextSystemAgent(namespace string, ctrl *rsc.RemoteController, systemA
 	}
 
 	// Ensure router mode is always "interior" for system agents
-	if deployAgentConfig.RouterConfig.RouterMode == nil {
+	if deployAgentConfig.RouterMode == nil {
 		interior := iofog.RouterModeInterior
-		deployAgentConfig.RouterConfig.RouterMode = &interior
-	} else if *deployAgentConfig.RouterConfig.RouterMode != iofog.RouterModeInterior {
+		deployAgentConfig.RouterMode = &interior
+	} else if *deployAgentConfig.RouterMode != iofog.RouterModeInterior {
 		// Force to interior mode
 		interior := iofog.RouterModeInterior
-		deployAgentConfig.RouterConfig.RouterMode = &interior
+		deployAgentConfig.RouterMode = &interior
 	}
-	if deployAgentConfig.RouterConfig.EdgeRouterPort == nil {
+	if deployAgentConfig.EdgeRouterPort == nil {
 		edgeRouterPort := 45671
-		deployAgentConfig.RouterConfig.EdgeRouterPort = &edgeRouterPort
+		deployAgentConfig.EdgeRouterPort = &edgeRouterPort
 	}
-	if deployAgentConfig.RouterConfig.InterRouterPort == nil {
+	if deployAgentConfig.InterRouterPort == nil {
 		interRouterPort := 55671
-		deployAgentConfig.RouterConfig.InterRouterPort = &interRouterPort
+		deployAgentConfig.InterRouterPort = &interRouterPort
 	}
 
-	if deployAgentConfig.RouterConfig.MessagingPort == nil {
+	if deployAgentConfig.MessagingPort == nil {
 		messagingPort := 5671
-		deployAgentConfig.RouterConfig.MessagingPort = &messagingPort
+		deployAgentConfig.MessagingPort = &messagingPort
 	}
 
 	// System agents run NATS in server mode (like router interior). Apply default natsConfig when not provided.
@@ -360,7 +360,7 @@ func prepareViewerURL(endpoint string) (string, error) {
 	if err != nil || URL.Host == "" {
 		URL, err = url.Parse("//" + endpoint)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse endpoint: %v", err)
+			return "", fmt.Errorf("failed to parse endpoint: %w", err)
 		}
 	}
 
@@ -372,7 +372,7 @@ func prepareViewerURL(endpoint string) (string, error) {
 	if strings.Contains(URL.Host, ":") {
 		host, _, err = net.SplitHostPort(URL.Host)
 		if err != nil {
-			return "", fmt.Errorf("failed to split host and port: %v", err)
+			return "", fmt.Errorf("failed to split host and port: %w", err)
 		}
 	} else {
 		host = URL.Host
@@ -405,12 +405,12 @@ func updateViewerClientRootURL(controlPlane *rsc.RemoteControlPlane, endpoint st
 	// Prepare viewer URL
 	viewerURL, err := prepareViewerURL(endpoint)
 	if err != nil {
-		return fmt.Errorf("failed to prepare viewer URL: %v", err)
+		return fmt.Errorf("failed to prepare viewer URL: %w", err)
 	}
 
 	// Update viewer client root URL
 	if err := iutil.UpdateECNViewerClientRootURL(controlPlane.Auth, viewerURL); err != nil {
-		return fmt.Errorf("failed to update viewer client root URL: %v", err)
+		return fmt.Errorf("failed to update viewer client root URL: %w", err)
 	}
 
 	return nil
@@ -435,7 +435,7 @@ func tagControllerImage(ctrl *rsc.RemoteController, image string) (err error) {
 
 	cmds := []string{
 		fmt.Sprintf(`echo "IOFOG_CONTROLLER_IMAGE=%s" | sudo tee -a "/etc/iofog/agent/iofog-agent.env" > /dev/null`, image),
-		fmt.Sprintf("sudo service iofog-agent restart"),
+		"sudo service iofog-agent restart",
 	}
 
 	// Execute commands
@@ -479,11 +479,11 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 		// First controller gets system agent(with default-router), others get next-system agents(with interior mode)
 		if idx == 0 {
 			if err := deploySystemAgent(exe.ns.Name, controller, controller.SystemAgent); err != nil {
-				return fmt.Errorf("failed to deploy system agent for first controller: %v", err)
+				return fmt.Errorf("failed to deploy system agent for first controller: %w", err)
 			}
 		} else {
 			if err := deployNextSystemAgent(exe.ns.Name, controller, controller.SystemAgent); err != nil {
-				return fmt.Errorf("failed to deploy next-system agent for controller %d: %v", idx, err)
+				return fmt.Errorf("failed to deploy next-system agent for controller %d: %w", idx, err)
 			}
 		}
 		var image string
@@ -499,7 +499,7 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 		}
 		// Tag controller image for all controllers
 		if err := tagControllerImage(controller, image); err != nil {
-			return fmt.Errorf("failed to tag controller image for controller %d: %v", idx, err)
+			return fmt.Errorf("failed to tag controller image for controller %d: %w", idx, err)
 		}
 	}
 	return nil
@@ -635,7 +635,7 @@ func validateMultiControllerHTTPS(controlPlane *rsc.RemoteControlPlane) error {
 		// First controller has HTTPS enabled, validate all controllers
 		for idx, controller := range controllers {
 			if err := validateControllerHTTPS(&controller); err != nil {
-				return fmt.Errorf("controller %d (%s): %v", idx, controller.Name, err)
+				return fmt.Errorf("controller %d (%s): %w", idx, controller.Name, err)
 			}
 		}
 	}
@@ -654,7 +654,7 @@ func validateMultiControllerRouterCA(controlPlane *rsc.RemoteControlPlane) error
 	if firstController.SiteCA != nil || firstController.LocalCA != nil {
 		// Validate first controller's CA config
 		if err := validateControllerRouterCA(&firstController); err != nil {
-			return fmt.Errorf("first controller (%s): %v", firstController.Name, err)
+			return fmt.Errorf("first controller (%s): %w", firstController.Name, err)
 		}
 
 		// Check that other controllers don't have CA config
@@ -781,7 +781,7 @@ func (exe remoteControlPlaneExecutor) transferControllerImages() error {
 		if err != nil {
 			return fmt.Errorf("controller %s: %w", controller.Name, err)
 		}
-		engine, err := deployairgap.ResolveContainerEngine(controller.SystemAgent.AgentConfiguration.AgentConfiguration.ContainerEngine)
+		engine, err := deployairgap.ResolveContainerEngine(controller.SystemAgent.AgentConfiguration.ContainerEngine)
 		if err != nil {
 			return fmt.Errorf("controller %s: %w", controller.Name, err)
 		}
@@ -829,7 +829,7 @@ func (exe remoteControlPlaneExecutor) transferSystemAgentImages() error {
 			return fmt.Errorf("system agent for controller %s: %w", controller.Name, err)
 		}
 
-		engine, err := deployairgap.ResolveContainerEngine(controller.SystemAgent.AgentConfiguration.AgentConfiguration.ContainerEngine)
+		engine, err := deployairgap.ResolveContainerEngine(controller.SystemAgent.AgentConfiguration.ContainerEngine)
 		if err != nil {
 			return fmt.Errorf("system agent for controller %s: %w", controller.Name, err)
 		}

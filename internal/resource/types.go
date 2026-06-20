@@ -478,6 +478,6 @@ type CACreateRequest struct {
 	Name       string `json:"name" yaml:"name"`
 	Subject    string `json:"subject,omitempty" yaml:"subject,omitempty"`
 	Expiration int    `json:"expiration,omitempty" yaml:"expiration,omitempty"`
-	Type       string `json:"type" yaml:"type" yaml:"type"`
+	Type       string `json:"type" yaml:"type"`
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
 }

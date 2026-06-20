@@ -151,7 +151,7 @@ type LocalSystemImages struct {
 	NatsEnabled *bool // nil = default enabled
 }
 
-// NewLocalControllerConfig generats a static controller config
+// NewLocalControllerConfig generates a static controller config
 func NewLocalControllerConfig(image string, credentials Credentials, auth Auth, db Database, events Events, systemImages *LocalSystemImages) *LocalContainerConfig {
 	if image == "" {
 		image = util.GetControllerImage()
@@ -315,7 +315,7 @@ func (lc *LocalContainer) CleanContainer(name string) error {
 		return err
 	}
 	// Stop container if running (ignore error if there is no running container)
-	if err := lc.client.ContainerStop(ctx, container.ID, dockerContainer.StopOptions{"SIGTERM", nil}); err != nil {
+	if err := lc.client.ContainerStop(ctx, container.ID, dockerContainer.StopOptions{Signal: "SIGTERM", Timeout: nil}); err != nil {
 		return err
 	}
 
@@ -327,7 +327,7 @@ func (lc *LocalContainer) CleanContainerByID(id string) error {
 	ctx := context.Background()
 
 	// Stop container if running (ignore error if there is no running container)
-	if err := lc.client.ContainerStop(ctx, id, dockerContainer.StopOptions{"SIGTERM", nil}); err != nil {
+	if err := lc.client.ContainerStop(ctx, id, dockerContainer.StopOptions{Signal: "SIGTERM", Timeout: nil}); err != nil {
 		return err
 	}
 

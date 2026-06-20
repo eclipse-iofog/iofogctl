@@ -215,7 +215,7 @@ func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysC
 	if err != nil {
 		return "", "", 0, err
 	}
-	defer policyCtx.Destroy()
+	defer func() { _ = policyCtx.Destroy() }()
 
 	util.PrintInfo(label)
 	manifestBytes, err := copy.Image(ctx, policyCtx, destRef, srcRef, &copy.Options{

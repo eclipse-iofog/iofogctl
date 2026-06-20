@@ -41,7 +41,7 @@ func (m *Message) Encode() ([]byte, error) {
 func Decode(data []byte) (*Message, error) {
 	var msg Message
 	if err := msgpack.Unmarshal(data, &msg); err != nil {
-		return nil, fmt.Errorf("failed to decode MessagePack data: %v", err)
+		return nil, fmt.Errorf("failed to decode MessagePack data: %w", err)
 	}
 	return &msg, nil
 }

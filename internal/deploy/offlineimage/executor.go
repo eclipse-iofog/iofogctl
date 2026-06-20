@@ -155,7 +155,7 @@ func (exe *executor) buildAgentPlans(ns *rsc.Namespace) ([]agentPlan, error) {
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}
-		engine, err := resolveContainerEngine(cfg.AgentConfiguration.ContainerEngine)
+		engine, err := resolveContainerEngine(cfg.ContainerEngine)
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}

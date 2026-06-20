@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -51,7 +52,8 @@ func (c *Client) Connect(url string, headers http.Header) error {
 	if err != nil {
 		// Check if this is a close frame error
 		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
-			if closeErr, ok := err.(*websocket.CloseError); ok {
+			closeErr := &websocket.CloseError{}
+			if errors.As(err, &closeErr) {
 				c.errMutex.Lock()
 				c.err = util.NewError(fmt.Sprintf("connection closed by server (code: %d, reason: %s)", closeErr.Code, closeErr.Text))
 				c.errMutex.Unlock()
@@ -104,7 +106,7 @@ func (c *Client) setupPingPong() {
 	})
 
 	// Set initial read deadline
-	c.conn.SetReadDeadline(time.Now().Add(DefaultPingInterval * 2 * time.Millisecond))
+	_ = c.conn.SetReadDeadline(time.Now().Add(DefaultPingInterval * 2 * time.Millisecond))
 }
 
 // startPingLoop starts the periodic ping sending loop
@@ -210,7 +212,8 @@ func (c *Client) ReadMessage() (*Message, error) {
 		// This is an actual error - format and store it
 		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 			// Extract close code and reason if available
-			if closeErr, ok := err.(*websocket.CloseError); ok {
+			closeErr := &websocket.CloseError{}
+			if errors.As(err, &closeErr) {
 				err = util.NewError(fmt.Sprintf("connection closed by server (code: %d, reason: %s)", closeErr.Code, closeErr.Text))
 			}
 		} else {
@@ -247,7 +250,7 @@ func (c *Client) ReadMessage() (*Message, error) {
 	c.pongMutex.Unlock()
 
 	// Extend read deadline
-	c.conn.SetReadDeadline(time.Now().Add(DefaultPingInterval * 2 * time.Millisecond))
+	_ = c.conn.SetReadDeadline(time.Now().Add(DefaultPingInterval * 2 * time.Millisecond))
 
 	return msg, nil
 }
@@ -317,7 +320,8 @@ func (c *Client) IsNormalClosure(err error) bool {
 	}
 
 	// Check for "use of closed network connection" during intentional close
-	if closeErr, ok := err.(*websocket.CloseError); ok {
+	closeErr := &websocket.CloseError{}
+	if errors.As(err, &closeErr) {
 		return closeErr.Code == websocket.CloseNormalClosure ||
 			closeErr.Code == websocket.CloseGoingAway ||
 			closeErr.Code == websocket.CloseNoStatusReceived

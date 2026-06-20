@@ -186,10 +186,8 @@ func (exe *remoteExecutor) Execute() (err error) {
 		return
 	}
 	// Update controller
-	useHTTPS := false
-	if exe.controller.Https != nil && exe.controller.Https.Enabled != nil && *exe.controller.Https.Enabled {
-		useHTTPS = true
-	}
+	useHTTPS := exe.controller.Https != nil && exe.controller.Https.Enabled != nil && *exe.controller.Https.Enabled
+
 	exe.controller.Endpoint, err = util.GetControllerEndpoint(exe.controller.Host, useHTTPS)
 	if err != nil {
 		return err

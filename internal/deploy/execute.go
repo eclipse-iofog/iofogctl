@@ -218,8 +218,8 @@ func Execute(opt *Options) (err error) {
 		// Determine the host value to send to the Controller (AgentConfiguration.Host).
 		// Prefer the host explicitly set in the agent configuration; otherwise, fall back to the spec host.
 		apiHost := host
-		if deployConfig != nil && deployConfig.AgentConfiguration.Host != nil && *deployConfig.AgentConfiguration.Host != "" {
-			apiHost = *deployConfig.AgentConfiguration.Host
+		if deployConfig != nil && deployConfig.Host != nil && *deployConfig.Host != "" {
+			apiHost = *deployConfig.Host
 		}
 
 		for _, configGenericExecutor := range executorsMap[config.AgentConfigKind] {

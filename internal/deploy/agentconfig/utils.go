@@ -23,15 +23,15 @@ const (
 )
 
 func getRouterMode(config *rsc.AgentConfiguration) RouterMode {
-	if config.RouterConfig.RouterMode != nil {
-		return RouterMode(*config.RouterConfig.RouterMode)
+	if config.RouterMode != nil {
+		return RouterMode(*config.RouterMode)
 	}
 	return EdgeRouter
 }
 
 func getNatsMode(config *rsc.AgentConfiguration) NatsMode {
-	if config.NatsConfig.NatsMode != nil {
-		return NatsMode(*config.NatsConfig.NatsMode)
+	if config.NatsMode != nil {
+		return NatsMode(*config.NatsMode)
 	}
 	return NatsLeaf
 }
@@ -52,11 +52,11 @@ func Validate(config *rsc.AgentConfiguration) error {
 		msg := "agent config %s validation failed. Cannot have a upstreamRouters if routerMode is none"
 		return util.NewInputError(fmt.Sprintf(msg, config.Name))
 	}
-	if routerMode != InteriorRouter && (config.RouterConfig.EdgeRouterPort != nil || config.RouterConfig.InterRouterPort != nil) {
+	if routerMode != InteriorRouter && (config.EdgeRouterPort != nil || config.InterRouterPort != nil) {
 		msg := "agent config %s validation failed. Cannot have an edgeRouterPort or interRouterPort if routerMode is different from interior. Current router mode is: %s"
 		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
 	}
-	if natsMode != NatsServer && (config.NatsConfig.NatsClusterPort != nil) {
+	if natsMode != NatsServer && (config.NatsClusterPort != nil) {
 		msg := "agent config %s validation failed. Cannot have a natsClusterPort if natsMode is different from server"
 		return util.NewInputError(fmt.Sprintf(msg, config.Name))
 	}
@@ -149,12 +149,12 @@ func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]s
 	createAgentRequest := &client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
 	}
-	if createAgentRequest.AgentUpdateRequest.Name == "" {
-		createAgentRequest.AgentUpdateRequest.Name = name
+	if createAgentRequest.Name == "" {
+		createAgentRequest.Name = name
 	}
-	if createAgentRequest.AgentUpdateRequest.FogType == nil {
+	if createAgentRequest.FogType == nil {
 		fogType := int64(0)
-		createAgentRequest.AgentUpdateRequest.FogType = &fogType
+		createAgentRequest.FogType = &fogType
 	}
 	agent, err := clt.CreateAgent(createAgentRequest)
 	if err != nil {

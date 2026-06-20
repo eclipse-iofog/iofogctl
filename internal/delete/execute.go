@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -142,7 +143,8 @@ func Execute(opt *Options) error {
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); len(errs) > 0 {
 			for _, err := range errs {
-				if _, ok := err.(*util.NotFoundError); !ok {
+				notFoundError := &util.NotFoundError{}
+				if errors.As(err, &notFoundError) {
 					return execute.CoalesceErrors(errs)
 				}
 				util.PrintNotify(fmt.Sprintf("Warning: %s %s.", kindOrder[idx], err.Error()))

@@ -100,7 +100,7 @@ func isOverridingSystemAgent(controllerHost, agentHost, agentName string, isSyst
 			return err
 		}
 	}
-	if agentURL.Hostname() == controllerURL.Hostname() && isSystem == false && agentName != iofog.VanillaLocalAgentName {
+	if agentURL.Hostname() == controllerURL.Hostname() && !isSystem && agentName != iofog.VanillaLocalAgentName {
 		return util.NewConflictError("Cannot deploy an agent on the same host than the Controller\n")
 	}
 	return nil

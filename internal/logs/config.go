@@ -79,7 +79,7 @@ func validateISO8601(dateStr string) error {
 		// Try parsing with RFC3339Nano format
 		_, err = time.Parse(time.RFC3339Nano, dateStr)
 		if err != nil {
-			return fmt.Errorf("invalid ISO 8601 format: %v", err)
+			return fmt.Errorf("invalid ISO 8601 format: %w", err)
 		}
 	}
 	return nil

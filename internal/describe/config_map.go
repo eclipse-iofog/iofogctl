@@ -65,7 +65,7 @@ func printConfigMapWithLiteralStrings(header config.Header, writer io.Writer) er
 		for key, value := range dataMap {
 			if strings.Contains(value, "\n") {
 				// Use literal block scalar for multi-line strings
-				_, err = writer.Write([]byte(fmt.Sprintf("  %s: |\n", key)))
+				_, err = fmt.Fprintf(writer, "  %s: |\n", key)
 				if err != nil {
 					return err
 				}
@@ -73,14 +73,14 @@ func printConfigMapWithLiteralStrings(header config.Header, writer io.Writer) er
 				// Split by newlines and add proper indentation
 				lines := strings.Split(value, "\n")
 				for _, line := range lines {
-					_, err = writer.Write([]byte(fmt.Sprintf("    %s\n", line)))
+					_, err = fmt.Fprintf(writer, "    %s\n", line)
 					if err != nil {
 						return err
 					}
 				}
 			} else {
 				// Regular string
-				_, err = writer.Write([]byte(fmt.Sprintf("  %s: %s\n", key, value)))
+				_, err = fmt.Fprintf(writer, "  %s: %s\n", key, value)
 				if err != nil {
 					return err
 				}

@@ -54,7 +54,7 @@ func prepareViewerURL(endpoint string) (string, error) {
 	if err != nil || URL.Host == "" {
 		URL, err = url.Parse("//" + endpoint)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse endpoint: %v", err)
+			return "", fmt.Errorf("failed to parse endpoint: %w", err)
 		}
 	}
 
@@ -66,7 +66,7 @@ func prepareViewerURL(endpoint string) (string, error) {
 	if strings.Contains(URL.Host, ":") {
 		host, _, err = net.SplitHostPort(URL.Host)
 		if err != nil {
-			return "", fmt.Errorf("failed to split host and port: %v", err)
+			return "", fmt.Errorf("failed to split host and port: %w", err)
 		}
 	} else {
 		host = URL.Host
@@ -92,12 +92,12 @@ func updateViewerClientRootURL(controlPlane *rsc.LocalControlPlane, endpoint str
 	// Prepare viewer URL
 	viewerURL, err := prepareViewerURL(endpoint)
 	if err != nil {
-		return fmt.Errorf("failed to prepare viewer URL: %v", err)
+		return fmt.Errorf("failed to prepare viewer URL: %w", err)
 	}
 
 	// Update viewer client root URL
 	if err := iutil.UpdateECNViewerClientRootURL(controlPlane.Auth, viewerURL); err != nil {
-		return fmt.Errorf("failed to update viewer client root URL: %v", err)
+		return fmt.Errorf("failed to update viewer client root URL: %w", err)
 	}
 
 	return nil

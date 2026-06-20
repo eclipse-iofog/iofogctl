@@ -2,7 +2,7 @@ package iofog
 
 import "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 
-// String and numeric values of TCP ports used accross ioFog
+// String and numeric values of TCP ports used across ioFog
 const (
 	ControllerPort       = client.ControllerPort
 	ControllerPortString = client.ControllerPortString

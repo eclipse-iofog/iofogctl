@@ -273,7 +273,7 @@ func (agent *RemoteAgent) Bootstrap() error {
 		},
 		{
 			cmd: agent.procs.Deps.getCommand(),
-			msg: "Installing dependancies on Agent " + agent.name,
+			msg: "Installing dependencies on Agent " + agent.name,
 		},
 		{
 			cmd: fmt.Sprintf("sudo %s", agent.procs.Install.getCommand()),

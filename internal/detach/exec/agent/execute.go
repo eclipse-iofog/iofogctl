@@ -41,8 +41,7 @@ func (exe *executor) Execute() error {
 
 	agent, err := clt.GetAgentByName(exe.name)
 	if err != nil {
-		msg := "%s\nFailed to get Agent by name: %s"
-		return fmt.Errorf(msg, err.Error())
+		return fmt.Errorf("failed to get Agent by name: %w", err)
 	}
 
 	req := client.DetachExecFromAgentRequest{
@@ -50,8 +49,7 @@ func (exe *executor) Execute() error {
 	}
 	err = clt.DetachExecFromAgent(&req)
 	if err != nil {
-		msg := "%s\nFailed to detach Exec Session from Agent: %s"
-		return fmt.Errorf(msg, err.Error())
+		return fmt.Errorf("failed to detach Exec Session from Agent: %w", err)
 	}
 
 	return nil

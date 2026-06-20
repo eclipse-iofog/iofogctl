@@ -115,21 +115,13 @@ func formatWebSocketError(err error) string {
 func extractCloseReason(errStr string) string {
 	// Look for "reason:" pattern
 	if idx := strings.Index(errStr, "reason:"); idx != -1 {
-		reason := strings.TrimSpace(errStr[idx+7:])
-		// Remove trailing period if present
-		if strings.HasSuffix(reason, ".") {
-			reason = reason[:len(reason)-1]
-		}
+		reason := strings.TrimSuffix(strings.TrimSpace(errStr[idx+7:]), ".")
 		return reason
 	}
 
 	// Look for "policy violation:" pattern
 	if idx := strings.Index(errStr, "policy violation:"); idx != -1 {
-		reason := strings.TrimSpace(errStr[idx+18:])
-		// Remove trailing period if present
-		if strings.HasSuffix(reason, ".") {
-			reason = reason[:len(reason)-1]
-		}
+		reason := strings.TrimSuffix(strings.TrimSpace(errStr[idx+18:]), ".")
 		return reason
 	}
 
@@ -161,10 +153,7 @@ func extractCloseReason(errStr string) string {
 
 			// If it contains a colon, extract after the colon
 			if colonIdx := strings.Index(afterClose, ":"); colonIdx != -1 {
-				reason := strings.TrimSpace(afterClose[colonIdx+1:])
-				if strings.HasSuffix(reason, ".") {
-					reason = reason[:len(reason)-1]
-				}
+				reason := strings.TrimSuffix(strings.TrimSpace(afterClose[colonIdx+1:]), ".")
 				return reason
 			}
 

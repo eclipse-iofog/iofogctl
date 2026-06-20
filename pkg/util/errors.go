@@ -107,7 +107,7 @@ func NewInternalError(message string) *InternalError {
 
 // Error export
 func (err *InternalError) Error() string {
-	return "Unexpected internal behaviour\n" + err.message
+	return "Unexpected internal behavior\n" + err.message
 }
 
 // HTTPError export

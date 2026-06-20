@@ -1,6 +1,7 @@
 package describe
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -21,7 +22,8 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	if msvc.CatalogItemID != 0 {
 		catalogItem, err = clt.GetCatalogItem(msvc.CatalogItemID)
 		if err != nil {
-			if httpErr, ok := err.(*client.HTTPError); ok && httpErr.Code == 404 {
+			httpErr := &client.HTTPError{}
+			if errors.As(err, &httpErr) {
 				catalogItem = nil
 			} else {
 				return nil, nil, nil, err
@@ -150,9 +152,10 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
 	}
 	for _, img := range imgArray {
-		if img.AgentTypeID == 1 {
+		switch img.AgentTypeID {
+		case 1:
 			images.X86 = img.ContainerImage
-		} else if img.AgentTypeID == 2 {
+		case 2:
 			images.ARM = img.ContainerImage
 		}
 	}

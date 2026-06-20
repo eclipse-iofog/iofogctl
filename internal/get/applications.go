@@ -1,6 +1,7 @@
 package get
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -49,7 +50,8 @@ func (exe *applicationExecutor) init() (err error) {
 	}
 	applications, err := exe.client.GetAllApplications()
 	// Try legacy if error is "not found"
-	if _, ok := err.(*client.NotFoundError); ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		if err := exe.initLegacy(); err != nil {
 			return err
 		}

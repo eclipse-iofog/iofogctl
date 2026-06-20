@@ -2,6 +2,7 @@ package execute
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -130,7 +131,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 
 		decodeErr = dec.Decode(&h)
 	}
-	if decodeErr != io.EOF {
+	if !errors.Is(decodeErr, io.EOF) {
 		return nil, decodeErr
 	}
 

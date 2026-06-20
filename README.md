@@ -1,5 +1,14 @@
 ![iofogctl-logo](iofogctl-logo.png?raw=true "iofogctl logo")
 
+[![CLI CI](https://github.com/Datasance/potctl/actions/workflows/ci.yml/badge.svg)](https://github.com/Datasance/potctl/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Datasance/potctl?include_prereleases)](https://github.com/Datasance/potctl/releases)
+[![Go](https://img.shields.io/badge/Go-1.26.4-blue)](https://go.dev/)
+[![License](https://img.shields.io/badge/License-EPL--2.0-blue.svg)](LICENSE)
+[![govulncheck](https://github.com/Datasance/potctl/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/Datasance/potctl/actions/workflows/govulncheck.yml)
+[![CodeQL](https://github.com/Datasance/potctl/actions/workflows/codeql.yml/badge.svg)](https://github.com/Datasance/potctl/actions/workflows/codeql.yml)
+
+Canonical development: [Datasance/potctl](https://github.com/Datasance/potctl) · Upstream mirror: [eclipse-iofog/iofogctl](https://github.com/eclipse-iofog/iofogctl)
+
 `iofogctl` is a CLI for the installation, configuration, and operation of ioFog 
 [Edge Compute Networks](https://iofog.org/docs/2/getting-started/core-concepts.html) (ECNs).
 It can be used to remotely manage multiple ECNs from a single host. It is built for ioFog users and DevOps engineers 

@@ -87,7 +87,7 @@ func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 	}
 
 	// Validate ContainerEngine
-	if agentConfig.AgentConfiguration.ContainerEngine == nil || *agentConfig.AgentConfiguration.ContainerEngine == "" {
+	if agentConfig.ContainerEngine == nil || *agentConfig.ContainerEngine == "" {
 		return util.NewInputError("ContainerEngine is required for airgap deployment. Please specify the container engine (docker or podman)")
 	}
 

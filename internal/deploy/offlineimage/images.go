@@ -181,7 +181,7 @@ func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysC
 	if err != nil {
 		return "", "", 0, err
 	}
-	defer policyCtx.Destroy()
+	defer func() { _ = policyCtx.Destroy() }()
 
 	progressCh := make(chan types.ProgressProperties, 1)
 	progressDone := startProgressTracker(label, progressCh)

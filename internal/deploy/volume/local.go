@@ -23,7 +23,7 @@ func (exe *localExecutor) Execute() error {
 		return nil
 	}
 	util.SpinStart("Pushing volumes to Agents")
-	util.PrintNotify("Local Agent uses the host filesystem when mounting/binding volumes to the Microservices. Therefore deploying a Volume to a Local Agent is unecessary.")
+	util.PrintNotify("Local Agent uses the host filesystem when mounting/binding volumes to the Microservices. Therefore deploying a Volume to a Local Agent is unnecessary.")
 	if exe.volume.Source != exe.volume.Destination {
 		msg := `Source '%s' is different from destination '%s'
 This may result cause issues, as the Microservices running on the Local Agent will use the host filesystem to bind/mount volumes.`
