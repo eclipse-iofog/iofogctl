@@ -1,0 +1,152 @@
+name: CLI CI
+
+on:
+  push:
+    branches: [develop, release*]
+    tags: ['v*']
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+  pull_request:
+    branches: [develop, release*]
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+  workflow_dispatch:
+
+permissions: read-all
+
+env:
+  GO_VERSION: '1.26.4'
+
+jobs:
+  grep-gates:
+    name: Grep gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Forbidden flavor strings
+        run: make grep-gates
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - run: go version
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9.2.1
+        with:
+          version: v2.12.2
+          args: --timeout=5m0s
+
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: gosec
+        run: make security-code
+      - name: govulncheck
+        run: make vulncheck
+
+  unit-iofog:
+    name: Unit (iofog)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: Unit tests
+        run: make FLAVOR=iofog test-unit
+
+  unit-datasance:
+    name: Unit (datasance)
+    if: github.repository == 'Datasance/potctl'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: Unit tests
+        run: make FLAVOR=datasance test-unit
+
+  smoke-iofog:
+    name: Smoke (iofogctl)
+    needs: [lint, grep-gates, unit-iofog]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: Smoke
+        run: make FLAVOR=iofog smoke
+
+  smoke-datasance:
+    name: Smoke (potctl)
+    if: github.repository == 'Datasance/potctl'
+    needs: [lint, grep-gates, unit-datasance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: Smoke
+        run: make FLAVOR=datasance BINARY_NAME=potctl PACKAGE_DIR=cmd/potctl smoke
+
+  build-iofogctl:
+    name: Build iofogctl
+    needs: [smoke-iofog]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: Verify embed assets
+        run: test -f assets/embed.go
+      - name: Build
+        run: make iofogctl
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: iofogctl-linux-amd64
+          path: bin/iofogctl
+
+  build-potctl:
+    name: Build potctl
+    if: github.repository == 'Datasance/potctl'
+    needs: [smoke-datasance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+      - name: Verify embed assets
+        run: test -f assets/embed.go
+      - name: Build
+        run: make potctl
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: potctl-linux-amd64
+          path: bin/potctl
