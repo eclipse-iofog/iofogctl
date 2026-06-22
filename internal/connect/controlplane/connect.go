@@ -1,32 +1,24 @@
 package connectcontrolplane
 
 import (
-	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"context"
+
+	"github.com/eclipse-iofog/iofogctl/internal/auth"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Connect(ctrlPlane rsc.ControlPlane, endpoint string, ns *rsc.Namespace) error {
-	// Connect to Controller
-	baseURL, err := util.GetBaseURL(endpoint)
-	if err != nil {
-		return err
-	}
+func Connect(ctrlPlane rsc.ControlPlane, endpoint, namespace, caFile string, ns *rsc.Namespace) error {
+	user := ctrlPlane.GetUser()
 	util.SpinHandlePrompt()
-	ctrl, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, ctrlPlane.GetUser().Email, ctrlPlane.GetUser().GetRawPassword())
+	agents, err := auth.ConnectLogin(context.Background(), namespace, endpoint, caFile, user.Email, user.GetRawPassword())
 	if err != nil {
 		return err
 	}
 	util.SpinHandlePromptComplete()
-	// Get Agents
-	listAgentsResponse, err := ctrl.ListAgents(client.ListAgentsRequest{})
-	if err != nil {
-		return err
-	}
 
-	// Update Agents config
-	for idx := range listAgentsResponse.Agents {
-		agent := &listAgentsResponse.Agents[idx]
+	for idx := range agents {
+		agent := &agents[idx]
 		agentConfig := rsc.RemoteAgent{
 			Name: agent.Name,
 			UUID: agent.UUID,

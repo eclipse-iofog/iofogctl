@@ -10,7 +10,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(namespace string, useDetached, force bool) error {
+func Execute(namespace string, useDetached, force, deleteNamespace bool) error {
 	// Make sure to update config despite failure
 	defer config.Flush()
 
@@ -38,19 +38,19 @@ func Execute(namespace string, useDetached, force bool) error {
 
 	if !useDetached {
 		// Delete applications
-		util.SpinStart("Deleting Flows")
+		util.SpinStart("Deleting Applications")
 		clt, err := clientutil.NewControllerClient(namespace)
 		if err != nil {
 			return err
 		}
 
-		flows, err := clt.GetAllFlows()
+		applications, err := clt.GetAllApplications()
 		if err != nil {
 			return err
 		}
 
-		for _, flow := range flows.Flows {
-			if err := clt.DeleteFlow(flow.ID); err != nil {
+		for _, application := range applications.Applications {
+			if err := clt.DeleteApplication(application.Name); err != nil {
 				return err
 			}
 		}
@@ -76,7 +76,7 @@ func Execute(namespace string, useDetached, force bool) error {
 	if !useDetached {
 		// Delete Controllers
 		util.SpinStart("Deleting Control Plane ")
-		exe, err := deletecontrolplane.NewExecutor(namespace)
+		exe, err := deletecontrolplane.NewExecutor(namespace, deleteNamespace)
 		if err != nil {
 			return err
 		}

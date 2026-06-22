@@ -21,6 +21,8 @@ func newDeleteCommand() *cobra.Command {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+			opt.DeleteNamespace, err = cmd.Flags().GetBool("delete-namespace")
+			util.Check(err)
 
 			// Check file
 			if opt.InputFile == "" {
@@ -62,6 +64,7 @@ func newDeleteCommand() *cobra.Command {
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", pkg.flagDescYaml)
+	cmd.PersistentFlags().BoolVar(&opt.DeleteNamespace, "delete-namespace", false, `Also delete the Kubernetes namespace (never deletes "default")`)
 
 	return cmd
 }

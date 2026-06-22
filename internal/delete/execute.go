@@ -30,9 +30,10 @@ import (
 )
 
 type Options struct {
-	Namespace string
-	InputFile string
-	Soft      bool
+	Namespace       string
+	InputFile       string
+	Soft            bool
+	DeleteNamespace bool
 }
 
 var kindOrder = []config.Kind{
@@ -69,7 +70,7 @@ var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Execut
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.KubernetesControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletek8scontrolplane.NewExecutor(opt.Namespace)
+		return deletek8scontrolplane.NewExecutor(opt.Namespace, opt.DeleteNamespace)
 	},
 	config.RemoteControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteremotecontrolplane.NewExecutor(opt.Namespace)
@@ -134,7 +135,7 @@ var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Execut
 }
 
 func Execute(opt *Options) error {
-	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers)
+	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers, opt.DeleteNamespace)
 	if err != nil {
 		return err
 	}

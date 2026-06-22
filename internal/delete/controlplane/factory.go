@@ -10,7 +10,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(namespace string) (execute.Executor, error) {
+func NewExecutor(namespace string, deleteNamespace bool) (execute.Executor, error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func NewExecutor(namespace string) (execute.Executor, error) {
 
 	switch baseControlPlane.(type) {
 	case *rsc.KubernetesControlPlane:
-		return deletek8scontrolplane.NewExecutor(namespace)
+		return deletek8scontrolplane.NewExecutor(namespace, deleteNamespace)
 	case *rsc.RemoteControlPlane:
 		return deleteremotecontrolplane.NewExecutor(namespace)
 	case *rsc.LocalControlPlane:

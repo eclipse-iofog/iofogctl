@@ -23,7 +23,9 @@ If you don't want to tear down the deployments but would like to free up the Nam
 			util.Check(err)
 			useDetached, err := cmd.Flags().GetBool("detached")
 			util.Check(err)
-			err = delete.Execute(namespace, useDetached, force)
+			deleteNamespace, err := cmd.Flags().GetBool("delete-namespace")
+			util.Check(err)
+			err = delete.Execute(namespace, useDetached, force, deleteNamespace)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)

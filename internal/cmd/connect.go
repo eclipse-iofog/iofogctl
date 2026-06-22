@@ -48,6 +48,7 @@ iofogctl connect --generate`,
 	cmd.Flags().BoolVar(&opt.OverwriteNamespace, "force", false, "Overwrite existing Namespace")
 	cmd.Flags().BoolVar(&opt.Generate, "generate", false, "Generate a connection string that can be used to connect to this ECN")
 	cmd.Flags().BoolVar(&opt.Base64Encoded, "b64", false, "Indicate whether input password (--pass) is base64 encoded or not")
+	cmd.Flags().StringVar(&opt.CAFile, "ca", "", "Path to PEM CA certificate for controller TLS (connect-time override only)")
 
 	return cmd
 }

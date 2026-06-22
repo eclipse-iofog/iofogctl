@@ -182,7 +182,7 @@ func deployNatsUserRule(opt *execute.KindHandlerOpt) (exe execute.Executor, err 
 // Execute deploy from yaml file
 func Execute(opt *Options) (err error) {
 	kindHandlers := buildKindHandlers(opt.NoCache, opt.TransferPool)
-	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers)
+	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers, false)
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func Execute(opt *Options) (err error) {
 					NatsLeafPort:      &natsLeafPort,
 					NatsClusterPort:   &natsClusterPort,
 					NatsMqttPort:      &natsMqttPort,
-					NatsHttpPort:      &natsHttpPort,
+					NatsHTTPPort:      &natsHttpPort,
 					JsStorageSize:     &jsStorageSize,
 					JsMemoryStoreSize: &jsMemoryStoreSize,
 				}

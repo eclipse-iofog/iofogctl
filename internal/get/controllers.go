@@ -137,11 +137,6 @@ func updateControllerPods(controlPlane *rsc.KubernetesControlPlane, namespace st
 		installer.SetHttpsEnabled(controlPlane.Controller.Https)
 	}
 
-	if controlPlane.Controller.EcnViewerURL != "" {
-		viewerDns := true
-		installer.SetIsViewerDns(&viewerDns)
-	}
-
 	pods, err := installer.GetControllerPods()
 	if err != nil {
 		return

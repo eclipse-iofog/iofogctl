@@ -23,6 +23,7 @@ type Options struct {
 	IofogUserPass      string
 	Generate           bool
 	Base64Encoded      bool
+	CAFile             string
 }
 
 var kindOrder = []config.Kind{
@@ -30,13 +31,15 @@ var kindOrder = []config.Kind{
 	config.RemoteControlPlaneKind,
 }
 
-var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
-	config.KubernetesControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectk8scontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind)
-	},
-	config.RemoteControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind)
-	},
+func buildKindHandlers(caFile string) map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error) {
+	return map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
+		config.KubernetesControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
+			return connectk8scontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.KubernetesControlPlaneKind, caFile)
+		},
+		config.RemoteControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
+			return connectremotecontrolplane.NewExecutor(opt.Namespace, opt.Name, opt.YAML, config.RemoteControlPlaneKind, caFile)
+		},
+	}
 }
 
 func Execute(opt *Options) error {
@@ -78,7 +81,7 @@ func Execute(opt *Options) error {
 	defer config.Flush()
 
 	if opt.InputFile != "" {
-		return executeWithYAML(opt.InputFile, opt.Namespace)
+		return executeWithYAML(opt.InputFile, opt.Namespace, opt.CAFile)
 	}
 	return manualExecute(opt)
 }
@@ -91,12 +94,12 @@ func manualExecute(opt *Options) (err error) {
 	// K8s or Remote
 	var exe execute.Executor
 	if opt.KubeConfig != "" {
-		exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass)
+		exe, err = connectk8scontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerEndpoint, opt.KubeConfig, opt.IofogUserEmail, opt.IofogUserPass, opt.CAFile)
 		if err != nil {
 			return err
 		}
 	} else {
-		exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass)
+		exe, err = connectremotecontrolplane.NewManualExecutor(opt.Namespace, opt.ControllerName, opt.ControllerEndpoint, opt.IofogUserEmail, opt.IofogUserPass, opt.CAFile)
 		if err != nil {
 			return err
 		}
@@ -109,8 +112,9 @@ func manualExecute(opt *Options) (err error) {
 	return nil
 }
 
-func executeWithYAML(yamlFile, namespace string) error {
-	executorsMap, err := execute.GetExecutorsFromYAML(yamlFile, namespace, kindHandlers)
+func executeWithYAML(yamlFile, namespace, caFile string) error {
+	handlers := buildKindHandlers(caFile)
+	executorsMap, err := execute.GetExecutorsFromYAML(yamlFile, namespace, handlers, false)
 	if err != nil {
 		return err
 	}

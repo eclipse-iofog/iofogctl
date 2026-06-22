@@ -13,12 +13,14 @@ import (
 type kubernetesExecutor struct {
 	controlPlane *rsc.KubernetesControlPlane
 	namespace    string
+	caFile       string
 }
 
-func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace string) *kubernetesExecutor {
+func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace, caFile string) *kubernetesExecutor {
 	return &kubernetesExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,
+		caFile:       caFile,
 	}
 }
 
@@ -26,7 +28,7 @@ func (exe *kubernetesExecutor) GetName() string {
 	return "Kubernetes Control Plane"
 }
 
-func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
+func NewManualExecutor(namespace, endpoint, kubeConfig, email, password, caFile string) (execute.Executor, error) {
 	controlPlane := &rsc.KubernetesControlPlane{
 		IofogUser:  rsc.IofogUser{Email: email, Password: password},
 		KubeConfig: kubeConfig,
@@ -35,11 +37,10 @@ func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) 
 	if err := controlPlane.Sanitize(); err != nil {
 		return nil, err
 	}
-	return newKubernetesExecutor(controlPlane, namespace), nil
+	return newKubernetesExecutor(controlPlane, namespace, caFile), nil
 }
 
-func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
-	// Read the input file
+func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile string) (execute.Executor, error) {
 	controlPlane, err := rsc.UnmarshallKubernetesControlPlane(yaml)
 	if err != nil {
 		return nil, err
@@ -49,43 +50,33 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		return nil, err
 	}
 
-	return newKubernetesExecutor(&controlPlane, namespace), nil
+	return newKubernetesExecutor(&controlPlane, namespace, caFile), nil
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Instantiate Kubernetes cluster object
 	k8s, err := install.NewKubernetes(exe.controlPlane.KubeConfig, exe.namespace)
 	if err != nil {
 		return
 	}
 
-	// Set HTTPS configuration if present in the control plane
 	if exe.controlPlane.Controller.Https != nil {
 		k8s.SetHttpsEnabled(exe.controlPlane.Controller.Https)
 	}
 
-	if exe.controlPlane.Controller.EcnViewerURL != "" {
-		viewerDns := true
-		k8s.SetIsViewerDns(&viewerDns)
-	}
-
-	// Check the resources exist in K8s namespace
 	if err = k8s.ExistsInNamespace(exe.namespace); err != nil {
 		return
 	}
 
-	// Get Controller endpoint
 	endpoint, err := k8s.GetControllerEndpoint()
 	if err != nil {
 		return
 	}
 
-	// Establish connection
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return
 	}
-	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, ns)
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, exe.namespace, exe.caFile, ns)
 	if err != nil {
 		return
 	}
@@ -105,7 +96,6 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	}
 	exe.controlPlane.Endpoint = endpoint
 
-	// Save changes
 	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
 }
@@ -120,7 +110,6 @@ func formatEndpoint(endpoint string) string {
 }
 
 func validate(controlPlane rsc.ControlPlane) (err error) {
-	// Validate user
 	user := controlPlane.GetUser()
 	if user.Email == "" {
 		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty value in email field")

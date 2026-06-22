@@ -15,9 +15,10 @@ import (
 type remoteExecutor struct {
 	controlPlane *rsc.RemoteControlPlane
 	namespace    string
+	caFile       string
 }
 
-func NewManualExecutor(namespace, name, endpoint, email, password string) (execute.Executor, error) {
+func NewManualExecutor(namespace, name, endpoint, email, password, caFile string) (execute.Executor, error) {
 	fmtEndpoint, err := formatEndpoint(endpoint)
 	if err != nil {
 		return nil, err
@@ -38,10 +39,10 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 		},
 	}
 
-	return newRemoteExecutor(controlPlane, namespace), nil
+	return newRemoteExecutor(controlPlane, namespace, caFile), nil
 }
 
-func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
+func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile string) (execute.Executor, error) {
 	// Read the input file
 	controlPlane, err := rsc.UnmarshallRemoteControlPlane(yaml)
 	if err != nil {
@@ -74,13 +75,14 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		}
 	}
 
-	return newRemoteExecutor(&controlPlane, namespace), nil
+	return newRemoteExecutor(&controlPlane, namespace, caFile), nil
 }
 
-func newRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace string) *remoteExecutor {
+func newRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, caFile string) *remoteExecutor {
 	r := &remoteExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,
+		caFile:       caFile,
 	}
 	return r
 }
@@ -103,7 +105,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, ns)
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, exe.namespace, exe.caFile, ns)
 	if err != nil {
 		return err
 	}

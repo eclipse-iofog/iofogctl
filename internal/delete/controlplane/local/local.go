@@ -24,7 +24,7 @@ func (exe *Executor) GetName() string {
 	return "Delete Control Plane"
 }
 
-// Execute deletes application by deleting its associated flow
+// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() (err error) {
 	// Get Control Plane
 	ns, err := config.GetNamespace(exe.namespace)

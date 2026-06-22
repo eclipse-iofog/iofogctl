@@ -44,7 +44,7 @@ func NewEmptyExecutor(name string) Executor {
 	}
 }
 
-func generateExecutor(header *config.Header, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
+func generateExecutor(header *config.Header, namespace string, deleteNamespace bool, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
 	if len(header.Metadata.Namespace) > 0 && namespace != header.Metadata.Namespace {
 		msg := "The Namespace provided by the %s named '%s' does not match the Namespace '%s'. You must pass '--namespace %s' to perform this command"
 		return nil, util.NewInputError(fmt.Sprintf(msg, header.Kind, header.Metadata.Name, namespace, header.Metadata.Namespace))
@@ -79,27 +79,29 @@ func generateExecutor(header *config.Header, namespace string, kindHandlers map[
 	}
 
 	return createExecutorFunc(&KindHandlerOpt{
-		Kind:      header.Kind,
-		Namespace: namespace,
-		Name:      header.Metadata.Name,
-		YAML:      subYamlBytes,
-		FullYAML:  fullYamlBytes,
-		Data:      dataYamlBytes,
-		Tags:      header.Metadata.Tags,
+		Kind:            header.Kind,
+		Namespace:       namespace,
+		Name:            header.Metadata.Name,
+		YAML:            subYamlBytes,
+		FullYAML:        fullYamlBytes,
+		Data:            dataYamlBytes,
+		Tags:            header.Metadata.Tags,
+		DeleteNamespace: deleteNamespace,
 	})
 }
 
 type KindHandlerOpt struct {
-	Kind      config.Kind
-	Namespace string
-	Name      string
-	YAML      []byte
-	FullYAML  []byte
-	Data      []byte
-	Tags      *[]string
+	Kind            config.Kind
+	Namespace       string
+	Name            string
+	YAML            []byte
+	FullYAML        []byte
+	Data            []byte
+	Tags            *[]string
+	DeleteNamespace bool
 }
 
-func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
+func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error), deleteNamespace bool) (executorsMap map[config.Kind][]Executor, err error) {
 	yamlFile, err := os.ReadFile(inputFile)
 	if err != nil {
 		return
@@ -117,7 +119,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 	decodeErr := dec.Decode(&h)
 	for decodeErr == nil {
 		header := headerDecodeToHeader(&h)
-		exe, err := generateExecutor(header, namespace, kindHandlers)
+		exe, err := generateExecutor(header, namespace, deleteNamespace, kindHandlers)
 		if err != nil {
 			return nil, err
 		}
