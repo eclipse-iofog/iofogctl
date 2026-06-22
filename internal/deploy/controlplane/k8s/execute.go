@@ -1,12 +1,16 @@
 package deployk8scontrolplane
 
 import (
+	"context"
 	"fmt"
 
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
+	"github.com/eclipse-iofog/iofogctl/internal/auth"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/internal/trust"
+	inputvalidate "github.com/eclipse-iofog/iofogctl/internal/validate"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -77,55 +81,32 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 		return
 	}
 
-	// Configure deploy
+	// Configure operator deploy (CLI-only image fields)
 	installer.SetOperatorImage(exe.controlPlane.Images.Operator)
 	installer.SetPullSecret(exe.controlPlane.Images.PullSecret)
-	installer.SetRouterImage(exe.controlPlane.Images.Router)
-	installer.SetControllerImage(exe.controlPlane.Images.Controller)
-	installer.SetNatsImage(exe.controlPlane.Images.Nats)
-	installer.SetControllerService(exe.controlPlane.Services.Controller.Type, exe.controlPlane.Services.Controller.Address, exe.controlPlane.Services.Controller.Annotations, exe.controlPlane.Services.Controller.ExternalTrafficPolicy)
-	installer.SetRouterService(exe.controlPlane.Services.Router.Type, exe.controlPlane.Services.Router.Address, exe.controlPlane.Services.Router.Annotations, exe.controlPlane.Services.Router.ExternalTrafficPolicy)
-	installer.SetNatsService(exe.controlPlane.Services.Nats.Type, exe.controlPlane.Services.Nats.Address, exe.controlPlane.Services.Nats.Annotations, exe.controlPlane.Services.Nats.ExternalTrafficPolicy)
-	installer.SetNatsServerService(exe.controlPlane.Services.NatsServer.Type, exe.controlPlane.Services.NatsServer.Address, exe.controlPlane.Services.NatsServer.Annotations, exe.controlPlane.Services.NatsServer.ExternalTrafficPolicy)
-	installer.SetControllerIngress(exe.controlPlane.Ingresses.Controller.Annotations, exe.controlPlane.Ingresses.Controller.IngressClassName, exe.controlPlane.Ingresses.Controller.Host, exe.controlPlane.Ingresses.Controller.SecretName)
-	installer.SetRouterIngress(exe.controlPlane.Ingresses.Router.Address, exe.controlPlane.Ingresses.Router.MessagePort, exe.controlPlane.Ingresses.Router.InteriorPort, exe.controlPlane.Ingresses.Router.EdgePort)
-	installer.SetNatsIngress(exe.controlPlane.Ingresses.Nats.Address, exe.controlPlane.Ingresses.Nats.ServerPort, exe.controlPlane.Ingresses.Nats.ClusterPort, exe.controlPlane.Ingresses.Nats.LeafPort, exe.controlPlane.Ingresses.Nats.MqttPort, exe.controlPlane.Ingresses.Nats.HttpPort)
-	// installer.SetRouterConfig(exe.controlPlane.Router.HA)
 
-	// Set isViewerDns based on EcnViewerURL presence
-	if exe.controlPlane.Controller.EcnViewerURL != "" {
-		viewerDns := true
-		installer.SetIsViewerDns(&viewerDns)
+	desired := TranslateToControlPlaneCR(exe.controlPlane, exe.namespace)
+	if ca := rsc.GetTrustCA(exe.controlPlane); ca != "" {
+		if err := trust.StoreCA(exe.namespace, ca); err != nil {
+			return err
+		}
 	}
 
-	replicas := int32(1)
-	if exe.controlPlane.Replicas.Controller != 0 {
-		replicas = exe.controlPlane.Replicas.Controller
-	}
-	replicasNats := exe.controlPlane.Replicas.Nats
-	natsSpec := natsSpecToCpv3(exe.controlPlane.Nats)
-	vaultSpec := vaultSpecToCpv3(exe.controlPlane.Vault)
-	// Create controller on cluster
-	// user := install.IofogUser(exe.controlPlane.IofogUser)
-	conf := install.K8SControllerConfig{
-		// User:          user,
-		Replicas:      replicas,
-		ReplicasNats:  replicasNats,
-		Auth:          install.Auth(exe.controlPlane.Auth),
-		Database:      install.Database(exe.controlPlane.Database),
-		Events:        install.Events(exe.controlPlane.Events),
-		PidBaseDir:    exe.controlPlane.Controller.PidBaseDir,
-		EcnViewerPort: exe.controlPlane.Controller.EcnViewerPort,
-		EcnViewerURL:  exe.controlPlane.Controller.EcnViewerURL,
-		LogLevel:      exe.controlPlane.Controller.LogLevel,
-		Https:         exe.controlPlane.Controller.Https,
-		SecretName:    exe.controlPlane.Controller.SecretName,
-		Nats:          natsSpec,
-		Vault:         vaultSpec,
-	}
-	endpoint, err := installer.CreateControlPlane(&conf)
+	endpoint, err := installer.CreateControlPlane(desired)
 	if err != nil {
 		return
+	}
+
+	if err := trust.WaitForControllerAPI(context.Background(), exe.namespace, endpoint); err != nil {
+		return err
+	}
+
+	if err := auth.EnsureIofogUserEmbedded(context.Background(), exe.namespace, endpoint, auth.EmbeddedAuthSpec{
+		Mode:      exe.controlPlane.Auth.Mode,
+		Bootstrap: exe.controlPlane.Auth.Bootstrap,
+		User:      &exe.controlPlane.IofogUser,
+	}); err != nil {
+		return err
 	}
 
 	// Create controller pods for config
@@ -146,26 +127,86 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 
 	// Assign control plane endpoint
 	exe.controlPlane.Endpoint = endpoint
+	if exe.controlPlane.Controller.PublicUrl == "" {
+		exe.controlPlane.Controller.PublicUrl = endpoint
+	}
+	if exe.controlPlane.Controller.ConsoleUrl == "" {
+		exe.controlPlane.Controller.ConsoleUrl = endpoint
+	}
 
 	return err
 }
 
-const clusterIP = "ClusterIP"
+const (
+	clusterIP        = "ClusterIP"
+	authModeEmbedded = "embedded"
+	authModeExternal = "external"
+)
 
 func validateControlPlaneUser(controlPlane *rsc.KubernetesControlPlane) error {
 	user := controlPlane.GetUser()
 	if user.Email == "" {
 		return util.NewInputError("Control Plane Iofog User must contain non-empty value in email field")
 	}
+	if rawPassword := user.GetRawPassword(); rawPassword != "" {
+		if err := inputvalidate.ValidatePasswordComplexity(rawPassword); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func validateControlPlaneAuth(controlPlane *rsc.KubernetesControlPlane) error {
 	auth := controlPlane.Auth
-	if auth.URL == "" || auth.Realm == "" || auth.SSL == "" || auth.RealmKey == "" || auth.ControllerClient == "" || auth.ControllerSecret == "" || auth.ViewerClient == "" {
-		return util.NewInputError("Control Plane Auth Config must contain non-empty values in all fields")
+	switch auth.Mode {
+	case authModeEmbedded:
+		return validateEmbeddedAuth(auth)
+	case authModeExternal:
+		return validateExternalAuth(auth)
+	case "":
+		return util.NewInputError("Control Plane auth.mode is required (embedded or external)")
+	default:
+		return util.NewInputError(fmt.Sprintf("Control Plane auth.mode %q is invalid (embedded or external)", auth.Mode))
+	}
+}
+
+func validateEmbeddedAuth(auth rsc.Auth) error {
+	if auth.Bootstrap == nil {
+		return util.NewInputError("Control Plane auth.bootstrap is required when auth.mode is embedded")
+	}
+	if auth.Bootstrap.Username == "" {
+		return util.NewInputError("Control Plane auth.bootstrap.username is required when auth.mode is embedded")
+	}
+	if auth.Bootstrap.Password == "" {
+		return util.NewInputError("Control Plane auth.bootstrap.password is required in YAML when auth.mode is embedded")
+	}
+	if err := inputvalidate.ValidatePasswordComplexity(auth.Bootstrap.Password); err != nil {
+		return err
 	}
 	return nil
+}
+
+func validateExternalAuth(auth rsc.Auth) error {
+	if auth.IssuerUrl == "" {
+		return util.NewInputError("Control Plane auth.issuerUrl is required when auth.mode is external")
+	}
+	if auth.Client == nil || auth.Client.ID == "" {
+		return util.NewInputError("Control Plane auth.client.id is required when auth.mode is external")
+	}
+	if auth.Client.Secret == "" {
+		return util.NewInputError("Control Plane auth.client.secret is required when auth.mode is external")
+	}
+	return nil
+}
+
+func natsEnabled(controlPlane *rsc.KubernetesControlPlane) bool {
+	if controlPlane.Nats == nil {
+		return true
+	}
+	if controlPlane.Nats.Enabled == nil {
+		return true
+	}
+	return *controlPlane.Nats.Enabled
 }
 
 func validateControlPlaneDatabase(controlPlane *rsc.KubernetesControlPlane) error {
@@ -203,6 +244,9 @@ func validateRouterServiceAndIngress(controlPlane *rsc.KubernetesControlPlane) e
 }
 
 func validateNatsReplicas(controlPlane *rsc.KubernetesControlPlane) error {
+	if !natsEnabled(controlPlane) {
+		return nil
+	}
 	if controlPlane.Replicas.Nats > 0 && controlPlane.Replicas.Nats < 2 {
 		return util.NewInputError("When NATS is enabled, replicas.nats must be at least 2")
 	}
