@@ -115,7 +115,7 @@ linters:
             - github.com/mitchellh/go-homedir
             - github.com/pkg
             - github.com/twmb/algoimpl
-            - github.com/containers/image
+            - go.podman.io/image
             - github.com/opencontainers/go-digest
             - github.com/gorilla/websocket
             - github.com/vmihailenco/msgpack

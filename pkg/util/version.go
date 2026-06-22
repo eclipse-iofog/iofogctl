@@ -18,14 +18,17 @@ var (
 	packageRepoBase = "https://iofog.datasance.com"
 	ociSourceRepo   = "https://github.com/eclipse-iofog/iofogctl"
 
-	controllerTag     = "undefined"
-	operatorTag       = "undefined"
-	routerTag         = "undefined"
-	natsTag           = "undefined"
-	edgeletTag        = "undefined"
-	controllerVersion = "undefined"
-	edgeletVersion    = "undefined"
-	debuggerTag       = "undefined"
+	controllerTag        = "undefined"
+	operatorTag          = "undefined"
+	routerTag            = "undefined"
+	natsTag              = "undefined"
+	edgeletTag           = "undefined"
+	controllerVersion    = "undefined"
+	edgeletVersion       = "undefined"
+	edgeletReleaseBase   = "undefined"
+	edgeletBinaryVersion = "undefined"
+	edgeletGitHubRepo    = "eclipse-iofog/edgelet"
+	debuggerTag          = "undefined"
 )
 
 const (
@@ -63,8 +66,11 @@ func GetCliDocsUrl() string      { return cliDocsUrl }
 func GetPackageRepoBase() string { return packageRepoBase }
 func GetOciSourceRepo() string   { return ociSourceRepo }
 
-func GetControllerVersion() string { return controllerVersion }
-func GetEdgeletVersion() string    { return edgeletVersion }
+func GetControllerVersion() string    { return controllerVersion }
+func GetEdgeletVersion() string       { return edgeletVersion }
+func GetEdgeletReleaseBase() string   { return edgeletReleaseBase }
+func GetEdgeletBinaryVersion() string { return edgeletBinaryVersion }
+func GetEdgeletGitHubRepo() string    { return edgeletGitHubRepo }
 
 func GetControllerImage() string {
 	return fmt.Sprintf("%s/%s:%s", imageRegistry, controllerImage, controllerTag)

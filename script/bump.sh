@@ -24,20 +24,12 @@ sed -i.bkp "s/SUFFIX=.*/SUFFIX=$suffix/g" "version"
 rm "version.bkp"
 
 # Update Makefile
-sed -i.bkp -E "s/(.*iofog-go-sdk\/v2@).*/\1v$version/g" Makefile
-sed -i.bkp -E "s/(.*iofog-operator\/v2@).*/\1v$version/g" Makefile
+sed -i.bkp -E "s/(.*iofog-go-sdk\/v3@).*/\1v$version/g" Makefile
+sed -i.bkp -E "s/(.*iofog-operator\/v3@).*/\1v$version/g" Makefile
 sed -i.bkp -E "s/(.*-X.*Tag=).*/\1$version/g" Makefile
 sed -i.bkp -E "s/(.*-X.*Version=).*/\1$version/g" Makefile
 sed -i.bkp -E "s/(.*-X.*repo=).*/\1iofog/g" Makefile
 rm Makefile.bkp
-
-# Update pipeline
-for file in azure-pipelines.yaml test/env.sh; do
-    sed -i.bkp -E "s/(gcr\.io\/focal-freedom.*:).*/\1$version'/g" $file
-    sed -i.bkp -E "s/(_version: ).*/\1'$version'/g" $file
-    sed -i.bkp -E "s/(_VERSION=').*/\1$version'/g" $file
-    rm $file.bkp
-done
 
 # Pull modules
 make modules

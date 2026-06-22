@@ -34,6 +34,8 @@ ifeq ($(FLAVOR),datasance)
   CLI_DOCS_URL = https://docs.datasance.com
   PACKAGE_REPO_BASE = https://downloads.datasance.com
   OCI_SOURCE_REPO = https://github.com/Datasance/potctl
+  EDGELET_RELEASE_BASE = https://github.com/Datasance/edgelet/releases/download
+  EDGELET_GITHUB_REPO = Datasance/edgelet
 else
   CLI_BINARY_NAME = iofogctl
   CLI_CRD_GROUP = iofog.org
@@ -43,6 +45,8 @@ else
   CLI_DOCS_URL = https://iofog.org
   PACKAGE_REPO_BASE = https://iofog.datasance.com
   OCI_SOURCE_REPO = https://github.com/eclipse-iofog/iofogctl
+  EDGELET_RELEASE_BASE = https://github.com/eclipse-iofog/edgelet/releases/download
+  EDGELET_GITHUB_REPO = eclipse-iofog/edgelet
 endif
 
 LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
@@ -58,9 +62,12 @@ LDFLAGS += -X $(PREFIX).operatorTag=$(OPERATOR_VERSION)
 LDFLAGS += -X $(PREFIX).routerTag=$(ROUTER_VERSION)
 LDFLAGS += -X $(PREFIX).controllerTag=$(CONTROLLER_VERSION)
 LDFLAGS += -X $(PREFIX).natsTag=$(NATS_VERSION)
-LDFLAGS += -X $(PREFIX).edgeletTag=$(EDGELET_VERSION)
+LDFLAGS += -X $(PREFIX).edgeletTag=$(EDGELET_IMAGE_TAG)
 LDFLAGS += -X $(PREFIX).controllerVersion=$(CONTROLLER_VERSION)
-LDFLAGS += -X $(PREFIX).edgeletVersion=$(EDGELET_VERSION)
+LDFLAGS += -X $(PREFIX).edgeletVersion=$(EDGELET_IMAGE_TAG)
+LDFLAGS += -X $(PREFIX).edgeletReleaseBase=$(EDGELET_RELEASE_BASE)
+LDFLAGS += -X $(PREFIX).edgeletGitHubRepo=$(EDGELET_GITHUB_REPO)
+LDFLAGS += -X $(PREFIX).edgeletBinaryVersion=$(EDGELET_BINARY_VERSION)
 LDFLAGS += -X $(PREFIX).debuggerTag=latest
 
 GOLANGCI_LINT_VERSION ?= v2.12.2
