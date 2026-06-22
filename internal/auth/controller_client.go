@@ -75,9 +75,40 @@ func (c *controllerAuthClient) listAuthUsers() ([]client.AuthUserResponse, error
 	return users, nil
 }
 
-func (c *controllerAuthClient) createAuthUser(req client.AuthUserCreateRequest) error {
-	_, err := c.doJSON(http.MethodPost, "/users", authHeaders(c.accessToken), req)
-	return err
+func (c *controllerAuthClient) createAuthUser(req client.AuthUserCreateRequest) (client.AuthUserResponse, error) {
+	body, err := c.doJSON(http.MethodPost, "/users", authHeaders(c.accessToken), req)
+	if err != nil {
+		return client.AuthUserResponse{}, err
+	}
+	var user client.AuthUserResponse
+	if err := json.Unmarshal(body, &user); err != nil {
+		return client.AuthUserResponse{}, fmt.Errorf("parse auth user response: %w", err)
+	}
+	return user, nil
+}
+
+func (c *controllerAuthClient) resetAuthUserToken(userID string) (client.AuthUserResetTokenResponse, error) {
+	body, err := c.doJSON(http.MethodPost, fmt.Sprintf("/users/%s/reset-token", userID), authHeaders(c.accessToken), nil)
+	if err != nil {
+		return client.AuthUserResetTokenResponse{}, err
+	}
+	var resp client.AuthUserResetTokenResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return client.AuthUserResetTokenResponse{}, fmt.Errorf("parse reset token response: %w", err)
+	}
+	return resp, nil
+}
+
+func (c *controllerAuthClient) changePassword(req client.ChangePasswordRequest) error {
+	headers := map[string]string{"Content-Type": "application/json"}
+	if req.ResetToken == "" {
+		headers = authHeaders(c.accessToken)
+	}
+	_, err := c.doJSON(http.MethodPost, "/user/change-password", headers, req)
+	if err != nil {
+		return fmt.Errorf("change password: %w", err)
+	}
+	return nil
 }
 
 func (c *controllerAuthClient) listAgents() ([]client.AgentInfo, error) {

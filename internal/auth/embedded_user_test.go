@@ -12,20 +12,21 @@ import (
 	"golang.org/x/term"
 )
 
+const testTempPassword = "TempPass123!"
+
 type mockEmbeddedAuthClient struct {
-	loginEmail    string
-	loginPassword string
-	loginErr      error
-	users         []client.AuthUserResponse
-	created       []client.AuthUserCreateRequest
-	loginCalls    int
-	listCalls     int
+	logins          [][2]string
+	loginErr        error
+	users           []client.AuthUserResponse
+	created         []client.AuthUserCreateRequest
+	resetTokenCalls []string
+	resetTokens     []client.AuthUserResetTokenResponse
+	changedPassword []client.ChangePasswordRequest
+	listCalls       int
 }
 
 func (m *mockEmbeddedAuthClient) bootstrapLogin(email, password string) error {
-	m.loginCalls++
-	m.loginEmail = email
-	m.loginPassword = password
+	m.logins = append(m.logins, [2]string{email, password})
 	if m.loginErr != nil {
 		return m.loginErr
 	}
@@ -37,8 +38,26 @@ func (m *mockEmbeddedAuthClient) listAuthUsers() ([]client.AuthUserResponse, err
 	return m.users, nil
 }
 
-func (m *mockEmbeddedAuthClient) createAuthUser(req client.AuthUserCreateRequest) error {
+func (m *mockEmbeddedAuthClient) createAuthUser(req client.AuthUserCreateRequest) (client.AuthUserResponse, error) {
 	m.created = append(m.created, req)
+	return client.AuthUserResponse{
+		ID:                 "user-1",
+		Email:              req.Email,
+		Groups:             req.Groups,
+		MustChangePassword: true,
+	}, nil
+}
+
+func (m *mockEmbeddedAuthClient) resetAuthUserToken(userID string) (client.AuthUserResetTokenResponse, error) {
+	m.resetTokenCalls = append(m.resetTokenCalls, userID)
+	if len(m.resetTokens) > 0 {
+		return m.resetTokens[0], nil
+	}
+	return client.AuthUserResetTokenResponse{ResetToken: "reset-token-1", ExpiresIn: 900}, nil
+}
+
+func (m *mockEmbeddedAuthClient) changePassword(req client.ChangePasswordRequest) error {
+	m.changedPassword = append(m.changedPassword, req)
 	return nil
 }
 
@@ -54,7 +73,7 @@ func TestEnsureIofogUserEmbeddedSkipsExternal(t *testing.T) {
 		User: &rsc.IofogUser{Email: "user@domain.com"},
 	})
 	require.NoError(t, err)
-	require.Zero(t, mock.loginCalls)
+	require.Empty(t, mock.logins)
 }
 
 func TestEnsureIofogUserEmbeddedCreatesWhenMissing(t *testing.T) {
@@ -63,6 +82,7 @@ func TestEnsureIofogUserEmbeddedCreatesWhenMissing(t *testing.T) {
 	newEmbeddedAuthClient = func(context.Context, string, string) (embeddedAuthClient, error) {
 		return mock, nil
 	}
+	generateTempPasswordFn = func() (string, error) { return testTempPassword, nil }
 
 	user := &rsc.IofogUser{Email: "user@domain.com", Password: "LocalTest12!"}
 	user.EncodePassword()
@@ -73,19 +93,28 @@ func TestEnsureIofogUserEmbeddedCreatesWhenMissing(t *testing.T) {
 		User:      user,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, mock.loginCalls)
-	require.Equal(t, "admin", mock.loginEmail)
-	require.Equal(t, "BootstrapTest12!", mock.loginPassword)
+	require.Len(t, mock.logins, 1)
+	require.Equal(t, "admin", mock.logins[0][0])
+	require.Equal(t, "BootstrapTest12!", mock.logins[0][1])
 	require.Len(t, mock.created, 1)
 	require.Equal(t, "user@domain.com", mock.created[0].Email)
-	require.Equal(t, "LocalTest12!", mock.created[0].Password)
+	require.Equal(t, testTempPassword, mock.created[0].Password)
 	require.Equal(t, []string{"admin"}, mock.created[0].Groups)
+	require.Equal(t, []string{"user-1"}, mock.resetTokenCalls)
+	require.Len(t, mock.changedPassword, 1)
+	require.Equal(t, "reset-token-1", mock.changedPassword[0].ResetToken)
+	require.Equal(t, "LocalTest12!", mock.changedPassword[0].NewPassword)
+	require.Empty(t, mock.changedPassword[0].CurrentPassword)
 }
 
-func TestEnsureIofogUserEmbeddedSkipsWhenExists(t *testing.T) {
+func TestEnsureIofogUserEmbeddedSkipsWhenReady(t *testing.T) {
 	t.Cleanup(resetEmbeddedAuthDeps)
 	mock := &mockEmbeddedAuthClient{
-		users: []client.AuthUserResponse{{Email: "user@domain.com"}},
+		users: []client.AuthUserResponse{{
+			ID:                 "user-1",
+			Email:              "user@domain.com",
+			MustChangePassword: false,
+		}},
 	}
 	newEmbeddedAuthClient = func(context.Context, string, string) (embeddedAuthClient, error) {
 		return mock, nil
@@ -100,8 +129,38 @@ func TestEnsureIofogUserEmbeddedSkipsWhenExists(t *testing.T) {
 		User:      user,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, mock.loginCalls)
+	require.Len(t, mock.logins, 1)
 	require.Empty(t, mock.created)
+	require.Empty(t, mock.resetTokenCalls)
+	require.Empty(t, mock.changedPassword)
+}
+
+func TestEnsureIofogUserEmbeddedFinalizesExistingTempUser(t *testing.T) {
+	t.Cleanup(resetEmbeddedAuthDeps)
+	mock := &mockEmbeddedAuthClient{
+		users: []client.AuthUserResponse{{
+			ID:                 "existing-user",
+			Email:              "user@domain.com",
+			MustChangePassword: true,
+		}},
+	}
+	newEmbeddedAuthClient = func(context.Context, string, string) (embeddedAuthClient, error) {
+		return mock, nil
+	}
+
+	user := &rsc.IofogUser{Email: "user@domain.com", Password: "LocalTest12!"}
+	user.EncodePassword()
+
+	err := EnsureIofogUserEmbedded(context.Background(), "default", "https://controller.example.com", EmbeddedAuthSpec{
+		Mode:      AuthModeEmbedded,
+		Bootstrap: &rsc.AuthBootstrap{Username: "admin", Password: "BootstrapTest12!"},
+		User:      user,
+	})
+	require.NoError(t, err)
+	require.Empty(t, mock.created)
+	require.Equal(t, []string{"existing-user"}, mock.resetTokenCalls)
+	require.Len(t, mock.changedPassword, 1)
+	require.Equal(t, "LocalTest12!", mock.changedPassword[0].NewPassword)
 }
 
 func TestEnsureIofogUserEmbeddedUsesInteractivePassword(t *testing.T) {
@@ -110,6 +169,7 @@ func TestEnsureIofogUserEmbeddedUsesInteractivePassword(t *testing.T) {
 	newEmbeddedAuthClient = func(context.Context, string, string) (embeddedAuthClient, error) {
 		return mock, nil
 	}
+	generateTempPasswordFn = func() (string, error) { return testTempPassword, nil }
 
 	promptCalls := 0
 	readPasswordFn = func(prompt string) (string, error) {
@@ -131,7 +191,9 @@ func TestEnsureIofogUserEmbeddedUsesInteractivePassword(t *testing.T) {
 	require.GreaterOrEqual(t, promptCalls, 2)
 	require.NotEmpty(t, user.GetRawPassword())
 	require.Len(t, mock.created, 1)
-	require.Equal(t, "LocalTest12!", mock.created[0].Password)
+	require.Equal(t, testTempPassword, mock.created[0].Password)
+	require.Len(t, mock.changedPassword, 1)
+	require.Equal(t, "LocalTest12!", mock.changedPassword[0].NewPassword)
 }
 
 func TestEnsureIofogUserEmbeddedPropagatesLoginError(t *testing.T) {
@@ -156,6 +218,7 @@ func resetEmbeddedAuthDeps() {
 	newEmbeddedAuthClient = func(ctx context.Context, namespace, endpoint string) (embeddedAuthClient, error) {
 		return newControllerAuthClient(ctx, namespace, endpoint, "")
 	}
+	generateTempPasswordFn = generateTempPassword
 	readPasswordFn = readPasswordHidden
 	isTerminalFn = term.IsTerminal
 }

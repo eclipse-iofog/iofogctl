@@ -23,7 +23,9 @@ type EmbeddedAuthSpec struct {
 type embeddedAuthClient interface {
 	bootstrapLogin(email, password string) error
 	listAuthUsers() ([]client.AuthUserResponse, error)
-	createAuthUser(req client.AuthUserCreateRequest) error
+	createAuthUser(req client.AuthUserCreateRequest) (client.AuthUserResponse, error)
+	resetAuthUserToken(userID string) (client.AuthUserResetTokenResponse, error)
+	changePassword(req client.ChangePasswordRequest) error
 }
 
 var newEmbeddedAuthClient = func(ctx context.Context, namespace, endpoint string) (embeddedAuthClient, error) {
@@ -66,22 +68,61 @@ func EnsureIofogUserEmbedded(ctx context.Context, namespace, endpoint string, sp
 	if err != nil {
 		return err
 	}
-	if authUserExists(users, spec.User.Email) {
+
+	existing, found := findAuthUserByEmail(users, spec.User.Email)
+	if found && !existing.MustChangePassword {
 		return nil
 	}
 
-	return clt.createAuthUser(client.AuthUserCreateRequest{
-		Email:    spec.User.Email,
-		Password: password,
-		Groups:   []string{"admin"},
-	})
-}
+	var userID string
+	if found {
+		userID = existing.ID
+	} else {
+		tempPassword, err := generateTempPasswordFn()
+		if err != nil {
+			return fmt.Errorf("generate temporary password: %w", err)
+		}
 
-func authUserExists(users []client.AuthUserResponse, email string) bool {
-	for _, u := range users {
-		if u.Email == email {
-			return true
+		created, err := clt.createAuthUser(client.AuthUserCreateRequest{
+			Email:    spec.User.Email,
+			Password: tempPassword,
+			Groups:   []string{"admin"},
+		})
+		if err != nil {
+			return err
+		}
+		userID = created.ID
+		if userID == "" {
+			return fmt.Errorf("controller did not return auth user id for %q", spec.User.Email)
 		}
 	}
-	return false
+
+	return finalizeEmbeddedUserPassword(clt, userID, password)
+}
+
+func finalizeEmbeddedUserPassword(clt embeddedAuthClient, userID, password string) error {
+	tokenResp, err := clt.resetAuthUserToken(userID)
+	if err != nil {
+		return fmt.Errorf("reset auth user token: %w", err)
+	}
+	if tokenResp.ResetToken == "" {
+		return fmt.Errorf("controller did not return reset token for auth user %q", userID)
+	}
+
+	if err := clt.changePassword(client.ChangePasswordRequest{
+		ResetToken:  tokenResp.ResetToken,
+		NewPassword: password,
+	}); err != nil {
+		return fmt.Errorf("set iofog user password: %w", err)
+	}
+	return nil
+}
+
+func findAuthUserByEmail(users []client.AuthUserResponse, email string) (*client.AuthUserResponse, bool) {
+	for i := range users {
+		if users[i].Email == email {
+			return &users[i], true
+		}
+	}
+	return nil, false
 }
