@@ -69,13 +69,52 @@ type Credentials struct {
 }
 
 type Auth struct {
-	URL              string `yaml:"url"`
-	Realm            string `yaml:"realm"`
-	SSL              string `yaml:"ssl"`
-	RealmKey         string `yaml:"realmKey"`
-	ControllerClient string `yaml:"controllerClient"`
-	ControllerSecret string `yaml:"controllerSecret"`
-	ViewerClient     string `yaml:"viewerClient"`
+	Mode                      string            `yaml:"mode"`
+	InsecureAllowHttp         *bool             `yaml:"insecureAllowHttp,omitempty"`
+	InsecureAllowBootstrapLog *bool             `yaml:"insecureAllowBootstrapLog,omitempty"`
+	Bootstrap                 *AuthBootstrap    `yaml:"bootstrap,omitempty"`
+	IssuerUrl                 string            `yaml:"issuerUrl,omitempty"`
+	Client                    *AuthClient       `yaml:"client,omitempty"`
+	ConsoleClient             string            `yaml:"consoleClient,omitempty"`
+	ConsoleClientEnabled      *bool             `yaml:"consoleClientEnabled,omitempty"`
+	RateLimit                 *AuthRateLimit    `yaml:"rateLimit,omitempty"`
+	SessionStore              *AuthSessionStore `yaml:"sessionStore,omitempty"`
+	TokenTtl                  *AuthTokenTtl     `yaml:"tokenTtl,omitempty"`
+	OidcTtl                   *AuthOidcTtl      `yaml:"oidcTtl,omitempty"`
+}
+
+type AuthBootstrap struct {
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+}
+
+type AuthClient struct {
+	ID     string `yaml:"id,omitempty"`
+	Secret string `yaml:"secret,omitempty"`
+}
+
+type AuthRateLimit struct {
+	Enabled              *bool `yaml:"enabled,omitempty"`
+	MaxRequestsPerWindow int   `yaml:"maxRequestsPerWindow,omitempty"`
+	WindowMs             int   `yaml:"windowMs,omitempty"`
+}
+
+type AuthSessionStore struct {
+	Type   string `yaml:"type,omitempty"`
+	TtlMs  int    `yaml:"ttlMs,omitempty"`
+	Secret string `yaml:"secret,omitempty"`
+}
+
+type AuthTokenTtl struct {
+	AccessTokenTtlSeconds  int `yaml:"accessTokenTtlSeconds,omitempty"`
+	RefreshTokenTtlSeconds int `yaml:"refreshTokenTtlSeconds,omitempty"`
+}
+
+type AuthOidcTtl struct {
+	InteractionTtlSeconds int `yaml:"interactionTtlSeconds,omitempty"`
+	GrantTtlSeconds       int `yaml:"grantTtlSeconds,omitempty"`
+	SessionTtlSeconds     int `yaml:"sessionTtlSeconds,omitempty"`
+	IdTokenTtlSeconds     int `yaml:"idTokenTtlSeconds,omitempty"`
 }
 
 type Database struct {
@@ -116,11 +155,13 @@ type Volume struct {
 }
 
 type OfflineImage struct {
-	Name     string            `json:"name" yaml:"name"`
-	X86Image string            `json:"x86,omitempty" yaml:"x86,omitempty"`
-	ArmImage string            `json:"arm,omitempty" yaml:"arm,omitempty"`
-	Auth     *OfflineImageAuth `json:"auth,omitempty" yaml:"auth,omitempty"`
-	Agents   []string          `json:"agent,omitempty" yaml:"agent,omitempty"`
+	Name         string            `json:"name" yaml:"name"`
+	AMD64Image   string            `json:"amd64,omitempty" yaml:"amd64,omitempty"`
+	ARM64Image   string            `json:"arm64,omitempty" yaml:"arm64,omitempty"`
+	RISCV64Image string            `json:"riscv64,omitempty" yaml:"riscv64,omitempty"`
+	ArmImage     string            `json:"arm,omitempty" yaml:"arm,omitempty"`
+	Auth         *OfflineImageAuth `json:"auth,omitempty" yaml:"auth,omitempty"`
+	Agents       []string          `json:"agent,omitempty" yaml:"agent,omitempty"`
 }
 
 type OfflineImageAuth struct {
@@ -135,7 +176,7 @@ type AgentConfiguration struct {
 	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description               string  `json:"description,omitempty" yaml:"description"`
-	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
+	Arch                      *string `json:"arch,omitempty" yaml:"arch"`
 	client.AgentConfiguration `yaml:",inline"`
 }
 
@@ -191,27 +232,30 @@ type EdgeResourceHTTPInterface = client.HTTPEdgeResource
 type Display = client.EdgeResourceDisplay
 type HTTPEndpoint = client.HTTPEndpoint
 
-// FogTypeStringMap map human readable fog type to Controller fog type
-var FogTypeStringMap = map[string]int64{
+// ArchStringMap map human readable fog type to Controller fog type
+var ArchStringMap = map[string]int64{
 	"auto": 0,
 	"x86":  1,
 	"arm":  2,
 }
 
-// FogTypeIntMap map Controller fog type to human readable fog type
-var FogTypeIntMap = map[int]string{
+// ArchIntMap map Controller fog type to human readable fog type
+var ArchIntMap = map[int]string{
 	0: "auto",
 	1: "x86",
 	2: "arm",
 }
 
-type K8SControllerConfig struct {
-	PidBaseDir    string `yaml:"pidBaseDir,omitempty"`
-	EcnViewerPort int    `yaml:"ecnViewerPort,omitempty"`
-	EcnViewerURL  string `yaml:"ecnViewerUrl,omitempty"`
-	LogLevel      string `yaml:"logLevel,omitempty"`
-	Https         *bool  `yaml:"https,omitempty"`
-	SecretName    string `yaml:"secretName,omitempty"`
+// ControllerConfig is operator-aligned runtime config for the ioFog Controller (spec.controller).
+type ControllerConfig struct {
+	PublicUrl   string `yaml:"publicUrl,omitempty"`
+	TrustProxy  *bool  `yaml:"trustProxy,omitempty"`
+	ConsoleUrl  string `yaml:"consoleUrl,omitempty"`
+	ConsolePort int    `yaml:"consolePort,omitempty"`
+	PidBaseDir  string `yaml:"pidBaseDir,omitempty"`
+	LogLevel    string `yaml:"logLevel,omitempty"`
+	Https       *bool  `yaml:"https,omitempty"`
+	SecretName  string `yaml:"secretName,omitempty"`
 }
 
 type RemoteControllerConfig struct {

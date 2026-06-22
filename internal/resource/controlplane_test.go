@@ -1,9 +1,11 @@
 package resource
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -11,11 +13,59 @@ const (
 	password = "as901yh3rinsd"
 )
 
+func TestKubernetesControlPlaneYAMLNoEcnViewer(t *testing.T) {
+	trustProxy := true
+	cp := KubernetesControlPlane{
+		Endpoint:   "https://controller.example.com",
+		KubeConfig: "/tmp/kubeconfig",
+		IofogUser:  IofogUser{Email: email},
+		Controller: ControllerConfig{
+			PublicUrl:  "https://controller.example.com",
+			ConsoleUrl: "https://controller.example.com",
+			TrustProxy: &trustProxy,
+		},
+	}
+	out, err := yaml.Marshal(cp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(out)
+	for _, retired := range []string{"ecnViewerPort", "ecnViewerUrl"} {
+		if strings.Contains(text, retired) {
+			t.Fatalf("YAML must not contain %q:\n%s", retired, text)
+		}
+	}
+	for _, want := range []string{"endpoint:", "publicUrl:", "consoleUrl:"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("YAML missing %q:\n%s", want, text)
+		}
+	}
+}
+
 func TestKubernetesControlPlane(t *testing.T) {
+	trustProxy := true
 	cp := KubernetesControlPlane{
 		Endpoint:   "123.123.123.123",
 		KubeConfig: "~/.kube/config",
 		IofogUser:  IofogUser{Email: "user@domain.com", Password: "password"},
+		Controller: ControllerConfig{
+			PublicUrl:  "https://controller.example.com",
+			ConsoleUrl: "https://console.example.com",
+			TrustProxy: &trustProxy,
+		},
+		Auth: Auth{
+			Mode: "embedded",
+			Bootstrap: &AuthBootstrap{
+				Username: "admin",
+				Password: "BootstrapPass1!",
+			},
+		},
+	}
+	if cp.Controller.PublicUrl != "https://controller.example.com" {
+		t.Error("Wrong publicUrl")
+	}
+	if cp.Auth.Mode != "embedded" {
+		t.Error("Wrong auth mode")
 	}
 	if endpoint, err := cp.GetEndpoint(); err != nil || endpoint != "123.123.123.123" {
 		t.Error("Wrong endpoint")

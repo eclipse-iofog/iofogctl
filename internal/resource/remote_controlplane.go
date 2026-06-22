@@ -8,6 +8,7 @@ import (
 type RemoteSystemMicroservices = install.RemoteSystemMicroservices
 
 type RemoteControlPlane struct {
+	CA                  string                    `yaml:"ca,omitempty"`
 	IofogUser           IofogUser                 `yaml:"iofogUser"`
 	Controllers         []RemoteController        `yaml:"controllers"`
 	Database            Database                  `yaml:"database"`
@@ -19,6 +20,10 @@ type RemoteControlPlane struct {
 	Vault               *VaultSpec                `yaml:"vault,omitempty"`
 	Endpoint            string                    `yaml:"endpoint,omitempty"`
 	Airgap              bool                      `yaml:"airgap,omitempty"`
+}
+
+func (cp *RemoteControlPlane) GetTrustCA() string {
+	return cp.CA
 }
 
 func (cp *RemoteControlPlane) GetUser() IofogUser {
@@ -119,6 +124,7 @@ func (cp *RemoteControlPlane) Clone() ControlPlane {
 	controllers := make([]RemoteController, len(cp.Controllers))
 	copy(controllers, cp.Controllers)
 	return &RemoteControlPlane{
+		CA:                  cp.CA,
 		IofogUser:           cp.IofogUser,
 		Database:            cp.Database,
 		Auth:                cp.Auth,

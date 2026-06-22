@@ -8,6 +8,7 @@ import (
 
 type KubernetesControlPlane struct {
 	KubeConfig     string                 `yaml:"config"`
+	CA             string                 `yaml:"ca,omitempty"`
 	IofogUser      IofogUser              `yaml:"iofogUser"`
 	ControllerPods []KubernetesController `yaml:"controllerPods,omitempty"`
 	Database       Database               `yaml:"database"`
@@ -17,10 +18,14 @@ type KubernetesControlPlane struct {
 	Replicas       Replicas               `yaml:"replicas,omitempty"`
 	Images         KubeImages             `yaml:"images,omitempty"`
 	Endpoint       string                 `yaml:"endpoint,omitempty"`
-	Controller     K8SControllerConfig    `yaml:"controller,omitempty"`
+	Controller     ControllerConfig       `yaml:"controller,omitempty"`
 	Ingresses      Ingresses              `yaml:"ingresses,omitempty"`
 	Nats           *NatsSpec              `yaml:"nats,omitempty"`
 	Vault          *VaultSpec             `yaml:"vault,omitempty"`
+}
+
+func (cp *KubernetesControlPlane) GetTrustCA() string {
+	return cp.CA
 }
 
 func (cp *KubernetesControlPlane) GetUser() IofogUser {
@@ -131,6 +136,7 @@ func (cp *KubernetesControlPlane) Clone() ControlPlane {
 	copy(controllerPods, cp.ControllerPods)
 	return &KubernetesControlPlane{
 		KubeConfig:     cp.KubeConfig,
+		CA:             cp.CA,
 		IofogUser:      cp.IofogUser,
 		Auth:           cp.Auth,
 		Database:       cp.Database,

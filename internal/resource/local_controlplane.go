@@ -5,6 +5,7 @@ import (
 )
 
 type LocalControlPlane struct {
+	CA                  string                    `yaml:"ca,omitempty"`
 	IofogUser           IofogUser                 `yaml:"iofogUser"`
 	Controller          *LocalController          `yaml:"controller,omitempty"`
 	Database            Database                  `yaml:"database"`
@@ -12,6 +13,10 @@ type LocalControlPlane struct {
 	Events              Events                    `yaml:"events,omitempty"`
 	SystemMicroservices *LocalSystemMicroservices `yaml:"systemMicroservices,omitempty"`
 	Nats                *NatsEnabledConfig        `yaml:"nats,omitempty"`
+}
+
+func (cp *LocalControlPlane) GetTrustCA() string {
+	return cp.CA
 }
 
 func (cp *LocalControlPlane) GetUser() IofogUser {
@@ -85,6 +90,7 @@ func (cp *LocalControlPlane) Clone() ControlPlane {
 		}
 	}
 	return &LocalControlPlane{
+		CA:                  cp.CA,
 		IofogUser:           cp.IofogUser,
 		Controller:          cp.Controller.Clone().(*LocalController),
 		Database:            cp.Database,
