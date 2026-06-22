@@ -43,9 +43,10 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		return util.NewError("The microservice is not currently running")
 	}
 
-	switch baseAgent.(type) {
+	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		lc, err := install.NewLocalContainerClient()
+		sdkCfg := localAgentSDKConfig(agent)
+		lc, err := install.NewLocalContainerClient(install.LocalContainerEngineForHostOps(sdkCfg), sdkCfg)
 		if err != nil {
 			return err
 		}

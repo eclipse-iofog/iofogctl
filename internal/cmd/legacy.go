@@ -48,7 +48,7 @@ func k8sExecute(kubeConfig, namespace, podSelector string, cliCmd, cmd []string)
 
 func localExecute(container string, localCLI, localCmd []string) {
 	// Execute command
-	localContainerClient, err := install.NewLocalContainerClient()
+	localContainerClient, err := install.NewLocalContainerClient(install.DefaultLocalContainerEngine, nil)
 	util.Check(err)
 	cmd := append(localCLI, localCmd...)
 	result, err := localContainerClient.ExecuteCmd(container, cmd)
@@ -139,14 +139,15 @@ iofogctl legacy agent      NAME COMMAND`,
 				util.Check(err)
 				switch agent := baseAgent.(type) {
 				case *rsc.LocalAgent:
-					localExecute(install.GetLocalContainerName("agent", false), []string{"iofog-agent"}, args[2:])
+					out, err := util.Exec("", "edgelet", args[2:]...)
+					util.Check(err)
+					fmt.Print(out)
 					return
 				case *rsc.RemoteAgent:
-					// SSH connect
 					if agent.ValidateSSH() != nil {
 						util.Check(fmt.Errorf(sshErrMsg, "Agent", agent.Name))
 					}
-					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo iofog-agent", args[2:])
+					remoteExec(agent.SSH.User, agent.Host, agent.SSH.KeyFile, agent.SSH.Port, "sudo edgelet", args[2:])
 				}
 			default:
 				util.Check(util.NewInputError("Unknown legacy CLI " + resource))

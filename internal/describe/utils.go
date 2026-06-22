@@ -310,6 +310,9 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 	formatted["securityStatus"] = status.SecurityStatus
 	formatted["warningMessage"] = status.WarningMessage
 	formatted["securityViolationInfo"] = status.SecurityViolationInfo
+	formatted["availableRuntimes"] = status.AvailableRuntimes
+	formatted["runtimeAgentPhase"] = status.RuntimeAgentPhase
+	formatted["controlPlaneQuiesced"] = status.ControlPlaneQuiesced
 
 	// Format timestamps
 	if status.LastActive > 0 {

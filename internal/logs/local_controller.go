@@ -24,7 +24,7 @@ func (exe *localControllerExecutor) GetName() string {
 }
 
 func (exe *localControllerExecutor) Execute() error {
-	lc, err := install.NewLocalContainerClient()
+	lc, err := install.NewLocalContainerClient(install.DefaultLocalContainerEngine, nil)
 	if err != nil {
 		return err
 	}

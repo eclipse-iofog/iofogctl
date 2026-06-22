@@ -69,8 +69,8 @@ func (exe executor) Execute() (err error) {
 	// Remove from Controller
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err = exe.deleteLocalContainer(); err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not remove Agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
+		if err = exe.deleteLocalEdgelet(agent); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not remove Agent from the local host %s. Error: %s\n", agent.GetHost(), err.Error()))
 		}
 	case *rsc.RemoteAgent:
 		if err = exe.deleteRemoteAgent(agent); err != nil {

@@ -45,7 +45,7 @@ func (exe executor) Execute() error {
 	// Prune Agent
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err := exe.localAgentPrune(); err != nil {
+		if err := exe.localAgentPrune(agent); err != nil {
 			return err
 		}
 	case *rsc.RemoteAgent:

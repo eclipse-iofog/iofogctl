@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -47,14 +48,14 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	switch baseAgent.(type) {
+	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		lc, err := install.NewLocalContainerClient()
+		sdkCfg := localAgentSDKConfig(agent)
+		lc, err := install.NewLocalContainerClient(install.LocalContainerEngineForHostOps(sdkCfg), sdkCfg)
 		if err != nil {
 			return err
 		}
-		containerName := install.GetLocalContainerName("agent", false)
-		stdout, stderr, err := lc.GetLogsByName(containerName)
+		stdout, stderr, err := lc.GetLogsByName(install.EdgeletContainerName)
 		if err != nil {
 			return err
 		}
@@ -130,4 +131,11 @@ func (exe *agentExecutor) Execute() error {
 	}
 
 	return nil
+}
+
+func localAgentSDKConfig(agent *rsc.LocalAgent) *client.AgentConfiguration {
+	if agent == nil || agent.Config == nil {
+		return nil
+	}
+	return &agent.Config.AgentConfiguration
 }

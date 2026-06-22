@@ -137,18 +137,7 @@ func syncAgentInfo(namespace string) error {
 			continue
 		}
 
-		agent := rsc.RemoteAgent{
-			Name: backendAgent.Name,
-			UUID: backendAgent.UUID,
-			Host: backendAgent.Host,
-		}
-		// Update additional info if local cache contains it
-		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
-			agent.Created = cachedAgent.GetCreatedTime()
-			agent.SSH = cachedAgent.SSH
-		}
-
-		agents[idx] = agent
+		agents[idx] = mergeRemoteAgentFromBackend(agentsMap[backendAgent.Name], backendAgent)
 	}
 
 	// Overwrite the Agents
@@ -166,6 +155,39 @@ func syncAgentInfo(namespace string) error {
 	}
 
 	return config.Flush()
+}
+
+// mergeRemoteAgentFromBackend updates UUID and Controller registration host from the API
+// while preserving locally configured SSH host (spec.host) and deploy metadata.
+func mergeRemoteAgentFromBackend(cached *rsc.RemoteAgent, backend *client.AgentInfo) rsc.RemoteAgent {
+	var agent rsc.RemoteAgent
+	if cached != nil {
+		agent = *cached.Clone().(*rsc.RemoteAgent)
+	} else {
+		agent = rsc.RemoteAgent{
+			Name: backend.Name,
+			Host: backend.Host,
+		}
+	}
+
+	agent.Name = backend.Name
+	agent.UUID = backend.UUID
+	if agent.Host == "" {
+		agent.Host = backend.Host
+	}
+	setRemoteAgentRegistrationHost(&agent, backend.Host)
+	return agent
+}
+
+func setRemoteAgentRegistrationHost(agent *rsc.RemoteAgent, registrationHost string) {
+	if registrationHost == "" {
+		return
+	}
+	if agent.Config == nil {
+		agent.Config = &rsc.AgentConfiguration{}
+	}
+	host := registrationHost
+	agent.Config.Host = &host
 }
 
 func newControllerClient(namespace string) (*client.Client, error) {

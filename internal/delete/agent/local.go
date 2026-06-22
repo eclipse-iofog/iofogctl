@@ -4,23 +4,26 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
-
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func (exe executor) deleteLocalContainer() error {
-	client, err := install.NewLocalContainerClient()
+func (exe executor) deleteLocalEdgelet(agent *rsc.LocalAgent) error {
+	cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
+	edgelet, err := install.NewLocalEdgelet(agent.Name, agent.UUID, cfg)
 	if err != nil {
 		return err
 	}
-
-	// Clean agent containers (normal and system)
-	if errClean := client.CleanContainer(install.GetLocalContainerName("agent", false)); errClean != nil {
-		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
+	if err := edgelet.Uninstall(true); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not remove edgelet from local host: %v", err))
 	}
 
-	// Clean microservices
+	client, err := install.NewLocalContainerClientFromEdgeletCfg(cfg)
+	if err != nil {
+		return err
+	}
 	containers, err := client.ListContainers()
 	if err != nil {
 		return err
@@ -35,6 +38,5 @@ func (exe executor) deleteLocalContainer() error {
 			}
 		}
 	}
-
 	return nil
 }

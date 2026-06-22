@@ -35,7 +35,7 @@ func (exe *LocalExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	client, err := install.NewLocalContainerClient()
+	client, err := install.NewLocalContainerClient(install.DefaultLocalContainerEngine, nil)
 	if err != nil {
 		return err
 	}

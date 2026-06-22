@@ -165,7 +165,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		agentMapByUUID[agent.UUID] = *agent
 	}
 
-	arch, found := rsc.ArchIntMap[agentInfo.ArchID]
+	arch, found := rsc.ArchIDToString(agentInfo.ArchID)
 	if !found {
 		arch = "auto"
 	}
@@ -281,6 +281,9 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		Tunnel:                agentInfo.Tunnel,
 		VolumeMounts:          convertVolumeMounts(agentInfo.VolumeMounts),
 		GpsStatus:             agentInfo.GpsStatus,
+		AvailableRuntimes:     []string(agentInfo.AvailableRuntimes),
+		RuntimeAgentPhase:     agentInfo.RuntimeAgentPhase,
+		ControlPlaneQuiesced:  agentInfo.ControlPlaneQuiesced,
 	}
 
 	return agentConfig, tags, agentStatus, err

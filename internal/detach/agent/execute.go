@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -72,7 +73,8 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	// Deprovision agent
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err := exe.localDeprovision(); err != nil {
+		cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
+		if err := exe.localDeprovision(agent.Name, agent.UUID, cfg); err != nil {
 			return err
 		}
 	case *rsc.RemoteAgent:
