@@ -9,8 +9,6 @@
 # KEY_FILE
 # AGENT_PACKAGE_CLOUD_TOKEN
 # CONTROLLER_IMAGE
-# PORT_MANAGER_IMAGE
-# PROXY_IMAGE
 # ROUTER_IMAGE
 # SCHEDULER_IMAGE
 # OPERATOR_IMAGE
@@ -18,6 +16,30 @@
 . test/func/include.bash
 
 NS="$NAMESPACE"
+
+writeK8sControlPlaneYAML() {
+  echo "---
+apiVersion: iofog.org/v3
+kind: KubernetesControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $USER_PW
+  config: $KUBE_CONFIG
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: BootstrapPass1!
+  images:
+    controller: $CONTROLLER_IMAGE
+    operator: $OPERATOR_IMAGE
+    router: $ROUTER_IMAGE" > test/conf/k8s.yaml
+}
 
 @test "Initialize tests" {
   stopTest
@@ -49,25 +71,7 @@ NS="$NAMESPACE"
 
 @test "Deploy Control Plane" {
   startTest
-  echo "---
-apiVersion: iofog.org/v3
-kind: KubernetesControlPlane
-metadata:
-  name: func-controlplane
-spec:
-  iofogUser:
-    name: Testing
-    surname: Functional
-    email: $USER_EMAIL
-    password: $USER_PW
-  config: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    operator: $OPERATOR_IMAGE
-    portManager: $PORT_MANAGER_IMAGE
-    proxy: $PROXY_IMAGE
-    router: $ROUTER_IMAGE" > test/conf/k8s.yaml
-
+  writeK8sControlPlaneYAML
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
   stopTest
@@ -75,8 +79,12 @@ spec:
 
 @test "Get endpoint" {
   startTest
-  CONTROLLER_ENDPOINT=$(iofogctl -v -n "$NS" describe controlplane | grep endpoint | sed "s|.*endpoint: ||")
+  DESC=$(iofogctl -v -n "$NS" describe controlplane)
+  CONTROLLER_ENDPOINT=$(echo "$DESC" | grep endpoint | sed "s|.*endpoint: ||")
   [[ ! -z "$CONTROLLER_ENDPOINT" ]]
+  echo "$DESC" | grep publicUrl
+  echo "$DESC" | grep consoleUrl
+  ! echo "$DESC" | grep ecnViewer
   echo "$CONTROLLER_ENDPOINT" > /tmp/endpoint.txt
   stopTest
 }
@@ -136,25 +144,7 @@ spec:
 
 @test "Deploy Controller for idempotence" {
   startTest
-  echo "---
-apiVersion: iofog.org/v3
-kind: KubernetesControlPlane
-metadata:
-  name: func-controlplane
-spec:
-  iofogUser:
-    name: Testing
-    surname: Functional
-    email: $USER_EMAIL
-    password: $USER_PW
-  config: $KUBE_CONFIG
-  images:
-    controller: $CONTROLLER_IMAGE
-    operator: $OPERATOR_IMAGE
-    portManager: $PORT_MANAGER_IMAGE
-    proxy: $PROXY_IMAGE
-    router: $ROUTER_IMAGE" > test/conf/k8s.yaml
-
+  writeK8sControlPlaneYAML
   iofogctl -v -n "$NS" deploy -f test/conf/k8s.yaml
   checkControllerK8s
   stopTest
