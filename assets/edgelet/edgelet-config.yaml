@@ -1,0 +1,49 @@
+# Edgelet release default configuration (sample).
+# Copy to /etc/edgelet/config.yaml on first install, or run: edgelet init-config
+currentProfile: production
+profiles:
+  production:
+    controllerUrl: "http://localhost:54421/api/v3/"
+    iofogUuid: ""
+    secureMode: "on"
+    devMode: "off"
+    controllerCert: "/etc/edgelet/cert.crt"
+    arch: "auto"
+    networkInterface: "dynamic"
+    # containerEngine selects the container runtime.
+    # Supported values:
+    #   docker  — use Docker daemon (requires Docker installed on host).
+    #             containerEngineUrl specifies the socket path.
+    #             default containerEngineUrl is unix:///var/run/docker.sock
+    #   podman  — use Podman daemon via its Docker-compatible API.
+    #             containerEngineUrl is used as the Podman socket path; if empty,
+    #             the default Podman socket is auto-detected.
+    #             default containerEngineUrl is unix:///run/podman/containerd.sock
+    #   edgelet — default container engine for linux, uses the embedded containerd engine bundled with edgelet.
+    #             containerEngineUrl is ignored; the daemon always connects to its private
+    #             socket at /run/edgelet/containerd.sock.
+    #             Persistent data lives in /var/lib/edgelet-containerd/ and
+    #             is NOT counted against diskDirectory/diskConsumptionLimit.
+    containerEngine: "edgelet"
+    containerEngineUrl: "unix:///run/edgelet/containerd.sock"
+    diskConsumptionLimit: "10"
+    diskDirectory: "/var/lib/edgelet/"
+    memoryConsumptionLimit: "4096"
+    processorConsumptionLimit: "80.0"
+    logDiskConsumptionLimit: "10.0"
+    logDiskDirectory: "/var/log/edgelet/"
+    logFileCount: "10"
+    logLevel: "INFO"
+    statusFrequency: "30"
+    changeFrequency: "10"
+    scanDevicesFreq: "60"
+    gps: "auto"
+    gpsCoordinates: "0,0"
+    gpsDevice: ""
+    gpsScanFrequency: "60"
+    watchdogEnabled: "off"
+    edgeGuardFreq: "0"
+    pruningFrequency: "0"
+    availableDiskThreshold: "20"
+    upgradeScanFrequency: "24"
+    timeZone: "Europe/Istanbul"
