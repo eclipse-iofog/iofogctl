@@ -34,98 +34,10 @@ type container struct {
 
 func newOperatorMicroservice() *microservice {
 	return &microservice{
-		name:     "iofog-operator",
-		ports:    []int32{60000},
-		replicas: 1,
-		rbacRules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{
-					"rbac.authorization.k8s.io",
-				},
-				Resources: []string{
-					"roles",
-					"rolebindings",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"networking.k8s.io",
-				},
-				Resources: []string{
-					"ingresses",
-					"ingresses/status",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"iofog.org",
-				},
-				Resources: []string{
-					"apps",
-					"applications",
-					"applications/status",
-					"controlplanes",
-					"apps/status",
-					"controlplanes/status",
-					"apps/finalizers",
-					"applications/finalizers",
-					"controlplanes/finalizers",
-				},
-				Verbs: []string{
-					"list",
-					"get",
-					"watch",
-					"update",
-				},
-			},
-			{
-				APIGroups: []string{
-					"apps",
-				},
-				Resources: []string{
-					"deployments",
-					"statefulsets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"coordination.k8s.io",
-				},
-				Resources: []string{
-					"leases",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"pods",
-					"configmaps",
-					"configmaps/status",
-					"events",
-					"serviceaccounts",
-					"services",
-					"persistentvolumeclaims",
-					"secrets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-		},
+		name:      "iofog-operator",
+		ports:     []int32{60000},
+		replicas:  1,
+		rbacRules: newOperatorRBACRules(),
 		containers: []container{
 			{
 				name:            "iofog-operator",
@@ -166,6 +78,56 @@ func newOperatorMicroservice() *microservice {
 					"--enable-leader-election",
 				},
 			},
+		},
+	}
+}
+
+func newOperatorRBACRules() []rbacv1.PolicyRule {
+	group := util.GetCliCrdGroup()
+	return []rbacv1.PolicyRule{
+		{
+			APIGroups: []string{"coordination.k8s.io"},
+			Resources: []string{"leases"},
+			Verbs:     []string{"*"},
+		},
+		{
+			APIGroups: []string{"rbac.authorization.k8s.io"},
+			Resources: []string{"roles", "rolebindings"},
+			Verbs:     []string{"*"},
+		},
+		{
+			APIGroups: []string{"networking.k8s.io"},
+			Resources: []string{"ingresses", "ingresses/status"},
+			Verbs:     []string{"*"},
+		},
+		{
+			APIGroups: []string{group},
+			Resources: []string{"controlplanes"},
+			Verbs:     []string{"create", "delete", "get", "list", "patch", "update", "watch"},
+		},
+		{
+			APIGroups: []string{group},
+			Resources: []string{"controlplanes/status", "controlplanes/finalizers"},
+			Verbs:     []string{"get", "patch", "update"},
+		},
+		{
+			APIGroups: []string{"apps"},
+			Resources: []string{"deployments", "statefulsets"},
+			Verbs:     []string{"*"},
+		},
+		{
+			APIGroups: []string{""},
+			Resources: []string{
+				"pods",
+				"configmaps",
+				"configmaps/status",
+				"events",
+				"serviceaccounts",
+				"services",
+				"persistentvolumeclaims",
+				"secrets",
+			},
+			Verbs: []string{"*"},
 		},
 	}
 }

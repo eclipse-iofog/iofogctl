@@ -178,14 +178,8 @@ func NewLocalControllerConfig(image string, credentials Credentials, auth Auth, 
 		"DB_NAME=" + db.DatabaseName,
 		"DB_USE_SSL=" + sslValue,
 		"DB_SSL_CA=" + caValue,
-		"KC_URL=" + auth.URL,
-		"KC_REALM=" + auth.Realm,
-		"KC_SSL_REQ=" + auth.SSL,
-		"KC_REALM_KEY=" + auth.RealmKey,
-		"KC_CLIENT=" + auth.ControllerClient,
-		"KC_CLIENT_SECRET=" + auth.ControllerSecret,
-		"KC_VIEWER_CLIENT=" + auth.ViewerClient,
 	}
+	_ = auth // v3.8 auth is embedded/external OIDC — not Keycloak env vars
 
 	// Add Events environment variables only if Events is explicitly configured
 	if events.AuditEnabled != nil {

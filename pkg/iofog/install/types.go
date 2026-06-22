@@ -13,15 +13,7 @@ type IofogUser struct {
 	RefreshToken string
 }
 
-type Auth struct {
-	URL              string
-	Realm            string
-	SSL              string
-	RealmKey         string
-	ControllerClient string
-	ControllerSecret string
-	ViewerClient     string
-}
+type Auth = cpv3.Auth
 
 type Database struct {
 	Provider     string
@@ -82,18 +74,12 @@ type Pod struct {
 }
 
 type K8SControllerConfig struct {
-	// User          IofogUser
-	Replicas      int32
-	ReplicasNats  int32
-	Database      Database
-	PidBaseDir    string
-	EcnViewerPort int
-	EcnViewerURL  string
-	LogLevel      string
-	Auth          Auth
-	Events        Events
-	Https         *bool
-	SecretName    string
-	Nats          *cpv3.Nats
-	Vault         *cpv3.Vault
+	Replicas     int32
+	ReplicasNats int32
+	Database     Database
+	Auth         Auth
+	Events       Events
+	Controller   cpv3.Controller
+	Nats         *cpv3.Nats
+	Vault        *cpv3.Vault
 }

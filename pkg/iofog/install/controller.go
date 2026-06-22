@@ -19,8 +19,10 @@ const (
 )
 
 type RemoteSystemImages struct {
-	ARM string `yaml:"arm,omitempty"`
-	X86 string `yaml:"x86,omitempty"`
+	ARM     string `yaml:"arm,omitempty"`
+	AMD64   string `yaml:"amd64,omitempty"`
+	ARM64   string `yaml:"arm64,omitempty"`
+	RISCV64 string `yaml:"riscv64,omitempty"`
 }
 
 type RemoteSystemMicroservices struct {
@@ -469,11 +471,17 @@ func appendControllerBaseEnv(env []string, ctrl *Controller) []string {
 	if ctrl.EcnViewerURL != "" {
 		env = append(env, fmt.Sprintf("\"VIEWER_URL=%s\"", ctrl.EcnViewerURL))
 	}
-	if ctrl.SystemMicroservices.Router.X86 != "" {
-		env = append(env, fmt.Sprintf("\"ROUTER_IMAGE_1=%s\"", ctrl.SystemMicroservices.Router.X86))
+	if ctrl.SystemMicroservices.Router.AMD64 != "" {
+		env = append(env, fmt.Sprintf("\"ROUTER_IMAGE_1=%s\"", ctrl.SystemMicroservices.Router.AMD64))
+	}
+	if ctrl.SystemMicroservices.Router.ARM64 != "" {
+		env = append(env, fmt.Sprintf("\"ROUTER_IMAGE_2=%s\"", ctrl.SystemMicroservices.Router.ARM64))
+	}
+	if ctrl.SystemMicroservices.Router.RISCV64 != "" {
+		env = append(env, fmt.Sprintf("\"ROUTER_IMAGE_3=%s\"", ctrl.SystemMicroservices.Router.RISCV64))
 	}
 	if ctrl.SystemMicroservices.Router.ARM != "" {
-		env = append(env, fmt.Sprintf("\"ROUTER_IMAGE_2=%s\"", ctrl.SystemMicroservices.Router.ARM))
+		env = append(env, fmt.Sprintf("\"ROUTER_IMAGE_4=%s\"", ctrl.SystemMicroservices.Router.ARM))
 	}
 	return env
 }
@@ -512,23 +520,36 @@ func appendAuthEnv(env []string, ctrl *Controller) []string {
 }
 
 func appendNatsEnv(env []string, ctrl *Controller) []string {
-	natsX86 := ctrl.SystemMicroservices.Nats.X86
+	natsAMD64 := ctrl.SystemMicroservices.Nats.AMD64
+	natsARM64 := ctrl.SystemMicroservices.Nats.ARM64
+	natsRISCV64 := ctrl.SystemMicroservices.Nats.RISCV64
 	natsARM := ctrl.SystemMicroservices.Nats.ARM
-	if natsX86 == "" && natsARM != "" {
-		natsX86 = natsARM
+	if natsAMD64 == "" && natsARM64 != "" {
+		natsAMD64 = natsARM64
 	}
-	if natsARM == "" && natsX86 != "" {
-		natsARM = natsX86
+	if natsARM64 == "" && natsAMD64 != "" {
+		natsARM64 = natsAMD64
 	}
-	if natsX86 == "" && natsARM == "" {
-		natsX86 = util.GetNatsImage()
-		natsARM = natsX86
+	if natsRISCV64 == "" && natsARM != "" {
+		natsRISCV64 = natsARM
 	}
-	if natsX86 != "" {
-		env = append(env, fmt.Sprintf("\"NATS_IMAGE_1=%s\"", natsX86))
+	if natsARM == "" && natsRISCV64 != "" {
+		natsARM = natsRISCV64
+	}
+	if natsAMD64 == "" && natsARM64 == "" && natsRISCV64 == "" {
+		natsAMD64 = util.GetNatsImage()
+	}
+	if natsAMD64 != "" {
+		env = append(env, fmt.Sprintf("\"NATS_IMAGE_1=%s\"", natsAMD64))
+	}
+	if natsARM64 != "" {
+		env = append(env, fmt.Sprintf("\"NATS_IMAGE_2=%s\"", natsARM64))
+	}
+	if natsRISCV64 != "" {
+		env = append(env, fmt.Sprintf("\"NATS_IMAGE_3=%s\"", natsRISCV64))
 	}
 	if natsARM != "" {
-		env = append(env, fmt.Sprintf("\"NATS_IMAGE_2=%s\"", natsARM))
+		env = append(env, fmt.Sprintf("\"NATS_IMAGE_4=%s\"", natsARM))
 	}
 	natsEnabled := true
 	if ctrl.NatsEnabled != nil {

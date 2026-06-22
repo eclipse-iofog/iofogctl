@@ -329,18 +329,18 @@ func (agent *RemoteAgent) Configure(controllerEndpoint string, user IofogUser) (
 }
 
 func (agent *RemoteAgent) SetInitialConfig(
-	name, fogType string,
+	name, arch string,
 	// latitude, longitude float64,
-	// description, fogType string,
+	// description, arch string,
 	agentConfig client.AgentConfiguration,
 ) error {
 	// Prepare the base commands for agent configuration
 	cmds := []command{}
 
-	// Convert FogType (string) to required format if necessary
-	fogTypeValue := fogType
-	if fogType == "" {
-		fogTypeValue = "auto" // Default value if fogType is empty
+	// Convert Arch (string) to required format if necessary
+	archValue := arch
+	if arch == "" {
+		archValue = "auto" // Default value if arch is empty
 	}
 
 	// Convert WatchdogEnabled (*bool) to "on"/"off"
@@ -357,7 +357,7 @@ func (agent *RemoteAgent) SetInitialConfig(
 
 	// Extract values from agentConfig and construct options
 	configOptions := map[string]string{
-		"-ft": fogTypeValue,
+		"-ft": archValue,
 		// "-gps": gpsCoordinates,
 	}
 
@@ -365,8 +365,8 @@ func (agent *RemoteAgent) SetInitialConfig(
 	if agentConfig.NetworkInterface != nil && *agentConfig.NetworkInterface != "" {
 		configOptions["-n"] = *agentConfig.NetworkInterface
 	}
-	if agentConfig.DockerURL != nil && *agentConfig.DockerURL != "" {
-		configOptions["-c"] = *agentConfig.DockerURL
+	if agentConfig.ContainerEngineURL != nil && *agentConfig.ContainerEngineURL != "" {
+		configOptions["-c"] = *agentConfig.ContainerEngineURL
 	}
 	if agentConfig.DiskLimit != nil {
 		configOptions["-d"] = strconv.FormatInt(*agentConfig.DiskLimit, 10)
@@ -404,8 +404,8 @@ func (agent *RemoteAgent) SetInitialConfig(
 	if agentConfig.AvailableDiskThreshold != nil {
 		configOptions["-dt"] = strconv.FormatFloat(*agentConfig.AvailableDiskThreshold, 'f', -1, 64)
 	}
-	if agentConfig.DockerPruningFrequency != nil {
-		configOptions["-pf"] = strconv.FormatFloat(*agentConfig.DockerPruningFrequency, 'f', -1, 64)
+	if agentConfig.PruningFrequency != nil {
+		configOptions["-pf"] = strconv.FormatFloat(*agentConfig.PruningFrequency, 'f', -1, 64)
 	}
 	// if agentConfig.GpsDevice != nil && *agentConfig.GpsDevice != "" {
 	// 	configOptions["-gpsd"] = *agentConfig.GpsDevice
