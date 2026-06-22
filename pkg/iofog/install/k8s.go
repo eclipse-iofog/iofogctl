@@ -710,9 +710,10 @@ func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
 	if err != nil {
 		return
 	}
-	// Find Controller pods
+	// Find Controller pods (label key follows build flavor: e.g. datasance.com/component or iofog.org/component)
+	componentLabel := util.GetCliCrdGroup() + "/component"
 	for idx := range pods.Items {
-		if pods.Items[idx].Labels["iofog.org/component"] == controller {
+		if controllerPodLabelsMatch(pods.Items[idx].Labels, componentLabel) {
 			podNames = append(podNames, Pod{
 				Name:   pods.Items[idx].Name,
 				Status: string(pods.Items[idx].Status.Phase),
@@ -720,4 +721,8 @@ func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
 		}
 	}
 	return
+}
+
+func controllerPodLabelsMatch(labels map[string]string, componentLabel string) bool {
+	return labels[componentLabel] == controller
 }

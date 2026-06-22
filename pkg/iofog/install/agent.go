@@ -10,6 +10,9 @@ type Agent interface {
 	getProvisionKey(string, IofogUser) (string, string, string, error)
 }
 
+// getProvisionKeyHook is set by tests to avoid Controller API calls during provision tests.
+var getProvisionKeyHook func(agent *defaultAgent, controllerEndpoint string, user IofogUser) (string, string, error)
+
 // defaultAgent implements commong behavior
 type defaultAgent struct {
 	name string
@@ -17,6 +20,9 @@ type defaultAgent struct {
 }
 
 func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, caCert string, err error) {
+	if getProvisionKeyHook != nil {
+		return getProvisionKeyHook(agent, controllerEndpoint, user)
+	}
 	// Connect to controller
 	baseURL, err := util.GetBaseURL(controllerEndpoint)
 	if err != nil {
