@@ -13,7 +13,7 @@ import (
 type applicationExecutor struct {
 	namespace           string
 	client              *client.Client
-	flows               []client.FlowInfo
+	applications        []client.ApplicationInfo
 	msvcsPerApplication map[int][]*client.MicroserviceInfo
 	natsPerApplication  map[int]*client.ApplicationNatsConfig
 }
@@ -63,11 +63,11 @@ func (exe *applicationExecutor) init() (err error) {
 		return err
 	}
 	// Execute non-legacy
-	// Map applications to flow
-	// TODO: Use Application instead of flow
-	exe.flows = []client.FlowInfo{}
+	// Map applications to application
+	// TODO: Use Application instead of application
+	exe.applications = []client.ApplicationInfo{}
 	for _, application := range applications.Applications {
-		exe.flows = append(exe.flows, client.FlowInfo{
+		exe.applications = append(exe.applications, client.ApplicationInfo{
 			Name:        application.Name,
 			IsActivated: application.IsActivated,
 			Description: application.Description,
@@ -95,18 +95,18 @@ func (exe *applicationExecutor) init() (err error) {
 
 func (exe *applicationExecutor) generateApplicationOutput() (table [][]string) {
 	// Generate table and headers
-	table = make([][]string, len(exe.flows)+1)
+	table = make([][]string, len(exe.applications)+1)
 	headers := []string{"APPLICATION", "RUNNING", "NATS ACCESS", "MICROSERVICES"}
 	table[0] = append(table[0], headers...)
 
 	// Populate rows
-	for idx, flow := range exe.flows {
-		nbMsvcs := len(exe.msvcsPerApplication[flow.ID])
+	for idx, application := range exe.applications {
+		nbMsvcs := len(exe.msvcsPerApplication[application.ID])
 		runningMsvcs := 0
 		msvcs := ""
 		first := true
-		for idx := range exe.msvcsPerApplication[flow.ID] {
-			msvc := exe.msvcsPerApplication[flow.ID][idx]
+		for idx := range exe.msvcsPerApplication[application.ID] {
+			msvc := exe.msvcsPerApplication[application.ID][idx]
 			if first {
 				msvcs += msvc.Name
 			} else {
@@ -119,17 +119,17 @@ func (exe *applicationExecutor) generateApplicationOutput() (table [][]string) {
 		}
 
 		if nbMsvcs > 5 {
-			msvcs = fmt.Sprintf("%d microservices", len(exe.msvcsPerApplication[flow.ID]))
+			msvcs = fmt.Sprintf("%d microservices", len(exe.msvcsPerApplication[application.ID]))
 		}
 
 		status := fmt.Sprintf("%d/%d", runningMsvcs, nbMsvcs)
 		natsAccess := "false"
-		if natsConfig := exe.natsPerApplication[flow.ID]; natsConfig != nil && natsConfig.NatsAccess {
+		if natsConfig := exe.natsPerApplication[application.ID]; natsConfig != nil && natsConfig.NatsAccess {
 			natsAccess = "true"
 		}
 
 		row := []string{
-			flow.Name,
+			application.Name,
 			status,
 			natsAccess,
 			msvcs,

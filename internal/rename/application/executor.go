@@ -3,8 +3,6 @@ package application
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/internal/config"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -21,19 +19,16 @@ func Execute(namespace, name, newName string) error {
 		return err
 	}
 
-	flow, err := clt.GetFlowByName(name)
+	_, err = clt.GetApplicationByName(name)
 	if err != nil {
 		return err
 	}
 
-	flow.Name = newName
-	_, err = clt.UpdateFlow(&client.FlowUpdateRequest{
-		ID:   flow.ID,
-		Name: &newName,
-	})
-	if err != nil {
-		return err
-	}
-	config.Flush()
-	return nil
+	// application.Name = newName
+	// // _, err = clt.UpdateApplication(&client.ApplicationUpdateRequest{
+	// // 	ID:   application.ID,
+	// // 	Name: &newName,
+	// // })
+	// fmt.Println(application)
+	return fmt.Errorf("Application renamed not allowed")
 }

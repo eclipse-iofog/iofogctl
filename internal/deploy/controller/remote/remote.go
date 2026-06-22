@@ -161,11 +161,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		deployer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Provider, db.DatabaseName, db.Port, db.SSL, db.CA)
 	}
 
-	if exe.controlPlane.Auth.URL != "" {
-		auth := exe.controlPlane.Auth
-		deployer.SetControllerAuth(auth.URL, auth.Realm, auth.SSL, auth.RealmKey, auth.ControllerClient, auth.ControllerSecret, auth.ViewerClient)
-	}
-
+	// v3.8 auth is embedded/external OIDC — configured via ControlPlane spec, not Keycloak env.
 	// Set events configuration if present
 	if exe.controlPlane.Events.AuditEnabled != nil {
 		auditEnabled := *exe.controlPlane.Events.AuditEnabled
@@ -196,14 +192,28 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func (exe *remoteExecutor) setDefaultValues() {
-	if exe.controlPlane.SystemMicroservices.Router.X86 == "" {
-		exe.controlPlane.SystemMicroservices.Router.X86 = util.GetRouterImage()
+	if exe.controlPlane.SystemMicroservices.Router.AMD64 == "" {
+		exe.controlPlane.SystemMicroservices.Router.AMD64 = util.GetRouterImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Router.ARM64 == "" {
+		exe.controlPlane.SystemMicroservices.Router.ARM64 = util.GetRouterImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Router.RISCV64 == "" {
+		exe.controlPlane.SystemMicroservices.Router.RISCV64 = util.GetRouterImage()
 	}
 	if exe.controlPlane.SystemMicroservices.Router.ARM == "" {
-		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
 	}
-	if exe.controlPlane.SystemMicroservices.Nats.X86 == "" {
-		exe.controlPlane.SystemMicroservices.Nats.X86 = util.GetNatsImage()
+	if exe.controlPlane.SystemMicroservices.Router.ARM == "" {
+		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetRouterImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Nats.AMD64 == "" {
+		exe.controlPlane.SystemMicroservices.Nats.AMD64 = util.GetNatsImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Nats.ARM64 == "" {
+		exe.controlPlane.SystemMicroservices.Nats.ARM64 = util.GetNatsImage()
+	}
+	if exe.controlPlane.SystemMicroservices.Nats.RISCV64 == "" {
+		exe.controlPlane.SystemMicroservices.Nats.RISCV64 = util.GetNatsImage()
 	}
 	if exe.controlPlane.SystemMicroservices.Nats.ARM == "" {
 		exe.controlPlane.SystemMicroservices.Nats.ARM = util.GetNatsImage()

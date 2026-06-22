@@ -125,20 +125,20 @@ func Process(agentConfig *rsc.AgentConfiguration, name, agentIP string, otherAge
 }
 
 func getAgentUpdateRequestFromAgentConfig(agentConfig *rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
-	var fogTypePtr *int64
-	if agentConfig.FogType != nil {
-		fogType, found := rsc.FogTypeStringMap[*agentConfig.FogType]
+	var archPtr *int64
+	if agentConfig.Arch != nil {
+		arch, found := rsc.ArchStringMap[*agentConfig.Arch]
 		if !found {
-			fogType = 0
+			arch = 0
 		}
-		fogTypePtr = &fogType
+		archPtr = &arch
 	}
 	request.Location = agentConfig.Location
 	request.Latitude = agentConfig.Latitude
 	request.Longitude = agentConfig.Longitude
 	request.Description = agentConfig.Description
 	request.Name = agentConfig.Name
-	request.FogType = fogTypePtr
+	request.ArchID = archPtr
 	request.AgentConfiguration = agentConfig.AgentConfiguration
 	request.Tags = tags
 	return
@@ -152,9 +152,9 @@ func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]s
 	if createAgentRequest.Name == "" {
 		createAgentRequest.Name = name
 	}
-	if createAgentRequest.FogType == nil {
-		fogType := int64(0)
-		createAgentRequest.FogType = &fogType
+	if createAgentRequest.ArchID == nil {
+		arch := int64(0)
+		createAgentRequest.ArchID = &arch
 	}
 	agent, err := clt.CreateAgent(createAgentRequest)
 	if err != nil {

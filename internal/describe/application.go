@@ -12,14 +12,14 @@ import (
 )
 
 type applicationExecutor struct {
-	namespace string
-	name      string
-	filename  string
-	flow      *client.FlowInfo
-	client    *client.Client
-	msvcs     []*client.MicroserviceInfo
-	msvcPerID map[string]*client.MicroserviceInfo
-	natsCfg   *client.ApplicationNatsConfig
+	namespace   string
+	name        string
+	filename    string
+	application *client.ApplicationInfo
+	client      *client.Client
+	msvcs       []*client.MicroserviceInfo
+	msvcPerID   map[string]*client.MicroserviceInfo
+	natsCfg     *client.ApplicationNatsConfig
 }
 
 func newApplicationExecutor(namespace, name, filename string) *applicationExecutor {
@@ -46,8 +46,8 @@ func (exe *applicationExecutor) init() (err error) {
 	if err != nil {
 		return err
 	}
-	// TODO: Use Application instead of flow
-	exe.flow = &client.FlowInfo{
+	// TODO: Use Application instead of application
+	exe.application = &client.ApplicationInfo{
 		Name:        application.Name,
 		IsActivated: application.IsActivated,
 		Description: application.Description,
@@ -94,7 +94,7 @@ func (exe *applicationExecutor) Execute() error {
 			return err
 		}
 		// Remove fields
-		yamlMsvc.Flow = nil
+		yamlMsvc.Application = ""
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 	if exe.natsCfg != nil {
@@ -105,10 +105,10 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	application := rsc.Application{
-		Name:          exe.flow.Name,
+		Name:          exe.application.Name,
 		Microservices: yamlMsvcs,
 		NatsConfig:    natsCfg,
-		ID:            exe.flow.ID,
+		ID:            exe.application.ID,
 	}
 
 	header := config.Header{

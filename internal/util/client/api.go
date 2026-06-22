@@ -165,9 +165,9 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		agentMapByUUID[agent.UUID] = *agent
 	}
 
-	fogType, found := rsc.FogTypeIntMap[agentInfo.FogType]
+	arch, found := rsc.ArchIntMap[agentInfo.ArchID]
 	if !found {
-		fogType = "auto"
+		arch = "auto"
 	}
 
 	routerConfig := client.RouterConfig{
@@ -193,7 +193,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		NatsLeafPort:      agentInfo.NatsLeafPort,
 		NatsClusterPort:   agentInfo.NatsClusterPort,
 		NatsMqttPort:      agentInfo.NatsMqttPort,
-		NatsHttpPort:      agentInfo.NatsHttpPort,
+		NatsHTTPPort:      agentInfo.NatsHTTPPort,
 		JsStorageSize:     agentInfo.JsStorageSize,
 		JsMemoryStoreSize: agentInfo.JsMemoryStoreSize,
 	}
@@ -219,10 +219,10 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		Latitude:    agentInfo.Latitude,
 		Longitude:   agentInfo.Longitude,
 		Description: agentInfo.Description,
-		FogType:     &fogType,
+		Arch:        &arch,
 		AgentConfiguration: client.AgentConfiguration{
 			NetworkInterface:          &agentInfo.NetworkInterface,
-			DockerURL:                 &agentInfo.DockerURL,
+			ContainerEngineURL:        &agentInfo.ContainerEngineURL,
 			ContainerEngine:           &agentInfo.ContainerEngine,
 			DeploymentType:            &agentInfo.DeploymentType,
 			DiskLimit:                 &agentInfo.DiskLimit,
@@ -243,7 +243,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 			EdgeGuardFrequency:        &agentInfo.EdgeGuardFrequency,
 			AbstractedHardwareEnabled: &agentInfo.AbstractedHardwareEnabled,
 			LogLevel:                  agentInfo.LogLevel,
-			DockerPruningFrequency:    agentInfo.DockerPruningFrequency,
+			PruningFrequency:          agentInfo.PruningFrequency,
 			AvailableDiskThreshold:    agentInfo.AvailableDiskThreshold,
 			UpstreamRouters:           upstreamRoutersPtr,
 			NetworkRouter:             networkRouterPtr,
@@ -274,8 +274,6 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		LastStatusTimeMsUTC:   agentInfo.LastStatusTimeMsUTC,
 		IPAddress:             agentInfo.IPAddress,
 		IPAddressExternal:     agentInfo.IPAddressExternal,
-		ProcessedMessaged:     agentInfo.ProcessedMessaged,
-		MessageSpeed:          agentInfo.MessageSpeed,
 		LastCommandTimeMsUTC:  agentInfo.LastCommandTimeMsUTC,
 		Version:               agentInfo.Version,
 		IsReadyToUpgrade:      agentInfo.IsReadyToUpgrade,

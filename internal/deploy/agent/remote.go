@@ -102,12 +102,12 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 		util.PrintNotify(fmt.Sprintf("Skipping initial agent configuration for %s as agent config parameters are empty. Default config parameters will be used.", exe.agent.Name))
 
 	} else {
-		var fogType *string
-		if agentConfig.FogType == nil {
+		var arch *string
+		if agentConfig.Arch == nil {
 			auto := "auto"
-			fogType = &auto
+			arch = &auto
 		} else {
-			fogType = agentConfig.FogType
+			arch = agentConfig.Arch
 		}
 		err = agent.SetInitialConfig(
 			agentConfig.Name,
@@ -115,7 +115,7 @@ func (exe *remoteExecutor) ProvisionAgent() (string, error) {
 			// agentConfig.Latitude,
 			// agentConfig.Longitude,
 			// agentConfig.Description,
-			*fogType,
+			*arch,
 			agentConfig.AgentConfiguration, // Pass the embedded client.AgentConfiguration
 		)
 		if err != nil {
@@ -214,7 +214,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		}
 
 		// Resolve platform and container engine
-		platform, err := deployairgap.ResolvePlatform(exe.agent.Config.FogType)
+		platform, err := deployairgap.ResolvePlatform(exe.agent.Config.Arch)
 		if err != nil {
 			return fmt.Errorf("failed to resolve platform: %w", err)
 		}
@@ -257,11 +257,29 @@ func (exe *remoteExecutor) Execute() (err error) {
 		if routerImage != "" {
 			imageList = append(imageList, routerImage)
 		}
-		if images.Nats != "" {
-			imageList = append(imageList, images.Nats)
+		if images.NatsAMD64 != "" {
+			imageList = append(imageList, images.NatsAMD64)
 		}
-		if images.Debugger != "" {
-			imageList = append(imageList, images.Debugger)
+		if images.DebuggerAMD64 != "" {
+			imageList = append(imageList, images.DebuggerAMD64)
+		}
+		if images.NatsARM64 != "" {
+			imageList = append(imageList, images.NatsARM64)
+		}
+		if images.DebuggerARM64 != "" {
+			imageList = append(imageList, images.DebuggerARM64)
+		}
+		if images.NatsRISCV64 != "" {
+			imageList = append(imageList, images.NatsRISCV64)
+		}
+		if images.DebuggerRISCV64 != "" {
+			imageList = append(imageList, images.DebuggerRISCV64)
+		}
+		if images.NatsARM != "" {
+			imageList = append(imageList, images.NatsARM)
+		}
+		if images.DebuggerARM != "" {
+			imageList = append(imageList, images.DebuggerARM)
 		}
 
 		// Transfer images before bootstrap

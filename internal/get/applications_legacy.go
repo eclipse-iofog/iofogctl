@@ -3,13 +3,13 @@ package get
 import "github.com/eclipse-iofog/iofogctl/pkg/util"
 
 func (exe *applicationExecutor) initLegacy() (err error) {
-	flows, err := exe.client.GetAllFlows()
+	applications, err := exe.client.GetAllApplications()
 	if err != nil {
 		return
 	}
-	exe.flows = flows.Flows
-	for _, flow := range exe.flows {
-		listMsvcs, err := exe.client.GetMicroservicesPerFlow(flow.ID)
+	exe.applications = applications.Applications
+	for _, application := range exe.applications {
+		listMsvcs, err := exe.client.GetMicroservicesByApplication(application.Name)
 		if err != nil {
 			return err
 		}
@@ -20,7 +20,7 @@ func (exe *applicationExecutor) initLegacy() (err error) {
 			if util.IsSystemMsvc(msvc) {
 				continue
 			}
-			exe.msvcsPerApplication[flow.ID] = append(exe.msvcsPerApplication[flow.ID], msvc)
+			exe.msvcsPerApplication[application.ID] = append(exe.msvcsPerApplication[application.ID], msvc)
 		}
 	}
 	return nil

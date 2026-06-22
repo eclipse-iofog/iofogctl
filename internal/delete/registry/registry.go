@@ -31,7 +31,7 @@ func (exe *Executor) GetName() string {
 	return strconv.Itoa(exe.id)
 }
 
-// Execute deletes application by deleting its associated flow
+// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Registry")
 	// Init remote resources

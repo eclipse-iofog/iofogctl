@@ -1,11 +1,11 @@
 package deleteapplication
 
 func (exe *Executor) initLegacy() (err error) {
-	flow, err := exe.client.GetFlowByName(exe.name)
+	application, err := exe.client.GetApplicationByName(exe.name)
 	if err != nil {
 		return
 	}
-	exe.flow = flow
+	exe.application = application
 	return
 }
 
@@ -15,8 +15,8 @@ func (exe *Executor) deleteLegacy() (err error) {
 		return
 	}
 
-	// Delete flow
-	if err = exe.client.DeleteFlow(exe.flow.ID); err != nil {
+	// Delete application
+	if err = exe.client.DeleteApplication(exe.application.Name); err != nil {
 		return
 	}
 	return

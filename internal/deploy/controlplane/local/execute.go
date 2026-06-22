@@ -13,9 +13,6 @@ import (
 	deploylocalcontroller "github.com/eclipse-iofog/iofogctl/internal/deploy/controller/local"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
-	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
-
-	// clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -81,25 +78,8 @@ func prepareViewerURL(endpoint string) (string, error) {
 	return URL.String(), nil
 }
 
-// updateViewerClientRootURL updates the viewer client root URL in Keycloak if auth is configured
-func updateViewerClientRootURL(controlPlane *rsc.LocalControlPlane, endpoint string) error {
-	// Check if auth is configured
-	if controlPlane.Auth.URL == "" || controlPlane.Auth.ViewerClient == "" {
-		// Auth not configured, skip update
-		return nil
-	}
-
-	// Prepare viewer URL
-	viewerURL, err := prepareViewerURL(endpoint)
-	if err != nil {
-		return fmt.Errorf("failed to prepare viewer URL: %w", err)
-	}
-
-	// Update viewer client root URL
-	if err := iutil.UpdateECNViewerClientRootURL(controlPlane.Auth, viewerURL); err != nil {
-		return fmt.Errorf("failed to update viewer client root URL: %w", err)
-	}
-
+// updateViewerClientRootURL is retired in v3.8 (Keycloak viewer client).
+func updateViewerClientRootURL(_ *rsc.LocalControlPlane, _ string) error {
 	return nil
 }
 

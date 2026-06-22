@@ -32,12 +32,12 @@ func (exe *executor) Execute() (err error) {
 		return err
 	}
 
-	flow, err := clt.GetFlowByName(exe.name)
+	application, err := clt.GetApplicationByName(exe.name)
 	if err != nil {
 		return err
 	}
 
-	_, err = clt.StopFlow(flow.ID)
+	_, err = clt.StopApplication(application.Name)
 
 	return
 }

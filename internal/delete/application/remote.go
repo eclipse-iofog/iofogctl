@@ -10,10 +10,10 @@ import (
 )
 
 type Executor struct {
-	namespace string
-	name      string
-	client    *client.Client
-	flow      *client.FlowInfo
+	namespace   string
+	name        string
+	client      *client.Client
+	application *client.ApplicationInfo
 }
 
 func NewExecutor(namespace, name string) (execute.Executor, error) {
@@ -38,7 +38,7 @@ func (exe *Executor) init() (err error) {
 	return
 }
 
-// Execute deletes application by deleting its associated flow
+// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() (err error) {
 	util.SpinStart("Deleting Application")
 	if err := exe.init(); err != nil {

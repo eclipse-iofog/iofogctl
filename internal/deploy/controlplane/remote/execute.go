@@ -57,8 +57,8 @@ func applySystemAgentNatsDefaults(cfg *rsc.AgentConfiguration) {
 	if cfg.NatsMqttPort == nil {
 		cfg.NatsMqttPort = iutil.MakeIntPtr(defaultNatsMqttPort)
 	}
-	if cfg.NatsHttpPort == nil {
-		cfg.NatsHttpPort = iutil.MakeIntPtr(defaultNatsHttpPort)
+	if cfg.NatsHTTPPort == nil {
+		cfg.NatsHTTPPort = iutil.MakeIntPtr(defaultNatsHttpPort)
 	}
 	if cfg.JsStorageSize == nil {
 		cfg.JsStorageSize = iutil.MakeStrPtr(defaultJsStorageSize)
@@ -126,8 +126,8 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 		upstreamNatsServers := []string{}
 
 		deployAgentConfig = rsc.AgentConfiguration{
-			Name:    ctrl.Name,
-			FogType: iutil.MakeStrPtr("auto"),
+			Name: ctrl.Name,
+			Arch: iutil.MakeStrPtr("auto"),
 			AgentConfiguration: client.AgentConfiguration{
 				IsSystem:            iutil.MakeBoolPtr(true),
 				DeploymentType:      iutil.MakeStrPtr(deploymentType),
@@ -274,8 +274,8 @@ func deployNextSystemAgent(namespace string, ctrl *rsc.RemoteController, systemA
 		upstreamRouters := []string{"default-router"}
 
 		deployAgentConfig = rsc.AgentConfiguration{
-			Name:    ctrl.Name,
-			FogType: iutil.MakeStrPtr("auto"),
+			Name: ctrl.Name,
+			Arch: iutil.MakeStrPtr("auto"),
 			AgentConfiguration: client.AgentConfiguration{
 				IsSystem:        iutil.MakeBoolPtr(true),
 				DeploymentType:  iutil.MakeStrPtr(deploymentType),
@@ -387,32 +387,8 @@ func prepareViewerURL(endpoint string) (string, error) {
 	return URL.String(), nil
 }
 
-// updateViewerClientRootURL updates the viewer client root URL in Keycloak if auth is configured
-func updateViewerClientRootURL(controlPlane *rsc.RemoteControlPlane, endpoint string) error {
-	// Check if auth is configured - validate all required fields
-	auth := controlPlane.Auth
-	if auth.URL == "" || auth.Realm == "" || auth.ControllerClient == "" || auth.ControllerSecret == "" || auth.ViewerClient == "" {
-		// Auth not fully configured, skip update
-		return nil
-	}
-
-	// Get first controller to check for EcnViewerURL
-	controllers := controlPlane.GetControllers()
-	if len(controllers) == 0 {
-		return fmt.Errorf("no controllers found in control plane")
-	}
-
-	// Prepare viewer URL
-	viewerURL, err := prepareViewerURL(endpoint)
-	if err != nil {
-		return fmt.Errorf("failed to prepare viewer URL: %w", err)
-	}
-
-	// Update viewer client root URL
-	if err := iutil.UpdateECNViewerClientRootURL(controlPlane.Auth, viewerURL); err != nil {
-		return fmt.Errorf("failed to update viewer client root URL: %w", err)
-	}
-
+// updateViewerClientRootURL is retired in v3.8 (Keycloak viewer client).
+func updateViewerClientRootURL(_ *rsc.RemoteControlPlane, _ string) error {
 	return nil
 }
 
@@ -766,8 +742,17 @@ func (exe remoteControlPlaneExecutor) transferControllerImages() error {
 	// Transfer controller and NATS images (remote Controller runs/starts NATS).
 	// Use platform and container engine from system agent config (validated when airgap is enabled).
 	imageList := []string{images.Controller}
-	if images.Nats != "" {
-		imageList = append(imageList, images.Nats)
+	if images.NatsAMD64 != "" {
+		imageList = append(imageList, images.NatsAMD64)
+	}
+	if images.NatsARM64 != "" {
+		imageList = append(imageList, images.NatsARM64)
+	}
+	if images.NatsRISCV64 != "" {
+		imageList = append(imageList, images.NatsRISCV64)
+	}
+	if images.NatsARM != "" {
+		imageList = append(imageList, images.NatsARM)
 	}
 
 	controllers := remoteControlPlane.GetControllers()
@@ -777,7 +762,7 @@ func (exe remoteControlPlaneExecutor) transferControllerImages() error {
 		if !ok {
 			return util.NewInternalError("Could not convert Controller to Remote Controller")
 		}
-		platform, err := deployairgap.ResolvePlatform(controller.SystemAgent.AgentConfiguration.FogType)
+		platform, err := deployairgap.ResolvePlatform(controller.SystemAgent.AgentConfiguration.Arch)
 		if err != nil {
 			return fmt.Errorf("controller %s: %w", controller.Name, err)
 		}
@@ -824,7 +809,7 @@ func (exe remoteControlPlaneExecutor) transferSystemAgentImages() error {
 		}
 
 		// Resolve platform and container engine
-		platform, err := deployairgap.ResolvePlatform(controller.SystemAgent.AgentConfiguration.FogType)
+		platform, err := deployairgap.ResolvePlatform(controller.SystemAgent.AgentConfiguration.Arch)
 		if err != nil {
 			return fmt.Errorf("system agent for controller %s: %w", controller.Name, err)
 		}
@@ -860,11 +845,29 @@ func (exe remoteControlPlaneExecutor) transferSystemAgentImages() error {
 		if routerImage != "" {
 			imageList = append(imageList, routerImage)
 		}
-		if images.Nats != "" {
-			imageList = append(imageList, images.Nats)
+		if images.NatsAMD64 != "" {
+			imageList = append(imageList, images.NatsAMD64)
 		}
-		if images.Debugger != "" {
-			imageList = append(imageList, images.Debugger)
+		if images.NatsARM64 != "" {
+			imageList = append(imageList, images.NatsARM64)
+		}
+		if images.NatsRISCV64 != "" {
+			imageList = append(imageList, images.NatsRISCV64)
+		}
+		if images.NatsARM != "" {
+			imageList = append(imageList, images.NatsARM)
+		}
+		if images.DebuggerAMD64 != "" {
+			imageList = append(imageList, images.DebuggerAMD64)
+		}
+		if images.DebuggerARM64 != "" {
+			imageList = append(imageList, images.DebuggerARM64)
+		}
+		if images.DebuggerRISCV64 != "" {
+			imageList = append(imageList, images.DebuggerRISCV64)
+		}
+		if images.DebuggerARM != "" {
+			imageList = append(imageList, images.DebuggerARM)
 		}
 
 		// Transfer images

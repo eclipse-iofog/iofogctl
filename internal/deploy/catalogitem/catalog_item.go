@@ -29,7 +29,7 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
-	currentItem, err := clt.GetCatalogItem(exe.catalogItem.ID)
+	currentItem, err := clt.GetCatalogItemByName(exe.catalogItem.Name)
 	if err != nil {
 		return err
 	}
@@ -52,17 +52,31 @@ func (exe *remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
 		request.RegistryID = registryID
 	}
 
-	if exe.catalogItem.X86 != "" {
+	if exe.catalogItem.AMD64 != "" {
 		request.Images = append(request.Images, client.CatalogImage{
-			ContainerImage: exe.catalogItem.X86,
-			AgentTypeID:    client.AgentTypeAgentTypeIDDict["x86"],
+			ContainerImage: exe.catalogItem.AMD64,
+			ArchID:         client.ArchNameToID["amd64"],
+		})
+	}
+
+	if exe.catalogItem.ARM64 != "" {
+		request.Images = append(request.Images, client.CatalogImage{
+			ContainerImage: exe.catalogItem.ARM64,
+			ArchID:         client.ArchNameToID["arm64"],
+		})
+	}
+
+	if exe.catalogItem.RISCV64 != "" {
+		request.Images = append(request.Images, client.CatalogImage{
+			ContainerImage: exe.catalogItem.RISCV64,
+			ArchID:         client.ArchNameToID["riscv64"],
 		})
 	}
 
 	if exe.catalogItem.ARM != "" {
 		request.Images = append(request.Images, client.CatalogImage{
 			ContainerImage: exe.catalogItem.ARM,
-			AgentTypeID:    client.AgentTypeAgentTypeIDDict["arm"],
+			ArchID:         client.ArchNameToID["arm"],
 		})
 	}
 
@@ -77,8 +91,10 @@ func (exe *remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
 	if _, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
 		Name: exe.catalogItem.Name,
 		Images: []client.CatalogImage{
-			{ContainerImage: exe.catalogItem.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
-			{ContainerImage: exe.catalogItem.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
+			{ContainerImage: exe.catalogItem.AMD64, ArchID: client.ArchNameToID["amd64"]},
+			{ContainerImage: exe.catalogItem.ARM64, ArchID: client.ArchNameToID["arm64"]},
+			{ContainerImage: exe.catalogItem.RISCV64, ArchID: client.ArchNameToID["riscv64"]},
+			{ContainerImage: exe.catalogItem.ARM, ArchID: client.ArchNameToID["arm"]},
 		},
 		RegistryID:  client.RegistryTypeRegistryTypeIDDict[exe.catalogItem.Registry],
 		Description: exe.catalogItem.Description,
@@ -143,7 +159,7 @@ func validate(opt *apps.CatalogItem) error {
 		return err
 	}
 
-	if opt.ARM == "" && opt.X86 == "" {
+	if opt.ARM == "" && opt.ARM64 == "" && opt.RISCV64 == "" && opt.ARM == "" {
 		return util.NewInputError("At least one image must be specified")
 	}
 

@@ -92,15 +92,7 @@ func newExecutor(namespace string, controlPlane *rsc.LocalControlPlane, ctrl *rs
 		localControllerConfig: install.NewLocalControllerConfig(ctrl.Container.Image, install.Credentials{
 			User:     ctrl.Container.Credentials.User,
 			Password: ctrl.Container.Credentials.Password,
-		}, install.Auth{
-			URL:              controlPlane.Auth.URL,
-			Realm:            controlPlane.Auth.Realm,
-			SSL:              controlPlane.Auth.SSL,
-			RealmKey:         controlPlane.Auth.RealmKey,
-			ControllerClient: controlPlane.Auth.ControllerClient,
-			ControllerSecret: controlPlane.Auth.ControllerSecret,
-			ViewerClient:     controlPlane.Auth.ViewerClient,
-		}, install.Database{
+		}, install.Auth(rsc.AuthToCPV3(controlPlane.Auth)), install.Database{
 			Provider:     controlPlane.Database.Provider,
 			Host:         controlPlane.Database.Host,
 			Port:         controlPlane.Database.Port,

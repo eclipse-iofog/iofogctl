@@ -32,16 +32,16 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 
 	applicationName := msvc.Application
-	if msvc.Application == "" {
-		if msvc.FlowID > 0 {
-			// Legacy
-			flow, err := clt.GetFlowByID(msvc.FlowID)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			applicationName = flow.Name
-		}
-	}
+	// if msvc.Application == "" {
+	// 	if msvc.ApplicationName != "" {
+	// 		// Legacy
+	// 		application, err := clt.GetApplicationByName(msvc.ApplicationName)
+	// 		if err != nil {
+	// 			return nil, nil, nil, err
+	// 		}
+	// 		applicationName = application.Name
+	// 	}
+	// }
 
 	return constructMicroservice(msvc, agent.Name, applicationName, catalogItem)
 }
@@ -120,7 +120,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	msvc.Agent = apps.MicroserviceAgent{
 		Name: agentName,
 	}
-	var armImage, x86Image string
+	var armImage, amd64Image, riscv64Image, arm64Image string
 	var msvcImages []client.CatalogImage
 	if catalogItem != nil {
 		msvcImages = catalogItem.Images
@@ -128,9 +128,13 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		msvcImages = msvcInfo.Images
 	}
 	for _, image := range msvcImages {
-		switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
-		case "x86":
-			x86Image = image.ContainerImage
+		switch client.ArchIDToName[image.ArchID] {
+		case "amd64":
+			amd64Image = image.ContainerImage
+		case "arm64":
+			armImage = image.ContainerImage
+		case "riscv64":
+			riscv64Image = image.ContainerImage
 		case "arm":
 			armImage = image.ContainerImage
 		default:
@@ -147,15 +151,21 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	}
 	images := apps.MicroserviceImages{
 		CatalogID: msvcInfo.CatalogItemID,
-		X86:       x86Image,
+		AMD64:     amd64Image,
+		ARM64:     arm64Image,
+		RISCV64:   riscv64Image,
 		ARM:       armImage,
 		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
 	}
 	for _, img := range imgArray {
-		switch img.AgentTypeID {
+		switch img.ArchID {
 		case 1:
-			images.X86 = img.ContainerImage
+			images.AMD64 = img.ContainerImage
 		case 2:
+			images.ARM64 = img.ContainerImage
+		case 3:
+			images.RISCV64 = img.ContainerImage
+		case 4:
 			images.ARM = img.ContainerImage
 		}
 	}
@@ -215,7 +225,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	msvc.Container.Volumes = &volumes
 	msvc.Container.Env = &envs
 	msvc.Container.ExtraHosts = &extraHosts
-	msvc.Container.CpuSetCpus = msvcInfo.CpuSetCpus
+	msvc.Container.CPUSetCpus = msvcInfo.CPUSetCpus
 	msvc.Container.MemoryLimit = &msvcInfo.MemoryLimit
 	if hasHealthCheck {
 		msvc.Container.HealthCheck = &healthCheck
@@ -227,7 +237,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		}
 	}
 	msvc.Schedule = msvcInfo.Schedule
-	msvc.Application = &appName
+	msvc.Application = appName
 	status = new(apps.MicroserviceStatusInfo)
 
 	status.Status = msvcInfo.Status.Status

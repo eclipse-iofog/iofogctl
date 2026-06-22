@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	platformAMD64 = "linux/amd64"
-	platformARM64 = "linux/arm64"
+	platformAMD64   = "linux/amd64"
+	platformARM64   = "linux/arm64"
+	platformRISCV64 = "linux/riscv64"
+	platformARM     = "linux/arm"
 )
 
 type agentPlan struct {
@@ -30,18 +32,18 @@ func (e containerEngine) command() string {
 	return string(e)
 }
 
-func resolvePlatform(fogType *string) (string, error) {
-	if fogType == nil {
+func resolvePlatform(arch *string) (string, error) {
+	if arch == nil {
 		return "", util.NewInputError("Agent fog type is not configured in Controller")
 	}
-	value := strings.ToLower(strings.TrimSpace(*fogType))
+	value := strings.ToLower(strings.TrimSpace(*arch))
 	switch value {
 	case "1", "x86", "amd64", platformAMD64:
 		return platformAMD64, nil
 	case "2", "arm", "arm64", platformARM64:
 		return platformARM64, nil
 	default:
-		return "", util.NewInputError("Unsupported fog type " + *fogType)
+		return "", util.NewInputError("Unsupported fog type " + *arch)
 	}
 }
 

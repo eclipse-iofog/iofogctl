@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	PlatformAMD64 = "linux/amd64"
-	PlatformARM64 = "linux/arm64"
+	PlatformAMD64   = "linux/amd64"
+	PlatformARM64   = "linux/arm64"
+	PlatformRISCV64 = "linux/riscv64"
+	PlatformARM     = "linux/arm"
 )
 
 type ContainerEngine string
@@ -23,18 +25,18 @@ func (e ContainerEngine) Command() string {
 	return string(e)
 }
 
-func ResolvePlatform(fogType *string) (string, error) {
-	if fogType == nil {
+func ResolvePlatform(arch *string) (string, error) {
+	if arch == nil {
 		return "", util.NewInputError("Agent fog type is not configured")
 	}
-	value := strings.ToLower(strings.TrimSpace(*fogType))
+	value := strings.ToLower(strings.TrimSpace(*arch))
 	switch value {
 	case "1", "x86", "amd64", PlatformAMD64:
 		return PlatformAMD64, nil
 	case "2", "arm", "arm64", PlatformARM64:
 		return PlatformARM64, nil
 	default:
-		return "", util.NewInputError("Unsupported fog type " + *fogType)
+		return "", util.NewInputError("Unsupported fog type " + *arch)
 	}
 }
 
@@ -81,9 +83,9 @@ func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 		return util.NewInputError("Agent configuration is required for airgap deployment")
 	}
 
-	// Validate FogType
-	if agentConfig.FogType == nil || *agentConfig.FogType == "" {
-		return util.NewInputError("FogType is required for airgap deployment. Please specify the agent architecture (x86 or arm)")
+	// Validate Arch
+	if agentConfig.Arch == nil || *agentConfig.Arch == "" {
+		return util.NewInputError("Arch is required for airgap deployment. Please specify the agent architecture (x86 or arm)")
 	}
 
 	// Validate ContainerEngine
@@ -95,7 +97,7 @@ func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 }
 
 // ValidateControlPlaneAirgapRequirements validates that each controller has system agent config with
-// agent type (FogType) and container engine when airgap is enabled. Router and debugger are transferred
+// agent type (Arch) and container engine when airgap is enabled. Router and debugger are transferred
 // only in the system agent phase, so system agent config is required to resolve platform.
 func ValidateControlPlaneAirgapRequirements(controlPlane *rsc.RemoteControlPlane) error {
 	if controlPlane == nil {

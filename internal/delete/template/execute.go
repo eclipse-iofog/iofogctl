@@ -39,7 +39,7 @@ func (exe *Executor) GetName() string {
 	return exe.name
 }
 
-// Execute deletes application by deleting its associated flow
+// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Application Template")
 	clt, err := clientutil.NewControllerClient(exe.namespace)

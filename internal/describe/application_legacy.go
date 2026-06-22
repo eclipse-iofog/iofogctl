@@ -6,11 +6,11 @@ import (
 )
 
 func (exe *applicationExecutor) initLegacy() (err error) {
-	exe.flow, err = exe.client.GetFlowByName(exe.name)
+	exe.application, err = exe.client.GetApplicationByName(exe.name)
 	if err != nil {
 		return
 	}
-	msvcListResponse, err := exe.client.GetMicroservicesPerFlow(exe.flow.ID)
+	msvcListResponse, err := exe.client.GetMicroservicesByApplication(exe.application.Name)
 	if err != nil {
 		return
 	}
