@@ -7,26 +7,27 @@ require (
 	github.com/containers/image/v5 v5.32.1
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.7.0-beta.0
-	github.com/eclipse-iofog/iofog-operator/v3 v3.7.1-beta.1
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.3
+	github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pkg/sftp v1.13.10
 	github.com/spf13/cobra v1.8.1
+	github.com/stretchr/testify v1.10.0
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
 	github.com/vmihailenco/msgpack/v5 v5.4.1
-	golang.org/x/crypto v0.46.0
-	golang.org/x/oauth2 v0.27.0
-	golang.org/x/sys v0.40.0
-	golang.org/x/term v0.39.0
+	golang.org/x/crypto v0.51.0
+	golang.org/x/sys v0.45.0
+	golang.org/x/term v0.43.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.32.1
 	k8s.io/apiextensions-apiserver v0.32.1
 	k8s.io/apimachinery v0.32.1
 	k8s.io/client-go v0.32.1
 	sigs.k8s.io/controller-runtime v0.20.4
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -109,6 +110,7 @@ require (
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/ostreedev/ostree-go v0.0.0-20210805093236-719684c64e4f // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/proglottis/gpgme v0.1.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -139,9 +141,10 @@ require (
 	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/grpc v1.68.1 // indirect
@@ -154,8 +157,9 @@ require (
 	k8s.io/utils v0.0.0-20241210054802-24370beab758 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
-	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace github.com/eclipse-iofog/iofog-go-sdk/v3 => github.com/Datasance/iofog-go-sdk/v3 v3.8.0-rc.3
 
 exclude github.com/Sirupsen/logrus v1.4.2
 

@@ -29,17 +29,19 @@ ifeq ($(FLAVOR),datasance)
   CLI_BINARY_NAME = potctl
   CLI_CRD_GROUP = datasance.com
   CLI_API_VERSION = datasance.com/v3
+  CLI_CP_CR_NAME = pot
   IMAGE_REGISTRY = ghcr.io/datasance
   CLI_DOCS_URL = https://docs.datasance.com
-  PACKAGE_REPO_BASE = downloads.datasance.com
+  PACKAGE_REPO_BASE = https://downloads.datasance.com
   OCI_SOURCE_REPO = https://github.com/Datasance/potctl
 else
   CLI_BINARY_NAME = iofogctl
   CLI_CRD_GROUP = iofog.org
   CLI_API_VERSION = iofog.org/v3
+  CLI_CP_CR_NAME = iofog
   IMAGE_REGISTRY = ghcr.io/eclipse-iofog
   CLI_DOCS_URL = https://iofog.org
-  PACKAGE_REPO_BASE = https://packagecloud.io/iofog
+  PACKAGE_REPO_BASE = https://iofog.datasance.com
   OCI_SOURCE_REPO = https://github.com/eclipse-iofog/iofogctl
 endif
 
@@ -47,6 +49,7 @@ LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -
 LDFLAGS += -X $(PREFIX).cliBinaryName=$(CLI_BINARY_NAME)
 LDFLAGS += -X $(PREFIX).cliCrdGroup=$(CLI_CRD_GROUP)
 LDFLAGS += -X $(PREFIX).cliApiVersion=$(CLI_API_VERSION)
+LDFLAGS += -X $(PREFIX).cliCpCrName=$(CLI_CP_CR_NAME)
 LDFLAGS += -X $(PREFIX).imageRegistry=$(IMAGE_REGISTRY)
 LDFLAGS += -X $(PREFIX).cliDocsUrl=$(CLI_DOCS_URL)
 LDFLAGS += -X $(PREFIX).packageRepoBase=$(PACKAGE_REPO_BASE)

@@ -12,9 +12,10 @@ var (
 	cliBinaryName   = "iofogctl"
 	cliCrdGroup     = "iofog.org"
 	cliApiVersion   = "iofog.org/v3"
+	cliCpCrName     = "iofog"
 	imageRegistry   = "ghcr.io/eclipse-iofog"
 	cliDocsUrl      = "https://iofog.org"
-	packageRepoBase = "https://packagecloud.io/iofog"
+	packageRepoBase = "https://iofog.datasance.com"
 	ociSourceRepo   = "https://github.com/eclipse-iofog/iofogctl"
 
 	controllerTag     = "undefined"
@@ -56,6 +57,7 @@ func GetVersion() Version {
 func GetCliBinaryName() string   { return cliBinaryName }
 func GetCliCrdGroup() string     { return cliCrdGroup }
 func GetCliApiVersion() string   { return cliApiVersion }
+func GetCliCpCrName() string     { return cliCpCrName }
 func GetImageRegistry() string   { return imageRegistry }
 func GetCliDocsUrl() string      { return cliDocsUrl }
 func GetPackageRepoBase() string { return packageRepoBase }
@@ -75,9 +77,6 @@ func GetOperatorImage() string {
 }
 func GetRouterImage() string {
 	return fmt.Sprintf("%s/%s:%s", imageRegistry, routerImage, routerTag)
-}
-func GetRouterARMImage() string {
-	return fmt.Sprintf("%s/%s:%s", imageRegistry, routerARMImage, routerTag)
 }
 func GetNatsImage() string {
 	return fmt.Sprintf("%s/%s:%s", imageRegistry, natsImage, natsTag)
