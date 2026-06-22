@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/arch"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 )
 
@@ -17,16 +18,15 @@ type Container struct {
 }
 
 type RemoteContainer struct {
-	Image string `yaml:"image,omitempty"`
-	// Repo        string      `yaml:"repo,omitempty"`
-	// Credentials Credentials `yaml:"credentials,omitempty"` // Optional credentials if needed to pull images
+	Image    string `yaml:"image,omitempty"`
+	Registry string `yaml:"registry,omitempty"`
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
 }
 
 type Package struct {
-	Version   string `yaml:"version,omitempty"`
-	Container RemoteContainer
-	// Repo    string `yaml:"repo,omitempty"`
-	// Token   string `yaml:"token,omitempty"`
+	Version   string          `yaml:"version,omitempty"`
+	Container RemoteContainer `yaml:"container,omitempty"`
 }
 
 type SSH struct {
@@ -213,7 +213,10 @@ type AgentStatus struct {
 	IsReadyToRollback     bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                string  `json:"tunnel" yaml:"tunnel"`
 	VolumeMounts          []VolumeMount
-	GpsStatus             string `json:"gpsStatus" yaml:"gpsStatus"`
+	GpsStatus             string   `json:"gpsStatus" yaml:"gpsStatus"`
+	AvailableRuntimes     []string `json:"availableRuntimes" yaml:"availableRuntimes"`
+	RuntimeAgentPhase     string   `json:"runtimeAgentPhase" yaml:"runtimeAgentPhase"`
+	ControlPlaneQuiesced  bool     `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
 }
 
 type EdgeResource struct {
@@ -232,18 +235,16 @@ type EdgeResourceHTTPInterface = client.HTTPEdgeResource
 type Display = client.EdgeResourceDisplay
 type HTTPEndpoint = client.HTTPEndpoint
 
-// ArchStringMap map human readable fog type to Controller fog type
-var ArchStringMap = map[string]int64{
-	"auto": 0,
-	"x86":  1,
-	"arm":  2,
+// ArchStringToID maps canonical architecture names to Controller archId values.
+func ArchStringToID(name string) (int64, bool) {
+	id, ok := arch.NameToID[name]
+	return int64(id), ok
 }
 
-// ArchIntMap map Controller fog type to human readable fog type
-var ArchIntMap = map[int]string{
-	0: "auto",
-	1: "x86",
-	2: "arm",
+// ArchIDToString maps Controller archId values to canonical architecture names.
+func ArchIDToString(id int) (string, bool) {
+	name, ok := arch.IDToName[id]
+	return name, ok
 }
 
 // ControllerConfig is operator-aligned runtime config for the ioFog Controller (spec.controller).

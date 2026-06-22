@@ -1,0 +1,27 @@
+host: 30.40.50.6
+ssh:
+  user: foo
+  keyFile: ~/.ssh/id_rsa
+  port: 22
+airgap: true
+package:
+  version: 1.0.0-rc.3
+  container:
+    image: ghcr.io/datasance/edgelet:1.0.0-rc.3
+    registry: ghcr.io
+    username: foo
+    password: bar
+scripts:
+  dir: /tmp/my-scripts
+  deps:
+    entrypoint: install_deps.sh
+  install:
+    entrypoint: install.sh
+    args:
+      - 1.0.0-rc.3
+  uninstall:
+    entrypoint: uninstall.sh
+config:
+  arch: amd64
+  deploymentType: native
+  containerEngine: edgelet

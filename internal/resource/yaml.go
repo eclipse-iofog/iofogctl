@@ -103,3 +103,11 @@ func UnmarshallLocalAgent(file []byte) (agent LocalAgent, err error) {
 	err = agent.Sanitize()
 	return
 }
+
+func UnmarshallAgentConfiguration(file []byte) (config AgentConfiguration, err error) {
+	if err = yaml.UnmarshalStrict(file, &config); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
+	return
+}
