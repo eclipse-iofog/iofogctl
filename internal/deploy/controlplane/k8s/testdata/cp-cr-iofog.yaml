@@ -1,0 +1,66 @@
+apiVersion: iofog.org/v3
+kind: ControlPlane
+metadata:
+  name: iofog
+  namespace: test-ns
+spec:
+  replicas:
+    controller: 2
+    nats: 2
+  controller:
+    publicUrl: https://controller.example.com
+    trustProxy: true
+    consolePort: 8080
+    consoleUrl: https://controller.example.com
+    logLevel: info
+  auth:
+    mode: embedded
+    insecureAllowHttp: false
+    insecureAllowBootstrapLog: false
+    bootstrap:
+      username: admin
+  events:
+    auditEnabled: true
+    retentionDays: 14
+    cleanupInterval: 86400
+    captureIpAddress: true
+  images:
+    controller: ghcr.io/eclipse-iofog/controller:3.8.0-rc.1
+    router: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+    nats: ghcr.io/eclipse-iofog/nats:2.14.2-rc.1
+  nats:
+    enabled: true
+    jetStream:
+      storageSize: "10Gi"
+      memoryStoreSize: "1Gi"
+  services:
+    controller:
+      type: ClusterIP
+      annotations: {}
+    router:
+      type: ClusterIP
+      annotations: {}
+    nats:
+      type: ClusterIP
+      annotations: {}
+    natsServer:
+      type: ClusterIP
+      annotations: {}
+  ingresses:
+    controller:
+      annotations: {}
+      ingressClassName: nginx
+      host: controller.example.com
+      secretName: controller-tls
+    router:
+      address: router.example.com
+      messagePort: 5671
+      interiorPort: 55671
+      edgePort: 45671
+    nats:
+      address: nats.example.com
+      serverPort: 4222
+      clusterPort: 6222
+      leafPort: 7422
+      mqttPort: 8883
+      httpPort: 8222
