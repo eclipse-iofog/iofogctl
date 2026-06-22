@@ -13,15 +13,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containers/image/v5/copy"
-	"github.com/containers/image/v5/manifest"
-	"github.com/containers/image/v5/signature"
-	"github.com/containers/image/v5/transports/alltransports"
-	"github.com/containers/image/v5/types"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/opencontainers/go-digest"
+	"go.podman.io/image/v5/copy"
+	"go.podman.io/image/v5/manifest"
+	"go.podman.io/image/v5/signature"
+	"go.podman.io/image/v5/transports/alltransports"
+	"go.podman.io/image/v5/types"
 )
 
 type imageArtifact struct {

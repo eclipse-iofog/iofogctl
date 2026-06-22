@@ -61,18 +61,23 @@ func (facade *facadeExecutor) Execute() (err error) {
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
-	// Update: Include system agents in namespace file
-	// System agents should be saved to namespace file for consistency and management
-	if err = ns.UpdateAgent(facade.agent); err != nil {
-		return
-	}
 
-	// Set Agent configuration if provided
 	if agentConfig := facade.agent.GetConfig(); agentConfig != nil {
 		configExe := agentconfig.NewRemoteExecutor(facade.agent.GetName(), agentConfig, facade.namespace, facade.tags)
 		if err := configExe.Execute(); err != nil {
 			return err
 		}
+	}
+
+	uuid, err := facade.ProvisionAgent()
+	if err != nil {
+		return err
+	}
+	facade.agent.SetUUID(uuid)
+	facade.agent.SetCreatedTime(util.NowUTC())
+
+	if err = ns.UpdateAgent(facade.agent); err != nil {
+		return
 	}
 
 	return config.Flush()

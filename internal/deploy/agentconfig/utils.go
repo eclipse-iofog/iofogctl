@@ -127,7 +127,7 @@ func Process(agentConfig *rsc.AgentConfiguration, name, agentIP string, otherAge
 func getAgentUpdateRequestFromAgentConfig(agentConfig *rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
 	var archPtr *int64
 	if agentConfig.Arch != nil {
-		arch, found := rsc.ArchStringMap[*agentConfig.Arch]
+		arch, found := rsc.ArchStringToID(*agentConfig.Arch)
 		if !found {
 			arch = 0
 		}

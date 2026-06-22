@@ -74,7 +74,7 @@ func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.LocalControlP
 	if err := util.IsLowerAlphanumeric("Controller", controller.GetName()); err != nil {
 		return nil, err
 	}
-	cli, err := install.NewLocalContainerClient()
+	cli, err := install.NewLocalContainerClient(install.DefaultLocalContainerEngine, nil)
 	if err != nil {
 		return nil, err
 	}

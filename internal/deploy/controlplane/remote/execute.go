@@ -82,6 +82,23 @@ type remoteControlPlaneExecutor struct {
 	name                string
 }
 
+func applyControlPlaneAirgapFlag(namespace string, agent *rsc.RemoteAgent) {
+	if agent == nil {
+		return
+	}
+	ns, err := config.GetNamespace(namespace)
+	if err != nil {
+		return
+	}
+	cp, err := ns.GetControlPlane()
+	if err != nil {
+		return
+	}
+	if remoteCP, ok := cp.(*rsc.RemoteControlPlane); ok {
+		agent.Airgap = remoteCP.Airgap
+	}
+}
+
 func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgentConfig *rsc.SystemAgentConfig) (err error) {
 	// Deploy system agent to host internal router
 	install.Verbose("Deploying system agent for controller " + ctrl.Name)
@@ -182,6 +199,7 @@ func deploySystemAgent(namespace string, ctrl *rsc.RemoteController, systemAgent
 		agent.Package = systemAgentConfig.Package
 		agent.Scripts = systemAgentConfig.Scripts // Support custom scripts
 	}
+	applyControlPlaneAirgapFlag(namespace, &agent)
 
 	// Get Agentconfig executor
 	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(ctrl.Name, &deployAgentConfig, namespace, nil)
@@ -328,15 +346,7 @@ func deployNextSystemAgent(namespace string, ctrl *rsc.RemoteController, systemA
 		agent.Package = systemAgentConfig.Package
 		agent.Scripts = systemAgentConfig.Scripts // Support custom scripts
 	}
-	// Set airgap flag from control plane (get it from namespace)
-	ns, err := config.GetNamespace(namespace)
-	if err == nil {
-		if cp, err := ns.GetControlPlane(); err == nil {
-			if remoteCP, ok := cp.(*rsc.RemoteControlPlane); ok {
-				agent.Airgap = remoteCP.Airgap
-			}
-		}
-	}
+	applyControlPlaneAirgapFlag(namespace, &agent)
 
 	// Get Agentconfig executor
 	deployAgentConfigExecutor := deployagentconfig.NewRemoteExecutor(ctrl.Name, &deployAgentConfig, namespace, nil)
@@ -430,14 +440,6 @@ func (exe remoteControlPlaneExecutor) postDeploy() (err error) {
 	remoteControlPlane, ok := exe.controlPlane.(*rsc.RemoteControlPlane)
 	if !ok {
 		return util.NewInternalError("Could not convert ControlPlane to Remote ControlPlane")
-	}
-
-	// Check if airgap is enabled for system agents
-	if remoteControlPlane.Airgap {
-		// Transfer images for system agents before deployment
-		if err := exe.transferSystemAgentImages(); err != nil {
-			return fmt.Errorf("failed to transfer airgap images for system agents: %w", err)
-		}
 	}
 
 	// Deploy agents for each controller
@@ -766,114 +768,12 @@ func (exe remoteControlPlaneExecutor) transferControllerImages() error {
 		if err != nil {
 			return fmt.Errorf("controller %s: %w", controller.Name, err)
 		}
-		engine, err := deployairgap.ResolveContainerEngine(controller.SystemAgent.AgentConfiguration.ContainerEngine)
+		opts, err := deployairgap.ControllerAirgapLoadOptions(controller.SystemAgent.AgentConfiguration)
 		if err != nil {
 			return fmt.Errorf("controller %s: %w", controller.Name, err)
 		}
-		if err := deployairgap.TransferAirgapImages(ctx, exe.ns.Name, controller.Host, &controller.SSH, platform, engine, imageList); err != nil {
+		if err := deployairgap.TransferAirgapImages(ctx, exe.ns.Name, controller.Host, &controller.SSH, platform, opts, imageList); err != nil {
 			return fmt.Errorf("failed to transfer images to controller %s: %w", controller.Name, err)
-		}
-	}
-
-	return nil
-}
-
-// transferSystemAgentImages transfers agent, router, and debugger images for system agents in airgap deployment
-func (exe remoteControlPlaneExecutor) transferSystemAgentImages() error {
-	remoteControlPlane, ok := exe.controlPlane.(*rsc.RemoteControlPlane)
-	if !ok {
-		return util.NewInternalError("Could not convert ControlPlane to Remote ControlPlane")
-	}
-
-	// Determine if this is initial deployment
-	isInitial, err := deployairgap.IsInitialDeployment(exe.ns.Name)
-	if err != nil {
-		return fmt.Errorf("failed to determine deployment type: %w", err)
-	}
-
-	controllers := remoteControlPlane.GetControllers()
-	for _, baseController := range controllers {
-		controller, ok := baseController.(*rsc.RemoteController)
-		if !ok {
-			return util.NewInternalError("Could not convert Controller to Remote Controller")
-		}
-
-		// Skip if no system agent config
-		if controller.SystemAgent == nil || controller.SystemAgent.AgentConfiguration == nil {
-			continue
-		}
-
-		// Validate airgap requirements for system agent
-		if err := deployairgap.ValidateAirgapRequirements(controller.SystemAgent.AgentConfiguration); err != nil {
-			return fmt.Errorf("system agent for controller %s: %w", controller.Name, err)
-		}
-
-		// Resolve platform and container engine
-		platform, err := deployairgap.ResolvePlatform(controller.SystemAgent.AgentConfiguration.Arch)
-		if err != nil {
-			return fmt.Errorf("system agent for controller %s: %w", controller.Name, err)
-		}
-
-		engine, err := deployairgap.ResolveContainerEngine(controller.SystemAgent.AgentConfiguration.ContainerEngine)
-		if err != nil {
-			return fmt.Errorf("system agent for controller %s: %w", controller.Name, err)
-		}
-
-		// Create a temporary RemoteAgent for image collection
-		tempAgent := &rsc.RemoteAgent{
-			Name:    controller.Name,
-			Host:    controller.Host,
-			SSH:     controller.SSH,
-			Package: controller.SystemAgent.Package,
-			Config:  controller.SystemAgent.AgentConfiguration,
-		}
-
-		// Collect required images
-		images, err := deployairgap.CollectAgentImages(exe.ns.Name, tempAgent, remoteControlPlane, isInitial)
-		if err != nil {
-			return fmt.Errorf("failed to collect agent images for system agent %s: %w", controller.Name, err)
-		}
-
-		// Get router image for the platform
-		routerImage, err := deployairgap.GetImageForPlatform(images, platform)
-		if err != nil {
-			return fmt.Errorf("failed to get router image for platform %s: %w", platform, err)
-		}
-
-		// Prepare image list (agent, router for platform, NATS, debugger if available)
-		imageList := []string{images.Agent}
-		if routerImage != "" {
-			imageList = append(imageList, routerImage)
-		}
-		if images.NatsAMD64 != "" {
-			imageList = append(imageList, images.NatsAMD64)
-		}
-		if images.NatsARM64 != "" {
-			imageList = append(imageList, images.NatsARM64)
-		}
-		if images.NatsRISCV64 != "" {
-			imageList = append(imageList, images.NatsRISCV64)
-		}
-		if images.NatsARM != "" {
-			imageList = append(imageList, images.NatsARM)
-		}
-		if images.DebuggerAMD64 != "" {
-			imageList = append(imageList, images.DebuggerAMD64)
-		}
-		if images.DebuggerARM64 != "" {
-			imageList = append(imageList, images.DebuggerARM64)
-		}
-		if images.DebuggerRISCV64 != "" {
-			imageList = append(imageList, images.DebuggerRISCV64)
-		}
-		if images.DebuggerARM != "" {
-			imageList = append(imageList, images.DebuggerARM)
-		}
-
-		// Transfer images
-		ctx := context.Background()
-		if err := deployairgap.TransferAirgapImages(ctx, exe.ns.Name, controller.Host, &controller.SSH, platform, engine, imageList); err != nil {
-			return fmt.Errorf("failed to transfer images to system agent %s: %w", controller.Name, err)
 		}
 	}
 

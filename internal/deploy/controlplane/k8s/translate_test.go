@@ -64,7 +64,7 @@ func TestTranslateToControlPlaneCR_DatasanceGolden(t *testing.T) {
 	got := translateToControlPlaneCR(&cp, testNamespace, translateOptions{
 		apiVersion:      "datasance.com/v3",
 		crName:          "pot",
-		controllerImage: "ghcr.io/datasance/controller:3.8.0-rc.1",
+		controllerImage: "ghcr.io/datasance/controller:3.8.0-rc.2",
 		routerImage:     "ghcr.io/datasance/router:3.8.0-rc.1",
 		natsImage:       "ghcr.io/datasance/nats:2.14.2-rc.1",
 	})
@@ -77,7 +77,7 @@ func TestTranslateToControlPlaneCR_IofogGolden(t *testing.T) {
 	got := translateToControlPlaneCR(&cp, testNamespace, translateOptions{
 		apiVersion:      "iofog.org/v3",
 		crName:          "iofog",
-		controllerImage: "ghcr.io/eclipse-iofog/controller:3.8.0-rc.1",
+		controllerImage: "ghcr.io/eclipse-iofog/controller:3.8.0-rc.2",
 		routerImage:     "ghcr.io/eclipse-iofog/router:3.8.0-rc.1",
 		natsImage:       "ghcr.io/eclipse-iofog/nats:2.14.2-rc.1",
 	})
@@ -91,12 +91,12 @@ func TestTranslateToControlPlaneCR_StripsOperatorImage(t *testing.T) {
 	got := translateToControlPlaneCR(&cp, testNamespace, translateOptions{
 		apiVersion:      "datasance.com/v3",
 		crName:          "pot",
-		controllerImage: "ghcr.io/datasance/controller:3.8.0-rc.1",
+		controllerImage: "ghcr.io/datasance/controller:3.8.0-rc.2",
 		routerImage:     "ghcr.io/datasance/router:3.8.0-rc.1",
 		natsImage:       "ghcr.io/datasance/nats:2.14.2-rc.1",
 	})
 	require.NotContains(t, got.Spec.Images.Controller, "operator")
-	require.Equal(t, "ghcr.io/datasance/controller:3.8.0-rc.1", got.Spec.Images.Controller)
+	require.Equal(t, "ghcr.io/datasance/controller:3.8.0-rc.2", got.Spec.Images.Controller)
 }
 
 func TestTranslateToControlPlaneCR_DefaultImagesWhenOmitted(t *testing.T) {
@@ -107,11 +107,11 @@ func TestTranslateToControlPlaneCR_DefaultImagesWhenOmitted(t *testing.T) {
 	got := translateToControlPlaneCR(&cp, testNamespace, translateOptions{
 		apiVersion:      "datasance.com/v3",
 		crName:          "pot",
-		controllerImage: "ghcr.io/datasance/controller:3.8.0-rc.1",
+		controllerImage: "ghcr.io/datasance/controller:3.8.0-rc.2",
 		routerImage:     "ghcr.io/datasance/router:3.8.0-rc.1",
 		natsImage:       "ghcr.io/datasance/nats:2.14.2-rc.1",
 	})
-	require.Equal(t, "ghcr.io/datasance/controller:3.8.0-rc.1", got.Spec.Images.Controller)
+	require.Equal(t, "ghcr.io/datasance/controller:3.8.0-rc.2", got.Spec.Images.Controller)
 	require.Equal(t, "ghcr.io/datasance/router:3.8.0-rc.1", got.Spec.Images.Router)
 	require.Equal(t, "ghcr.io/datasance/nats:2.14.2-rc.1", got.Spec.Images.Nats)
 }

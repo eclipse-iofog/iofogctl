@@ -1,6 +1,7 @@
 package deployairgap
 
 import (
+	"fmt"
 	"strings"
 
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
@@ -12,17 +13,27 @@ const (
 	PlatformARM64   = "linux/arm64"
 	PlatformRISCV64 = "linux/riscv64"
 	PlatformARM     = "linux/arm"
+
+	DeploymentTypeNative    = "native"
+	DeploymentTypeContainer = "container"
 )
 
 type ContainerEngine string
 
 const (
-	EngineDocker ContainerEngine = "docker"
-	EnginePodman ContainerEngine = "podman"
+	EngineEdgelet ContainerEngine = "edgelet"
+	EngineDocker  ContainerEngine = "docker"
+	EnginePodman  ContainerEngine = "podman"
 )
 
 func (e ContainerEngine) Command() string {
 	return string(e)
+}
+
+// AirgapTransferOptions selects image load commands for an airgap transfer.
+type AirgapTransferOptions struct {
+	DeploymentType string
+	Engine         ContainerEngine
 }
 
 func ResolvePlatform(arch *string) (string, error) {
@@ -35,9 +46,28 @@ func ResolvePlatform(arch *string) (string, error) {
 		return PlatformAMD64, nil
 	case "2", "arm", "arm64", PlatformARM64:
 		return PlatformARM64, nil
+	case "3", "riscv64", PlatformRISCV64:
+		return PlatformRISCV64, nil
 	default:
 		return "", util.NewInputError("Unsupported fog type " + *arch)
 	}
+}
+
+func ResolveDeploymentType(deploymentType *string) string {
+	if deploymentType == nil {
+		return DeploymentTypeNative
+	}
+	value := strings.ToLower(strings.TrimSpace(*deploymentType))
+	switch value {
+	case DeploymentTypeContainer:
+		return DeploymentTypeContainer
+	default:
+		return DeploymentTypeNative
+	}
+}
+
+func IsNativeDeployment(deploymentType string) bool {
+	return ResolveDeploymentType(&deploymentType) == DeploymentTypeNative
 }
 
 func ResolveContainerEngine(engine *string) (ContainerEngine, error) {
@@ -46,12 +76,113 @@ func ResolveContainerEngine(engine *string) (ContainerEngine, error) {
 	}
 	value := strings.ToLower(strings.TrimSpace(*engine))
 	switch value {
+	case "edgelet":
+		return EngineEdgelet, nil
 	case "docker":
 		return EngineDocker, nil
 	case "podman":
 		return EnginePodman, nil
 	default:
 		return "", util.NewInputError("Unsupported container engine " + *engine)
+	}
+}
+
+// AirgapTransferOptionsFromConfig resolves deployment type and engine defaults for airgap transfers.
+func AirgapTransferOptionsFromConfig(cfg *rsc.AgentConfiguration) (AirgapTransferOptions, error) {
+	if cfg == nil {
+		return AirgapTransferOptions{}, util.NewInputError("Agent configuration is required for airgap deployment")
+	}
+	deploymentType := ResolveDeploymentType(cfg.DeploymentType)
+	engineStr := ""
+	if cfg.ContainerEngine != nil {
+		engineStr = strings.ToLower(strings.TrimSpace(*cfg.ContainerEngine))
+	}
+	if engineStr == "" {
+		if deploymentType == DeploymentTypeNative {
+			return AirgapTransferOptions{DeploymentType: deploymentType, Engine: EngineEdgelet}, nil
+		}
+		return AirgapTransferOptions{}, util.NewInputError("ContainerEngine is required for container airgap deployment")
+	}
+	engine, err := ResolveContainerEngine(&engineStr)
+	if err != nil {
+		return AirgapTransferOptions{}, err
+	}
+	return AirgapTransferOptions{DeploymentType: deploymentType, Engine: engine}, nil
+}
+
+// PlatformToOSArch splits a platform string such as linux/amd64 into OS and arch parts.
+func PlatformToOSArch(platform string) (osName, archName string, err error) {
+	parts := strings.Split(platform, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", util.NewInternalError("invalid platform specification " + platform)
+	}
+	return parts[0], parts[1], nil
+}
+
+// ImageLoadCommand builds the remote shell command used to import a transferred image archive.
+func ImageLoadCommand(opts AirgapTransferOptions, remoteArchivePath string) string {
+	if IsNativeDeployment(opts.DeploymentType) && opts.Engine == EngineEdgelet {
+		tarPath := strings.TrimSuffix(remoteArchivePath, ".gz")
+		return fmt.Sprintf(
+			`sudo sh -c 'gunzip -c %q > %q && edgelet image load -f %q && rm -f %q'`,
+			remoteArchivePath, tarPath, tarPath, tarPath,
+		)
+	}
+	return fmt.Sprintf("sudo -S %s load -i %s", opts.Engine.Command(), remoteArchivePath)
+}
+
+// CollectAgentAirgapImages returns image refs to transfer for an agent airgap deploy.
+// Native deployments skip the edgelet container image because the raw binary is transferred separately.
+func CollectAgentAirgapImages(images *RequiredImages, platform, deploymentType string) ([]string, error) {
+	if images == nil {
+		return nil, util.NewInternalError("required images are missing")
+	}
+
+	imageList := make([]string, 0, 8)
+	if !IsNativeDeployment(deploymentType) && images.Agent != "" {
+		imageList = append(imageList, images.Agent)
+	}
+
+	routerImage, err := GetImageForPlatform(images, platform)
+	if err != nil {
+		return nil, err
+	}
+	if routerImage != "" {
+		imageList = append(imageList, routerImage)
+	}
+
+	for _, ref := range []string{
+		images.NatsAMD64,
+		images.DebuggerAMD64,
+		images.NatsARM64,
+		images.DebuggerARM64,
+		images.NatsRISCV64,
+		images.DebuggerRISCV64,
+		images.NatsARM,
+		images.DebuggerARM,
+	} {
+		if ref != "" {
+			imageList = append(imageList, ref)
+		}
+	}
+	return imageList, nil
+}
+
+// ControllerAirgapLoadOptions returns docker/podman load options for controller container images.
+func ControllerAirgapLoadOptions(cfg *rsc.AgentConfiguration) (AirgapTransferOptions, error) {
+	if cfg == nil || cfg.ContainerEngine == nil {
+		return AirgapTransferOptions{}, util.NewInputError("containerEngine docker or podman is required to load controller images in airgap mode")
+	}
+	engineStr := strings.ToLower(strings.TrimSpace(*cfg.ContainerEngine))
+	switch engineStr {
+	case "docker", "podman":
+		engine, err := ResolveContainerEngine(&engineStr)
+		if err != nil {
+			return AirgapTransferOptions{}, err
+		}
+		return AirgapTransferOptions{DeploymentType: DeploymentTypeContainer, Engine: engine}, nil
+	default:
+		return AirgapTransferOptions{}, util.NewInputError("controller airgap image load requires containerEngine docker or podman on the controller host")
 	}
 }
 
@@ -77,23 +208,36 @@ func SanitizeSegment(value string) string {
 	return result
 }
 
-// ValidateAirgapRequirements validates that required configuration is present for airgap deployment
+// ValidateAirgapRequirements validates that required configuration is present for airgap deployment.
 func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 	if agentConfig == nil {
 		return util.NewInputError("Agent configuration is required for airgap deployment")
 	}
 
-	// Validate Arch
 	if agentConfig.Arch == nil || *agentConfig.Arch == "" {
 		return util.NewInputError("Arch is required for airgap deployment. Please specify the agent architecture (x86 or arm)")
 	}
 
-	// Validate ContainerEngine
-	if agentConfig.ContainerEngine == nil || *agentConfig.ContainerEngine == "" {
-		return util.NewInputError("ContainerEngine is required for airgap deployment. Please specify the container engine (docker or podman)")
+	deploymentType := ResolveDeploymentType(agentConfig.DeploymentType)
+	engineStr := ""
+	if agentConfig.ContainerEngine != nil {
+		engineStr = strings.ToLower(strings.TrimSpace(*agentConfig.ContainerEngine))
 	}
 
-	return nil
+	if deploymentType == DeploymentTypeContainer {
+		if engineStr != "docker" && engineStr != "podman" {
+			return util.NewInputError("ContainerEngine docker or podman is required for container airgap deployment")
+		}
+		return nil
+	}
+
+	if engineStr == "" || engineStr == "edgelet" {
+		return nil
+	}
+	if engineStr == "docker" || engineStr == "podman" {
+		return nil
+	}
+	return util.NewInputError("Unsupported container engine " + engineStr + " for native airgap deployment")
 }
 
 // ValidateControlPlaneAirgapRequirements validates that each controller has system agent config with
@@ -105,7 +249,7 @@ func ValidateControlPlaneAirgapRequirements(controlPlane *rsc.RemoteControlPlane
 	}
 	for _, ctrl := range controlPlane.Controllers {
 		if ctrl.SystemAgent == nil || ctrl.SystemAgent.AgentConfiguration == nil {
-			return util.NewInputError("System agent configuration is required for airgap control plane deployment. Please specify systemAgent with agent type (x86 or arm) and container engine (docker or podman) for controller " + ctrl.Name)
+			return util.NewInputError("System agent configuration is required for airgap control plane deployment. Please specify systemAgent with agent type (x86 or arm) and container engine for controller " + ctrl.Name)
 		}
 		if err := ValidateAirgapRequirements(ctrl.SystemAgent.AgentConfiguration); err != nil {
 			return err

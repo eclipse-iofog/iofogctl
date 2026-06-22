@@ -27,15 +27,16 @@ var (
 )
 
 const (
-	latestVersion        = "v3"
-	defaultDirname       = ".iofog/" + latestVersion
-	namespaceDirname     = "namespaces/"
-	offlineImagesDirname = "offline-images"
-	airgapImagesDirname  = "airgap-images"
-	defaultFilename      = "config.yaml"
-	configV3             = "iofogctl/v3"
-	CurrentConfigVersion = configV3
-	detachedNamespace    = "_detached"
+	latestVersion         = "v3"
+	defaultDirname        = ".iofog/" + latestVersion
+	namespaceDirname      = "namespaces/"
+	offlineImagesDirname  = "offline-images"
+	airgapImagesDirname   = "airgap-images"
+	airgapBinariesDirname = "airgap-binaries"
+	defaultFilename       = "config.yaml"
+	configV3              = "iofogctl/v3"
+	CurrentConfigVersion  = configV3
+	detachedNamespace     = "_detached"
 )
 
 func init() {
@@ -236,6 +237,20 @@ func GetOfflineImageCacheDir(namespace, resourceName, platform string) string {
 	if platform != "" {
 		pathElems = append(pathElems, platform)
 	}
+	return path.Join(pathElems...)
+}
+
+// GetAirgapBinaryCachePath returns the local cache file path for an edgelet release binary.
+func GetAirgapBinaryCachePath(namespace, osName, archName string) string {
+	artifact, err := util.EdgeletBinaryArtifact(osName, archName)
+	if err != nil {
+		artifact = "edgelet-" + osName + "-" + archName
+	}
+	pathElems := []string{configFolder, airgapBinariesDirname}
+	if namespace != "" {
+		pathElems = append(pathElems, namespace)
+	}
+	pathElems = append(pathElems, artifact)
 	return path.Join(pathElems...)
 }
 

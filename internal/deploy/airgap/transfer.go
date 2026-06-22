@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containers/image/v5/copy"
-	"github.com/containers/image/v5/signature"
-	"github.com/containers/image/v5/transports/alltransports"
-	"github.com/containers/image/v5/types"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/opencontainers/go-digest"
+	"go.podman.io/image/v5/copy"
+	"go.podman.io/image/v5/signature"
+	"go.podman.io/image/v5/transports/alltransports"
+	"go.podman.io/image/v5/types"
 )
 
 const (
@@ -41,12 +41,12 @@ type transferPlan struct {
 	host     string
 	ssh      *rsc.SSH
 	platform string
-	engine   ContainerEngine
+	opts     AirgapTransferOptions
 	images   []string // List of image references to transfer
 }
 
 // TransferAirgapImages transfers required images to a remote host for airgap deployment
-func TransferAirgapImages(ctx context.Context, namespace string, host string, ssh *rsc.SSH, platform string, engine ContainerEngine, images []string) error {
+func TransferAirgapImages(ctx context.Context, namespace string, host string, ssh *rsc.SSH, platform string, opts AirgapTransferOptions, images []string) error {
 	// Validate inputs
 	if host == "" {
 		return util.NewInputError("host is required for airgap image transfer")
@@ -65,7 +65,7 @@ func TransferAirgapImages(ctx context.Context, namespace string, host string, ss
 		host:     host,
 		ssh:      ssh,
 		platform: platform,
-		engine:   engine,
+		opts:     opts,
 		images:   images,
 	}
 
@@ -343,13 +343,13 @@ func transferAndLoadImage(plan transferPlan, artifact *imageArtifact) error {
 	}
 	remotePath := util.JoinAgentPath(hostDir, filename)
 
-	// Load image using container engine
-	loadCmd := fmt.Sprintf("sudo -S %s load -i %s", plan.engine.Command(), remotePath)
+	// Load image using deployment/engine matrix
+	loadCmd := ImageLoadCommand(plan.opts, remotePath)
 	if _, err := ssh.Run(loadCmd); err != nil {
 		return fmt.Errorf("failed to load image: %w", err)
 	}
 
-	// Clean up remote file
+	// Clean up remote archive (decompressed tar removed by edgelet load command)
 	if _, err := ssh.Run("sudo rm -f " + remotePath); err != nil {
 		util.PrintNotify(fmt.Sprintf("Warning: Failed to remove remote file %s: %v", remotePath, err))
 	}
