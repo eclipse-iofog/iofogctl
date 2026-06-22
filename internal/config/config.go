@@ -217,6 +217,11 @@ func Flush() error {
 	return flushNamespaces()
 }
 
+// ConfigFolder returns the initialized CLI config root (e.g. ~/.iofog/v3).
+func ConfigFolder() string {
+	return configFolder
+}
+
 // GetOfflineImageNamespaceDir returns the directory path used to store OfflineImage artifacts for a namespace.
 func GetOfflineImageNamespaceDir(namespace string) string {
 	return path.Join(configFolder, offlineImagesDirname, namespace)

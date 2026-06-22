@@ -12,6 +12,7 @@ const CSkyblue = "\033[38;5;117m"
 const CDeepskyblue = "\033[48;5;25m"
 const Red = "\033[38;5;1m"
 const Green = "\033[38;5;28m"
+const Yellow = "\033[38;5;220m"
 
 var progressPrintMu sync.Mutex
 
@@ -64,4 +65,14 @@ func PrintError(message string) {
 	SpinStop()
 	message = FirstToUpper(message)
 	fmt.Fprintf(os.Stderr, "%s", Red+"✘ "+message+NoFormat+"\n")
+}
+
+// PrintWarning prints a yellow warning to stderr.
+func PrintWarning(message string) {
+	wasRunning := SpinPause()
+	message = FirstToUpper(message)
+	fmt.Fprintf(os.Stderr, "%s", Yellow+"! "+message+NoFormat+"\n")
+	if wasRunning {
+		SpinUnpause()
+	}
 }
