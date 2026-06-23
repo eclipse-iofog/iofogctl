@@ -179,17 +179,24 @@ func (exe *localExecutor) Execute() error {
 	return exe.ctrlPlane.UpdateController(exe.ctrl)
 }
 
-func localSystemImagesToInstall(s *rsc.LocalSystemMicroservices, nats *rsc.NatsEnabledConfig) *install.LocalSystemImages {
-	// Always pass a non-nil struct so local controller gets default NATS_IMAGE_1/2 and NATS_ENABLED when not overridden
-	out := &install.LocalSystemImages{}
-	if s != nil {
-		out.Router = s.Router
-		out.Nats = s.Nats
+func localSystemImagesToInstall(s install.RemoteSystemMicroservices, nats *rsc.NatsEnabledConfig) *install.LocalSystemImages {
+	out := &install.LocalSystemImages{
+		Router: firstSystemImage(s.Router),
+		Nats:   firstSystemImage(s.Nats),
 	}
 	if nats != nil && nats.Enabled != nil {
 		out.NatsEnabled = nats.Enabled
 	}
 	return out
+}
+
+func firstSystemImage(images install.RemoteSystemImages) string {
+	for _, image := range []string{images.AMD64, images.ARM64, images.RISCV64, images.ARM} {
+		if image != "" {
+			return image
+		}
+	}
+	return ""
 }
 
 func Validate(ctrl rsc.Controller) error {
