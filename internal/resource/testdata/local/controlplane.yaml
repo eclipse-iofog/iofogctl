@@ -1,0 +1,48 @@
+apiVersion: datasance.com/v3
+kind: LocalControlPlane
+metadata:
+  name: iofog
+spec:
+  # endpoint: https://controller.example.com
+  iofogUser:
+    name: Foo
+    surname: Bar
+    email: user@domain.com
+  controller:
+    publicUrl: http://192.168.1.6:51121
+    consoleUrl: http://192.168.1.6
+    logLevel: info
+    package:
+      image: ghcr.io/datasance/controller:3.8.0-rc.2
+  auth:
+    mode: embedded
+    insecureAllowHttp: true
+    insecureAllowBootstrapLog: false
+    bootstrap:
+      username: admin
+      password: "LocalTest12!"
+  systemMicroservices:
+    router:
+      amd64: ghcr.io/datasance/router:3.8.0-rc.1
+      arm64: ghcr.io/datasance/router:3.8.0-rc.1
+      riscv64: ghcr.io/datasance/router:3.8.0-rc.1
+      arm: ghcr.io/datasance/router:3.8.0-rc.1
+    nats:
+      amd64: ghcr.io/datasance/nats:2.14.2-rc.1
+      arm64: ghcr.io/datasance/nats:2.14.2-rc.1
+      riscv64: ghcr.io/datasance/nats:2.14.2-rc.1
+      arm: ghcr.io/datasance/nats:2.14.2-rc.1
+  nats:
+    enabled: true
+  events:
+    auditEnabled: true
+    retentionDays: 14
+    cleanupInterval: 86400
+    captureIpAddress: true
+  systemAgent:
+    config:
+      arch: arm64
+      containerEngine: docker
+      deploymentType: container
+      containerEngineUrl: unix:///var/run/docker.sock
+

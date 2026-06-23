@@ -363,10 +363,26 @@ type VaultGoogle struct {
 	Credentials string `yaml:"credentials,omitempty"`
 }
 
-// LocalSystemMicroservices holds optional system image overrides for local control plane.
-type LocalSystemMicroservices struct {
-	Router string `yaml:"router,omitempty"`
-	Nats   string `yaml:"nats,omitempty"`
+// LocalControllerSpec is operator-aligned controller config for LocalControlPlane (spec.controller).
+type LocalControllerSpec struct {
+	ControllerConfig `yaml:",inline"`
+	Package          *ControllerPackage `yaml:"package,omitempty"`
+}
+
+// ControllerPackage holds optional controller image and private registry credentials.
+type ControllerPackage struct {
+	Image    string `yaml:"image,omitempty"`
+	Registry string `yaml:"registry,omitempty"`
+	Email    string `yaml:"email,omitempty"`
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+}
+
+// ControlPlaneTLS holds optional TLS material for non-K8s control planes.
+type ControlPlaneTLS struct {
+	CA   string `yaml:"ca,omitempty"`
+	Cert string `yaml:"cert,omitempty"`
+	Key  string `yaml:"key,omitempty"`
 }
 
 // NatsEnabledConfig is the NATS config for remote and local control planes (enabling only; no service/ingress/jetStream).
