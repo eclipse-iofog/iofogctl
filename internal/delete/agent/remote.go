@@ -9,14 +9,9 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
-	if agent.ValidateSSH() != nil {
-		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
-		return nil
-	}
-
+func (exe executor) newRemoteEdgelet(agent *rsc.RemoteAgent) (*install.RemoteEdgelet, error) {
 	cfg := deployairgap.EdgeletInstallConfig("linux", agent.Config, agent.Package)
-	edgelet, err := install.NewRemoteEdgelet(
+	return install.NewRemoteEdgelet(
 		agent.SSH.User,
 		agent.Host,
 		agent.SSH.Port,
@@ -25,6 +20,29 @@ func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
 		agent.UUID,
 		cfg,
 	)
+}
+
+func (exe executor) deprovisionRemoteEdgelet(agent *rsc.RemoteAgent) error {
+	if agent.ValidateSSH() != nil {
+		util.PrintNotify("Could not deprovision daemon for Agent " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
+		return nil
+	}
+	edgelet, err := exe.newRemoteEdgelet(agent)
+	if err != nil {
+		return err
+	}
+	if err := edgelet.Deprovision(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not deprovision edgelet on Agent %s: %v", agent.Name, err))
+	}
+	return nil
+}
+
+func (exe executor) uninstallRemoteEdgelet(agent *rsc.RemoteAgent) error {
+	if agent.ValidateSSH() != nil {
+		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
+		return nil
+	}
+	edgelet, err := exe.newRemoteEdgelet(agent)
 	if err != nil {
 		return err
 	}
@@ -32,4 +50,11 @@ func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
 		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
 	}
 	return nil
+}
+
+func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
+	if err := exe.deprovisionRemoteEdgelet(agent); err != nil {
+		return err
+	}
+	return exe.uninstallRemoteEdgelet(agent)
 }

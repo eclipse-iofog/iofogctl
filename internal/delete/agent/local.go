@@ -10,7 +10,23 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func (exe executor) deleteLocalEdgelet(agent *rsc.LocalAgent) error {
+func (exe executor) newLocalEdgelet(agent *rsc.LocalAgent) (*install.LocalEdgelet, error) {
+	cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
+	return install.NewLocalEdgelet(agent.Name, agent.UUID, cfg)
+}
+
+func (exe executor) deprovisionLocalEdgelet(agent *rsc.LocalAgent) error {
+	edgelet, err := exe.newLocalEdgelet(agent)
+	if err != nil {
+		return err
+	}
+	if err := edgelet.Deprovision(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not deprovision edgelet on local host: %v", err))
+	}
+	return nil
+}
+
+func (exe executor) uninstallLocalEdgelet(agent *rsc.LocalAgent) error {
 	cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
 	edgelet, err := install.NewLocalEdgelet(agent.Name, agent.UUID, cfg)
 	if err != nil {
@@ -39,4 +55,11 @@ func (exe executor) deleteLocalEdgelet(agent *rsc.LocalAgent) error {
 		}
 	}
 	return nil
+}
+
+func (exe executor) deleteLocalEdgelet(agent *rsc.LocalAgent) error {
+	if err := exe.deprovisionLocalEdgelet(agent); err != nil {
+		return err
+	}
+	return exe.uninstallLocalEdgelet(agent)
 }

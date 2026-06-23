@@ -31,24 +31,25 @@ func (exe *LocalExecutor) GetName() string {
 }
 
 func (exe *LocalExecutor) Execute() error {
+	if err := exe.deleteLegacyControllerContainer(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", err))
+	}
+
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
 	}
-	client, err := install.NewLocalContainerClient(install.DefaultLocalContainerEngine, nil)
-	if err != nil {
-		return err
-	}
-	// Get container config
-	// Clean container
-	if errClean := client.CleanContainer(exe.localControllerConfig.ContainerName); errClean != nil {
-		util.PrintNotify(fmt.Sprintf("Could not clean Controller container: %v", errClean))
-	}
-
-	// Update config
 	if err := ns.DeleteController(exe.name); err != nil {
 		return err
 	}
 	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
+}
+
+func (exe *LocalExecutor) deleteLegacyControllerContainer() error {
+	client, err := install.NewLocalContainerClient(install.DefaultLocalContainerEngine, nil)
+	if err != nil {
+		return err
+	}
+	return client.CleanContainer(exe.localControllerConfig.ContainerName)
 }

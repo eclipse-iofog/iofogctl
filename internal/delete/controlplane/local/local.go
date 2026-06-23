@@ -24,9 +24,7 @@ func (exe *Executor) GetName() string {
 	return "Delete Control Plane"
 }
 
-// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() (err error) {
-	// Get Control Plane
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
@@ -41,12 +39,24 @@ func (exe *Executor) Execute() (err error) {
 		return util.NewError("Could not convert Control Plane to Local Control Plane")
 	}
 
-	executor := deletecontroller.NewLocalExecutor(controlPlane, exe.namespace, controlPlane.Controller.GetName())
-	if err := executor.Execute(); err != nil {
-		return err
+	name := ControlPlaneSystemAgentName(controlPlane)
+
+	if controlPlane.SystemAgent != nil {
+		if err := teardownEdgeletControlPlane(exe.namespace, controlPlane, name); err != nil {
+			return err
+		}
+	} else {
+		executor := deletecontroller.NewLocalExecutor(controlPlane, exe.namespace, name)
+		if err := executor.Execute(); err != nil {
+			return err
+		}
 	}
 
-	// Delete Control Plane in config
 	ns.DeleteControlPlane()
 	return config.Flush()
+}
+
+// IsLocalEdgeletControlPlane reports whether the namespace uses edgelet host teardown.
+func IsLocalEdgeletControlPlane(cp rsc.ControlPlane) bool {
+	return isLocalEdgeletControlPlane(cp)
 }
