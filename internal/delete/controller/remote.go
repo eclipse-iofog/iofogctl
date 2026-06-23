@@ -1,13 +1,10 @@
 package deletecontroller
 
 import (
-	// "fmt"
-
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deleteremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane/remote"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
-
-	// "github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -30,54 +27,26 @@ func (exe *RemoteExecutor) GetName() string {
 }
 
 func (exe *RemoteExecutor) Execute() error {
-	// Get controller from config
 	baseCtrl, err := exe.controlPlane.GetController(exe.name)
 	if err != nil {
 		return err
 	}
 
-	// Assert dynamic type
 	ctrl, ok := baseCtrl.(*rsc.RemoteController)
 	if !ok {
 		return util.NewInternalError("Could not assert Controller type to Remote Controller")
 	}
 
-	// Try to remove default router TODO: skipping right now as systemAgent is not deployed with isSystem
-	// sshAgent, err := install.NewRemoteAgent(ctrl.SSH.User,
-	// 	ctrl.Host,
-	// 	ctrl.SSH.Port,
-	// 	ctrl.SSH.KeyFile,
-	// 	iofog.VanillaRemoteAgentName,
-	// 	"")
-	// if err != nil {
-	// 	return err
-	// }
-	// if err = sshAgent.Uninstall(); err != nil {
-	// 	util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", iofog.VanillaRemoteAgentName, err.Error()))
-	// }
-
-	// Instantiate Controller uninstaller
-	controllerOptions := &install.ControllerOptions{
-		User:            ctrl.SSH.User,
-		Host:            ctrl.Host,
-		Port:            ctrl.SSH.Port,
-		PrivKeyFilename: ctrl.SSH.KeyFile,
-	}
-	installer, err := install.NewController(controllerOptions)
-	if err != nil {
+	if err := deleteremotecontrolplane.TeardownRemoteControllerHost(exe.namespace, exe.controlPlane, ctrl); err != nil {
 		return err
 	}
 
-	// Uninstall Controller
-	if err := installer.Uninstall(); err != nil {
-		return err
-	}
-
-	// Update config
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
 	}
+	_ = ns.DeleteAgent(exe.name)
+	clientutil.InvalidateAgentCache(exe.namespace)
 	if err := ns.DeleteController(exe.name); err != nil {
 		return err
 	}

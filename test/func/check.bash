@@ -121,6 +121,35 @@ function checkControllerNegative() {
   [[ "$NAME" != $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
 }
 
+function checkRemoteControlPlane() {
+  local NS_CHECK=${1:-$NS}
+  initVanillaController
+  [[ "$NAME" == $(iofogctl -v -n "$NS_CHECK" get controllers | grep "$NAME" | awk '{print $1}') ]]
+
+  local DESC=$(iofogctl -v -n "$NS_CHECK" describe controller "$NAME")
+  echo "$DESC" | grep "name: $NAME"
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "kind: Controller"
+
+  DESC=$(iofogctl -v -n "$NS_CHECK" describe controlplane)
+  echo "$DESC" | grep "host: $VANILLA_HOST"
+  echo "$DESC" | grep "kind: ControlPlane"
+}
+
+function checkRemoteEdgeletDeleted() {
+  local USER="$1"
+  local HOST="$2"
+  local PORT="${3:-22}"
+  local KEY="$4"
+  local SSH_KEY_PATH=$KEY
+  if [[ ! -z $WSL_KEY_FILE ]]; then
+    SSH_KEY_PATH=$WSL_KEY_FILE
+  fi
+  local SSH_COMMAND="ssh -oStrictHostKeyChecking=no -p $PORT -i $SSH_KEY_PATH ${USER}@${HOST}"
+  run $SSH_COMMAND -- sh -c 'command -v edgelet >/dev/null 2>&1'
+  [ "$status" -ne 0 ]
+}
+
 function checkMicroservice() {
   local NS_CHECK=${1:-$NS}
   [[ "$MICROSERVICE_NAME" == $(iofogctl -v -n "$NS_CHECK" get microservices | grep "$MICROSERVICE_NAME" | awk '{print $1}') ]]
