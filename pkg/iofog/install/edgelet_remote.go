@@ -10,6 +10,8 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+const remoteEdgeletManifestDir = "/tmp"
+
 // remoteEdgeletRunHook is set by tests to mock SSH command execution.
 var remoteEdgeletRunHook func(agent *RemoteEdgelet, cmds []command) error
 
@@ -317,6 +319,79 @@ func (agent *RemoteEdgelet) installRemoteFileIfMissing(destPath string, content 
 	return err
 }
 
+// DeployFromFile applies an edgelet manifest (Registry or ControlPlane) on the remote host.
+func (agent *RemoteEdgelet) DeployFromFile(manifestPath string) error {
+	cmd := fmt.Sprintf("sudo edgelet deploy -f %s", shellQuoteArg(manifestPath))
+	return agent.run([]command{{
+		cmd: cmd,
+		msg: "Deploying edgelet manifest from " + manifestPath,
+	}})
+}
+
+// RegistryList runs edgelet registry ls on the remote host and returns stdout.
+func (agent *RemoteEdgelet) RegistryList() (string, error) {
+	if remoteEdgeletRunHook != nil {
+		return "", nil
+	}
+	if err := agent.ssh.Connect(); err != nil {
+		return "", err
+	}
+	defer util.Log(agent.ssh.Disconnect)
+
+	out, err := agent.ssh.Run("sudo edgelet registry ls")
+	if err != nil {
+		return "", err
+	}
+	return out.String(), nil
+}
+
+// WriteDeployManifest writes manifest bytes to a remote temp file for edgelet deploy -f.
+func (agent *RemoteEdgelet) WriteDeployManifest(data []byte, prefix string) (path string, cleanup func(), err error) {
+	localPath, localCleanup, err := WriteTempManifest(data, prefix, agent.cfg)
+	if err != nil {
+		return "", nil, err
+	}
+	defer localCleanup()
+
+	remotePath := fmt.Sprintf("%s/edgelet-%s.yaml", remoteEdgeletManifestDir, prefix)
+	if err := agent.copyLocalFileToRemote(localPath, remotePath); err != nil {
+		return "", nil, err
+	}
+	cleanup = func() {
+		_ = agent.run([]command{{
+			cmd: fmt.Sprintf("rm -f %s", shellQuoteArg(remotePath)),
+			msg: "Removing edgelet manifest on " + agent.name,
+		}})
+	}
+	return remotePath, cleanup, nil
+}
+
+func (agent *RemoteEdgelet) copyLocalFileToRemote(localPath, remotePath string) error {
+	if remoteEdgeletRunHook != nil {
+		return nil
+	}
+	content, err := os.ReadFile(localPath)
+	if err != nil {
+		return err
+	}
+	if err := agent.ssh.Connect(); err != nil {
+		return err
+	}
+	defer util.Log(agent.ssh.Disconnect)
+
+	tmpName := filepath.Base(remotePath) + ".upload"
+	reader := strings.NewReader(string(content))
+	if err := agent.ssh.CopyTo(reader, remoteEdgeletManifestDir, tmpName, "0644", int64(len(content))); err != nil {
+		return err
+	}
+	installCmd := fmt.Sprintf("sudo install -m 644 %s/%s %s", remoteEdgeletManifestDir, tmpName, remotePath)
+	if _, err := agent.ssh.Run(installCmd); err != nil {
+		return err
+	}
+	_, err = agent.ssh.Run(fmt.Sprintf("rm -f %s/%s", remoteEdgeletManifestDir, tmpName))
+	return err
+}
+
 func (agent *RemoteEdgelet) Deprovision() error {
 	cmds := []command{{
 		cmd: "sudo edgelet deprovision",
@@ -410,7 +485,7 @@ func (agent *RemoteEdgelet) copyInstallScripts() error {
 
 func edgeletScriptTmpName(relPath string) string {
 	safe := strings.ReplaceAll(relPath, "/", "-")
-	return "potctl-edgelet-" + safe + ".tmp"
+	return "edgelet-" + safe + ".tmp"
 }
 
 func (agent *RemoteEdgelet) installRemoteScript(stageDir, relPath, content string) error {

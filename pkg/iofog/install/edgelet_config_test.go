@@ -336,7 +336,7 @@ func TestBootstrapEnvDesktopContainer(t *testing.T) {
 	if !strings.Contains(env, "EDGELET_SCRIPT_STAGE_DIR=") {
 		t.Fatalf("expected stage dir in bootstrap env, got %q", env)
 	}
-	if !strings.Contains(env, "PATH=/tmp/potctl-edgelet-scripts/bin:") {
+	if !strings.Contains(env, "PATH=/tmp/edgelet-scripts/bin:") {
 		t.Fatalf("expected stage bin on PATH in bootstrap env, got %q", env)
 	}
 }

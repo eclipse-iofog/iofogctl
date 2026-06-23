@@ -15,7 +15,10 @@ func EdgeletShareDir(hostOS string) string {
 }
 
 // EdgeletScriptStageDir is the transient directory used before publishing to EdgeletShareDir.
-const EdgeletScriptStageDir = "/tmp/potctl-edgelet-scripts"
+const EdgeletScriptStageDir = "/tmp/edgelet-scripts"
+
+// EdgeletContainerManifestDir is bind-mounted into the edgelet container on desktop deploys.
+const EdgeletContainerManifestDir = "/tmp/edgelet"
 
 func normalizeEdgeletShareHostOS(hostOS string) string {
 	switch strings.ToLower(strings.TrimSpace(hostOS)) {

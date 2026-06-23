@@ -142,7 +142,7 @@ func deployPrivateEdgeletRegistry(cp *rsc.LocalControlPlane, edgelet *install.Lo
 		return nil, util.NewError("private registry translation produced no manifest")
 	}
 
-	path, cleanup, err := install.WriteTempManifest(result.Registry, "edgelet-registry")
+	path, cleanup, err := edgelet.WriteDeployManifest(result.Registry, "edgelet-registry")
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func deployEdgeletControlPlane(cp *rsc.LocalControlPlane, edgelet *install.Local
 		return err
 	}
 
-	path, cleanup, err := install.WriteTempManifest(result.ControlPlane, "edgelet-controlplane")
+	path, cleanup, err := edgelet.WriteDeployManifest(result.ControlPlane, "edgelet-controlplane")
 	if err != nil {
 		return err
 	}

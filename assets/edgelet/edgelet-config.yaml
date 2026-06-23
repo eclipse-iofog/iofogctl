@@ -34,7 +34,7 @@ profiles:
     logDiskDirectory: "/var/log/edgelet/"
     logFileCount: "10"
     logLevel: "INFO"
-    statusFrequency: "30"
+    statusFrequency: "10"
     changeFrequency: "10"
     scanDevicesFreq: "60"
     gps: "auto"

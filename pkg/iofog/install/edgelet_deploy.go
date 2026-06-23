@@ -35,8 +35,18 @@ func (agent *LocalEdgelet) RegistryList() (string, error) {
 }
 
 // WriteTempManifest writes YAML to a temp file for edgelet deploy -f.
-func WriteTempManifest(data []byte, prefix string) (path string, cleanup func(), err error) {
-	f, err := os.CreateTemp("", prefix+"-*.yaml")
+// For desktop container edgelet, the file is placed under EdgeletContainerManifestDir
+// so docker exec edgelet can read it via the container bind mount.
+func WriteTempManifest(data []byte, prefix string, cfg EdgeletInstallConfig) (path string, cleanup func(), err error) {
+	dir := ""
+	if IsDesktopContainerDeploy(cfg) {
+		dir = EdgeletContainerManifestDir
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return "", nil, err
+		}
+	}
+
+	f, err := os.CreateTemp(dir, prefix+"-*.yaml")
 	if err != nil {
 		return "", nil, err
 	}
@@ -51,6 +61,11 @@ func WriteTempManifest(data []byte, prefix string) (path string, cleanup func(),
 		return "", nil, err
 	}
 	return path, func() { _ = os.Remove(path) }, nil
+}
+
+// WriteDeployManifest writes a manifest using this edgelet's install config.
+func (agent *LocalEdgelet) WriteDeployManifest(data []byte, prefix string) (path string, cleanup func(), err error) {
+	return WriteTempManifest(data, prefix, agent.cfg)
 }
 
 // ParseEdgeletRegistryID finds a registry row matching URL and optional username in edgelet registry ls output.
