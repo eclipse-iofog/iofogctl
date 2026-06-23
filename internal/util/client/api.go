@@ -16,6 +16,13 @@ func InvalidateCache() {
 	pkg.agentCacheRequestChan <- newAgentCacheRequest("")
 }
 
+// InvalidateAgentCache clears cached agents for a namespace.
+func InvalidateAgentCache(namespace string) {
+	request := newAgentCacheInvalidateRequest(namespace)
+	pkg.agentCacheRequestChan <- request
+	<-request.resultChan
+}
+
 // NewControllerClient will return cached client or create new client and cache it
 func NewControllerClient(namespace string) (*client.Client, error) {
 	request := newClientCacheRequest(namespace)

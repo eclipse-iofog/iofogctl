@@ -49,6 +49,12 @@ func agentCacheRoutine() {
 		if request.namespace == "" {
 			// Invalidate cache
 			pkg.agentCache = make(map[string][]client.AgentInfo)
+			request.resultChan <- &agentCacheResult{}
+			continue
+		}
+		if request.invalidate {
+			delete(pkg.agentCache, request.namespace)
+			request.resultChan <- &agentCacheResult{}
 			continue
 		}
 		result := &agentCacheResult{}
@@ -80,18 +86,12 @@ func agentCacheRoutine() {
 }
 
 func agentSyncRoutine() {
-	complete := false
 	for {
 		request := <-pkg.agentSyncRequestChan
-		if complete {
-			request.resultChan <- nil
-			continue
-		}
 		if err := syncAgentInfo(request.namespace); err != nil {
 			request.resultChan <- err
 			continue
 		}
-		complete = true
 		request.resultChan <- nil
 	}
 }
@@ -107,9 +107,8 @@ func syncAgentInfo(namespace string) error {
 	if err != nil {
 		return err
 	}
-	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
-		// Do not update local Agents
-		return nil
+	if localCP, ok := controlPlane.(*rsc.LocalControlPlane); ok {
+		return syncLocalControlPlaneAgents(ns, localCP, namespace)
 	}
 	// Generate map of config Agents
 	agentsMap := make(map[string]*rsc.RemoteAgent)
@@ -155,6 +154,77 @@ func syncAgentInfo(namespace string) error {
 	}
 
 	return config.Flush()
+}
+
+func syncLocalControlPlaneAgents(ns *rsc.Namespace, cp *rsc.LocalControlPlane, namespace string) error {
+	localAgentsMap := make(map[string]*rsc.LocalAgent)
+	remoteAgentsMap := make(map[string]*rsc.RemoteAgent)
+	for _, baseAgent := range ns.GetAgents() {
+		switch agent := baseAgent.(type) {
+		case *rsc.LocalAgent:
+			localAgentsMap[agent.GetName()] = agent.Clone().(*rsc.LocalAgent)
+		case *rsc.RemoteAgent:
+			remoteAgentsMap[agent.GetName()] = agent.Clone().(*rsc.RemoteAgent)
+		}
+	}
+
+	backendAgents, err := GetBackendAgents(namespace)
+	if err != nil {
+		return err
+	}
+
+	endpoint, _ := cp.GetEndpoint()
+
+	ns.DeleteAgents()
+	for idx := range backendAgents {
+		backendAgent := &backendAgents[idx]
+		if backendAgent.IsSystem {
+			localAgent := mergeLocalAgentFromBackend(localAgentsMap[backendAgent.Name], backendAgent, cp)
+			if err := ns.AddAgent(&localAgent); err != nil {
+				return err
+			}
+			continue
+		}
+
+		remoteAgent := mergeRemoteAgentFromBackend(remoteAgentsMap[backendAgent.Name], backendAgent)
+		remoteAgent.ControllerEndpoint = endpoint
+		remoteAgent.Airgap = cp.Airgap
+		if err := ns.AddAgent(&remoteAgent); err != nil {
+			return err
+		}
+	}
+	return config.Flush()
+}
+
+func mergeLocalAgentFromBackend(cached *rsc.LocalAgent, backend *client.AgentInfo, cp *rsc.LocalControlPlane) rsc.LocalAgent {
+	var agent rsc.LocalAgent
+	if cached != nil {
+		agent = *cached.Clone().(*rsc.LocalAgent)
+	} else {
+		agent = rsc.LocalAgent{
+			Name: backend.Name,
+			Host: backend.Host,
+		}
+		if backend.IsSystem && cp.SystemAgent != nil {
+			agent.Package = cp.SystemAgent.Package
+			agent.Scripts = cp.SystemAgent.Scripts
+			if cp.SystemAgent.AgentConfiguration != nil {
+				cfg := *cp.SystemAgent.AgentConfiguration
+				agent.Config = &cfg
+			}
+		}
+	}
+
+	agent.Name = backend.Name
+	agent.UUID = backend.UUID
+	if agent.Host == "" {
+		agent.Host = backend.Host
+	}
+	if endpoint, err := cp.GetEndpoint(); err == nil {
+		agent.ControllerEndpoint = endpoint
+	}
+	agent.Airgap = cp.Airgap
+	return agent
 }
 
 // mergeRemoteAgentFromBackend updates UUID and Controller registration host from the API

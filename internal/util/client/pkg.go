@@ -50,12 +50,21 @@ func (ccr *clientCacheResult) get() (*client.Client, error) {
 
 type agentCacheRequest struct {
 	namespace  string
+	invalidate bool
 	resultChan chan *agentCacheResult
 }
 
 func newAgentCacheRequest(namespace string) *agentCacheRequest {
 	return &agentCacheRequest{
 		namespace:  namespace,
+		resultChan: make(chan *agentCacheResult),
+	}
+}
+
+func newAgentCacheInvalidateRequest(namespace string) *agentCacheRequest {
+	return &agentCacheRequest{
+		namespace:  namespace,
+		invalidate: true,
 		resultChan: make(chan *agentCacheResult),
 	}
 }
