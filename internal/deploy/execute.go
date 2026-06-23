@@ -285,6 +285,12 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Controllers
+	if err := deployvalidate.RemoteControllerDeploy(opt.InputFile); err != nil {
+		return err
+	}
+	if errs := execute.RunExecutors(executorsMap[config.RemoteControllerKind], "deploy remote controller"); len(errs) > 0 {
+		return execute.CoalesceErrors(errs)
+	}
 	if errs := execute.RunExecutors(executorsMap[config.LocalControllerKind], "deploy local controller"); len(errs) > 0 {
 		return execute.CoalesceErrors(errs)
 	}

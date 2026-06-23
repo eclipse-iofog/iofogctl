@@ -147,16 +147,21 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 // headerDecodeToHeader converts headerDecode to config.Header, building Spec from
 // top-level rules/roleRef/subjects when present (Controller-style RBAC YAML).
 func headerDecodeToHeader(h *headerDecode) *config.Header {
+	kind := h.Kind
+	if kind == "RemoteController" {
+		kind = config.RemoteControllerKind
+	}
+
 	header := &config.Header{
 		APIVersion: h.APIVersion,
-		Kind:       h.Kind,
+		Kind:       kind,
 		Metadata:   h.Metadata,
 		Spec:       h.Spec,
 		Data:       h.Data,
 		Status:     h.Status,
 	}
 
-	switch h.Kind {
+	switch kind {
 	case config.RoleKind:
 		if h.Rules != nil {
 			// Controller-style: rules at top level
