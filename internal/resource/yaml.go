@@ -25,7 +25,6 @@ func UnmarshallKubernetesControlPlane(file []byte) (controlPlane KubernetesContr
 }
 
 func UnmarshallRemoteControlPlane(file []byte) (controlPlane RemoteControlPlane, err error) {
-	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
@@ -35,10 +34,8 @@ func UnmarshallRemoteControlPlane(file []byte) (controlPlane RemoteControlPlane,
 	if err = controlPlane.Sanitize(); err != nil {
 		return
 	}
-	for idx := range controlPlane.Controllers {
-		if err = controlPlane.Controllers[idx].Sanitize(); err != nil {
-			return
-		}
+	if err = ValidateRemoteControlPlane(&controlPlane); err != nil {
+		return
 	}
 	return
 }

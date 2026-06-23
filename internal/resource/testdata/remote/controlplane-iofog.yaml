@@ -1,0 +1,58 @@
+endpoint: https://controller.example.com
+iofogUser:
+  name: Foo
+  surname: Bar
+  email: user@domain.com
+controller:
+  publicUrl: https://controller.example.com
+  consoleUrl: https://controller.example.com
+  logLevel: info
+  package:
+    image: ghcr.io/eclipse-iofog/controller:3.8.0-rc.1
+auth:
+  mode: embedded
+  insecureAllowHttp: false
+  insecureAllowBootstrapLog: false
+  bootstrap:
+    username: admin
+    password: "RemoteTest12!"
+database:
+  provider: postgres
+  user: dbuser
+  host: db.example.com
+  port: 5432
+  password: secret
+  databaseName: iofog
+systemMicroservices:
+  router:
+    amd64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+    arm64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+    riscv64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+    arm: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+  nats:
+    amd64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.1
+    arm64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.1
+    riscv64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.1
+    arm: ghcr.io/eclipse-iofog/nats:2.14.2-rc.1
+nats:
+  enabled: true
+events:
+  auditEnabled: true
+  retentionDays: 14
+  cleanupInterval: 86400
+  captureIpAddress: true
+controllers:
+  - name: remote-1
+    host: 10.0.128.192
+    ssh:
+      user: foo
+      keyFile: ~/.ssh/id_rsa
+      port: 22
+    systemAgent: {}
+  - name: remote-2
+    host: 10.0.128.193
+    ssh:
+      user: foo
+      keyFile: ~/.ssh/id_rsa
+      port: 22
+    systemAgent: {}

@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"fmt"
+
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -8,17 +10,22 @@ import (
 type RemoteSystemMicroservices = install.RemoteSystemMicroservices
 
 type RemoteControlPlane struct {
+	Endpoint            string                    `yaml:"endpoint,omitempty"`
 	CA                  string                    `yaml:"ca,omitempty"`
 	IofogUser           IofogUser                 `yaml:"iofogUser"`
+	Controller          LocalControllerSpec       `yaml:"controller,omitempty"`
 	Controllers         []RemoteController        `yaml:"controllers"`
 	Database            Database                  `yaml:"database"`
 	Auth                Auth                      `yaml:"auth"`
-	Events              Events                    `yaml:"events,omitempty"`
-	Package             Package                   `yaml:"package,omitempty"`
+	RouterSiteCA        *SiteCertificate          `yaml:"routerSiteCA,omitempty"`
+	RouterLocalCA       *SiteCertificate          `yaml:"routerLocalCA,omitempty"`
+	NatsSiteCA          *SiteCertificate          `yaml:"natsSiteCA,omitempty"`
+	NatsLocalCA         *SiteCertificate          `yaml:"natsLocalCA,omitempty"`
 	SystemMicroservices RemoteSystemMicroservices `yaml:"systemMicroservices,omitempty"`
 	Nats                *NatsEnabledConfig        `yaml:"nats,omitempty"`
+	Events              Events                    `yaml:"events,omitempty"`
 	Vault               *VaultSpec                `yaml:"vault,omitempty"`
-	Endpoint            string                    `yaml:"endpoint,omitempty"`
+	TLS                 *ControlPlaneTLS          `yaml:"tls,omitempty"`
 	Airgap              bool                      `yaml:"airgap,omitempty"`
 }
 
@@ -56,12 +63,12 @@ func (cp *RemoteControlPlane) GetController(name string) (ret Controller, err er
 }
 
 func (cp *RemoteControlPlane) GetEndpoint() (string, error) {
-	// 1. Check if external endpoint (load balancer) is configured
 	if cp.Endpoint != "" {
 		return cp.Endpoint, nil
 	}
-
-	// 2. Fall back to existing logic (first controller with endpoint)
+	if cp.Controller.PublicUrl != "" {
+		return cp.Controller.PublicUrl, nil
+	}
 	if len(cp.Controllers) == 0 {
 		return "", util.NewInternalError("Control Plane does not have any Controllers")
 	}
@@ -120,21 +127,71 @@ func (cp *RemoteControlPlane) Sanitize() (err error) {
 	return nil
 }
 
+const controllerAddOnConnectHint = "use connect -f with a full controlplane.yaml or deploy -f controlplane.yaml first"
+
+// SupportsControllerAddOn reports whether the stored Control Plane has enough deploy
+// metadata to add controllers via standalone kind: Controller YAML.
+func (cp *RemoteControlPlane) SupportsControllerAddOn() error {
+	if cp.Auth.Mode == "" {
+		return util.NewInputError("namespace Control Plane does not support adding controllers; " + controllerAddOnConnectHint)
+	}
+	if !hasControllerSpec(cp.Controller) {
+		return util.NewInputError("namespace Control Plane is missing spec.controller; " + controllerAddOnConnectHint)
+	}
+	return nil
+}
+
+// ValidateControllerAddOn rejects duplicate controller name or host in the stored CP.
+func (cp *RemoteControlPlane) ValidateControllerAddOn(ctrl *RemoteController) error {
+	for _, existing := range cp.Controllers {
+		if existing.Name == ctrl.Name {
+			return util.NewInputError(fmt.Sprintf("controller name %q already exists in namespace Control Plane", ctrl.Name))
+		}
+		if existing.Host != "" && existing.Host == ctrl.Host {
+			return util.NewInputError(fmt.Sprintf("controller host %q already exists in namespace Control Plane", ctrl.Host))
+		}
+	}
+	return nil
+}
+
+// ValidateControllerAddOnDatabase rejects SQLite when adding a second controller.
+func (cp *RemoteControlPlane) ValidateControllerAddOnDatabase() error {
+	if len(cp.Controllers) >= 1 && cp.Database.Provider == "" {
+		return util.NewInputError("cannot add controller: external database is required when multiple controllers are configured")
+	}
+	return nil
+}
+
+func hasControllerSpec(c LocalControllerSpec) bool {
+	if c.PublicUrl != "" || c.ConsoleUrl != "" || c.LogLevel != "" || c.PidBaseDir != "" || c.Package != nil {
+		return true
+	}
+	if c.ConsolePort != 0 || c.TrustProxy != nil || c.Https != nil || c.SecretName != "" {
+		return true
+	}
+	return false
+}
+
 func (cp *RemoteControlPlane) Clone() ControlPlane {
 	controllers := make([]RemoteController, len(cp.Controllers))
 	copy(controllers, cp.Controllers)
 	return &RemoteControlPlane{
+		Endpoint:            cp.Endpoint,
 		CA:                  cp.CA,
 		IofogUser:           cp.IofogUser,
+		Controller:          cp.Controller,
+		Controllers:         controllers,
 		Database:            cp.Database,
 		Auth:                cp.Auth,
-		Events:              cp.Events,
-		Package:             cp.Package,
+		RouterSiteCA:        cp.RouterSiteCA,
+		RouterLocalCA:       cp.RouterLocalCA,
+		NatsSiteCA:          cp.NatsSiteCA,
+		NatsLocalCA:         cp.NatsLocalCA,
 		SystemMicroservices: cp.SystemMicroservices,
 		Nats:                cp.Nats,
+		Events:              cp.Events,
 		Vault:               cp.Vault,
-		Controllers:         controllers,
-		Endpoint:            cp.Endpoint,
+		TLS:                 cp.TLS,
 		Airgap:              cp.Airgap,
 	}
 }
