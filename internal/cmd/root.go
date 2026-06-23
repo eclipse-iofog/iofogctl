@@ -118,7 +118,7 @@ func initialize() {
 		},
 	})
 	client.SetVerbosity(debug)
-	install.SetVerbosity(verbose)
+	install.SetVerbosity(verbose || debug)
 	util.SpinEnable(!verbose && !debug)
 	util.SetDebug(debug)
 }
