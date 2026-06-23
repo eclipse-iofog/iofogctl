@@ -258,8 +258,8 @@ func CollectControllerImages(namespace string, controlPlane *rsc.RemoteControlPl
 	images := &RequiredImages{}
 
 	// Controller image
-	if controlPlane.Package.Container.Image != "" {
-		images.Controller = controlPlane.Package.Container.Image
+	if controlPlane.Controller.Package != nil && controlPlane.Controller.Package.Image != "" {
+		images.Controller = controlPlane.Controller.Package.Image
 	} else {
 		images.Controller = util.GetControllerImage()
 	}
