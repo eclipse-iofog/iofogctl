@@ -10,7 +10,6 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -18,40 +17,7 @@ import (
 const (
 	deploymentTypeNative    = "native"
 	deploymentTypeContainer = "container"
-
-	defaultNatsServerPort    = 4222
-	defaultNatsClusterPort   = 6222
-	defaultNatsLeafPort      = 7422
-	defaultNatsMqttPort      = 8883
-	defaultNatsHTTPPort      = 8222
-	defaultJsStorageSize     = "10G"
-	defaultJsMemoryStoreSize = "1G"
 )
-
-func applyLocalSystemAgentNatsDefaults(cfg *rsc.AgentConfiguration) {
-	cfg.NatsMode = iutil.MakeStrPtr(iofog.NatsModeServer)
-	if cfg.NatsServerPort == nil {
-		cfg.NatsServerPort = iutil.MakeIntPtr(defaultNatsServerPort)
-	}
-	if cfg.NatsClusterPort == nil {
-		cfg.NatsClusterPort = iutil.MakeIntPtr(defaultNatsClusterPort)
-	}
-	if cfg.NatsLeafPort == nil {
-		cfg.NatsLeafPort = iutil.MakeIntPtr(defaultNatsLeafPort)
-	}
-	if cfg.NatsMqttPort == nil {
-		cfg.NatsMqttPort = iutil.MakeIntPtr(defaultNatsMqttPort)
-	}
-	if cfg.NatsHTTPPort == nil {
-		cfg.NatsHTTPPort = iutil.MakeIntPtr(defaultNatsHTTPPort)
-	}
-	if cfg.JsStorageSize == nil {
-		cfg.JsStorageSize = iutil.MakeStrPtr(defaultJsStorageSize)
-	}
-	if cfg.JsMemoryStoreSize == nil {
-		cfg.JsMemoryStoreSize = iutil.MakeStrPtr(defaultJsMemoryStoreSize)
-	}
-}
 
 func buildLocalSystemAgentConfig(cp *rsc.LocalControlPlane, name string) (rsc.AgentConfiguration, error) {
 	sys := cp.SystemAgent
@@ -84,14 +50,6 @@ func buildLocalSystemAgentConfig(cp *rsc.LocalControlPlane, name string) (rsc.Ag
 		deployAgentConfig.DeploymentType = iutil.MakeStrPtr(deploymentType)
 	}
 
-	if deployAgentConfig.RouterMode == nil {
-		interior := iofog.RouterModeInterior
-		deployAgentConfig.RouterMode = &interior
-	} else if *deployAgentConfig.RouterMode != iofog.RouterModeInterior {
-		interior := iofog.RouterModeInterior
-		deployAgentConfig.RouterMode = &interior
-	}
-
 	if deployAgentConfig.UpstreamRouters == nil {
 		emptyRouters := []string{}
 		deployAgentConfig.UpstreamRouters = &emptyRouters
@@ -101,20 +59,7 @@ func buildLocalSystemAgentConfig(cp *rsc.LocalControlPlane, name string) (rsc.Ag
 		deployAgentConfig.UpstreamNatsServers = &emptyNats
 	}
 
-	if deployAgentConfig.EdgeRouterPort == nil {
-		edgeRouterPort := 45671
-		deployAgentConfig.EdgeRouterPort = &edgeRouterPort
-	}
-	if deployAgentConfig.InterRouterPort == nil {
-		interRouterPort := 55671
-		deployAgentConfig.InterRouterPort = &interRouterPort
-	}
-	if deployAgentConfig.MessagingPort == nil {
-		messagingPort := 5671
-		deployAgentConfig.MessagingPort = &messagingPort
-	}
-
-	applyLocalSystemAgentNatsDefaults(&deployAgentConfig)
+	deployagentconfig.ApplySystemAgentDefaults(&deployAgentConfig)
 
 	if deployAgentConfig.Name == "" {
 		deployAgentConfig.Name = name
@@ -147,36 +92,35 @@ func deployLocalSystemAgent(namespace string, cp *rsc.LocalControlPlane, name st
 	if _, err := edgelet.Configure(endpoint, user); err != nil {
 		return fmt.Errorf("failed to provision system agent: %w", err)
 	}
-	return persistLocalSystemAgent(namespace, cp, name, deployAgentConfig, endpoint)
+	return persistLocalSystemAgent(namespace, cp, name, deployAgentConfig, endpoint, configExe.GetAgentUUID())
 }
 
-func persistLocalSystemAgent(namespace string, cp *rsc.LocalControlPlane, name string, deployAgentConfig rsc.AgentConfiguration, endpoint string) error {
+func persistLocalSystemAgent(namespace string, cp *rsc.LocalControlPlane, name string, deployAgentConfig rsc.AgentConfiguration, endpoint, uuid string) error {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
 		return err
 	}
 
-	var agentInfo *client.AgentInfo
-	err = clientutil.ExecuteWithAuthRetry(namespace, func(clt *client.Client) error {
-		var err error
-		agentInfo, err = clt.GetAgentByName(name)
-		return err
-	})
-	if err != nil {
-		return fmt.Errorf("failed to load system agent from controller: %w", err)
+	host := deployAgentConfig.Host
+	if host == nil || strings.TrimSpace(*host) == "" {
+		var agentInfo *client.AgentInfo
+		err = clientutil.ExecuteWithAuthRetry(namespace, func(clt *client.Client) error {
+			var err error
+			agentInfo, err = clt.GetAgentByName(name)
+			return err
+		})
+		if err != nil {
+			return fmt.Errorf("failed to load system agent from controller: %w", err)
+		}
+		host = &agentInfo.Host
 	}
 
 	configCopy := deployAgentConfig
-	host := agentInfo.Host
-	if deployAgentConfig.Host != nil && strings.TrimSpace(*deployAgentConfig.Host) != "" {
-		host = *deployAgentConfig.Host
-	}
-
 	agent := &rsc.LocalAgent{
 		Name:               name,
-		UUID:               agentInfo.UUID,
+		UUID:               uuid,
 		Created:            util.NowUTC(),
-		Host:               host,
+		Host:               *host,
 		ControllerEndpoint: endpoint,
 		Airgap:             cp.Airgap,
 		Config:             &configCopy,

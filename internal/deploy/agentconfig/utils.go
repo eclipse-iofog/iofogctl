@@ -5,6 +5,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -37,31 +38,13 @@ func getNatsMode(config *rsc.AgentConfiguration) NatsMode {
 }
 
 func Validate(config *rsc.AgentConfiguration) error {
-	routerMode := getRouterMode(config)
-	natsMode := getNatsMode(config)
-
-	if routerMode != EdgeRouter && routerMode != InteriorRouter && routerMode != NoneRouter {
-		msg := "agent config %s validation failed. RouterMode has to be one of edge, interior, none. Default is: edge"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name))
+	if config == nil {
+		return nil
 	}
-	if routerMode != NoneRouter && config.NetworkRouter != nil {
-		msg := "agent config %s validation failed. Cannot have a network if routerMode is different from none. Current router mode is: %s"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
+	if iutil.IsSystemAgent(config) {
+		return validateSystemAgent(config)
 	}
-	if routerMode == NoneRouter && config.UpstreamRouters != nil && len(*config.UpstreamRouters) > 0 {
-		msg := "agent config %s validation failed. Cannot have a upstreamRouters if routerMode is none"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name))
-	}
-	if routerMode != InteriorRouter && (config.EdgeRouterPort != nil || config.InterRouterPort != nil) {
-		msg := "agent config %s validation failed. Cannot have an edgeRouterPort or interRouterPort if routerMode is different from interior. Current router mode is: %s"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
-	}
-	if natsMode != NatsServer && (config.NatsClusterPort != nil) {
-		msg := "agent config %s validation failed. Cannot have a natsClusterPort if natsMode is different from server"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name))
-	}
-
-	return nil
+	return validateEdgeAgent(config)
 }
 
 func findAgentUUIDInList(list []client.AgentInfo, name string) (uuid string, err error) {
@@ -125,26 +108,27 @@ func Process(agentConfig *rsc.AgentConfiguration, name, agentIP string, otherAge
 }
 
 func getAgentUpdateRequestFromAgentConfig(agentConfig *rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
-	var archPtr *int64
-	if agentConfig.Arch != nil {
-		arch, found := rsc.ArchStringToID(*agentConfig.Arch)
-		if !found {
-			arch = 0
-		}
-		archPtr = &arch
-	}
 	request.Location = agentConfig.Location
 	request.Latitude = agentConfig.Latitude
 	request.Longitude = agentConfig.Longitude
 	request.Description = agentConfig.Description
 	request.Name = agentConfig.Name
-	request.ArchID = archPtr
 	request.AgentConfiguration = agentConfig.AgentConfiguration
 	request.Tags = tags
+	if agentConfig.ArchID != nil {
+		request.ArchID = agentConfig.ArchID
+	} else if agentConfig.Arch != nil {
+		arch, found := rsc.ArchStringToID(*agentConfig.Arch)
+		if !found {
+			arch = 0
+		}
+		request.ArchID = &arch
+	}
 	return
 }
 
 func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, name string, clt *client.Client) (uuid string, err error) {
+	PrepareForControllerAPI(agentConfig)
 	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 	createAgentRequest := &client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
@@ -165,6 +149,7 @@ func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]s
 
 func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, uuid string, clt *client.Client) (err error) {
 	if agentConfig != nil {
+		PrepareForControllerAPI(agentConfig)
 		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 		updateAgentConfigRequest.UUID = uuid
 
