@@ -328,6 +328,17 @@ func (agent *RemoteEdgelet) Deprovision() error {
 	return nil
 }
 
+func (agent *RemoteEdgelet) DeleteControlPlane() error {
+	cmds := []command{{
+		cmd: "sudo edgelet controlplane delete",
+		msg: "Deleting edgelet control plane on " + agent.name,
+	}}
+	if err := agent.run(cmds); err != nil && !isEdgeletControlPlaneRemovedError(err) {
+		return err
+	}
+	return nil
+}
+
 func (agent *RemoteEdgelet) Prune() error {
 	cmds := []command{{
 		cmd: "sudo edgelet system prune",

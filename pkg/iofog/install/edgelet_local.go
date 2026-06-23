@@ -216,16 +216,19 @@ func (agent *LocalEdgelet) Uninstall(removeData bool) error {
 	agent.procs.setUninstallArgs(agent.cfg, removeData)
 	cmd := agent.procs.Uninstall.getCommand()
 	if needsLocalSudo(agent.cfg) {
-		cmd = "sudo " + cmd
+		cmd = "sudo env PATH=$PATH:/usr/local/bin:/usr/bin:/sbin " + cmd
 	}
+	msg := "Removing edgelet from " + agent.name
+	Verbose(msg)
 	return agent.runShell(agent.cfg.bootstrapEnv(true) + " " + cmd)
 }
 
-func (agent *LocalEdgelet) edgeletCommand(cmd, _ string) string {
+func (agent *LocalEdgelet) edgeletCommand(cmd, msg string) string {
 	prefix := ""
 	if needsLocalSudo(agent.cfg) {
-		prefix = "sudo "
+		prefix = "sudo env PATH=$PATH:/usr/local/bin:/usr/bin:/sbin "
 	}
+	Verbose(msg)
 	return agent.cfg.bootstrapEnv(true) + " " + prefix + cmd
 }
 

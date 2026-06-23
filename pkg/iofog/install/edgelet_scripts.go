@@ -380,5 +380,15 @@ func isEdgeletNotProvisionedError(err error) bool {
 	if err == nil {
 		return false
 	}
-	return strings.Contains(err.Error(), "not provisioned")
+	return strings.Contains(strings.ToLower(err.Error()), "not provisioned")
+}
+
+func isEdgeletControlPlaneRemovedError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "not found") ||
+		strings.Contains(msg, "no control plane") ||
+		strings.Contains(msg, "already removed")
 }
