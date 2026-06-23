@@ -3,12 +3,11 @@ package deployagent
 import (
 	"strings"
 
+	deployvalidate "github.com/eclipse-iofog/iofogctl/internal/deploy/validate"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
-
-const localAgentConflictPort = 54321
 
 type edgeletAgent interface {
 	Bootstrap() error
@@ -43,16 +42,7 @@ func ensureLocalAgentHost(agent *rsc.LocalAgent) error {
 }
 
 func checkLocalAgentPortAvailable(isSystem bool) error {
-	if isSystem {
-		return nil
-	}
-	if util.IsTCPPortOpen("127.0.0.1", localAgentConflictPort) {
-		return util.NewConflictError(
-			"Cannot deploy LocalAgent: an agent is already running on this host (port 54321 in use). " +
-				"If you deployed LocalControlPlane, its systemAgent occupies this host — remove it first or deploy agents on remote hosts only.",
-		)
-	}
-	return nil
+	return deployvalidate.LocalAgentPortAvailable(isSystem)
 }
 
 func applyEdgeletPackage(agent edgeletAgent, pkg rsc.Package) error {
