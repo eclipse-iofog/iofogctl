@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/briandowns/spinner v1.23.1
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.4
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.6
 	github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/mitchellh/go-homedir v1.1.0
@@ -140,8 +140,6 @@ require (
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 )
-
-replace github.com/eclipse-iofog/iofog-go-sdk/v3 => github.com/Datasance/iofog-go-sdk/v3 v3.8.0-rc.4
 
 exclude github.com/Sirupsen/logrus v1.4.2
 

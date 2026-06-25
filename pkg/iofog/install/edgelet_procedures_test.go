@@ -11,7 +11,7 @@ import (
 
 func TestDefaultEdgeletProceduresScripts(t *testing.T) {
 	util.SetEdgeletReleaseBaseForTest("https://github.com/Datasance/edgelet/releases/download")
-	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.3")
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.4")
 	t.Cleanup(func() {
 		util.ResetEdgeletReleaseBaseForTest()
 		util.ResetEdgeletBinaryVersionForTest()
@@ -39,7 +39,7 @@ func TestDefaultEdgeletProceduresScripts(t *testing.T) {
 		t.Fatalf("deps args = %v, want edgelet engine", procs.Deps.Args)
 	}
 	joined := strings.Join(procs.Install.Args, " ")
-	if !strings.Contains(joined, "--version=v1.0.0-rc.3") {
+	if !strings.Contains(joined, "--version=v1.0.0-rc.4") {
 		t.Fatalf("expected --version flag in install args, got %v", procs.Install.Args)
 	}
 	if !strings.Contains(joined, "--skip-start") {
@@ -132,7 +132,7 @@ func TestInstallDepsSkipMatrix(t *testing.T) {
 
 func TestBootstrapCommandGeneration(t *testing.T) {
 	util.SetEdgeletReleaseBaseForTest("https://example.com/download")
-	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.3")
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.4")
 
 	cfg := EdgeletInstallConfig{HostOS: "linux", Arch: "amd64", ContainerEngine: "docker"}
 	procs, err := newDefaultEdgeletProcedures(EdgeletScriptStageDir, cfg)

@@ -4,8 +4,6 @@ dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
 github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
-github.com/Datasance/iofog-go-sdk/v3 v3.8.0-rc.4 h1:2RdokTAstIB/290zu4F1ubchi/o6+yzgv7WQkAzeCoo=
-github.com/Datasance/iofog-go-sdk/v3 v3.8.0-rc.4/go.mod h1:MU+YPxFRGFzBMboi1khtEGAoRwaF4yJX3KuBwFcfCKg=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/VividCortex/ewma v1.2.0 h1:f58SaIzcDXrSy3kWaHNvuJgJ3Nmz59Zji6XoJR/q1ow=
@@ -51,6 +49,8 @@ github.com/docker/go-connections v0.7.0 h1:6SsRfJddP22WMrCkj19x9WKjEDTB+ahsdiGYf
 github.com/docker/go-connections v0.7.0/go.mod h1:no1qkHdjq7kLMGUXYAduOhYPSJxxvgWBh7ogVvptn3Q=
 github.com/docker/go-units v0.5.0 h1:69rxXcBk27SvSaaxTtLh/8llcHD8vYHT7WSdRZ/jvr4=
 github.com/docker/go-units v0.5.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.6 h1:3S2t7XGYxUtYCUnGDueJM1oJghXgIn5xOs58db4xQ8Y=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.6/go.mod h1:MU+YPxFRGFzBMboi1khtEGAoRwaF4yJX3KuBwFcfCKg=
 github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.1 h1:y4MCeTVezf154WuInmYcxx44QommoRJj22RswvkdJZY=
 github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.1/go.mod h1:gKlAFXIdo5H3aVSCkZAaLxYBrvp7QO+CzxeJgzEyfoc=
 github.com/emicklei/go-restful/v3 v3.11.0 h1:rAQeMHw1c7zTmncogyy8VvRZwtkmkZ4FxERmMY4rD+g=

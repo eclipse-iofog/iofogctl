@@ -15,7 +15,7 @@ import (
 
 func TestEnsureEdgeletBinaryUsesCache(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1.0.0-rc.3/edgelet-linux-amd64" {
+		if r.URL.Path != "/v1.0.0-rc.4/edgelet-linux-amd64" {
 			http.NotFound(w, r)
 			return
 		}
@@ -24,7 +24,7 @@ func TestEnsureEdgeletBinaryUsesCache(t *testing.T) {
 	defer server.Close()
 
 	util.SetEdgeletReleaseBaseForTest(server.URL)
-	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.3")
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.4")
 	t.Cleanup(func() {
 		util.ResetEdgeletReleaseBaseForTest()
 		util.ResetEdgeletBinaryVersionForTest()

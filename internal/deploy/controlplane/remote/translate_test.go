@@ -16,11 +16,11 @@ const testNamespace = "test-ns"
 const (
 	testControllerImage = "ghcr.io/datasance/controller:3.8.0-rc.1"
 	testRouterImage     = "ghcr.io/datasance/router:3.8.0-rc.1"
-	testNatsImage       = "ghcr.io/datasance/nats:2.14.2-rc.1"
+	testNatsImage       = "ghcr.io/datasance/nats:2.14.2-rc.2"
 
 	testIofogControllerImage = "ghcr.io/eclipse-iofog/controller:3.8.0-rc.1"
 	testIofogRouterImage     = "ghcr.io/eclipse-iofog/router:3.8.0-rc.1"
-	testIofogNatsImage       = "ghcr.io/eclipse-iofog/nats:2.14.2-rc.1"
+	testIofogNatsImage       = "ghcr.io/eclipse-iofog/nats:2.14.2-rc.2"
 )
 
 func resourceFixturePath(name string) string {
