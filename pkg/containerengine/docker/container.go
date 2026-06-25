@@ -276,7 +276,7 @@ func (c *Client) ExecuteCmd(name string, cmd []string) (ExecResult, error) {
 	defer attachResp.Close()
 
 	var outBuf, errBuf bytes.Buffer
-	if _, err = stdcopy.StdCopy(&outBuf, &errBuf, attachResp.Reader); err != nil && err != io.EOF {
+	if _, err = stdcopy.StdCopy(&outBuf, &errBuf, attachResp.Reader); err != nil && !errors.Is(err, io.EOF) {
 		return result, err
 	}
 

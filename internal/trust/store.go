@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 var ErrNotFound = errors.New("trust CA not found")
@@ -64,14 +65,14 @@ func StoreCA(namespace, caBase64 string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, util.DirPerm); err != nil {
 		return err
 	}
 	path, err := caPath(namespace)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(path, pem, 0600); err != nil {
+	if err := util.WriteValidatedFile(path, pem, util.FilePerm); err != nil {
 		return err
 	}
 	return SetCachedMode(namespace, ModeNamespace)
@@ -83,7 +84,7 @@ func GetCA(namespace string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := os.ReadFile(path)
+	data, err := util.ReadValidatedFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, ErrNotFound
@@ -122,7 +123,7 @@ func GetCachedMode(namespace string) (Mode, bool) {
 	if err != nil {
 		return "", false
 	}
-	data, err := os.ReadFile(path)
+	data, err := util.ReadValidatedFile(path)
 	if err != nil {
 		return "", false
 	}
@@ -141,12 +142,12 @@ func SetCachedMode(namespace string, mode Mode) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, util.DirPerm); err != nil {
 		return err
 	}
 	path, err := modePath(namespace)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, []byte(string(mode)), 0600)
+	return util.WriteValidatedFile(path, []byte(string(mode)), util.FilePerm)
 }

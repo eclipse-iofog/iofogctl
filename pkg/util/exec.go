@@ -14,8 +14,8 @@ func Exec(env, cmdName string, args ...string) (stdout bytes.Buffer, err error) 
 		fmt.Printf("[LOCAL]: Running: %s %s\n", cmdName, strings.Join(args, " "))
 	}
 
-	// Instantiate command object
-	cmd := exec.Command(cmdName, args...)
+	// Instantiate command object — callers pass fixed deploy commands (sh, sudo, kubectl).
+	cmd := exec.Command(cmdName, args...) // #nosec G204
 
 	// Instantiate output objects
 	var stderr bytes.Buffer

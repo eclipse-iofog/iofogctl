@@ -8,7 +8,7 @@ import (
 )
 
 func UnmarshalYAML(filename string, object interface{}) error {
-	yamlFile, err := os.ReadFile(filename)
+	yamlFile, err := ReadUserFile(filename)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func printYAML(writer io.Writer, obj interface{}) error {
 }
 
 func FPrint(obj interface{}, filename string) error {
-	f, err := os.Create(filename)
+	f, err := CreateUserFile(filename, FilePerm)
 	defer Log(f.Close)
 	if err != nil {
 		return err

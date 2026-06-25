@@ -28,7 +28,7 @@ func (c *Client) PullImage(image string, opts PullOptions) error {
 			Username: opts.Username,
 			Password: opts.Password,
 		}
-		authJSON, err := json.Marshal(authConfig)
+		authJSON, err := json.Marshal(authConfig) // #nosec G117 -- Moby registry auth JSON required by Docker API
 		if err != nil {
 			return err
 		}

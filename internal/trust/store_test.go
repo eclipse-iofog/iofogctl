@@ -2,6 +2,7 @@ package trust
 
 import (
 	"encoding/base64"
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -43,7 +44,7 @@ func TestGetCA_NotFound(t *testing.T) {
 	config.Init(dir)
 
 	_, err := GetCA("missing")
-	if err != ErrNotFound {
+	if !errors.Is(err, ErrNotFound) {
 		t.Fatalf("err = %v", err)
 	}
 }

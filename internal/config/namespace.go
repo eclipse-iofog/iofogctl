@@ -105,7 +105,7 @@ func AddNamespace(name, created string) error {
 		return err
 	}
 	// Overwrite the file
-	err = os.WriteFile(getNamespaceFile(name), marshal, 0644)
+	err = os.WriteFile(getNamespaceFile(name), marshal, util.FilePerm)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func UpdateUser(name, accessToken, refreshToken string) error {
 	}
 
 	// Write the updated YAML data back to the file
-	err = os.WriteFile(getNamespaceFile(name), marshal, 0644)
+	err = os.WriteFile(getNamespaceFile(name), marshal, util.FilePerm)
 	if err != nil {
 		return err // Error in writing to the file
 	}

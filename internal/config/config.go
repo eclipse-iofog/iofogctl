@@ -72,7 +72,7 @@ func Init(configFolderArg string) {
 
 	// Check config file already exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(configFolder, 0755)
+		err = os.MkdirAll(configFolder, util.DirPerm)
 		util.Check(err)
 
 		// Create default config file
@@ -80,6 +80,8 @@ func Init(configFolderArg string) {
 		err = flushShared()
 		util.Check(err)
 	}
+
+	util.Check(migrateConfigPermissions(configFolder))
 
 	// Unmarshall the config file
 	confHeader := iofogctlConfig{}
@@ -96,7 +98,7 @@ func Init(configFolderArg string) {
 		nsFile := getNamespaceFile(initNamespace)
 		if _, err := os.Stat(nsFile); os.IsNotExist(err) {
 			flush = true
-			err = os.MkdirAll(namespaceDirectory, 0755)
+			err = os.MkdirAll(namespaceDirectory, util.DirPerm)
 			util.Check(err)
 
 			// Create default namespace file
@@ -191,7 +193,7 @@ func flushNamespaces() error {
 			return err
 		}
 		// Overwrite the file
-		err = os.WriteFile(getNamespaceFile(ns.Name), marshal, 0644)
+		err = os.WriteFile(getNamespaceFile(ns.Name), marshal, util.FilePerm)
 		if err != nil {
 			return err
 		}
@@ -206,7 +208,7 @@ func flushShared() error {
 		return nil
 	}
 	// Overwrite the file
-	err = os.WriteFile(configFilename, marshal, 0644)
+	err = os.WriteFile(configFilename, marshal, util.FilePerm)
 	if err != nil {
 		return nil
 	}
@@ -219,6 +221,8 @@ func Flush() error {
 }
 
 // ConfigFolder returns the initialized CLI config root (e.g. ~/.iofog/v3).
+//
+//nolint:revive // ConfigFolder is the established config package API name.
 func ConfigFolder() string {
 	return configFolder
 }

@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"time"
@@ -34,35 +35,45 @@ func (c *Client) CopyToContainer(name, source, dest string) error {
 }
 
 func compressDir(src string, buf io.Writer) error {
+	src = filepath.Clean(src)
+	root, err := os.OpenRoot(src)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+
 	zr := gzip.NewWriter(buf)
 	tw := tar.NewWriter(zr)
 
-	srcLength := len(filepath.ToSlash(src))
-	err := filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	err = fs.WalkDir(root.FS(), ".", func(rel string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
-		if file == src {
+		if rel == "." {
 			return nil
 		}
-		header, err := tar.FileInfoHeader(fi, file)
+		info, err := entry.Info()
 		if err != nil {
 			return err
 		}
-		name := string([]rune(filepath.ToSlash(file))[srcLength:])
-		header.Name = name
+		header, err := tar.FileInfoHeader(info, rel)
+		if err != nil {
+			return err
+		}
+		header.Name = filepath.ToSlash(rel)
 		if err := tw.WriteHeader(header); err != nil {
 			return err
 		}
-		if !fi.IsDir() {
-			data, err := os.Open(file)
-			if err != nil {
-				return err
-			}
-			defer data.Close()
-			if _, err := io.Copy(tw, data); err != nil {
-				return err
-			}
+		if info.IsDir() {
+			return nil
+		}
+		f, err := root.Open(rel)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		if _, err := io.Copy(tw, f); err != nil {
+			return err
 		}
 		return nil
 	})
