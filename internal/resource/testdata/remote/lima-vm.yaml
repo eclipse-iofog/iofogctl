@@ -1,0 +1,36 @@
+# Lima VM definition for Edgelet embedded-containerd integration tests.
+# Ubuntu 24.04 LTS with Apple Virtualization framework (vmType: vz) —
+# no QEMU required, boots in ~5s on Apple Silicon.
+# https://gist.github.com/yankcrime/4c1b50b7b8dc85757e2bc0baf75d9a82
+# limactl network list
+# Usage (from repository root):
+#   limactl start internal/resource/testdata/remote/lima-vm.yaml --name controlplane
+
+vmType: vz
+os: Linux
+arch: aarch64
+
+cpus: 2
+memory: "2GiB"
+disk: "20GiB"
+
+images:
+  - location: "https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-arm64.img"
+    arch: aarch64
+
+rosetta:
+  enabled: false
+
+networks:
+  # - lima: user-v2
+  - lima: shared
+    
+
+# Prevent Lima's gvproxy from auto-forwarding guest TCP ports to macOS localhost.
+# Without this, any port bound inside the VM (e.g. NATS 4222, router 6222) is
+# automatically forwarded to the same port on the Mac, which conflicts with
+# Docker containers trying to bind those ports when both are active.
+portForwards:
+  - guestPortRange: [1, 65535]
+    ignore: true
+
