@@ -30,10 +30,10 @@ func (exe executor) Execute() error {
 
 	// Check doesn't already exist with same name
 	if _, err := config.GetDetachedAgent(exe.name); err == nil {
-		msg := `An Agent with the name '%s' is already detached. Rename one of the Agents and try to detach again:
-iofogctl rename agent %s %s-2 -n %s
-iofogctl rename agent %s %s-2 -n %s --detached`
-		return util.NewConflictError(fmt.Sprintf(msg, exe.name, exe.name, exe.name, exe.namespace, exe.name, exe.name, exe.namespace))
+		return util.NewConflictError(fmt.Sprintf(
+			"An Agent with the name '%s' is already detached. Detach or delete the existing detached Agent before trying again.",
+			exe.name,
+		))
 	}
 
 	ns, err := config.GetNamespace(exe.namespace)

@@ -57,18 +57,6 @@ func AddDetachedAgent(agent rsc.Agent) error {
 	return ns.AddAgent(agent)
 }
 
-func RenameDetachedAgent(oldName, newName string) error {
-	detachedAgent, err := GetDetachedAgent(oldName)
-	if err != nil {
-		return err
-	}
-	if err := DeleteDetachedAgent(oldName); err != nil {
-		return err
-	}
-	detachedAgent.SetName(newName)
-	return AddDetachedAgent(detachedAgent)
-}
-
 func DeleteDetachedAgent(name string) error {
 	ns, err := getNamespace(detachedNamespace)
 	if err != nil {

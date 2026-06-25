@@ -29,13 +29,11 @@ iofogctl [flags]
 * [iofogctl disconnect](iofogctl_disconnect.md)	 - Disconnect from an ioFog cluster
 * [iofogctl exec](iofogctl_exec.md)	 - Connect to an Exec Session of a resource
 * [iofogctl get](iofogctl_get.md)	 - Get information of existing resources
-* [iofogctl legacy](iofogctl_legacy.md)	 - Execute commands using legacy CLI
 * [iofogctl logs](iofogctl_logs.md)	 - Get log contents of deployed resource
 * [iofogctl move](iofogctl_move.md)	 - Move an existing resources inside the current Namespace
 * [iofogctl nats](iofogctl_nats.md)	 - Manage NATS resources
 * [iofogctl prune](iofogctl_prune.md)	 - prune ioFog resources
 * [iofogctl rebuild](iofogctl_rebuild.md)	 - Rebuilds a microservice or system-microservice
-* [iofogctl rename](iofogctl_rename.md)	 - Rename the iofog resources that are currently deployed
 * [iofogctl rollback](iofogctl_rollback.md)	 - Rollback ioFog resources
 * [iofogctl start](iofogctl_start.md)	 - Starts a resource
 * [iofogctl stop](iofogctl_stop.md)	 - Stops a resource

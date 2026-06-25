@@ -172,21 +172,3 @@ func DeleteNamespace(name string) error {
 
 	return nil
 }
-
-// RenameNamespace renames a namespace
-func RenameNamespace(name, newName string) error {
-	ns, err := getNamespace(name)
-	if err != nil {
-		util.PrintError("Could not find namespace " + name)
-		return err
-	}
-	ns.Name = newName
-	if err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
-		return err
-	}
-	if name == conf.DefaultNamespace {
-		return SetDefaultNamespace(newName)
-	}
-
-	return nil
-}

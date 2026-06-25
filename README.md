@@ -88,12 +88,10 @@ Available Commands:
   exec          Connect to an Exec Session of a resource
   get           Get information of existing resources
   help          Help about any command
-  legacy        Execute commands using legacy CLI
   logs          Get log contents of deployed resource
   move          Move an existing resources inside the current Namespace
   prune         prune ioFog resources
   rebuild       Rebuilds a microservice or system-microservice
-  rename        Rename the iofog resources that are currently deployed
   rollback      Rollback ioFog resources
   start         Starts a resource
   stop          Stops a resource
