@@ -7,6 +7,13 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+func stringPtrValue(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 type serviceExecutor struct {
 	namespace string
 	name      string
@@ -58,7 +65,7 @@ func (exe *serviceExecutor) Execute() error {
 			TargetPort:      service.TargetPort,
 			BridgePort:      service.BridgePort,
 			DefaultBridge:   service.DefaultBridge,
-			K8sType:         service.K8sType,
+			K8sType:         stringPtrValue(service.K8sType),
 			ServiceEndpoint: service.ServiceEndpoint,
 			ServicePort:     service.ServicePort,
 		},

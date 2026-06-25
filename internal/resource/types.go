@@ -213,10 +213,11 @@ type AgentStatus struct {
 	IsReadyToRollback     bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                string  `json:"tunnel" yaml:"tunnel"`
 	VolumeMounts          []VolumeMount
-	GpsStatus             string   `json:"gpsStatus" yaml:"gpsStatus"`
-	AvailableRuntimes     []string `json:"availableRuntimes" yaml:"availableRuntimes"`
-	RuntimeAgentPhase     string   `json:"runtimeAgentPhase" yaml:"runtimeAgentPhase"`
-	ControlPlaneQuiesced  bool     `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
+	GpsStatus             string                 `json:"gpsStatus" yaml:"gpsStatus"`
+	AvailableRuntimes     []string               `json:"availableRuntimes" yaml:"availableRuntimes"`
+	RuntimeAgentPhase     string                 `json:"runtimeAgentPhase" yaml:"runtimeAgentPhase"`
+	ControlPlaneQuiesced  bool                   `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
+	PlatformStatus        *client.PlatformStatus `json:"platformStatus,omitempty" yaml:"platformStatus,omitempty"`
 }
 
 // ArchStringToID maps canonical architecture names to Controller archId values.

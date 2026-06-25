@@ -184,13 +184,20 @@ func (exe *RemoteExecutor) Execute() error {
 			return err
 		}
 		exe.uuid = uuid
-		return nil
+	} else {
+		// Update existing Agent
+		exe.uuid = agent.UUID
+		if err = clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
+			return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, ctrlClient)
+		}); err != nil {
+			return err
+		}
 	}
-	// Update existing Agent
-	exe.uuid = agent.UUID
-	return clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
-		return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, ctrlClient)
-	})
+
+	if !isSystem || install.IsVerbose() {
+		util.SpinStart(fmt.Sprintf("Waiting for agent %s platform ready", exe.GetName()))
+	}
+	return clientutil.WaitForAgentPlatformReadyWithRetry(exe.namespace, exe.uuid)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

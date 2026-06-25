@@ -279,6 +279,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		AvailableRuntimes:     []string(agentInfo.AvailableRuntimes),
 		RuntimeAgentPhase:     agentInfo.RuntimeAgentPhase,
 		ControlPlaneQuiesced:  agentInfo.ControlPlaneQuiesced,
+		PlatformStatus:        agentInfo.PlatformStatus,
 	}
 
 	return agentConfig, tags, agentStatus, err

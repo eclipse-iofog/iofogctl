@@ -12,6 +12,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const serviceHubReadyMessage = "Service hub provisioned; edge bridge listeners on tagged fogs may still be converging."
+
 type Options struct {
 	Namespace string
 	Yaml      []byte
@@ -51,7 +53,7 @@ func (exe *executor) updateService(clt *client.Client) (err error) {
 		return err
 	}
 
-	return nil
+	return clientutil.WaitForServiceProvisioningReadyWithRetry(exe.namespace, exe.name)
 }
 
 func (exe *executor) createService(clt *client.Client) (err error) {
@@ -69,7 +71,7 @@ func (exe *executor) createService(clt *client.Client) (err error) {
 	if err = clt.CreateService(&request); err != nil {
 		return err
 	}
-	return nil
+	return clientutil.WaitForServiceProvisioningReadyWithRetry(exe.namespace, exe.name)
 }
 
 func (exe *executor) Execute() error {
@@ -80,9 +82,17 @@ func (exe *executor) Execute() error {
 		return err
 	}
 	if _, err = clt.GetService(exe.name); err != nil {
-		return exe.createService(clt)
+		if err = exe.createService(clt); err != nil {
+			return err
+		}
+		util.PrintInfo(serviceHubReadyMessage)
+		return nil
 	}
-	return exe.updateService(clt)
+	if err = exe.updateService(clt); err != nil {
+		return err
+	}
+	util.PrintInfo(serviceHubReadyMessage)
+	return nil
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

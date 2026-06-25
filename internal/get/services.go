@@ -86,7 +86,7 @@ func generateServicesOutput(namespace string) ([][]string, error) {
 			strconv.Itoa(service.BridgePort),
 			// service.DefaultBridge,
 			// serviceEndpoint,
-			service.ProvisioningStatus,
+			string(service.ProvisioningStatus),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}

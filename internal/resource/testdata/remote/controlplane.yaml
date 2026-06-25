@@ -12,12 +12,12 @@ spec:
   controller:
     publicUrl: https://192.168.105.2:51121
     consoleUrl: https://192.168.105.2:80
-    logLevel: info
+    logLevel: debug
     package:
-      image: docker.io/emirhandurmus/controller:3.8.0-rc.4
+      image: ghcr.io/datasance/controller:3.8.0-rc.4
   auth:
     mode: embedded
-    insecureAllowHttp: false
+    insecureAllowHttp: true
     insecureAllowBootstrapLog: false
     bootstrap:
       username: admin
@@ -63,14 +63,14 @@ spec:
       ssh:
         user: emirhan
         keyFile: /Users/emirhan/.lima/_config/user
-        port: 50367
+        port: 57884
       systemAgent:
         config:
           host: 192.168.105.2
           arch: arm64
           containerEngine: edgelet
           deploymentType: native
-          networkInterface: dynamic
+          networkInterface: lima0
     # - name: remote-2
     #   host: 192.168.139.148
     #   ssh:

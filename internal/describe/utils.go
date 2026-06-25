@@ -309,6 +309,9 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 	formatted["daemonStatus"] = status.DaemonStatus
 	formatted["securityStatus"] = status.SecurityStatus
 	formatted["warningMessage"] = status.WarningMessage
+	if status.PlatformStatus != nil {
+		formatted["platformStatus"] = formatPlatformStatus(status.PlatformStatus)
+	}
 	formatted["securityViolationInfo"] = status.SecurityViolationInfo
 	formatted["availableRuntimes"] = status.AvailableRuntimes
 	formatted["runtimeAgentPhase"] = status.RuntimeAgentPhase
@@ -394,6 +397,43 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 	formatted["gpsStatus"] = status.GpsStatus
 
 	return formatted
+}
+
+func formatPlatformStatus(ps *client.PlatformStatus) map[string]interface{} {
+	if ps == nil {
+		return nil
+	}
+	out := map[string]interface{}{
+		"phase":              string(ps.Phase),
+		"generation":         ps.Generation,
+		"observedGeneration": ps.ObservedGeneration,
+	}
+	if ps.LastError != nil {
+		out["lastError"] = *ps.LastError
+	} else {
+		out["lastError"] = nil
+	}
+	if ps.LastTransitionAt != nil {
+		out["lastTransitionAt"] = ps.LastTransitionAt.Format(time.RFC3339Nano)
+	}
+	if len(ps.Conditions) > 0 {
+		conditions := make([]map[string]interface{}, len(ps.Conditions))
+		for i, c := range ps.Conditions {
+			cond := map[string]interface{}{
+				"type":   c.Type,
+				"status": c.Status,
+			}
+			if c.Reason != "" {
+				cond["reason"] = c.Reason
+			}
+			if c.Message != "" {
+				cond["message"] = c.Message
+			}
+			conditions[i] = cond
+		}
+		out["conditions"] = conditions
+	}
+	return out
 }
 
 // formatBytesAuto formats bytes with automatic unit scaling (B, KB, MB, GB, etc.)

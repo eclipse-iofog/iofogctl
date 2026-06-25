@@ -8,7 +8,7 @@ import (
 	dockengine "github.com/eclipse-iofog/iofogctl/pkg/containerengine/docker"
 )
 
-// DefaultLocalContainerEngine is the host runtime used for legacy LocalController docker deploy.
+// DefaultLocalContainerEngine is the host runtime used for local edgelet container operations.
 const DefaultLocalContainerEngine = "docker"
 
 // DefaultContainerEngineURL returns the default unix socket URL for a container engine type.
