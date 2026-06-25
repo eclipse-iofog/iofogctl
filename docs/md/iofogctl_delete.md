@@ -36,7 +36,6 @@ iofogctl delete [flags]
 * [iofogctl delete certificate](iofogctl_delete_certificate.md)	 - Delete a Certificate
 * [iofogctl delete configmap](iofogctl_delete_configmap.md)	 - Delete a ConfigMap
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
-* [iofogctl delete edge-resource](iofogctl_delete_edge-resource.md)	 - Delete an Edge Resource
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace
 * [iofogctl delete nats-account-rule](iofogctl_delete_nats-account-rule.md)	 - Delete a NATS account rule

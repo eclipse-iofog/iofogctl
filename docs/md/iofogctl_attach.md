@@ -30,7 +30,6 @@ attach
 
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl attach agent](iofogctl_attach_agent.md)	 - Attach an Agent to an existing Namespace
-* [iofogctl attach edge-resource](iofogctl_attach_edge-resource.md)	 - Attach an Edge Resource to an existing Agent
 * [iofogctl attach exec](iofogctl_attach_exec.md)	 - Attach an Exec Session to a resource
 * [iofogctl attach volume-mount](iofogctl_attach_volume-mount.md)	 - Attach a Volume Mount to existing Agents
 

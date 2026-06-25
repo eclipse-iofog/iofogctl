@@ -2,7 +2,6 @@ package get
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 )
 
 type tableFunc = func(string, tableChannel)
@@ -46,11 +45,6 @@ func (exe *allExecutor) Execute() error {
 		return err
 	}
 
-	// Add edge resource output if supported
-	if err := clientutil.IsEdgeResourceCapable(exe.namespace); err == nil {
-		// Add Edge Resources between Agent and Application
-		routines = append(routines[:2], append([]tableFunc{getEdgeResourceTable}, routines[2:]...)...)
-	}
 	// Get tables in parallel
 	tableChans := make([]tableChannel, len(routines))
 	for idx := range tableChans {
@@ -117,14 +111,6 @@ func getSystemApplicationTable(namespace string, tableChan tableChannel) {
 
 func getVolumeTable(namespace string, tableChan tableChannel) {
 	table, err := generateVolumeOutput(namespace)
-	tableChan <- tableQuery{
-		table: table,
-		err:   err,
-	}
-}
-
-func getEdgeResourceTable(namespace string, tableChan tableChannel) {
-	table, err := generateEdgeResourceOutput(namespace)
 	tableChan <- tableQuery{
 		table: table,
 		err:   err,

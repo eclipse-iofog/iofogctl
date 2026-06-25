@@ -34,7 +34,6 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [iofogctl describe configmap](iofogctl_describe_configmap.md)	 - Get detailed information about a ConfigMap
 * [iofogctl describe controller](iofogctl_describe_controller.md)	 - Get detailed information about a Controller
 * [iofogctl describe controlplane](iofogctl_describe_controlplane.md)	 - Get detailed information about a Control Plane
-* [iofogctl describe edge-resource](iofogctl_describe_edge-resource.md)	 - Get detailed information about an Edge Resource
 * [iofogctl describe microservice](iofogctl_describe_microservice.md)	 - Get detailed information about a Microservice
 * [iofogctl describe namespace](iofogctl_describe_namespace.md)	 - Get detailed information about a Namespace
 * [iofogctl describe nats-account](iofogctl_describe_nats-account.md)	 - Get detailed information about a NATS account

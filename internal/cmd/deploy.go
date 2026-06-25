@@ -19,7 +19,6 @@ func newDeployCommand() *cobra.Command {
           application-template.yaml
           application.yaml
           microservice.yaml
-          edge-resource.yaml
           catalog.yaml
           volume.yaml
           route.yaml

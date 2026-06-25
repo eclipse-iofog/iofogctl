@@ -18,7 +18,6 @@ deploy -f ecn.yaml
           application-template.yaml
           application.yaml
           microservice.yaml
-          edge-resource.yaml
           catalog.yaml
           volume.yaml
           route.yaml

@@ -31,8 +31,6 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newRegistryExecutor(namespace), nil
 	case "volumes":
 		return newVolumeExecutor(namespace), nil
-	case "edge-resources":
-		return newEdgeResourceExecutor(namespace), nil
 	case "secrets":
 		return newSecretExecutor(namespace), nil
 	case "configmaps":

@@ -19,7 +19,6 @@ iofogctl get all
              namespaces
              controllers
              agents
-             edge-resources
              application-templates
              applications
              system-applications

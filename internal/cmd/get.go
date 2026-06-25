@@ -15,7 +15,6 @@ func newGetCommand() *cobra.Command {
 		"namespaces",
 		"controllers",
 		"agents",
-		"edge-resources",
 		"application-templates",
 		"applications",
 		"system-applications",
@@ -47,7 +46,6 @@ Resources like Agents will require a working Controller in the namespace to disp
              namespaces
              controllers
              agents
-             edge-resources
              application-templates
              applications
              system-applications

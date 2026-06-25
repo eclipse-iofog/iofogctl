@@ -18,7 +18,6 @@ import (
 	deployk8scontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/k8s"
 	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/local"
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/remote"
-	deployedgeresource "github.com/eclipse-iofog/iofogctl/internal/deploy/edgeresource"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deploynatsaccountrule "github.com/eclipse-iofog/iofogctl/internal/deploy/natsaccountrule"
 	deploynatsuserrule "github.com/eclipse-iofog/iofogctl/internal/deploy/natsuserrule"
@@ -52,7 +51,6 @@ var kindOrder = []config.Kind{
 	config.NatsUserRuleKind,
 	config.RemoteAgentKind,
 	config.LocalAgentKind,
-	config.EdgeResourceKind,
 	config.ApplicationTemplateKind,
 	config.VolumeKind,
 	config.OfflineImageKind,
@@ -69,10 +67,6 @@ type Options struct {
 	InputFile    string
 	NoCache      bool
 	TransferPool int
-}
-
-func deployEdgeResource(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployedgeresource.NewExecutor(deployedgeresource.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployCatalogItem(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -301,7 +295,6 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Edge Resources, Agents, Volumes, CatalogItem, Application, Microservice, Route
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
 			return execute.CoalesceErrors(errs)
@@ -317,7 +310,6 @@ func buildKindHandlers(noCache bool, transferPool int) map[config.Kind]func(*exe
 		config.ApplicationTemplateKind:    deployApplicationTemplate,
 		config.MicroserviceKind:           deployMicroservice,
 		config.CatalogItemKind:            deployCatalogItem,
-		config.EdgeResourceKind:           deployEdgeResource,
 		config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
 		config.RemoteControlPlaneKind:     deployRemoteControlPlane,
 		config.LocalControlPlaneKind:      deployLocalControlPlane,

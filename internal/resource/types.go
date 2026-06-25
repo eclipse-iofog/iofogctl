@@ -219,22 +219,6 @@ type AgentStatus struct {
 	ControlPlaneQuiesced  bool     `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
 }
 
-type EdgeResource struct {
-	Name              string
-	Version           string                     `yaml:"version"`
-	Description       string                     `yaml:"description"`
-	InterfaceProtocol string                     `yaml:"interfaceProtocol"`
-	Interface         *EdgeResourceHTTPInterface `yaml:"interface,omitempty"` // TODO: Make this generic to support multiple interfaces protocols
-	Display           *Display                   `yaml:"display,omitempty"`
-	OrchestrationTags []string                   `yaml:"orchestrationTags"`
-	Custom            map[string]interface{}     `yaml:"custom"`
-}
-
-type EdgeResourceHTTPInterface = client.HTTPEdgeResource
-
-type Display = client.EdgeResourceDisplay
-type HTTPEndpoint = client.HTTPEndpoint
-
 // ArchStringToID maps canonical architecture names to Controller archId values.
 func ArchStringToID(name string) (int64, bool) {
 	id, ok := arch.NameToID[name]

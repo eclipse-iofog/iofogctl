@@ -46,18 +46,6 @@ func SyncAgentInfo(namespace string) error {
 	return <-request.resultChan
 }
 
-func IsEdgeResourceCapable(namespace string) error {
-	// Check Controller API handles edge resources
-	clt, err := NewControllerClient(namespace)
-	if err != nil {
-		return err
-	}
-	if err := clt.IsEdgeResourceCapable(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func GetMicroserviceName(namespace, appName, msvcName string) (name string, err error) {
 	clt, err := NewControllerClient(namespace)
 	if err != nil {

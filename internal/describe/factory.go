@@ -40,8 +40,6 @@ func NewExecutor(opt *Options) (execute.Executor, error) {
 		return newApplicationExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "volume":
 		return newVolumeExecutor(opt.Namespace, opt.Name, opt.Filename), nil
-	case "edge-resource":
-		return newEdgeResourceExecutor(opt.Namespace, opt.Name, opt.Version, opt.Filename), nil
 	case "secret":
 		return newSecretExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "configmap":
