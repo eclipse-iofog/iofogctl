@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch: {}
+
+env:
+  GO_VERSION: '1.26.4'
+
+jobs:
+  release-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      flavors: ${{ steps.set.outputs.flavors }}
+    steps:
+      - id: set
+        run: |
+          if [ "${{ github.repository }}" = "Datasance/potctl" ]; then
+            echo 'flavors=["iofog","datasance"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'flavors=["iofog"]' >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    needs: release-matrix
+    strategy:
+      matrix:
+        flavor: ${{ fromJson(needs.release-matrix.outputs.flavors) }}
+    name: Release (${{ matrix.flavor }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: go.sum
+
+      - name: Install cross-compilers
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+
+      - name: Install goreleaser
+        run: go install github.com/goreleaser/goreleaser/v2@latest
+
+      - name: Release
+        env:
+          FLAVOR: ${{ matrix.flavor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+        run: script/goreleaser-release.sh release --clean

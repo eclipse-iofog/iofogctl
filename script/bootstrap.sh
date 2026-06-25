@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# bootstrap.sh will check for and install any dependencies we have for building and using iofogctl
+# bootstrap.sh will check for and install any dependencies we have for building the CLI
 #
 # Usage: ./bootstrap.sh
 #
@@ -11,7 +11,7 @@ set -e
 # Import our helper functions
 . script/utils.sh
 
-prettyTitle "Installing iofogctl Dependencies"
+prettyTitle "Installing CLI Dependencies"
 echo
 
 # Check whether Brew is installed
@@ -68,25 +68,6 @@ if ! checkForInstallation "golangci-lint"; then
         brew install golangci-lint
         brew upgrade golangci-lint
     else
-        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.12.2
     fi
-fi
-
-# CI deps
-if [ ! -z "$PIPELINE" ]; then
-    ## Is kubernetes-cli installed?
-    if ! checkForInstallation "kubectl"; then
-        OS=$(uname -s | tr A-Z a-z)
-        K8S_VERSION=1.22.7
-        echoInfo " Attempting to install kubernetes-cli"
-        curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v"$K8S_VERSION"/bin/"$OS"/amd64/kubectl
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
-    fi
-    # Is go-junit-report installed?
-    if ! checkForInstallation "go-junit-report"; then
-        echoInfo " Attempting to install 'go-junit-report'"
-        go install github.com/jstemmer/go-junit-report@latest
-    fi
-    ## TODO: gcloud
 fi

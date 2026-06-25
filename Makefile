@@ -148,7 +148,7 @@ vulncheck: ## Run govulncheck on module paths
 		go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION); \
 	fi
 	@chmod +x scripts/vulncheck.sh
-	@scripts/vulncheck.sh
+	@GOTAGS="$(GOTAGS)" scripts/vulncheck.sh
 	@go mod verify
 
 .PHONY: security-code
@@ -156,7 +156,7 @@ security-code: ## Run gosec static analysis
 	@if ! command -v gosec >/dev/null 2>&1; then \
 		go install github.com/securego/gosec/v2/cmd/gosec@latest; \
 	fi
-	@gosec $(GOSEC_SCOPE)
+	@gosec -exclude-dir=build $(GOSEC_SCOPE)
 
 .PHONY: test
 test: ## Run unit tests

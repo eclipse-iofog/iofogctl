@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
+# Run govulncheck on CLI module code paths and allow documented exceptions
+# listed in SECURITY.md (sync ALLOWED_VULNS with that file).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Documented upstream exceptions — see SECURITY.md § Known vulnerability exceptions.
 ALLOWED_VULNS=""
+
+GOTAGS="${GOTAGS:-containers_image_openpgp,exclude_graphdriver_btrfs}"
 
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 
 set +e
-govulncheck -format=text ./cmd/... ./internal/... ./pkg/... >"$out" 2>&1
+govulncheck -tags="${GOTAGS}" -format=text ./cmd/... ./internal/... ./pkg/... >"$out" 2>&1
 status=$?
 set -e
 
@@ -53,9 +58,9 @@ while IFS= read -r id; do
 done <<<"$found"
 
 if [[ -n "${unexpected// /}" ]]; then
-	echo "govulncheck: unexpected vulnerabilities:${unexpected}" >&2
+	echo "govulncheck: unexpected vulnerabilities (not in SECURITY.md exceptions):${unexpected}" >&2
 	exit 3
 fi
 
-echo "govulncheck: only documented exceptions remain"
+echo "govulncheck: only documented exceptions remain; see SECURITY.md"
 exit 0
