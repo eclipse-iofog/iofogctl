@@ -463,7 +463,7 @@ func runtimeConfigDir(paths EdgeletPlatformPaths) string {
 func ensureLocalRuntimeConfigDir(paths EdgeletPlatformPaths, useSudo bool) error {
 	dir := runtimeConfigDir(paths)
 	if !useSudo {
-		return os.MkdirAll(dir, 0o755)
+		return os.MkdirAll(dir, util.DirPerm)
 	}
 	if _, err := util.Exec("", "sudo", "mkdir", "-p", dir); err != nil {
 		return err
@@ -499,7 +499,7 @@ func writeLocalFileIfMissing(path string, content []byte, perm os.FileMode, useS
 		return nil
 	}
 
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil && !useSudo {
+	if err := os.MkdirAll(filepath.Dir(path), util.DirPerm); err != nil && !useSudo {
 		return err
 	}
 
@@ -515,7 +515,7 @@ func writeLocalFileIfMissing(path string, content []byte, perm os.FileMode, useS
 	defer os.Remove(tmpPath)
 
 	if _, err := tmp.Write(content); err != nil {
-		tmp.Close()
+		util.IgnoreClose(tmp)
 		return err
 	}
 	if err := tmp.Close(); err != nil {
@@ -574,6 +574,8 @@ func MaterializeEdgeletRuntime(hostOS string, spec *EdgeletRuntimeSpec) error {
 }
 
 // EdgeletProvisionCommands builds edgelet config/provision command strings for a controller endpoint.
+//
+//nolint:revive // command is intentionally unexported; callers are in this package
 func EdgeletProvisionCommands(controllerEndpoint, key, caCert string, useSudo bool) ([]command, error) {
 	if strings.TrimSpace(key) == "" {
 		return nil, fmt.Errorf("provisioning key is required")

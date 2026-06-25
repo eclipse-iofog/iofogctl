@@ -112,11 +112,15 @@ func TranslateLocalControlPlane(cp *resource.LocalControlPlane, opts TranslateOp
 }
 
 // TranslateEdgeletControlPlaneManifest returns the edgelet ControlPlane manifest struct (test helper).
+//
+//nolint:revive // test helper intentionally returns package-private manifest type
 func TranslateEdgeletControlPlaneManifest(cp *resource.LocalControlPlane, opts TranslateOptions) edgeletControlPlaneManifest {
 	return translateEdgeletControlPlane(cp, opts.mergeDefaults(opts.Namespace))
 }
 
 // TranslateEdgeletRegistryManifest returns the edgelet Registry manifest struct (test helper).
+//
+//nolint:revive // test helper intentionally returns package-private manifest type
 func TranslateEdgeletRegistryManifest(cp *resource.LocalControlPlane) (edgeletRegistryManifest, error) {
 	if !NeedsPrivateEdgeletRegistry(cp) {
 		return edgeletRegistryManifest{}, util.NewError("Local Control Plane does not require a private edgelet registry")

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -49,7 +50,7 @@ func (agent *LocalEdgelet) CustomizeProcedures(dir string, procs *EdgeletProcedu
 			continue
 		}
 		procs.scriptNames = append(procs.scriptNames, file.Name())
-		content, err := os.ReadFile(filepath.Join(dir, file.Name()))
+		content, err := util.ReadFileUnderRoot(dir, file.Name())
 		if err != nil {
 			return err
 		}
@@ -232,8 +233,8 @@ func (agent *LocalEdgelet) edgeletCommand(cmd, msg string) string {
 	return agent.cfg.bootstrapEnv(true) + " " + prefix + cmd
 }
 
-func (agent *LocalEdgelet) Configure(controllerEndpoint string, user IofogUser) (string, error) {
-	key, caCert, err := agent.getProvisionKey(controllerEndpoint, user)
+func (agent *LocalEdgelet) Configure(controllerEndpoint string, user IofogUser, sdkOpt client.Options) (string, error) {
+	key, caCert, err := agent.getProvisionKey(controllerEndpoint, user, sdkOpt)
 	if err != nil {
 		return "", err
 	}
@@ -255,18 +256,18 @@ func needsLocalSudo(cfg EdgeletInstallConfig) bool {
 }
 
 func (agent *LocalEdgelet) materializeScripts() error {
-	if err := os.MkdirAll(agent.dir, 0o755); err != nil {
+	if err := os.MkdirAll(agent.dir, util.DirPerm); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Join(agent.dir, "lib"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(agent.dir, "lib"), util.DirPerm); err != nil {
 		return err
 	}
 	for idx, script := range agent.procs.scriptNames {
 		path := filepath.Join(agent.dir, script)
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(path), util.DirPerm); err != nil {
 			return err
 		}
-		if err := os.WriteFile(path, []byte(agent.procs.scriptContents[idx]), 0o755); err != nil {
+		if err := os.WriteFile(path, []byte(agent.procs.scriptContents[idx]), util.ExecPerm); err != nil { // #nosec G306 -- executable install scripts
 			return err
 		}
 	}

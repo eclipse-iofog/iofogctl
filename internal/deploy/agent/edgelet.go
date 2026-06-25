@@ -3,6 +3,7 @@ package deployagent
 import (
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	deployvalidate "github.com/eclipse-iofog/iofogctl/internal/deploy/validate"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
@@ -11,7 +12,7 @@ import (
 
 type edgeletAgent interface {
 	Bootstrap() error
-	Configure(controllerEndpoint string, user install.IofogUser) (string, error)
+	Configure(controllerEndpoint string, user install.IofogUser, sdkOpt client.Options) (string, error)
 	SetVersion(version string) error
 	SetContainerImage(image string) error
 	SetAirgap(binPath string) error

@@ -1,13 +1,20 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
+
+const edgeletDownloadTimeout = 10 * time.Minute
+
+var edgeletHTTPClient = &http.Client{Timeout: edgeletDownloadTimeout}
 
 var supportedEdgeletArches = map[string]struct{}{
 	"amd64":   {},
@@ -104,32 +111,78 @@ func ShouldSkipInstallDeps(containerEngine, deploymentType string) bool {
 	return false
 }
 
+func validateEdgeletDownloadURL(downloadURL string) error {
+	download, err := url.Parse(downloadURL)
+	if err != nil {
+		return fmt.Errorf("parse download URL: %w", err)
+	}
+	if download.Host == "" {
+		return fmt.Errorf("download URL missing host")
+	}
+
+	base, err := url.Parse(strings.TrimRight(GetEdgeletReleaseBase(), "/"))
+	if err != nil {
+		return fmt.Errorf("parse edgelet release base: %w", err)
+	}
+	if base.Host == "" {
+		return fmt.Errorf("edgelet release base missing host")
+	}
+	if download.Host != base.Host {
+		return fmt.Errorf("unexpected download host %q", download.Host)
+	}
+	if base.Scheme == "https" && download.Scheme != "https" {
+		return fmt.Errorf("download URL must use HTTPS")
+	}
+	if download.Scheme != "http" && download.Scheme != "https" {
+		return fmt.Errorf("unsupported download scheme %q", download.Scheme)
+	}
+
+	version := GetEdgeletBinaryVersion()
+	wantPrefix := "/" + version + "/"
+	if !strings.HasPrefix(download.Path, wantPrefix) {
+		return fmt.Errorf("unexpected download path %q", download.Path)
+	}
+	return nil
+}
+
 // DownloadEdgeletBinary fetches the release binary for os/arch into destPath.
 func DownloadEdgeletBinary(osName, archName, destPath string) error {
-	url, err := EdgeletBinaryURL(osName, archName)
+	return downloadEdgeletBinary(context.Background(), osName, archName, destPath, edgeletHTTPClient)
+}
+
+func downloadEdgeletBinary(ctx context.Context, osName, archName, destPath string, client *http.Client) error {
+	downloadURL, err := EdgeletBinaryURL(osName, archName)
 	if err != nil {
 		return err
 	}
+	if err := validateEdgeletDownloadURL(downloadURL); err != nil {
+		return fmt.Errorf("validate edgelet download URL: %w", err)
+	}
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
+	if err != nil {
+		return fmt.Errorf("create edgelet download request: %w", err)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("download edgelet binary: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download edgelet binary: HTTP %d from %s", resp.StatusCode, url)
+		return fmt.Errorf("download edgelet binary: HTTP %d from %s", resp.StatusCode, downloadURL)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(destPath), DirPerm); err != nil {
 		return fmt.Errorf("create download dir: %w", err)
 	}
 
-	out, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	out, err := CreateUserFile(destPath, ExecPerm) // #nosec G302 -- executable edgelet binary
 	if err != nil {
 		return fmt.Errorf("create edgelet binary file: %w", err)
 	}
-	defer out.Close()
+	defer IgnoreClose(out)
 
 	if _, err := io.Copy(out, resp.Body); err != nil {
 		return fmt.Errorf("write edgelet binary: %w", err)

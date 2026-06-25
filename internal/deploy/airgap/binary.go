@@ -28,7 +28,7 @@ type binaryCacheMetadata struct {
 func EnsureEdgeletBinary(_ context.Context, namespace, osName, archName string) (string, error) {
 	localPath := config.GetAirgapBinaryCachePath(namespace, osName, archName)
 	cacheDir := filepath.Dir(localPath)
-	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+	if err := os.MkdirAll(cacheDir, util.DirPerm); err != nil {
 		return "", err
 	}
 
@@ -68,7 +68,7 @@ func EnsureEdgeletBinary(_ context.Context, namespace, osName, archName string) 
 }
 
 func loadBinaryCacheMetadata(path string) (*binaryCacheMetadata, error) {
-	data, err := os.ReadFile(path)
+	data, err := util.ReadValidatedFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func saveBinaryCacheMetadata(path string, meta binaryCacheMetadata) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0o644)
+	return util.WriteValidatedFile(path, data, util.FilePerm)
 }
 
 func canReuseCachedBinary(path string, cached *binaryCacheMetadata) (bool, string) {
@@ -143,7 +143,7 @@ func TransferAirgapBinary(host string, ssh *rsc.SSH, osName, archName, localPath
 		return "", err
 	}
 
-	file, err := os.Open(localPath)
+	file, err := util.OpenValidatedFile(localPath)
 	if err != nil {
 		return "", err
 	}

@@ -1,9 +1,12 @@
 package deployagent
 
 import (
+	"context"
+
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -69,7 +72,11 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 
 	user := install.IofogUser(controlPlane.GetUser())
 	user.Password = controlPlane.GetUser().GetRawPassword()
-	return edgelet.Configure(controllerEndpoint, user)
+	opt, err := clientutil.ControllerClientOptions(context.Background(), exe.namespace, controllerEndpoint)
+	if err != nil {
+		return "", err
+	}
+	return edgelet.Configure(controllerEndpoint, user, opt)
 }
 
 func (exe *localExecutor) GetName() string {

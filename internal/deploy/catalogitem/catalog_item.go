@@ -159,7 +159,7 @@ func validate(opt *apps.CatalogItem) error {
 		return err
 	}
 
-	if opt.ARM == "" && opt.ARM64 == "" && opt.RISCV64 == "" && opt.ARM == "" {
+	if opt.AMD64 == "" && opt.ARM64 == "" && opt.RISCV64 == "" && opt.ARM == "" {
 		return util.NewInputError("At least one image must be specified")
 	}
 

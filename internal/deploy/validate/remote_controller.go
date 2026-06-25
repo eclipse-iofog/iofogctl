@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -17,18 +16,20 @@ type deployControllerRef struct {
 	host string
 }
 
+type deployDocMetadata struct {
+	Name string `yaml:"name"`
+}
+
 type deployDocHeader struct {
-	Kind     config.Kind `yaml:"kind"`
-	Metadata struct {
-		Name string `yaml:"name"`
-	} `yaml:"metadata"`
-	Spec map[string]interface{} `yaml:"spec"`
+	Kind     config.Kind            `yaml:"kind"`
+	Metadata deployDocMetadata      `yaml:"metadata"`
+	Spec     map[string]interface{} `yaml:"spec"`
 }
 
 // RemoteControllerDeploy rejects same-file ControlPlane controllers[] entries that
 // collide by name or host with standalone Controller documents.
 func RemoteControllerDeploy(inputFile string) error {
-	yamlFile, err := os.ReadFile(inputFile)
+	yamlFile, err := util.ReadUserFile(inputFile)
 	if err != nil {
 		return err
 	}

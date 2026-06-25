@@ -19,6 +19,7 @@ func deleteRemote(agent *rsc.RemoteAgent, volume *rsc.Volume) error {
 	if err != nil {
 		return err
 	}
+	ssh.SetPort(agent.SSH.Port)
 	if err := ssh.Connect(); err != nil {
 		return err
 	}

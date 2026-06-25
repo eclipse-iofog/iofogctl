@@ -41,7 +41,7 @@ func WriteTempManifest(data []byte, prefix string, cfg EdgeletInstallConfig) (pa
 	dir := ""
 	if IsDesktopContainerDeploy(cfg) {
 		dir = EdgeletContainerManifestDir
-		if err := os.MkdirAll(dir, 0o755); err != nil {
+		if err := os.MkdirAll(dir, util.DirPerm); err != nil {
 			return "", nil, err
 		}
 	}
@@ -52,15 +52,15 @@ func WriteTempManifest(data []byte, prefix string, cfg EdgeletInstallConfig) (pa
 	}
 	path = f.Name()
 	if _, err = f.Write(data); err != nil {
-		f.Close()
-		os.Remove(path)
+		util.IgnoreClose(f)
+		util.IgnoreErr(os.Remove(path))
 		return "", nil, err
 	}
 	if err = f.Close(); err != nil {
-		os.Remove(path)
+		util.IgnoreErr(os.Remove(path))
 		return "", nil, err
 	}
-	return path, func() { _ = os.Remove(path) }, nil
+	return path, func() { util.IgnoreErr(os.Remove(path)) }, nil
 }
 
 // WriteDeployManifest writes a manifest using this edgelet's install config.

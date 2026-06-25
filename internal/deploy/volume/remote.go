@@ -46,6 +46,7 @@ func (exe *remoteExecutor) execute(agentIdx int, ch chan error) {
 		ch <- fmt.Errorf(msg, agent.Name, err.Error())
 		return
 	}
+	ssh.SetPort(agent.SSH.Port)
 	if err := ssh.Connect(); err != nil {
 		msg := "failed to Connect to Agent %s.\n%s"
 		ch <- fmt.Errorf(msg, agent.Name, err.Error())

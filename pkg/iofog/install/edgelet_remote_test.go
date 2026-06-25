@@ -4,12 +4,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func TestRemoteEdgeletBootstrapUsesMockedSSH(t *testing.T) {
 	util.SetEdgeletReleaseBaseForTest("https://example.com/download")
-	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.4")
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.5")
 	t.Cleanup(func() {
 		util.ResetEdgeletReleaseBaseForTest()
 		util.ResetEdgeletBinaryVersionForTest()
@@ -77,12 +78,12 @@ func TestRemoteEdgeletConfigureUsesMockedSSH(t *testing.T) {
 		cfg:          EdgeletInstallConfig{DeploymentType: "native"},
 	}
 
-	getProvisionKeyHook = func(*defaultAgent, string, IofogUser) (string, string, error) {
+	getProvisionKeyHook = func(*defaultAgent, string, IofogUser, client.Options) (string, string, error) {
 		return "provision-key", "base64-ca", nil
 	}
 	t.Cleanup(func() { getProvisionKeyHook = nil })
 
-	if _, err := agent.Configure("https://controller.example.com", IofogUser{}); err != nil {
+	if _, err := agent.Configure("https://controller.example.com", IofogUser{}, client.Options{}); err != nil {
 		t.Fatalf("Configure: %v", err)
 	}
 	if len(ran) != 3 {

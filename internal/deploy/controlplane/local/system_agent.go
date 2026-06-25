@@ -1,6 +1,7 @@
 package deploylocalcontrolplane
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -89,7 +90,12 @@ func deployLocalSystemAgent(namespace string, cp *rsc.LocalControlPlane, name st
 		return err
 	}
 
-	if _, err := edgelet.Configure(endpoint, user); err != nil {
+	opt, err := clientutil.ControllerClientOptions(context.Background(), namespace, endpoint)
+	if err != nil {
+		return err
+	}
+
+	if _, err := edgelet.Configure(endpoint, user, opt); err != nil {
 		return fmt.Errorf("failed to provision system agent: %w", err)
 	}
 	return persistLocalSystemAgent(namespace, cp, name, deployAgentConfig, endpoint, configExe.GetAgentUUID())

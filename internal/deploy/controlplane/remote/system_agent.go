@@ -1,6 +1,7 @@
 package deployremotecontrolplane
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	deployagentconfig "github.com/eclipse-iofog/iofogctl/internal/deploy/agentconfig"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -170,7 +172,11 @@ func deployRemoteSystemAgent(namespace string, cp *rsc.RemoteControlPlane, ctrl 
 
 	user := install.IofogUser(cp.GetUser())
 	user.Password = cp.GetUser().GetRawPassword()
-	if _, err := edgelet.Configure(endpoint, user); err != nil {
+	opt, err := clientutil.ControllerClientOptions(context.Background(), namespace, endpoint)
+	if err != nil {
+		return err
+	}
+	if _, err := edgelet.Configure(endpoint, user, opt); err != nil {
 		return fmt.Errorf("failed to provision system agent: %w", err)
 	}
 

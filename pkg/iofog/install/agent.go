@@ -7,11 +7,11 @@ import (
 
 type Agent interface {
 	Bootstrap() error
-	getProvisionKey(string, IofogUser) (string, string, string, error)
+	getProvisionKey(controllerEndpoint string, user IofogUser, sdkOpt client.Options) (string, string, string, error)
 }
 
 // getProvisionKeyHook is set by tests to avoid Controller API calls during provision tests.
-var getProvisionKeyHook func(agent *defaultAgent, controllerEndpoint string, user IofogUser) (string, string, error)
+var getProvisionKeyHook func(agent *defaultAgent, controllerEndpoint string, user IofogUser, sdkOpt client.Options) (string, string, error)
 
 // defaultAgent implements commong behavior
 type defaultAgent struct {
@@ -19,18 +19,13 @@ type defaultAgent struct {
 	uuid string
 }
 
-func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser) (key string, caCert string, err error) {
+func (agent *defaultAgent) getProvisionKey(controllerEndpoint string, user IofogUser, sdkOpt client.Options) (key string, caCert string, err error) {
 	if getProvisionKeyHook != nil {
-		return getProvisionKeyHook(agent, controllerEndpoint, user)
-	}
-	// Connect to controller
-	baseURL, err := util.GetBaseURL(controllerEndpoint)
-	if err != nil {
-		return
+		return getProvisionKeyHook(agent, controllerEndpoint, user, sdkOpt)
 	}
 	// Log in
 	util.SpinHandlePrompt()
-	ctrl, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.Password)
+	ctrl, err := client.SessionLogin(sdkOpt, user.RefreshToken, user.Email, user.Password)
 	if err != nil {
 		return
 	}

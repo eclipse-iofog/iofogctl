@@ -46,13 +46,13 @@ func TestEdgeletBinaryArtifact(t *testing.T) {
 
 func TestEdgeletBinaryURL(t *testing.T) {
 	edgeletReleaseBase = "https://github.com/Datasance/edgelet/releases/download"
-	edgeletBinaryVersion = "v1.0.0-rc.4"
+	edgeletBinaryVersion = "v1.0.0-rc.5"
 
 	got, err := EdgeletBinaryURL("linux", "amd64")
 	if err != nil {
 		t.Fatalf("EdgeletBinaryURL: %v", err)
 	}
-	want := "https://github.com/Datasance/edgelet/releases/download/v1.0.0-rc.4/edgelet-linux-amd64"
+	want := "https://github.com/Datasance/edgelet/releases/download/v1.0.0-rc.5/edgelet-linux-amd64"
 	if got != want {
 		t.Fatalf("EdgeletBinaryURL = %q, want %q", got, want)
 	}
@@ -80,7 +80,7 @@ func TestShouldSkipInstallDeps(t *testing.T) {
 
 func TestDownloadEdgeletBinary(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1.0.0-rc.4/edgelet-linux-amd64" {
+		if r.URL.Path != "/v1.0.0-rc.5/edgelet-linux-amd64" {
 			http.NotFound(w, r)
 			return
 		}
@@ -89,7 +89,7 @@ func TestDownloadEdgeletBinary(t *testing.T) {
 	defer server.Close()
 
 	edgeletReleaseBase = server.URL
-	edgeletBinaryVersion = "v1.0.0-rc.4"
+	edgeletBinaryVersion = "v1.0.0-rc.5"
 
 	dir := t.TempDir()
 	dest := filepath.Join(dir, "edgelet-linux-amd64")

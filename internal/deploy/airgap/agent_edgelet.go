@@ -22,10 +22,7 @@ func EnsureAgentConfig(agent *rsc.AgentConfiguration) *rsc.AgentConfiguration {
 func ResolveAgentDeployment(cfg *rsc.AgentConfiguration, containerImage string) bool {
 	cfg = EnsureAgentConfig(cfg)
 
-	useContainer := false
-	if cfg.DeploymentType != nil && strings.EqualFold(strings.TrimSpace(*cfg.DeploymentType), DeploymentTypeContainer) {
-		useContainer = true
-	}
+	useContainer := cfg.DeploymentType != nil && strings.EqualFold(strings.TrimSpace(*cfg.DeploymentType), DeploymentTypeContainer)
 	if containerImage != "" {
 		useContainer = true
 	}

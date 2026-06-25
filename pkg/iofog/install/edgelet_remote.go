@@ -67,7 +67,7 @@ func (agent *RemoteEdgelet) CustomizeProcedures(dir string, procs *EdgeletProced
 			continue
 		}
 		procs.scriptNames = append(procs.scriptNames, file.Name())
-		content, err := os.ReadFile(filepath.Join(dir, file.Name()))
+		content, err := util.ReadFileUnderRoot(dir, file.Name())
 		if err != nil {
 			return err
 		}
@@ -230,8 +230,8 @@ func (agent *RemoteEdgelet) Bootstrap() error {
 	return agent.run(agent.procs.postInstallCommands(agent.name, agent.cfg, true))
 }
 
-func (agent *RemoteEdgelet) Configure(controllerEndpoint string, user IofogUser) (string, error) {
-	key, caCert, err := agent.getProvisionKey(controllerEndpoint, user)
+func (agent *RemoteEdgelet) Configure(controllerEndpoint string, user IofogUser, sdkOpt client.Options) (string, error) {
+	key, caCert, err := agent.getProvisionKey(controllerEndpoint, user, sdkOpt)
 	if err != nil {
 		return "", err
 	}
@@ -370,7 +370,7 @@ func (agent *RemoteEdgelet) copyLocalFileToRemote(localPath, remotePath string) 
 	if remoteEdgeletRunHook != nil {
 		return nil
 	}
-	content, err := os.ReadFile(localPath)
+	content, err := util.ReadValidatedFile(localPath)
 	if err != nil {
 		return err
 	}

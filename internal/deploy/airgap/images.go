@@ -165,32 +165,16 @@ func applyYAMLAndUtilFallbackForController(images *RequiredImages, controlPlane 
 		}
 	}
 	if images.DebuggerAMD64 == "" {
-		if images.DebuggerAMD64 != "" {
-			images.DebuggerAMD64 = images.DebuggerAMD64
-		} else {
-			images.DebuggerAMD64 = util.GetDebuggerImage()
-		}
+		images.DebuggerAMD64 = util.GetDebuggerImage()
 	}
 	if images.DebuggerARM64 == "" {
-		if images.DebuggerARM64 != "" {
-			images.DebuggerARM64 = images.DebuggerARM64
-		} else {
-			images.DebuggerARM64 = util.GetDebuggerImage()
-		}
+		images.DebuggerARM64 = util.GetDebuggerImage()
 	}
 	if images.DebuggerRISCV64 == "" {
-		if images.DebuggerRISCV64 != "" {
-			images.DebuggerRISCV64 = images.DebuggerRISCV64
-		} else {
-			images.DebuggerRISCV64 = util.GetDebuggerImage()
-		}
+		images.DebuggerRISCV64 = util.GetDebuggerImage()
 	}
 	if images.DebuggerARM == "" {
-		if images.DebuggerARM != "" {
-			images.DebuggerARM = images.DebuggerARM
-		} else {
-			images.DebuggerARM = util.GetDebuggerImage()
-		}
+		images.DebuggerARM = util.GetDebuggerImage()
 	}
 }
 
@@ -229,25 +213,13 @@ func applyYAMLAndUtilFallbackForAgent(images *RequiredImages, controlPlane *rsc.
 		images.DebuggerAMD64 = util.GetDebuggerImage()
 	}
 	if images.DebuggerARM64 == "" {
-		if images.DebuggerARM64 != "" {
-			images.DebuggerARM64 = images.DebuggerARM64
-		} else {
-			images.DebuggerARM64 = util.GetDebuggerImage()
-		}
+		images.DebuggerARM64 = util.GetDebuggerImage()
 	}
 	if images.DebuggerRISCV64 == "" {
-		if images.DebuggerRISCV64 != "" {
-			images.DebuggerRISCV64 = images.DebuggerRISCV64
-		} else {
-			images.DebuggerRISCV64 = util.GetDebuggerImage()
-		}
+		images.DebuggerRISCV64 = util.GetDebuggerImage()
 	}
 	if images.DebuggerARM == "" {
-		if images.DebuggerARM != "" {
-			images.DebuggerARM = images.DebuggerARM
-		} else {
-			images.DebuggerARM = util.GetDebuggerImage()
-		}
+		images.DebuggerARM = util.GetDebuggerImage()
 	}
 }
 

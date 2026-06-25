@@ -10,6 +10,8 @@ import (
 	"github.com/opencontainers/go-digest"
 	"go.podman.io/image/v5/manifest"
 	"go.podman.io/image/v5/types"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 const cacheMetadataFilename = "metadata.json"
@@ -56,7 +58,7 @@ func fetchRemoteDigest(ctx context.Context, imageRef string, sysCtx *types.Syste
 }
 
 func loadCacheMetadata(path string) (*cacheMetadata, error) {
-	data, err := os.ReadFile(path)
+	data, err := util.ReadValidatedFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,7 @@ func saveCacheMetadata(path string, meta cacheMetadata) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0o644)
+	return util.WriteValidatedFile(path, data, util.FilePerm)
 }
 
 func canReuseCachedArtifact(archivePath string, meta *cacheMetadata, imageRef, platform, digestValue string) (bool, string) {

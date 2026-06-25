@@ -110,7 +110,7 @@ func ensureArtifact(ctx context.Context, platform, imageRef string, namespace st
 	}
 
 	cacheDir := config.GetAirgapImageCacheDir(namespace, imageRef, platform)
-	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+	if err := os.MkdirAll(cacheDir, util.DirPerm); err != nil {
 		return nil, err
 	}
 	archivePath := filepath.Join(cacheDir, archiveFilename)
@@ -186,7 +186,7 @@ func buildSystemContext(platform string, auth *rsc.OfflineImageAuth) (*types.Sys
 // pullCompressedImage pulls an image and compresses it to a tar.gz file
 func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysCtx *types.SystemContext, label string) (digestValue string, checksum string, size int64, err error) {
 	destDir := filepath.Dir(archivePath)
-	if err := os.MkdirAll(destDir, 0o755); err != nil {
+	if err := os.MkdirAll(destDir, util.DirPerm); err != nil {
 		return "", "", 0, err
 	}
 	rawPath := archivePath + ".raw"
@@ -261,21 +261,21 @@ func insecurePolicyContext() (*signature.PolicyContext, error) {
 
 // compressToGzip compresses a file to gzip format
 func compressToGzip(src, dst string) error {
-	source, err := os.Open(src)
+	source, err := util.OpenValidatedFile(src)
 	if err != nil {
 		return err
 	}
-	defer source.Close()
+	defer util.IgnoreClose(source)
 
 	if err := os.RemoveAll(dst); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	destFile, err := os.Create(dst)
+	destFile, err := util.CreateUserFile(dst, util.FilePerm)
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
+	defer util.IgnoreClose(destFile)
 
 	gzipWriter := gzip.NewWriter(destFile)
 	defer gzipWriter.Close()
@@ -289,11 +289,11 @@ func compressToGzip(src, dst string) error {
 
 // calculateFileChecksum calculates SHA256 checksum and size of a file
 func calculateFileChecksum(path string) (string, int64, error) {
-	file, err := os.Open(path)
+	file, err := util.OpenValidatedFile(path)
 	if err != nil {
 		return "", 0, err
 	}
-	defer file.Close()
+	defer util.IgnoreClose(file)
 
 	hasher := sha256.New()
 	size, err := io.Copy(hasher, file)
@@ -322,11 +322,11 @@ func transferAndLoadImage(plan transferPlan, artifact *imageArtifact) error {
 	}
 
 	// Open and transfer file
-	file, err := os.Open(artifact.path)
+	file, err := util.OpenValidatedFile(artifact.path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer util.IgnoreClose(file)
 	info, err := file.Stat()
 	if err != nil {
 		return err
