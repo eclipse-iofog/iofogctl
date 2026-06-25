@@ -11,11 +11,12 @@ set -e
 echo "Pre commit:"
 echo "Building..."
 make lint
-make build
+make iofogctl potctl
 echo "Generating docs..."
-./bin/iofogctl documentation md -o ./docs/
+./bin/iofogctl documentation md -o ./docs/iofogctl_md
+./bin/potctl documentation md -o ./docs/potctl_md
 echo "Patching docs..."
-find ./docs/md -type f | xargs sed -i '' 's/.*Auto generated.*//g'
-find ./docs/md -type f | xargs sed -E -i '' 's/(command within \(default).*/\1 "default")/g'
+find ./docs/iofogctl_md ./docs/potctl_md -type f | xargs sed -i '' 's/.*Auto generated.*//g'
+find ./docs/iofogctl_md ./docs/potctl_md -type f | xargs sed -E -i '' 's/(command within \(default).*/\1 "default")/g'
 echo "Adding docs to the commit..."
-git add ./docs/
+git add ./docs/iofogctl_md ./docs/potctl_md

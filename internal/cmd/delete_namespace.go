@@ -16,7 +16,7 @@ func newDeleteNamespaceCommand() *cobra.Command {
 The Namespace must be empty.
 
 If you would like to delete all resources in the Namespace, use the --force flag.`,
-		Example: `iofogctl delete namespace NAME`,
+		Example: ex(`%[1]s delete namespace NAME`),
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get microservice name

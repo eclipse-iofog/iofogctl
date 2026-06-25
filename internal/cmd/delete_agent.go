@@ -11,14 +11,14 @@ func newDeleteAgentCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
 		Short: "Delete an Agent",
-		Long: `Delete an Agent.
+		Long: ex(`Delete an Agent.
 
 The Agent will be unprovisioned from the Controller within the namespace.
 
 The Agent stack will be uninstalled from the host.
 
-If you wish to not remove the Agent stack from the host, please use iofogctl detach agent`,
-		Example: `iofogctl delete agent NAME`,
+If you wish to not remove the Agent stack from the host, please use %[1]s detach agent`),
+		Example: ex(`%[1]s delete agent NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

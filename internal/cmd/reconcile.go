@@ -25,7 +25,7 @@ func newReconcileAgentCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "agent NAME",
 		Short:   "Reconcile fog router/NATS platform for an agent",
-		Example: "iofogctl reconcile agent my-agent",
+		Example: ex("%[1]s reconcile agent my-agent"),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
@@ -44,7 +44,7 @@ func newReconcileServiceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "service NAME",
 		Short:   "Reconcile service hub provisioning",
-		Example: "iofogctl reconcile service my-service",
+		Example: ex("%[1]s reconcile service my-service"),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]

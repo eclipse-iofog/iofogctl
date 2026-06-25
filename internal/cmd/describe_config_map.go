@@ -15,7 +15,7 @@ func newDescribeConfigMapCommand() *cobra.Command {
 		Use:     "configmap NAME",
 		Short:   "Get detailed information about a ConfigMap",
 		Long:    `Get detailed information about a ConfigMap.`,
-		Example: `iofogctl describe configmap NAME`,
+		Example: ex(`%[1]s describe configmap NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

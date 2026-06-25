@@ -15,7 +15,7 @@ func newDescribeApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Get detailed information about an Application",
 		Long:    `Get detailed information about an Application.`,
-		Example: `iofogctl describe application NAME`,
+		Example: ex(`%[1]s describe application NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

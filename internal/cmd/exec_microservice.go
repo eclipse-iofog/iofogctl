@@ -15,7 +15,7 @@ func newExecMicroserviceCommand() *cobra.Command {
 		Use:     "microservice AppName/MsvcName",
 		Short:   "Connect to an Exec Session of a Microservice",
 		Long:    `Connect to an Exec Session of a Microservice to interact with its container.`,
-		Example: `iofogctl exec microservice AppName/MicroserviceName`,
+		Example: ex(`%[1]s exec microservice AppName/MicroserviceName`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

@@ -11,7 +11,7 @@ func newDeleteMicroserviceCommand() *cobra.Command {
 		Use:     "microservice NAME",
 		Short:   "Delete a Microservice",
 		Long:    `Delete a Microservice`,
-		Example: `iofogctl delete microservice NAME`,
+		Example: ex(`%[1]s delete microservice NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

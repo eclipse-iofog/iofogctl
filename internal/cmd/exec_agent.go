@@ -15,7 +15,7 @@ func newExecAgentCommand() *cobra.Command {
 		Use:     "agent AgentName",
 		Short:   "Connect to an Exec Session of an Agent",
 		Long:    `Connect to an Exec Session of an Agent to interact with its container.`,
-		Example: `iofogctl exec agent AgentName`,
+		Example: ex(`%[1]s exec agent AgentName`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

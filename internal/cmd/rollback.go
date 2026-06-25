@@ -17,7 +17,7 @@ func newRollbackCommand() *cobra.Command {
 		Use:     "rollback RESOURCE NAME",
 		Short:   "Rollback ioFog resources",
 		Long:    `Rollback ioFog resources to latest versions available.`,
-		Example: `iofogctl rollback agent NAME`,
+		Example: ex(`%[1]s rollback agent NAME`),
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

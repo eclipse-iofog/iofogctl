@@ -12,7 +12,7 @@ func newStartApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Starts an application",
 		Long:    "Starts an application",
-		Example: `iofogctl start application NAME`,
+		Example: ex(`%[1]s start application NAME`),
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

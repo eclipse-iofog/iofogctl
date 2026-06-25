@@ -11,7 +11,7 @@ func newDeleteVolumeMountCommand() *cobra.Command {
 		Use:     "volume-mount NAME",
 		Short:   "Delete a Volume Mount",
 		Long:    `Delete a Volume Mount from the Controller.`,
-		Example: `iofogctl delete volume-mount NAME`,
+		Example: ex(`%[1]s delete volume-mount NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

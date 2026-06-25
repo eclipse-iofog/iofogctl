@@ -15,7 +15,7 @@ func newDescribeVolumeMountCommand() *cobra.Command {
 		Use:     "volume-mount NAME",
 		Short:   "Get detailed information about a Volume Mount",
 		Long:    `Get detailed information about a Volume Mount.`,
-		Example: `iofogctl describe volume-mount NAME`,
+		Example: ex(`%[1]s describe volume-mount NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

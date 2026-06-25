@@ -15,7 +15,7 @@ func NewAttachExecMicroserviceCommand() *cobra.Command {
 		Use:     "microservice NAME",
 		Short:   "Attach an Exec Session to a Microservice",
 		Long:    `Attach an Exec Session to an existing Microservice.`,
-		Example: `iofogctl attach exec microservice AppName/MicroserviceName`,
+		Example: ex(`%[1]s attach exec microservice AppName/MicroserviceName`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			opt.Name = args[0]
@@ -42,7 +42,7 @@ func newAttachExecAgentCommand() *cobra.Command {
 		Use:     "agent NAME [DEBUG_IMAGE]",
 		Short:   "Attach an Exec Session to an Agent",
 		Long:    `Attach an Exec Session to an existing Agent.`,
-		Example: `iofogctl attach exec agent AgentName DebugImage`,
+		Example: ex(`%[1]s attach exec agent AgentName DebugImage`),
 		Args:    cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			opt.Name = args[0]
@@ -71,7 +71,7 @@ func newAttachExecCommand() *cobra.Command {
 		Use:     "exec",
 		Short:   "Attach an Exec Session to a resource",
 		Long:    `Attach an Exec Session to a Microservice or Agent.`,
-		Example: `iofogctl attach exec microservice AppName/MicroserviceName`,
+		Example: ex(`%[1]s attach exec microservice AppName/MicroserviceName`),
 	}
 
 	// Add subcommands

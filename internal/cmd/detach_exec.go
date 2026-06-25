@@ -15,7 +15,7 @@ func NewDetachExecMicroserviceCommand() *cobra.Command {
 		Use:     "microservice NAME",
 		Short:   "Detach an Exec Session to a Microservice",
 		Long:    `Detach an Exec Session to an existing Microservice.`,
-		Example: `iofogctl detach exec microservice AppName/MicroserviceName`,
+		Example: ex(`%[1]s detach exec microservice AppName/MicroserviceName`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			opt.Name = args[0]
@@ -42,7 +42,7 @@ func newDetachExecAgentCommand() *cobra.Command {
 		Use:     "agent NAME",
 		Short:   "Detach an Exec Session from an Agent",
 		Long:    `Detach an Exec Session from an existing Agent.`,
-		Example: `iofogctl detach exec agent AgentName`,
+		Example: ex(`%[1]s detach exec agent AgentName`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			opt.Name = args[0]
@@ -68,7 +68,7 @@ func newDetachExecCommand() *cobra.Command {
 		Use:     "exec",
 		Short:   "Detach an Exec Session to a resource",
 		Long:    `Detach an Exec Session to a Microservice or Agent.`,
-		Example: `iofogctl detach exec microservice AppName/MicroserviceName`,
+		Example: ex(`%[1]s detach exec microservice AppName/MicroserviceName`),
 	}
 
 	// Add subcommands

@@ -15,7 +15,7 @@ func newDescribeControllerCommand() *cobra.Command {
 		Use:     "controller NAME",
 		Short:   "Get detailed information about a Controller",
 		Long:    `Get detailed information about a named Controller.`,
-		Example: `iofogctl describe controller NAME`,
+		Example: ex(`%[1]s describe controller NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

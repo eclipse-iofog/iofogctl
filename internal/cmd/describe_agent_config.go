@@ -15,7 +15,7 @@ func newDescribeAgentConfigCommand() *cobra.Command {
 		Use:     "agent-config NAME",
 		Short:   "Get detailed information about an Agent's configuration",
 		Long:    `Get detailed information about an Agent's configuration.`,
-		Example: `iofogctl describe agent-config NAME`,
+		Example: ex(`%[1]s describe agent-config NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

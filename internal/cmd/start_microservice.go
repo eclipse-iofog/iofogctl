@@ -12,7 +12,7 @@ func newStartMicroserviceCommand() *cobra.Command {
 		Use:     "microservice AppNAME/MsvcNAME",
 		Short:   "Starts an microservice",
 		Long:    "Starts an microservice",
-		Example: `iofogctl start microservice AppNAME/MsvcNAME`,
+		Example: ex(`%[1]s start microservice AppNAME/MsvcNAME`),
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

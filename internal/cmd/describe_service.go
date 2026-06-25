@@ -15,7 +15,7 @@ func newDescribeServiceCommand() *cobra.Command {
 		Use:     "service NAME",
 		Short:   "Get detailed information about a Service",
 		Long:    `Get detailed information about a Service.`,
-		Example: `iofogctl describe service NAME`,
+		Example: ex(`%[1]s describe service NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

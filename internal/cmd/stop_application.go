@@ -12,7 +12,7 @@ func newStopApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Stop an application",
 		Long:    "Stop an application",
-		Example: `iofogctl stop application NAME`,
+		Example: ex(`%[1]s stop application NAME`),
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

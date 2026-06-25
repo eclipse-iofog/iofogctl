@@ -12,7 +12,7 @@ func newRebuildSystemMicroserviceCommand() *cobra.Command {
 		Use:     "system-microservice AppNAME/MsvcNAME",
 		Short:   "Rebuilds a system microservice",
 		Long:    "Rebuilds a system microservice",
-		Example: `iofogctl rebuild system-microservice AppNAME/MsvcNAME`,
+		Example: ex(`%[1]s rebuild system-microservice AppNAME/MsvcNAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

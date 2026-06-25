@@ -15,7 +15,7 @@ func newDescribeNamespaceCommand() *cobra.Command {
 		Use:     "namespace NAME",
 		Short:   "Get detailed information about a Namespace",
 		Long:    `Get detailed information about a Namespace.`,
-		Example: `iofogctl describe namespace NAME`,
+		Example: ex(`%[1]s describe namespace NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

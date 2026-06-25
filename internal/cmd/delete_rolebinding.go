@@ -11,7 +11,7 @@ func newDeleteRoleBindingCommand() *cobra.Command {
 		Use:     "rolebinding NAME",
 		Short:   "Delete a RoleBinding",
 		Long:    `Delete a RoleBinding from the Controller.`,
-		Example: `iofogctl delete rolebinding NAME`,
+		Example: ex(`%[1]s delete rolebinding NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]

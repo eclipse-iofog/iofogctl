@@ -15,7 +15,7 @@ func newDeployCommand() *cobra.Command {
 	// Instantiate command
 	cmd := &cobra.Command{
 		Use: "deploy",
-		Example: `deploy -f ecn.yaml
+		Example: ex(`%[1]s deploy -f ecn.yaml
           application-template.yaml
           application.yaml
           microservice.yaml
@@ -25,12 +25,12 @@ func newDeployCommand() *cobra.Command {
           secret.yaml
           configmap.yaml
           service.yaml
-          volume-mount.yaml`,
+          volume-mount.yaml`),
 
 		Args:  cobra.ExactArgs(0),
 		Short: "Deploy Edge Compute Network components on existing infrastructure",
-		Long: `Deploy Edge Compute Network components on existing infrastructure.
-Visit iofog.org to view all YAML specifications usable with this command.`,
+		Long: ex(`Deploy Edge Compute Network components on existing infrastructure.
+Visit %[2]s to view all YAML specifications usable with this command.`, util.GetCliDocsUrl()),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")

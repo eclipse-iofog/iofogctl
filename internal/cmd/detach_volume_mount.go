@@ -15,7 +15,7 @@ func newDetachVolumeMountCommand() *cobra.Command {
 		Use:     "volume-mount NAME AGENT_NAME1 AGENT_NAME2",
 		Short:   "Detach a Volume Mount from existing Agents",
 		Long:    `Detach a Volume Mount from existing Agents.`,
-		Example: `iofogctl detach volume-mount NAME AGENT_NAME1 AGENT_NAME2`,
+		Example: ex(`%[1]s detach volume-mount NAME AGENT_NAME1 AGENT_NAME2`),
 		Args:    cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

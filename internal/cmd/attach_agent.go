@@ -14,7 +14,7 @@ func newAttachAgentCommand() *cobra.Command {
 		Long: `Attach a detached Agent to an existing Namespace.
 
 The Agent will be provisioned with the Controller within the Namespace.`,
-		Example: `iofogctl attach agent NAME`,
+		Example: ex(`%[1]s attach agent NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

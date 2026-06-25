@@ -15,7 +15,7 @@ func newDescribeControlPlaneCommand() *cobra.Command {
 		Use:     "controlplane",
 		Short:   "Get detailed information about a Control Plane",
 		Long:    `Get detailed information about the Control Plane in a single Namespace.`,
-		Example: `iofogctl describe controlplane`,
+		Example: ex(`%[1]s describe controlplane`),
 		Args:    cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

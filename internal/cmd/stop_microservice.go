@@ -12,7 +12,7 @@ func newStopMicroserviceCommand() *cobra.Command {
 		Use:     "microservice AppNAME/MsvcNAME",
 		Short:   "Stop an microservice",
 		Long:    "Stop an microservice",
-		Example: `iofogctl stop microservice AppNAME/MsvcNAME`,
+		Example: ex(`%[1]s stop microservice AppNAME/MsvcNAME`),
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

@@ -11,7 +11,7 @@ func newDeleteConfigMapCommand() *cobra.Command {
 		Use:     "configmap NAME",
 		Short:   "Delete a ConfigMap",
 		Long:    `Delete a ConfigMap from the Controller.`,
-		Example: `iofogctl delete configmap NAME`,
+		Example: ex(`%[1]s delete configmap NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

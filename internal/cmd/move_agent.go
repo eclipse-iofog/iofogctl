@@ -14,7 +14,7 @@ func newMoveAgentCommand() *cobra.Command {
 		Use:     "agent NAME DEST_NAMESPACE",
 		Short:   "Move an Agent to another Namespace",
 		Long:    `Move an Agent to another Namespace`,
-		Example: `iofogctl move agent NAME DEST_NAMESPACE`,
+		Example: ex(`%[1]s move agent NAME DEST_NAMESPACE`),
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get args

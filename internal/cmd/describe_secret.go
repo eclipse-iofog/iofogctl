@@ -15,7 +15,7 @@ func newDescribeSecretCommand() *cobra.Command {
 		Use:     "secret NAME",
 		Short:   "Get detailed information about a Secret",
 		Long:    `Get detailed information about a Secret.`,
-		Example: `iofogctl describe secret NAME`,
+		Example: ex(`%[1]s describe secret NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

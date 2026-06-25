@@ -11,7 +11,7 @@ func newDeleteCertificateCommand() *cobra.Command {
 		Use:     "certificate NAME",
 		Short:   "Delete a Certificate",
 		Long:    `Delete a Certificate from the Controller.`,
-		Example: `iofogctl delete certificate NAME`,
+		Example: ex(`%[1]s delete certificate NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

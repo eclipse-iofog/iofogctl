@@ -15,7 +15,7 @@ func newDescribeCertificateCommand() *cobra.Command {
 		Use:     "certificate NAME",
 		Short:   "Get detailed information about a Certificate",
 		Long:    `Get detailed information about a Certificate.`,
-		Example: `iofogctl describe certificate NAME`,
+		Example: ex(`%[1]s describe certificate NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

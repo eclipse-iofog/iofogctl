@@ -11,7 +11,7 @@ func newDeleteRegistryCommand() *cobra.Command {
 		Use:     "registry ID",
 		Short:   "Delete a Registry",
 		Long:    `Delete a Registry from the Controller.`,
-		Example: `iofogctl delete registry ID`,
+		Example: ex(`%[1]s delete registry ID`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

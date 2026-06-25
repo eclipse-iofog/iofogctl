@@ -19,7 +19,7 @@ The Agent will be removed from Controller.
 You cannot detach unprovisioned Agents.
 
 The Agent stack will not be uninstalled from the host.`,
-		Example: `iofogctl detach agent NAME`,
+		Example: ex(`%[1]s detach agent NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

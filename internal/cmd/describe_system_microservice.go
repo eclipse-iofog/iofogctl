@@ -15,7 +15,7 @@ func newDescribeSystemMicroserviceCommand() *cobra.Command {
 		Use:     "system-microservice NAME",
 		Short:   "Get detailed information about a System Microservice",
 		Long:    `Get detailed information about a System Microservice.`,
-		Example: `iofogctl describe system-microservice NAME`,
+		Example: ex(`%[1]s describe system-microservice NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

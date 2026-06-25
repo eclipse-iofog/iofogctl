@@ -16,7 +16,7 @@ func newDeleteAllCommand() *cobra.Command {
 Tears down all components of an Edge Compute Network.
 
 If you don't want to tear down the deployments but would like to free up the Namespace, use the disconnect command instead.`,
-		Example: `iofogctl delete all -n NAMESPACE`,
+		Example: ex(`%[1]s delete all -n NAMESPACE`),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Execute command
 			namespace, err := cmd.Flags().GetString("namespace")

@@ -11,7 +11,7 @@ func newDeleteServiceAccountCommand() *cobra.Command {
 		Use:     "serviceaccount APPLICATION_NAME/SERVICE_ACCOUNT_NAME",
 		Short:   "Delete a ServiceAccount",
 		Long:    `Delete a ServiceAccount from the Controller. ServiceAccounts are application-scoped; use APPLICATION_NAME/SERVICE_ACCOUNT_NAME (e.g. myapp/my-sa).`,
-		Example: `iofogctl delete serviceaccount myapp/my-sa`,
+		Example: ex(`%[1]s delete serviceaccount myapp/my-sa`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]

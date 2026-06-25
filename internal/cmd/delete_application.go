@@ -11,7 +11,7 @@ func newDeleteApplicationCommand() *cobra.Command {
 		Use:     "application NAME",
 		Short:   "Delete an application",
 		Long:    `Delete an application and all its components`,
-		Example: `iofogctl delete application NAME`,
+		Example: ex(`%[1]s delete application NAME`),
 		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get microservice name

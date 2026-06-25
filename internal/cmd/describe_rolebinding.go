@@ -15,7 +15,7 @@ func newDescribeRoleBindingCommand() *cobra.Command {
 		Use:     "rolebinding NAME",
 		Short:   "Get detailed information about a RoleBinding",
 		Long:    `Get detailed information about a RoleBinding.`,
-		Example: `iofogctl describe rolebinding NAME`,
+		Example: ex(`%[1]s describe rolebinding NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

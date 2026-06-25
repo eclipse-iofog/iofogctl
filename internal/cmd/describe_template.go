@@ -15,7 +15,7 @@ func newDescribeApplicationTemplateCommand() *cobra.Command {
 		Use:     "application-template NAME",
 		Short:   "Get detailed information about an Application Template",
 		Long:    `Get detailed information about an Application Template.`,
-		Example: `iofogctl describe application-template NAME`,
+		Example: ex(`%[1]s describe application-template NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

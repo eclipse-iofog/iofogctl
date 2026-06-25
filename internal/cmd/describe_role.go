@@ -15,7 +15,7 @@ func newDescribeRoleCommand() *cobra.Command {
 		Use:     "role NAME",
 		Short:   "Get detailed information about a Role",
 		Long:    `Get detailed information about a Role.`,
-		Example: `iofogctl describe role NAME`,
+		Example: ex(`%[1]s describe role NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

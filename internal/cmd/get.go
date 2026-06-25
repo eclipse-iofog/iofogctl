@@ -42,7 +42,7 @@ func newGetCommand() *cobra.Command {
 		Long: `Get information of existing resources.
 
 Resources like Agents will require a working Controller in the namespace to display all information.`,
-		Example: `iofogctl get all
+		Example: ex(`%[1]s get all
              namespaces
              controllers
              agents
@@ -65,7 +65,7 @@ Resources like Agents will require a working Controller in the namespace to disp
              nats-accounts
              nats-users
              nats-account-rules
-             nats-user-rules`,
+             nats-user-rules`),
 		ValidArgs: validResources,
 		Args:      cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

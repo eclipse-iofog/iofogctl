@@ -11,7 +11,7 @@ func newDeleteSecretCommand() *cobra.Command {
 		Use:     "secret NAME",
 		Short:   "Delete a Secret",
 		Long:    `Delete a Secret from the Controller.`,
-		Example: `iofogctl delete secret NAME`,
+		Example: ex(`%[1]s delete secret NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

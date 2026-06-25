@@ -11,7 +11,7 @@ func newDeleteCatalogItemCommand() *cobra.Command {
 		Use:     "catalogitem NAME",
 		Short:   "Delete a Catalog item",
 		Long:    `Delete a Catalog item from the Controller.`,
-		Example: `iofogctl delete catalogitem NAME`,
+		Example: ex(`%[1]s delete catalogitem NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace

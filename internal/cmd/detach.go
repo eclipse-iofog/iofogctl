@@ -7,7 +7,7 @@ import (
 func newDetachCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "detach",
-		Example: `detach`,
+		Example: ex(`%[1]s detach`),
 		Short:   "Detach one ioFog resource from another",
 		Long:    `Detach one ioFog resource from another.`,
 	}

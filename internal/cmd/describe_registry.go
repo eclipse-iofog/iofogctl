@@ -15,7 +15,7 @@ func newDescribeRegistryCommand() *cobra.Command {
 		Use:     "registry NAME",
 		Short:   "Get detailed information about a Microservice Registry",
 		Long:    `Get detailed information about a Microservice Registry.`,
-		Example: `iofogctl describe registry NAME`,
+		Example: ex(`%[1]s describe registry NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

@@ -15,7 +15,7 @@ func newDescribeVolumeCommand() *cobra.Command {
 		Use:     "volume NAME",
 		Short:   "Get detailed information about a Volume",
 		Long:    `Get detailed information about a Volume.`,
-		Example: `iofogctl describe volume NAME`,
+		Example: ex(`%[1]s describe volume NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

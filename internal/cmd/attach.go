@@ -7,7 +7,7 @@ import (
 func newAttachCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "attach",
-		Example: `attach`,
+		Example: ex(`%[1]s attach`),
 		Short:   "Attach one ioFog resource to another",
 		Long:    `Attach one ioFog resource to another.`,
 	}

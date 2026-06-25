@@ -11,7 +11,7 @@ func newDeleteServiceCommand() *cobra.Command {
 		Use:     "service NAME",
 		Short:   "Delete a Service",
 		Long:    `Delete a Service from the Controller.`,
-		Example: `iofogctl delete service NAME`,
+		Example: ex(`%[1]s delete service NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace
