@@ -18,7 +18,6 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - ^\.cursor/
       - ^vendor/
 
 linters:
@@ -119,7 +118,7 @@ linters:
             - github.com/opencontainers/go-digest
             - github.com/gorilla/websocket
             - github.com/vmihailenco/msgpack
-            - github.com/docker
+            - github.com/moby/moby
             - k8s.io
             - sigs.k8s.io/controller-runtime
             - github.com/briandowns/spinner
@@ -131,7 +130,6 @@ linters:
   exclusions:
     generated: lax
     paths:
-      - ^\.cursor/
       - ^vendor/
     presets:
       - comments
