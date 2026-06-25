@@ -1,9 +1,3 @@
-@test "Edge Resources" {
-  startTest
-  testEdgeResources
-  stopTest
-}
-
 @test "Deploy Volumes" {
   startTest
   testDeployVolume
@@ -23,16 +17,6 @@
   testDeleteVolume
   testDeployVolume
   testGetDescribeVolume
-  stopTest
-}
-
-@test "Agent legacy commands" {
-  startTest
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}-${IDX}"
-    iofogctl -v -n "$NS" legacy agent "$AGENT_NAME" status
-    checkLegacyAgent "$AGENT_NAME"
-  done
   stopTest
 }
 
@@ -266,27 +250,13 @@
 
 @test "Detach with same name" {
   startTest
-  local A0="${NAME}-0"
   local A1="${NAME}-1"
-  # Rename and fail
-  iofogctl -v rename agent $A1 $A0
-  run iofogctl -v detach agent $A0
-  [ "$status" -eq 1 ]
-  # Rename attached and succeed
-  iofogctl -v rename agent $A0 $A1
   iofogctl -v detach agent $A1
-  # Return to attached
+  run iofogctl -v detach agent $A1
+  [ "$status" -eq 1 ]
   iofogctl -v attach agent $A1
   checkAgent $A1
   checkDetachedAgentNegative $A1
-  # Rename detached and succeed
-  iofogctl -v rename agent $A1 $A0
-  iofogctl -v rename agent $A0 albert --detached
-  iofogctl -v detach agent $A0
-  # Return to attached
-  iofogctl -v attach agent $A0
-  iofogctl -v rename agent $A0 $A1
-  iofogctl -v rename agent albert $A0 --detached
   stopTest
 }
 

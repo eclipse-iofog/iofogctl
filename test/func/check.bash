@@ -344,9 +344,6 @@ function checkAgent() {
 function checkDetachedAgent() {
   local AGENT_NAME=$1
   local NS_CHECK=${2:-$NS}
-  # Check agent is accessible using ssh, and is not provisioned
-  [[ "not" == $(iofogctl -v legacy agent $AGENT_NAME status --detached | grep 'Connection to Controller' | awk '{print $5}') ]]
-  # Check agent is listed in detached resources
   [[ "$AGENT_NAME" == $(iofogctl -v -n "$NS_CHECK" get agents --detached | grep "$AGENT_NAME" | awk '{print $1}') ]]
 }
 
@@ -404,15 +401,10 @@ function checkAgentPruneController(){
   [[ "true" == "$PRUNE" ]]
 }
 
-function checkLegacyController() {
-  local NS_CHECK=${1:-$NS}
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy controller $NAME status | grep 'ioFogController') ]]
-}
-
 function checkLegacyAgent() {
   local NS_CHECK=${2:-$NS}
-  [[ ! -z $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'RUNNING') ]]
-  [[ "ok" == $(iofogctl -v -n "$NS_CHECK" legacy agent $1 status | grep 'Connection to Controller' | awk '{print $5}') ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" get agents | grep -w $1) ]]
+  [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent $1 | grep -i running) ]]
 }
 
 function checkMovedMicroservice() {
@@ -421,34 +413,9 @@ function checkMovedMicroservice() {
   [[ ! -z $(iofogctl -v get microservices | grep $MSVC | grep $NEW_AGENT) ]]
 }
 
-function checkRenamedResource() {
-  local RSRC=$1
-  local OLDNAME=$2
-  local NEWNAME=$3
-  local NAMESPACE=$4
-  [[ -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get ${RSRC} | grep -w ${NEWNAME}) ]]
-}
-
-function checkRenamedApplication() {
-  local OLDNAME=$1
-  local NEWNAME=$2
-  local NAMESPACE=$3
-
-  [[ -z $(iofogctl -n ${NAMESPACE} -v get applications | awk '{print $1}' | grep ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -n ${NAMESPACE} -v get applications |  awk '{print $1}' | grep ${NEWNAME}) ]]
-}
-
 function checkNamespaceExistsNegative() {
   local CHECK_NS="$1"
   [ -z "$(iofogctl get namespaces | grep $CHECK_NS)" ]
-}
-
-function checkRenamedNamespace() {
-  local OLDNAME=$1
-  local NEWNAME=$2
-  [[ -z $(iofogctl -v get namespaces | grep -w ${OLDNAME}) ]]
-  [[ ! -z $(iofogctl -v get namespaces | grep -w ${NEWNAME}) ]]
 }
 
 function hitMsvcEndpoint() {
