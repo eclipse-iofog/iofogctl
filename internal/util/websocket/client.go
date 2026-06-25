@@ -37,15 +37,16 @@ func NewClient(microserviceUUID string) *Client {
 	}
 }
 
-// Connect establishes a WebSocket connection to the server
-func (c *Client) Connect(url string, headers http.Header) error {
+// Connect establishes a WebSocket connection to the server.
+// tlsCfg is required for wss:// URLs; pass nil for ws://.
+func (c *Client) Connect(url string, headers http.Header, tlsCfg *tls.Config) error {
 	dialer := websocket.Dialer{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
 		HandshakeTimeout: 45 * time.Second,
 		ReadBufferSize:   1024,
 		WriteBufferSize:  1024,
+	}
+	if tlsCfg != nil {
+		dialer.TLSClientConfig = tlsCfg
 	}
 
 	conn, resp, err := dialer.Dial(url, headers)
@@ -57,7 +58,7 @@ func (c *Client) Connect(url string, headers http.Header) error {
 				c.errMutex.Lock()
 				c.err = util.NewError(fmt.Sprintf("connection closed by server (code: %d, reason: %s)", closeErr.Code, closeErr.Text))
 				c.errMutex.Unlock()
-				c.Close()
+				util.Log(c.Close)
 				return c.err
 			}
 		}
@@ -66,13 +67,13 @@ func (c *Client) Connect(url string, headers http.Header) error {
 			c.errMutex.Lock()
 			c.err = util.NewError(fmt.Sprintf("failed to establish WebSocket connection: server returned status %d", resp.StatusCode))
 			c.errMutex.Unlock()
-			c.Close()
+			util.Log(c.Close)
 			return c.err
 		}
 		c.errMutex.Lock()
 		c.err = util.NewError(fmt.Sprintf("failed to establish WebSocket connection: %v", err))
 		c.errMutex.Unlock()
-		c.Close()
+		util.Log(c.Close)
 		return c.err
 	}
 
@@ -156,7 +157,7 @@ func (c *Client) checkPongTimeout() {
 		c.errMutex.Lock()
 		c.err = util.NewError("pong timeout - server not responding")
 		c.errMutex.Unlock()
-		c.Close()
+		util.Log(c.Close)
 	}
 }
 
@@ -165,7 +166,7 @@ func (c *Client) handlePingError(err error) {
 	// Check if this is a normal closure error
 	if c.IsNormalClosure(err) {
 		// Normal closure - don't treat as error
-		c.Close()
+		util.Log(c.Close)
 		return
 	}
 
@@ -173,7 +174,7 @@ func (c *Client) handlePingError(err error) {
 	c.errMutex.Lock()
 	c.err = util.NewError(fmt.Sprintf("ping failed: %v", err))
 	c.errMutex.Unlock()
-	c.Close()
+	util.Log(c.Close)
 }
 
 // SendMessage sends a message to the server
@@ -205,7 +206,7 @@ func (c *Client) ReadMessage() (*Message, error) {
 		// Check if this is a normal closure
 		if c.IsNormalClosure(err) {
 			// Normal closure - don't treat as error, just close gracefully
-			c.Close()
+			util.Log(c.Close)
 			return nil, nil // Return nil to indicate normal termination
 		}
 
@@ -223,7 +224,7 @@ func (c *Client) ReadMessage() (*Message, error) {
 		c.errMutex.Lock()
 		c.err = err
 		c.errMutex.Unlock()
-		c.Close()
+		util.Log(c.Close)
 		return nil, err
 	}
 
@@ -237,7 +238,7 @@ func (c *Client) ReadMessage() (*Message, error) {
 		c.errMutex.Lock()
 		c.err = err
 		c.errMutex.Unlock()
-		c.Close()
+		util.Log(c.Close)
 		return nil, err
 	}
 

@@ -3,11 +3,11 @@ package logs
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 
 	ws "github.com/eclipse-iofog/iofogctl/internal/util/websocket"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // LogStream handles streaming logs from WebSocket connection
@@ -32,14 +32,13 @@ func NewLogStream(wsClient *ws.Client) *LogStream {
 func (ls *LogStream) writeToStdout(data []byte) {
 	ls.stdoutMutex.Lock()
 	defer ls.stdoutMutex.Unlock()
-	os.Stdout.Write(data)
-	os.Stdout.Sync()
+	util.WriteStdout(data)
 }
 
 func (ls *LogStream) cleanup() {
 	ls.cleanupOnce.Do(func() {
 		if ls.wsClient != nil {
-			ls.wsClient.Close()
+			util.Log(ls.wsClient.Close)
 		}
 	})
 }

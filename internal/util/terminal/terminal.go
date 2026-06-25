@@ -12,6 +12,7 @@ import (
 	"time"
 
 	ws "github.com/eclipse-iofog/iofogctl/internal/util/websocket"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
@@ -52,8 +53,7 @@ func NewTerminal(wsClient *ws.Client) *Terminal {
 func (t *Terminal) writeToStdout(data []byte) {
 	t.stdoutMutex.Lock()
 	defer t.stdoutMutex.Unlock()
-	os.Stdout.Write(data)
-	os.Stdout.Sync()
+	util.WriteStdout(data)
 }
 
 // func (t *Terminal) detectEditorMode(cmd string) {
@@ -117,7 +117,7 @@ func (t *Terminal) handleInput(data []byte) bool {
 	case 0x03: // Ctrl+C
 		if time.Since(t.lastCtrlCTime) < time.Second {
 			t.cancel()
-			t.wsClient.Close()
+			util.Log(t.wsClient.Close)
 			t.writeToStdout([]byte("\nExiting...\n"))
 			return true
 		}
@@ -129,7 +129,7 @@ func (t *Terminal) handleInput(data []byte) bool {
 	case 0x04: // Ctrl+D
 		if len(t.inputBuffer) == 0 {
 			t.cancel()
-			t.wsClient.Close()
+			util.Log(t.wsClient.Close)
 			t.writeToStdout([]byte("exit\n"))
 			return true
 		}
@@ -146,24 +146,23 @@ func (t *Terminal) redrawInputLine() {
 	defer t.stdoutMutex.Unlock()
 
 	// Clear the current line and move to start
-	os.Stdout.Write([]byte("\r\x1b[K"))
+	util.WriteStdout([]byte("\r\x1b[K"))
 
 	// Redraw the prompt and input
 	if t.prompt != "" {
-		os.Stdout.Write([]byte(t.prompt))
+		util.WriteStdoutString(t.prompt)
 	}
-	os.Stdout.Write([]byte(string(t.inputBuffer)))
+	util.WriteStdout([]byte(string(t.inputBuffer)))
 
 	// Move cursor to end of input
 	t.cursorPos = len(t.inputBuffer)
-	os.Stdout.Write([]byte("\r")) // Move to start of line first
+	util.WriteStdout([]byte("\r")) // Move to start of line first
 	if t.prompt != "" {
-		os.Stdout.Write([]byte(t.prompt)) // Move past prompt
+		util.WriteStdoutString(t.prompt) // Move past prompt
 	}
 	if t.cursorPos > 0 {
 		fmt.Fprintf(os.Stdout, "\x1b[%dC", t.cursorPos) // Move to cursor position
 	}
-	os.Stdout.Sync()
 }
 
 // func (t *Terminal) moveCursor(n int) {
@@ -228,7 +227,7 @@ func (t *Terminal) redrawInputLine() {
 func (t *Terminal) cleanup() {
 	t.cleanupOnce.Do(func() {
 		if t.wsClient != nil {
-			t.wsClient.Close()
+			util.Log(t.wsClient.Close)
 		}
 		if t.oldState != nil {
 			_ = term.Restore(int(os.Stdin.Fd()), t.oldState)

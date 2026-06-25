@@ -77,10 +77,10 @@ func TestFormatAgentStatusV38FieldsAlwaysPresent(t *testing.T) {
 
 func TestFormatAgentStatusUptimeAndTimestamps(t *testing.T) {
 	// 2026-05-07T15:21:10+03:00 in ms since epoch
-	ts := time.Date(2026, 5, 7, 15, 21, 10, 0, time.FixedZone("TRT", 3*3600)).UnixMilli()
+	tsMilli := time.Date(2026, 5, 7, 15, 21, 10, 0, time.FixedZone("TRT", 3*3600)).UnixMilli()
 	status := rsc.AgentStatus{
-		LastActive:          ts,
-		LastStatusTimeMsUTC: ts,
+		LastActive:          tsMilli,
+		LastStatusTimeMsUTC: tsMilli,
 		UptimeMs:            (5*time.Hour + 3*time.Minute).Milliseconds(),
 	}
 

@@ -1,10 +1,10 @@
 package logs
 
 import (
-	"os"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func printContainerLogs(stdout, stderr string) {
-	os.Stdout.WriteString(stdout)
-	os.Stderr.WriteString(stderr)
+	util.WriteStdoutString(stdout)
+	util.WriteStderrString(stderr)
 }

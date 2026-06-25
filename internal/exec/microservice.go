@@ -1,11 +1,13 @@
 package exec
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal/trust"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/internal/util/terminal"
 	"github.com/eclipse-iofog/iofogctl/internal/util/websocket"
@@ -66,6 +68,7 @@ func (exe *microserviceExecutor) Execute() error {
 
 	// Get controller endpoint
 	controllerURL := clt.GetBaseURL()
+	tlsCfg := trust.TLSConfigForController(context.Background(), exe.namespace, controllerURL)
 	// Convert http(s):// to ws(s)://
 	wsURL := strings.Replace(controllerURL, "http://", "ws://", 1)
 	wsURL = strings.Replace(wsURL, "https://", "wss://", 1)
@@ -81,7 +84,7 @@ func (exe *microserviceExecutor) Execute() error {
 	headers.Set("Authorization", fmt.Sprintf("Bearer %s", clt.GetAccessToken()))
 	util.SpinHandlePrompt()
 	// Connect to WebSocket
-	if err := wsClient.Connect(wsURL, headers); err != nil {
+	if err := wsClient.Connect(wsURL, headers, tlsCfg); err != nil {
 		util.SpinHandlePromptComplete()
 		return util.NewError(fmt.Sprintf("failed to connect to WebSocket: %v", err))
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -102,7 +101,7 @@ type KindHandlerOpt struct {
 }
 
 func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error), deleteNamespace bool) (executorsMap map[config.Kind][]Executor, err error) {
-	yamlFile, err := os.ReadFile(inputFile)
+	yamlFile, err := util.ReadUserFile(inputFile)
 	if err != nil {
 		return
 	}
