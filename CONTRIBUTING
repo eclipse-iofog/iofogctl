@@ -32,7 +32,25 @@ contributions are always welcome!
 
 ### Git hooks
 
-Please run `make init` in order to initialise git hooks
+Run `make bootstrap` to install dependencies and configure git hooks.
+
+The pre-commit hook rebuilds both CLI binaries and regenerates cobra markdown under `docs/iofogctl_md/` and `docs/potctl_md/`.
+
+### Build from source
+
+Build one flavor:
+
+```bash
+make iofogctl
+make potctl
+```
+
+Or set `FLAVOR` explicitly:
+
+```bash
+make FLAVOR=iofog build
+make FLAVOR=datasance build
+```
 
 ## Continuous integration
 
@@ -42,6 +60,24 @@ CI runs on **GitHub Actions** (`.github/workflows/`). Azure Pipelines and the le
 - **eclipse-iofog/iofogctl:** PR builds `iofogctl` only — see `.cursor/cli/docs/eclipse-ci-sync.md`
 
 Local checks: `make lint`, `make test-unit`, `make grep-gates`, `make security-code`, `make vulncheck`
+
+## Release builds
+
+GoReleaser uses a single root `.goreleaser.yml` driven by `FLAVOR`:
+
+```bash
+FLAVOR=iofog     script/goreleaser-release.sh release --clean
+FLAVOR=datasance script/goreleaser-release.sh release --clean
+```
+
+Version pins come from `versions.mk`; flavor-specific ldflags are exported by `script/goreleaser-env.sh` before goreleaser runs. Local snapshot (requires Linux cross-compilers for the full matrix):
+
+```bash
+FLAVOR=iofog     script/goreleaser-release.sh release --snapshot --clean
+FLAVOR=datasance script/goreleaser-release.sh release --snapshot --clean
+```
+
+Validate config only: `FLAVOR=iofog script/goreleaser-release.sh check`
 
 ## Eclipse Contributor Agreement
 
