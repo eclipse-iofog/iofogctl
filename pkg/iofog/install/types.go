@@ -68,6 +68,23 @@ type VaultGoogleConfig struct {
 	Credentials string
 }
 
+type RemoteSystemImages struct {
+	ARM     string `yaml:"arm,omitempty"`
+	AMD64   string `yaml:"amd64,omitempty"`
+	ARM64   string `yaml:"arm64,omitempty"`
+	RISCV64 string `yaml:"riscv64,omitempty"`
+}
+
+type RemoteSystemMicroservices struct {
+	Router RemoteSystemImages `yaml:"router,omitempty"`
+	Nats   RemoteSystemImages `yaml:"nats,omitempty"`
+}
+
+type SiteCertificate struct {
+	TLSCert string
+	TLSKey  string
+}
+
 type Pod struct {
 	Name   string
 	Status string

@@ -60,7 +60,7 @@ func (exe *remoteControllerExecutor) Execute() error {
 	}
 
 	// Get logs
-	out, err := ssh.Run("sudo docker logs iofog-controller")
+	out, err := ssh.Run("sudo docker logs edgelet 2>&1 || sudo podman logs edgelet 2>&1")
 	if err != nil {
 		return err
 	}

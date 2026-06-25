@@ -2,7 +2,6 @@ package deletelocalcontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
-	deletecontroller "github.com/eclipse-iofog/iofogctl/internal/delete/controller"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -43,11 +42,6 @@ func (exe *Executor) Execute() (err error) {
 
 	if controlPlane.SystemAgent != nil {
 		if err := teardownEdgeletControlPlane(exe.namespace, controlPlane, name); err != nil {
-			return err
-		}
-	} else {
-		executor := deletecontroller.NewLocalExecutor(controlPlane, exe.namespace, name)
-		if err := executor.Execute(); err != nil {
 			return err
 		}
 	}

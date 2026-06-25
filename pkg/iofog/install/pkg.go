@@ -14,14 +14,7 @@ var pkg struct {
 	edgeletScriptBundled                   string
 	edgeletScriptUninstall                 string
 	edgeletLibScripts                      []string
-	controllerScriptPrereq                 string
-	controllerScriptInit                   string
-	controllerScriptInstallContainerEngine string
-	controllerScriptSetEnv                 string
-	controllerScriptInstall                string
-	controllerScriptUninstall              string
 	iofogDir                               string
-	controllerDir                          string
 }
 
 func init() {
@@ -46,12 +39,5 @@ func init() {
 		"lib/container_engine.sh",
 		"lib/container_mounts.sh",
 	}
-	pkg.controllerScriptPrereq = "check_prereqs.sh"
-	pkg.controllerScriptInit = "init.sh"
-	pkg.controllerScriptInstallContainerEngine = "install_container_engine.sh"
-	pkg.controllerScriptSetEnv = "set_env.sh"
-	pkg.controllerScriptInstall = "install_iofog.sh"
-	pkg.controllerScriptUninstall = "uninstall_iofog.sh"
 	pkg.iofogDir = "/etc/iofog"
-	pkg.controllerDir = "/etc/iofog/controller"
 }

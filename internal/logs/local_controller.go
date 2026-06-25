@@ -28,13 +28,11 @@ func (exe *localControllerExecutor) Execute() error {
 	if err != nil {
 		return err
 	}
-	containerName := install.GetLocalContainerName("controller", false)
-	stdout, stderr, err := lc.GetLogsByName(containerName)
+	stdout, stderr, err := lc.GetLogsByName(install.EdgeletContainerName)
 	if err != nil {
 		return err
 	}
 
 	printContainerLogs(stdout, stderr)
-
 	return nil
 }

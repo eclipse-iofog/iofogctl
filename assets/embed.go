@@ -2,7 +2,7 @@ package assets
 
 import "embed"
 
-// FS holds install scripts and service unit templates bundled with the CLI.
+// FS holds install scripts bundled with the CLI.
 //
-//go:embed controller container-controller airgap-controller edgelet
+//go:embed edgelet
 var FS embed.FS

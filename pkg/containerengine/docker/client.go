@@ -1,4 +1,4 @@
-// Package docker wraps the Moby API for legacy local control plane container operations.
+// Package docker wraps the Moby API for local edgelet container operations.
 // TODO(v3.8.0): remove after local and remote control plane no longer use Go container deploy.
 package docker
 
