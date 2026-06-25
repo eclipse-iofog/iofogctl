@@ -47,7 +47,7 @@ func TestMergeRemoteAgentFromBackendPreservesSSHHostForLocalCPAgents(t *testing.
 		Host: sshHost,
 		SSH:  rsc.SSH{User: "ubuntu", Port: 22, KeyFile: "/tmp/id_ed25519"},
 		Package: rsc.Package{
-			Version: "v1.0.0-rc.4",
+			Version: "v1.0.0-rc.5",
 		},
 	}
 

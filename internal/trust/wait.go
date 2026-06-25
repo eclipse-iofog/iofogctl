@@ -3,7 +3,6 @@ package trust
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -35,8 +34,7 @@ func WaitForControllerAPI(ctx context.Context, namespace, endpoint string) error
 		}
 		resp, err := client.Do(req)
 		if err == nil {
-			_, _ = io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
+			util.DrainAndCloseHTTPBody(resp.Body)
 			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 				return nil
 			}

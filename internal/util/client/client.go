@@ -1,15 +1,22 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/internal/trust"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
+
+// ControllerClientOptions builds SDK client options with namespace-aware TLS for controller API calls.
+func ControllerClientOptions(ctx context.Context, namespace, endpoint string) (client.Options, error) {
+	return trust.SDKOptions(ctx, namespace, endpoint)
+}
 
 // clientCacheRoutine handles concurrent requests for a cached Controller client
 func clientCacheRoutine() {
@@ -283,12 +290,6 @@ func newControllerClient(namespace string) (*client.Client, error) {
 
 		user := controlPlane.GetUser()
 
-		// Get base URL
-		baseURL, err := util.GetBaseURL(endpoint)
-		if err != nil {
-			return nil, err
-		}
-
 		// Use the refresh token from the cached client
 		refreshToken := cachedClient.GetRefreshToken()
 		user.AccessToken = cachedClient.GetAccessToken()
@@ -296,9 +297,14 @@ func newControllerClient(namespace string) (*client.Client, error) {
 		// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
 		_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
+		opt, err := ControllerClientOptions(context.Background(), namespace, endpoint)
+		if err != nil {
+			return nil, err
+		}
+
 		// Use SessionLogin to attempt to refresh the session
 		util.SpinHandlePrompt()
-		refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, refreshToken, user.Email, user.GetRawPassword())
+		refreshedClient, err := client.SessionLogin(opt, refreshToken, user.Email, user.GetRawPassword())
 		if err != nil {
 			fmt.Println("Error: Failed to refresh session:", err)
 			return nil, fmt.Errorf("failed to refresh session: %w", err)
@@ -306,7 +312,9 @@ func newControllerClient(namespace string) (*client.Client, error) {
 		util.SpinHandlePromptComplete()
 		// Update the cached client with the refreshed session
 		pkg.clientCache[namespace] = refreshedClient
-		config.Flush()
+		if err := config.Flush(); err != nil {
+			return nil, fmt.Errorf("failed to persist namespace after session refresh: %w", err)
+		}
 		return refreshedClient, nil
 	}
 
@@ -325,14 +333,15 @@ func newControllerClient(namespace string) (*client.Client, error) {
 	}
 
 	user := controlPlane.GetUser()
-	baseURL, err := util.GetBaseURL(endpoint)
+
+	opt, err := ControllerClientOptions(context.Background(), namespace, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create a new client and login
 	util.SpinHandlePrompt()
-	newClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
+	newClient, err := client.SessionLogin(opt, user.RefreshToken, user.Email, user.GetRawPassword())
 	if err != nil {
 		return nil, err
 	}
@@ -457,14 +466,15 @@ func refreshClientAuthentication(namespace string) (*client.Client, error) {
 	}
 
 	user := controlPlane.GetUser()
-	baseURL, err := util.GetBaseURL(endpoint)
+
+	opt, err := ControllerClientOptions(context.Background(), namespace, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Re-authenticate using SessionLogin
 	util.SpinHandlePrompt()
-	refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
+	refreshedClient, err := client.SessionLogin(opt, user.RefreshToken, user.Email, user.GetRawPassword())
 	if err != nil {
 		util.SpinHandlePromptComplete()
 		return nil, fmt.Errorf("failed to refresh authentication: %w", err)

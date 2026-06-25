@@ -14,13 +14,15 @@ type kubernetesExecutor struct {
 	controlPlane *rsc.KubernetesControlPlane
 	namespace    string
 	caFile       string
+	caB64        string
 }
 
-func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace, caFile string) *kubernetesExecutor {
+func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace, caFile, caB64 string) *kubernetesExecutor {
 	return &kubernetesExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,
 		caFile:       caFile,
+		caB64:        caB64,
 	}
 }
 
@@ -28,7 +30,7 @@ func (exe *kubernetesExecutor) GetName() string {
 	return "Kubernetes Control Plane"
 }
 
-func NewManualExecutor(namespace, endpoint, kubeConfig, email, password, caFile string) (execute.Executor, error) {
+func NewManualExecutor(namespace, endpoint, kubeConfig, email, password, caFile, caB64 string) (execute.Executor, error) {
 	controlPlane := &rsc.KubernetesControlPlane{
 		IofogUser:  rsc.IofogUser{Email: email, Password: password},
 		KubeConfig: kubeConfig,
@@ -37,10 +39,10 @@ func NewManualExecutor(namespace, endpoint, kubeConfig, email, password, caFile 
 	if err := controlPlane.Sanitize(); err != nil {
 		return nil, err
 	}
-	return newKubernetesExecutor(controlPlane, namespace, caFile), nil
+	return newKubernetesExecutor(controlPlane, namespace, caFile, caB64), nil
 }
 
-func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile string) (execute.Executor, error) {
+func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile, caB64 string) (execute.Executor, error) {
 	controlPlane, err := rsc.UnmarshallKubernetesControlPlane(yaml)
 	if err != nil {
 		return nil, err
@@ -50,7 +52,7 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile s
 		return nil, err
 	}
 
-	return newKubernetesExecutor(&controlPlane, namespace, caFile), nil
+	return newKubernetesExecutor(&controlPlane, namespace, caFile, caB64), nil
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
@@ -76,7 +78,11 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 	if err != nil {
 		return
 	}
-	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, exe.namespace, exe.caFile, ns)
+	if err := connectcontrolplane.PrepareTrust(exe.namespace, exe.controlPlane, exe.caFile, exe.caB64); err != nil {
+		return err
+	}
+
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, exe.namespace, ns)
 	if err != nil {
 		return
 	}

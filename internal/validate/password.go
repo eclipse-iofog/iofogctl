@@ -9,6 +9,8 @@ import (
 
 // ValidatePasswordComplexity returns an InputError when password fails v3.8 policy:
 // at least 12 characters, one uppercase letter, and one special (non-alphanumeric) character.
+//
+//nolint:revive // ValidatePasswordComplexity matches the validate package naming convention.
 func ValidatePasswordComplexity(password string) error {
 	var failures []string
 	if len(password) < 12 {

@@ -14,6 +14,8 @@ type Options struct {
 	User         string
 	Port         int
 	UseDetached  bool
+	CAFile       string
+	CAB64        string
 }
 
 var multipleResources = map[string]bool{

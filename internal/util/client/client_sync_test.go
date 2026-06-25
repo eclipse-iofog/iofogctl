@@ -18,7 +18,7 @@ func TestMergeRemoteAgentFromBackendPreservesSSHHost(t *testing.T) {
 		SSH:    rsc.SSH{User: "ubuntu2", Port: 32222, KeyFile: "/tmp/id_ed25519"},
 		Airgap: true,
 		Package: rsc.Package{
-			Version: "v1.0.0-rc.4",
+			Version: "v1.0.0-rc.5",
 		},
 	}
 
@@ -34,7 +34,7 @@ func TestMergeRemoteAgentFromBackendPreservesSSHHost(t *testing.T) {
 	if merged.Config == nil || merged.Config.Host == nil || *merged.Config.Host != registrationHost {
 		t.Fatalf("registration host = %v, want %q", merged.Config, registrationHost)
 	}
-	if merged.SSH.User != "ubuntu2" || !merged.Airgap || merged.Package.Version != "v1.0.0-rc.4" {
+	if merged.SSH.User != "ubuntu2" || !merged.Airgap || merged.Package.Version != "v1.0.0-rc.5" {
 		t.Fatalf("cached deploy metadata lost: %+v", merged)
 	}
 	if merged.UUID != "055bcc8d-91d2-445e-b7a2-f48e5bd98046" {

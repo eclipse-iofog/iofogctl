@@ -6,9 +6,9 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -34,14 +34,14 @@ func TransportFromPEM(pem []byte) (TransportConfig, error) {
 
 // TransportFromCAFile loads a PEM file for connect-time CA override.
 func TransportFromCAFile(caFile string) (TransportConfig, error) {
-	pem, err := os.ReadFile(caFile)
+	pem, err := util.ReadUserFile(caFile)
 	if err != nil {
 		return TransportConfig{}, fmt.Errorf("read CA file: %w", err)
 	}
 	return TransportFromPEM(pem)
 }
 
-// ResolveConnectTransport picks TLS settings for connect; caFile overrides the namespace store.
+// ResolveConnectTransport picks TLS settings for connect using the namespace trust store.
 func ResolveConnectTransport(ctx context.Context, namespace, endpoint, caFile string) (TransportConfig, error) {
 	if strings.TrimSpace(caFile) != "" {
 		return TransportFromCAFile(caFile)
@@ -93,9 +93,8 @@ func ResolveTransport(ctx context.Context, namespace, endpoint string) Transport
 			TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12},
 		}
 	case IsUnknownAuthority(probeErr):
-		util.PrintWarning(fmt.Sprintf(
+		util.PrintWarning(insecureTLSWarning(namespace,
 			`Controller TLS certificate is not trusted by the system CA store for namespace "%s". Certificate verification is disabled.`,
-			namespace,
 		))
 		_ = SetCachedMode(namespace, ModeInsecure)
 		return TransportConfig{
@@ -112,11 +111,40 @@ func ResolveTransport(ctx context.Context, namespace, endpoint string) Transport
 			TLSConfig:  &tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12}, // #nosec G402
 		}
 	default:
+		util.PrintWarning(insecureTLSWarning(namespace,
+			`Controller TLS probe failed for namespace "%s". Certificate verification is disabled.`,
+		))
 		return TransportConfig{
 			SkipVerify: true,
 			TLSConfig:  &tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12}, // #nosec G402
 		}
 	}
+}
+
+// TLSConfigForController resolves TLS settings for controller HTTP/WSS calls in a namespace.
+func TLSConfigForController(ctx context.Context, namespace, controllerURL string) *tls.Config {
+	return ResolveTransport(ctx, namespace, controllerURL).TLSConfig
+}
+
+// SDKOptions builds SDK client options with namespace-aware TLS for controller API calls.
+func SDKOptions(ctx context.Context, namespace, endpoint string) (client.Options, error) {
+	baseURL, err := util.GetBaseURL(endpoint)
+	if err != nil {
+		return client.Options{}, err
+	}
+	tlsCfg := TLSConfigForController(ctx, namespace, endpoint)
+	return client.Options{
+		BaseURL:   baseURL,
+		TLSConfig: tlsCfg,
+	}, nil
+}
+
+func insecureTLSWarning(namespace, msg string) string {
+	warning := fmt.Sprintf(msg, namespace)
+	if !HasCA(namespace) {
+		warning += ` Provide spec.ca in your Control Plane YAML, or pass connect/configure --ca <file> or --ca-b64, to enable verification.`
+	}
+	return warning
 }
 
 func hostPort(u *url.URL) (host, port string) {
@@ -128,9 +156,6 @@ func hostPort(u *url.URL) (host, port string) {
 		} else {
 			port = "80"
 		}
-	}
-	if strings.Contains(host, ":") && !strings.HasPrefix(host, "[") {
-		// bare IPv6 without brackets handled by Hostname()
 	}
 	return host, port
 }
