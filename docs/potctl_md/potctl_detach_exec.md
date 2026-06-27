@@ -1,15 +1,15 @@
 ## potctl detach exec
 
-Detach an Exec Session to a resource
+Remove fog debug exec from an Agent
 
 ### Synopsis
 
-Detach an Exec Session to a Microservice or Agent.
+Remove fog debug exec resources provisioned with attach exec agent.
 
 ### Examples
 
 ```
-potctl detach exec microservice AppName/MicroserviceName
+potctl detach exec agent AgentName
 ```
 
 ### Options
@@ -29,7 +29,6 @@ potctl detach exec microservice AppName/MicroserviceName
 ### SEE ALSO
 
 * [potctl detach](potctl_detach.md)	 - Detach one ioFog resource from another
-* [potctl detach exec agent](potctl_detach_exec_agent.md)	 - Detach an Exec Session from an Agent
-* [potctl detach exec microservice](potctl_detach_exec_microservice.md)	 - Detach an Exec Session to a Microservice
+* [potctl detach exec agent](potctl_detach_exec_agent.md)	 - Remove fog debug exec from an Agent
 
 

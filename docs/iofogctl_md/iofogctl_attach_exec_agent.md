@@ -1,10 +1,10 @@
 ## iofogctl attach exec agent
 
-Attach an Exec Session to an Agent
+Provision a fog debug exec microservice on an Agent
 
 ### Synopsis
 
-Attach an Exec Session to an existing Agent.
+Provision a debug microservice on an Agent for interactive exec via POST /iofog/{uuid}/exec.
 
 ```
 iofogctl attach exec agent NAME [DEBUG_IMAGE] [flags]
@@ -32,6 +32,6 @@ iofogctl attach exec agent AgentName DebugImage
 
 ### SEE ALSO
 
-* [iofogctl attach exec](iofogctl_attach_exec.md)	 - Attach an Exec Session to a resource
+* [iofogctl attach exec](iofogctl_attach_exec.md)	 - Provision fog debug exec on an Agent
 
 

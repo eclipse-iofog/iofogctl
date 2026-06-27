@@ -1,19 +1,20 @@
 ## potctl exec agent
 
-Connect to an Exec Session of an Agent
+Open an interactive exec session on an Agent debug shell
 
 ### Synopsis
 
-Connect to an Exec Session of an Agent to interact with its container.
+Open a WebSocket exec session to the Agent debug microservice. Provisions fog debug exec automatically when it is not already enabled.
 
 ```
-potctl exec agent AgentName [flags]
+potctl exec agent AgentName [DEBUG_IMAGE] [flags]
 ```
 
 ### Examples
 
 ```
 potctl exec agent AgentName
+potctl exec agent AgentName ghcr.io/org/debug:latest
 ```
 
 ### Options

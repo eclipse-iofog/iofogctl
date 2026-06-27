@@ -1,15 +1,15 @@
 ## iofogctl detach exec
 
-Detach an Exec Session to a resource
+Remove fog debug exec from an Agent
 
 ### Synopsis
 
-Detach an Exec Session to a Microservice or Agent.
+Remove fog debug exec resources provisioned with attach exec agent.
 
 ### Examples
 
 ```
-iofogctl detach exec microservice AppName/MicroserviceName
+iofogctl detach exec agent AgentName
 ```
 
 ### Options
@@ -29,7 +29,6 @@ iofogctl detach exec microservice AppName/MicroserviceName
 ### SEE ALSO
 
 * [iofogctl detach](iofogctl_detach.md)	 - Detach one ioFog resource from another
-* [iofogctl detach exec agent](iofogctl_detach_exec_agent.md)	 - Detach an Exec Session from an Agent
-* [iofogctl detach exec microservice](iofogctl_detach_exec_microservice.md)	 - Detach an Exec Session to a Microservice
+* [iofogctl detach exec agent](iofogctl_detach_exec_agent.md)	 - Remove fog debug exec from an Agent
 
 

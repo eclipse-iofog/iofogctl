@@ -24,7 +24,7 @@ potctl logs controller   NAME
       --follow         Follow log output (default true)
   -h, --help           help for logs
       --since string   Start time in ISO 8601 format (e.g., 2024-01-01T00:00:00Z)
-      --tail int       Number of lines to tail (range: 1-10000) (default 100)
+      --tail int       Number of lines to tail (range: 1-5000) (default 100)
       --until string   End time in ISO 8601 format (e.g., 2024-01-02T00:00:00Z)
 ```
 

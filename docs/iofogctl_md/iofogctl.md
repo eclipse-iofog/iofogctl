@@ -40,6 +40,6 @@ iofogctl [flags]
 * [iofogctl stop](iofogctl_stop.md)	 - Stops a resource
 * [iofogctl upgrade](iofogctl_upgrade.md)	 - Upgrade ioFog resources
 * [iofogctl version](iofogctl_version.md)	 - Get CLI application version
-* [iofogctl view](iofogctl_view.md)	 - Open ECN Viewer
+* [iofogctl view](iofogctl_view.md)	 - Open EdgeOps Console
 
 

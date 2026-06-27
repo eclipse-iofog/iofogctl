@@ -1,15 +1,15 @@
 ## potctl attach exec
 
-Attach an Exec Session to a resource
+Provision fog debug exec on an Agent
 
 ### Synopsis
 
-Attach an Exec Session to a Microservice or Agent.
+Provision fog debug exec resources. Use exec agent to open an interactive shell after provisioning.
 
 ### Examples
 
 ```
-potctl attach exec microservice AppName/MicroserviceName
+potctl attach exec agent AgentName
 ```
 
 ### Options
@@ -29,7 +29,6 @@ potctl attach exec microservice AppName/MicroserviceName
 ### SEE ALSO
 
 * [potctl attach](potctl_attach.md)	 - Attach one ioFog resource to another
-* [potctl attach exec agent](potctl_attach_exec_agent.md)	 - Attach an Exec Session to an Agent
-* [potctl attach exec microservice](potctl_attach_exec_microservice.md)	 - Attach an Exec Session to a Microservice
+* [potctl attach exec agent](potctl_attach_exec_agent.md)	 - Provision a fog debug exec microservice on an Agent
 
 

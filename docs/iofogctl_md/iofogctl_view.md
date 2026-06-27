@@ -1,6 +1,6 @@
 ## iofogctl view
 
-Open ECN Viewer
+Open EdgeOps Console
 
 ```
 iofogctl view [flags]

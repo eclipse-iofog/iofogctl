@@ -1,10 +1,10 @@
 ## iofogctl detach exec agent
 
-Detach an Exec Session from an Agent
+Remove fog debug exec from an Agent
 
 ### Synopsis
 
-Detach an Exec Session from an existing Agent.
+Remove the debug microservice provisioned for Agent exec via DELETE /iofog/{uuid}/exec.
 
 ```
 iofogctl detach exec agent NAME [flags]
@@ -32,6 +32,6 @@ iofogctl detach exec agent AgentName
 
 ### SEE ALSO
 
-* [iofogctl detach exec](iofogctl_detach_exec.md)	 - Detach an Exec Session to a resource
+* [iofogctl detach exec](iofogctl_detach_exec.md)	 - Remove fog debug exec from an Agent
 
 

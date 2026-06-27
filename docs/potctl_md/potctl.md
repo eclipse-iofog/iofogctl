@@ -40,6 +40,6 @@ potctl [flags]
 * [potctl stop](potctl_stop.md)	 - Stops a resource
 * [potctl upgrade](potctl_upgrade.md)	 - Upgrade ioFog resources
 * [potctl version](potctl_version.md)	 - Get CLI application version
-* [potctl view](potctl_view.md)	 - Open ECN Viewer
+* [potctl view](potctl_view.md)	 - Open EdgeOps Console
 
 

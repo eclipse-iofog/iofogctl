@@ -23,7 +23,7 @@ Connect to an Exec Session of a Microservice or Agent.
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
-* [iofogctl exec agent](iofogctl_exec_agent.md)	 - Connect to an Exec Session of an Agent
-* [iofogctl exec microservice](iofogctl_exec_microservice.md)	 - Connect to an Exec Session of a Microservice
+* [iofogctl exec agent](iofogctl_exec_agent.md)	 - Open an interactive exec session on an Agent debug shell
+* [iofogctl exec microservice](iofogctl_exec_microservice.md)	 - Open an interactive exec session to a Microservice
 
 

@@ -1,6 +1,6 @@
 ## potctl view
 
-Open ECN Viewer
+Open EdgeOps Console
 
 ```
 potctl view [flags]

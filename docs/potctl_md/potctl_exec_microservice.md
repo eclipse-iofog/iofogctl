@@ -1,10 +1,10 @@
 ## potctl exec microservice
 
-Connect to an Exec Session of a Microservice
+Open an interactive exec session to a Microservice
 
 ### Synopsis
 
-Connect to an Exec Session of a Microservice to interact with its container.
+Open a WebSocket exec session to a running Microservice. No attach step is required.
 
 ```
 potctl exec microservice AppName/MsvcName [flags]

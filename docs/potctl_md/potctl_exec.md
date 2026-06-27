@@ -23,7 +23,7 @@ Connect to an Exec Session of a Microservice or Agent.
 ### SEE ALSO
 
 * [potctl](potctl.md)	 - 
-* [potctl exec agent](potctl_exec_agent.md)	 - Connect to an Exec Session of an Agent
-* [potctl exec microservice](potctl_exec_microservice.md)	 - Connect to an Exec Session of a Microservice
+* [potctl exec agent](potctl_exec_agent.md)	 - Open an interactive exec session on an Agent debug shell
+* [potctl exec microservice](potctl_exec_microservice.md)	 - Open an interactive exec session to a Microservice
 
 

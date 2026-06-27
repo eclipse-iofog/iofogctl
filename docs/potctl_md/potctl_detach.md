@@ -30,7 +30,7 @@ potctl detach
 
 * [potctl](potctl.md)	 - 
 * [potctl detach agent](potctl_detach_agent.md)	 - Detaches an Agent
-* [potctl detach exec](potctl_detach_exec.md)	 - Detach an Exec Session to a resource
+* [potctl detach exec](potctl_detach_exec.md)	 - Remove fog debug exec from an Agent
 * [potctl detach volume-mount](potctl_detach_volume-mount.md)	 - Detach a Volume Mount from existing Agents
 
 
