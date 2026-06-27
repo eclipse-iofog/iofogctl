@@ -113,6 +113,10 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 		return err
 	}
 
+	if err := rsc.BackfillConsoleURL(exe.controlPlane); err != nil {
+		return err
+	}
+
 	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
 }

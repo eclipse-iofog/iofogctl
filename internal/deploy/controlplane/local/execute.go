@@ -57,6 +57,9 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 	if err := persistLocalControllerStub(exe.controlPlane, exe.name, endpoint); err != nil {
 		return err
 	}
+	if err := rsc.BackfillConsoleURL(exe.controlPlane); err != nil {
+		return err
+	}
 
 	if err := trust.WaitForControllerAPI(context.Background(), exe.namespace, endpoint); err != nil {
 		return err

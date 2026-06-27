@@ -101,6 +101,12 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		}
 	}
 	exe.controlPlane.Endpoint = endpoint
+	if exe.controlPlane.Controller.PublicUrl == "" {
+		exe.controlPlane.Controller.PublicUrl = endpoint
+	}
+	if err := rsc.BackfillConsoleURL(exe.controlPlane); err != nil {
+		return err
+	}
 
 	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()

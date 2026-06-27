@@ -130,8 +130,8 @@ func (exe *kubernetesControlPlaneExecutor) executeInstall() (err error) {
 	if exe.controlPlane.Controller.PublicUrl == "" {
 		exe.controlPlane.Controller.PublicUrl = endpoint
 	}
-	if exe.controlPlane.Controller.ConsoleUrl == "" {
-		exe.controlPlane.Controller.ConsoleUrl = endpoint
+	if err := rsc.BackfillConsoleURL(exe.controlPlane); err != nil {
+		return err
 	}
 
 	return err
