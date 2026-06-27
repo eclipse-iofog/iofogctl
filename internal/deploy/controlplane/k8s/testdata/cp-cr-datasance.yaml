@@ -12,6 +12,7 @@ spec:
     trustProxy: true
     consolePort: 8080
     consoleUrl: https://controller.example.com
+    https: false
     logLevel: info
   auth:
     mode: embedded

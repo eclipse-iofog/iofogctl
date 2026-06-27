@@ -87,7 +87,9 @@ func iofogTranslateOptions() TranslateOptions {
 func TestTranslateEdgeletControlPlane_DatasanceGolden(t *testing.T) {
 	cp := loadRemoteControlPlaneFixture(t, "controlplane-datasance.yaml")
 	ctrl := cp.Controllers[0]
-	got := TranslateEdgeletControlPlaneManifest(&cp, &ctrl, datasanceTranslateOptions())
+	opts := datasanceTranslateOptions()
+	opts.RegistryID = ResolveEdgeletRegistryID(&cp, nil)
+	got := TranslateEdgeletControlPlaneManifest(&cp, &ctrl, opts)
 	want := loadExpectedControlPlane(t, "edgelet-cp-datasance.yaml")
 	assertTranslatedControlPlane(t, got, want)
 }
@@ -95,7 +97,9 @@ func TestTranslateEdgeletControlPlane_DatasanceGolden(t *testing.T) {
 func TestTranslateEdgeletControlPlane_IofogGolden(t *testing.T) {
 	cp := loadRemoteControlPlaneFixture(t, "controlplane-iofog.yaml")
 	ctrl := cp.Controllers[0]
-	got := TranslateEdgeletControlPlaneManifest(&cp, &ctrl, iofogTranslateOptions())
+	opts := iofogTranslateOptions()
+	opts.RegistryID = ResolveEdgeletRegistryID(&cp, nil)
+	got := TranslateEdgeletControlPlaneManifest(&cp, &ctrl, opts)
 	want := loadExpectedControlPlane(t, "edgelet-cp-iofog.yaml")
 	assertTranslatedControlPlane(t, got, want)
 }

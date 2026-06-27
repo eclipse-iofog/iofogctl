@@ -65,8 +65,7 @@
   startTest
   local IP=$(kctl get svc -l name=controller -n "$NS" | awk 'FNR > 1 {print $4}')
   testGenerateConnectionString "http://$IP:51121" # Disable this on local run
-  CNCT=$(iofogctl -n "$NS" connect --generate)
-  eval "$CNCT -n ${NS}-2"
+  iofogctl -n "${NS}-2" connect --name remote --ecn-addr "http://$IP:51121" --email "$USER_EMAIL" --pass "$USER_PW_B64" --b64
   iofogctl disconnect -n "${NS}-2"
   stopTest
 }

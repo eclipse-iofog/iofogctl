@@ -161,7 +161,9 @@ func generateConnectionString(namespace string) error {
 	if err != nil {
 		return util.NewError("Could not get Control Plane endpoint")
 	}
-	msg := fmt.Sprintf("iofogctl connect --ecn-addr %s --name remote --email %s --pass %s --b64", endpoint, controlPlane.GetUser().Email, controlPlane.GetUser().Password)
+	util.PrintWarning("Password redacted in the generated command. Replace --pass <REDACTED> with your base64-encoded password (--b64) before running.")
+	msg := fmt.Sprintf("%s connect --ecn-addr %s --name remote --email %s --pass <REDACTED> --b64",
+		util.GetCliBinaryName(), endpoint, controlPlane.GetUser().Email)
 	fmt.Println(msg)
 	return nil
 }

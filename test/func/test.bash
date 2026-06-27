@@ -239,10 +239,10 @@ function testDefaultNamespace(){
 
 function testGenerateConnectionString(){
   local ADDR="$1"
-  local CNCT=$(iofogctl -n "$NS" connect --generate)
+  local CNCT=$(iofogctl -n "$NS" connect --generate 2>/dev/null)
   echo "Wanted: $CNCT"
-  echo "Got: iofogctl connect --ecn-addr $ADDR --name remote --email $USER_EMAIL --pass $USER_PW_B64 --b64"
-  [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email $USER_EMAIL --pass $USER_PW_B64 --b64" ]
+  echo "Got: iofogctl connect --ecn-addr $ADDR --name remote --email $USER_EMAIL --pass <REDACTED> --b64"
+  [ "$CNCT" == "iofogctl connect --ecn-addr $ADDR --name remote --email $USER_EMAIL --pass <REDACTED> --b64" ]
 }
 
 function testApplicationTemplates(){

@@ -27,25 +27,17 @@ func (exe *volumeExecutor) Execute() error {
 	return print(table)
 }
 
-func generateVolumeOutput(namespace string) (table [][]string, err error) {
+func generateVolumeOutput(namespace string) ([][]string, error) {
 	ns, err := config.GetNamespace(namespace)
 	if err != nil {
-		return
+		return nil, err
 	}
-	// Get volume config details
 	volumes := ns.GetVolumes()
-	if err != nil {
-		return
-	}
 
-	// Generate table and headers
-	table = make([][]string, len(volumes)+1)
 	headers := []string{"VOLUME", "SOURCE", "DESTINATION", "PERMISSIONS", "AGENTS"}
-	table[0] = append(table[0], headers...)
+	table := [][]string{headers}
 
-	// Populate rows
-	for idx, volume := range volumes {
-		// Create list of Agents
+	for _, volume := range volumes {
 		agentList := ""
 		for idx, agent := range volume.Agents {
 			separator := ", "
@@ -54,16 +46,14 @@ func generateVolumeOutput(namespace string) (table [][]string, err error) {
 			}
 			agentList = agentList + separator + agent
 		}
-		// Store values
-		row := []string{
+		table = append(table, []string{
 			volume.Name,
 			volume.Source,
 			volume.Destination,
 			volume.Permissions,
 			agentList,
-		}
-		table[idx+1] = append(table[idx+1], row...)
+		})
 	}
 
-	return table, err
+	return table, nil
 }

@@ -110,7 +110,7 @@ install: ## Install the binary
 
 .PHONY: lint
 lint: golangci-lint fmt ## Lint the source
-	@$(GOLANGCI_LINT) run --timeout 5m0s
+	@$(GOLANGCI_LINT) run --timeout 5m0s --build-tags "$(GOTAGS)"
 
 golangci-lint: ## Install golangci
 ifeq (, $(shell which golangci-lint))

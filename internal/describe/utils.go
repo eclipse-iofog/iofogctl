@@ -319,7 +319,7 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 
 	// Format timestamps
 	if status.LastActive > 0 {
-		formatted["lastActive"] = time.Unix(status.LastActive/1000, (status.LastActive%1000)*1000000).Format(time.RFC3339)
+		formatted["lastActive"] = time.Unix(status.LastActive/1000, (status.LastActive%1000)*1000000).UTC().Format(time.RFC3339)
 	}
 
 	// Format uptime as duration
@@ -366,7 +366,7 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 
 	// Format last status time
 	if status.LastStatusTimeMsUTC > 0 {
-		formatted["lastStatusTime"] = time.Unix(status.LastStatusTimeMsUTC/1000, (status.LastStatusTimeMsUTC%1000)*1000000).Format(time.RFC3339)
+		formatted["lastStatusTime"] = time.Unix(status.LastStatusTimeMsUTC/1000, (status.LastStatusTimeMsUTC%1000)*1000000).UTC().Format(time.RFC3339)
 	}
 
 	formatted["ipAddress"] = status.IPAddress

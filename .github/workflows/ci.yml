@@ -44,7 +44,7 @@ jobs:
         uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9.2.1
         with:
           version: v2.12.2
-          args: --timeout=5m0s
+          args: --timeout=5m0s --build-tags=containers_image_openpgp,exclude_graphdriver_btrfs
 
   security:
     name: Security

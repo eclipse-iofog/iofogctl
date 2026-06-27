@@ -86,7 +86,7 @@ func TestFormatAgentStatusUptimeAndTimestamps(t *testing.T) {
 
 	got := FormatAgentStatus(status)
 
-	require.Equal(t, "2026-05-07T15:21:10+03:00", got["lastActive"])
-	require.Equal(t, "2026-05-07T15:21:10+03:00", got["lastStatusTime"])
+	require.Equal(t, "2026-05-07T12:21:10Z", got["lastActive"])
+	require.Equal(t, "2026-05-07T12:21:10Z", got["lastStatusTime"])
 	require.Equal(t, "5h3m", got["uptime"])
 }

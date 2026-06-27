@@ -263,8 +263,7 @@ spec:
   startTest
   initVanillaController
   testGenerateConnectionString "http://$VANILLA_HOST:51121"
-  CNCT=$(iofogctl -n "$NS" connect --generate)
-  eval "$CNCT -n ${NS}-2"
+  iofogctl -n "${NS}-2" connect --name remote --ecn-addr "http://$VANILLA_HOST:51121" --email "$USER_EMAIL" --pass "$USER_PW_B64" --b64
   iofogctl disconnect -n "${NS}-2"
   stopTest
 }
