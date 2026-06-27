@@ -5,9 +5,8 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
 ## [3.8.0-rc.1] — June 2026
+
 
 First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl`) from a single codebase; no in-place upgrade from potctl- or v3.7.
 
@@ -22,6 +21,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 - Config directory `~/.iofog/v3` for both flavors
 - Root `NOTICE` file (no per-file copyright headers)
 - GitHub Actions CI, govulncheck, and CodeQL workflows
+- SDK log streaming: `DialMicroserviceLogs`, `DialSystemMicroserviceLogs`, and `DialFogLogs` with `LogSession` (requires iofog-go-sdk with log session support)
+- Exec dial status callback: `DialExecOptions.OnStatusLine` surfaces agent connection progress during exec handshake
 
 ### Changed
 
@@ -30,6 +31,10 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 - Ingress service name: `controller` (was `iofog-controller`)
 - Embedded assets via `go:embed` (replaces `go.rice`)
 - CI migrated from Azure Pipelines to GitHub Actions
+- Remote `logs` commands use SDK WebSocket sessions instead of `internal/util/websocket`
+- Exec sessions close once via idempotent `ExecSession.Close()`; shell `exit` no longer prints benign close errors
+- Log `--tail` maximum aligned with Controller limit (5000)
+- `exec agent` auto-provisions fog debug exec when missing, polls until the debug container is `RUNNING`, then connects
 
 ### Removed
 
@@ -39,6 +44,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 - `HELM_REPO_BASE_URL` ldflag
 - packagecloud.io install scripts and documentation
 - README logo image (`iofogctl-logo.png`)
+- `attach exec microservice` / `detach exec microservice` commands (Plan 17 direct exec dial)
+- Unused `internal/util/websocket` and `internal/util/terminal` packages
 
 ### Security
 
@@ -53,8 +60,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 | controller | `3.8.0-rc.4` |
 | router | `3.8.0-rc.1` |
 | nats | `2.14.2-rc.2` |
-| edgelet binary | `v1.0.0-rc.5` |
-| edgelet image | `ghcr.io/<registry>/edgelet:1.0.0-rc.3` |
+| edgelet binary | `v1.0.0-rc.6` |
+| edgelet image | `ghcr.io/<registry>/edgelet:1.0.0-rc.6` |
 
 ## Pre-3.8 history
 
