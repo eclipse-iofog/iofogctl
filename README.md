@@ -36,7 +36,7 @@ sudo yum install -y iofogctl   # RHEL/CentOS/Fedora
 **macOS (Homebrew):**
 
 ```bash
-brew tap eclipse-iofog/homebrew-iofogctl
+brew tap eclipse-iofog/iofogctl
 brew install iofogctl
 ```
 
@@ -56,7 +56,7 @@ sudo yum install -y potctl   # RHEL/CentOS/Fedora
 **macOS (Homebrew):**
 
 ```bash
-brew tap Datasance/homebrew-potctl
+brew tap Datasance/potctl
 brew install potctl
 ```
 
