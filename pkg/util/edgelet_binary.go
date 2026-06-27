@@ -138,7 +138,7 @@ func validateEdgeletDownloadURL(downloadURL string) error {
 	}
 
 	version := GetEdgeletBinaryVersion()
-	wantPrefix := "/" + version + "/"
+	wantPrefix := strings.TrimRight(base.Path, "/") + "/" + version + "/"
 	if !strings.HasPrefix(download.Path, wantPrefix) {
 		return fmt.Errorf("unexpected download path %q", download.Path)
 	}

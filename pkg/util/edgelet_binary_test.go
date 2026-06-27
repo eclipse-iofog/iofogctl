@@ -45,16 +45,21 @@ func TestEdgeletBinaryArtifact(t *testing.T) {
 }
 
 func TestEdgeletBinaryURL(t *testing.T) {
-	edgeletReleaseBase = "https://github.com/Datasance/edgelet/releases/download"
-	edgeletBinaryVersion = "v1.0.0-rc.5"
+	SetEdgeletReleaseBaseForTest("https://github.com/Datasance/edgelet/releases/download")
+	SetEdgeletBinaryVersionForTest("v1.0.0-rc.6")
+	t.Cleanup(ResetEdgeletReleaseBaseForTest)
+	t.Cleanup(ResetEdgeletBinaryVersionForTest)
 
 	got, err := EdgeletBinaryURL("linux", "amd64")
 	if err != nil {
 		t.Fatalf("EdgeletBinaryURL: %v", err)
 	}
-	want := "https://github.com/Datasance/edgelet/releases/download/v1.0.0-rc.5/edgelet-linux-amd64"
+	want := "https://github.com/Datasance/edgelet/releases/download/v1.0.0-rc.6/edgelet-linux-amd64"
 	if got != want {
 		t.Fatalf("EdgeletBinaryURL = %q, want %q", got, want)
+	}
+	if err := validateEdgeletDownloadURL(got); err != nil {
+		t.Fatalf("validateEdgeletDownloadURL(%q): %v", got, err)
 	}
 }
 
@@ -78,9 +83,10 @@ func TestShouldSkipInstallDeps(t *testing.T) {
 	}
 }
 
-func TestDownloadEdgeletBinary(t *testing.T) {
+func TestDownloadEdgeletBinaryGitHubReleasePath(t *testing.T) {
+	const releasePath = "/Datasance/edgelet/releases/download/v1.0.0-rc.6/edgelet-linux-arm64"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1.0.0-rc.5/edgelet-linux-amd64" {
+		if r.URL.Path != releasePath {
 			http.NotFound(w, r)
 			return
 		}
@@ -88,8 +94,33 @@ func TestDownloadEdgeletBinary(t *testing.T) {
 	}))
 	defer server.Close()
 
-	edgeletReleaseBase = server.URL
-	edgeletBinaryVersion = "v1.0.0-rc.5"
+	SetEdgeletReleaseBaseForTest(server.URL + "/Datasance/edgelet/releases/download")
+	SetEdgeletBinaryVersionForTest("v1.0.0-rc.6")
+	t.Cleanup(ResetEdgeletReleaseBaseForTest)
+	t.Cleanup(ResetEdgeletBinaryVersionForTest)
+
+	dir := t.TempDir()
+	dest := filepath.Join(dir, "edgelet-linux-arm64")
+
+	if err := DownloadEdgeletBinary("linux", "arm64", dest); err != nil {
+		t.Fatalf("DownloadEdgeletBinary: %v", err)
+	}
+}
+
+func TestDownloadEdgeletBinary(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1.0.0-rc.6/edgelet-linux-amd64" {
+			http.NotFound(w, r)
+			return
+		}
+		_, _ = w.Write([]byte("edgelet-binary-bytes"))
+	}))
+	defer server.Close()
+
+	SetEdgeletReleaseBaseForTest(server.URL)
+	SetEdgeletBinaryVersionForTest("v1.0.0-rc.6")
+	t.Cleanup(ResetEdgeletReleaseBaseForTest)
+	t.Cleanup(ResetEdgeletBinaryVersionForTest)
 
 	dir := t.TempDir()
 	dest := filepath.Join(dir, "edgelet-linux-amd64")
