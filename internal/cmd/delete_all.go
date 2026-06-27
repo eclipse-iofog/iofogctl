@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -29,14 +16,16 @@ func newDeleteAllCommand() *cobra.Command {
 Tears down all components of an Edge Compute Network.
 
 If you don't want to tear down the deployments but would like to free up the Namespace, use the disconnect command instead.`,
-		Example: `iofogctl delete all -n NAMESPACE`,
+		Example: ex(`%[1]s delete all -n NAMESPACE`),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Execute command
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 			useDetached, err := cmd.Flags().GetBool("detached")
 			util.Check(err)
-			err = delete.Execute(namespace, useDetached, force)
+			deleteNamespace, err := cmd.Flags().GetBool("delete-namespace")
+			util.Check(err)
+			err = delete.Execute(namespace, useDetached, force, deleteNamespace)
 			util.Check(err)
 
 			util.PrintSuccess("Successfully deleted all resources in namespace " + namespace)

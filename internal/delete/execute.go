@@ -1,19 +1,7 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package delete
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -42,9 +30,10 @@ import (
 )
 
 type Options struct {
-	Namespace string
-	InputFile string
-	Soft      bool
+	Namespace       string
+	InputFile       string
+	Soft            bool
+	DeleteNamespace bool
 }
 
 var kindOrder = []config.Kind{
@@ -81,7 +70,7 @@ var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Execut
 		return deletemicroservice.NewExecutor(opt.Namespace, opt.Name)
 	},
 	config.KubernetesControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-		return deletek8scontrolplane.NewExecutor(opt.Namespace)
+		return deletek8scontrolplane.NewExecutor(opt.Namespace, opt.DeleteNamespace)
 	},
 	config.RemoteControlPlaneKind: func(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 		return deleteremotecontrolplane.NewExecutor(opt.Namespace)
@@ -146,7 +135,7 @@ var kindHandlers = map[config.Kind]func(*execute.KindHandlerOpt) (execute.Execut
 }
 
 func Execute(opt *Options) error {
-	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers)
+	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers, opt.DeleteNamespace)
 	if err != nil {
 		return err
 	}
@@ -155,7 +144,8 @@ func Execute(opt *Options) error {
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("delete %s", kindOrder[idx])); len(errs) > 0 {
 			for _, err := range errs {
-				if _, ok := err.(*util.NotFoundError); !ok {
+				notFoundError := &util.NotFoundError{}
+				if errors.As(err, &notFoundError) {
 					return execute.CoalesceErrors(errs)
 				}
 				util.PrintNotify(fmt.Sprintf("Warning: %s %s.", kindOrder[idx], err.Error()))

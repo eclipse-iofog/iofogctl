@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -27,6 +14,13 @@ import (
 func InvalidateCache() {
 	pkg.clientCacheRequestChan <- newClientCacheRequest("")
 	pkg.agentCacheRequestChan <- newAgentCacheRequest("")
+}
+
+// InvalidateAgentCache clears cached agents for a namespace.
+func InvalidateAgentCache(namespace string) {
+	request := newAgentCacheInvalidateRequest(namespace)
+	pkg.agentCacheRequestChan <- request
+	<-request.resultChan
 }
 
 // NewControllerClient will return cached client or create new client and cache it
@@ -50,18 +44,6 @@ func SyncAgentInfo(namespace string) error {
 	request := newAgentSyncRequest(namespace)
 	pkg.agentSyncRequestChan <- request
 	return <-request.resultChan
-}
-
-func IsEdgeResourceCapable(namespace string) error {
-	// Check Controller API handles edge resources
-	clt, err := NewControllerClient(namespace)
-	if err != nil {
-		return err
-	}
-	if err := clt.IsEdgeResourceCapable(); err != nil {
-		return err
-	}
-	return nil
 }
 
 func GetMicroserviceName(namespace, appName, msvcName string) (name string, err error) {
@@ -178,9 +160,9 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		agentMapByUUID[agent.UUID] = *agent
 	}
 
-	fogType, found := rsc.FogTypeIntMap[agentInfo.FogType]
+	arch, found := rsc.ArchIDToString(agentInfo.ArchID)
 	if !found {
-		fogType = "auto"
+		arch = "auto"
 	}
 
 	routerConfig := client.RouterConfig{
@@ -206,7 +188,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		NatsLeafPort:      agentInfo.NatsLeafPort,
 		NatsClusterPort:   agentInfo.NatsClusterPort,
 		NatsMqttPort:      agentInfo.NatsMqttPort,
-		NatsHttpPort:      agentInfo.NatsHttpPort,
+		NatsHTTPPort:      agentInfo.NatsHTTPPort,
 		JsStorageSize:     agentInfo.JsStorageSize,
 		JsMemoryStoreSize: agentInfo.JsMemoryStoreSize,
 	}
@@ -232,10 +214,10 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		Latitude:    agentInfo.Latitude,
 		Longitude:   agentInfo.Longitude,
 		Description: agentInfo.Description,
-		FogType:     &fogType,
+		Arch:        &arch,
 		AgentConfiguration: client.AgentConfiguration{
 			NetworkInterface:          &agentInfo.NetworkInterface,
-			DockerURL:                 &agentInfo.DockerURL,
+			ContainerEngineURL:        &agentInfo.ContainerEngineURL,
 			ContainerEngine:           &agentInfo.ContainerEngine,
 			DeploymentType:            &agentInfo.DeploymentType,
 			DiskLimit:                 &agentInfo.DiskLimit,
@@ -256,7 +238,7 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 			EdgeGuardFrequency:        &agentInfo.EdgeGuardFrequency,
 			AbstractedHardwareEnabled: &agentInfo.AbstractedHardwareEnabled,
 			LogLevel:                  agentInfo.LogLevel,
-			DockerPruningFrequency:    agentInfo.DockerPruningFrequency,
+			PruningFrequency:          agentInfo.PruningFrequency,
 			AvailableDiskThreshold:    agentInfo.AvailableDiskThreshold,
 			UpstreamRouters:           upstreamRoutersPtr,
 			NetworkRouter:             networkRouterPtr,
@@ -287,8 +269,6 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		LastStatusTimeMsUTC:   agentInfo.LastStatusTimeMsUTC,
 		IPAddress:             agentInfo.IPAddress,
 		IPAddressExternal:     agentInfo.IPAddressExternal,
-		ProcessedMessaged:     agentInfo.ProcessedMessaged,
-		MessageSpeed:          agentInfo.MessageSpeed,
 		LastCommandTimeMsUTC:  agentInfo.LastCommandTimeMsUTC,
 		Version:               agentInfo.Version,
 		IsReadyToUpgrade:      agentInfo.IsReadyToUpgrade,
@@ -296,6 +276,10 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		Tunnel:                agentInfo.Tunnel,
 		VolumeMounts:          convertVolumeMounts(agentInfo.VolumeMounts),
 		GpsStatus:             agentInfo.GpsStatus,
+		AvailableRuntimes:     []string(agentInfo.AvailableRuntimes),
+		RuntimeAgentPhase:     agentInfo.RuntimeAgentPhase,
+		ControlPlaneQuiesced:  agentInfo.ControlPlaneQuiesced,
+		PlatformStatus:        agentInfo.PlatformStatus,
 	}
 
 	return agentConfig, tags, agentStatus, err

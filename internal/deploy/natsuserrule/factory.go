@@ -2,6 +2,7 @@ package deploynatsuserrule
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -41,7 +42,8 @@ func (exe *executor) Execute() error {
 	if err == nil {
 		return nil
 	}
-	if _, ok := err.(*client.NotFoundError); !ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		return err
 	}
 
@@ -79,7 +81,7 @@ func NewExecutor(opt Options) (execute.Executor, error) {
 	var specMap map[interface{}]interface{}
 	if err = yaml.Unmarshal(opt.Yaml, &specMap); err == nil {
 		doc := map[interface{}]interface{}{
-			"apiVersion": "iofog.org/v3",
+			"apiVersion": util.GetCliApiVersion(),
 			"kind":       "NatsUserRule",
 			"metadata":   map[interface{}]interface{}{"name": opt.Name},
 			"spec":       specMap,

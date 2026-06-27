@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -30,7 +17,7 @@ func newUpgradeCommand() *cobra.Command {
 		Use:     "upgrade RESOURCE NAME",
 		Short:   "Upgrade ioFog resources",
 		Long:    `Upgrade ioFog resources to latest versions available.`,
-		Example: `iofogctl upgrade agent NAME`,
+		Example: ex(`%[1]s upgrade agent NAME`),
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name
@@ -50,7 +37,7 @@ func newUpgradeCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully scheduled upgrade for %s %s", strings.Title(opt.ResourceType), opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Successfully scheduled upgrade for %s %s", strings.Title(opt.ResourceType), opt.Name))
 		},
 	}
 

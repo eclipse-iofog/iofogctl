@@ -1,23 +1,10 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package execute
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -56,7 +43,7 @@ func NewEmptyExecutor(name string) Executor {
 	}
 }
 
-func generateExecutor(header *config.Header, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
+func generateExecutor(header *config.Header, namespace string, deleteNamespace bool, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (exe Executor, err error) {
 	if len(header.Metadata.Namespace) > 0 && namespace != header.Metadata.Namespace {
 		msg := "The Namespace provided by the %s named '%s' does not match the Namespace '%s'. You must pass '--namespace %s' to perform this command"
 		return nil, util.NewInputError(fmt.Sprintf(msg, header.Kind, header.Metadata.Name, namespace, header.Metadata.Namespace))
@@ -91,28 +78,30 @@ func generateExecutor(header *config.Header, namespace string, kindHandlers map[
 	}
 
 	return createExecutorFunc(&KindHandlerOpt{
-		Kind:      header.Kind,
-		Namespace: namespace,
-		Name:      header.Metadata.Name,
-		YAML:      subYamlBytes,
-		FullYAML:  fullYamlBytes,
-		Data:      dataYamlBytes,
-		Tags:      header.Metadata.Tags,
+		Kind:            header.Kind,
+		Namespace:       namespace,
+		Name:            header.Metadata.Name,
+		YAML:            subYamlBytes,
+		FullYAML:        fullYamlBytes,
+		Data:            dataYamlBytes,
+		Tags:            header.Metadata.Tags,
+		DeleteNamespace: deleteNamespace,
 	})
 }
 
 type KindHandlerOpt struct {
-	Kind      config.Kind
-	Namespace string
-	Name      string
-	YAML      []byte
-	FullYAML  []byte
-	Data      []byte
-	Tags      *[]string
+	Kind            config.Kind
+	Namespace       string
+	Name            string
+	YAML            []byte
+	FullYAML        []byte
+	Data            []byte
+	Tags            *[]string
+	DeleteNamespace bool
 }
 
-func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error)) (executorsMap map[config.Kind][]Executor, err error) {
-	yamlFile, err := os.ReadFile(inputFile)
+func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.Kind]func(*KindHandlerOpt) (Executor, error), deleteNamespace bool) (executorsMap map[config.Kind][]Executor, err error) {
+	yamlFile, err := util.ReadUserFile(inputFile)
 	if err != nil {
 		return
 	}
@@ -129,7 +118,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 	decodeErr := dec.Decode(&h)
 	for decodeErr == nil {
 		header := headerDecodeToHeader(&h)
-		exe, err := generateExecutor(header, namespace, kindHandlers)
+		exe, err := generateExecutor(header, namespace, deleteNamespace, kindHandlers)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +132,7 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 
 		decodeErr = dec.Decode(&h)
 	}
-	if decodeErr != io.EOF {
+	if !errors.Is(decodeErr, io.EOF) {
 		return nil, decodeErr
 	}
 
@@ -157,16 +146,21 @@ func GetExecutorsFromYAML(inputFile, namespace string, kindHandlers map[config.K
 // headerDecodeToHeader converts headerDecode to config.Header, building Spec from
 // top-level rules/roleRef/subjects when present (Controller-style RBAC YAML).
 func headerDecodeToHeader(h *headerDecode) *config.Header {
+	kind := h.Kind
+	if kind == "RemoteController" {
+		kind = config.RemoteControllerKind
+	}
+
 	header := &config.Header{
 		APIVersion: h.APIVersion,
-		Kind:       h.Kind,
+		Kind:       kind,
 		Metadata:   h.Metadata,
 		Spec:       h.Spec,
 		Data:       h.Data,
 		Status:     h.Status,
 	}
 
-	switch h.Kind {
+	switch kind {
 	case config.RoleKind:
 		if h.Rules != nil {
 			// Controller-style: rules at top level

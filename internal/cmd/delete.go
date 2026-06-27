@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -33,6 +20,8 @@ func newDeleteCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
+			util.Check(err)
+			opt.DeleteNamespace, err = cmd.Flags().GetBool("delete-namespace")
 			util.Check(err)
 
 			// Check file
@@ -60,7 +49,6 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteRegistryCommand(),
 		newDeleteMicroserviceCommand(),
 		newDeleteVolumeCommand(),
-		newDeleteEdgeResourceCommand(),
 		newDeleteSecretCommand(),
 		newDeleteConfigMapCommand(),
 		newDeleteRoleCommand(),
@@ -75,6 +63,7 @@ func newDeleteCommand() *cobra.Command {
 
 	// Register flags
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", pkg.flagDescYaml)
+	cmd.PersistentFlags().BoolVar(&opt.DeleteNamespace, "delete-namespace", false, `Also delete the Kubernetes namespace (never deletes "default")`)
 
 	return cmd
 }

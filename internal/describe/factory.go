@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package describe
 
 import (
@@ -53,8 +40,6 @@ func NewExecutor(opt *Options) (execute.Executor, error) {
 		return newApplicationExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "volume":
 		return newVolumeExecutor(opt.Namespace, opt.Name, opt.Filename), nil
-	case "edge-resource":
-		return newEdgeResourceExecutor(opt.Namespace, opt.Name, opt.Version, opt.Filename), nil
 	case "secret":
 		return newSecretExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "configmap":

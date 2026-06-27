@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -28,7 +15,6 @@ func newGetCommand() *cobra.Command {
 		"namespaces",
 		"controllers",
 		"agents",
-		"edge-resources",
 		"application-templates",
 		"applications",
 		"system-applications",
@@ -56,11 +42,10 @@ func newGetCommand() *cobra.Command {
 		Long: `Get information of existing resources.
 
 Resources like Agents will require a working Controller in the namespace to display all information.`,
-		Example: `iofogctl get all
+		Example: ex(`%[1]s get all
              namespaces
              controllers
              agents
-             edge-resources
              application-templates
              applications
              system-applications
@@ -80,7 +65,7 @@ Resources like Agents will require a working Controller in the namespace to disp
              nats-accounts
              nats-users
              nats-account-rules
-             nats-user-rules`,
+             nats-user-rules`),
 		ValidArgs: validResources,
 		Args:      cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

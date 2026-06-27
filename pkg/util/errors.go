@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package util
 
 import (
@@ -120,7 +107,7 @@ func NewInternalError(message string) *InternalError {
 
 // Error export
 func (err *InternalError) Error() string {
-	return "Unexpected internal behaviour\n" + err.message
+	return "Unexpected internal behavior\n" + err.message
 }
 
 // HTTPError export

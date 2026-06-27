@@ -13,15 +13,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containers/image/v5/copy"
-	"github.com/containers/image/v5/manifest"
-	"github.com/containers/image/v5/signature"
-	"github.com/containers/image/v5/transports/alltransports"
-	"github.com/containers/image/v5/types"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/opencontainers/go-digest"
+	"go.podman.io/image/v5/copy"
+	"go.podman.io/image/v5/manifest"
+	"go.podman.io/image/v5/signature"
+	"go.podman.io/image/v5/transports/alltransports"
+	"go.podman.io/image/v5/types"
 )
 
 type imageArtifact struct {
@@ -54,7 +54,7 @@ func (exe *executor) ensureArtifact(ctx context.Context, platform, imageRef stri
 	}
 
 	cacheDir := config.GetOfflineImageCacheDir(exe.namespace, exe.spec.Name, sanitizeSegment(platform))
-	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+	if err := os.MkdirAll(cacheDir, util.DirPerm); err != nil {
 		return nil, err
 	}
 	archivePath := filepath.Join(cacheDir, archiveFilename)
@@ -152,7 +152,7 @@ func buildSystemContext(platform string, auth *rsc.OfflineImageAuth) (*types.Sys
 
 func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysCtx *types.SystemContext, label string) (digestValue string, checksum string, size int64, err error) {
 	destDir := filepath.Dir(archivePath)
-	if err := os.MkdirAll(destDir, 0o755); err != nil {
+	if err := os.MkdirAll(destDir, util.DirPerm); err != nil {
 		return "", "", 0, err
 	}
 	rawPath := archivePath + ".raw"
@@ -181,7 +181,7 @@ func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysC
 	if err != nil {
 		return "", "", 0, err
 	}
-	defer policyCtx.Destroy()
+	defer func() { _ = policyCtx.Destroy() }()
 
 	progressCh := make(chan types.ProgressProperties, 1)
 	progressDone := startProgressTracker(label, progressCh)
@@ -295,21 +295,21 @@ func insecurePolicyContext() (*signature.PolicyContext, error) {
 }
 
 func compressToGzip(src, dst string) error {
-	source, err := os.Open(src)
+	source, err := util.OpenValidatedFile(src)
 	if err != nil {
 		return err
 	}
-	defer source.Close()
+	defer util.IgnoreClose(source)
 
 	if err := os.RemoveAll(dst); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	destFile, err := os.Create(dst)
+	destFile, err := util.CreateUserFile(dst, util.FilePerm)
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
+	defer util.IgnoreClose(destFile)
 
 	gzipWriter := gzip.NewWriter(destFile)
 	defer gzipWriter.Close()
@@ -322,11 +322,11 @@ func compressToGzip(src, dst string) error {
 }
 
 func calculateFileChecksum(path string) (string, int64, error) {
-	file, err := os.Open(path)
+	file, err := util.OpenValidatedFile(path)
 	if err != nil {
 		return "", 0, err
 	}
-	defer file.Close()
+	defer util.IgnoreClose(file)
 
 	hasher := sha256.New()
 	size, err := io.Copy(hasher, file)
@@ -337,7 +337,7 @@ func calculateFileChecksum(path string) (string, int64, error) {
 }
 
 func loadCacheMetadata(path string) (*cacheMetadata, error) {
-	data, err := os.ReadFile(path)
+	data, err := util.ReadValidatedFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -353,5 +353,5 @@ func saveCacheMetadata(path string, meta cacheMetadata) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0o644)
+	return util.WriteValidatedFile(path, data, util.FilePerm)
 }

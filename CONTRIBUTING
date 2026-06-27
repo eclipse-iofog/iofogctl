@@ -32,7 +32,54 @@ contributions are always welcome!
 
 ### Git hooks
 
-Please run `make init` in order to initialise git hooks
+Run `make bootstrap` to install dependencies and configure git hooks.
+
+The pre-commit hook rebuilds both CLI binaries and regenerates cobra markdown under `docs/iofogctl_md/` and `docs/potctl_md/`.
+
+### Build from source
+
+Build one flavor:
+
+```bash
+make iofogctl
+make potctl
+```
+
+Or set `FLAVOR` explicitly:
+
+```bash
+make FLAVOR=iofog build
+make FLAVOR=datasance build
+```
+
+## Continuous integration
+
+CI runs on **GitHub Actions** (`.github/workflows/`). Azure Pipelines and the legacy `pipeline/` tree were retired in v3.8 Phase 2.
+
+- **Datasance/potctl:** PR builds both `potctl` and `iofogctl`
+- **eclipse-iofog/iofogctl:** PR builds `iofogctl` only — see `.cursor/cli/docs/eclipse-ci-sync.md`
+
+Local checks: `make lint`, `make test-unit`, `make grep-gates`, `make security-code`, `make vulncheck`
+
+## Release builds
+
+GoReleaser uses a single root `.goreleaser.yml`. Each mirror releases one binary:
+
+| GitHub repo | Binary |
+|-------------|--------|
+| `Datasance/potctl` | `potctl` |
+| `eclipse-iofog/iofogctl` | `iofogctl` |
+
+`script/goreleaser-env.sh` picks flavor from `GITHUB_REPOSITORY` (default `iofog`). Component pins always come from `versions.mk`. CI sets `GITHUB_REPOSITORY` automatically; for local release smoke:
+
+```bash
+GITHUB_REPOSITORY=Datasance/potctl        script/goreleaser-release.sh release --snapshot --clean
+GITHUB_REPOSITORY=eclipse-iofog/iofogctl    script/goreleaser-release.sh release --snapshot --clean
+```
+
+Override flavor explicitly when needed: `FLAVOR=datasance script/goreleaser-release.sh check`
+
+Release workflow requires `HOMEBREW_TAP_GITHUB_TOKEN` (PAT with write access to the mirror's Homebrew tap repo).
 
 ## Eclipse Contributor Agreement
 

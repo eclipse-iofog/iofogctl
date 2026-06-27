@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -28,23 +15,22 @@ func newDeployCommand() *cobra.Command {
 	// Instantiate command
 	cmd := &cobra.Command{
 		Use: "deploy",
-		Example: `deploy -f ecn.yaml
+		Example: ex(`%[1]s deploy -f ecn.yaml
           application-template.yaml
           application.yaml
           microservice.yaml
-          edge-resource.yaml
           catalog.yaml
           volume.yaml
           route.yaml
           secret.yaml
           configmap.yaml
           service.yaml
-          volume-mount.yaml`,
+          volume-mount.yaml`),
 
 		Args:  cobra.ExactArgs(0),
 		Short: "Deploy Edge Compute Network components on existing infrastructure",
-		Long: `Deploy Edge Compute Network components on existing infrastructure.
-Visit iofog.org to view all YAML specifications usable with this command.`,
+		Long: ex(`Deploy Edge Compute Network components on existing infrastructure.
+Visit %[2]s to view all YAML specifications usable with this command.`, util.GetCliDocsUrl()),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")

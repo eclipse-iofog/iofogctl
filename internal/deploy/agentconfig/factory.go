@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deployagentconfig
 
 import (
@@ -113,7 +100,7 @@ func isOverridingSystemAgent(controllerHost, agentHost, agentName string, isSyst
 			return err
 		}
 	}
-	if agentURL.Hostname() == controllerURL.Hostname() && isSystem == false && agentName != iofog.VanillaLocalAgentName {
+	if agentURL.Hostname() == controllerURL.Hostname() && !isSystem && agentName != iofog.VanillaLocalAgentName {
 		return util.NewConflictError("Cannot deploy an agent on the same host than the Controller\n")
 	}
 	return nil
@@ -197,13 +184,20 @@ func (exe *RemoteExecutor) Execute() error {
 			return err
 		}
 		exe.uuid = uuid
-		return nil
+	} else {
+		// Update existing Agent
+		exe.uuid = agent.UUID
+		if err = clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
+			return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, ctrlClient)
+		}); err != nil {
+			return err
+		}
 	}
-	// Update existing Agent
-	exe.uuid = agent.UUID
-	return clientutil.ExecuteWithAuthRetry(exe.namespace, func(ctrlClient *client.Client) error {
-		return updateAgentConfiguration(exe.agentConfig, exe.tags, agent.UUID, ctrlClient)
-	})
+
+	if !isSystem || install.IsVerbose() {
+		util.SpinStart(fmt.Sprintf("Waiting for agent %s platform ready", exe.GetName()))
+	}
+	return clientutil.WaitForAgentPlatformReadyWithRetry(exe.namespace, exe.uuid)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

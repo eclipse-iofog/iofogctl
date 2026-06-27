@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package connectk8scontrolplane
 
 import (
@@ -26,12 +13,16 @@ import (
 type kubernetesExecutor struct {
 	controlPlane *rsc.KubernetesControlPlane
 	namespace    string
+	caFile       string
+	caB64        string
 }
 
-func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace string) *kubernetesExecutor {
+func newKubernetesExecutor(controlPlane *rsc.KubernetesControlPlane, namespace, caFile, caB64 string) *kubernetesExecutor {
 	return &kubernetesExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,
+		caFile:       caFile,
+		caB64:        caB64,
 	}
 }
 
@@ -39,7 +30,7 @@ func (exe *kubernetesExecutor) GetName() string {
 	return "Kubernetes Control Plane"
 }
 
-func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) (execute.Executor, error) {
+func NewManualExecutor(namespace, endpoint, kubeConfig, email, password, caFile, caB64 string) (execute.Executor, error) {
 	controlPlane := &rsc.KubernetesControlPlane{
 		IofogUser:  rsc.IofogUser{Email: email, Password: password},
 		KubeConfig: kubeConfig,
@@ -48,11 +39,10 @@ func NewManualExecutor(namespace, endpoint, kubeConfig, email, password string) 
 	if err := controlPlane.Sanitize(); err != nil {
 		return nil, err
 	}
-	return newKubernetesExecutor(controlPlane, namespace), nil
+	return newKubernetesExecutor(controlPlane, namespace, caFile, caB64), nil
 }
 
-func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
-	// Read the input file
+func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile, caB64 string) (execute.Executor, error) {
 	controlPlane, err := rsc.UnmarshallKubernetesControlPlane(yaml)
 	if err != nil {
 		return nil, err
@@ -62,43 +52,37 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		return nil, err
 	}
 
-	return newKubernetesExecutor(&controlPlane, namespace), nil
+	return newKubernetesExecutor(&controlPlane, namespace, caFile, caB64), nil
 }
 
 func (exe *kubernetesExecutor) Execute() (err error) {
-	// Instantiate Kubernetes cluster object
 	k8s, err := install.NewKubernetes(exe.controlPlane.KubeConfig, exe.namespace)
 	if err != nil {
 		return
 	}
 
-	// Set HTTPS configuration if present in the control plane
 	if exe.controlPlane.Controller.Https != nil {
 		k8s.SetHttpsEnabled(exe.controlPlane.Controller.Https)
 	}
 
-	if exe.controlPlane.Controller.EcnViewerURL != "" {
-		viewerDns := true
-		k8s.SetIsViewerDns(&viewerDns)
-	}
-
-	// Check the resources exist in K8s namespace
 	if err = k8s.ExistsInNamespace(exe.namespace); err != nil {
 		return
 	}
 
-	// Get Controller endpoint
 	endpoint, err := k8s.GetControllerEndpoint()
 	if err != nil {
 		return
 	}
 
-	// Establish connection
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return
 	}
-	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, ns)
+	if err := connectcontrolplane.PrepareTrust(exe.namespace, exe.controlPlane, exe.caFile, exe.caB64); err != nil {
+		return err
+	}
+
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, exe.namespace, ns)
 	if err != nil {
 		return
 	}
@@ -117,8 +101,13 @@ func (exe *kubernetesExecutor) Execute() (err error) {
 		}
 	}
 	exe.controlPlane.Endpoint = endpoint
+	if exe.controlPlane.Controller.PublicUrl == "" {
+		exe.controlPlane.Controller.PublicUrl = endpoint
+	}
+	if err := rsc.BackfillConsoleURL(exe.controlPlane); err != nil {
+		return err
+	}
 
-	// Save changes
 	ns.SetControlPlane(exe.controlPlane)
 	return config.Flush()
 }
@@ -133,7 +122,6 @@ func formatEndpoint(endpoint string) string {
 }
 
 func validate(controlPlane rsc.ControlPlane) (err error) {
-	// Validate user
 	user := controlPlane.GetUser()
 	if user.Email == "" {
 		return util.NewInputError("To connect, Control Plane Iofog User must contain non-empty value in email field")

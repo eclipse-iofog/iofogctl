@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package util
 
 import (
@@ -25,6 +12,7 @@ const CSkyblue = "\033[38;5;117m"
 const CDeepskyblue = "\033[48;5;25m"
 const Red = "\033[38;5;1m"
 const Green = "\033[38;5;28m"
+const Yellow = "\033[38;5;220m"
 
 var progressPrintMu sync.Mutex
 
@@ -32,7 +20,7 @@ var progressPrintMu sync.Mutex
 func PrintInfo(message string) {
 	wasRunning := SpinPause()
 	message = FirstToUpper(message)
-	fmt.Printf(CSkyblue + message + NoFormat + "\n")
+	fmt.Print(CSkyblue + message + NoFormat + "\n")
 	if wasRunning {
 		SpinUnpause()
 	}
@@ -42,7 +30,7 @@ func PrintInfo(message string) {
 func PrintNotify(message string) {
 	wasRunning := SpinPause()
 	message = FirstToUpper(message)
-	fmt.Fprintf(os.Stderr, CSkyblue+"! "+message+NoFormat+"\n")
+	fmt.Fprintf(os.Stderr, "%s", CSkyblue+"! "+message+NoFormat+"\n")
 	if wasRunning {
 		SpinUnpause()
 	}
@@ -69,12 +57,22 @@ func PrintProgress(label string, percent int, done bool) {
 func PrintSuccess(message string) {
 	SpinStop()
 	message = FirstToUpper(message)
-	fmt.Printf(Green + "✔ " + message + NoFormat + "\n")
+	fmt.Print(Green + "✔ " + message + NoFormat + "\n")
 }
 
 // Print 'message' with red color text
 func PrintError(message string) {
 	SpinStop()
 	message = FirstToUpper(message)
-	fmt.Fprintf(os.Stderr, Red+"✘ "+message+NoFormat+"\n")
+	fmt.Fprintf(os.Stderr, "%s", Red+"✘ "+message+NoFormat+"\n")
+}
+
+// PrintWarning prints a yellow warning to stderr.
+func PrintWarning(message string) {
+	wasRunning := SpinPause()
+	message = FirstToUpper(message)
+	fmt.Fprintf(os.Stderr, "%s", Yellow+"! "+message+NoFormat+"\n")
+	if wasRunning {
+		SpinUnpause()
+	}
 }

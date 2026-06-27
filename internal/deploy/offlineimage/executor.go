@@ -118,7 +118,7 @@ func validateDefinition(def *rsc.OfflineImage) error {
 	if len(def.Agents) == 0 {
 		return util.NewInputError("OfflineImage spec must include at least one agent entry")
 	}
-	if def.X86Image == "" && def.ArmImage == "" {
+	if def.AMD64Image == "" && def.ARM64Image == "" && def.RISCV64Image == "" && def.ArmImage == "" {
 		return util.NewInputError("OfflineImage spec must include at least one architecture image (x86 or arm)")
 	}
 	if def.Auth != nil {
@@ -147,7 +147,7 @@ func (exe *executor) buildAgentPlans(ns *rsc.Namespace) ([]agentPlan, error) {
 		if err != nil {
 			return nil, err
 		}
-		platform, err := resolvePlatform(cfg.FogType)
+		platform, err := resolvePlatform(cfg.Arch)
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}
@@ -155,7 +155,7 @@ func (exe *executor) buildAgentPlans(ns *rsc.Namespace) ([]agentPlan, error) {
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}
-		engine, err := resolveContainerEngine(cfg.AgentConfiguration.ContainerEngine)
+		engine, err := resolveContainerEngine(cfg.ContainerEngine)
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}
@@ -172,13 +172,23 @@ func (exe *executor) buildAgentPlans(ns *rsc.Namespace) ([]agentPlan, error) {
 func (exe *executor) imageForPlatform(platform string) (string, error) {
 	switch platform {
 	case platformAMD64:
-		if exe.spec.X86Image == "" {
+		if exe.spec.AMD64Image == "" {
 			return "", util.NewInputError("x86 image is required for agents with linux/amd64 fog type")
 		}
-		return exe.spec.X86Image, nil
+		return exe.spec.AMD64Image, nil
 	case platformARM64:
+		if exe.spec.ARM64Image == "" {
+			return "", util.NewInputError("arm64 image is required for agents with linux/arm64 fog type")
+		}
+		return exe.spec.ARM64Image, nil
+	case platformRISCV64:
+		if exe.spec.RISCV64Image == "" {
+			return "", util.NewInputError("riscv64 image is required for agents with linux/riscv64 fog type")
+		}
+		return exe.spec.RISCV64Image, nil
+	case platformARM:
 		if exe.spec.ArmImage == "" {
-			return "", util.NewInputError("arm image is required for agents with linux/arm64 fog type")
+			return "", util.NewInputError("arm image is required for agents with linux/arm fog type")
 		}
 		return exe.spec.ArmImage, nil
 	default:
@@ -217,16 +227,28 @@ func (exe *executor) registerCatalogItem() error {
 	}
 
 	images := []client.CatalogImage{}
-	if exe.spec.X86Image != "" {
+	if exe.spec.AMD64Image != "" {
 		images = append(images, client.CatalogImage{
-			ContainerImage: exe.spec.X86Image,
-			AgentTypeID:    client.AgentTypeAgentTypeIDDict["x86"],
+			ContainerImage: exe.spec.AMD64Image,
+			ArchID:         client.ArchNameToID["amd64"],
+		})
+	}
+	if exe.spec.ARM64Image != "" {
+		images = append(images, client.CatalogImage{
+			ContainerImage: exe.spec.ARM64Image,
+			ArchID:         client.ArchNameToID["arm64"],
+		})
+	}
+	if exe.spec.RISCV64Image != "" {
+		images = append(images, client.CatalogImage{
+			ContainerImage: exe.spec.RISCV64Image,
+			ArchID:         client.ArchNameToID["riscv64"],
 		})
 	}
 	if exe.spec.ArmImage != "" {
 		images = append(images, client.CatalogImage{
 			ContainerImage: exe.spec.ArmImage,
-			AgentTypeID:    client.AgentTypeAgentTypeIDDict["arm"],
+			ArchID:         client.ArchNameToID["arm"],
 		})
 	}
 	item, err := clt.GetCatalogItemByName(exe.spec.Name)
@@ -270,7 +292,7 @@ func (exe *executor) confirmCatalogUpdate(item *client.CatalogItemInfo) (bool, e
 	if len(item.Images) > 0 {
 		segments := make([]string, 0, len(item.Images))
 		for _, img := range item.Images {
-			segments = append(segments, fmt.Sprintf("%s (AgentTypeID: %d)", img.ContainerImage, img.AgentTypeID))
+			segments = append(segments, fmt.Sprintf("%s (ArchID: %d)", img.ContainerImage, img.ArchID))
 		}
 		imageDetails = strings.Join(segments, " | ")
 	}

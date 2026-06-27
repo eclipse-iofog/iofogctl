@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package describe
 
 import (
@@ -78,7 +65,7 @@ func printConfigMapWithLiteralStrings(header config.Header, writer io.Writer) er
 		for key, value := range dataMap {
 			if strings.Contains(value, "\n") {
 				// Use literal block scalar for multi-line strings
-				_, err = writer.Write([]byte(fmt.Sprintf("  %s: |\n", key)))
+				_, err = fmt.Fprintf(writer, "  %s: |\n", key)
 				if err != nil {
 					return err
 				}
@@ -86,14 +73,14 @@ func printConfigMapWithLiteralStrings(header config.Header, writer io.Writer) er
 				// Split by newlines and add proper indentation
 				lines := strings.Split(value, "\n")
 				for _, line := range lines {
-					_, err = writer.Write([]byte(fmt.Sprintf("    %s\n", line)))
+					_, err = fmt.Fprintf(writer, "    %s\n", line)
 					if err != nil {
 						return err
 					}
 				}
 			} else {
 				// Regular string
-				_, err = writer.Write([]byte(fmt.Sprintf("  %s: %s\n", key, value)))
+				_, err = fmt.Fprintf(writer, "  %s: %s\n", key, value)
 				if err != nil {
 					return err
 				}

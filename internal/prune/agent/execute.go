@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package pruneagent
 
 import (
@@ -58,7 +45,7 @@ func (exe executor) Execute() error {
 	// Prune Agent
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err := exe.localAgentPrune(); err != nil {
+		if err := exe.localAgentPrune(agent); err != nil {
 			return err
 		}
 	case *rsc.RemoteAgent:

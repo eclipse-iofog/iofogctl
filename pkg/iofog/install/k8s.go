@@ -1,35 +1,18 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package install
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
 
 	ioclient "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	iofogv3 "github.com/eclipse-iofog/iofog-operator/v3/apis"
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
+	opk8s "github.com/eclipse-iofog/iofog-operator/v3/pkg/k8s"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-	extsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	extsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,11 +22,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	opclient "sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-// ECNname
-const (
-	cpInstanceName = "iofog"
 )
 
 // Kubernetes struct to manage state of deployment on Kubernetes cluster
@@ -57,9 +35,8 @@ type Kubernetes struct {
 	services      cpv3.Services
 	images        cpv3.Images
 	ingresses     cpv3.Ingresses
-	httpsEnabled  *bool // Store HTTPS configuration
-	isViewerDns   *bool // Store isViewerDns configuration
-	// router        cpv3.Router
+	httpsEnabled  *bool
+	cpSpec        cpv3.ControlPlaneSpec
 }
 
 // NewKubernetes constructs an object to manage cluster
@@ -132,14 +109,12 @@ func (k8s *Kubernetes) SetHttpsEnabled(enabled *bool) {
 	k8s.httpsEnabled = enabled
 }
 
-func (k8s *Kubernetes) SetIsViewerDns(enabled *bool) {
-	k8s.isViewerDns = enabled
-}
+const controlPlaneReadyTimeout = 600 * time.Second
+const controlPlanePollInterval = 3 * time.Second
 
 func (k8s *Kubernetes) enableCustomResources() error {
 	ctx := context.Background()
-	// Control Plane and App
-	for _, crd := range []*extsv1.CustomResourceDefinition{iofogv3.NewControlPlaneCustomResource(), iofogv3.NewAppCustomResource()} {
+	for _, crd := range controlPlaneCRDsToInstall() {
 		// Try create new
 		if _, err := k8s.extsClientset.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
@@ -154,7 +129,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 			// Always update the CRD if:
 			// 1. The CRD is not supported (major version mismatch)
 			// 2. The versions array is different (new features/types added)
-			shouldUpdate := !iofogv3.IsSupportedCustomResource(existingCRD) ||
+			shouldUpdate := !isSupportedControlPlaneCRD(existingCRD, crd) ||
 				!reflect.DeepEqual(existingCRD.Spec.Versions, crd.Spec.Versions)
 
 			if shouldUpdate {
@@ -183,7 +158,7 @@ func (k8s *Kubernetes) enableCustomResources() error {
 }
 
 func (k8s *Kubernetes) enableOperatorClient() (err error) {
-	scheme := iofogv3.InitClientScheme()
+	scheme := initOperatorClientScheme()
 	k8s.opClient, err = opclient.New(k8s.config, opclient.Options{Scheme: scheme})
 	if err != nil {
 		return err
@@ -191,8 +166,8 @@ func (k8s *Kubernetes) enableOperatorClient() (err error) {
 	return nil
 }
 
-// CreateController on cluster
-func (k8s *Kubernetes) CreateControlPlane(conf *K8SControllerConfig) (endpoint string, err error) {
+// CreateControlPlane applies or updates the operator ControlPlane CR in the cluster.
+func (k8s *Kubernetes) CreateControlPlane(desired cpv3.ControlPlane) (endpoint string, err error) {
 	// Create namespace if required
 	Verbose("Creating namespace " + k8s.ns)
 	ns := &corev1.Namespace{
@@ -214,8 +189,9 @@ func (k8s *Kubernetes) CreateControlPlane(conf *K8SControllerConfig) (endpoint s
 
 	// Check if Control Plane exists
 	Verbose("Finding existing Control Plane")
+	crName := util.GetCliCpCrName()
 	cpKey := opclient.ObjectKey{
-		Name:      cpInstanceName,
+		Name:      crName,
 		Namespace: k8s.ns,
 	}
 	var cp cpv3.ControlPlane
@@ -228,40 +204,17 @@ func (k8s *Kubernetes) CreateControlPlane(conf *K8SControllerConfig) (endpoint s
 		found = false
 		cp = cpv3.ControlPlane{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      cpInstanceName,
+				Name:      crName,
 				Namespace: k8s.ns,
 			},
 		}
 	}
 
-	// Set specification
-	cp.Spec.Replicas.Controller = conf.Replicas
-	if conf.ReplicasNats >= 2 {
-		cp.Spec.Replicas.Nats = conf.ReplicasNats
-	}
-	cp.Spec.Database = cpv3.Database(conf.Database)
-	cp.Spec.Auth = cpv3.Auth(conf.Auth)
-	cp.Spec.Events = cpv3.Events(conf.Events)
-	// cp.Spec.User = cpv3.User(conf.User)
-	cp.Spec.Services = k8s.services
-	cp.Spec.Ingresses = k8s.ingresses
-	cp.Spec.Images = k8s.images
-	if conf.Nats != nil {
-		cp.Spec.Nats = conf.Nats
-	}
-	if conf.Vault != nil {
-		cp.Spec.Vault = conf.Vault
-	}
-	// cp.Spec.Router = k8s.router
-	cp.Spec.Controller.EcnViewerPort = conf.EcnViewerPort
-	cp.Spec.Controller.EcnViewerURL = conf.EcnViewerURL
-	cp.Spec.Controller.LogLevel = conf.LogLevel
-	cp.Spec.Controller.PidBaseDir = conf.PidBaseDir
-	cp.Spec.Controller.Https = conf.Https
-	cp.Spec.Controller.SecretName = conf.SecretName
+	cp.Spec = desired.Spec
+	k8s.cpSpec = desired.Spec
 
 	// Store HTTPS configuration for endpoint generation
-	k8s.SetHttpsEnabled(conf.Https)
+	k8s.SetHttpsEnabled(desired.Spec.Controller.Https)
 
 	// Create or update Control Plane
 	if found {
@@ -277,117 +230,39 @@ func (k8s *Kubernetes) CreateControlPlane(conf *K8SControllerConfig) (endpoint s
 		}
 	}
 
-	// Get endpoint of deployed Controller
-	endpoint, err = k8s.GetControllerEndpoint()
-	if err != nil {
+	if err = k8s.waitControlPlaneReady(context.Background(), controlPlaneReadyTimeout); err != nil {
 		return
 	}
 
-	// Wait for Default Router to be registered by Port Manager
-	errCh := make(chan error, 1)
-	go k8s.monitorOperator(errCh)
-	select {
-	case err = <-errCh:
-	case <-time.After(600 * time.Second):
-		err = util.NewInternalError("Failed to wait for Default Router registration")
-	}
-
+	endpoint, err = k8s.GetControllerEndpoint()
 	return endpoint, err
 }
 
-func (k8s *Kubernetes) getReadyPod() (readyPod *corev1.Pod, err error) {
-	// Check operator logs
-	pods, err := k8s.clientset.CoreV1().Pods(k8s.ns).List(context.Background(), metav1.ListOptions{
-		LabelSelector: "name=iofog-operator", // TODO: Decouple this
-	})
-	if err != nil {
-		return
+func (k8s *Kubernetes) waitControlPlaneReady(ctx context.Context, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	cpKey := opclient.ObjectKey{
+		Name:      util.GetCliCpCrName(),
+		Namespace: k8s.ns,
 	}
-	if len(pods.Items) == 0 {
-		err = util.NewInternalError("Could not find any Operator Pods ")
-		return
-	}
-	// Find ready Pod
-	var pod *corev1.Pod
-	for podIdx := range pods.Items {
-		for _, condition := range pods.Items[podIdx].Status.Conditions {
-			if condition.Type == corev1.PodReady {
-				if condition.Status == corev1.ConditionTrue {
-					pod = &pods.Items[podIdx]
-					break
-				}
-			}
-		}
-		if pod != nil {
-			break
-		}
-	}
-	return pod, err
-}
+	ticker := time.NewTicker(controlPlanePollInterval)
+	defer ticker.Stop()
 
-// Watch Operator logs
-// Report error from Operator if found in logs
-// Operator Pods are deleted and created when Control Plane redeployed
-func (k8s *Kubernetes) monitorOperator(errCh chan error) {
-	errSuffix := "while awaiting finalization of Control Plane"
 	for {
-		time.Sleep(2 * time.Second)
-		pod, err := k8s.getReadyPod()
-		if err != nil {
-			errCh <- fmt.Errorf("%s %s", err.Error(), errSuffix)
-			return
-		}
-		// Could not find ready Operator Pod
-		if pod == nil {
-			continue
-		}
-		// Get the logs of ready Pod
-		req := k8s.clientset.CoreV1().Pods(k8s.ns).GetLogs(pod.Name, &corev1.PodLogOptions{})
-		podLogs, err := req.Stream(context.Background())
-		if err != nil {
-			errCh <- util.NewInternalError("Error opening Operator Pod log stream " + errSuffix)
-			return
-		}
-		defer podLogs.Close()
-		buf := new(bytes.Buffer)
-		if _, err = io.Copy(buf, podLogs); err != nil {
-			errCh <- util.NewInternalError("Error reading Operator Pod log stream " + errSuffix)
-			return
-		}
-
-		// Check controlplane resource status
 		var cp cpv3.ControlPlane
-		if err = k8s.opClient.Get(context.Background(), opclient.ObjectKey{
-			Name:      cpInstanceName,
-			Namespace: k8s.ns,
-		}, &cp); err != nil {
-			errCh <- util.NewInternalError("Error reading Control Plane resource " + errSuffix)
-			return
+		if err := k8s.opClient.Get(ctx, cpKey, &cp); err != nil {
+			return util.NewInternalError("Error reading Control Plane resource: " + err.Error())
 		}
-
 		if cp.IsReady() {
-			errCh <- nil
-			return
+			return nil
 		}
-
-		// podLogsStr := buf.String()
-		// Allow errors, need to fix iofog-operator to not have errors anymore
-		// errDelim := `ERROR` // TODO: Decouple iofogctl-operator err string
-		// if strings.Contains(podLogsStr, errDelim) {
-		// 	msg := ""
-		// 	logLines := strings.Split(podLogsStr, "\n")
-		// 	for _, line := range logLines {
-		// 		// Error line pertains to this NS?
-		// 		if strings.Contains(line, errDelim) && strings.Contains(line, fmt.Sprintf(`"namespace": "%s"`, k8s.ns)) {
-		// 			msg = fmt.Sprintf("%s\n%s", msg, line)
-		// 			errCh <- util.NewInternalError("Operator failed to reconcile Control Plane " + msg)
-		// 			return
-		// 		}
-		// 	}
-		// Error pertains to another Control Plane
-		// }
-
-		// Continue loop, wait for Router registration or error...
+		if time.Now().After(deadline) {
+			return util.NewInternalError("Timed out waiting for Control Plane to become ready")
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
 	}
 }
 
@@ -472,7 +347,7 @@ func (k8s *Kubernetes) createOperator() (err error) {
 	return nil
 }
 
-func (k8s *Kubernetes) DeleteControlPlane() error {
+func (k8s *Kubernetes) DeleteControlPlane(deleteNamespace bool) error {
 	// Prepare Control Plane client
 	if err := k8s.enableOperatorClient(); err != nil {
 		return err
@@ -481,7 +356,7 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 	// Delete Control Plane
 	cp := &cpv3.ControlPlane{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cpInstanceName,
+			Name:      util.GetCliCpCrName(),
 			Namespace: k8s.ns,
 		},
 	}
@@ -496,8 +371,7 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 		return err
 	}
 
-	// Delete Namespace
-	if k8s.ns != "default" {
+	if deleteNamespace && k8s.ns != "default" {
 		if err := k8s.clientset.CoreV1().Namespaces().Delete(context.Background(), k8s.ns, metav1.DeleteOptions{}); err != nil {
 			if !k8serrors.IsNotFound(err) {
 				return err
@@ -509,103 +383,117 @@ func (k8s *Kubernetes) DeleteControlPlane() error {
 }
 
 func (k8s *Kubernetes) waitForService(name string, targetPort int32) (addr string, nodePort int32, err error) {
-	// Get watch handler to observe changes to services
-	watch, err := k8s.clientset.CoreV1().Services(k8s.ns).Watch(context.Background(), metav1.ListOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), controlPlaneReadyTimeout)
+	defer cancel()
+
+	svc, err := k8s.waitForServiceExists(ctx, name)
 	if err != nil {
-		return
+		return "", 0, err
 	}
-	defer watch.Stop()
 
-	// Wait for Services to have addresses allocated
-	for event := range watch.ResultChan() {
-		svc, ok := event.Object.(*corev1.Service)
-		if !ok {
-			err = util.NewInternalError("Failed to wait for services in namespace: " + k8s.ns)
-			return
+	switch svc.Spec.Type {
+	case corev1.ServiceTypeLoadBalancer:
+		getter := opk8s.CoreV1ServiceGetter{Kube: k8s.clientset}
+		remaining := time.Until(deadlineFromContext(ctx))
+		addr, err = opk8s.WaitLoadBalancerAddress(ctx, getter, k8s.ns, name, remaining)
+		if err != nil {
+			return "", 0, err
 		}
+		return addr, targetPort, nil
 
-		// Ignore irrelevant service events
-		if svc.Name != name {
-			continue
-		}
-
-		switch svc.Spec.Type {
-		case corev1.ServiceTypeLoadBalancer:
-			// Load balancer must be ready
-			if len(svc.Status.LoadBalancer.Ingress) == 0 {
-				continue
-			}
-			addr, nodePort = k8s.handleLoadBalancer(svc, targetPort)
-			if addr == "" {
-				continue
-			}
-			return
-
-		case corev1.ServiceTypeNodePort:
-			addr, err = k8s.getNodePortAddress(name)
+	case corev1.ServiceTypeNodePort:
+		addr, err = k8s.getNodePortAddress(name)
+		if err != nil {
+			util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
+			addr, err = k8s.getClusterIPAddress(name)
 			if err != nil {
-				util.PrintNotify("Could not get an external IP address of any Kubernetes nodes for NodePort service " + name + "\nTrying to reach the cluster IP of the service")
-				addr, err = k8s.getClusterIPAddress(name)
-				if err != nil {
-					return
-				}
+				return "", 0, err
 			}
-			nodePort, err = k8s.getPort(svc, name, targetPort)
-			return
-		case corev1.ServiceTypeClusterIP:
-			// Ingress must be ready for ClusterIP service type
-			addr, err = k8s.waitForIngress("iofog-controller")
-			if err != nil {
-				util.PrintNotify("Failed to handle Ingress for ClusterIP service")
-				continue
-			}
-			if addr == "" {
-				continue
-			}
-			nodePort = targetPort
-			return
-		default:
-			err = util.NewError("Found Service was not of supported type")
-			return
 		}
+		nodePort, err = k8s.getPort(svc, name, targetPort)
+		return addr, nodePort, err
+
+	case corev1.ServiceTypeClusterIP:
+		addr, err = k8s.waitForIngress(ctx, controller)
+		if err != nil {
+			return "", 0, err
+		}
+		return addr, targetPort, nil
+
+	default:
+		return "", 0, util.NewError("Found Service was not of supported type")
 	}
-	err = util.NewError("Did not receive any events from Kuberenetes API Server")
-	return addr, nodePort, err
 }
 
-func (k8s *Kubernetes) waitForIngress(name string) (addr string, err error) {
-	// Create a watch to observe changes to Ingress resources
-	watcher, err := k8s.clientset.NetworkingV1().Ingresses(k8s.ns).Watch(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		err = util.NewError("Failed to create watch for Ingress: " + err.Error())
-		return
+func deadlineFromContext(ctx context.Context) time.Time {
+	if d, ok := ctx.Deadline(); ok {
+		return d
 	}
-	defer watcher.Stop()
+	return time.Now().Add(controlPlaneReadyTimeout)
+}
 
-	// Process events from the watch
-	for event := range watcher.ResultChan() {
-		ingress, ok := event.Object.(*networkingv1.Ingress)
-		if !ok {
-			err = util.NewInternalError("Failed to parse Ingress event")
-			return
+func (k8s *Kubernetes) waitForServiceExists(ctx context.Context, name string) (*corev1.Service, error) {
+	ticker := time.NewTicker(controlPlanePollInterval)
+	defer ticker.Stop()
+	for {
+		svc, err := k8s.clientset.CoreV1().Services(k8s.ns).Get(ctx, name, metav1.GetOptions{})
+		if err == nil {
+			return svc, nil
 		}
-
-		// Check if the Ingress resource matches the name we're waiting for
-		if ingress.Name == name {
-			// Check if Ingress has rules
-			if len(ingress.Spec.Rules) > 0 {
-				host := ingress.Spec.Rules[0].Host
-				addr = "https://" + host
-				return
-			}
-
-			// Ingress found but has no rules, continue waiting
-			util.PrintNotify("Ingress resource found but no rules present, continuing to watch...")
+		if !k8serrors.IsNotFound(err) {
+			return nil, err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, util.NewInternalError("Timed out waiting for service " + name)
+		case <-ticker.C:
 		}
 	}
+}
 
-	err = util.NewError("Did not receive any valid Ingress events")
-	return
+func (k8s *Kubernetes) waitForIngress(ctx context.Context, name string) (addr string, err error) {
+	scheme := "http"
+	if k8s.ingressUsesHTTPS() {
+		scheme = "https"
+	}
+
+	ticker := time.NewTicker(controlPlanePollInterval)
+	defer ticker.Stop()
+	for {
+		ingress, err := k8s.clientset.NetworkingV1().Ingresses(k8s.ns).Get(ctx, name, metav1.GetOptions{})
+		if err == nil && len(ingress.Spec.Rules) > 0 && ingress.Spec.Rules[0].Host != "" {
+			return scheme + "://" + ingress.Spec.Rules[0].Host, nil
+		}
+		if err != nil && !k8serrors.IsNotFound(err) {
+			return "", err
+		}
+		select {
+		case <-ctx.Done():
+			return "", util.NewInternalError("Timed out waiting for Ingress " + name)
+		case <-ticker.C:
+		}
+	}
+}
+
+func (k8s *Kubernetes) ingressUsesHTTPS() bool {
+	if k8s.httpsEnabled != nil && *k8s.httpsEnabled {
+		return true
+	}
+	if k8s.cpSpec.Ingresses.Controller.SecretName != "" {
+		return true
+	}
+	return false
+}
+
+func (k8s *Kubernetes) getCRPublicURL(ctx context.Context) string {
+	var cp cpv3.ControlPlane
+	if err := k8s.opClient.Get(ctx, opclient.ObjectKey{
+		Name:      util.GetCliCpCrName(),
+		Namespace: k8s.ns,
+	}, &cp); err != nil {
+		return ""
+	}
+	return cp.Spec.Controller.PublicUrl
 }
 
 func (k8s *Kubernetes) getPort(svc *corev1.Service, name string, targetPort int32) (nodePort int32, err error) {
@@ -668,20 +556,6 @@ func (k8s *Kubernetes) getNodePortAddress(name string) (addr string, err error) 
 	}
 	if addr == "" {
 		err = util.NewError("Could not find address in Node Port service " + name)
-	}
-	return
-}
-
-func (k8s *Kubernetes) handleLoadBalancer(svc *corev1.Service, targetPort int32) (addr string, nodePort int32) {
-	nodePort = targetPort
-	// TODO: error if Ingress len == 0
-	ip := svc.Status.LoadBalancer.Ingress[0].IP
-	host := svc.Status.LoadBalancer.Ingress[0].Hostname
-	if ip != "" {
-		addr = ip
-	}
-	if host != "" {
-		addr = host
 	}
 	return
 }
@@ -782,7 +656,7 @@ func (k8s *Kubernetes) ExistsInNamespace(namespace string) error {
 	return util.NewError("Could not find Controller Service in Kubernetes namespace " + namespace)
 }
 
-func (k8s *Kubernetes) formatEndpoint(endpoint string, port int32, isViewerDns ...bool) (*url.URL, error) {
+func (k8s *Kubernetes) formatEndpoint(endpoint string, port int32) (*url.URL, error) {
 	// Ensure protocol
 	if !strings.Contains(endpoint, "://") {
 		// Check if HTTPS should be used
@@ -796,11 +670,8 @@ func (k8s *Kubernetes) formatEndpoint(endpoint string, port int32, isViewerDns .
 	if err != nil {
 		return nil, err
 	}
-	// Ensure port is added if not present
-	// if !strings.Contains(URL.Host, ":") {
-	// Ensure port when scheme is not HTTPS OR when isViewerDns is false
-	if !strings.Contains(URL.Host, ":") && ((URL.Scheme != "https") || (len(isViewerDns) > 0 && !isViewerDns[0])) {
-
+	// Ensure port on non-HTTPS endpoints when omitted.
+	if !strings.Contains(URL.Host, ":") && URL.Scheme != "https" {
 		URL.Host += fmt.Sprintf(":%d", port)
 	}
 	return URL, nil
@@ -810,24 +681,25 @@ func (k8s *Kubernetes) formatEndpoint(endpoint string, port int32, isViewerDns .
 func (k8s *Kubernetes) GetControllerEndpoint() (endpoint string, err error) {
 	ip, port, err := k8s.waitForService(controller, ioclient.ControllerPort)
 	if err != nil {
+		if publicURL := k8s.getCRPublicURL(context.Background()); publicURL != "" {
+			return publicURL, nil
+		}
 		return "", err
 	}
-	isViewerDns := false
-	if k8s.isViewerDns != nil && *k8s.isViewerDns {
-		isViewerDns = true
+	if ip == "" {
+		if publicURL := k8s.getCRPublicURL(context.Background()); publicURL != "" {
+			return publicURL, nil
+		}
+		return "", util.NewInternalError("Could not resolve Controller endpoint")
 	}
-	formattedURL, err := k8s.formatEndpoint(ip, port, isViewerDns)
+
+	formattedURL, err := k8s.formatEndpoint(ip, port)
 	if err != nil {
 		return "", err
 	}
 	endpoint = formattedURL.String()
 
-	// Check if HTTPS is enabled
-	useHTTPS := false
-	if k8s.httpsEnabled != nil && *k8s.httpsEnabled {
-		useHTTPS = true
-	}
-
+	useHTTPS := k8s.httpsEnabled != nil && *k8s.httpsEnabled
 	return util.GetControllerEndpoint(endpoint, useHTTPS)
 }
 
@@ -838,9 +710,10 @@ func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
 	if err != nil {
 		return
 	}
-	// Find Controller pods
+	// Find Controller pods (label key follows build flavor: e.g. datasance.com/component or iofog.org/component)
+	componentLabel := util.GetCliCrdGroup() + "/component"
 	for idx := range pods.Items {
-		if pods.Items[idx].Labels["iofog.org/component"] == controller {
+		if controllerPodLabelsMatch(pods.Items[idx].Labels, componentLabel) {
 			podNames = append(podNames, Pod{
 				Name:   pods.Items[idx].Name,
 				Status: string(pods.Items[idx].Status.Phase),
@@ -848,4 +721,8 @@ func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
 		}
 	}
 	return
+}
+
+func controllerPodLabelsMatch(labels map[string]string, componentLabel string) bool {
+	return labels[componentLabel] == controller
 }

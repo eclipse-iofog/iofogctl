@@ -25,10 +25,10 @@ func newNatsCommand() *cobra.Command {
 		Use:   "nats",
 		Short: "Manage NATS resources",
 		Long:  "Manage NATS-specific operations exposed by Controller APIs. Use get/describe/deploy/delete for CRUD-style NATS resources.",
-		Example: `iofogctl nats operator describe
-iofogctl nats accounts ensure my-app --nats-rule default-account-rule
-iofogctl nats users create my-app service-user
-iofogctl nats users creds my-app service-user`,
+		Example: ex(`%[1]s nats operator describe
+%[1]s nats accounts ensure my-app --nats-rule default-account-rule
+%[1]s nats users create my-app service-user
+%[1]s nats users creds my-app service-user`),
 	}
 
 	cmd.AddCommand(
@@ -88,7 +88,7 @@ func newNatsAccountsCommand() *cobra.Command {
 		Aliases: []string{"account"},
 		Short:   "NATS account operations",
 		Long:    "NATS-specific account actions for applications.",
-		Example: `iofogctl nats accounts ensure my-application --nats-rule default-account-rule`,
+		Example: ex(`%[1]s nats accounts ensure my-application --nats-rule default-account-rule`),
 	}
 	cmd.AddCommand(
 		newNatsAccountsEnsureCommand(),
@@ -135,9 +135,9 @@ func newNatsUsersCommand() *cobra.Command {
 		Aliases: []string{"user"},
 		Short:   "NATS user operations",
 		Long:    "NATS-specific user actions such as create/delete and creds retrieval.",
-		Example: `iofogctl nats users create my-application service-user
-iofogctl nats users creds my-application service-user
-iofogctl nats users creds my-application service-user -o ./service-user.creds`,
+		Example: ex(`%[1]s nats users create my-application service-user
+%[1]s nats users creds my-application service-user
+%[1]s nats users creds my-application service-user -o ./service-user.creds`),
 	}
 	cmd.AddCommand(
 		newNatsUsersCreateCommand(),

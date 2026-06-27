@@ -7,6 +7,75 @@ function initVanillaController(){
   VANILLA_PORT="${PORT:-22}"
 }
 
+function initRemoteControlPlaneFile() {
+  initVanillaController
+  local REMOTE_ARCH="${REMOTE_ARCH:-amd64}"
+  local CP_PASSWORD="${REMOTE_CP_PASSWORD:-TestPassword12!}"
+  local AUTH_PASSWORD="${REMOTE_AUTH_PASSWORD:-LocalTest12!}"
+  echo "---
+apiVersion: iofog.org/v3
+kind: ControlPlane
+metadata:
+  name: func-controlplane
+spec:
+  iofogUser:
+    name: Testing
+    surname: Functional
+    email: $USER_EMAIL
+    password: $CP_PASSWORD
+  controller:
+    publicUrl: http://${VANILLA_HOST}:51121
+    consoleUrl: http://${VANILLA_HOST}
+    logLevel: info
+  auth:
+    mode: embedded
+    insecureAllowHttp: true
+    insecureAllowBootstrapLog: false
+    bootstrap:
+      username: admin
+      password: \"$AUTH_PASSWORD\"
+  controllers:
+  - name: $NAME
+    host: $VANILLA_HOST
+    ssh:
+      user: $VANILLA_USER
+      port: $VANILLA_PORT
+      keyFile: $KEY_FILE
+    systemAgent:
+      config:
+        arch: $REMOTE_ARCH
+        containerEngine: edgelet
+        deploymentType: native" > test/conf/remote-cp.yaml
+}
+
+function initRemoteControllerAddFile() {
+  initVanillaController
+  local REMOTE_HOST2="${REMOTE_CONTROLLER2_HOST:-}"
+  local REMOTE_USER2="${REMOTE_CONTROLLER2_USER:-}"
+  local REMOTE_PORT2="${REMOTE_CONTROLLER2_PORT:-22}"
+  local REMOTE_NAME2="${REMOTE_CONTROLLER2_NAME:-${NAME}-2}"
+  local REMOTE_ARCH="${REMOTE_ARCH:-amd64}"
+  if [[ -z "$REMOTE_HOST2" || -z "$REMOTE_USER2" ]]; then
+    skip "REMOTE_CONTROLLER2_HOST and REMOTE_CONTROLLER2_USER required for add-controller test"
+  fi
+  echo "---
+apiVersion: iofog.org/v3
+kind: Controller
+metadata:
+  name: $REMOTE_NAME2
+spec:
+  host: $REMOTE_HOST2
+  ssh:
+    user: $REMOTE_USER2
+    port: $REMOTE_PORT2
+    keyFile: $KEY_FILE
+  systemAgent:
+    config:
+      arch: $REMOTE_ARCH
+      containerEngine: edgelet
+      deploymentType: native" > test/conf/remote-controller-add.yaml
+}
+
 function initAllLocalDeleteFile() {
   cat test/conf/local.yaml > test/conf/all-local.yaml
   echo "" >> test/conf/all-local.yaml
@@ -471,37 +540,6 @@ spec:
   password: my_fake_password
   private: true
   " > test/conf/gcr.yaml
-}
-
-function initEdgeResourceFile() {
-  local ER_VERSION="$EDGE_RESOURCE_VERSION"
-  if [ ! -z "$1" ]; then
-    ER_VERSION="$1"
-  fi
-  echo "---
-apiVersion: iofog.org/v3
-kind: EdgeResource
-metadata:
-  name: $EDGE_RESOURCE_NAME
-spec:
-  version: $ER_VERSION
-  description: $EDGE_RESOURCE_DESC
-  interfaceProtocol: $EDGE_RESOURCE_PROTOCOL
-  orchestrationTags:
-  - smart
-  - door
-  interface:
-    endpoints:
-    - name: open
-      method: PUT
-      url: '/open'
-    - name: close
-      method: PUT
-      url: '/close'
-  display:
-    name: 'Smart Door'
-    icon: 'icon'
-    color: '#fefefefe'" > test/conf/edge-resource.yaml
 }
 
 function initApplicationTemplateFile(){

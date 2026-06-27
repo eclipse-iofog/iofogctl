@@ -25,7 +25,6 @@ func UnmarshallKubernetesControlPlane(file []byte) (controlPlane KubernetesContr
 }
 
 func UnmarshallRemoteControlPlane(file []byte) (controlPlane RemoteControlPlane, err error) {
-	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
@@ -35,16 +34,13 @@ func UnmarshallRemoteControlPlane(file []byte) (controlPlane RemoteControlPlane,
 	if err = controlPlane.Sanitize(); err != nil {
 		return
 	}
-	for idx := range controlPlane.Controllers {
-		if err = controlPlane.Controllers[idx].Sanitize(); err != nil {
-			return
-		}
+	if err = ValidateRemoteControlPlane(&controlPlane); err != nil {
+		return
 	}
 	return
 }
 
 func UnmarshallLocalControlPlane(file []byte) (controlPlane LocalControlPlane, err error) {
-	// Unmarshall the input file
 	if err = yaml.UnmarshalStrict(file, &controlPlane); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
@@ -54,7 +50,7 @@ func UnmarshallLocalControlPlane(file []byte) (controlPlane LocalControlPlane, e
 	if err = controlPlane.Sanitize(); err != nil {
 		return
 	}
-	if err = controlPlane.Controller.Sanitize(); err != nil {
+	if err = ValidateLocalControlPlane(&controlPlane); err != nil {
 		return
 	}
 	return
@@ -101,5 +97,13 @@ func UnmarshallLocalAgent(file []byte) (agent LocalAgent, err error) {
 	}
 
 	err = agent.Sanitize()
+	return
+}
+
+func UnmarshallAgentConfiguration(file []byte) (config AgentConfiguration, err error) {
+	if err = yaml.UnmarshalStrict(file, &config); err != nil {
+		err = util.NewUnmarshalError(err.Error())
+		return
+	}
 	return
 }

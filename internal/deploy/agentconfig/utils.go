@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deployagentconfig
 
 import (
@@ -18,6 +5,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -36,45 +24,27 @@ const (
 )
 
 func getRouterMode(config *rsc.AgentConfiguration) RouterMode {
-	if config.RouterConfig.RouterMode != nil {
-		return RouterMode(*config.RouterConfig.RouterMode)
+	if config.RouterMode != nil {
+		return RouterMode(*config.RouterMode)
 	}
 	return EdgeRouter
 }
 
 func getNatsMode(config *rsc.AgentConfiguration) NatsMode {
-	if config.NatsConfig.NatsMode != nil {
-		return NatsMode(*config.NatsConfig.NatsMode)
+	if config.NatsMode != nil {
+		return NatsMode(*config.NatsMode)
 	}
 	return NatsLeaf
 }
 
 func Validate(config *rsc.AgentConfiguration) error {
-	routerMode := getRouterMode(config)
-	natsMode := getNatsMode(config)
-
-	if routerMode != EdgeRouter && routerMode != InteriorRouter && routerMode != NoneRouter {
-		msg := "agent config %s validation failed. RouterMode has to be one of edge, interior, none. Default is: edge"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name))
+	if config == nil {
+		return nil
 	}
-	if routerMode != NoneRouter && config.NetworkRouter != nil {
-		msg := "agent config %s validation failed. Cannot have a network if routerMode is different from none. Current router mode is: %s"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
+	if iutil.IsSystemAgent(config) {
+		return validateSystemAgent(config)
 	}
-	if routerMode == NoneRouter && config.UpstreamRouters != nil && len(*config.UpstreamRouters) > 0 {
-		msg := "agent config %s validation failed. Cannot have a upstreamRouters if routerMode is none"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name))
-	}
-	if routerMode != InteriorRouter && (config.RouterConfig.EdgeRouterPort != nil || config.RouterConfig.InterRouterPort != nil) {
-		msg := "agent config %s validation failed. Cannot have an edgeRouterPort or interRouterPort if routerMode is different from interior. Current router mode is: %s"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name, routerMode))
-	}
-	if natsMode != NatsServer && (config.NatsConfig.NatsClusterPort != nil) {
-		msg := "agent config %s validation failed. Cannot have a natsClusterPort if natsMode is different from server"
-		return util.NewInputError(fmt.Sprintf(msg, config.Name))
-	}
-
-	return nil
+	return validateEdgeAgent(config)
 }
 
 func findAgentUUIDInList(list []client.AgentInfo, name string) (uuid string, err error) {
@@ -138,36 +108,37 @@ func Process(agentConfig *rsc.AgentConfiguration, name, agentIP string, otherAge
 }
 
 func getAgentUpdateRequestFromAgentConfig(agentConfig *rsc.AgentConfiguration, tags *[]string) (request client.AgentUpdateRequest) {
-	var fogTypePtr *int64
-	if agentConfig.FogType != nil {
-		fogType, found := rsc.FogTypeStringMap[*agentConfig.FogType]
-		if !found {
-			fogType = 0
-		}
-		fogTypePtr = &fogType
-	}
 	request.Location = agentConfig.Location
 	request.Latitude = agentConfig.Latitude
 	request.Longitude = agentConfig.Longitude
 	request.Description = agentConfig.Description
 	request.Name = agentConfig.Name
-	request.FogType = fogTypePtr
 	request.AgentConfiguration = agentConfig.AgentConfiguration
 	request.Tags = tags
+	if agentConfig.ArchID != nil {
+		request.ArchID = agentConfig.ArchID
+	} else if agentConfig.Arch != nil {
+		arch, found := rsc.ArchStringToID(*agentConfig.Arch)
+		if !found {
+			arch = 0
+		}
+		request.ArchID = &arch
+	}
 	return
 }
 
 func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, name string, clt *client.Client) (uuid string, err error) {
+	PrepareForControllerAPI(agentConfig)
 	updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 	createAgentRequest := &client.CreateAgentRequest{
 		AgentUpdateRequest: updateAgentConfigRequest,
 	}
-	if createAgentRequest.AgentUpdateRequest.Name == "" {
-		createAgentRequest.AgentUpdateRequest.Name = name
+	if createAgentRequest.Name == "" {
+		createAgentRequest.Name = name
 	}
-	if createAgentRequest.AgentUpdateRequest.FogType == nil {
-		fogType := int64(0)
-		createAgentRequest.AgentUpdateRequest.FogType = &fogType
+	if createAgentRequest.ArchID == nil {
+		arch := int64(0)
+		createAgentRequest.ArchID = &arch
 	}
 	agent, err := clt.CreateAgent(createAgentRequest)
 	if err != nil {
@@ -178,6 +149,7 @@ func createAgentFromConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]s
 
 func updateAgentConfiguration(agentConfig *rsc.AgentConfiguration, tags *[]string, uuid string, clt *client.Client) (err error) {
 	if agentConfig != nil {
+		PrepareForControllerAPI(agentConfig)
 		updateAgentConfigRequest := getAgentUpdateRequestFromAgentConfig(agentConfig, tags)
 		updateAgentConfigRequest.UUID = uuid
 

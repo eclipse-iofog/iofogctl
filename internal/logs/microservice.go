@@ -1,28 +1,12 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package logs
 
 import (
-	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
-	ws "github.com/eclipse-iofog/iofogctl/internal/util/websocket"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -56,9 +40,10 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 		return util.NewError("The microservice is not currently running")
 	}
 
-	switch baseAgent.(type) {
+	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		lc, err := install.NewLocalContainerClient()
+		sdkCfg := localAgentSDKConfig(agent)
+		lc, err := install.NewLocalContainerClient(install.LocalContainerEngineForHostOps(sdkCfg), sdkCfg)
 		if err != nil {
 			return err
 		}
@@ -72,67 +57,21 @@ func (ms *remoteMicroserviceExecutor) Execute() error {
 
 		return nil
 	case *rsc.RemoteAgent:
-		// Use WebSocket to stream logs from Controller
 		util.SpinStart("Connecting to Microservice Logs")
 
-		// Init controller client
 		clt, err := clientutil.NewControllerClient(ms.namespace)
 		if err != nil {
 			util.SpinHandlePromptComplete()
 			return err
 		}
 
-		// Create WebSocket client (using microservice UUID)
-		wsClient := ws.NewClient(msvc.UUID)
-
-		// Get controller endpoint
-		controllerURL := clt.GetBaseURL()
-		// Convert http(s):// to ws(s)://
-		wsURL := strings.Replace(controllerURL, "http://", "ws://", 1)
-		wsURL = strings.Replace(wsURL, "https://", "wss://", 1)
-		if isSystem {
-			wsURL = fmt.Sprintf("%s/microservices/system/%s/logs", wsURL, msvc.UUID)
-		} else {
-			wsURL = fmt.Sprintf("%s/microservices/%s/logs", wsURL, msvc.UUID)
-		}
-
-		// Append query parameters from log config
-		if ms.logConfig != nil {
-			queryString := ms.logConfig.BuildQueryString()
-			if queryString != "" {
-				wsURL = fmt.Sprintf("%s?%s", wsURL, queryString)
+		opts := ms.logConfig.ToSDKOptions()
+		return runRemoteLogStream(clt, func(clt *client.Client) (*client.LogSession, error) {
+			if isSystem {
+				return clt.DialSystemMicroserviceLogs(msvc.UUID, opts)
 			}
-		}
-
-		// Set up headers
-		headers := http.Header{}
-		headers.Set("Authorization", fmt.Sprintf("Bearer %s", clt.GetAccessToken()))
-		util.SpinHandlePrompt()
-		// Connect to WebSocket
-		if err := wsClient.Connect(wsURL, headers); err != nil {
-			util.SpinHandlePromptComplete()
-			return util.NewError(fmt.Sprintf("failed to connect to WebSocket: %v", err))
-		}
-
-		// Create and start log stream
-		logStream := NewLogStream(wsClient)
-
-		// Check for initial connection error
-		if err := wsClient.GetError(); err != nil {
-			util.SpinHandlePromptComplete()
-			formattedErr := formatWebSocketError(err)
-			return util.NewError(formattedErr)
-		}
-
-		if err := logStream.Start(); err != nil {
-			util.SpinHandlePromptComplete()
-			formattedErr := formatWebSocketError(err)
-			return util.NewError(formattedErr)
-		}
-
-		// Wait for stream to finish
-		<-wsClient.GetDone()
-		util.SpinHandlePromptComplete()
+			return clt.DialMicroserviceLogs(msvc.UUID, opts)
+		})
 	}
 
 	return nil

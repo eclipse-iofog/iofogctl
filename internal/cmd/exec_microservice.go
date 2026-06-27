@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -26,9 +13,9 @@ func newExecMicroserviceCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "microservice AppName/MsvcName",
-		Short:   "Connect to an Exec Session of a Microservice",
-		Long:    `Connect to an Exec Session of a Microservice to interact with its container.`,
-		Example: `iofogctl exec microservice AppName/MicroserviceName`,
+		Short:   "Open an interactive exec session to a Microservice",
+		Long:    `Open a WebSocket exec session to a running Microservice. No attach step is required.`,
+		Example: ex(`%[1]s exec microservice AppName/MicroserviceName`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

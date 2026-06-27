@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deployagent
 
 import (
@@ -74,18 +61,23 @@ func (facade *facadeExecutor) Execute() (err error) {
 	if err = facade.exe.Execute(); err != nil {
 		return
 	}
-	// Update: Include system agents in namespace file
-	// System agents should be saved to namespace file for consistency and management
-	if err = ns.UpdateAgent(facade.agent); err != nil {
-		return
-	}
 
-	// Set Agent configuration if provided
 	if agentConfig := facade.agent.GetConfig(); agentConfig != nil {
 		configExe := agentconfig.NewRemoteExecutor(facade.agent.GetName(), agentConfig, facade.namespace, facade.tags)
 		if err := configExe.Execute(); err != nil {
 			return err
 		}
+	}
+
+	uuid, err := facade.ProvisionAgent()
+	if err != nil {
+		return err
+	}
+	facade.agent.SetUUID(uuid)
+	facade.agent.SetCreatedTime(util.NowUTC())
+
+	if err = ns.UpdateAgent(facade.agent); err != nil {
+		return
 	}
 
 	return config.Flush()

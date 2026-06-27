@@ -12,12 +12,20 @@ import (
 
 // RequiredImages represents all images needed for airgap deployment
 type RequiredImages struct {
-	Controller string
-	Agent      string
-	RouterX86  string
-	RouterARM  string
-	Nats       string
-	Debugger   string
+	Controller      string
+	Agent           string
+	RouterAMD64     string
+	RouterARM64     string
+	RouterRISCV64   string
+	RouterARM       string
+	NatsAMD64       string
+	NatsARM64       string
+	NatsRISCV64     string
+	NatsARM         string
+	DebuggerAMD64   string
+	DebuggerARM64   string
+	DebuggerRISCV64 string
+	DebuggerARM     string
 }
 
 // getCatalogItemByName tries the given name, then fallbackNames if the first lookup fails (e.g. casing).
@@ -41,9 +49,13 @@ func applyRouterImagesFromCatalog(images *RequiredImages, item *client.CatalogIt
 		return
 	}
 	for _, img := range item.Images {
-		switch client.AgentTypeIDAgentTypeDict[img.AgentTypeID] {
-		case "x86":
-			images.RouterX86 = img.ContainerImage
+		switch client.ArchIDToName[img.ArchID] {
+		case "amd64":
+			images.RouterAMD64 = img.ContainerImage
+		case "arm64":
+			images.RouterARM64 = img.ContainerImage
+		case "riscv64":
+			images.RouterRISCV64 = img.ContainerImage
 		case "arm":
 			images.RouterARM = img.ContainerImage
 		}
@@ -56,9 +68,15 @@ func applyDebuggerImageFromCatalog(images *RequiredImages, item *client.CatalogI
 		return
 	}
 	for _, img := range item.Images {
-		if client.AgentTypeIDAgentTypeDict[img.AgentTypeID] == "x86" || client.AgentTypeIDAgentTypeDict[img.AgentTypeID] == "arm" {
-			images.Debugger = img.ContainerImage
-			return
+		switch client.ArchIDToName[img.ArchID] {
+		case "amd64":
+			images.DebuggerAMD64 = img.ContainerImage
+		case "arm64":
+			images.DebuggerARM64 = img.ContainerImage
+		case "riscv64":
+			images.DebuggerRISCV64 = img.ContainerImage
+		case "arm":
+			images.DebuggerARM = img.ContainerImage
 		}
 	}
 }
@@ -68,7 +86,18 @@ func applyNatsImageFromCatalog(images *RequiredImages, item *client.CatalogItemI
 	if item == nil || len(item.Images) == 0 {
 		return
 	}
-	images.Nats = item.Images[0].ContainerImage
+	for _, img := range item.Images {
+		switch client.ArchIDToName[img.ArchID] {
+		case "amd64":
+			images.NatsAMD64 = img.ContainerImage
+		case "arm64":
+			images.NatsARM64 = img.ContainerImage
+		case "riscv64":
+			images.NatsRISCV64 = img.ContainerImage
+		case "arm":
+			images.NatsARM = img.ContainerImage
+		}
+	}
 }
 
 // applyYAMLFallbackForController fills any empty router/nats/debugger from controlPlane.SystemMicroservices; util is last fallback.
@@ -77,67 +106,120 @@ func applyYAMLAndUtilFallbackForController(images *RequiredImages, controlPlane 
 		return
 	}
 	sm := &controlPlane.SystemMicroservices
-	if images.RouterX86 == "" {
-		if sm.Router.X86 != "" {
-			images.RouterX86 = sm.Router.X86
+	if images.RouterAMD64 == "" {
+		if sm.Router.AMD64 != "" {
+			images.RouterAMD64 = sm.Router.AMD64
 		} else {
-			images.RouterX86 = util.GetRouterImage()
+			images.RouterAMD64 = util.GetRouterImage()
+		}
+	}
+	if images.RouterARM64 == "" {
+		if sm.Router.ARM != "" {
+			images.RouterARM64 = sm.Router.ARM64
+		} else {
+			images.RouterARM64 = util.GetRouterImage()
+		}
+	}
+	if images.RouterRISCV64 == "" {
+		if sm.Router.RISCV64 != "" {
+			images.RouterRISCV64 = sm.Router.RISCV64
+		} else {
+			images.RouterRISCV64 = util.GetRouterImage()
 		}
 	}
 	if images.RouterARM == "" {
 		if sm.Router.ARM != "" {
 			images.RouterARM = sm.Router.ARM
 		} else {
-			images.RouterARM = util.GetRouterARMImage()
+			images.RouterARM = util.GetRouterImage()
 		}
 	}
-	if images.Nats == "" {
-		if sm.Nats.X86 != "" {
-			images.Nats = sm.Nats.X86
-		} else if sm.Nats.ARM != "" {
-			images.Nats = sm.Nats.ARM
+	if images.NatsAMD64 == "" {
+		if sm.Nats.AMD64 != "" {
+			images.NatsAMD64 = sm.Nats.AMD64
+		} else if sm.Nats.ARM64 != "" {
+			images.NatsARM64 = sm.Nats.ARM64
 		} else {
-			images.Nats = util.GetNatsImage()
+			images.NatsAMD64 = util.GetNatsImage()
 		}
 	}
-	if images.Debugger == "" {
-		images.Debugger = util.GetDebuggerImage()
+	if images.NatsARM64 == "" {
+		if sm.Nats.ARM64 != "" {
+			images.NatsARM64 = sm.Nats.ARM64
+		} else {
+			images.NatsARM64 = util.GetNatsImage()
+		}
+	}
+	if images.NatsRISCV64 == "" {
+		if sm.Nats.RISCV64 != "" {
+			images.NatsRISCV64 = sm.Nats.RISCV64
+		} else {
+			images.NatsRISCV64 = util.GetNatsImage()
+		}
+	}
+	if images.NatsARM == "" {
+		if sm.Nats.ARM != "" {
+			images.NatsARM = sm.Nats.ARM
+		} else {
+			images.NatsARM = util.GetNatsImage()
+		}
+	}
+	if images.DebuggerAMD64 == "" {
+		images.DebuggerAMD64 = util.GetDebuggerImage()
+	}
+	if images.DebuggerARM64 == "" {
+		images.DebuggerARM64 = util.GetDebuggerImage()
+	}
+	if images.DebuggerRISCV64 == "" {
+		images.DebuggerRISCV64 = util.GetDebuggerImage()
+	}
+	if images.DebuggerARM == "" {
+		images.DebuggerARM = util.GetDebuggerImage()
 	}
 }
 
 // applyYAMLAndUtilFallbackForAgent fills any empty router/nats/debugger from controlPlane (if non-nil) then util.
 func applyYAMLAndUtilFallbackForAgent(images *RequiredImages, controlPlane *rsc.RemoteControlPlane) {
-	if images.RouterX86 == "" {
-		if controlPlane != nil && controlPlane.SystemMicroservices.Router.X86 != "" {
-			images.RouterX86 = controlPlane.SystemMicroservices.Router.X86
+	if images.RouterAMD64 == "" {
+		if controlPlane != nil && controlPlane.SystemMicroservices.Router.AMD64 != "" {
+			images.RouterAMD64 = controlPlane.SystemMicroservices.Router.AMD64
 		} else {
-			images.RouterX86 = util.GetRouterImage()
+			images.RouterAMD64 = util.GetRouterImage()
 		}
 	}
-	if images.RouterARM == "" {
-		if controlPlane != nil && controlPlane.SystemMicroservices.Router.ARM != "" {
-			images.RouterARM = controlPlane.SystemMicroservices.Router.ARM
+	if images.RouterARM64 == "" {
+		if controlPlane != nil && controlPlane.SystemMicroservices.Router.ARM64 != "" {
+			images.RouterARM64 = controlPlane.SystemMicroservices.Router.ARM64
 		} else {
-			images.RouterARM = util.GetRouterARMImage()
+			images.RouterARM64 = util.GetRouterImage()
 		}
 	}
-	if images.Nats == "" {
+	if images.NatsAMD64 == "" {
 		if controlPlane != nil {
-			if controlPlane.SystemMicroservices.Nats.X86 != "" {
-				images.Nats = controlPlane.SystemMicroservices.Nats.X86
+			if controlPlane.SystemMicroservices.Nats.AMD64 != "" {
+				images.NatsAMD64 = controlPlane.SystemMicroservices.Nats.AMD64
 			} else if controlPlane.SystemMicroservices.Nats.ARM != "" {
-				images.Nats = controlPlane.SystemMicroservices.Nats.ARM
+				images.NatsARM64 = controlPlane.SystemMicroservices.Nats.ARM64
 			}
-			if images.Nats == "" {
-				images.Nats = util.GetNatsImage()
+			if images.NatsAMD64 == "" {
+				images.NatsAMD64 = util.GetNatsImage()
 			}
 		} else {
-			images.Nats = util.GetNatsImage()
+			images.NatsAMD64 = util.GetNatsImage()
 		}
 	}
-	if images.Debugger == "" {
+	if images.DebuggerAMD64 == "" {
 		// RemoteSystemMicroservices has no Debugger field; use util as fallback
-		images.Debugger = util.GetDebuggerImage()
+		images.DebuggerAMD64 = util.GetDebuggerImage()
+	}
+	if images.DebuggerARM64 == "" {
+		images.DebuggerARM64 = util.GetDebuggerImage()
+	}
+	if images.DebuggerRISCV64 == "" {
+		images.DebuggerRISCV64 = util.GetDebuggerImage()
+	}
+	if images.DebuggerARM == "" {
+		images.DebuggerARM = util.GetDebuggerImage()
 	}
 }
 
@@ -148,8 +230,8 @@ func CollectControllerImages(namespace string, controlPlane *rsc.RemoteControlPl
 	images := &RequiredImages{}
 
 	// Controller image
-	if controlPlane.Package.Container.Image != "" {
-		images.Controller = controlPlane.Package.Container.Image
+	if controlPlane.Controller.Package != nil && controlPlane.Controller.Package.Image != "" {
+		images.Controller = controlPlane.Controller.Package.Image
 	} else {
 		images.Controller = util.GetControllerImage()
 	}
@@ -231,8 +313,12 @@ func CollectAgentImages(namespace string, agent *rsc.RemoteAgent, controlPlane *
 func GetImageForPlatform(images *RequiredImages, platform string) (string, error) {
 	switch platform {
 	case PlatformAMD64:
-		return images.RouterX86, nil
+		return images.RouterAMD64, nil
 	case PlatformARM64:
+		return images.RouterARM64, nil
+	case PlatformRISCV64:
+		return images.RouterRISCV64, nil
+	case PlatformARM:
 		return images.RouterARM, nil
 	default:
 		return "", util.NewInputError(fmt.Sprintf("unsupported platform %s", platform))

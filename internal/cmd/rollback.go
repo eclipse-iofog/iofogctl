@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -30,7 +17,7 @@ func newRollbackCommand() *cobra.Command {
 		Use:     "rollback RESOURCE NAME",
 		Short:   "Rollback ioFog resources",
 		Long:    `Rollback ioFog resources to latest versions available.`,
-		Example: `iofogctl rollback agent NAME`,
+		Example: ex(`%[1]s rollback agent NAME`),
 		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name
@@ -50,7 +37,7 @@ func newRollbackCommand() *cobra.Command {
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully scheduled rollback for %s %s", strings.Title(opt.ResourceType), opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Successfully scheduled rollback for %s %s", strings.Title(opt.ResourceType), opt.Name))
 		},
 	}
 

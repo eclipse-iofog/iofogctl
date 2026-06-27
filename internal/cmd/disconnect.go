@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -32,7 +19,7 @@ func newDisconnectCommand() *cobra.Command {
 This will remove all client-side information for this Namespace. The Namespace will itself be deleted.
 Use the connect command to reconnect after a disconnect.
 If you would like to uninstall the Control Plane and/or Agents, use the delete command instead.`,
-		Example: `iofogctl disconnect -n NAMESPACE`,
+		Example: ex(`%[1]s disconnect -n NAMESPACE`),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")

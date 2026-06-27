@@ -1,43 +1,60 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deleteagent
 
 import (
 	"fmt"
 
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
-	// Stop and remove the Agent process on remote server
+func (exe executor) newRemoteEdgelet(agent *rsc.RemoteAgent) (*install.RemoteEdgelet, error) {
+	cfg := deployairgap.EdgeletInstallConfig("linux", agent.Config, agent.Package)
+	return install.NewRemoteEdgelet(
+		agent.SSH.User,
+		agent.Host,
+		agent.SSH.Port,
+		agent.SSH.KeyFile,
+		agent.Name,
+		agent.UUID,
+		cfg,
+	)
+}
+
+func (exe executor) deprovisionRemoteEdgelet(agent *rsc.RemoteAgent) error {
 	if agent.ValidateSSH() != nil {
-		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local cofiguration. Use configure command to add SSH details.")
-	} else {
-		sshAgent, err := install.NewRemoteAgent(agent.SSH.User,
-			agent.Host,
-			agent.SSH.Port,
-			agent.SSH.KeyFile,
-			agent.Name,
-			agent.UUID)
-		if err != nil {
-			return err
-		}
-		if err := sshAgent.Uninstall(); err != nil {
-			util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
-		}
+		util.PrintNotify("Could not deprovision daemon for Agent " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
+		return nil
+	}
+	edgelet, err := exe.newRemoteEdgelet(agent)
+	if err != nil {
+		return err
+	}
+	if err := edgelet.Deprovision(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not deprovision edgelet on Agent %s: %v", agent.Name, err))
 	}
 	return nil
+}
+
+func (exe executor) uninstallRemoteEdgelet(agent *rsc.RemoteAgent) error {
+	if agent.ValidateSSH() != nil {
+		util.PrintNotify("Could not stop daemon for Agent " + agent.Name + ". SSH details missing from local configuration. Use configure command to add SSH details.")
+		return nil
+	}
+	edgelet, err := exe.newRemoteEdgelet(agent)
+	if err != nil {
+		return err
+	}
+	if err := edgelet.Uninstall(true); err != nil {
+		util.PrintNotify(fmt.Sprintf("Failed to stop daemon on Agent %s. %s", agent.Name, err.Error()))
+	}
+	return nil
+}
+
+func (exe executor) deleteRemoteAgent(agent *rsc.RemoteAgent) error {
+	if err := exe.deprovisionRemoteEdgelet(agent); err != nil {
+		return err
+	}
+	return exe.uninstallRemoteEdgelet(agent)
 }

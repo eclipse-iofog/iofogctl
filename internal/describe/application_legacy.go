@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package describe
 
 import (
@@ -19,11 +6,11 @@ import (
 )
 
 func (exe *applicationExecutor) initLegacy() (err error) {
-	exe.flow, err = exe.client.GetFlowByName(exe.name)
+	exe.application, err = exe.client.GetApplicationByName(exe.name)
 	if err != nil {
 		return
 	}
-	msvcListResponse, err := exe.client.GetMicroservicesPerFlow(exe.flow.ID)
+	msvcListResponse, err := exe.client.GetMicroservicesByApplication(exe.application.Name)
 	if err != nil {
 		return
 	}

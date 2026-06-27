@@ -91,13 +91,6 @@ spec:
   stopTest
 }
 
-@test "Controller legacy commands after vanilla deploy" {
-  startTest
-  iofogctl -v legacy controller "$NAME" iofog list
-  checkLegacyController
-  stopTest
-}
-
 @test "Get Controller logs after vanilla deploy" {
   startTest
   iofogctl -v logs controller "$NAME"
@@ -121,12 +114,6 @@ spec:
   stopTest
 }
 
-@test "Edge Resources" {
-  startTest
-  testEdgeResources
-  stopTest
-}
-
 @test "Deploy Volumes" {
   startTest
   testDeployVolume
@@ -146,17 +133,6 @@ spec:
   testDeleteVolume
   testDeployVolume
   testGetDescribeVolume
-  stopTest
-}
-
-@test "Agent legacy commands" {
-  startTest
-  initAgents
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}-${IDX}"
-    iofogctl -v legacy agent "$AGENT_NAME" status
-    checkLegacyAgent "$AGENT_NAME"
-  done
   stopTest
 }
 
@@ -183,19 +159,6 @@ spec:
   iofogctl -v detach agent "$AGENT_NAME"
   checkAgentNegative "$AGENT_NAME"
   checkDetachedAgent "$AGENT_NAME"
-  stopTest
-}
-
-@test "Update detached agent name" {
-  startTest
-  local OLD_NAME="${NAME}-0"
-  local NEW_NAME="${NAME}-renamed"
-  iofogctl -v rename agent "$OLD_NAME" "$NEW_NAME" --detached
-  checkDetachedAgentNegative "$OLD_NAME"
-  checkDetachedAgent "$NEW_NAME"
-  iofogctl -v rename agent "$NEW_NAME" "$OLD_NAME" --detached
-  checkDetachedAgentNegative "$NEW_NAME"
-  checkDetachedAgent "$OLD_NAME"
   stopTest
 }
 
@@ -312,10 +275,6 @@ spec:
   checkControllerAfterConnect "$NS2"
   checkAgents "$NS2"
   checkApplication "$NS2"
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}-${IDX}"
-    iofogctl -v -n "$NS2" legacy agent "$AGENT_NAME" status
-  done
   stopTest
 }
 
@@ -374,46 +333,6 @@ spec:
     iofogctl -v -n "$NS2" logs agent "$AGENT_NAME"
     checkLegacyAgent "$AGENT_NAME" "$NS2"
   done
-  stopTest
-}
-
-@test "Rename Agents" {
-  startTest
-  for IDX in "${!AGENTS[@]}"; do
-    local AGENT_NAME="${NAME}-${IDX}"
-    iofogctl -v -n "$NS2" rename agent "$AGENT_NAME" "newname"
-    checkRenamedResource agents "$AGENT_NAME" "newname" "$NS2"
-    iofogctl -v -n "$NS2" rename agent "newname" "$AGENT_NAME"
-    checkRenamedResource agents "newname" "$AGENT_NAME" "$NS2"
-  done
-  stopTest
-}
-
-@test "Rename Controller" {
-  startTest
-  iofogctl -v -n "$NS2" rename controller "$NAME" "newname"
-  checkRenamedResource controllers "$NAME" "newname" "$NS2"
-  iofogctl -v -n "$NS2" rename controller "newname" "$NAME"
-  checkRenamedResource controllers "newname" "$NAME" "$NS2"
-  stopTest
-}
-
-@test "Rename Namespace" {
-  startTest
-  iofogctl -v rename namespace "${NS2}" "newname"
-  checkRenamedNamespace "$NS2" "newname"
-  iofogctl -v rename namespace "newname" "${NS2}"
-  checkRenamedNamespace "newname" "$NS2"
-  stopTest
-}
-
-@test "Rename Application" {
-  startTest
-  iofogctl -v rename application "$APPLICATION_NAME" "application-name"
-  iofogctl get all
-  checkRenamedApplication "$APPLICATION_NAME" "application-name" "$NS"
-  iofogctl -v rename application "application-name" "$APPLICATION_NAME"
-  checkRenamedApplication "application-name" "$APPLICATION_NAME" "$NS"
   stopTest
 }
 

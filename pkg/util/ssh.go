@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package util
 
 import (
@@ -64,7 +51,7 @@ func NewSecureShellClient(user, host, privKeyFilename string) (*SecureShellClien
 		Auth: []ssh.AuthMethod{
 			key,
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: cl.verifyHostKey(),
 	}
 	SSHVerbose("Config:")
 	SSHVerbose(fmt.Sprintf("User: %s", cl.user))
@@ -156,7 +143,7 @@ func format(err error, stdout, stderr fmt.Stringer) error {
 func (cl *SecureShellClient) getPublicKey() (authMeth ssh.AuthMethod, err error) {
 	// Read priv key file, MUST BE RSA
 	SSHVerbose(fmt.Sprintf("Reading private key: %s", cl.privKeyFilename))
-	key, err := os.ReadFile(cl.privKeyFilename)
+	key, err := ReadUserFile(cl.privKeyFilename)
 	if err != nil {
 		return
 	}
@@ -320,21 +307,25 @@ func (cl *SecureShellClient) CopyFolderTo(srcPath, destPath, permissions string,
 			}
 		} else {
 			// Read the file
-			openFile, err := os.Open(filepath.Join(srcPath, file.Name()))
+			openFile, err := OpenUnderRoot(srcPath, file.Name())
 			if err != nil {
 				return err
 			}
 			fileInfo, err := openFile.Stat()
 			if err != nil {
+				IgnoreClose(openFile)
 				return err
 			}
 			if fileInfo.Size() > maxFileSize {
+				IgnoreClose(openFile)
 				return fmt.Errorf("file %s is too large (max size: %d bytes)", fileInfo.Name(), maxFileSize)
 			}
 			// Copy the file
 			if err := cl.CopyTo(openFile, destPath, file.Name(), addLeadingZero(permissions), fileInfo.Size()); err != nil {
+				IgnoreClose(openFile)
 				return err
 			}
+			IgnoreClose(openFile)
 		}
 	}
 	return nil

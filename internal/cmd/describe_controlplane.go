@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -28,7 +15,7 @@ func newDescribeControlPlaneCommand() *cobra.Command {
 		Use:     "controlplane",
 		Short:   "Get detailed information about a Control Plane",
 		Long:    `Get detailed information about the Control Plane in a single Namespace.`,
-		Example: `iofogctl describe controlplane`,
+		Example: ex(`%[1]s describe controlplane`),
 		Args:    cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

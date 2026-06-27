@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -24,7 +11,7 @@ func newDeleteRoleBindingCommand() *cobra.Command {
 		Use:     "rolebinding NAME",
 		Short:   "Delete a RoleBinding",
 		Long:    `Delete a RoleBinding from the Controller.`,
-		Example: `iofogctl delete rolebinding NAME`,
+		Example: ex(`%[1]s delete rolebinding NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]

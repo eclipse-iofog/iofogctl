@@ -1,0 +1,23 @@
+---
+apiVersion: datasance.com/v3
+kind: Agent
+metadata:
+  name: edge-1
+spec:
+  host: 0.0.0.0
+  ssh:
+    user: emirhan
+    keyFile: /Users/emirhan/.lima/_config/user
+    port: 63025
+  airgap: true  
+  # package:
+  #   container:
+  #     image: ghcr.io/datasance/edgelet:1.0.0-rc.6
+  config:
+    host: 192.168.105.3
+    networkInterface: dynamic
+    logLevel: INFO
+    deploymentType: native
+    containerEngine: edgelet
+    # containerEngineUrl: unix:///var/run/docker.sock
+    arch: arm64

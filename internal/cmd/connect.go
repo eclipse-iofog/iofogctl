@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -27,17 +14,17 @@ func newConnectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "connect",
 		Short: "Connect to an existing Control Plane",
-		Long: `Connect to an existing Control Plane.
+		Long: ex(`Connect to an existing Control Plane.
 
 This command must be executed within an empty or non-existent Namespace.
 All resources provisioned with the corresponding Control Plane will become visible under the Namespace.
-Visit iofog.org to view all YAML specifications usable with this command.`,
-		Example: `iofogctl connect -f controlplane.yaml
+Visit %[2]s to view all YAML specifications usable with this command.`, util.GetCliDocsUrl()),
+		Example: ex(`%[1]s connect -f controlplane.yaml
 
-iofogctl connect --email EMAIL --pass PASSWORD --kube     FILE 
+%[1]s connect --email EMAIL --pass PASSWORD --kube     FILE 
                  --email EMAIL --pass PASSWORD --ecn-addr ENDPOINT --name NAME
 
-iofogctl connect --generate`,
+%[1]s connect --generate`),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
@@ -61,6 +48,8 @@ iofogctl connect --generate`,
 	cmd.Flags().BoolVar(&opt.OverwriteNamespace, "force", false, "Overwrite existing Namespace")
 	cmd.Flags().BoolVar(&opt.Generate, "generate", false, "Generate a connection string that can be used to connect to this ECN")
 	cmd.Flags().BoolVar(&opt.Base64Encoded, "b64", false, "Indicate whether input password (--pass) is base64 encoded or not")
+	cmd.Flags().StringVar(&opt.CAFile, "ca", "", "Path to PEM CA certificate for controller TLS (persisted to namespace config)")
+	cmd.Flags().StringVar(&opt.CAB64, "ca-b64", "", "Base64-encoded PEM CA certificate for controller TLS (persisted to namespace config)")
 
 	return cmd
 }

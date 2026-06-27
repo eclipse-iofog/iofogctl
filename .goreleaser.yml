@@ -1,0 +1,220 @@
+# Unified goreleaser config for potctl (datasance) and iofogctl (iofog).
+# Flavor comes from GITHUB_REPOSITORY (or FLAVOR override); version pins from versions.mk:
+#   GITHUB_REPOSITORY=Datasance/potctl        script/goreleaser-release.sh release --clean
+#   GITHUB_REPOSITORY=eclipse-iofog/iofogctl  script/goreleaser-release.sh release --clean
+version: 2
+
+project_name: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=1
+
+before:
+  hooks:
+    - go version
+    - bash script/goreleaser-env-check.sh
+
+builds:
+  - id: build_macos
+    binary: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+    env:
+      - CGO_ENABLED=0
+    main: '{{ if eq (.Env.FLAVOR) "datasance" }}./cmd/potctl/main.go{{ else }}./cmd/iofogctl/main.go{{ end }}'
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags: &release_ldflags
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber={{ .Version }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{ .Date }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{ .Os }}/{{ .Arch }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliBinaryName={{ .Env.CLI_BINARY_NAME }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliCrdGroup={{ .Env.CLI_CRD_GROUP }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliApiVersion={{ .Env.CLI_API_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliCpCrName={{ .Env.CLI_CP_CR_NAME }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.imageRegistry={{ .Env.IMAGE_REGISTRY }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliDocsUrl={{ .Env.CLI_DOCS_URL }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.packageRepoBase={{ .Env.PACKAGE_REPO_BASE }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.ociSourceRepo={{ .Env.OCI_SOURCE_REPO }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag={{ .Env.OPERATOR_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag={{ .Env.ROUTER_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag={{ .Env.CONTROLLER_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag={{ .Env.NATS_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletTag={{ .Env.EDGELET_IMAGE_TAG }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion={{ .Env.CONTROLLER_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletVersion={{ .Env.EDGELET_IMAGE_TAG }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletReleaseBase={{ .Env.EDGELET_RELEASE_BASE }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletGitHubRepo={{ .Env.EDGELET_GITHUB_REPO }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletBinaryVersion={{ .Env.EDGELET_BINARY_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.debuggerTag=latest"
+
+  - id: build_linux_amd64
+    binary: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+    main: '{{ if eq (.Env.FLAVOR) "datasance" }}./cmd/potctl/{{ else }}./cmd/iofogctl/{{ end }}'
+    goos:
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -v
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags:
+      - -extldflags -static
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.versionNumber={{ .Version }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.commit={{ .ShortCommit }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.date={{ .Date }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.platform={{ .Os }}/{{ .Arch }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliBinaryName={{ .Env.CLI_BINARY_NAME }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliCrdGroup={{ .Env.CLI_CRD_GROUP }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliApiVersion={{ .Env.CLI_API_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliCpCrName={{ .Env.CLI_CP_CR_NAME }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.imageRegistry={{ .Env.IMAGE_REGISTRY }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.cliDocsUrl={{ .Env.CLI_DOCS_URL }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.packageRepoBase={{ .Env.PACKAGE_REPO_BASE }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.ociSourceRepo={{ .Env.OCI_SOURCE_REPO }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.operatorTag={{ .Env.OPERATOR_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.routerTag={{ .Env.ROUTER_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerTag={{ .Env.CONTROLLER_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.natsTag={{ .Env.NATS_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletTag={{ .Env.EDGELET_IMAGE_TAG }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.controllerVersion={{ .Env.CONTROLLER_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletVersion={{ .Env.EDGELET_IMAGE_TAG }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletReleaseBase={{ .Env.EDGELET_RELEASE_BASE }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletGitHubRepo={{ .Env.EDGELET_GITHUB_REPO }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.edgeletBinaryVersion={{ .Env.EDGELET_BINARY_VERSION }}"
+      - -s -w -X "github.com/eclipse-iofog/iofogctl/pkg/util.debuggerTag=latest"
+
+  - id: build_linux_arm64
+    binary: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+    main: '{{ if eq (.Env.FLAVOR) "datasance" }}./cmd/potctl/{{ else }}./cmd/iofogctl/{{ end }}'
+    goos:
+      - linux
+    goarch:
+      - arm64
+    env:
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+      - CGO_ENABLED=1
+    flags:
+      - -v
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags: *release_ldflags
+
+  - id: build_linux_arm
+    binary: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+    main: '{{ if eq (.Env.FLAVOR) "datasance" }}./cmd/potctl/{{ else }}./cmd/iofogctl/{{ end }}'
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - 6
+      - 7
+    env:
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf-g++
+      - CGO_ENABLED=1
+    flags:
+      - -v
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags: *release_ldflags
+
+  - id: build_windows
+    binary: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+    env:
+      - CGO_ENABLED=0
+    main: '{{ if eq (.Env.FLAVOR) "datasance" }}./cmd/potctl/main.go{{ else }}./cmd/iofogctl/main.go{{ end }}'
+    goos:
+      - windows
+    goarch:
+      - amd64
+    flags:
+      - -tags=containers_image_openpgp,exclude_graphdriver_btrfs
+    ldflags: *release_ldflags
+
+archives:
+  - id: linux
+    ids:
+      - build_linux_amd64
+      - build_linux_arm64
+      - build_linux_arm
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    formats: ['tar.gz']
+    files:
+      - README.md
+      - LICENSE
+  - id: macos
+    ids:
+      - build_macos
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ if eq .Os `darwin` }}macos{{ else }}{{ .Os }}{{ end }}_{{ .Arch }}"
+    formats: ['tar.gz']
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "{{.ProjectName}}-checksums.txt"
+
+snapshot:
+  version_template: "{{ .Version }}-SNAPSHOT"
+
+changelog:
+  disable: true
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^dev:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: '{{ if eq (.Env.FLAVOR) "datasance" }}Datasance{{ else }}eclipse-iofog{{ end }}'
+    name: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+  draft: false
+  prerelease: auto
+
+brews:
+  - name: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+    homepage: '{{ if eq (.Env.FLAVOR) "datasance" }}https://github.com/Datasance/potctl{{ else }}https://github.com/eclipse-iofog/iofogctl{{ end }}'
+    description: '{{ if eq (.Env.FLAVOR) "datasance" }}CLI for Datasance potctl{{ else }}CLI for ioFog{{ end }}'
+    goarm: 6
+    repository:
+      owner: '{{ if eq (.Env.FLAVOR) "datasance" }}Datasance{{ else }}eclipse-iofog{{ end }}'
+      name: '{{ if eq (.Env.FLAVOR) "datasance" }}homebrew-potctl{{ else }}homebrew-iofogctl{{ end }}'
+    url_template: "https://github.com/{{ if eq (.Env.FLAVOR) \"datasance\" }}Datasance/potctl{{ else }}eclipse-iofog/iofogctl{{ end }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: emirhandurmus
+      email: emirhan.durmus@datasance.com
+    directory: Formula
+    test: |
+      system "#{bin}/{{ .ProjectName }} version"
+    install: |
+      bin.install "{{ .ProjectName }}"
+    skip_upload: false
+
+nfpms:
+  - ids: ['build_linux_amd64', 'build_linux_arm64', 'build_linux_arm']
+    homepage: '{{ if eq (.Env.FLAVOR) "datasance" }}https://github.com/Datasance/potctl{{ else }}https://github.com/eclipse-iofog/iofogctl{{ end }}'
+    description: '{{ if eq (.Env.FLAVOR) "datasance" }}CLI for Datasance potctl{{ else }}CLI for ioFog{{ end }}'
+    maintainer: Contributors to the Eclipse ioFog Project
+    vendor: Datasance
+    formats:
+      - deb
+      - rpm
+      - apk
+    overrides:
+      deb:
+        file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+      rpm:
+        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ if eq .Arch `amd64` }}x86_64{{ else if eq .Arch `arm64` }}aarch64{{ else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}hl{{ end }}"
+      apk:
+        file_name_template: "{{ .ConventionalFileName }}"

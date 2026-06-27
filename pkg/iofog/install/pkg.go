@@ -1,52 +1,43 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package install
 
 var pkg struct {
-	scriptPrereq                           string
-	scriptInit                             string
-	scriptInstallDeps                      string
-	scriptInstallJava                      string
-	scriptInstallContainerEngine           string
-	scriptInstallIofog                     string
-	scriptUninstallIofog                   string
-	controllerScriptPrereq                 string
-	controllerScriptInit                   string
-	controllerScriptInstallContainerEngine string
-	controllerScriptSetEnv                 string
-	controllerScriptInstall                string
-	controllerScriptUninstall              string
+	edgeletScriptPrereq                    string
+	edgeletScriptDetectInit                string
+	edgeletScriptInstallDeps               string
+	edgeletScriptConfigureContainerEngine  string
+	edgeletScriptInstall                   string
+	edgeletScriptInstallContainer          string
+	edgeletScriptInstallInitUnits          string
+	edgeletScriptStartEdgelet              string
+	edgeletScriptConfigureContainerEdgelet string
+	edgeletScriptWaitEdgeletReady          string
+	edgeletScriptBundled                   string
+	edgeletScriptUninstall                 string
+	edgeletLibScripts                      []string
 	iofogDir                               string
-	agentDir                               string
-	controllerDir                          string
 }
 
 func init() {
-	pkg.scriptPrereq = "check_prereqs.sh"
-	pkg.scriptInit = "init.sh"
-	pkg.scriptInstallDeps = "install_deps.sh"
-	pkg.scriptInstallJava = "install_java.sh"
-	pkg.scriptInstallContainerEngine = "install_container_engine.sh"
-	pkg.scriptInstallIofog = "install_iofog.sh"
-	pkg.scriptUninstallIofog = "uninstall_iofog.sh"
-	pkg.controllerScriptPrereq = "check_prereqs.sh"
-	pkg.controllerScriptInit = "init.sh"
-	pkg.controllerScriptInstallContainerEngine = "install_container_engine.sh"
-	pkg.controllerScriptSetEnv = "set_env.sh"
-	pkg.controllerScriptInstall = "install_iofog.sh"
-	pkg.controllerScriptUninstall = "uninstall_iofog.sh"
+	pkg.edgeletScriptPrereq = "check_prereqs.sh"
+	pkg.edgeletScriptDetectInit = "detect_init.sh"
+	pkg.edgeletScriptInstallDeps = "install_deps.sh"
+	pkg.edgeletScriptConfigureContainerEngine = "configure_container_engine.sh"
+	pkg.edgeletScriptInstall = "install.sh"
+	pkg.edgeletScriptInstallContainer = "install_container.sh"
+	pkg.edgeletScriptInstallInitUnits = "install_init_units.sh"
+	pkg.edgeletScriptStartEdgelet = "start_edgelet.sh"
+	pkg.edgeletScriptConfigureContainerEdgelet = "configure_container_edgelet.sh"
+	pkg.edgeletScriptWaitEdgeletReady = "wait_edgelet_ready.sh"
+	pkg.edgeletScriptBundled = "bundled.sh"
+	pkg.edgeletScriptUninstall = "uninstall.sh"
+	pkg.edgeletLibScripts = []string{
+		"lib/common.sh",
+		"lib/paths.sh",
+		"lib/receipt.sh",
+		"lib/binary.sh",
+		"lib/container_cli.sh",
+		"lib/container_engine.sh",
+		"lib/container_mounts.sh",
+	}
 	pkg.iofogDir = "/etc/iofog"
-	pkg.agentDir = "/etc/iofog/agent"
-	pkg.controllerDir = "/etc/iofog/controller"
 }

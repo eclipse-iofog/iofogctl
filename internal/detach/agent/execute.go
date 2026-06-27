@@ -1,22 +1,10 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package detachagent
 
 import (
 	"fmt"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -42,10 +30,10 @@ func (exe executor) Execute() error {
 
 	// Check doesn't already exist with same name
 	if _, err := config.GetDetachedAgent(exe.name); err == nil {
-		msg := `An Agent with the name '%s' is already detached. Rename one of the Agents and try to detach again:
-iofogctl rename agent %s %s-2 -n %s
-iofogctl rename agent %s %s-2 -n %s --detached`
-		return util.NewConflictError(fmt.Sprintf(msg, exe.name, exe.name, exe.name, exe.namespace, exe.name, exe.name, exe.namespace))
+		return util.NewConflictError(fmt.Sprintf(
+			"An Agent with the name '%s' is already detached. Detach or delete the existing detached Agent before trying again.",
+			exe.name,
+		))
 	}
 
 	ns, err := config.GetNamespace(exe.namespace)
@@ -85,7 +73,8 @@ iofogctl rename agent %s %s-2 -n %s --detached`
 	// Deprovision agent
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err := exe.localDeprovision(); err != nil {
+		cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
+		if err := exe.localDeprovision(agent.Name, agent.UUID, cfg); err != nil {
 			return err
 		}
 	case *rsc.RemoteAgent:

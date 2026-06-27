@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package config
 
 import (
@@ -118,7 +105,7 @@ func AddNamespace(name, created string) error {
 		return err
 	}
 	// Overwrite the file
-	err = os.WriteFile(getNamespaceFile(name), marshal, 0644)
+	err = os.WriteFile(getNamespaceFile(name), marshal, util.FilePerm)
 	if err != nil {
 		return err
 	}
@@ -154,7 +141,7 @@ func UpdateUser(name, accessToken, refreshToken string) error {
 	}
 
 	// Write the updated YAML data back to the file
-	err = os.WriteFile(getNamespaceFile(name), marshal, 0644)
+	err = os.WriteFile(getNamespaceFile(name), marshal, util.FilePerm)
 	if err != nil {
 		return err // Error in writing to the file
 	}
@@ -182,24 +169,6 @@ func DeleteNamespace(name string) error {
 	}
 
 	delete(namespaces, name)
-
-	return nil
-}
-
-// RenameNamespace renames a namespace
-func RenameNamespace(name, newName string) error {
-	ns, err := getNamespace(name)
-	if err != nil {
-		util.PrintError("Could not find namespace " + name)
-		return err
-	}
-	ns.Name = newName
-	if err := os.Rename(getNamespaceFile(name), getNamespaceFile(newName)); err != nil {
-		return err
-	}
-	if name == conf.DefaultNamespace {
-		return SetDefaultNamespace(newName)
-	}
 
 	return nil
 }

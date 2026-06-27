@@ -16,7 +16,7 @@ var (
 )
 
 func init() {
-	// Note: don't set the colour here, it will display the spinner when you don't want it to
+	// Note: don't set the color here, it will display the spinner when you don't want it to
 	spin = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 }
 

@@ -1,0 +1,43 @@
+endpoint: https://controller.example.com
+iofogUser:
+  name: Foo
+  surname: Bar
+  email: user@domain.com
+controller:
+  publicUrl: https://controller.example.com
+  consoleUrl: https://controller.example.com
+  logLevel: info
+  package:
+    image: ghcr.io/datasance/controller:3.8.0-rc.1
+    registry: quay.io
+    username: john
+    password: secret-token
+    email: user@domain.com
+auth:
+  mode: embedded
+  insecureAllowHttp: false
+  insecureAllowBootstrapLog: false
+  bootstrap:
+    username: admin
+    password: "LocalTest12!"
+systemMicroservices:
+  router:
+    amd64: ghcr.io/datasance/router:3.8.0-rc.1
+    arm64: ghcr.io/datasance/router:3.8.0-rc.1
+    riscv64: ghcr.io/datasance/router:3.8.0-rc.1
+    arm: ghcr.io/datasance/router:3.8.0-rc.1
+  nats:
+    amd64: ghcr.io/datasance/nats:2.14.2-rc.2
+    arm64: ghcr.io/datasance/nats:2.14.2-rc.2
+    riscv64: ghcr.io/datasance/nats:2.14.2-rc.2
+    arm: ghcr.io/datasance/nats:2.14.2-rc.2
+nats:
+  enabled: true
+events:
+  auditEnabled: true
+  retentionDays: 14
+  cleanupInterval: 86400
+  captureIpAddress: true
+systemAgent:
+  config:
+    arch: amd64

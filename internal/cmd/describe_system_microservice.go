@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -28,7 +15,7 @@ func newDescribeSystemMicroserviceCommand() *cobra.Command {
 		Use:     "system-microservice NAME",
 		Short:   "Get detailed information about a System Microservice",
 		Long:    `Get detailed information about a System Microservice.`,
-		Example: `iofogctl describe system-microservice NAME`,
+		Example: ex(`%[1]s describe system-microservice NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type and name

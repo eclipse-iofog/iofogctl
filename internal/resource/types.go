@@ -1,22 +1,10 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package resource
 
 import (
 	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/arch"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 )
 
@@ -30,16 +18,15 @@ type Container struct {
 }
 
 type RemoteContainer struct {
-	Image string `yaml:"image,omitempty"`
-	// Repo        string      `yaml:"repo,omitempty"`
-	// Credentials Credentials `yaml:"credentials,omitempty"` // Optional credentials if needed to pull images
+	Image    string `yaml:"image,omitempty"`
+	Registry string `yaml:"registry,omitempty"`
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
 }
 
 type Package struct {
-	Version   string `yaml:"version,omitempty"`
-	Container RemoteContainer
-	// Repo    string `yaml:"repo,omitempty"`
-	// Token   string `yaml:"token,omitempty"`
+	Version   string          `yaml:"version,omitempty"`
+	Container RemoteContainer `yaml:"container,omitempty"`
 }
 
 type SSH struct {
@@ -82,13 +69,52 @@ type Credentials struct {
 }
 
 type Auth struct {
-	URL              string `yaml:"url"`
-	Realm            string `yaml:"realm"`
-	SSL              string `yaml:"ssl"`
-	RealmKey         string `yaml:"realmKey"`
-	ControllerClient string `yaml:"controllerClient"`
-	ControllerSecret string `yaml:"controllerSecret"`
-	ViewerClient     string `yaml:"viewerClient"`
+	Mode                      string            `yaml:"mode"`
+	InsecureAllowHttp         *bool             `yaml:"insecureAllowHttp,omitempty"`
+	InsecureAllowBootstrapLog *bool             `yaml:"insecureAllowBootstrapLog,omitempty"`
+	Bootstrap                 *AuthBootstrap    `yaml:"bootstrap,omitempty"`
+	IssuerUrl                 string            `yaml:"issuerUrl,omitempty"`
+	Client                    *AuthClient       `yaml:"client,omitempty"`
+	ConsoleClient             string            `yaml:"consoleClient,omitempty"`
+	ConsoleClientEnabled      *bool             `yaml:"consoleClientEnabled,omitempty"`
+	RateLimit                 *AuthRateLimit    `yaml:"rateLimit,omitempty"`
+	SessionStore              *AuthSessionStore `yaml:"sessionStore,omitempty"`
+	TokenTtl                  *AuthTokenTtl     `yaml:"tokenTtl,omitempty"`
+	OidcTtl                   *AuthOidcTtl      `yaml:"oidcTtl,omitempty"`
+}
+
+type AuthBootstrap struct {
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+}
+
+type AuthClient struct {
+	ID     string `yaml:"id,omitempty"`
+	Secret string `yaml:"secret,omitempty"`
+}
+
+type AuthRateLimit struct {
+	Enabled              *bool `yaml:"enabled,omitempty"`
+	MaxRequestsPerWindow int   `yaml:"maxRequestsPerWindow,omitempty"`
+	WindowMs             int   `yaml:"windowMs,omitempty"`
+}
+
+type AuthSessionStore struct {
+	Type   string `yaml:"type,omitempty"`
+	TtlMs  int    `yaml:"ttlMs,omitempty"`
+	Secret string `yaml:"secret,omitempty"`
+}
+
+type AuthTokenTtl struct {
+	AccessTokenTtlSeconds  int `yaml:"accessTokenTtlSeconds,omitempty"`
+	RefreshTokenTtlSeconds int `yaml:"refreshTokenTtlSeconds,omitempty"`
+}
+
+type AuthOidcTtl struct {
+	InteractionTtlSeconds int `yaml:"interactionTtlSeconds,omitempty"`
+	GrantTtlSeconds       int `yaml:"grantTtlSeconds,omitempty"`
+	SessionTtlSeconds     int `yaml:"sessionTtlSeconds,omitempty"`
+	IdTokenTtlSeconds     int `yaml:"idTokenTtlSeconds,omitempty"`
 }
 
 type Database struct {
@@ -129,11 +155,13 @@ type Volume struct {
 }
 
 type OfflineImage struct {
-	Name     string            `json:"name" yaml:"name"`
-	X86Image string            `json:"x86,omitempty" yaml:"x86,omitempty"`
-	ArmImage string            `json:"arm,omitempty" yaml:"arm,omitempty"`
-	Auth     *OfflineImageAuth `json:"auth,omitempty" yaml:"auth,omitempty"`
-	Agents   []string          `json:"agent,omitempty" yaml:"agent,omitempty"`
+	Name         string            `json:"name" yaml:"name"`
+	AMD64Image   string            `json:"amd64,omitempty" yaml:"amd64,omitempty"`
+	ARM64Image   string            `json:"arm64,omitempty" yaml:"arm64,omitempty"`
+	RISCV64Image string            `json:"riscv64,omitempty" yaml:"riscv64,omitempty"`
+	ArmImage     string            `json:"arm,omitempty" yaml:"arm,omitempty"`
+	Auth         *OfflineImageAuth `json:"auth,omitempty" yaml:"auth,omitempty"`
+	Agents       []string          `json:"agent,omitempty" yaml:"agent,omitempty"`
 }
 
 type OfflineImageAuth struct {
@@ -148,7 +176,7 @@ type AgentConfiguration struct {
 	Latitude                  float64 `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description               string  `json:"description,omitempty" yaml:"description"`
-	FogType                   *string `json:"fogType,omitempty" yaml:"agentType"`
+	Arch                      *string `json:"arch,omitempty" yaml:"arch"`
 	client.AgentConfiguration `yaml:",inline"`
 }
 
@@ -185,46 +213,35 @@ type AgentStatus struct {
 	IsReadyToRollback     bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                string  `json:"tunnel" yaml:"tunnel"`
 	VolumeMounts          []VolumeMount
-	GpsStatus             string `json:"gpsStatus" yaml:"gpsStatus"`
+	GpsStatus             string                 `json:"gpsStatus" yaml:"gpsStatus"`
+	AvailableRuntimes     []string               `json:"availableRuntimes" yaml:"availableRuntimes"`
+	RuntimeAgentPhase     string                 `json:"runtimeAgentPhase" yaml:"runtimeAgentPhase"`
+	ControlPlaneQuiesced  bool                   `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
+	PlatformStatus        *client.PlatformStatus `json:"platformStatus,omitempty" yaml:"platformStatus,omitempty"`
 }
 
-type EdgeResource struct {
-	Name              string
-	Version           string                     `yaml:"version"`
-	Description       string                     `yaml:"description"`
-	InterfaceProtocol string                     `yaml:"interfaceProtocol"`
-	Interface         *EdgeResourceHTTPInterface `yaml:"interface,omitempty"` // TODO: Make this generic to support multiple interfaces protocols
-	Display           *Display                   `yaml:"display,omitempty"`
-	OrchestrationTags []string                   `yaml:"orchestrationTags"`
-	Custom            map[string]interface{}     `yaml:"custom"`
+// ArchStringToID maps canonical architecture names to Controller archId values.
+func ArchStringToID(name string) (int64, bool) {
+	id, ok := arch.NameToID[name]
+	return int64(id), ok
 }
 
-type EdgeResourceHTTPInterface = client.HTTPEdgeResource
-
-type Display = client.EdgeResourceDisplay
-type HTTPEndpoint = client.HTTPEndpoint
-
-// FogTypeStringMap map human readable fog type to Controller fog type
-var FogTypeStringMap = map[string]int64{
-	"auto": 0,
-	"x86":  1,
-	"arm":  2,
+// ArchIDToString maps Controller archId values to canonical architecture names.
+func ArchIDToString(id int) (string, bool) {
+	name, ok := arch.IDToName[id]
+	return name, ok
 }
 
-// FogTypeIntMap map Controller fog type to human readable fog type
-var FogTypeIntMap = map[int]string{
-	0: "auto",
-	1: "x86",
-	2: "arm",
-}
-
-type K8SControllerConfig struct {
-	PidBaseDir    string `yaml:"pidBaseDir,omitempty"`
-	EcnViewerPort int    `yaml:"ecnViewerPort,omitempty"`
-	EcnViewerURL  string `yaml:"ecnViewerUrl,omitempty"`
-	LogLevel      string `yaml:"logLevel,omitempty"`
-	Https         *bool  `yaml:"https,omitempty"`
-	SecretName    string `yaml:"secretName,omitempty"`
+// ControllerConfig is operator-aligned runtime config for the ioFog Controller (spec.controller).
+type ControllerConfig struct {
+	PublicUrl   string `yaml:"publicUrl,omitempty"`
+	TrustProxy  *bool  `yaml:"trustProxy,omitempty"`
+	ConsoleUrl  string `yaml:"consoleUrl,omitempty"`
+	ConsolePort int    `yaml:"consolePort,omitempty"`
+	PidBaseDir  string `yaml:"pidBaseDir,omitempty"`
+	LogLevel    string `yaml:"logLevel,omitempty"`
+	Https       *bool  `yaml:"https,omitempty"`
+	SecretName  string `yaml:"secretName,omitempty"`
 }
 
 type RemoteControllerConfig struct {
@@ -331,10 +348,26 @@ type VaultGoogle struct {
 	Credentials string `yaml:"credentials,omitempty"`
 }
 
-// LocalSystemMicroservices holds optional system image overrides for local control plane.
-type LocalSystemMicroservices struct {
-	Router string `yaml:"router,omitempty"`
-	Nats   string `yaml:"nats,omitempty"`
+// LocalControllerSpec is operator-aligned controller config for LocalControlPlane (spec.controller).
+type LocalControllerSpec struct {
+	ControllerConfig `yaml:",inline"`
+	Package          *ControllerPackage `yaml:"package,omitempty"`
+}
+
+// ControllerPackage holds optional controller image and private registry credentials.
+type ControllerPackage struct {
+	Image    string `yaml:"image,omitempty"`
+	Registry string `yaml:"registry,omitempty"`
+	Email    string `yaml:"email,omitempty"`
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+}
+
+// ControlPlaneTLS holds optional TLS material for non-K8s control planes.
+type ControlPlaneTLS struct {
+	CA   string `yaml:"ca,omitempty"`
+	Cert string `yaml:"cert,omitempty"`
+	Key  string `yaml:"key,omitempty"`
 }
 
 // NatsEnabledConfig is the NATS config for remote and local control planes (enabling only; no service/ingress/jetStream).
@@ -491,6 +524,6 @@ type CACreateRequest struct {
 	Name       string `json:"name" yaml:"name"`
 	Subject    string `json:"subject,omitempty" yaml:"subject,omitempty"`
 	Expiration int    `json:"expiration,omitempty" yaml:"expiration,omitempty"`
-	Type       string `json:"type" yaml:"type" yaml:"type"`
+	Type       string `json:"type" yaml:"type"`
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
 }

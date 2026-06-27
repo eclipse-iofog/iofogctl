@@ -1,25 +1,15 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deleteagent
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -69,6 +59,13 @@ func (exe executor) Execute() (err error) {
 
 	baseAgent, err = ns.GetAgent(exe.name)
 	if err != nil {
+		if util.IsNotFoundError(err) {
+			clientutil.InvalidateAgentCache(exe.namespace)
+			backendAgents, backendErr := clientutil.GetBackendAgents(exe.namespace)
+			if backendErr == nil && !agentListedInBackend(exe.name, backendAgents) {
+				return nil
+			}
+		}
 		return err
 	}
 
@@ -79,27 +76,45 @@ func (exe executor) Execute() (err error) {
 		}
 	}
 
-	// Remove from Controller
 	switch agent := baseAgent.(type) {
 	case *rsc.LocalAgent:
-		if err = exe.deleteLocalContainer(); err != nil {
-			util.PrintInfo(fmt.Sprintf("Could not remove Agent container %s. Error: %s\n", agent.GetHost(), err.Error()))
+		install.Verbose("Deprovisioning edgelet on local agent " + agent.GetName())
+		if err = exe.deprovisionLocalEdgelet(agent); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not deprovision Agent on the local host %s. Error: %s\n", agent.GetHost(), err.Error()))
 		}
 	case *rsc.RemoteAgent:
-		if err = exe.deleteRemoteAgent(agent); err != nil {
+		install.Verbose("Deprovisioning edgelet on remote agent " + agent.GetName())
+		if err = exe.deprovisionRemoteEdgelet(agent); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not deprovision Agent on the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
+		}
+	}
+
+	// Delete from Controller while it is still reachable after deprovision.
+	ctrl, err := clientutil.NewControllerClient(exe.namespace)
+	if err != nil {
+		util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
+	} else if baseAgent.GetUUID() != "" {
+		if err := ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil && !isControllerAgentNotFound(err) {
+			return err
+		}
+	}
+
+	clientutil.InvalidateAgentCache(exe.namespace)
+
+	// Remove edgelet from host
+	switch agent := baseAgent.(type) {
+	case *rsc.LocalAgent:
+		install.Verbose("Uninstalling edgelet from local agent " + agent.GetName())
+		if err = exe.uninstallLocalEdgelet(agent); err != nil {
+			util.PrintInfo(fmt.Sprintf("Could not remove Agent from the local host %s. Error: %s\n", agent.GetHost(), err.Error()))
+		}
+	case *rsc.RemoteAgent:
+		install.Verbose("Uninstalling edgelet from remote agent " + agent.GetName())
+		if err = exe.uninstallRemoteEdgelet(agent); err != nil {
 			util.PrintInfo(fmt.Sprintf("Could not remove Agent from the remote host %s. Error: %s\n", agent.GetHost(), err.Error()))
 		}
 	}
 
-	// Try to get a Controller client to talk to the REST API
-	ctrl, err := clientutil.NewControllerClient(exe.namespace)
-	if err != nil {
-		util.PrintInfo(fmt.Sprintf("Could not delete Agent %s from the Controller. Error: %s\n", exe.name, err.Error()))
-	}
-	// Perform deletion of Agent through Controller
-	if err := ctrl.DeleteAgent(baseAgent.GetUUID()); err != nil {
-		return err
-	}
 	if err := ns.DeleteAgent(baseAgent.GetName()); err != nil {
 		return err
 	}
@@ -133,6 +148,26 @@ func (exe executor) Execute() (err error) {
 	}
 
 	return config.Flush()
+}
+
+func agentListedInBackend(name string, agents []client.AgentInfo) bool {
+	for idx := range agents {
+		if agents[idx].Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func isControllerAgentNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	if util.IsNotFoundError(err) {
+		return true
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "notfound") || strings.Contains(msg, "not found")
 }
 
 func (exe executor) checkMicroservices(agentName, agentUUID string) (err error) {

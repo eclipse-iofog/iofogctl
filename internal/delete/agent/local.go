@@ -1,39 +1,45 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deleteagent
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
-
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func (exe executor) deleteLocalContainer() error {
-	client, err := install.NewLocalContainerClient()
+func (exe executor) newLocalEdgelet(agent *rsc.LocalAgent) (*install.LocalEdgelet, error) {
+	cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
+	return install.NewLocalEdgelet(agent.Name, agent.UUID, cfg)
+}
+
+func (exe executor) deprovisionLocalEdgelet(agent *rsc.LocalAgent) error {
+	edgelet, err := exe.newLocalEdgelet(agent)
 	if err != nil {
 		return err
 	}
+	if err := edgelet.Deprovision(); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not deprovision edgelet on local host: %v", err))
+	}
+	return nil
+}
 
-	// Clean agent containers (normal and system)
-	if errClean := client.CleanContainer(install.GetLocalContainerName("agent", false)); errClean != nil {
-		util.PrintNotify(fmt.Sprintf("Could not clean Agent container: %v", errClean))
+func (exe executor) uninstallLocalEdgelet(agent *rsc.LocalAgent) error {
+	cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), agent.Config, agent.Package)
+	edgelet, err := install.NewLocalEdgelet(agent.Name, agent.UUID, cfg)
+	if err != nil {
+		return err
+	}
+	if err := edgelet.Uninstall(true); err != nil {
+		util.PrintNotify(fmt.Sprintf("Could not remove edgelet from local host: %v", err))
 	}
 
-	// Clean microservices
+	client, err := install.NewLocalContainerClientFromEdgeletCfg(cfg)
+	if err != nil {
+		return err
+	}
 	containers, err := client.ListContainers()
 	if err != nil {
 		return err
@@ -48,6 +54,12 @@ func (exe executor) deleteLocalContainer() error {
 			}
 		}
 	}
-
 	return nil
+}
+
+func (exe executor) deleteLocalEdgelet(agent *rsc.LocalAgent) error {
+	if err := exe.deprovisionLocalEdgelet(agent); err != nil {
+		return err
+	}
+	return exe.uninstallLocalEdgelet(agent)
 }

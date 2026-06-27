@@ -1,0 +1,49 @@
+package:
+  version: 1.0.0-rc.6
+  container:
+    image: ghcr.io/datasance/edgelet:1.0.0-rc.6
+config:
+  description: edgelet running on device
+  host: 30.40.50.6
+  latitude: 46.204391
+  longitude: 6.143158
+  arch: amd64
+  deploymentType: native
+  containerEngine: edgelet
+  containerEngineUrl: unix:///run/edgelet/containerd.sock
+  diskLimit: 50
+  diskDirectory: /var/lib/edgelet/
+  memoryLimit: 4096
+  cpuLimit: 80
+  logLimit: 10
+  logDirectory: /var/log/edgelet/
+  logFileCount: 10
+  statusFrequency: 10
+  changeFrequency: 10
+  deviceScanFrequency: 60
+  bluetoothEnabled: true
+  watchdogEnabled: false
+  gpsMode: auto
+  gpsScanFrequency: 60
+  gpsDevice: ''
+  edgeGuardFrequency: 0
+  abstractedHardwareEnabled: false
+  upstreamRouters: ['default-router']
+  routerConfig:
+    routerMode: edge
+    messagingPort: 5671
+    edgeRouterPort: 45671
+    interRouterPort: 55671
+  upstreamNatsServers:
+    - default-nats-hub
+  natsConfig:
+    natsMode: leaf
+    natsServerPort: 4222
+    natsLeafPort: 7422
+    natsMqttPort: 8883
+    natsHttpPort: 8222
+    jsStorageSize: 10g
+    jsMemoryStoreSize: 1g
+  pruningFrequency: 0
+  logLevel: info
+  availableDiskThreshold: 90

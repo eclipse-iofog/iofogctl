@@ -1,0 +1,25 @@
+# Golden status excerpt from describe-agent-config-output.yaml (v3.8 fields)
+availableRuntimes:
+  - crun
+  - x-runtime
+  - y-runtime
+runtimeAgentPhase: ""
+controlPlaneQuiesced: false
+daemonStatus: UNKNOWN
+securityStatus: OK
+warningMessage: HEALTHY
+securityViolationInfo: No violation
+cpuUsage: 0.13 %
+cpuViolation: "false"
+diskUsage: 187 B
+diskViolation: "false"
+gpsStatus: HEALTHY
+ipAddress: 172.20.0.1
+ipAddressExternal: 176.234.134.248
+isReadyToRollback: false
+isReadyToUpgrade: false
+lastCommandTime: Never
+memoryViolation: "false"
+repositoryStatus: '[]'
+tunnel: ""
+version: 3.7.0

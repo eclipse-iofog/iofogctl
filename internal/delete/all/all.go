@@ -1,29 +1,19 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deleteall
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	deleteagent "github.com/eclipse-iofog/iofogctl/internal/delete/agent"
+	deleteagents "github.com/eclipse-iofog/iofogctl/internal/delete/agents"
 	deletecontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane"
+	deletelocalcontrolplane "github.com/eclipse-iofog/iofogctl/internal/delete/controlplane/local"
 	deletevolume "github.com/eclipse-iofog/iofogctl/internal/delete/volume"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
+	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func Execute(namespace string, useDetached, force bool) error {
+func Execute(namespace string, useDetached, force, deleteNamespace bool) error {
 	// Make sure to update config despite failure
 	defer config.Flush()
 
@@ -51,31 +41,41 @@ func Execute(namespace string, useDetached, force bool) error {
 
 	if !useDetached {
 		// Delete applications
-		util.SpinStart("Deleting Flows")
+		util.SpinStart("Deleting Applications")
 		clt, err := clientutil.NewControllerClient(namespace)
 		if err != nil {
 			return err
 		}
 
-		flows, err := clt.GetAllFlows()
+		applications, err := clt.GetAllApplications()
 		if err != nil {
 			return err
 		}
 
-		for _, flow := range flows.Flows {
-			if err := clt.DeleteFlow(flow.ID); err != nil {
+		for _, application := range applications.Applications {
+			if err := clt.DeleteApplication(application.Name); err != nil {
 				return err
 			}
 		}
 	}
 
-	// Delete Agents
-	if len(ns.GetAgents()) > 0 {
+	// Delete non-control-plane agents first while the controller is still reachable.
+	var excludeAgentNames []string
+	if cp, cpErr := ns.GetControlPlane(); cpErr == nil {
+		if localCP, ok := cp.(*rsc.LocalControlPlane); ok && localCP.SystemAgent != nil {
+			excludeAgentNames = []string{deletelocalcontrolplane.ControlPlaneSystemAgentName(localCP)}
+		}
+	}
+	agentTargets, err := deleteagents.CollectDeleteTargets(ns, namespace, force, excludeAgentNames)
+	if err != nil {
+		return err
+	}
+	if len(agentTargets) > 0 {
 		util.SpinStart("Deleting Agents")
 
 		var executors []execute.Executor
-		for _, agent := range ns.GetAgents() {
-			exe, err := deleteagent.NewExecutor(namespace, agent.GetName(), useDetached, force)
+		for _, target := range agentTargets {
+			exe, err := deleteagent.NewExecutor(namespace, target.Name, useDetached, target.Force)
 			if err != nil {
 				return err
 			}
@@ -89,7 +89,7 @@ func Execute(namespace string, useDetached, force bool) error {
 	if !useDetached {
 		// Delete Controllers
 		util.SpinStart("Deleting Control Plane ")
-		exe, err := deletecontrolplane.NewExecutor(namespace)
+		exe, err := deletecontrolplane.NewExecutor(namespace, deleteNamespace)
 		if err != nil {
 			return err
 		}
