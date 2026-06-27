@@ -4,13 +4,13 @@
 #   GITHUB_REPOSITORY=eclipse-iofog/iofogctl  script/goreleaser-release.sh release --clean
 version: 2
 
-project_name: "{{ .Env.CLI_BINARY_NAME }}"
+# project_name is substituted by script/goreleaser-release.sh (__CLI_BINARY_NAME__).
+# GoReleaser does not evaluate templates in project_name.
+project_name: __CLI_BINARY_NAME__
 
 env:
   - GO111MODULE=on
   - CGO_ENABLED=1
-  - FLAVOR={{ .Env.FLAVOR }}
-  - CLI_BINARY_NAME={{ .Env.CLI_BINARY_NAME }}
 
 before:
   hooks:
@@ -161,7 +161,7 @@ archives:
   - id: windows
     ids:
       - build_windows
-    name_template: "{{ .ProjectName }}_{{ .Version }}_windows_{{ .Arch }}.exe"
+    name_template: "{{ .Env.CLI_BINARY_NAME }}_{{ .Version }}_windows_{{ .Arch }}"
     formats: ['binary']
 
 checksum:
