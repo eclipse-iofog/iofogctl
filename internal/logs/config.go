@@ -5,12 +5,13 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // LogTailConfig holds configuration for log tailing
 type LogTailConfig struct {
-	Tail   int    // Number of lines to tail (default: 100, range: 1-10000)
+	Tail   int    // Number of lines to tail (default: 100, range: 1-5000)
 	Follow bool   // Whether to follow logs (default: true)
 	Since  string // Start time in ISO 8601 format (optional)
 	Until  string // End time in ISO 8601 format (optional)
@@ -27,8 +28,8 @@ func DefaultLogTailConfig() *LogTailConfig {
 // Validate validates the LogTailConfig
 func (c *LogTailConfig) Validate() error {
 	// Validate tail range
-	if c.Tail < 1 || c.Tail > 10000 {
-		return util.NewInputError(fmt.Sprintf("tail must be between 1 and 10000, got %d", c.Tail))
+	if c.Tail < 1 || c.Tail > 5000 {
+		return util.NewInputError(fmt.Sprintf("tail must be between 1 and 5000, got %d", c.Tail))
 	}
 
 	// Validate ISO 8601 format for since if provided
@@ -69,6 +70,19 @@ func (c *LogTailConfig) BuildQueryString() string {
 	}
 
 	return values.Encode()
+}
+
+// ToSDKOptions converts the CLI log tail config to SDK dial options.
+func (c *LogTailConfig) ToSDKOptions() *client.LogTailOptions {
+	if c == nil {
+		return nil
+	}
+	return &client.LogTailOptions{
+		Tail:   c.Tail,
+		Follow: c.Follow,
+		Since:  c.Since,
+		Until:  c.Until,
+	}
 }
 
 // validateISO8601 validates that a string is in ISO 8601 format

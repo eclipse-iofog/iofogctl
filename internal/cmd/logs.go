@@ -55,7 +55,7 @@ func newLogsCommand() *cobra.Command {
 	}
 
 	// Add flags for log tail configuration
-	cmd.Flags().Int("tail", 100, "Number of lines to tail (range: 1-10000)")
+	cmd.Flags().Int("tail", 100, "Number of lines to tail (range: 1-5000)")
 	cmd.Flags().Bool("follow", true, "Follow log output")
 	cmd.Flags().String("since", "", "Start time in ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
 	cmd.Flags().String("until", "", "End time in ISO 8601 format (e.g., 2024-01-02T00:00:00Z)")
