@@ -16,7 +16,7 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 - `KubernetesControlPlane`, `RemoteControlPlane`, and `LocalControlPlane` resource kinds for v3.8 deployments
 - **edgelet** platform for edge node agents (replaces Java `iofog-agent`)
 - Embedded auth mode (`auth.mode: embedded|external`) — no Keycloak YAML blocks
-- Unified `.goreleaser.yml` with `FLAVOR=datasance|iofog` matrix
+- Unified `.goreleaser.yml`; release flavor derived from GitHub repo (`Datasance/potctl` → potctl, `eclipse-iofog/iofogctl` → iofogctl)
 - Package repositories: [downloads.datasance.com](https://downloads.datasance.com/) (potctl), [iofog.datasance.com](https://iofog.datasance.com/) (iofogctl)
 - Config directory `~/.iofog/v3` for both flavors
 - Root `NOTICE` file (no per-file copyright headers)

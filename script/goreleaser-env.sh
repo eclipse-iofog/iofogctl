@@ -1,14 +1,32 @@
 #!/usr/bin/env bash
 # Export version pins (versions.mk) and flavor ldflags for goreleaser.
+# Flavor resolution (first match wins):
+#   1. FLAVOR env (manual override)
+#   2. GITHUB_REPOSITORY (CI / local release smoke)
+#   3. default iofog
+#
 # Usage:
-#   eval "$(FLAVOR=iofog script/goreleaser-env.sh)"
-#   FLAVOR=datasance script/goreleaser-release.sh release --clean
+#   eval "$(script/goreleaser-env.sh)"
+#   GITHUB_REPOSITORY=Datasance/potctl script/goreleaser-release.sh release --clean
+#   FLAVOR=datasance script/goreleaser-release.sh release --snapshot --clean
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-FLAVOR="${FLAVOR:-iofog}"
+resolve_flavor() {
+  if [ -n "${FLAVOR:-}" ]; then
+    echo "$FLAVOR"
+    return
+  fi
+  case "${GITHUB_REPOSITORY:-}" in
+    Datasance/potctl) echo datasance ;;
+    eclipse-iofog/iofogctl) echo iofog ;;
+    *) echo iofog ;;
+  esac
+}
+
+FLAVOR="$(resolve_flavor)"
 
 while IFS= read -r line; do
   case "$line" in

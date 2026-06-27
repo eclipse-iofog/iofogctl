@@ -1,7 +1,7 @@
 # Unified goreleaser config for potctl (datasance) and iofogctl (iofog).
-# Set FLAVOR and load version pins before running:
-#   FLAVOR=iofog     script/goreleaser-release.sh release --clean
-#   FLAVOR=datasance script/goreleaser-release.sh release --clean
+# Flavor comes from GITHUB_REPOSITORY (or FLAVOR override); version pins from versions.mk:
+#   GITHUB_REPOSITORY=Datasance/potctl        script/goreleaser-release.sh release --clean
+#   GITHUB_REPOSITORY=eclipse-iofog/iofogctl  script/goreleaser-release.sh release --clean
 version: 2
 
 project_name: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'

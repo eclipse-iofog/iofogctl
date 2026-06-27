@@ -9,25 +9,7 @@ env:
   GO_VERSION: '1.26.4'
 
 jobs:
-  release-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      flavors: ${{ steps.set.outputs.flavors }}
-    steps:
-      - id: set
-        run: |
-          if [ "${{ github.repository }}" = "Datasance/potctl" ]; then
-            echo 'flavors=["iofog","datasance"]' >> "$GITHUB_OUTPUT"
-          else
-            echo 'flavors=["iofog"]' >> "$GITHUB_OUTPUT"
-          fi
-
   release:
-    needs: release-matrix
-    strategy:
-      matrix:
-        flavor: ${{ fromJson(needs.release-matrix.outputs.flavors) }}
-    name: Release (${{ matrix.flavor }})
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -49,7 +31,7 @@ jobs:
 
       - name: Release
         env:
-          FLAVOR: ${{ matrix.flavor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
         run: script/goreleaser-release.sh release --clean

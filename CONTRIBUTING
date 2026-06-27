@@ -63,21 +63,23 @@ Local checks: `make lint`, `make test-unit`, `make grep-gates`, `make security-c
 
 ## Release builds
 
-GoReleaser uses a single root `.goreleaser.yml` driven by `FLAVOR`:
+GoReleaser uses a single root `.goreleaser.yml`. Each mirror releases one binary:
+
+| GitHub repo | Binary |
+|-------------|--------|
+| `Datasance/potctl` | `potctl` |
+| `eclipse-iofog/iofogctl` | `iofogctl` |
+
+`script/goreleaser-env.sh` picks flavor from `GITHUB_REPOSITORY` (default `iofog`). Component pins always come from `versions.mk`. CI sets `GITHUB_REPOSITORY` automatically; for local release smoke:
 
 ```bash
-FLAVOR=iofog     script/goreleaser-release.sh release --clean
-FLAVOR=datasance script/goreleaser-release.sh release --clean
+GITHUB_REPOSITORY=Datasance/potctl        script/goreleaser-release.sh release --snapshot --clean
+GITHUB_REPOSITORY=eclipse-iofog/iofogctl    script/goreleaser-release.sh release --snapshot --clean
 ```
 
-Version pins come from `versions.mk`; flavor-specific ldflags are exported by `script/goreleaser-env.sh` before goreleaser runs. Local snapshot (requires Linux cross-compilers for the full matrix):
+Override flavor explicitly when needed: `FLAVOR=datasance script/goreleaser-release.sh check`
 
-```bash
-FLAVOR=iofog     script/goreleaser-release.sh release --snapshot --clean
-FLAVOR=datasance script/goreleaser-release.sh release --snapshot --clean
-```
-
-Validate config only: `FLAVOR=iofog script/goreleaser-release.sh check`
+Release workflow requires `HOMEBREW_TAP_GITHUB_TOKEN` (PAT with write access to the mirror's Homebrew tap repo).
 
 ## Eclipse Contributor Agreement
 

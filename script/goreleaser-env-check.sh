@@ -2,6 +2,6 @@
 set -euo pipefail
 
 if [ -z "${OPERATOR_VERSION:-}" ]; then
-  echo "Load release env first: eval \"\$(FLAVOR=${FLAVOR:-iofog} script/goreleaser-env.sh)\"" >&2
+  echo "Load release env first: eval \"\$(script/goreleaser-env.sh)\" (set GITHUB_REPOSITORY or FLAVOR to pick mirror)" >&2
   exit 1
 fi
