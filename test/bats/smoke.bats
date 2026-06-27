@@ -34,8 +34,8 @@
   iofogctl disconnect --help
 }
 
-@test "Legacy Help" {
-  iofogctl legacy --help
+@test "Move Help" {
+  iofogctl move --help
 }
 
 @test "Logs Help" {

@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -27,18 +14,19 @@ func newConfigureCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "configure RESOURCE NAME",
-		Short: "Configure iofogctl or ioFog resources",
-		Long: `Configure iofogctl or ioFog resources
+		Short: ex("Configure %[1]s or ioFog resources"),
+		Long: ex(`Configure %[1]s or ioFog resources
 
-If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.`,
-		Example: `iofogctl configure current-namespace NAME
+If you would like to replace the host value of Remote Controllers or Agents, you should delete and redeploy those resources.`),
+		Example: ex(`%[1]s configure current-namespace NAME
 
-iofogctl configure controller  NAME --user USER --key KEYFILE --port PORTNUM
+%[1]s configure controller  NAME --user USER --key KEYFILE --port PORTNUM
                    controllers
                    agent
                    agents
+				   controlplane
 
-iofogctl configure controlplane --kube FILE`,
+%[1]s configure controlplane --kube FILE`),
 		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
@@ -68,13 +56,15 @@ iofogctl configure controlplane --kube FILE`,
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Succesfully configured %s %s", opt.ResourceType, opt.Name))
+			util.PrintSuccess(fmt.Sprintf("Successfully configured %s %s", opt.ResourceType, opt.Name))
 		},
 	}
 	cmd.Flags().StringVar(&opt.User, "user", "", "Username of remote host")
 	cmd.Flags().StringVar(&opt.KeyFile, "key", "", "Path to private SSH key")
 	cmd.Flags().StringVar(&opt.KubeConfig, "kube", "", "Path to Kubernetes configuration file")
-	cmd.Flags().IntVar(&opt.Port, "port", 0, "Port number that iofogctl uses to SSH into remote hosts")
+	cmd.Flags().StringVar(&opt.CAFile, "ca", "", "Path to PEM CA certificate for controller TLS (persisted to namespace config)")
+	cmd.Flags().StringVar(&opt.CAB64, "ca-b64", "", "Base64-encoded PEM CA certificate for controller TLS (persisted to namespace config)")
+	cmd.Flags().IntVar(&opt.Port, "port", 0, ex("Port number that %[1]s uses to SSH into remote hosts"))
 	cmd.Flags().Bool("detached", false, pkg.flagDescDetached)
 
 	return cmd

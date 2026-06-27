@@ -1,12 +1,15 @@
-# Notices for Eclipse ioFog
+# Notices
 
-This content is produced and maintained by the Eclipse ioFog project.
+This content is produced and maintained by the Eclipse ioFog project and
+Datasance contributors to the shared `iofogctl` / `potctl` CLI mirror.
 
-* Project home: https://projects.eclipse.org/projects/iot.iofog
+* Eclipse ioFog project home: https://projects.eclipse.org/projects/iot.iofog
+* Datasance PoT: https://datasance.com
 
 ## Trademarks
 
 Eclipse ioFog is a trademark of the Eclipse Foundation.
+Datasance and PoT are trademarks of Datasance.
 
 ## Copyright
 
@@ -26,6 +29,8 @@ SPDX-License-Identifier: EPL-2.0
 
 The project maintains the following source code repositories:
 
+* https://github.com/eclipse-iofog/iofogctl
+* https://github.com/Datasance/potctl
 * https://github.com/eclipse-iofog
 * http://git.eclipse.org/c/iofog/org.eclipse.iofog.git
 

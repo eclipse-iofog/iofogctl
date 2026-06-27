@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package connectremotecontrolplane
 
 import (
@@ -28,9 +15,11 @@ import (
 type remoteExecutor struct {
 	controlPlane *rsc.RemoteControlPlane
 	namespace    string
+	caFile       string
+	caB64        string
 }
 
-func NewManualExecutor(namespace, name, endpoint, email, password string) (execute.Executor, error) {
+func NewManualExecutor(namespace, name, endpoint, email, password, caFile, caB64 string) (execute.Executor, error) {
 	fmtEndpoint, err := formatEndpoint(endpoint)
 	if err != nil {
 		return nil, err
@@ -51,10 +40,10 @@ func NewManualExecutor(namespace, name, endpoint, email, password string) (execu
 		},
 	}
 
-	return newRemoteExecutor(controlPlane, namespace), nil
+	return newRemoteExecutor(controlPlane, namespace, caFile, caB64), nil
 }
 
-func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute.Executor, error) {
+func NewExecutor(namespace, name string, yaml []byte, kind config.Kind, caFile, caB64 string) (execute.Executor, error) {
 	// Read the input file
 	controlPlane, err := rsc.UnmarshallRemoteControlPlane(yaml)
 	if err != nil {
@@ -87,13 +76,15 @@ func NewExecutor(namespace, name string, yaml []byte, kind config.Kind) (execute
 		}
 	}
 
-	return newRemoteExecutor(&controlPlane, namespace), nil
+	return newRemoteExecutor(&controlPlane, namespace, caFile, caB64), nil
 }
 
-func newRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace string) *remoteExecutor {
+func newRemoteExecutor(controlPlane *rsc.RemoteControlPlane, namespace, caFile, caB64 string) *remoteExecutor {
 	r := &remoteExecutor{
 		controlPlane: controlPlane,
 		namespace:    namespace,
+		caFile:       caFile,
+		caB64:        caB64,
 	}
 	return r
 }
@@ -116,7 +107,10 @@ func (exe *remoteExecutor) Execute() (err error) {
 	if err != nil {
 		return err
 	}
-	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, ns)
+	if err := connectcontrolplane.PrepareTrust(exe.namespace, exe.controlPlane, exe.caFile, exe.caB64); err != nil {
+		return err
+	}
+	err = connectcontrolplane.Connect(exe.controlPlane, endpoint, exe.namespace, ns)
 	if err != nil {
 		return err
 	}

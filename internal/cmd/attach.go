@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -20,7 +7,7 @@ import (
 func newAttachCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "attach",
-		Example: `attach`,
+		Example: ex(`%[1]s attach`),
 		Short:   "Attach one ioFog resource to another",
 		Long:    `Attach one ioFog resource to another.`,
 	}
@@ -28,7 +15,6 @@ func newAttachCommand() *cobra.Command {
 	// Add subcommands
 	cmd.AddCommand(
 		newAttachAgentCommand(),
-		newAttachEdgeResourceCommand(),
 		newAttachVolumeMountCommand(),
 		newAttachExecCommand(),
 	)

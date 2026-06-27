@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -28,7 +15,7 @@ func newAttachVolumeMountCommand() *cobra.Command {
 		Use:     "volume-mount NAME AGENT_NAME1 AGENT_NAME2",
 		Short:   "Attach a Volume Mount to existing Agents",
 		Long:    `Attach a Volume Mount to existing Agents.`,
-		Example: `iofogctl attach volume-mount NAME AGENT_NAME1 AGENT_NAME2`,
+		Example: ex(`%[1]s attach volume-mount NAME AGENT_NAME1 AGENT_NAME2`),
 		Args:    cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

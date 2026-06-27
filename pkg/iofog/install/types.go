@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package install
 
 import (
@@ -26,15 +13,7 @@ type IofogUser struct {
 	RefreshToken string
 }
 
-type Auth struct {
-	URL              string
-	Realm            string
-	SSL              string
-	RealmKey         string
-	ControllerClient string
-	ControllerSecret string
-	ViewerClient     string
-}
+type Auth = cpv3.Auth
 
 type Database struct {
 	Provider     string
@@ -89,24 +68,35 @@ type VaultGoogleConfig struct {
 	Credentials string
 }
 
+type RemoteSystemImages struct {
+	ARM     string `yaml:"arm,omitempty"`
+	AMD64   string `yaml:"amd64,omitempty"`
+	ARM64   string `yaml:"arm64,omitempty"`
+	RISCV64 string `yaml:"riscv64,omitempty"`
+}
+
+type RemoteSystemMicroservices struct {
+	Router RemoteSystemImages `yaml:"router,omitempty"`
+	Nats   RemoteSystemImages `yaml:"nats,omitempty"`
+}
+
+type SiteCertificate struct {
+	TLSCert string
+	TLSKey  string
+}
+
 type Pod struct {
 	Name   string
 	Status string
 }
 
 type K8SControllerConfig struct {
-	// User          IofogUser
-	Replicas      int32
-	ReplicasNats  int32
-	Database      Database
-	PidBaseDir    string
-	EcnViewerPort int
-	EcnViewerURL  string
-	LogLevel      string
-	Auth          Auth
-	Events        Events
-	Https         *bool
-	SecretName    string
-	Nats          *cpv3.Nats
-	Vault         *cpv3.Vault
+	Replicas     int32
+	ReplicasNats int32
+	Database     Database
+	Auth         Auth
+	Events       Events
+	Controller   cpv3.Controller
+	Nats         *cpv3.Nats
+	Vault        *cpv3.Vault
 }

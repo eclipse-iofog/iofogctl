@@ -1,0 +1,35 @@
+apiVersion: edgelet.iofog.org/v1
+kind: ControlPlane
+metadata:
+  name: iofog
+  namespace: test-ns
+spec:
+  controller:
+    image: ghcr.io/eclipse-iofog/controller:3.8.0-rc.1
+    registry: 1
+    publicUrl: https://controller.example.com
+  console:
+    url: https://controller.example.com
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+  events:
+    auditEnabled: true
+    retentionDays: 14
+    cleanupInterval: 86400
+    captureIpAddress: true
+  systemMicroservices:
+    router:
+      amd64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+      arm64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+      riscv64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+      arm: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+    nats:
+      amd64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
+      arm64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
+      riscv64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
+      arm: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
+  nats:
+    enabled: true
+  logLevel: info

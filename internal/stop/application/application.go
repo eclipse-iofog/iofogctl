@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package application
 
 import (
@@ -45,12 +32,12 @@ func (exe *executor) Execute() (err error) {
 		return err
 	}
 
-	flow, err := clt.GetFlowByName(exe.name)
+	application, err := clt.GetApplicationByName(exe.name)
 	if err != nil {
 		return err
 	}
 
-	_, err = clt.StopFlow(flow.ID)
+	_, err = clt.StopApplication(application.Name)
 
 	return
 }

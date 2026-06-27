@@ -1,26 +1,15 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package resource
 
 type LocalAgent struct {
 	Name               string              `yaml:"name,omitempty"`
 	UUID               string              `yaml:"uuid,omitempty"`
-	Container          Container           `yaml:"container,omitempty"`
 	Created            string              `yaml:"created,omitempty"`
 	Host               string              `yaml:"host,omitempty"`
+	Package            Package             `yaml:"package,omitempty"`
 	Config             *AgentConfiguration `yaml:"config,omitempty"`
+	Scripts            *AgentScripts       `yaml:"scripts,omitempty"`
 	ControllerEndpoint string              `yaml:"controllerEndpoint,omitempty"`
+	Airgap             bool                `yaml:"airgap,omitempty"`
 }
 
 func (agent *LocalAgent) GetName() string {
@@ -32,6 +21,12 @@ func (agent *LocalAgent) GetUUID() string {
 }
 
 func (agent *LocalAgent) GetHost() string {
+	if agent.Config != nil && agent.Config.Host != nil && *agent.Config.Host != "" {
+		return *agent.Config.Host
+	}
+	if agent.Host != "" {
+		return agent.Host
+	}
 	return "localhost"
 }
 
@@ -80,13 +75,20 @@ func (agent *LocalAgent) Clone() Agent {
 		config = new(AgentConfiguration)
 		*config = *agent.Config
 	}
+	scripts := agent.Scripts
+	if agent.Scripts != nil {
+		scripts = new(AgentScripts)
+		*scripts = *agent.Scripts
+	}
 	return &LocalAgent{
 		Name:               agent.Name,
 		Host:               agent.Host,
 		UUID:               agent.UUID,
 		Created:            agent.Created,
-		Container:          agent.Container,
+		Package:            agent.Package,
+		Scripts:            scripts,
 		Config:             config,
 		ControllerEndpoint: agent.ControllerEndpoint,
+		Airgap:             agent.Airgap,
 	}
 }

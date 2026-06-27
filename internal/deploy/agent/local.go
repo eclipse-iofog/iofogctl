@@ -1,70 +1,58 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deployagent
 
 import (
-	"fmt"
-	"regexp"
+	"context"
 
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type localExecutor struct {
-	isSystem         bool
-	namespace        string
-	agent            *rsc.LocalAgent
-	client           *install.LocalContainer
-	localAgentConfig *install.LocalAgentConfig
+	isSystem  bool
+	namespace string
+	agent     *rsc.LocalAgent
+	edgelet   edgeletAgent
 }
 
 func newLocalExecutor(namespace string, agent *rsc.LocalAgent, isSystem bool) (*localExecutor, error) {
-	client, err := install.NewLocalContainerClient()
-	if err != nil {
+	if err := checkLocalAgentPortAvailable(isSystem); err != nil {
 		return nil, err
 	}
-	if agent.Config == nil {
-		agent.Config = &rsc.AgentConfiguration{}
+	if err := ensureLocalAgentHost(agent); err != nil {
+		return nil, err
 	}
-	// Get Controller LocalContainerConfig
-	controllerContainerConfig := install.NewLocalControllerConfig("", install.Credentials{}, install.Auth{}, install.Database{}, install.Events{}, nil)
+	agent.Config = deployairgap.EnsureAgentConfig(agent.Config)
 	return &localExecutor{
 		isSystem:  isSystem,
 		namespace: namespace,
 		agent:     agent,
-		client:    client,
-		localAgentConfig: install.NewLocalAgentConfig(
-			agent.Name,
-			agent.Container.Image,
-			controllerContainerConfig,
-			install.Credentials{
-				User:     agent.Container.Credentials.User,
-				Password: agent.Container.Credentials.Password,
-			},
-			isSystem,
-			agent.Config.TimeZone,
-		),
 	}, nil
 }
 
-func (exe *localExecutor) ProvisionAgent() (string, error) {
-	// Get agent
-	agent := install.NewLocalAgent(exe.localAgentConfig, exe.client)
+func (exe *localExecutor) getEdgelet() (edgeletAgent, error) {
+	if exe.edgelet != nil {
+		return exe.edgelet, nil
+	}
 
-	// Get user
+	cfg := deployairgap.EdgeletInstallConfig(deployairgap.LocalEdgeletHostOS(), exe.agent.Config, exe.agent.Package)
+	edgelet, err := install.NewLocalEdgelet(exe.agent.Name, exe.agent.UUID, cfg)
+	if err != nil {
+		return nil, err
+	}
+	exe.edgelet = edgelet
+	return edgelet, nil
+}
+
+func (exe *localExecutor) ProvisionAgent() (string, error) {
+	edgelet, err := exe.getEdgelet()
+	if err != nil {
+		return "", err
+	}
+
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return "", err
@@ -73,7 +61,7 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Try Agent-specific endpoint first
+
 	controllerEndpoint := exe.agent.GetControllerEndpoint()
 	if controllerEndpoint == "" {
 		controllerEndpoint, err = controlPlane.GetEndpoint()
@@ -82,10 +70,13 @@ func (exe *localExecutor) ProvisionAgent() (string, error) {
 		}
 	}
 
-	// Configure the agent with Controller details
 	user := install.IofogUser(controlPlane.GetUser())
 	user.Password = controlPlane.GetUser().GetRawPassword()
-	return agent.Configure(controllerEndpoint, user)
+	opt, err := clientutil.ControllerClientOptions(context.Background(), exe.namespace, controllerEndpoint)
+	if err != nil {
+		return "", err
+	}
+	return edgelet.Configure(controllerEndpoint, user, opt)
 }
 
 func (exe *localExecutor) GetName() string {
@@ -93,51 +84,26 @@ func (exe *localExecutor) GetName() string {
 }
 
 func (exe *localExecutor) Execute() error {
-	// Deploy agent image
-	util.SpinStart("Deploying Agent container")
-	if exe.agent.Container.Image == "" {
-		exe.agent.Container.Image = exe.localAgentConfig.DefaultImage
-	}
+	exe.agent.Config = deployairgap.EnsureAgentConfig(exe.agent.Config)
+	deployairgap.ResolveAgentDeployment(exe.agent.Config, exe.agent.Package.Container.Image)
 
-	// If container already exists, clean it
-	agentContainerName := exe.localAgentConfig.ContainerName
-	if _, err := exe.client.GetContainerByName(agentContainerName); err == nil {
-		if err := exe.client.CleanContainer(agentContainerName); err != nil {
-			return err
-		}
-	}
-
-	if _, err := exe.client.DeployContainer(&exe.localAgentConfig.LocalContainerConfig); err != nil {
-		return err
-	}
-
-	// Wait for agent
-	util.SpinStart("Waiting for Agent")
-	if err := exe.client.WaitForCommand(
-		install.GetLocalContainerName("agent", exe.isSystem),
-		regexp.MustCompile("ioFog daemon[ |\t]*: RUNNING"),
-		"iofog-agent",
-		"status",
-	); err != nil {
-		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
-			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))
-		}
-		return err
-	}
-
-	// Provision agent
-	util.SpinStart("Provisioning Agent")
-	uuid, err := exe.ProvisionAgent()
+	edgelet, err := exe.getEdgelet()
 	if err != nil {
-		if cleanErr := exe.client.CleanContainer(agentContainerName); cleanErr != nil {
-			util.PrintNotify(fmt.Sprintf("Could not clean container: %v", agentContainerName))
-		}
 		return err
 	}
 
-	// Return new Agent config because variable is a pointer
-	exe.agent.Host = fmt.Sprintf("%s:%s", exe.localAgentConfig.Host, exe.localAgentConfig.Ports[0].Host)
-	exe.agent.UUID = uuid
+	if err := customizeEdgeletProcedures(edgelet, exe.agent.Scripts); err != nil {
+		return err
+	}
+	if err := applyEdgeletPackage(edgelet, exe.agent.Package); err != nil {
+		return err
+	}
 
+	util.SpinStart("Installing edgelet")
+	if err := edgelet.Bootstrap(); err != nil {
+		return err
+	}
+
+	exe.agent.Host = exe.agent.GetHost()
 	return nil
 }

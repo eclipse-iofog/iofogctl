@@ -1,45 +1,32 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deletek8scontrolplane
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/internal/trust"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type Executor struct {
-	namespace string
+	namespace       string
+	deleteNamespace bool
 }
 
-func NewExecutor(namespace string) (execute.Executor, error) {
+func NewExecutor(namespace string, deleteNamespace bool) (execute.Executor, error) {
 	exe := &Executor{
-		namespace: namespace,
+		namespace:       namespace,
+		deleteNamespace: deleteNamespace,
 	}
 	return exe, nil
 }
 
-// GetName returns application name
 func (exe *Executor) GetName() string {
 	return "Delete Control Plane"
 }
 
-// Execute deletes application by deleting its associated flow
 func (exe *Executor) Execute() (err error) {
-	// Get Control Plane
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
 		return err
@@ -54,20 +41,19 @@ func (exe *Executor) Execute() (err error) {
 		return util.NewError("Could not convert Control Plane to Kubernetes Control Plane")
 	}
 
-	// Instantiate Kubernetes object
 	k8s, err := install.NewKubernetes(controlPlane.KubeConfig, exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	// Delete Controller on cluster
-	err = k8s.DeleteControlPlane()
-	if err != nil {
+	if err = k8s.DeleteControlPlane(exe.deleteNamespace); err != nil {
 		return err
 	}
 
-	// Delete Control Plane in config
-	ns.DeleteControlPlane()
+	if err = trust.RemoveCA(exe.namespace); err != nil {
+		return err
+	}
 
+	ns.DeleteControlPlane()
 	return config.Flush()
 }

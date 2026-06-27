@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deletemicroservice
 
 import (
@@ -42,7 +29,7 @@ func Execute(name string, force bool) error {
 
 	// Handle delete all
 	if force && (hasAgents || hasControllers) {
-		if err := delete.Execute(name, false, force); err != nil {
+		if err := delete.Execute(name, false, false, force); err != nil {
 			return err
 		}
 	}

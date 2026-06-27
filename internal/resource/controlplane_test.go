@@ -1,21 +1,10 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package resource
 
 import (
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -23,11 +12,59 @@ const (
 	password = "as901yh3rinsd"
 )
 
+func TestKubernetesControlPlaneYAMLNoEcnViewer(t *testing.T) {
+	trustProxy := true
+	cp := KubernetesControlPlane{
+		Endpoint:   "https://controller.example.com",
+		KubeConfig: "/tmp/kubeconfig",
+		IofogUser:  IofogUser{Email: email},
+		Controller: ControllerConfig{
+			PublicUrl:  "https://controller.example.com",
+			ConsoleUrl: "https://controller.example.com",
+			TrustProxy: &trustProxy,
+		},
+	}
+	out, err := yaml.Marshal(cp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(out)
+	for _, retired := range []string{"ecnViewerPort", "ecnViewerUrl"} {
+		if strings.Contains(text, retired) {
+			t.Fatalf("YAML must not contain %q:\n%s", retired, text)
+		}
+	}
+	for _, want := range []string{"endpoint:", "publicUrl:", "consoleUrl:"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("YAML missing %q:\n%s", want, text)
+		}
+	}
+}
+
 func TestKubernetesControlPlane(t *testing.T) {
+	trustProxy := true
 	cp := KubernetesControlPlane{
 		Endpoint:   "123.123.123.123",
 		KubeConfig: "~/.kube/config",
 		IofogUser:  IofogUser{Email: "user@domain.com", Password: "password"},
+		Controller: ControllerConfig{
+			PublicUrl:  "https://controller.example.com",
+			ConsoleUrl: "https://console.example.com",
+			TrustProxy: &trustProxy,
+		},
+		Auth: Auth{
+			Mode: "embedded",
+			Bootstrap: &AuthBootstrap{
+				Username: "admin",
+				Password: "BootstrapPass1!",
+			},
+		},
+	}
+	if cp.Controller.PublicUrl != "https://controller.example.com" {
+		t.Error("Wrong publicUrl")
+	}
+	if cp.Auth.Mode != "embedded" {
+		t.Error("Wrong auth mode")
 	}
 	if endpoint, err := cp.GetEndpoint(); err != nil || endpoint != "123.123.123.123" {
 		t.Error("Wrong endpoint")
@@ -172,8 +209,25 @@ func TestRemoteControlPlane(t *testing.T) {
 }
 
 func TestLocalControlPlane(t *testing.T) {
+	arch := "amd64"
 	cp := LocalControlPlane{
+		Endpoint:  "https://controller.example.com",
 		IofogUser: IofogUser{Email: "user@domain.com", Password: "password"},
+		Controller: LocalControllerSpec{
+			ControllerConfig: ControllerConfig{
+				PublicUrl: "https://controller.example.com",
+			},
+		},
+		Auth: Auth{
+			Mode: "embedded",
+			Bootstrap: &AuthBootstrap{
+				Username: "admin",
+				Password: "BootstrapPass1!",
+			},
+		},
+		SystemAgent: &SystemAgentConfig{
+			AgentConfiguration: &AgentConfiguration{Arch: &arch},
+		},
 	}
 	if err := cp.AddController(&LocalController{
 		Name:    "ctrl1",
@@ -181,9 +235,9 @@ func TestLocalControlPlane(t *testing.T) {
 	}); err != nil {
 		t.Error(err)
 	}
-	cp.Sanitize()
+	_ = cp.Sanitize()
 
-	if endpoint, err := cp.GetEndpoint(); err != nil || !util.IsLocalHost(endpoint) {
+	if endpoint, err := cp.GetEndpoint(); err != nil || endpoint != "https://controller.example.com" {
 		t.Errorf("Wrong endpoint: %s", endpoint)
 	}
 	if user := cp.GetUser(); user.Email != "user@domain.com" || user.Password != "password" {
@@ -204,5 +258,31 @@ func TestLocalControlPlane(t *testing.T) {
 	}
 	if ctrl, err := cp.GetController(""); err == nil || ctrl != nil {
 		t.Error("Should have returned error when getting Local Controller")
+	}
+}
+
+func TestLocalControlPlaneControllersPersistInYAML(t *testing.T) {
+	cp := LocalControlPlane{
+		Endpoint: "http://192.168.1.6:51121",
+		Controllers: []LocalController{{
+			Name:     "iofog",
+			Endpoint: "http://192.168.1.6:51121",
+			Created:  "2026-06-22T22:49:47.739Z",
+		}},
+	}
+	data, err := yaml.Marshal(cp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var loaded LocalControlPlane
+	if err := yaml.UnmarshalStrict(data, &loaded); err != nil {
+		t.Fatal(err)
+	}
+	if len(loaded.GetControllers()) != 1 {
+		t.Fatalf("controller count = %d, want 1", len(loaded.GetControllers()))
+	}
+	ctrl := loaded.GetControllers()[0]
+	if ctrl.GetName() != "iofog" || ctrl.GetEndpoint() != "http://192.168.1.6:51121" {
+		t.Fatalf("unexpected controller record: %+v", ctrl)
 	}
 }

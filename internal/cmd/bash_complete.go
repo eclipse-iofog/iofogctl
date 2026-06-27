@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -29,15 +16,15 @@ func newBashCompleteCommand(rootCmd *cobra.Command) *cobra.Command {
 	home, err := homedir.Dir()
 	util.Check(err)
 	configDir := home + "/.iofog/"
-	err = os.MkdirAll(configDir, 0755)
+	err = os.MkdirAll(configDir, util.DirPerm)
 	util.Check(err)
 	cmd := &cobra.Command{
 		Use:    "autocomplete SHELL",
 		Hidden: true,
 		Short:  "Generate bash autocomplete file",
 		Long:   "Generate bash autocomplete file",
-		Example: `iofogctl autocomplete bash
-                      zsh`,
+		Example: ex(`%[1]s autocomplete bash
+                      zsh`),
 		Args: cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			switch t := strings.ToLower(args[0]); t {

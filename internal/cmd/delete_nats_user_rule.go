@@ -11,7 +11,7 @@ func newDeleteNatsUserRuleCommand() *cobra.Command {
 		Use:     "nats-user-rule NAME",
 		Short:   "Delete a NATS user rule",
 		Long:    `Delete a NATS user rule from the Controller.`,
-		Example: `iofogctl delete nats-user-rule NAME`,
+		Example: ex(`%[1]s delete nats-user-rule NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]

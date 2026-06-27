@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package logs
 
 import (
@@ -18,12 +5,13 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 // LogTailConfig holds configuration for log tailing
 type LogTailConfig struct {
-	Tail   int    // Number of lines to tail (default: 100, range: 1-10000)
+	Tail   int    // Number of lines to tail (default: 100, range: 1-5000)
 	Follow bool   // Whether to follow logs (default: true)
 	Since  string // Start time in ISO 8601 format (optional)
 	Until  string // End time in ISO 8601 format (optional)
@@ -40,8 +28,8 @@ func DefaultLogTailConfig() *LogTailConfig {
 // Validate validates the LogTailConfig
 func (c *LogTailConfig) Validate() error {
 	// Validate tail range
-	if c.Tail < 1 || c.Tail > 10000 {
-		return util.NewInputError(fmt.Sprintf("tail must be between 1 and 10000, got %d", c.Tail))
+	if c.Tail < 1 || c.Tail > 5000 {
+		return util.NewInputError(fmt.Sprintf("tail must be between 1 and 5000, got %d", c.Tail))
 	}
 
 	// Validate ISO 8601 format for since if provided
@@ -84,6 +72,19 @@ func (c *LogTailConfig) BuildQueryString() string {
 	return values.Encode()
 }
 
+// ToSDKOptions converts the CLI log tail config to SDK dial options.
+func (c *LogTailConfig) ToSDKOptions() *client.LogTailOptions {
+	if c == nil {
+		return nil
+	}
+	return &client.LogTailOptions{
+		Tail:   c.Tail,
+		Follow: c.Follow,
+		Since:  c.Since,
+		Until:  c.Until,
+	}
+}
+
 // validateISO8601 validates that a string is in ISO 8601 format
 func validateISO8601(dateStr string) error {
 	// Try parsing with RFC3339 format (ISO 8601 compatible)
@@ -92,7 +93,7 @@ func validateISO8601(dateStr string) error {
 		// Try parsing with RFC3339Nano format
 		_, err = time.Parse(time.RFC3339Nano, dateStr)
 		if err != nil {
-			return fmt.Errorf("invalid ISO 8601 format: %v", err)
+			return fmt.Errorf("invalid ISO 8601 format: %w", err)
 		}
 	}
 	return nil

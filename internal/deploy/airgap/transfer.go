@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containers/image/v5/copy"
-	"github.com/containers/image/v5/signature"
-	"github.com/containers/image/v5/transports/alltransports"
-	"github.com/containers/image/v5/types"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/opencontainers/go-digest"
+	"go.podman.io/image/v5/copy"
+	"go.podman.io/image/v5/signature"
+	"go.podman.io/image/v5/transports/alltransports"
+	"go.podman.io/image/v5/types"
 )
 
 const (
@@ -41,12 +41,12 @@ type transferPlan struct {
 	host     string
 	ssh      *rsc.SSH
 	platform string
-	engine   ContainerEngine
+	opts     AirgapTransferOptions
 	images   []string // List of image references to transfer
 }
 
 // TransferAirgapImages transfers required images to a remote host for airgap deployment
-func TransferAirgapImages(ctx context.Context, namespace string, host string, ssh *rsc.SSH, platform string, engine ContainerEngine, images []string) error {
+func TransferAirgapImages(ctx context.Context, namespace string, host string, ssh *rsc.SSH, platform string, opts AirgapTransferOptions, images []string) error {
 	// Validate inputs
 	if host == "" {
 		return util.NewInputError("host is required for airgap image transfer")
@@ -65,7 +65,7 @@ func TransferAirgapImages(ctx context.Context, namespace string, host string, ss
 		host:     host,
 		ssh:      ssh,
 		platform: platform,
-		engine:   engine,
+		opts:     opts,
 		images:   images,
 	}
 
@@ -110,7 +110,7 @@ func ensureArtifact(ctx context.Context, platform, imageRef string, namespace st
 	}
 
 	cacheDir := config.GetAirgapImageCacheDir(namespace, imageRef, platform)
-	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+	if err := os.MkdirAll(cacheDir, util.DirPerm); err != nil {
 		return nil, err
 	}
 	archivePath := filepath.Join(cacheDir, archiveFilename)
@@ -186,7 +186,7 @@ func buildSystemContext(platform string, auth *rsc.OfflineImageAuth) (*types.Sys
 // pullCompressedImage pulls an image and compresses it to a tar.gz file
 func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysCtx *types.SystemContext, label string) (digestValue string, checksum string, size int64, err error) {
 	destDir := filepath.Dir(archivePath)
-	if err := os.MkdirAll(destDir, 0o755); err != nil {
+	if err := os.MkdirAll(destDir, util.DirPerm); err != nil {
 		return "", "", 0, err
 	}
 	rawPath := archivePath + ".raw"
@@ -215,7 +215,7 @@ func pullCompressedImage(ctx context.Context, imageRef, archivePath string, sysC
 	if err != nil {
 		return "", "", 0, err
 	}
-	defer policyCtx.Destroy()
+	defer func() { _ = policyCtx.Destroy() }()
 
 	util.PrintInfo(label)
 	manifestBytes, err := copy.Image(ctx, policyCtx, destRef, srcRef, &copy.Options{
@@ -261,21 +261,21 @@ func insecurePolicyContext() (*signature.PolicyContext, error) {
 
 // compressToGzip compresses a file to gzip format
 func compressToGzip(src, dst string) error {
-	source, err := os.Open(src)
+	source, err := util.OpenValidatedFile(src)
 	if err != nil {
 		return err
 	}
-	defer source.Close()
+	defer util.IgnoreClose(source)
 
 	if err := os.RemoveAll(dst); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	destFile, err := os.Create(dst)
+	destFile, err := util.CreateUserFile(dst, util.FilePerm)
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
+	defer util.IgnoreClose(destFile)
 
 	gzipWriter := gzip.NewWriter(destFile)
 	defer gzipWriter.Close()
@@ -289,11 +289,11 @@ func compressToGzip(src, dst string) error {
 
 // calculateFileChecksum calculates SHA256 checksum and size of a file
 func calculateFileChecksum(path string) (string, int64, error) {
-	file, err := os.Open(path)
+	file, err := util.OpenValidatedFile(path)
 	if err != nil {
 		return "", 0, err
 	}
-	defer file.Close()
+	defer util.IgnoreClose(file)
 
 	hasher := sha256.New()
 	size, err := io.Copy(hasher, file)
@@ -322,11 +322,11 @@ func transferAndLoadImage(plan transferPlan, artifact *imageArtifact) error {
 	}
 
 	// Open and transfer file
-	file, err := os.Open(artifact.path)
+	file, err := util.OpenValidatedFile(artifact.path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer util.IgnoreClose(file)
 	info, err := file.Stat()
 	if err != nil {
 		return err
@@ -343,13 +343,13 @@ func transferAndLoadImage(plan transferPlan, artifact *imageArtifact) error {
 	}
 	remotePath := util.JoinAgentPath(hostDir, filename)
 
-	// Load image using container engine
-	loadCmd := fmt.Sprintf("sudo -S %s load -i %s", plan.engine.Command(), remotePath)
+	// Load image using deployment/engine matrix
+	loadCmd := ImageLoadCommand(plan.opts, remotePath)
 	if _, err := ssh.Run(loadCmd); err != nil {
 		return fmt.Errorf("failed to load image: %w", err)
 	}
 
-	// Clean up remote file
+	// Clean up remote archive (decompressed tar removed by edgelet load command)
 	if _, err := ssh.Run("sudo rm -f " + remotePath); err != nil {
 		util.PrintNotify(fmt.Sprintf("Warning: Failed to remove remote file %s: %v", remotePath, err))
 	}

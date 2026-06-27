@@ -1,0 +1,8 @@
+name: cli-codeql
+
+query-filters:
+  - exclude:
+      id: go/disabled-tls-certificate-check
+      description: Intentional skip-verify after user-visible TLS warnings when no namespace CA is configured
+      paths:
+        - internal/trust/tls.go

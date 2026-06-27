@@ -1,19 +1,7 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package describe
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,7 +22,8 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	if msvc.CatalogItemID != 0 {
 		catalogItem, err = clt.GetCatalogItem(msvc.CatalogItemID)
 		if err != nil {
-			if httpErr, ok := err.(*client.HTTPError); ok && httpErr.Code == 404 {
+			httpErr := &client.HTTPError{}
+			if errors.As(err, &httpErr) {
 				catalogItem = nil
 			} else {
 				return nil, nil, nil, err
@@ -43,16 +32,16 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 	}
 
 	applicationName := msvc.Application
-	if msvc.Application == "" {
-		if msvc.FlowID > 0 {
-			// Legacy
-			flow, err := clt.GetFlowByID(msvc.FlowID)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			applicationName = flow.Name
-		}
-	}
+	// if msvc.Application == "" {
+	// 	if msvc.ApplicationName != "" {
+	// 		// Legacy
+	// 		application, err := clt.GetApplicationByName(msvc.ApplicationName)
+	// 		if err != nil {
+	// 			return nil, nil, nil, err
+	// 		}
+	// 		applicationName = application.Name
+	// 	}
+	// }
 
 	return constructMicroservice(msvc, agent.Name, applicationName, catalogItem)
 }
@@ -131,7 +120,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	msvc.Agent = apps.MicroserviceAgent{
 		Name: agentName,
 	}
-	var armImage, x86Image string
+	var armImage, amd64Image, riscv64Image, arm64Image string
 	var msvcImages []client.CatalogImage
 	if catalogItem != nil {
 		msvcImages = catalogItem.Images
@@ -139,9 +128,13 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		msvcImages = msvcInfo.Images
 	}
 	for _, image := range msvcImages {
-		switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
-		case "x86":
-			x86Image = image.ContainerImage
+		switch client.ArchIDToName[image.ArchID] {
+		case "amd64":
+			amd64Image = image.ContainerImage
+		case "arm64":
+			armImage = image.ContainerImage
+		case "riscv64":
+			riscv64Image = image.ContainerImage
 		case "arm":
 			armImage = image.ContainerImage
 		default:
@@ -158,14 +151,21 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	}
 	images := apps.MicroserviceImages{
 		CatalogID: msvcInfo.CatalogItemID,
-		X86:       x86Image,
+		AMD64:     amd64Image,
+		ARM64:     arm64Image,
+		RISCV64:   riscv64Image,
 		ARM:       armImage,
 		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
 	}
 	for _, img := range imgArray {
-		if img.AgentTypeID == 1 {
-			images.X86 = img.ContainerImage
-		} else if img.AgentTypeID == 2 {
+		switch img.ArchID {
+		case 1:
+			images.AMD64 = img.ContainerImage
+		case 2:
+			images.ARM64 = img.ContainerImage
+		case 3:
+			images.RISCV64 = img.ContainerImage
+		case 4:
 			images.ARM = img.ContainerImage
 		}
 	}
@@ -225,7 +225,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	msvc.Container.Volumes = &volumes
 	msvc.Container.Env = &envs
 	msvc.Container.ExtraHosts = &extraHosts
-	msvc.Container.CpuSetCpus = msvcInfo.CpuSetCpus
+	msvc.Container.CPUSetCpus = msvcInfo.CPUSetCpus
 	msvc.Container.MemoryLimit = &msvcInfo.MemoryLimit
 	if hasHealthCheck {
 		msvc.Container.HealthCheck = &healthCheck
@@ -237,7 +237,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		}
 	}
 	msvc.Schedule = msvcInfo.Schedule
-	msvc.Application = &appName
+	msvc.Application = appName
 	status = new(apps.MicroserviceStatusInfo)
 
 	status.Status = msvcInfo.Status.Status
@@ -309,11 +309,17 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 	formatted["daemonStatus"] = status.DaemonStatus
 	formatted["securityStatus"] = status.SecurityStatus
 	formatted["warningMessage"] = status.WarningMessage
+	if status.PlatformStatus != nil {
+		formatted["platformStatus"] = formatPlatformStatus(status.PlatformStatus)
+	}
 	formatted["securityViolationInfo"] = status.SecurityViolationInfo
+	formatted["availableRuntimes"] = status.AvailableRuntimes
+	formatted["runtimeAgentPhase"] = status.RuntimeAgentPhase
+	formatted["controlPlaneQuiesced"] = status.ControlPlaneQuiesced
 
 	// Format timestamps
 	if status.LastActive > 0 {
-		formatted["lastActive"] = time.Unix(status.LastActive/1000, (status.LastActive%1000)*1000000).Format(time.RFC3339)
+		formatted["lastActive"] = time.Unix(status.LastActive/1000, (status.LastActive%1000)*1000000).UTC().Format(time.RFC3339)
 	}
 
 	// Format uptime as duration
@@ -360,7 +366,7 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 
 	// Format last status time
 	if status.LastStatusTimeMsUTC > 0 {
-		formatted["lastStatusTime"] = time.Unix(status.LastStatusTimeMsUTC/1000, (status.LastStatusTimeMsUTC%1000)*1000000).Format(time.RFC3339)
+		formatted["lastStatusTime"] = time.Unix(status.LastStatusTimeMsUTC/1000, (status.LastStatusTimeMsUTC%1000)*1000000).UTC().Format(time.RFC3339)
 	}
 
 	formatted["ipAddress"] = status.IPAddress
@@ -391,6 +397,43 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 	formatted["gpsStatus"] = status.GpsStatus
 
 	return formatted
+}
+
+func formatPlatformStatus(ps *client.PlatformStatus) map[string]interface{} {
+	if ps == nil {
+		return nil
+	}
+	out := map[string]interface{}{
+		"phase":              string(ps.Phase),
+		"generation":         ps.Generation,
+		"observedGeneration": ps.ObservedGeneration,
+	}
+	if ps.LastError != nil {
+		out["lastError"] = *ps.LastError
+	} else {
+		out["lastError"] = nil
+	}
+	if ps.LastTransitionAt != nil {
+		out["lastTransitionAt"] = ps.LastTransitionAt.Format(time.RFC3339Nano)
+	}
+	if len(ps.Conditions) > 0 {
+		conditions := make([]map[string]interface{}, len(ps.Conditions))
+		for i, c := range ps.Conditions {
+			cond := map[string]interface{}{
+				"type":   c.Type,
+				"status": c.Status,
+			}
+			if c.Reason != "" {
+				cond["reason"] = c.Reason
+			}
+			if c.Message != "" {
+				cond["message"] = c.Message
+			}
+			conditions[i] = cond
+		}
+		out["conditions"] = conditions
+	}
+	return out
 }
 
 // formatBytesAuto formats bytes with automatic unit scaling (B, KB, MB, GB, etc.)

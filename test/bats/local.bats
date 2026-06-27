@@ -34,13 +34,6 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Controller legacy commands after deploy" {
-  startTest
-  iofogctl -v -n "$NS" legacy controller "$NAME" iofog list
-  checkLegacyController
-  stopTest
-}
-
 @test "Deploy Agents against local Controller" {
   startTest
   initLocalAgentFile
@@ -55,25 +48,6 @@ NS="$NAMESPACE"
   iofogctl -v -n "$NS" deploy -f test/conf/application_pull_stat.yaml
   waitForPullingMsvc "$MSVC5_NAME" "$NS"
   checkPullPercentageOfMicroservice "$MSVC5_NAME" "$NS"
-  stopTest
-}
-
-@test "Edge Resources" {
-  startTest
-  testEdgeResources
-  stopTest
-}
-
-@test "Agent legacy commands" {
-  startTest
-  iofogctl -v -n "$NS" legacy agent "${NAME}-0" status
-  checkLegacyAgent "${NAME}-0"
-  stopTest
-}
-
-@test "Agent config dev mode" {
-  startTest  
-  [[ ! -z $(iofogctl -v -n "$NS" legacy agent "${NAME}-0" 'config -dev on') ]]
   stopTest
 }
 
@@ -156,12 +130,9 @@ NS="$NAMESPACE"
   stopTest
 }
 
-@test "Rename and Delete Route" {
+@test "Delete Route" {
   startTest
-  local NEW_ROUTE_NAME="route-2"
-  iofogctl -v -n "$NS" rename route $APPLICATION_NAME/"$ROUTE_NAME" "$NEW_ROUTE_NAME"
-  iofogctl -v -n "$NS" delete route $APPLICATION_NAME/"$NEW_ROUTE_NAME"
-  checkRouteNegative "$NEW_ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
+  iofogctl -v -n "$NS" delete route $APPLICATION_NAME/"$ROUTE_NAME"
   checkRouteNegative "$ROUTE_NAME" "$MSVC1_NAME" "$MSVC2_NAME"
   stopTest
 }

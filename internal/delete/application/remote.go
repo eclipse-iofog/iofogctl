@@ -1,19 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deleteapplication
 
 import (
+	"errors"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -21,10 +10,10 @@ import (
 )
 
 type Executor struct {
-	namespace string
-	name      string
-	client    *client.Client
-	flow      *client.FlowInfo
+	namespace   string
+	name        string
+	client      *client.Client
+	application *client.ApplicationInfo
 }
 
 func NewExecutor(namespace, name string) (execute.Executor, error) {
@@ -49,7 +38,7 @@ func (exe *Executor) init() (err error) {
 	return
 }
 
-// Execute deletes application by deleting its associated flow
+// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() (err error) {
 	util.SpinStart("Deleting Application")
 	if err := exe.init(); err != nil {
@@ -58,7 +47,8 @@ func (exe *Executor) Execute() (err error) {
 
 	err = exe.client.DeleteApplication(exe.name)
 	// If notfound error, try legacy
-	if _, ok := err.(*client.NotFoundError); ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		return exe.deleteLegacy()
 	}
 	return err

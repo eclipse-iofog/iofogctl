@@ -1,23 +1,10 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deployremotecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
-	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -43,12 +30,10 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		controller.Name = opt.Name
 	}
 
-	// Validate
 	if err = Validate(&controller); err != nil {
 		return
 	}
 
-	// Get the Control Plane
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return nil, err
@@ -67,15 +52,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 }
 
 func newExecutor(namespace string, controlPlane *rsc.RemoteControlPlane, controller *rsc.RemoteController) *remoteExecutor {
-	executor := &remoteExecutor{
+	return &remoteExecutor{
 		namespace:    namespace,
 		controlPlane: controlPlane,
 		controller:   controller,
 	}
-
-	// Set default values
-	executor.setDefaultValues()
-	return executor
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -96,180 +77,92 @@ func NewExecutorWithoutParsing(namespace string, controlPlane *rsc.RemoteControl
 		return nil, err
 	}
 
-	// Instantiate executor
 	return newExecutor(namespace, controlPlane, controller), nil
 }
 
 func (exe *remoteExecutor) Execute() (err error) {
+	if err = exe.controlPlane.SupportsControllerAddOn(); err != nil {
+		return err
+	}
+	if err = exe.controlPlane.ValidateControllerAddOnDatabase(); err != nil {
+		return err
+	}
+	if err = exe.controlPlane.ValidateControllerAddOn(exe.controller); err != nil {
+		return err
+	}
 	if err = exe.controller.ValidateSSH(); err != nil {
-		return
-	}
-	if exe.controller.LogLevel == "" {
-		exe.controller.LogLevel = "info"
-	}
-	// Instantiate deployer
-	controllerOptions := &install.ControllerOptions{
-		Namespace:           exe.namespace,
-		User:                exe.controller.SSH.User,
-		Host:                exe.controller.Host,
-		Port:                exe.controller.SSH.Port,
-		PrivKeyFilename:     exe.controller.SSH.KeyFile,
-		PidBaseDir:          exe.controller.PidBaseDir,
-		EcnViewerPort:       exe.controller.EcnViewerPort,
-		EcnViewerURL:        exe.controller.EcnViewerURL,
-		LogLevel:            exe.controller.LogLevel,
-		Version:             exe.controlPlane.Package.Version,
-		Image:               exe.controlPlane.Package.Container.Image,
-		SystemMicroservices: exe.controlPlane.SystemMicroservices,
-		NatsEnabled:         natsEnabledFromSpec(exe.controlPlane.Nats),
-		Vault:               vaultSpecToInstall(exe.controlPlane.Vault),
+		return err
 	}
 
-	// Add HTTPS configuration if present
-	if exe.controller.Https != nil {
-		controllerOptions.Https = &install.Https{
-			Enabled: exe.controller.Https.Enabled,
-			CACert:  exe.controller.Https.CACert,
-			TLSCert: exe.controller.Https.TLSCert,
-			TLSKey:  exe.controller.Https.TLSKey,
-		}
-	}
+	applySystemMicroserviceDefaults(exe.controlPlane)
 
-	// Add SiteCA configuration if present
-	if exe.controller.SiteCA != nil {
-		controllerOptions.SiteCA = &install.SiteCertificate{
-			TLSCert: exe.controller.SiteCA.TLSCert,
-			TLSKey:  exe.controller.SiteCA.TLSKey,
-		}
-	}
-
-	// Add LocalCA configuration if present
-	if exe.controller.LocalCA != nil {
-		controllerOptions.LocalCA = &install.SiteCertificate{
-			TLSCert: exe.controller.LocalCA.TLSCert,
-			TLSKey:  exe.controller.LocalCA.TLSKey,
-		}
-	}
-
-	// Set airgap flag from control plane
-	controllerOptions.Airgap = exe.controlPlane.Airgap
-
-	deployer, err := install.NewController(controllerOptions)
+	edgelet, err := deployremotecontrolplane.DeployHostEdgelet(exe.controlPlane, exe.controller, exe.namespace)
 	if err != nil {
 		return err
 	}
 
-	// Set custom scripts if provided
-	if exe.controller.Scripts != nil {
-		if err := deployer.CustomizeProcedures(
-			exe.controller.Scripts.Directory,
-			&exe.controller.Scripts.ControllerProcedures); err != nil {
-			return err
-		}
+	translateOpts := deployremotecontrolplane.TranslateOptions{
+		Name:      exe.namespace,
+		Namespace: exe.namespace,
 	}
 
-	// Set database configuration
-	if exe.controlPlane.Database.Host != "" {
-		db := exe.controlPlane.Database
-		deployer.SetControllerExternalDatabase(db.Host, db.User, db.Password, db.Provider, db.DatabaseName, db.Port, db.SSL, db.CA)
-	}
-
-	if exe.controlPlane.Auth.URL != "" {
-		auth := exe.controlPlane.Auth
-		deployer.SetControllerAuth(auth.URL, auth.Realm, auth.SSL, auth.RealmKey, auth.ControllerClient, auth.ControllerSecret, auth.ViewerClient)
-	}
-
-	// Set events configuration if present
-	if exe.controlPlane.Events.AuditEnabled != nil {
-		auditEnabled := *exe.controlPlane.Events.AuditEnabled
-		captureIpAddress := false
-		if exe.controlPlane.Events.CaptureIpAddress != nil {
-			captureIpAddress = *exe.controlPlane.Events.CaptureIpAddress
-		}
-		deployer.SetControllerEvents(
-			auditEnabled,
-			exe.controlPlane.Events.RetentionDays,
-			exe.controlPlane.Events.CleanupInterval,
-			captureIpAddress,
-		)
-	}
-
-	// Deploy Controller
-	if err = deployer.Install(); err != nil {
-		return
-	}
-	// Update controller
-	useHTTPS := false
-	if exe.controller.Https != nil && exe.controller.Https.Enabled != nil && *exe.controller.Https.Enabled {
-		useHTTPS = true
-	}
-	exe.controller.Endpoint, err = util.GetControllerEndpoint(exe.controller.Host, useHTTPS)
+	registryID, err := deployremotecontrolplane.DeployPrivateEdgeletRegistry(exe.controlPlane, edgelet, translateOpts)
 	if err != nil {
 		return err
 	}
-	return exe.controlPlane.UpdateController(exe.controller)
+
+	if err := deployremotecontrolplane.DeployEdgeletControlPlane(exe.controlPlane, exe.controller, edgelet, translateOpts, registryID); err != nil {
+		return err
+	}
+
+	endpoint, err := deployremotecontrolplane.ResolveControllerHostEndpoint(exe.controlPlane, exe.controller)
+	if err != nil {
+		return err
+	}
+	exe.controller.Endpoint = endpoint
+	exe.controller.Created = util.NowUTC()
+
+	if err := deployremotecontrolplane.DeployNextSystemAgent(exe.namespace, exe.controlPlane, exe.controller); err != nil {
+		return err
+	}
+
+	if err := exe.controlPlane.UpdateController(exe.controller); err != nil {
+		return err
+	}
+
+	ns, err := config.GetNamespace(exe.namespace)
+	if err != nil {
+		return err
+	}
+	ns.SetControlPlane(exe.controlPlane)
+	return config.Flush()
 }
 
-func (exe *remoteExecutor) setDefaultValues() {
-	if exe.controlPlane.SystemMicroservices.Router.X86 == "" {
-		exe.controlPlane.SystemMicroservices.Router.X86 = util.GetRouterImage()
+func applySystemMicroserviceDefaults(cp *rsc.RemoteControlPlane) {
+	if cp.SystemMicroservices.Router.AMD64 == "" {
+		cp.SystemMicroservices.Router.AMD64 = util.GetRouterImage()
 	}
-	if exe.controlPlane.SystemMicroservices.Router.ARM == "" {
-		exe.controlPlane.SystemMicroservices.Router.ARM = util.GetRouterARMImage()
+	if cp.SystemMicroservices.Router.ARM64 == "" {
+		cp.SystemMicroservices.Router.ARM64 = util.GetRouterImage()
 	}
-	if exe.controlPlane.SystemMicroservices.Nats.X86 == "" {
-		exe.controlPlane.SystemMicroservices.Nats.X86 = util.GetNatsImage()
+	if cp.SystemMicroservices.Router.RISCV64 == "" {
+		cp.SystemMicroservices.Router.RISCV64 = util.GetRouterImage()
 	}
-	if exe.controlPlane.SystemMicroservices.Nats.ARM == "" {
-		exe.controlPlane.SystemMicroservices.Nats.ARM = util.GetNatsImage()
+	if cp.SystemMicroservices.Router.ARM == "" {
+		cp.SystemMicroservices.Router.ARM = util.GetRouterImage()
 	}
-}
-
-func natsEnabledFromSpec(n *rsc.NatsEnabledConfig) *bool {
-	if n == nil || n.Enabled == nil {
-		return nil
+	if cp.SystemMicroservices.Nats.AMD64 == "" {
+		cp.SystemMicroservices.Nats.AMD64 = util.GetNatsImage()
 	}
-	return n.Enabled
-}
-
-func vaultSpecToInstall(v *rsc.VaultSpec) *install.VaultConfig {
-	if v == nil {
-		return nil
+	if cp.SystemMicroservices.Nats.ARM64 == "" {
+		cp.SystemMicroservices.Nats.ARM64 = util.GetNatsImage()
 	}
-	out := &install.VaultConfig{
-		Enabled:  v.Enabled,
-		Provider: v.Provider,
-		BasePath: v.BasePath,
+	if cp.SystemMicroservices.Nats.RISCV64 == "" {
+		cp.SystemMicroservices.Nats.RISCV64 = util.GetNatsImage()
 	}
-	if v.Hashicorp != nil {
-		out.Hashicorp = &install.VaultHashicorpConfig{
-			Address: v.Hashicorp.Address,
-			Token:   v.Hashicorp.Token,
-			Mount:   v.Hashicorp.Mount,
-		}
+	if cp.SystemMicroservices.Nats.ARM == "" {
+		cp.SystemMicroservices.Nats.ARM = util.GetNatsImage()
 	}
-	if v.Aws != nil {
-		out.Aws = &install.VaultAwsConfig{
-			Region:      v.Aws.Region,
-			AccessKeyId: v.Aws.AccessKeyId,
-			AccessKey:   v.Aws.AccessKey,
-		}
-	}
-	if v.Azure != nil {
-		out.Azure = &install.VaultAzureConfig{
-			URL:          v.Azure.URL,
-			TenantId:     v.Azure.TenantId,
-			ClientId:     v.Azure.ClientId,
-			ClientSecret: v.Azure.ClientSecret,
-		}
-	}
-	if v.Google != nil {
-		out.Google = &install.VaultGoogleConfig{
-			ProjectId:   v.Google.ProjectId,
-			Credentials: v.Google.Credentials,
-		}
-	}
-	return out
 }
 
 func Validate(ctrl rsc.Controller) error {

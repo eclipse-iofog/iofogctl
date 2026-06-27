@@ -31,7 +31,7 @@ func buildNatsRuleManifest(kind string, rule client.NatsRuleInfo) map[string]int
 	delete(spec, "isSystem")
 
 	return map[string]interface{}{
-		"apiVersion": "iofog.org/v3",
+		"apiVersion": util.GetCliApiVersion(),
 		"kind":       kind,
 		"metadata": map[string]interface{}{
 			"name": rule.Name,

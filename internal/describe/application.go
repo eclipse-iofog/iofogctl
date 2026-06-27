@@ -1,19 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package describe
 
 import (
+	"errors"
+
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -23,14 +12,14 @@ import (
 )
 
 type applicationExecutor struct {
-	namespace string
-	name      string
-	filename  string
-	flow      *client.FlowInfo
-	client    *client.Client
-	msvcs     []*client.MicroserviceInfo
-	msvcPerID map[string]*client.MicroserviceInfo
-	natsCfg   *client.ApplicationNatsConfig
+	namespace   string
+	name        string
+	filename    string
+	application *client.ApplicationInfo
+	client      *client.Client
+	msvcs       []*client.MicroserviceInfo
+	msvcPerID   map[string]*client.MicroserviceInfo
+	natsCfg     *client.ApplicationNatsConfig
 }
 
 func newApplicationExecutor(namespace, name, filename string) *applicationExecutor {
@@ -49,15 +38,16 @@ func (exe *applicationExecutor) init() (err error) {
 
 	application, err := exe.client.GetApplicationByName(exe.name)
 	// If not found error, try legacy
-	if _, ok := err.(*client.NotFoundError); ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		return exe.initLegacy()
 	}
 	// Return other errors
 	if err != nil {
 		return err
 	}
-	// TODO: Use Application instead of flow
-	exe.flow = &client.FlowInfo{
+	// TODO: Use Application instead of application
+	exe.application = &client.ApplicationInfo{
 		Name:        application.Name,
 		IsActivated: application.IsActivated,
 		Description: application.Description,
@@ -104,7 +94,7 @@ func (exe *applicationExecutor) Execute() error {
 			return err
 		}
 		// Remove fields
-		yamlMsvc.Flow = nil
+		yamlMsvc.Application = ""
 		yamlMsvcs = append(yamlMsvcs, *yamlMsvc)
 	}
 	if exe.natsCfg != nil {
@@ -115,10 +105,10 @@ func (exe *applicationExecutor) Execute() error {
 	}
 
 	application := rsc.Application{
-		Name:          exe.flow.Name,
+		Name:          exe.application.Name,
 		Microservices: yamlMsvcs,
 		NatsConfig:    natsCfg,
-		ID:            exe.flow.ID,
+		ID:            exe.application.ID,
 	}
 
 	header := config.Header{

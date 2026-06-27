@@ -1,28 +1,21 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package util
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // Exec command
 func Exec(env, cmdName string, args ...string) (stdout bytes.Buffer, err error) {
-	// Instantiate command object
-	cmd := exec.Command(cmdName, args...)
+	if IsDebug() {
+		fmt.Printf("[LOCAL]: Running: %s %s\n", cmdName, strings.Join(args, " "))
+	}
+
+	// Instantiate command object — callers pass fixed deploy commands (sh, sudo, kubectl).
+	cmd := exec.Command(cmdName, args...) // #nosec G204
 
 	// Instantiate output objects
 	var stderr bytes.Buffer
@@ -36,8 +29,14 @@ func Exec(env, cmdName string, args ...string) (stdout bytes.Buffer, err error) 
 	// Run command
 	err = cmd.Run()
 	if err != nil {
+		if IsDebug() && stderr.Len() > 0 {
+			fmt.Printf("[LOCAL]: stderr: %s\n", strings.TrimSpace(stderr.String()))
+		}
 		err = NewInternalError(stderr.String())
 		return
+	}
+	if IsDebug() && stdout.Len() > 0 {
+		fmt.Printf("[LOCAL]: stdout: %s\n", strings.TrimSpace(stdout.String()))
 	}
 	return
 }

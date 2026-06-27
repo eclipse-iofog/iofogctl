@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -24,14 +11,14 @@ func newDeleteAgentCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "agent NAME",
 		Short: "Delete an Agent",
-		Long: `Delete an Agent.
+		Long: ex(`Delete an Agent.
 
 The Agent will be unprovisioned from the Controller within the namespace.
 
 The Agent stack will be uninstalled from the host.
 
-If you wish to not remove the Agent stack from the host, please use iofogctl detach agent`,
-		Example: `iofogctl delete agent NAME`,
+If you wish to not remove the Agent stack from the host, please use %[1]s detach agent`),
+		Example: ex(`%[1]s delete agent NAME`),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get name and namespace of agent

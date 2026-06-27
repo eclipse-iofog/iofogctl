@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -25,7 +12,7 @@ func newStopMicroserviceCommand() *cobra.Command {
 		Use:     "microservice AppNAME/MsvcNAME",
 		Short:   "Stop an microservice",
 		Long:    "Stop an microservice",
-		Example: `iofogctl stop microservice AppNAME/MsvcNAME`,
+		Example: ex(`%[1]s stop microservice AppNAME/MsvcNAME`),
 		Args:    cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

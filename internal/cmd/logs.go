@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package cmd
 
 import (
@@ -24,9 +11,9 @@ func newLogsCommand() *cobra.Command {
 		Use:   "logs RESOURCE NAME",
 		Short: "Get log contents of deployed resource",
 		Long:  `Get log contents of deployed resource`,
-		Example: `iofogctl logs controller   NAME
+		Example: ex(`%[1]s logs controller   NAME
               agent        NAME
-              microservice AppName/MsvcName`,
+              microservice AppName/MsvcName`),
 		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get Resource type and name
@@ -68,7 +55,7 @@ func newLogsCommand() *cobra.Command {
 	}
 
 	// Add flags for log tail configuration
-	cmd.Flags().Int("tail", 100, "Number of lines to tail (range: 1-10000)")
+	cmd.Flags().Int("tail", 100, "Number of lines to tail (range: 1-5000)")
 	cmd.Flags().Bool("follow", true, "Follow log output")
 	cmd.Flags().String("since", "", "Start time in ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
 	cmd.Flags().String("until", "", "End time in ISO 8601 format (e.g., 2024-01-02T00:00:00Z)")

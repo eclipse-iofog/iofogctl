@@ -1,0 +1,8 @@
+apiVersion: edgelet.iofog.org/v1
+kind: Registry
+spec:
+  url: quay.io
+  username: john
+  password: secret-token
+  email: user@domain.com
+  private: true

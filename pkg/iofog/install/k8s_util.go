@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package install
 
 import (
@@ -19,15 +6,18 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-// operatorDeploymentLabels are applied to the iofog-operator Deployment and Pod template.
-var operatorDeploymentLabels = map[string]string{
-	"app.kubernetes.io/name":       "iofog",
-	"app.kubernetes.io/instance":   "iofog",
-	"app.kubernetes.io/component":  "iofog-operator",
-	"app.kubernetes.io/managed-by": "iofogctl",
-	"iofog.org/component":          "iofog-operator",
+func operatorDeploymentLabels() map[string]string {
+	return map[string]string{
+		"app.kubernetes.io/name":       "iofog",
+		"app.kubernetes.io/instance":   "iofog",
+		"app.kubernetes.io/component":  "iofog-operator",
+		"app.kubernetes.io/managed-by": util.GetCliBinaryName(),
+		"iofog.org/component":          "iofog-operator",
+	}
 }
 
 func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
@@ -43,7 +33,7 @@ func newDeployment(namespace string, ms *microservice) *appsv1.Deployment {
 	depLabels := map[string]string{"name": ms.name}
 	podLabels := map[string]string{"name": ms.name}
 	if ms.name == "iofog-operator" {
-		for k, v := range operatorDeploymentLabels {
+		for k, v := range operatorDeploymentLabels() {
 			depLabels[k] = v
 			podLabels[k] = v
 		}

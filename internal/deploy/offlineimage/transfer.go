@@ -2,7 +2,6 @@ package deployofflineimage
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -26,11 +25,11 @@ func transferArtifact(plan agentPlan, artifact *imageArtifact) error {
 		return err
 	}
 
-	file, err := os.Open(artifact.path)
+	file, err := util.OpenValidatedFile(artifact.path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer util.IgnoreClose(file)
 	info, err := file.Stat()
 	if err != nil {
 		return err

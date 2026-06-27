@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package get
 
 import (
@@ -67,9 +54,13 @@ func generateCatalogOutput(namespace string) error {
 			Registry:    client.RegistryTypeIDRegistryTypeDict[item.RegistryID],
 		}
 		for _, image := range item.Images {
-			switch client.AgentTypeIDAgentTypeDict[image.AgentTypeID] {
-			case "x86":
-				catalogItem.X86 = image.ContainerImage
+			switch client.ArchIDToName[image.ArchID] {
+			case "amd64":
+				catalogItem.AMD64 = image.ContainerImage
+			case "arm64":
+				catalogItem.ARM64 = image.ContainerImage
+			case "riscv64":
+				catalogItem.RISCV64 = image.ContainerImage
 			case "arm":
 				catalogItem.ARM = image.ContainerImage
 			default:
@@ -89,7 +80,9 @@ func tabulateCatalogItems(catalogItems []apps.CatalogItem) error {
 		"NAME",
 		"DESCRIPTION",
 		"REGISTRY",
-		"X86",
+		"AMD64",
+		"ARM64",
+		"RISCV64",
 		"ARM",
 	}
 	table[0] = append(table[0], headers...)
@@ -101,7 +94,9 @@ func tabulateCatalogItems(catalogItems []apps.CatalogItem) error {
 			item.Name,
 			item.Description,
 			item.Registry,
-			item.X86,
+			item.AMD64,
+			item.ARM64,
+			item.RISCV64,
 			item.ARM,
 		}
 		table[idx+1] = append(table[idx+1], row...)

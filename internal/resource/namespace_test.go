@@ -23,7 +23,7 @@ func TestAgents(t *testing.T) {
 	// Add
 	for idx := range agents {
 		if err := ns.AddAgent(agents[idx]); err != nil {
-			t.Errorf("Failed to create Agent: " + err.Error())
+			t.Errorf("Failed to create Agent: %s", err.Error())
 		}
 	}
 	if len(ns.GetAgents()) != 2 {
@@ -46,7 +46,7 @@ func TestAgents(t *testing.T) {
 	for idx := 0; idx < len(agents)*2; idx++ {
 		modIdx := idx % len(agents)
 		if err := ns.UpdateAgent(agents[modIdx]); err != nil {
-			t.Errorf("Failed to update Agent: " + err.Error())
+			t.Errorf("Failed to update Agent: %s", err.Error())
 		}
 	}
 	if len(ns.GetAgents()) != 2 {

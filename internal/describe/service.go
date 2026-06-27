@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package describe
 
 import (
@@ -19,6 +6,13 @@ import (
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
+
+func stringPtrValue(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
 
 type serviceExecutor struct {
 	namespace string
@@ -71,7 +65,7 @@ func (exe *serviceExecutor) Execute() error {
 			TargetPort:      service.TargetPort,
 			BridgePort:      service.BridgePort,
 			DefaultBridge:   service.DefaultBridge,
-			K8sType:         service.K8sType,
+			K8sType:         stringPtrValue(service.K8sType),
 			ServiceEndpoint: service.ServiceEndpoint,
 			ServicePort:     service.ServicePort,
 		},

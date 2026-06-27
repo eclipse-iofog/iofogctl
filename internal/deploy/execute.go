@@ -1,20 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deploy
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -30,7 +18,6 @@ import (
 	deployk8scontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/k8s"
 	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/local"
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/remote"
-	deployedgeresource "github.com/eclipse-iofog/iofogctl/internal/deploy/edgeresource"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deploynatsaccountrule "github.com/eclipse-iofog/iofogctl/internal/deploy/natsaccountrule"
 	deploynatsuserrule "github.com/eclipse-iofog/iofogctl/internal/deploy/natsuserrule"
@@ -41,6 +28,7 @@ import (
 	deploysecret "github.com/eclipse-iofog/iofogctl/internal/deploy/secret"
 	deployservice "github.com/eclipse-iofog/iofogctl/internal/deploy/service"
 	deployserviceaccount "github.com/eclipse-iofog/iofogctl/internal/deploy/serviceaccount"
+	deployvalidate "github.com/eclipse-iofog/iofogctl/internal/deploy/validate"
 	deployvolume "github.com/eclipse-iofog/iofogctl/internal/deploy/volume"
 	deployvolumemount "github.com/eclipse-iofog/iofogctl/internal/deploy/volumeMount"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
@@ -63,7 +51,6 @@ var kindOrder = []config.Kind{
 	config.NatsUserRuleKind,
 	config.RemoteAgentKind,
 	config.LocalAgentKind,
-	config.EdgeResourceKind,
 	config.ApplicationTemplateKind,
 	config.VolumeKind,
 	config.OfflineImageKind,
@@ -80,10 +67,6 @@ type Options struct {
 	InputFile    string
 	NoCache      bool
 	TransferPool int
-}
-
-func deployEdgeResource(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deployedgeresource.NewExecutor(deployedgeresource.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployCatalogItem(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -111,7 +94,7 @@ func deployRemoteControlPlane(opt *execute.KindHandlerOpt) (exe execute.Executor
 }
 
 func deployLocalControlPlane(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploylocalcontrolplane.NewExecutor(deploylocalcontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+	return deploylocalcontrolplane.NewExecutor(deploylocalcontrolplane.Options{Namespace: opt.Namespace, Yaml: opt.YAML, FullYAML: opt.FullYAML, Name: opt.Name})
 }
 
 func deployRemoteController(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -195,46 +178,31 @@ func deployNatsUserRule(opt *execute.KindHandlerOpt) (exe execute.Executor, err 
 // Execute deploy from yaml file
 func Execute(opt *Options) (err error) {
 	kindHandlers := buildKindHandlers(opt.NoCache, opt.TransferPool)
-	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers)
+	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers, false)
 	if err != nil {
 		return err
 	}
 
-	// Create any AgentConfig executor missing
-	// Each Agent requires a corresponding Agent Config to be created with Controller
+	// Create any AgentConfig executor missing.
+	// Each Agent requires a corresponding Agent Config to be created with Controller.
+	// CP system agents are registered by LocalControlPlane deploy (systemAgent path), not here.
 	appendedAgentExecs := append(executorsMap[config.LocalAgentKind], executorsMap[config.RemoteAgentKind]...)
-	// Check if control plane is LocalControlPlane (either already in namespace or being deployed)
-	var isLocalControlPlane bool
-	if len(executorsMap[config.LocalControlPlaneKind]) > 0 {
-		// LocalControlPlane is being deployed in this execution
-		isLocalControlPlane = true
-	} else {
-		// Check if LocalControlPlane already exists in namespace
-		ns, err := config.GetNamespace(opt.Namespace)
-		if err == nil {
-			controlPlane, err := ns.GetControlPlane()
-			if err == nil {
-				_, isLocalControlPlane = controlPlane.(*rsc.LocalControlPlane)
-			}
-		}
-	}
 	for _, agentGenericExecutor := range appendedAgentExecs {
 		agentExecutor, ok := agentGenericExecutor.(deployagent.AgentDeployExecutor)
 		if !ok {
 			return util.NewInternalError("Could not convert agent deploy executor\n")
 		}
-		found := false
-		host := agentExecutor.GetHost()
+
+		specHost := agentExecutor.GetHost()
 		tags := agentExecutor.GetTags()
 		deployConfig := agentExecutor.GetConfig()
 
-		// Determine the host value to send to the Controller (AgentConfiguration.Host).
-		// Prefer the host explicitly set in the agent configuration; otherwise, fall back to the spec host.
-		apiHost := host
-		if deployConfig != nil && deployConfig.AgentConfiguration.Host != nil && *deployConfig.AgentConfiguration.Host != "" {
-			apiHost = *deployConfig.AgentConfiguration.Host
+		apiHost := specHost
+		if deployConfig != nil && deployConfig.Host != nil && strings.TrimSpace(*deployConfig.Host) != "" {
+			apiHost = strings.TrimSpace(*deployConfig.Host)
 		}
 
+		found := false
 		for _, configGenericExecutor := range executorsMap[config.AgentConfigKind] {
 			configExecutor, ok := configGenericExecutor.(deployagentconfig.AgentConfigExecutor)
 			if !ok {
@@ -247,66 +215,39 @@ func Execute(opt *Options) (err error) {
 				break
 			}
 		}
-		if !found {
-			agentConfig := client.AgentConfiguration{
-				Host: &apiHost,
-			}
-			if util.IsLocalHost(host) && isLocalControlPlane { // Set de default local config to interior standalone for LocalControlPlane
-				isSystem := true
-				deploymentType := "container"
-				upstreamRouters := []string{}
-				routerMode := iofog.RouterModeInterior
-				edgeRouterPort := 45671
-				interRouterPort := 55671
-				upstreamNatsServers := []string{}
-				natsMode := iofog.NatsModeServer
-				natsServerPort := 4222
-				natsLeafPort := 7422
-				natsClusterPort := 6222
-				natsMqttPort := 8883
-				natsHttpPort := 8222
-				jsStorageSize := "10G"
-				jsMemoryStoreSize := "1G"
-				agentConfig.IsSystem = &isSystem
-				agentConfig.DeploymentType = &deploymentType
-				agentConfig.UpstreamRouters = &upstreamRouters
-				agentConfig.RouterConfig = client.RouterConfig{
-					RouterMode:      &routerMode,
-					EdgeRouterPort:  &edgeRouterPort,
-					InterRouterPort: &interRouterPort,
-				}
-				agentConfig.UpstreamNatsServers = &upstreamNatsServers
-				agentConfig.NatsConfig = client.NatsConfig{
-					NatsMode:          &natsMode,
-					NatsServerPort:    &natsServerPort,
-					NatsLeafPort:      &natsLeafPort,
-					NatsClusterPort:   &natsClusterPort,
-					NatsMqttPort:      &natsMqttPort,
-					NatsHttpPort:      &natsHttpPort,
-					JsStorageSize:     &jsStorageSize,
-					JsMemoryStoreSize: &jsMemoryStoreSize,
-				}
-			} else {
-				// For remote agents, use the configuration from the agent executor
-				if deployConfig == nil {
-					// Initialize default remote agent configuration
-					agentConfig = client.AgentConfiguration{
-						Host: &apiHost,
-					}
-				} else {
-					agentConfig = deployConfig.AgentConfiguration
-					agentConfig.Host = &apiHost
-				}
-			}
-			executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind], deployagentconfig.NewRemoteExecutor(
+		if found {
+			continue
+		}
+
+		agentConfig := buildSyntheticAgentConfiguration(deployConfig, apiHost)
+		syntheticConfig := &rsc.AgentConfiguration{
+			Name:               agentExecutor.GetName(),
+			AgentConfiguration: agentConfig,
+		}
+		if err := deployagentconfig.Validate(syntheticConfig); err != nil {
+			return err
+		}
+
+		executorsMap[config.AgentConfigKind] = append(executorsMap[config.AgentConfigKind],
+			deployagentconfig.NewRemoteExecutor(
 				agentExecutor.GetName(),
-				&rsc.AgentConfiguration{
-					Name:               agentExecutor.GetName(),
-					AgentConfiguration: agentConfig,
-				},
+				syntheticConfig,
 				opt.Namespace,
 				tags,
 			))
+	}
+
+	if localCPExes, exists := executorsMap[config.LocalControlPlaneKind]; exists {
+		namespaceHasOtherCP := false
+		if ns, nsErr := config.GetNamespace(opt.Namespace); nsErr == nil {
+			if existingCP, cpErr := ns.GetControlPlane(); cpErr == nil {
+				if _, ok := existingCP.(*rsc.LocalControlPlane); !ok {
+					namespaceHasOtherCP = true
+				}
+			}
+		}
+		if err := deployvalidate.LocalControlPlaneDeploy(len(localCPExes), namespaceHasOtherCP); err != nil {
+			return err
 		}
 	}
 
@@ -338,6 +279,12 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Controllers
+	if err := deployvalidate.RemoteControllerDeploy(opt.InputFile); err != nil {
+		return err
+	}
+	if errs := execute.RunExecutors(executorsMap[config.RemoteControllerKind], "deploy remote controller"); len(errs) > 0 {
+		return execute.CoalesceErrors(errs)
+	}
 	if errs := execute.RunExecutors(executorsMap[config.LocalControllerKind], "deploy local controller"); len(errs) > 0 {
 		return execute.CoalesceErrors(errs)
 	}
@@ -348,7 +295,6 @@ func Execute(opt *Options) (err error) {
 	}
 
 	// Execute in parallel by priority order
-	// Edge Resources, Agents, Volumes, CatalogItem, Application, Microservice, Route
 	for idx := range kindOrder {
 		if errs := execute.RunExecutors(executorsMap[kindOrder[idx]], fmt.Sprintf("deploy %s", kindOrder[idx])); len(errs) > 0 {
 			return execute.CoalesceErrors(errs)
@@ -364,7 +310,6 @@ func buildKindHandlers(noCache bool, transferPool int) map[config.Kind]func(*exe
 		config.ApplicationTemplateKind:    deployApplicationTemplate,
 		config.MicroserviceKind:           deployMicroservice,
 		config.CatalogItemKind:            deployCatalogItem,
-		config.EdgeResourceKind:           deployEdgeResource,
 		config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
 		config.RemoteControlPlaneKind:     deployRemoteControlPlane,
 		config.LocalControlPlaneKind:      deployLocalControlPlane,
@@ -567,4 +512,21 @@ func mapUUIDsToNames(uuids []string, agentByUUID map[string]*client.AgentInfo) (
 		names = append(names, name)
 	}
 	return
+}
+
+func buildSyntheticAgentConfiguration(deployConfig *rsc.AgentConfiguration, apiHost string) client.AgentConfiguration {
+	host := apiHost
+	isSystem := false
+
+	if deployConfig == nil {
+		return client.AgentConfiguration{
+			Host:     &host,
+			IsSystem: &isSystem,
+		}
+	}
+
+	cfg := deployConfig.AgentConfiguration
+	cfg.Host = &host
+	cfg.IsSystem = &isSystem
+	return cfg
 }

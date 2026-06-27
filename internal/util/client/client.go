@@ -1,28 +1,22 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/internal/trust"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
+
+// ControllerClientOptions builds SDK client options with namespace-aware TLS for controller API calls.
+func ControllerClientOptions(ctx context.Context, namespace, endpoint string) (client.Options, error) {
+	return trust.SDKOptions(ctx, namespace, endpoint)
+}
 
 // clientCacheRoutine handles concurrent requests for a cached Controller client
 func clientCacheRoutine() {
@@ -62,6 +56,12 @@ func agentCacheRoutine() {
 		if request.namespace == "" {
 			// Invalidate cache
 			pkg.agentCache = make(map[string][]client.AgentInfo)
+			request.resultChan <- &agentCacheResult{}
+			continue
+		}
+		if request.invalidate {
+			delete(pkg.agentCache, request.namespace)
+			request.resultChan <- &agentCacheResult{}
 			continue
 		}
 		result := &agentCacheResult{}
@@ -93,18 +93,12 @@ func agentCacheRoutine() {
 }
 
 func agentSyncRoutine() {
-	complete := false
 	for {
 		request := <-pkg.agentSyncRequestChan
-		if complete {
-			request.resultChan <- nil
-			continue
-		}
 		if err := syncAgentInfo(request.namespace); err != nil {
 			request.resultChan <- err
 			continue
 		}
-		complete = true
 		request.resultChan <- nil
 	}
 }
@@ -120,9 +114,8 @@ func syncAgentInfo(namespace string) error {
 	if err != nil {
 		return err
 	}
-	if _, ok := controlPlane.(*rsc.LocalControlPlane); ok {
-		// Do not update local Agents
-		return nil
+	if localCP, ok := controlPlane.(*rsc.LocalControlPlane); ok {
+		return syncLocalControlPlaneAgents(ns, localCP, namespace)
 	}
 	// Generate map of config Agents
 	agentsMap := make(map[string]*rsc.RemoteAgent)
@@ -150,18 +143,7 @@ func syncAgentInfo(namespace string) error {
 			continue
 		}
 
-		agent := rsc.RemoteAgent{
-			Name: backendAgent.Name,
-			UUID: backendAgent.UUID,
-			Host: backendAgent.Host,
-		}
-		// Update additional info if local cache contains it
-		if cachedAgent, exists := agentsMap[backendAgent.Name]; exists {
-			agent.Created = cachedAgent.GetCreatedTime()
-			agent.SSH = cachedAgent.SSH
-		}
-
-		agents[idx] = agent
+		agents[idx] = mergeRemoteAgentFromBackend(agentsMap[backendAgent.Name], backendAgent)
 	}
 
 	// Overwrite the Agents
@@ -179,6 +161,110 @@ func syncAgentInfo(namespace string) error {
 	}
 
 	return config.Flush()
+}
+
+func syncLocalControlPlaneAgents(ns *rsc.Namespace, cp *rsc.LocalControlPlane, namespace string) error {
+	localAgentsMap := make(map[string]*rsc.LocalAgent)
+	remoteAgentsMap := make(map[string]*rsc.RemoteAgent)
+	for _, baseAgent := range ns.GetAgents() {
+		switch agent := baseAgent.(type) {
+		case *rsc.LocalAgent:
+			localAgentsMap[agent.GetName()] = agent.Clone().(*rsc.LocalAgent)
+		case *rsc.RemoteAgent:
+			remoteAgentsMap[agent.GetName()] = agent.Clone().(*rsc.RemoteAgent)
+		}
+	}
+
+	backendAgents, err := GetBackendAgents(namespace)
+	if err != nil {
+		return err
+	}
+
+	endpoint, _ := cp.GetEndpoint()
+
+	ns.DeleteAgents()
+	for idx := range backendAgents {
+		backendAgent := &backendAgents[idx]
+		if backendAgent.IsSystem {
+			localAgent := mergeLocalAgentFromBackend(localAgentsMap[backendAgent.Name], backendAgent, cp)
+			if err := ns.AddAgent(&localAgent); err != nil {
+				return err
+			}
+			continue
+		}
+
+		remoteAgent := mergeRemoteAgentFromBackend(remoteAgentsMap[backendAgent.Name], backendAgent)
+		remoteAgent.ControllerEndpoint = endpoint
+		remoteAgent.Airgap = cp.Airgap
+		if err := ns.AddAgent(&remoteAgent); err != nil {
+			return err
+		}
+	}
+	return config.Flush()
+}
+
+func mergeLocalAgentFromBackend(cached *rsc.LocalAgent, backend *client.AgentInfo, cp *rsc.LocalControlPlane) rsc.LocalAgent {
+	var agent rsc.LocalAgent
+	if cached != nil {
+		agent = *cached.Clone().(*rsc.LocalAgent)
+	} else {
+		agent = rsc.LocalAgent{
+			Name: backend.Name,
+			Host: backend.Host,
+		}
+		if backend.IsSystem && cp.SystemAgent != nil {
+			agent.Package = cp.SystemAgent.Package
+			agent.Scripts = cp.SystemAgent.Scripts
+			if cp.SystemAgent.AgentConfiguration != nil {
+				cfg := *cp.SystemAgent.AgentConfiguration
+				agent.Config = &cfg
+			}
+		}
+	}
+
+	agent.Name = backend.Name
+	agent.UUID = backend.UUID
+	if agent.Host == "" {
+		agent.Host = backend.Host
+	}
+	if endpoint, err := cp.GetEndpoint(); err == nil {
+		agent.ControllerEndpoint = endpoint
+	}
+	agent.Airgap = cp.Airgap
+	return agent
+}
+
+// mergeRemoteAgentFromBackend updates UUID and Controller registration host from the API
+// while preserving locally configured SSH host (spec.host) and deploy metadata.
+func mergeRemoteAgentFromBackend(cached *rsc.RemoteAgent, backend *client.AgentInfo) rsc.RemoteAgent {
+	var agent rsc.RemoteAgent
+	if cached != nil {
+		agent = *cached.Clone().(*rsc.RemoteAgent)
+	} else {
+		agent = rsc.RemoteAgent{
+			Name: backend.Name,
+			Host: backend.Host,
+		}
+	}
+
+	agent.Name = backend.Name
+	agent.UUID = backend.UUID
+	if agent.Host == "" {
+		agent.Host = backend.Host
+	}
+	setRemoteAgentRegistrationHost(&agent, backend.Host)
+	return agent
+}
+
+func setRemoteAgentRegistrationHost(agent *rsc.RemoteAgent, registrationHost string) {
+	if registrationHost == "" {
+		return
+	}
+	if agent.Config == nil {
+		agent.Config = &rsc.AgentConfiguration{}
+	}
+	host := registrationHost
+	agent.Config.Host = &host
 }
 
 func newControllerClient(namespace string) (*client.Client, error) {
@@ -204,30 +290,31 @@ func newControllerClient(namespace string) (*client.Client, error) {
 
 		user := controlPlane.GetUser()
 
-		// Get base URL
-		baseURL, err := util.GetBaseURL(endpoint)
-		if err != nil {
-			return nil, err
-		}
-
 		// Use the refresh token from the cached client
 		refreshToken := cachedClient.GetRefreshToken()
 		user.AccessToken = cachedClient.GetAccessToken()
 		user.RefreshToken = cachedClient.GetRefreshToken()
 		// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
-		config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+		_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+
+		opt, err := ControllerClientOptions(context.Background(), namespace, endpoint)
+		if err != nil {
+			return nil, err
+		}
 
 		// Use SessionLogin to attempt to refresh the session
 		util.SpinHandlePrompt()
-		refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, refreshToken, user.Email, user.GetRawPassword())
+		refreshedClient, err := client.SessionLogin(opt, refreshToken, user.Email, user.GetRawPassword())
 		if err != nil {
 			fmt.Println("Error: Failed to refresh session:", err)
-			return nil, fmt.Errorf("failed to refresh session: %v", err)
+			return nil, fmt.Errorf("failed to refresh session: %w", err)
 		}
 		util.SpinHandlePromptComplete()
 		// Update the cached client with the refreshed session
 		pkg.clientCache[namespace] = refreshedClient
-		config.Flush()
+		if err := config.Flush(); err != nil {
+			return nil, fmt.Errorf("failed to persist namespace after session refresh: %w", err)
+		}
 		return refreshedClient, nil
 	}
 
@@ -246,14 +333,15 @@ func newControllerClient(namespace string) (*client.Client, error) {
 	}
 
 	user := controlPlane.GetUser()
-	baseURL, err := util.GetBaseURL(endpoint)
+
+	opt, err := ControllerClientOptions(context.Background(), namespace, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create a new client and login
 	util.SpinHandlePrompt()
-	newClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
+	newClient, err := client.SessionLogin(opt, user.RefreshToken, user.Email, user.GetRawPassword())
 	if err != nil {
 		return nil, err
 	}
@@ -261,11 +349,11 @@ func newControllerClient(namespace string) (*client.Client, error) {
 	user.AccessToken = newClient.GetAccessToken()
 	user.RefreshToken = newClient.GetRefreshToken()
 	// controlPlane.UpdateUserTokens(user.AccessToken, user.RefreshToken)
-	config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+	_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
 	// Flush the config and handle errors
 	if err := config.Flush(); err != nil {
-		return nil, fmt.Errorf("failed to flush config: %v", err)
+		return nil, fmt.Errorf("failed to flush config: %w", err)
 	}
 
 	return newClient, nil
@@ -290,7 +378,7 @@ func getBackendAgents(namespace string, ioClient *client.Client) ([]client.Agent
 	// Refresh authentication and retry
 	refreshedClient, refreshErr := refreshClientAuthentication(namespace)
 	if refreshErr != nil {
-		return nil, fmt.Errorf("authentication error occurred and failed to refresh: %v (refresh error: %v)", err, refreshErr)
+		return nil, fmt.Errorf("authentication error occurred and failed to refresh: %w (refresh error: %w)", err, refreshErr)
 	}
 
 	// Retry the operation with refreshed client
@@ -378,31 +466,32 @@ func refreshClientAuthentication(namespace string) (*client.Client, error) {
 	}
 
 	user := controlPlane.GetUser()
-	baseURL, err := util.GetBaseURL(endpoint)
+
+	opt, err := ControllerClientOptions(context.Background(), namespace, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Re-authenticate using SessionLogin
 	util.SpinHandlePrompt()
-	refreshedClient, err := client.SessionLogin(client.Options{BaseURL: baseURL}, user.RefreshToken, user.Email, user.GetRawPassword())
+	refreshedClient, err := client.SessionLogin(opt, user.RefreshToken, user.Email, user.GetRawPassword())
 	if err != nil {
 		util.SpinHandlePromptComplete()
-		return nil, fmt.Errorf("failed to refresh authentication: %v", err)
+		return nil, fmt.Errorf("failed to refresh authentication: %w", err)
 	}
 	util.SpinHandlePromptComplete()
 
 	// Update tokens in config
 	user.AccessToken = refreshedClient.GetAccessToken()
 	user.RefreshToken = refreshedClient.GetRefreshToken()
-	config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
+	_ = config.UpdateUser(namespace, user.AccessToken, user.RefreshToken)
 
 	// Update cached client
 	pkg.clientCache[namespace] = refreshedClient
 
 	// Flush config
 	if err := config.Flush(); err != nil {
-		return nil, fmt.Errorf("failed to flush config: %v", err)
+		return nil, fmt.Errorf("failed to flush config: %w", err)
 	}
 
 	return refreshedClient, nil
@@ -430,7 +519,7 @@ func ExecuteWithAuthRetry(namespace string, operation func(*client.Client) error
 	// Refresh authentication and retry
 	refreshedClient, refreshErr := refreshClientAuthentication(namespace)
 	if refreshErr != nil {
-		return fmt.Errorf("authentication error occurred and failed to refresh: %v (refresh error: %v)", err, refreshErr)
+		return fmt.Errorf("authentication error occurred and failed to refresh: %w (refresh error: %w)", err, refreshErr)
 	}
 
 	// Retry the operation with refreshed client

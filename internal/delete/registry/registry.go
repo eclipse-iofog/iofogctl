@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package deleteregistry
 
 import (
@@ -44,7 +31,7 @@ func (exe *Executor) GetName() string {
 	return strconv.Itoa(exe.id)
 }
 
-// Execute deletes application by deleting its associated flow
+// Execute deletes application by deleting its associated application
 func (exe *Executor) Execute() error {
 	util.SpinStart("Deleting Registry")
 	// Init remote resources

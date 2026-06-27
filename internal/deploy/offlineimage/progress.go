@@ -4,8 +4,8 @@ import (
 	"io"
 	"sync/atomic"
 
-	"github.com/containers/image/v5/types"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"go.podman.io/image/v5/types"
 )
 
 type progressPrinter struct {

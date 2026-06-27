@@ -1,0 +1,90 @@
+# Local E2E ControlPlane - used with: make local-deploy-cr
+# Requires postgres in the same namespace (make local-cluster-up).
+apiVersion: datasance.com/v3
+kind: KubernetesControlPlane
+metadata:
+  name: iofog
+spec:
+  config: /Users/emirhan/.kube/config
+  iofogUser:
+    name: Foo
+    surname: Bar
+    email: user@domain.com
+  replicas:
+    controller: 1
+    nats: 2
+  controller:
+    # publicUrl: http://iofog.local
+    trustProxy: false
+    https: false
+  # database:
+  #   provider: postgres
+  #   user: admin
+  #   host: postgres
+  #   port: 5432
+  #   password: localpass
+  #   databaseName: controller
+  #   ssl: false
+  auth:
+    mode: embedded
+    insecureAllowHttp: true
+    bootstrap:
+      username: admin
+      password: "LocalTest12!"   # ≥12 chars; Controller validates at bootstrap
+    # rateLimit: optional for  embedded
+    #   enabled: true
+    #   maxRequestsPerWindow: 60
+    #   windowMs: 60000
+    # sessionStore: optional for  embedded
+    #   type: memory                 # memory | database
+    #   ttlMs: 600000
+    #   secret: ""
+    # tokenTtl: optional for  embedded
+    #   accessTokenTtlSeconds: 900
+    #   refreshTokenTtlSeconds: 3600
+    # oidcTtl: optional for  embedded
+    #   interactionTtlSeconds:
+    #   grantTtlSeconds:
+    #   sessionTtlSeconds:
+    #   idTokenTtlSeconds:
+    # mode: external
+    # issuerUrl: ""
+    # client:
+    #   id: controller
+    #   secret: ""
+  images:
+    controller: ghcr.io/datasance/controller:3.8.0-rc.5
+    router: ghcr.io/datasance/router:3.8.0-rc.1
+    nats: ghcr.io/datasance/nats:2.14.2-rc.2
+  nats:
+    enabled: true
+    jetStream:
+      storageSize: "2Gi"
+      memoryStoreSize: "512Mi"
+  services:
+    controller:
+      type: LoadBalancer
+      externalTrafficPolicy: Cluster  # OrbStack/k3s; avoids ingress controller requirement
+    router:
+      type: LoadBalancer
+      externalTrafficPolicy: Cluster  # required on OrbStack/k3s; Local keeps LB pending
+    nats:
+      type: LoadBalancer
+      externalTrafficPolicy: Cluster  # required on OrbStack/k3s; Local keeps LB pending
+    natsServer:
+      type: ClusterIP
+  # ingresses:
+  #   controller:
+  #     host: iofog.local
+  #     secretName: ""
+  #     annotations: {}
+  #   router:
+  #     messagePort: 5671
+  #     interiorPort: 55671
+  #     edgePort: 45671
+  #   nats:
+  #     serverPort: 4222
+  #     clusterPort: 6222
+  #     leafPort: 7422
+  #     mqttPort: 8883
+  #     httpPort: 8222

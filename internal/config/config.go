@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2023 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package config
 
 import (
@@ -34,19 +21,28 @@ var (
 	namespaces         map[string]*rsc.Namespace
 )
 
-const (
-	apiVersionGroup      = "iofog.org"
-	latestVersion        = "v3"
-	LatestAPIVersion     = apiVersionGroup + "/" + latestVersion
-	defaultDirname       = ".iofog/" + latestVersion
-	namespaceDirname     = "namespaces/"
-	offlineImagesDirname = "offline-images"
-	airgapImagesDirname  = "airgap-images"
-	defaultFilename      = "config.yaml"
-	configV3             = "iofogctl/v3"
-	CurrentConfigVersion = configV3
-	detachedNamespace    = "_detached"
+var (
+	apiVersionGroup  string
+	LatestAPIVersion string
 )
+
+const (
+	latestVersion         = "v3"
+	defaultDirname        = ".iofog/" + latestVersion
+	namespaceDirname      = "namespaces/"
+	offlineImagesDirname  = "offline-images"
+	airgapImagesDirname   = "airgap-images"
+	airgapBinariesDirname = "airgap-binaries"
+	defaultFilename       = "config.yaml"
+	configV3              = "iofogctl/v3"
+	CurrentConfigVersion  = configV3
+	detachedNamespace     = "_detached"
+)
+
+func init() {
+	apiVersionGroup = util.GetCliCrdGroup()
+	LatestAPIVersion = util.GetCliApiVersion()
+}
 
 // Init initializes config, namespace and unmarshalls the files
 func Init(configFolderArg string) {
@@ -76,7 +72,7 @@ func Init(configFolderArg string) {
 
 	// Check config file already exists
 	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		err = os.MkdirAll(configFolder, 0755)
+		err = os.MkdirAll(configFolder, util.DirPerm)
 		util.Check(err)
 
 		// Create default config file
@@ -84,6 +80,8 @@ func Init(configFolderArg string) {
 		err = flushShared()
 		util.Check(err)
 	}
+
+	util.Check(migrateConfigPermissions(configFolder))
 
 	// Unmarshall the config file
 	confHeader := iofogctlConfig{}
@@ -100,7 +98,7 @@ func Init(configFolderArg string) {
 		nsFile := getNamespaceFile(initNamespace)
 		if _, err := os.Stat(nsFile); os.IsNotExist(err) {
 			flush = true
-			err = os.MkdirAll(namespaceDirectory, 0755)
+			err = os.MkdirAll(namespaceDirectory, util.DirPerm)
 			util.Check(err)
 
 			// Create default namespace file
@@ -195,7 +193,7 @@ func flushNamespaces() error {
 			return err
 		}
 		// Overwrite the file
-		err = os.WriteFile(getNamespaceFile(ns.Name), marshal, 0644)
+		err = os.WriteFile(getNamespaceFile(ns.Name), marshal, util.FilePerm)
 		if err != nil {
 			return err
 		}
@@ -210,7 +208,7 @@ func flushShared() error {
 		return nil
 	}
 	// Overwrite the file
-	err = os.WriteFile(configFilename, marshal, 0644)
+	err = os.WriteFile(configFilename, marshal, util.FilePerm)
 	if err != nil {
 		return nil
 	}
@@ -220,6 +218,13 @@ func flushShared() error {
 // Flush will write namespace files to disk
 func Flush() error {
 	return flushNamespaces()
+}
+
+// ConfigFolder returns the initialized CLI config root (e.g. ~/.iofog/v3).
+//
+//nolint:revive // ConfigFolder is the established config package API name.
+func ConfigFolder() string {
+	return configFolder
 }
 
 // GetOfflineImageNamespaceDir returns the directory path used to store OfflineImage artifacts for a namespace.
@@ -236,6 +241,20 @@ func GetOfflineImageCacheDir(namespace, resourceName, platform string) string {
 	if platform != "" {
 		pathElems = append(pathElems, platform)
 	}
+	return path.Join(pathElems...)
+}
+
+// GetAirgapBinaryCachePath returns the local cache file path for an edgelet release binary.
+func GetAirgapBinaryCachePath(namespace, osName, archName string) string {
+	artifact, err := util.EdgeletBinaryArtifact(osName, archName)
+	if err != nil {
+		artifact = "edgelet-" + osName + "-" + archName
+	}
+	pathElems := []string{configFolder, airgapBinariesDirname}
+	if namespace != "" {
+		pathElems = append(pathElems, namespace)
+	}
+	pathElems = append(pathElems, artifact)
 	return path.Join(pathElems...)
 }
 
@@ -256,7 +275,7 @@ func GetAirgapImageCacheDir(namespace, imageRef, platform string) string {
 
 func ValidateHeader(header *Header) error {
 	if header.APIVersion != LatestAPIVersion {
-		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See https://iofog.org for specification details.", header.APIVersion, LatestAPIVersion))
+		return util.NewInputError(fmt.Sprintf("Unsupported YAML API version %s.\nPlease use version %s. See %s for specification details.", header.APIVersion, LatestAPIVersion, util.GetCliDocsUrl()))
 	}
 	return nil
 }
