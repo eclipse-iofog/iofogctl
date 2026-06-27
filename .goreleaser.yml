@@ -190,6 +190,7 @@ brews:
     repository:
       owner: '{{ if eq (.Env.FLAVOR) "datasance" }}Datasance{{ else }}eclipse-iofog{{ end }}'
       name: '{{ if eq (.Env.FLAVOR) "datasance" }}homebrew-potctl{{ else }}homebrew-iofogctl{{ end }}'
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     url_template: "https://github.com/{{ if eq (.Env.FLAVOR) \"datasance\" }}Datasance/potctl{{ else }}eclipse-iofog/iofogctl{{ end }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
       name: emirhandurmus
