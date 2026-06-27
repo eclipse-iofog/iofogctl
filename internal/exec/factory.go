@@ -8,9 +8,10 @@ import (
 )
 
 type Options struct {
-	Resource  string
-	Name      string
-	Namespace string
+	Resource   string
+	Name       string
+	Namespace  string
+	DebugImage *string
 }
 
 func NewExecutor(opt *Options) (execute.Executor, error) {
@@ -18,7 +19,7 @@ func NewExecutor(opt *Options) (execute.Executor, error) {
 	case "microservice":
 		return newMicroserviceExecutor(opt.Namespace, opt.Name), nil
 	case "agent":
-		return newAgentExecutor(opt.Namespace, opt.Name), nil
+		return newAgentExecutor(opt.Namespace, opt.Name, opt.DebugImage), nil
 	default:
 		return nil, util.NewInputError(fmt.Sprintf("Unknown resources: %s", opt.Resource))
 	}

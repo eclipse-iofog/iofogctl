@@ -31,7 +31,7 @@ func (exe *executor) GetName() string {
 }
 
 func (exe *executor) Execute() error {
-	util.SpinStart("Detaching Exec Session to Agent")
+	util.SpinStart("Removing debug exec from Agent")
 
 	// Init client
 	clt, err := clientutil.NewControllerClient(exe.namespace)

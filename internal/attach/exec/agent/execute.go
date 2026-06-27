@@ -34,7 +34,7 @@ func (exe *executor) GetName() string {
 }
 
 func (exe *executor) Execute() error {
-	util.SpinStart("Attaching Exec Session to Agent")
+	util.SpinStart("Provisioning debug exec for Agent")
 
 	// Init client
 	clt, err := clientutil.NewControllerClient(exe.namespace)

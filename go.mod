@@ -4,9 +4,8 @@ go 1.26.4
 
 require (
 	github.com/briandowns/spinner v1.23.1
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.7
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.8
 	github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.1
-	github.com/gorilla/websocket v1.5.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/moby/moby/api v1.55.0
 	github.com/moby/moby/client v0.5.0
@@ -16,10 +15,8 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/twmb/algoimpl v0.0.0-20170717182524-076353e90b94
-	github.com/vmihailenco/msgpack/v5 v5.4.1
 	go.podman.io/image/v5 v5.40.0
 	golang.org/x/crypto v0.53.0
-	golang.org/x/sys v0.46.0
 	golang.org/x/term v0.44.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.32.1
@@ -73,6 +70,7 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -113,6 +111,7 @@ require (
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/vbatts/tar-split v0.12.3 // indirect
 	github.com/vbauerster/mpb/v8 v8.12.0 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -125,6 +124,7 @@ require (
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260401024825-9d38bb4040a9 // indirect
