@@ -4,11 +4,13 @@
 #   GITHUB_REPOSITORY=eclipse-iofog/iofogctl  script/goreleaser-release.sh release --clean
 version: 2
 
-project_name: '{{ if eq (.Env.FLAVOR) "datasance" }}potctl{{ else }}iofogctl{{ end }}'
+project_name: "{{ .Env.CLI_BINARY_NAME }}"
 
 env:
   - GO111MODULE=on
   - CGO_ENABLED=1
+  - FLAVOR={{ .Env.FLAVOR }}
+  - CLI_BINARY_NAME={{ .Env.CLI_BINARY_NAME }}
 
 before:
   hooks:
@@ -156,6 +158,11 @@ archives:
     files:
       - README.md
       - LICENSE
+  - id: windows
+    ids:
+      - build_windows
+    name_template: "{{ .ProjectName }}_{{ .Version }}_windows_{{ .Arch }}.exe"
+    formats: ['binary']
 
 checksum:
   name_template: "{{.ProjectName}}-checksums.txt"
