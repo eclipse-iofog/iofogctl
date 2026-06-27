@@ -1,7 +1,7 @@
 package:
-  version: 1.0.0-rc.3
+  version: 1.0.0-rc.6
   container:
-    image: ghcr.io/datasance/edgelet:1.0.0-rc.3
+    image: ghcr.io/datasance/edgelet:1.0.0-rc.6
 config:
   description: edgelet running on device
   host: 30.40.50.6

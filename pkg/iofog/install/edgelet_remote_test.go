@@ -10,7 +10,7 @@ import (
 
 func TestRemoteEdgeletBootstrapUsesMockedSSH(t *testing.T) {
 	util.SetEdgeletReleaseBaseForTest("https://example.com/download")
-	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.5")
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.6")
 	t.Cleanup(func() {
 		util.ResetEdgeletReleaseBaseForTest()
 		util.ResetEdgeletBinaryVersionForTest()

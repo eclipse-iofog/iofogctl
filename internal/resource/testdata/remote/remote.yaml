@@ -8,14 +8,14 @@ spec:
   ssh:
     user: emirhan
     keyFile: /Users/emirhan/.lima/_config/user
-    port: 57875
+    port: 63025
   airgap: true  
   # package:
   #   container:
-  #     image: ghcr.io/datasance/edgelet:1.0.0-rc.3
+  #     image: ghcr.io/datasance/edgelet:1.0.0-rc.6
   config:
     host: 192.168.105.3
-    networkInterface: lima0
+    networkInterface: dynamic
     logLevel: INFO
     deploymentType: native
     containerEngine: edgelet

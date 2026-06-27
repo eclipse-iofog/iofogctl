@@ -15,7 +15,7 @@ spec:
     consoleUrl: https://192.168.105.2:80
     logLevel: debug
     package:
-      image: ghcr.io/datasance/controller:3.8.0-rc.4
+      image: ghcr.io/datasance/controller:3.8.0-rc.5
   auth:
     mode: embedded
     insecureAllowHttp: false
@@ -64,14 +64,14 @@ spec:
       ssh:
         user: emirhan
         keyFile: /Users/emirhan/.lima/_config/user
-        port: 61954
+        port: 62787
       systemAgent:
         config:
           host: 192.168.105.2
           arch: arm64
           containerEngine: edgelet
           deploymentType: native
-          networkInterface: lima0
+          networkInterface: dynamic
     # - name: remote-2
     #   host: 192.168.139.148
     #   ssh:

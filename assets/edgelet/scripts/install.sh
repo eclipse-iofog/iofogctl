@@ -2,9 +2,9 @@
 # install.sh — Edgelet installer (potctl chunked fork; upstream parity for upgrade/rollback)
 #
 # Usage:
-#   sudo ./install.sh --version=v1.0.0-rc.5
-#   sudo ./install.sh --airgap --bin-path=/path/to/edgelet-linux-amd64 --version=v1.0.0-rc.5
-#   sudo ./install.sh --upgrade --version=v1.0.0-rc.5
+#   sudo ./install.sh --version=v1.0.0-rc.6
+#   sudo ./install.sh --airgap --bin-path=/path/to/edgelet-linux-amd64 --version=v1.0.0-rc.6
+#   sudo ./install.sh --upgrade --version=v1.0.0-rc.6
 #   sudo ./install.sh --rollback
 #
 # potctl deploy uses --skip-config and --skip-start (config/start handled by iofogctl/potctl).

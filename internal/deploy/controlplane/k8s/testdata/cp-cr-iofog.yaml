@@ -25,7 +25,7 @@ spec:
     cleanupInterval: 86400
     captureIpAddress: true
   images:
-    controller: ghcr.io/eclipse-iofog/controller:3.8.0-rc.4
+    controller: ghcr.io/eclipse-iofog/controller:3.8.0-rc.5
     router: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
     nats: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
   nats:

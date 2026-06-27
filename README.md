@@ -65,9 +65,9 @@ brew install potctl
 v3.8 edge nodes run **edgelet**, not the legacy Java `iofog-agent`. Deploy edge nodes with the CLI (`deploy -f` manifest) or install the edgelet binary directly:
 
 ```bash
-curl -fsSL https://github.com/eclipse-iofog/edgelet/releases/download/v1.0.0-rc.5/install.sh -o install.sh
+curl -fsSL https://github.com/eclipse-iofog/edgelet/releases/download/v1.0.0-rc.6/install.sh -o install.sh
 chmod +x install.sh
-sudo ./install.sh --version=v1.0.0-rc.5
+sudo ./install.sh --version=v1.0.0-rc.6
 ```
 
 Eclipse canonical: [eclipse-iofog/edgelet](https://github.com/eclipse-iofog/edgelet/releases) · Datasance mirror: [Datasance/edgelet](https://github.com/Datasance/edgelet/releases)
