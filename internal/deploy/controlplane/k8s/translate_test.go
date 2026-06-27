@@ -8,6 +8,7 @@ import (
 
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 )
@@ -119,6 +120,6 @@ func TestTranslateToControlPlaneCR_DefaultImagesWhenOmitted(t *testing.T) {
 func TestTranslateToControlPlaneCR_CRNameFromLdflagDefault(t *testing.T) {
 	cp := loadResourceFixture(t, "controlplane-iofog.yaml")
 	got := TranslateToControlPlaneCR(&cp, testNamespace)
-	require.Equal(t, "iofog", got.Name)
-	require.Equal(t, "iofog.org/v3", got.APIVersion)
+	require.Equal(t, util.GetCliCpCrName(), got.Name)
+	require.Equal(t, util.GetCliApiVersion(), got.APIVersion)
 }
