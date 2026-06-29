@@ -37,6 +37,7 @@ func init() {
 		"lib/paths.sh",
 		"lib/receipt.sh",
 		"lib/binary.sh",
+		"lib/service.sh",
 		"lib/container_cli.sh",
 		"lib/container_engine.sh",
 		"lib/container_mounts.sh",

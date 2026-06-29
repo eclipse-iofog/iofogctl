@@ -2,9 +2,9 @@
 # install.sh — Edgelet installer (potctl chunked fork; upstream parity for upgrade/rollback)
 #
 # Usage:
-#   sudo ./install.sh --version=v1.0.0-rc.6
-#   sudo ./install.sh --airgap --bin-path=/path/to/edgelet-linux-amd64 --version=v1.0.0-rc.6
-#   sudo ./install.sh --upgrade --version=v1.0.0-rc.6
+#   sudo ./install.sh --version=v1.0.0-rc.8
+#   sudo ./install.sh --airgap --bin-path=/path/to/edgelet-linux-amd64 --version=v1.0.0-rc.8
+#   sudo ./install.sh --upgrade --version=v1.0.0-rc.8
 #   sudo ./install.sh --rollback
 #
 # potctl deploy uses --skip-config and --skip-start (config/start handled by iofogctl/potctl).
@@ -17,6 +17,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/paths.sh"
 . "$SCRIPT_DIR/lib/receipt.sh"
 . "$SCRIPT_DIR/lib/binary.sh"
+. "$SCRIPT_DIR/lib/service.sh"
 
 EDGELET_VERSION="${EDGELET_VERSION:-latest}"
 CONTAINER_ENGINE=""
@@ -96,10 +97,15 @@ _run_post_install() {
 		info "Skipping daemon start (--skip-start); use start_edgelet.sh"
 		return 0
 	fi
+	_service_action=start
+	if [ "$ACTION" = "upgrade" ] || [ "$ACTION" = "rollback" ]; then
+		_service_action=restart
+	fi
 	if [ "$OS" = "linux" ]; then
 		EDGELET_INSTALL_MODE=native CONTAINER_ENGINE="$CONTAINER_ENGINE" \
 			"$SCRIPT_DIR/install_init_units.sh" || true
 		EDGELET_INSTALL_MODE=native CONTAINER_ENGINE="$CONTAINER_ENGINE" \
+			EDGELET_SERVICE_ACTION="$_service_action" \
 			"$SCRIPT_DIR/start_edgelet.sh"
 	elif [ "$OS" = "darwin" ]; then
 		"$SCRIPT_DIR/start_edgelet.sh"
@@ -130,6 +136,8 @@ if [ "$ACTION" = "rollback" ]; then
 	else
 		curl -fsSL -o "$_staged" "$_purl" || die "Failed to download rollback binary"
 	fi
+	[ "$OS" = "linux" ] && stop_edgelet_service "$INIT"
+	stop_edgelet_daemon_desktop "$OS"
 	install_binary_file "$_staged" "$BINARY_PATH"
 	install_dirs_for_os "$OS"
 	if [ "$FORCE_CONFIG" != true ] && [ -f "$_cfgbak" ]; then
@@ -137,8 +145,8 @@ if [ "$ACTION" = "rollback" ]; then
 	fi
 	_sha=$(sha256_file "$BINARY_PATH")
 	write_install_receipt "$EDGELET_VERSION" "$_pos" "$_parch" "$CONTAINER_ENGINE" "$_purl" "$_sha" "rollback"
-	_run_post_install
 	"$SCRIPT_DIR/bundled.sh" || true
+	_run_post_install
 	info "Rollback to ${EDGELET_VERSION} complete."
 	exit 0
 fi
@@ -162,6 +170,7 @@ if [ "$ACTION" = "upgrade" ]; then
 	cp "$CONFIG_FILE" "$_cfg_backup" 2>/dev/null || true
 	cache_binary "$_cur_ver" "$_cur_os" "$_cur_arch" "$BINARY_PATH"
 	write_previous_release "$_cur_ver" "$_cur_os" "$_cur_arch" "$_cur_eng" "$_cur_src" "$_cur_sha" "$_cfg_backup"
+	[ "$OS" = "linux" ] && stop_edgelet_service "$INIT"
 	stop_edgelet_daemon_desktop "$OS"
 	_staged="${TMPDIR}/edgelet-bin"
 	download_or_stage_binary "$_staged"
@@ -180,8 +189,12 @@ fi
 
 # fresh install
 if command -v edgelet >/dev/null 2>&1; then
-	installed=$(edgelet --version 2>/dev/null | head -n1 | tr -d '[:space:]')
-	if [ -n "$EDGELET_VERSION" ] && [ "$installed" = "$EDGELET_VERSION" ]; then
+	_installed_cli=$(edgelet_cli_version)
+	_installed_receipt=""
+	if [ -f "$RECEIPT_FILE" ]; then
+		_installed_receipt=$(kv_get "$RECEIPT_FILE" "installed_version")
+	fi
+	if [ -n "$EDGELET_VERSION" ] && { [ "$_installed_cli" = "$EDGELET_VERSION" ] || [ "$_installed_receipt" = "$EDGELET_VERSION" ]; }; then
 		info "Edgelet $EDGELET_VERSION already installed."
 		"$SCRIPT_DIR/bundled.sh" || true
 		exit 0

@@ -68,3 +68,55 @@ func TestPreInstallCommandsIncludeWasmWhenConfigured(t *testing.T) {
 		t.Fatalf("expected 4 pre-install commands without wasm, got %d", len(pre))
 	}
 }
+
+func TestInstallScriptOTAParity(t *testing.T) {
+	content, err := loadEdgeletScript(pkg.edgeletScriptInstall)
+	if err != nil {
+		t.Fatalf("load install.sh: %v", err)
+	}
+	for _, needle := range []string{
+		"stop_edgelet_service",
+		"EDGELET_SERVICE_ACTION",
+		"edgelet_cli_version",
+	} {
+		if !strings.Contains(content, needle) {
+			t.Fatalf("install.sh missing OTA parity marker %q", needle)
+		}
+	}
+
+	service, err := loadEdgeletScript("lib/service.sh")
+	if err != nil {
+		t.Fatalf("load lib/service.sh: %v", err)
+	}
+	for _, needle := range []string{
+		"stop_edgelet_service",
+		"restart_edgelet_services",
+		"restart_edgelet_containerd_service",
+	} {
+		if !strings.Contains(service, needle) {
+			t.Fatalf("lib/service.sh missing %q", needle)
+		}
+	}
+	if strings.Contains(service, `prefix="${_field}.version:"`) {
+		t.Fatalf("lib/service.sh uses broken awk prefix (trailing colon with -F': ')")
+	}
+	if !strings.Contains(service, `key="${_field}.version"`) {
+		t.Fatalf("lib/service.sh missing fixed edgelet_version_field awk key")
+	}
+
+	start, err := loadEdgeletScript(pkg.edgeletScriptStartEdgelet)
+	if err != nil {
+		t.Fatalf("load start_edgelet.sh: %v", err)
+	}
+	if !strings.Contains(start, "EDGELET_SERVICE_ACTION") || !strings.Contains(start, "restart_native_linux") {
+		t.Fatalf("start_edgelet.sh missing OTA restart handling")
+	}
+
+	waitReady, err := loadEdgeletScript(pkg.edgeletScriptWaitEdgeletReady)
+	if err != nil {
+		t.Fatalf("load wait_edgelet_ready.sh: %v", err)
+	}
+	if !strings.Contains(waitReady, "wait_for_expected_daemon_version") {
+		t.Fatalf("wait_edgelet_ready.sh missing daemon.version receipt check")
+	}
+}
