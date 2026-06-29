@@ -71,24 +71,28 @@ func TransferWasmBinaries(host string, ssh *rsc.SSH, staged []wasm.StagedBinary)
 			return util.NewInputError(fmt.Sprintf("local WASM binary path is required for handler %s", item.Handler))
 		}
 
-		file, err := util.OpenValidatedFile(item.LocalPath)
-		if err != nil {
-			return err
-		}
-		info, err := file.Stat()
-		if err != nil {
-			file.Close()
+		if err := func() error {
+			file, err := util.OpenValidatedFile(item.LocalPath)
+			if err != nil {
+				return err
+			}
+			defer util.IgnoreClose(file)
+
+			info, err := file.Stat()
+			if err != nil {
+				return err
+			}
+
+			filename := item.CanonicalName
+			if err := client.CopyTo(file, util.AddTrailingSlash(hostDir), filename, "0700", info.Size()); err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
 			return err
 		}
 
-		filename := item.CanonicalName
-		if err := client.CopyTo(file, util.AddTrailingSlash(hostDir), filename, "0700", info.Size()); err != nil {
-			file.Close()
-			return err
-		}
-		file.Close()
-
-		item.RemotePath = util.JoinAgentPath(hostDir, filename)
+		item.RemotePath = util.JoinAgentPath(hostDir, item.CanonicalName)
 		util.PrintInfo(fmt.Sprintf("WASM shim %s transfer to %s complete", item.Handler, host))
 	}
 	return nil

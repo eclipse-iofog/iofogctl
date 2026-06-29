@@ -3,6 +3,7 @@ package wasm
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
+
+const maxWasmExtractSize = 250 * 1024 * 1024 // 250MiB transfer cap
 
 func extractArtifact(sourcePath, handler string) (destPath, matchedName string, err error) {
 	candidates := Candidates(handler)
@@ -29,7 +32,7 @@ func extractArtifact(sourcePath, handler string) (destPath, matchedName string, 
 }
 
 func isGzipTar(path string) bool {
-	file, err := os.Open(path)
+	file, err := util.OpenValidatedFile(path)
 	if err != nil {
 		return false
 	}
@@ -43,7 +46,7 @@ func isGzipTar(path string) bool {
 }
 
 func isRawELF(path string) bool {
-	file, err := os.Open(path)
+	file, err := util.OpenValidatedFile(path)
 	if err != nil {
 		return false
 	}
@@ -57,7 +60,7 @@ func isRawELF(path string) bool {
 }
 
 func extractFromTarGz(sourcePath string, candidates []string) (string, string, error) {
-	file, err := os.Open(sourcePath)
+	file, err := util.OpenValidatedFile(sourcePath)
 	if err != nil {
 		return "", "", err
 	}
@@ -74,7 +77,7 @@ func extractFromTarGz(sourcePath string, candidates []string) (string, string, e
 
 	for {
 		header, err := tarReader.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -103,7 +106,7 @@ func extractFromTarGz(sourcePath string, candidates []string) (string, string, e
 }
 
 func materializeTarEntry(sourcePath, matchedName string) (string, string, error) {
-	file, err := os.Open(sourcePath)
+	file, err := util.OpenValidatedFile(sourcePath)
 	if err != nil {
 		return "", "", err
 	}
@@ -131,7 +134,7 @@ func materializeTarEntry(sourcePath, matchedName string) (string, string, error)
 
 	for {
 		header, err := tarReader.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -143,8 +146,16 @@ func materializeTarEntry(sourcePath, matchedName string) (string, string, error)
 		if filepath.Base(header.Name) != matchedName {
 			continue
 		}
-		if _, err := io.Copy(destPath, tarReader); err != nil {
+		if header.Size < 0 || header.Size > maxWasmExtractSize {
+			return "", "", fmt.Errorf("archive entry %q exceeds size limit", matchedName)
+		}
+		limited := io.LimitReader(tarReader, maxWasmExtractSize+1)
+		n, err := io.Copy(destPath, limited)
+		if err != nil {
 			return "", "", fmt.Errorf("extract %q from archive: %w", matchedName, err)
+		}
+		if n > maxWasmExtractSize {
+			return "", "", fmt.Errorf("extract %q: decompressed size exceeds limit", matchedName)
 		}
 		if err := destPath.Chmod(util.ExecPerm); err != nil {
 			return "", "", err
