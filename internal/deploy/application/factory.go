@@ -61,7 +61,7 @@ func (exe *remoteExecutor) Execute() error {
 		Token:        clt.GetAccessToken(),
 		RefreshToken: clt.GetRefreshToken(),
 	}
-	return apps.DeployApplication(controller, exe.application, exe.name)
+	return apps.DeployApplication(controller, exe.application, exe.name, apps.WithAPIVersion(util.GetCliApiVersion()))
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

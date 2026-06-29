@@ -43,7 +43,7 @@ func (exe *executor) Execute() error {
 		return nil
 	}
 	notFoundError := &client.NotFoundError{}
-	if errors.As(err, &notFoundError) {
+	if !errors.As(err, &notFoundError) {
 		return err
 	}
 
