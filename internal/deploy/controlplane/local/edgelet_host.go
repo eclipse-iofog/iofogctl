@@ -1,6 +1,7 @@
 package deploylocalcontrolplane
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -116,13 +117,22 @@ func buildRemoteEdgeletForTeardown(agent *rsc.RemoteAgent) (*install.RemoteEdgel
 	return edgelet, nil
 }
 
-func installHostEdgelet(cp *rsc.LocalControlPlane, name string) (*install.LocalEdgelet, error) {
+func installHostEdgelet(cp *rsc.LocalControlPlane, namespace, name string) (*install.LocalEdgelet, error) {
 	edgelet, err := BuildLocalEdgelet(cp, name, "")
 	if err != nil {
 		return nil, err
 	}
 
+	if cp.Airgap {
+		if err := edgelet.SetAirgap(""); err != nil {
+			return nil, err
+		}
+	}
+
 	util.SpinStart("Installing edgelet")
+	if err := edgelet.PrepareWasm(context.Background(), namespace); err != nil {
+		return nil, err
+	}
 	if err := edgelet.Bootstrap(); err != nil {
 		return nil, err
 	}

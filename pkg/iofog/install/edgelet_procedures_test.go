@@ -141,7 +141,10 @@ func TestBootstrapCommandGeneration(t *testing.T) {
 	}
 	pre := procs.preInstallCommands("edge-node", cfg, true)
 	if len(pre) != 4 {
-		t.Fatalf("expected 4 pre-install commands, got %d", len(pre))
+		t.Fatalf("expected 4 pre-install commands without wasm, got %d", len(pre))
+	}
+	if !strings.Contains(pre[3].cmd, "install.sh") {
+		t.Fatalf("expected install.sh command, got %q", pre[3].cmd)
 	}
 	post := procs.postInstallCommands("edge-node", cfg, true)
 	if len(post) != 5 {
@@ -149,9 +152,6 @@ func TestBootstrapCommandGeneration(t *testing.T) {
 	}
 	if !strings.Contains(pre[0].cmd, "CONTAINER_ENGINE=docker") {
 		t.Fatalf("expected bootstrap env injection, got %q", pre[0].cmd)
-	}
-	if !strings.Contains(pre[3].cmd, "install.sh") {
-		t.Fatalf("expected install.sh command, got %q", pre[3].cmd)
 	}
 	if !strings.Contains(pre[3].cmd, "sudo env ") || !strings.Contains(pre[3].cmd, "CONTAINER_ENGINE=docker") {
 		t.Fatalf("expected sudo env bootstrap for install, got %q", pre[3].cmd)

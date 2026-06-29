@@ -33,6 +33,7 @@ for _script in \
 	install_deps.sh \
 	configure_container_engine.sh \
 	install.sh \
+	install_wasm_runtimes.sh \
 	uninstall.sh \
 	install_init_units.sh \
 	install_container.sh \

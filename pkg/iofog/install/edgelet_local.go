@@ -1,12 +1,14 @@
 package install
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install/wasm"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -82,6 +84,7 @@ func (agent *LocalEdgelet) CustomizeProcedures(dir string, procs *EdgeletProcedu
 		procs.Install = agent.procs.Install
 		for _, script := range []string{
 			pkg.edgeletScriptInstall,
+			pkg.edgeletScriptInstallWasmRuntimes,
 			pkg.edgeletScriptInstallContainer,
 			pkg.edgeletScriptInstallInitUnits,
 			pkg.edgeletScriptStartEdgelet,
@@ -109,6 +112,9 @@ func (agent *LocalEdgelet) CustomizeProcedures(dir string, procs *EdgeletProcedu
 	}
 	if procs.InstallInitUnits.Name == "" {
 		procs.InstallInitUnits = agent.procs.InstallInitUnits
+	}
+	if procs.InstallWasmRuntimes.Name == "" {
+		procs.InstallWasmRuntimes = agent.procs.InstallWasmRuntimes
 	}
 	if procs.StartEdgelet.Name == "" {
 		procs.StartEdgelet = agent.procs.StartEdgelet
@@ -142,6 +148,7 @@ func (agent *LocalEdgelet) bindProcedurePaths(procs *EdgeletProcedures, stageDir
 	procs.DetectInit.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptDetectInit)
 	procs.Deps.destPath = util.JoinAgentPath(stageDir, procs.Deps.Name)
 	procs.refreshInstallEntry(stageDir, agent.cfg)
+	procs.InstallWasmRuntimes.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptInstallWasmRuntimes)
 	procs.InstallInitUnits.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptInstallInitUnits)
 	procs.InstallContainer.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptInstallContainer)
 	procs.StartEdgelet.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptStartEdgelet)
@@ -173,6 +180,16 @@ func (agent *LocalEdgelet) SetAirgap(binPath string) error {
 	return agent.procs.setInstallArgs(agent.cfg)
 }
 
+func (agent *LocalEdgelet) PrepareWasm(ctx context.Context, namespace string) error {
+	freshInstall := !localEngineActive(agent.cfg)
+	return agent.cfg.PrepareWasm(ctx, namespace, freshInstall)
+}
+
+func (agent *LocalEdgelet) SetWasmStaged(staged []wasm.StagedBinary) error {
+	freshInstall := !localEngineActive(agent.cfg)
+	return agent.cfg.SetWasmStaged(staged, freshInstall, false)
+}
+
 func (agent *LocalEdgelet) Bootstrap() error {
 	if err := agent.materializeScripts(); err != nil {
 		return err
@@ -189,11 +206,19 @@ func (agent *LocalEdgelet) Bootstrap() error {
 			return err
 		}
 	}
-	for _, cmd := range agent.procs.postInstallCommands(agent.name, agent.cfg, useSudo) {
+	for _, cmd := range agent.procs.postInstallCommandsBeforeBundled(agent.name, agent.cfg, useSudo) {
 		Verbose(cmd.msg)
 		if err := agent.runShell(cmd.cmd); err != nil {
 			return err
 		}
+	}
+	if err := agent.DeployWasmRuntimeClasses(); err != nil {
+		return err
+	}
+	bundled := agent.procs.postInstallBundledCommand(agent.name, agent.cfg, useSudo)
+	Verbose(bundled.msg)
+	if err := agent.runShell(bundled.cmd); err != nil {
+		return err
 	}
 	return nil
 }

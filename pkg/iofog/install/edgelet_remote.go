@@ -1,12 +1,14 @@
 package install
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install/wasm"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -99,6 +101,7 @@ func (agent *RemoteEdgelet) CustomizeProcedures(dir string, procs *EdgeletProced
 		procs.Install = agent.procs.Install
 		for _, script := range []string{
 			pkg.edgeletScriptInstall,
+			pkg.edgeletScriptInstallWasmRuntimes,
 			pkg.edgeletScriptInstallContainer,
 			pkg.edgeletScriptInstallInitUnits,
 			pkg.edgeletScriptStartEdgelet,
@@ -126,6 +129,9 @@ func (agent *RemoteEdgelet) CustomizeProcedures(dir string, procs *EdgeletProced
 	}
 	if procs.InstallInitUnits.Name == "" {
 		procs.InstallInitUnits = agent.procs.InstallInitUnits
+	}
+	if procs.InstallWasmRuntimes.Name == "" {
+		procs.InstallWasmRuntimes = agent.procs.InstallWasmRuntimes
 	}
 	if procs.StartEdgelet.Name == "" {
 		procs.StartEdgelet = agent.procs.StartEdgelet
@@ -159,6 +165,7 @@ func (agent *RemoteEdgelet) bindProcedurePaths(procs *EdgeletProcedures, stageDi
 	procs.DetectInit.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptDetectInit)
 	procs.Deps.destPath = util.JoinAgentPath(stageDir, procs.Deps.Name)
 	procs.refreshInstallEntry(stageDir, agent.cfg)
+	procs.InstallWasmRuntimes.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptInstallWasmRuntimes)
 	procs.InstallInitUnits.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptInstallInitUnits)
 	procs.InstallContainer.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptInstallContainer)
 	procs.StartEdgelet.destPath = util.JoinAgentPath(stageDir, pkg.edgeletScriptStartEdgelet)
@@ -214,6 +221,109 @@ func (agent *RemoteEdgelet) detectAndSetHostOS() error {
 	return agent.procs.setInstallArgs(agent.cfg)
 }
 
+func (agent *RemoteEdgelet) PrepareWasm(ctx context.Context, namespace string) error {
+	if agent.cfg.wasmEnv != "" {
+		return nil
+	}
+	if err := agent.detectAndSetHostOS(); err != nil {
+		return err
+	}
+	freshInstall := !agent.remoteEngineActive()
+	if err := agent.cfg.PrepareWasm(ctx, namespace, freshInstall); err != nil {
+		return err
+	}
+	return agent.copyWasmStagingToRemote()
+}
+
+func (agent *RemoteEdgelet) SetWasmStaged(staged []wasm.StagedBinary) error {
+	if err := agent.detectAndSetHostOS(); err != nil {
+		return err
+	}
+	freshInstall := !agent.remoteEngineActive()
+	return agent.cfg.SetWasmStaged(staged, freshInstall, true)
+}
+
+func (agent *RemoteEdgelet) remoteEngineActive() bool {
+	if remoteEdgeletRunHook != nil {
+		return false
+	}
+	engine := agent.cfg.containerEngine()
+	var checkCmd string
+	switch engine {
+	case "edgelet":
+		checkCmd = "systemctl is-active edgelet-containerd 2>/dev/null"
+	case "docker":
+		checkCmd = "docker ps >/dev/null 2>&1"
+	default:
+		return false
+	}
+	if err := agent.ssh.Connect(); err != nil {
+		return false
+	}
+	defer util.Log(agent.ssh.Disconnect)
+	out, err := agent.ssh.Run(checkCmd)
+	if engine == "edgelet" {
+		return err == nil && strings.TrimSpace(out.String()) == "active"
+	}
+	return err == nil
+}
+
+func (agent *RemoteEdgelet) copyWasmStagingToRemote() error {
+	if agent.cfg.wasmEnv == "" {
+		return nil
+	}
+	if remoteEdgeletRunHook != nil {
+		return nil
+	}
+
+	localDir := filepath.Join(EdgeletScriptStageDir, wasmRemoteStageSubdir)
+	entries, err := os.ReadDir(localDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	remoteDir := util.JoinAgentPath(agent.dir, wasmRemoteStageSubdir)
+	if err := agent.run([]command{{
+		cmd: fmt.Sprintf("sudo mkdir -p %s && sudo chmod 755 %s", remoteDir, remoteDir),
+		msg: "Creating remote WASM staging directory on " + agent.name,
+	}}); err != nil {
+		return err
+	}
+
+	if err := agent.ssh.Connect(); err != nil {
+		return err
+	}
+	defer util.Log(agent.ssh.Disconnect)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		localPath := filepath.Join(localDir, entry.Name())
+		content, err := util.ReadValidatedFile(localPath)
+		if err != nil {
+			return err
+		}
+		tmpName := "wasm-" + entry.Name() + ".upload"
+		reader := strings.NewReader(string(content))
+		if err := agent.ssh.CopyTo(reader, remoteEdgeletManifestDir, tmpName, "0755", int64(len(content))); err != nil {
+			return err
+		}
+		destPath := util.JoinAgentPath(remoteDir, entry.Name())
+		installCmd := fmt.Sprintf("sudo install -m 755 %s/%s %s", remoteEdgeletManifestDir, tmpName, destPath)
+		if _, err := agent.ssh.Run(installCmd); err != nil {
+			return err
+		}
+		if _, err := agent.ssh.Run(fmt.Sprintf("rm -f %s/%s", remoteEdgeletManifestDir, tmpName)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (agent *RemoteEdgelet) Bootstrap() error {
 	if err := agent.detectAndSetHostOS(); err != nil {
 		return err
@@ -227,7 +337,13 @@ func (agent *RemoteEdgelet) Bootstrap() error {
 	if err := agent.materializeRuntimeConfig(); err != nil {
 		return err
 	}
-	return agent.run(agent.procs.postInstallCommands(agent.name, agent.cfg, true))
+	if err := agent.run(agent.procs.postInstallCommandsBeforeBundled(agent.name, agent.cfg, true)); err != nil {
+		return err
+	}
+	if err := agent.DeployWasmRuntimeClasses(); err != nil {
+		return err
+	}
+	return agent.run([]command{agent.procs.postInstallBundledCommand(agent.name, agent.cfg, true)})
 }
 
 func (agent *RemoteEdgelet) Configure(controllerEndpoint string, user IofogUser, sdkOpt client.Options) (string, error) {

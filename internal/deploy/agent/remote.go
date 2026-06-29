@@ -113,6 +113,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	var pendingNativeAirgap *deployairgap.AgentAirgapResult
+	ctx := context.Background()
 
 	if exe.agent.Airgap {
 		var remoteControlPlane *rsc.RemoteControlPlane
@@ -133,7 +134,6 @@ func (exe *remoteExecutor) Execute() (err error) {
 			return fmt.Errorf("airgap deployment requires valid configuration: %w", err)
 		}
 
-		ctx := context.Background()
 		if deployairgap.IsNativeDeployment(airgapPlan.Options.DeploymentType) {
 			plan := airgapPlan
 			pendingNativeAirgap = &plan
@@ -149,6 +149,14 @@ func (exe *remoteExecutor) Execute() (err error) {
 				return fmt.Errorf("failed to transfer airgap images: %w", err)
 			}
 		}
+
+		if err := stageRemoteWasmAirgap(ctx, exe.namespace, exe.agent.Host, exe.agent.Config, &exe.agent.SSH, exe.agent.Package, edgelet); err != nil {
+			return err
+		}
+	}
+
+	if err := edgelet.PrepareWasm(ctx, exe.namespace); err != nil {
+		return err
 	}
 
 	if err := edgelet.Bootstrap(); err != nil {
@@ -156,7 +164,6 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	if pendingNativeAirgap != nil && len(pendingNativeAirgap.ImageList) > 0 {
-		ctx := context.Background()
 		if err := deployairgap.TransferAgentAirgapImages(ctx, exe.namespace, exe.agent.Host, &exe.agent.SSH, pendingNativeAirgap.Platform, pendingNativeAirgap.Options, pendingNativeAirgap.ImageList); err != nil {
 			return fmt.Errorf("failed to transfer airgap images: %w", err)
 		}
@@ -175,5 +182,5 @@ func ValidateRemoteAgent(agent *rsc.RemoteAgent) error {
 	if (agent.Host != "localhost" && agent.Host != "127.0.0.1") && (agent.Host == "" || agent.SSH.User == "" || agent.SSH.KeyFile == "") {
 		return util.NewInputError("For Agents you must specify non-empty values for host, user, and keyfile")
 	}
-	return nil
+	return rsc.ValidateAgentPackage("Agent", agent.Package, agent.Config)
 }

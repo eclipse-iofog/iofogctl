@@ -1,0 +1,45 @@
+---
+apiVersion: datasance.com/v3
+kind: Application
+metadata:
+  name: wasm
+spec:
+  microservices:
+    - name: wasm
+      agent:
+        name: controlplane
+      images:
+        registry: 1
+        amd64: ghcr.io/spinframework/containerd-shim-spin/examples/spin-rust-hello:v0.22.0
+        arm64: ghcr.io/spinframework/containerd-shim-spin/examples/spin-rust-hello:v0.22.0
+      container:
+        rootHostAccess: false
+        runAsUser: ''
+        platform: wasi/wasm
+        runtime: spin
+        cdiDevices: []
+        ports:
+          - internal: 80
+            external: 8080
+            protocol: tcp
+        commands:
+          - "/"
+    - name: wasm2
+      agent:
+        name: edge-1
+      images:
+        registry: 1
+        amd64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+        arm64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+      container:
+        rootHostAccess: false
+        runAsUser: ''
+        platform: wasi/wasm
+        runtime: edgelet-wasmtime
+        cdiDevices: []
+        ports:
+          - internal: 8080
+            external: 8081
+            protocol: tcp
+        # commands:
+        #   - "/"

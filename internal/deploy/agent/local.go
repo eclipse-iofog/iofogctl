@@ -99,7 +99,16 @@ func (exe *localExecutor) Execute() error {
 		return err
 	}
 
+	if exe.agent.Airgap {
+		if err := edgelet.SetAirgap(""); err != nil {
+			return err
+		}
+	}
+
 	util.SpinStart("Installing edgelet")
+	if err := edgelet.PrepareWasm(context.Background(), exe.namespace); err != nil {
+		return err
+	}
 	if err := edgelet.Bootstrap(); err != nil {
 		return err
 	}

@@ -44,6 +44,10 @@ func NewLocalExecutorYAML(opt Options) (exe execute.Executor, err error) {
 		agent.Name = opt.Name
 	}
 
+	if err = rsc.ValidateAgentPackage("LocalAgent", agent.Package, agent.Config); err != nil {
+		return exe, err
+	}
+
 	localExe, err := newLocalExecutor(opt.Namespace, &agent, opt.IsSystem)
 	if err != nil {
 		return nil, err

@@ -24,9 +24,16 @@ type RemoteContainer struct {
 	Password string `yaml:"password,omitempty"`
 }
 
+type WasmPack struct {
+	URL    string `yaml:"url,omitempty"`
+	Path   string `yaml:"path,omitempty"`
+	SHA256 string `yaml:"sha256,omitempty"`
+}
+
 type Package struct {
-	Version   string          `yaml:"version,omitempty"`
-	Container RemoteContainer `yaml:"container,omitempty"`
+	Version   string              `yaml:"version,omitempty"`
+	Container RemoteContainer     `yaml:"container,omitempty"`
+	Wasm      map[string]WasmPack `yaml:"wasm,omitempty"`
 }
 
 type SSH struct {

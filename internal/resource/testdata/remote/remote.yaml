@@ -8,9 +8,14 @@ spec:
   ssh:
     user: emirhan
     keyFile: /Users/emirhan/.lima/_config/user
-    port: 59246
+    port: 56103
   airgap: true  
-  # package:
+  package:
+    wasm:
+      spin:
+        url: https://github.com/spinframework/containerd-shim-spin/releases/download/v0.25.1/containerd-shim-spin-v2-linux-aarch64.tar.gz
+      edgelet-wasmtime:
+        url: https://github.com/Datasance/containerd-shim-edgelet/releases/download/v0.1.0/containerd-shim-edgelet-wasm-v2-aarch64-linux-gnu.tar.gz
   #   container:
   #     image: ghcr.io/datasance/edgelet:1.0.0-rc.6
   config:
