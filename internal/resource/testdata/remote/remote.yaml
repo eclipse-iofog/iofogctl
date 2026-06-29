@@ -8,7 +8,7 @@ spec:
   ssh:
     user: emirhan
     keyFile: /Users/emirhan/.lima/_config/user
-    port: 63025
+    port: 59246
   airgap: true  
   # package:
   #   container:

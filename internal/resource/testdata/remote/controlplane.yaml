@@ -15,7 +15,7 @@ spec:
     consoleUrl: https://192.168.105.2:80
     logLevel: debug
     package:
-      image: ghcr.io/datasance/controller:3.8.0-rc.5
+      image: ghcr.io/datasance/controller:3.8.0-rc.6
   auth:
     mode: embedded
     insecureAllowHttp: false
@@ -64,7 +64,7 @@ spec:
       ssh:
         user: emirhan
         keyFile: /Users/emirhan/.lima/_config/user
-        port: 62787
+        port: 59223
       systemAgent:
         config:
           host: 192.168.105.2

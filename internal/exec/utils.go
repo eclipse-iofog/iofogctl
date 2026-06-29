@@ -17,7 +17,8 @@ const (
 	ErrMsgAgentNotRunning          = "Agent is not running. Start the Agent before opening an exec session."
 	ErrMsgInsufficientPermissions  = "Insufficient permissions. Required roles: SRE for Node Exec or Developer for Microservice Exec."
 	ErrMsgOnlySREAccess            = "Only SRE can access system microservices. Please contact your administrator."
-	ErrMsgExecRouterUnavailable    = "Exec session router unavailable. Retry or check Controller HA configuration."
+	ErrMsgExecRelayUnavailable     = "Exec session relay unavailable for cross-replica HA. Retry or check Controller NATS/AMQP relay connectivity."
+	ErrMsgExecServerDraining       = "Server draining; retry during rollout or connect to another Controller replica."
 	ErrMsgConnectionLost           = "Connection lost unexpectedly"
 	ErrMsgMessageTooLarge          = "Message too large"
 	ErrMsgServerError              = "Server error occurred"
@@ -33,12 +34,14 @@ func formatExecError(err error) string {
 	switch {
 	case errors.Is(err, client.ErrExecSessionQuotaExceeded):
 		return ErrMsgExecSessionQuotaExceeded
-	case errors.Is(err, client.ErrExecAgentTimeout):
+	case errors.Is(err, client.ErrWsAgentTimeout):
 		return ErrMsgTimeoutWaitingForAgent
 	case errors.Is(err, client.ErrMicroserviceNotRunning):
 		return ErrMsgMicroserviceNotRunning
-	case errors.Is(err, client.ErrExecRouterUnavailable):
-		return ErrMsgExecRouterUnavailable
+	case errors.Is(err, client.ErrWsRelayUnavailable):
+		return ErrMsgExecRelayUnavailable
+	case errors.Is(err, client.ErrWsServerDraining):
+		return ErrMsgExecServerDraining
 	}
 
 	errStr := err.Error()
