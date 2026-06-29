@@ -23,6 +23,7 @@ Create a component of an Edge Compute Network.
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
+* [iofogctl create auth-group](iofogctl_create_auth-group.md)	 - Create a custom embedded auth group
 * [iofogctl create namespace](iofogctl_create_namespace.md)	 - Create a Namespace
 
 

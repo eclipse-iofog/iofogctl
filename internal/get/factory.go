@@ -5,7 +5,7 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
-func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Executor, error) {
+func NewExecutor(resourceType, namespace string, showDetached bool, resourceName string) (execute.Executor, error) {
 	switch resourceType {
 	case "namespaces":
 		return newNamespaceExecutor(), nil
@@ -55,6 +55,13 @@ func NewExecutor(resourceType, namespace string, showDetached bool) (execute.Exe
 		return newNatsAccountRuleExecutor(namespace), nil
 	case "nats-user-rules":
 		return newNatsUserRuleExecutor(namespace), nil
+	case "auth-groups":
+		return newAuthGroupsExecutor(namespace), nil
+	case "auth-group":
+		if resourceName == "" {
+			return nil, util.NewInputError("get auth-group requires a name")
+		}
+		return newAuthGroupExecutor(namespace, resourceName), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

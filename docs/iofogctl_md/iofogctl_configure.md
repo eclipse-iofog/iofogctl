@@ -50,5 +50,6 @@ iofogctl configure controlplane --kube FILE
 ### SEE ALSO
 
 * [iofogctl](iofogctl.md)	 - 
+* [iofogctl configure auth-group](iofogctl_configure_auth-group.md)	 - Update an embedded auth group
 
 

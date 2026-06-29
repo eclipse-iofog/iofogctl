@@ -33,6 +33,7 @@ iofogctl delete [flags]
 * [iofogctl delete all](iofogctl_delete_all.md)	 - Delete all resources within a namespace
 * [iofogctl delete application](iofogctl_delete_application.md)	 - Delete an application
 * [iofogctl delete application-template](iofogctl_delete_application-template.md)	 - Delete an application-template
+* [iofogctl delete auth-group](iofogctl_delete_auth-group.md)	 - Delete a custom embedded auth group
 * [iofogctl delete catalogitem](iofogctl_delete_catalogitem.md)	 - Delete a Catalog item
 * [iofogctl delete certificate](iofogctl_delete_certificate.md)	 - Delete a Certificate
 * [iofogctl delete configmap](iofogctl_delete_configmap.md)	 - Delete a ConfigMap
