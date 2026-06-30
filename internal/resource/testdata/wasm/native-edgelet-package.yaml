@@ -1,5 +1,5 @@
 package:
-  version: 1.0.0-rc.6
+  version: 1.0.0-rc.8
   wasm:
     spin:
       url: https://github.com/spinframework/containerd-shim-spin/releases/download/v0.24.0/containerd-shim-spin-v2-linux-amd64.tar.gz

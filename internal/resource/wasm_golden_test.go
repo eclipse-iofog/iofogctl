@@ -29,7 +29,7 @@ func TestGoldenUnmarshalWasmNativeEdgeletPackage(t *testing.T) {
 	}
 	require.NoError(t, yaml.UnmarshalStrict(raw, &doc))
 	pkg := doc.Package
-	require.Equal(t, "1.0.0-rc.6", pkg.Version)
+	require.Equal(t, "1.0.0-rc.8", pkg.Version)
 	require.Len(t, pkg.Wasm, 2)
 	require.Contains(t, pkg.Wasm["spin"].URL, "containerd-shim-spin-v2-linux-amd64.tar.gz")
 	require.Contains(t, pkg.Wasm["edgelet-wasmtime"].URL, "containerd-shim-edgelet-wasm-v2-amd64-linux-gnu.tar.gz")

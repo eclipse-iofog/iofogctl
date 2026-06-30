@@ -249,7 +249,7 @@ scripts:
   install:
     entrypoint: install.sh        # optional override
     args:
-      - "--version=v1.0.0-rc.6"
+      - "--version=v1.0.0-rc.8"
       - "--skip-config"
       - "--skip-start"
   uninstall:
@@ -493,7 +493,7 @@ scripts:
     entrypoint: install_deps.sh
   install:
     entrypoint: install.sh
-    args: ["1.0.0-rc.6"]
+    args: ["1.0.0-rc.8"]
   uninstall:
     entrypoint: uninstall.sh
 ```

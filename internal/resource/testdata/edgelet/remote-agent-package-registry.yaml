@@ -5,9 +5,9 @@ ssh:
   port: 22
 airgap: true
 package:
-  version: 1.0.0-rc.6
+  version: 1.0.0-rc.8
   container:
-    image: ghcr.io/datasance/edgelet:1.0.0-rc.6
+    image: ghcr.io/datasance/edgelet:1.0.0-rc.8
     registry: ghcr.io
     username: foo
     password: bar
@@ -18,7 +18,7 @@ scripts:
   install:
     entrypoint: install.sh
     args:
-      - 1.0.0-rc.6
+      - 1.0.0-rc.8
   uninstall:
     entrypoint: uninstall.sh
 config:

@@ -34,7 +34,7 @@ func TestEdgeletScriptLayerOrder(t *testing.T) {
 
 func TestPreInstallCommandsIncludeWasmWhenConfigured(t *testing.T) {
 	util.SetEdgeletReleaseBaseForTest("https://example.com/download")
-	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.6")
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.8")
 	t.Cleanup(func() {
 		util.ResetEdgeletReleaseBaseForTest()
 		util.ResetEdgeletBinaryVersionForTest()
