@@ -15,11 +15,15 @@ spec:
     consoleUrl: https://192.168.105.2:80
     logLevel: debug
     package:
-      image: ghcr.io/datasance/controller:3.8.0-rc.6
+      image: emirhandurmus/controller:3.8.0-rc.7
   auth:
     mode: embedded
     insecureAllowHttp: false
-    insecureAllowBootstrapLog: false
+    # insecureAllowBootstrapLog: false
+    # issuerUrl: https://x/realms/datasance
+    # client:
+    #   id: pot-controller
+    #   secret: 
     bootstrap:
       username: admin
       password: "LocalTest12!"
@@ -58,12 +62,12 @@ spec:
     cleanupInterval: 86400
     captureIpAddress: true
   controllers:
-    - name: controlplane
+    - name: controller-1
       host: 0.0.0.0
       ssh:
         user: emirhan
         keyFile: /Users/emirhan/.lima/_config/user
-        port: 56093
+        port: 57923
       systemAgent:
         package:
           version: v1.0.0-rc.7
@@ -78,14 +82,23 @@ spec:
           containerEngine: edgelet
           deploymentType: native
           networkInterface: dynamic
-    # - name: remote-2
-    #   host: 192.168.139.148
+    # - name: controller-2
+    #   host: 0.0.0.0
     #   ssh:
-    #     user: alpine
-    #     keyFile: /Users/emirhan/.orbstack/ssh/id_ed25519
-    #     port: 32222
+    #     user: emirhan
+    #     keyFile: /Users/emirhan/.lima/_config/user
+    #     port: 56093
     #   systemAgent:
+    #     package:
+    #       version: v1.0.0-rc.7
+    #       wasm:
+    #         spin:
+    #           url: https://github.com/spinframework/containerd-shim-spin/releases/download/v0.25.1/containerd-shim-spin-v2-linux-aarch64.tar.gz
+    #         edgelet-wasmtime:
+    #           url: https://github.com/Datasance/containerd-shim-edgelet/releases/download/v0.1.0/containerd-shim-edgelet-wasm-v2-aarch64-linux-gnu.tar.gz
     #     config:
+    #       host: 192.168.105.2
     #       arch: arm64
     #       containerEngine: edgelet
     #       deploymentType: native
+    #       networkInterface: dynamic

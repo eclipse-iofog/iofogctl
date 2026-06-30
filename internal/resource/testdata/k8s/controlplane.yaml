@@ -10,6 +10,7 @@ spec:
     name: Foo
     surname: Bar
     email: user@domain.com
+    password: "TestPassword12!"
   replicas:
     controller: 1
     nats: 2
@@ -53,7 +54,7 @@ spec:
     #   id: controller
     #   secret: ""
   images:
-    controller: ghcr.io/datasance/controller:3.8.0-rc.5
+    controller: emirhandurmus/controller:3.8.0-rc.7
     router: ghcr.io/datasance/router:3.8.0-rc.1
     nats: ghcr.io/datasance/nats:2.14.2-rc.2
   nats:

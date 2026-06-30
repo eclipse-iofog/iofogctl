@@ -7,7 +7,7 @@ spec:
   microservices:
     - name: wasm
       agent:
-        name: controlplane
+        name: controller-1
       images:
         registry: 1
         amd64: ghcr.io/spinframework/containerd-shim-spin/examples/spin-rust-hello:v0.22.0
@@ -24,22 +24,22 @@ spec:
             protocol: tcp
         commands:
           - "/"
-    - name: wasm2
-      agent:
-        name: edge-1
-      images:
-        registry: 1
-        amd64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
-        arm64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
-      container:
-        rootHostAccess: false
-        runAsUser: ''
-        platform: wasi/wasm
-        runtime: edgelet-wasmtime
-        cdiDevices: []
-        ports:
-          - internal: 8080
-            external: 8081
-            protocol: tcp
-        # commands:
-        #   - "/"
+    # - name: wasm2
+    #   agent:
+    #     name: edge-1
+    #   images:
+    #     registry: 1
+    #     amd64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+    #     arm64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+    #   container:
+    #     rootHostAccess: false
+    #     runAsUser: ''
+    #     platform: wasi/wasm
+    #     runtime: edgelet-wasmtime
+    #     cdiDevices: []
+    #     ports:
+    #       - internal: 8080
+    #         external: 8081
+    #         protocol: tcp
+    #     # commands:
+    #     #   - "/"

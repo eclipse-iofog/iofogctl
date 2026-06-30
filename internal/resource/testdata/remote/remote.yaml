@@ -8,7 +8,7 @@ spec:
   ssh:
     user: emirhan
     keyFile: /Users/emirhan/.lima/_config/user
-    port: 56103
+    port: 58110
   airgap: true  
   package:
     wasm:
@@ -17,7 +17,7 @@ spec:
       edgelet-wasmtime:
         url: https://github.com/Datasance/containerd-shim-edgelet/releases/download/v0.1.0/containerd-shim-edgelet-wasm-v2-aarch64-linux-gnu.tar.gz
   #   container:
-  #     image: ghcr.io/datasance/edgelet:1.0.0-rc.6
+  #     image: ghcr.io/datasance/edgelet:1.0.0-rc.8
   config:
     host: 192.168.105.3
     networkInterface: dynamic
