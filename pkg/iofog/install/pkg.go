@@ -6,6 +6,7 @@ var pkg struct {
 	edgeletScriptInstallDeps               string
 	edgeletScriptConfigureContainerEngine  string
 	edgeletScriptInstall                   string
+	edgeletScriptInstallWasmRuntimes       string
 	edgeletScriptInstallContainer          string
 	edgeletScriptInstallInitUnits          string
 	edgeletScriptStartEdgelet              string
@@ -23,6 +24,7 @@ func init() {
 	pkg.edgeletScriptInstallDeps = "install_deps.sh"
 	pkg.edgeletScriptConfigureContainerEngine = "configure_container_engine.sh"
 	pkg.edgeletScriptInstall = "install.sh"
+	pkg.edgeletScriptInstallWasmRuntimes = "install_wasm_runtimes.sh"
 	pkg.edgeletScriptInstallContainer = "install_container.sh"
 	pkg.edgeletScriptInstallInitUnits = "install_init_units.sh"
 	pkg.edgeletScriptStartEdgelet = "start_edgelet.sh"
@@ -35,6 +37,7 @@ func init() {
 		"lib/paths.sh",
 		"lib/receipt.sh",
 		"lib/binary.sh",
+		"lib/service.sh",
 		"lib/container_cli.sh",
 		"lib/container_engine.sh",
 		"lib/container_mounts.sh",

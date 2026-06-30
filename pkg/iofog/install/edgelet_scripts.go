@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install/wasm"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -19,7 +20,9 @@ type EdgeletInstallConfig struct {
 	TimeZone        string
 	BinPath         string
 	Airgap          bool
+	Wasm            map[string]wasm.Pack
 	Runtime         *EdgeletRuntimeSpec
+	wasmEnv         string
 }
 
 func (cfg EdgeletInstallConfig) native() bool {
@@ -118,6 +121,9 @@ func (cfg EdgeletInstallConfig) bootstrapEnv(localInstall bool) string {
 			parts = append(parts, fmt.Sprintf("EDGELET_BOOTSTRAP_CONFIG_CMD=%s", shellQuoteArg(cmd)))
 		}
 	}
+	if cfg.wasmEnv != "" {
+		parts = append(parts, cfg.wasmEnv)
+	}
 	return strings.Join(parts, " ")
 }
 
@@ -165,13 +171,14 @@ func (cfg EdgeletInstallConfig) uninstallArgs(removeData bool) []string {
 // EdgeletProcedures extends AgentProcedures with edgelet bootstrap layers.
 type EdgeletProcedures struct {
 	AgentProcedures
-	DetectInit         Entrypoint
-	InstallContainer   Entrypoint
-	InstallInitUnits   Entrypoint
-	StartEdgelet       Entrypoint
-	ConfigureContainer Entrypoint
-	WaitEdgeletReady   Entrypoint
-	Bundled            Entrypoint
+	DetectInit          Entrypoint
+	InstallContainer    Entrypoint
+	InstallWasmRuntimes Entrypoint
+	InstallInitUnits    Entrypoint
+	StartEdgelet        Entrypoint
+	ConfigureContainer  Entrypoint
+	WaitEdgeletReady    Entrypoint
+	Bundled             Entrypoint
 }
 
 func edgeletScriptNames() []string {
@@ -181,6 +188,7 @@ func edgeletScriptNames() []string {
 		pkg.edgeletScriptInstallDeps,
 		pkg.edgeletScriptConfigureContainerEngine,
 		pkg.edgeletScriptInstall,
+		pkg.edgeletScriptInstallWasmRuntimes,
 		pkg.edgeletScriptInstallContainer,
 		pkg.edgeletScriptInstallInitUnits,
 		pkg.edgeletScriptStartEdgelet,
@@ -257,6 +265,10 @@ func newDefaultEdgeletProcedures(dir string, cfg EdgeletInstallConfig) (EdgeletP
 			Name:     pkg.edgeletScriptInstallContainer,
 			destPath: util.JoinAgentPath(dir, pkg.edgeletScriptInstallContainer),
 			Args:     cfg.containerInstallFlags(),
+		},
+		InstallWasmRuntimes: Entrypoint{
+			Name:     pkg.edgeletScriptInstallWasmRuntimes,
+			destPath: util.JoinAgentPath(dir, pkg.edgeletScriptInstallWasmRuntimes),
 		},
 		InstallInitUnits: Entrypoint{
 			Name:     pkg.edgeletScriptInstallInitUnits,
@@ -349,15 +361,22 @@ func (procs *EdgeletProcedures) preInstallCommands(name string, cfg EdgeletInsta
 	withEnv := func(cmd string) string {
 		return wrapBootstrapCommand(cmd, env, useSudo)
 	}
-	return []command{
+	cmds := []command{
 		{cmd: withEnv(procs.check.getCommand()), msg: "Checking prerequisites on " + name},
 		{cmd: withEnv(procs.DetectInit.getCommand()), msg: "Detecting OS/init on " + name},
 		{cmd: withEnv(procs.Deps.getCommand()), msg: "Installing dependencies on " + name},
 		{cmd: withEnv(prefix + procs.Install.getCommand()), msg: "Installing edgelet on " + name},
 	}
+	if wasm.ShouldInstallWasm(cfg.wasmScope()) {
+		cmds = append(cmds, command{
+			cmd: withEnv(prefix + procs.InstallWasmRuntimes.getCommand()),
+			msg: "Installing WASM runtimes on " + name,
+		})
+	}
+	return cmds
 }
 
-func (procs *EdgeletProcedures) postInstallCommands(name string, cfg EdgeletInstallConfig, useSudo bool) []command {
+func (procs *EdgeletProcedures) postInstallCommandsBeforeBundled(name string, cfg EdgeletInstallConfig, useSudo bool) []command {
 	prefix := ""
 	if useSudo {
 		prefix = "sudo "
@@ -366,14 +385,32 @@ func (procs *EdgeletProcedures) postInstallCommands(name string, cfg EdgeletInst
 	withEnv := func(cmd string) string {
 		return wrapBootstrapCommand(cmd, env, useSudo)
 	}
-	cmds := []command{
+	return []command{
 		{cmd: withEnv(prefix + procs.InstallInitUnits.getCommand()), msg: "Installing edgelet init units on " + name},
 		{cmd: withEnv(prefix + procs.StartEdgelet.getCommand()), msg: "Starting edgelet on " + name},
 		{cmd: withEnv(prefix + procs.ConfigureContainer.getCommand()), msg: "Configuring edgelet container on " + name},
 		{cmd: withEnv(prefix + procs.WaitEdgeletReady.getCommand()), msg: "Waiting for edgelet on " + name},
-		{cmd: withEnv(prefix + procs.Bundled.getCommand()), msg: "Publishing edgelet scripts on " + name},
 	}
-	return cmds
+}
+
+func (procs *EdgeletProcedures) postInstallBundledCommand(name string, cfg EdgeletInstallConfig, useSudo bool) command {
+	prefix := ""
+	if useSudo {
+		prefix = "sudo "
+	}
+	env := cfg.bootstrapEnv(!useSudo)
+	withEnv := func(cmd string) string {
+		return wrapBootstrapCommand(cmd, env, useSudo)
+	}
+	return command{
+		cmd: withEnv(prefix + procs.Bundled.getCommand()),
+		msg: "Publishing edgelet scripts on " + name,
+	}
+}
+
+func (procs *EdgeletProcedures) postInstallCommands(name string, cfg EdgeletInstallConfig, useSudo bool) []command {
+	cmds := procs.postInstallCommandsBeforeBundled(name, cfg, useSudo)
+	return append(cmds, procs.postInstallBundledCommand(name, cfg, useSudo))
 }
 
 func isEdgeletNotProvisionedError(err error) bool {

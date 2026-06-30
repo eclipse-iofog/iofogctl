@@ -140,6 +140,9 @@ func DeployHostEdgelet(cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteController, n
 	}
 
 	util.SpinStart("Installing edgelet on " + ctrl.Name)
+	if err := edgelet.PrepareWasm(context.Background(), namespace); err != nil {
+		return nil, err
+	}
 	if err := edgelet.Bootstrap(); err != nil {
 		return nil, err
 	}
@@ -190,6 +193,18 @@ func transferControllerHostAirgap(ctx context.Context, namespace string, cp *rsc
 	if len(imageList) > 0 {
 		if err := deployairgap.TransferAirgapImages(ctx, namespace, ctrl.Host, &ctrl.SSH, platform, opts, imageList); err != nil {
 			return fmt.Errorf("failed to transfer images to controller %s: %w", ctrl.Name, err)
+		}
+	}
+
+	if ctrl.SystemAgent != nil && len(ctrl.SystemAgent.Package.Wasm) > 0 {
+		staged, err := deployairgap.StageAgentWasmAirgap(ctx, namespace, ctrl.Host, platform, &ctrl.SSH, ctrl.SystemAgent.Package.Wasm)
+		if err != nil {
+			return fmt.Errorf("failed to transfer WASM shims to controller %s: %w", ctrl.Name, err)
+		}
+		if len(staged) > 0 {
+			if err := edgelet.SetWasmStaged(staged); err != nil {
+				return fmt.Errorf("failed to configure WASM shims on controller %s: %w", ctrl.Name, err)
+			}
 		}
 	}
 	return nil

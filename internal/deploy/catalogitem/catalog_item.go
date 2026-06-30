@@ -2,7 +2,6 @@ package deploycatalogitem
 
 import (
 	"fmt"
-	"strconv"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -28,56 +27,48 @@ func (exe *remoteExecutor) GetName() string {
 	return exe.catalogItem.Name
 }
 
-func (exe *remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
-	currentItem, err := clt.GetCatalogItemByName(exe.catalogItem.Name)
-	if err != nil {
-		return err
+func buildCatalogImages(item apps.CatalogItem) []client.CatalogImage {
+	images := []client.CatalogImage{}
+	if item.AMD64 != "" {
+		images = append(images, client.CatalogImage{
+			ContainerImage: item.AMD64,
+			ArchID:         client.ArchNameToID["amd64"],
+		})
 	}
+	if item.ARM64 != "" {
+		images = append(images, client.CatalogImage{
+			ContainerImage: item.ARM64,
+			ArchID:         client.ArchNameToID["arm64"],
+		})
+	}
+	if item.RISCV64 != "" {
+		images = append(images, client.CatalogImage{
+			ContainerImage: item.RISCV64,
+			ArchID:         client.ArchNameToID["riscv64"],
+		})
+	}
+	if item.ARM != "" {
+		images = append(images, client.CatalogImage{
+			ContainerImage: item.ARM,
+			ArchID:         client.ArchNameToID["arm"],
+		})
+	}
+	return images
+}
 
+func (exe *remoteExecutor) updateCatalogItem(clt *client.Client, existing *client.CatalogItemInfo) (err error) {
 	request := client.CatalogItemUpdateRequest{
-		ID:          currentItem.ID,
+		ID:          existing.ID,
 		Name:        exe.catalogItem.Name,
-		Images:      []client.CatalogImage{},
+		Images:      buildCatalogImages(exe.catalogItem),
 		Description: exe.catalogItem.Description,
 	}
 
 	if exe.catalogItem.Registry != "" {
-		registryID, ok := client.RegistryTypeRegistryTypeIDDict[exe.catalogItem.Registry]
-		if !ok {
-			registryID, err = strconv.Atoi(exe.catalogItem.Registry)
-			if err != nil {
-				return err
-			}
+		request.RegistryID, err = clientutil.ResolveRegistryID(exe.catalogItem.Registry)
+		if err != nil {
+			return err
 		}
-		request.RegistryID = registryID
-	}
-
-	if exe.catalogItem.AMD64 != "" {
-		request.Images = append(request.Images, client.CatalogImage{
-			ContainerImage: exe.catalogItem.AMD64,
-			ArchID:         client.ArchNameToID["amd64"],
-		})
-	}
-
-	if exe.catalogItem.ARM64 != "" {
-		request.Images = append(request.Images, client.CatalogImage{
-			ContainerImage: exe.catalogItem.ARM64,
-			ArchID:         client.ArchNameToID["arm64"],
-		})
-	}
-
-	if exe.catalogItem.RISCV64 != "" {
-		request.Images = append(request.Images, client.CatalogImage{
-			ContainerImage: exe.catalogItem.RISCV64,
-			ArchID:         client.ArchNameToID["riscv64"],
-		})
-	}
-
-	if exe.catalogItem.ARM != "" {
-		request.Images = append(request.Images, client.CatalogImage{
-			ContainerImage: exe.catalogItem.ARM,
-			ArchID:         client.ArchNameToID["arm"],
-		})
 	}
 
 	if _, err = clt.UpdateCatalogItem(&request); err != nil {
@@ -88,15 +79,15 @@ func (exe *remoteExecutor) updateCatalogItem(clt *client.Client) (err error) {
 }
 
 func (exe *remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
+	registryID, err := clientutil.ResolveRegistryID(exe.catalogItem.Registry)
+	if err != nil {
+		return err
+	}
+
 	if _, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
-		Name: exe.catalogItem.Name,
-		Images: []client.CatalogImage{
-			{ContainerImage: exe.catalogItem.AMD64, ArchID: client.ArchNameToID["amd64"]},
-			{ContainerImage: exe.catalogItem.ARM64, ArchID: client.ArchNameToID["arm64"]},
-			{ContainerImage: exe.catalogItem.RISCV64, ArchID: client.ArchNameToID["riscv64"]},
-			{ContainerImage: exe.catalogItem.ARM, ArchID: client.ArchNameToID["arm"]},
-		},
-		RegistryID:  client.RegistryTypeRegistryTypeIDDict[exe.catalogItem.Registry],
+		Name:        exe.catalogItem.Name,
+		Images:      buildCatalogImages(exe.catalogItem),
+		RegistryID:  registryID,
 		Description: exe.catalogItem.Description,
 	}); err != nil {
 		return err
@@ -106,30 +97,31 @@ func (exe *remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
 
 func (exe *remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying catalog item %s", exe.GetName()))
-	// Init remote resources
 	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
-	if exe.catalogItem.ID == 0 {
+
+	existing, err := clt.GetCatalogItemByName(exe.catalogItem.Name)
+	if err != nil {
+		if !clientutil.IsClientNotFoundError(err) {
+			return err
+		}
 		return exe.createCatalogItem(clt)
 	}
-	return exe.updateCatalogItem(clt)
+	return exe.updateCatalogItem(clt, existing)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
-	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return exe, err
 	}
 
-	// Check Controller exists
 	if len(ns.GetControllers()) == 0 {
 		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
-	// Unmarshal file
 	var catalogItem apps.CatalogItem
 	if err = yaml.UnmarshalStrict(opt.Yaml, &catalogItem); err != nil {
 		err = util.NewUnmarshalError(err.Error())
@@ -140,7 +132,6 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		catalogItem.Name = opt.Name
 	}
 
-	// Validate catalog item definition
 	if err := validate(&catalogItem); err != nil {
 		return nil, err
 	}
@@ -163,8 +154,8 @@ func validate(opt *apps.CatalogItem) error {
 		return util.NewInputError("At least one image must be specified")
 	}
 
-	if opt.Registry != "remote" && opt.Registry != "local" {
-		return util.NewInputError("Registry must be either 'remote' or 'local'")
+	if _, err := clientutil.ResolveRegistryID(opt.Registry); err != nil {
+		return err
 	}
 
 	return nil

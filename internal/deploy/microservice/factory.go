@@ -66,7 +66,7 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	return apps.DeployMicroservice(controller, exe.microservice, appName, msvcName)
+	return apps.DeployMicroservice(controller, exe.microservice, appName, msvcName, apps.WithAPIVersion(util.GetCliApiVersion()))
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {

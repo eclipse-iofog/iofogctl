@@ -8,12 +8,13 @@ spec:
     name: Foo
     surname: Bar
     email: user@domain.com
+    password: "TestPassword12!"
   controller:
-    publicUrl: http://192.168.1.6:51121
-    consoleUrl: http://192.168.1.6
+    publicUrl: http://192.168.1.9:51121
+    consoleUrl: http://192.168.1.9
     logLevel: info
     package:
-      image: ghcr.io/datasance/controller:3.8.0-rc.5
+      image: ghcr.io/datasance/controller:3.8.0-rc.7
   auth:
     mode: embedded
     insecureAllowHttp: true
@@ -40,9 +41,12 @@ spec:
     cleanupInterval: 86400
     captureIpAddress: true
   systemAgent:
+    package:
+      container:
+        image: ghcr.io/datasance/edgelet:1.0.0-rc.7
     config:
       arch: arm64
       containerEngine: docker
-      deploymentType: container
+      deploymentType: contianer
       containerEngineUrl: unix:///var/run/docker.sock
 

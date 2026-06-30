@@ -14,6 +14,7 @@ func newCreateCommand() *cobra.Command {
 	// Add subcommands
 	cmd.AddCommand(
 		newCreateNamespaceCommand(),
+		newCreateAuthGroupCommand(),
 	)
 	return cmd
 }

@@ -4,6 +4,8 @@ set -e
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/common.sh"
+. "$SCRIPT_DIR/lib/receipt.sh"
+. "$SCRIPT_DIR/lib/service.sh"
 
 EDGELET_DETECT_SOURCED=1
 . "$SCRIPT_DIR/detect_init.sh"
@@ -60,6 +62,7 @@ wait_edgelet_api_desktop_container() {
 		_out=$(edgelet system status 2>&1) || true
 		if edgelet_status_running "$_out"; then
 			info "edgelet daemon is RUNNING"
+			wait_for_expected_daemon_version
 			return 0
 		fi
 		echo "# waiting for edgelet RUNNING (${_iter}s)..."
@@ -71,6 +74,36 @@ wait_edgelet_api_desktop_container() {
 
 edgelet_daemon_running() {
 	pgrep -f '[e]dgelet daemon' >/dev/null 2>&1
+}
+
+edgelet_version_matches_receipt() {
+	_expected="${1:-}"
+	[ -n "$_expected" ] || return 0
+	_daemon_ver=$(edgelet_daemon_version)
+	[ -n "$_daemon_ver" ] || return 1
+	[ "$_daemon_ver" = "$_expected" ]
+}
+
+wait_for_expected_daemon_version() {
+	_expected=""
+	if [ -f "$RECEIPT_FILE" ]; then
+		_expected=$(kv_get "$RECEIPT_FILE" "installed_version")
+	fi
+	[ -n "$_expected" ] || return 0
+
+	_iter=0
+	_max="${EDGELET_VERSION_WAIT_TIMEOUT:-120}"
+	while [ "$_iter" -lt "$_max" ]; do
+		if edgelet_version_matches_receipt "$_expected"; then
+			info "edgelet daemon.version matches receipt (${_expected})"
+			return 0
+		fi
+		_got=$(edgelet_daemon_version)
+		echo "# waiting for daemon.version=${_expected} (got=${_got:-unknown}, ${_iter}s)..."
+		sleep 1
+		_iter=$((_iter + 1))
+	done
+	die "Timed out after ${_max}s waiting for daemon.version=${_expected}"
 }
 
 wait_edgelet_api() {
@@ -92,6 +125,7 @@ wait_edgelet_api() {
 		_out=$(maybe_sudo edgelet system status 2>&1) || true
 		if edgelet_status_running "$_out"; then
 			info "edgelet daemon is RUNNING"
+			wait_for_expected_daemon_version
 			return 0
 		fi
 		_status=$(echo "$_out" | awk -F': ' '/^iofogDaemon:/ {print $2; exit}' | tr -d '[:space:]')

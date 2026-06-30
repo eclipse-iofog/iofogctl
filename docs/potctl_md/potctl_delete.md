@@ -33,6 +33,7 @@ potctl delete [flags]
 * [potctl delete all](potctl_delete_all.md)	 - Delete all resources within a namespace
 * [potctl delete application](potctl_delete_application.md)	 - Delete an application
 * [potctl delete application-template](potctl_delete_application-template.md)	 - Delete an application-template
+* [potctl delete auth-group](potctl_delete_auth-group.md)	 - Delete a custom embedded auth group
 * [potctl delete catalogitem](potctl_delete_catalogitem.md)	 - Delete a Catalog item
 * [potctl delete certificate](potctl_delete_certificate.md)	 - Delete a Certificate
 * [potctl delete configmap](potctl_delete_configmap.md)	 - Delete a ConfigMap

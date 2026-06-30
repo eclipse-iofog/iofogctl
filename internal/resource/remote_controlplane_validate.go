@@ -119,6 +119,10 @@ func validateRemoteControllers(controllers []RemoteController) error {
 }
 
 func validateRemoteControllerSystemAgent(controllerName string, systemAgent *SystemAgentConfig) error {
+	label := fmt.Sprintf("Remote Control Plane controller %q", controllerName)
+	if err := validateSystemAgentPackage(label, systemAgent); err != nil {
+		return err
+	}
 	if systemAgent.AgentConfiguration == nil {
 		return nil
 	}
@@ -129,7 +133,7 @@ func validateRemoteControllerSystemAgent(controllerName string, systemAgent *Sys
 	if _, ok := ArchStringToID(*cfg.Arch); !ok {
 		return util.NewInputError(fmt.Sprintf("Remote Control Plane controller %q systemAgent.config.arch %q is invalid", controllerName, *cfg.Arch))
 	}
-	return validateSystemAgentRouterNats(fmt.Sprintf("Remote Control Plane controller %q", controllerName), cfg)
+	return validateSystemAgentRouterNats(label, cfg)
 }
 
 func validateRemoteControlPlaneAirgapArch(controllers []RemoteController) error {

@@ -9,7 +9,7 @@ Get information of existing resources.
 Resources like Agents will require a working Controller in the namespace to display all information.
 
 ```
-iofogctl get RESOURCE [flags]
+iofogctl get RESOURCE [NAME] [flags]
 ```
 
 ### Examples
@@ -39,6 +39,8 @@ iofogctl get all
              nats-users
              nats-account-rules
              nats-user-rules
+             auth-groups
+             auth-group NAME
 ```
 
 ### Options

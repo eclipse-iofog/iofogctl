@@ -9,6 +9,12 @@ import (
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
+const (
+	errMsgLogRelayUnavailable    = "Log session relay unavailable for cross-replica HA. Retry or check Controller NATS/AMQP relay connectivity."
+	errMsgLogServerDraining      = "Server draining; retry during rollout or connect to another Controller replica."
+	errMsgTimeoutWaitingForAgent = "Timeout waiting for agent connection. Please ensure the microservice/agent is running and try again."
+)
+
 func streamLogSession(session *client.LogSession) error {
 	defer session.Close()
 
@@ -72,6 +78,12 @@ func formatLogError(err error) string {
 	}
 
 	switch {
+	case errors.Is(err, client.ErrWsAgentTimeout):
+		return errMsgTimeoutWaitingForAgent
+	case errors.Is(err, client.ErrWsRelayUnavailable):
+		return errMsgLogRelayUnavailable
+	case errors.Is(err, client.ErrWsServerDraining):
+		return errMsgLogServerDraining
 	case errors.Is(err, client.ErrLogSessionUnavailable):
 		return client.ErrLogSessionUnavailable.Error()
 	case errors.Is(err, client.ErrLogAuthenticationFailed):

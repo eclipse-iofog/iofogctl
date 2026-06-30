@@ -35,9 +35,11 @@ func newGetCommand() *cobra.Command {
 		"nats-users",
 		"nats-account-rules",
 		"nats-user-rules",
+		"auth-groups",
+		"auth-group",
 	}
 	cmd := &cobra.Command{
-		Use:   "get RESOURCE",
+		Use:   "get RESOURCE [NAME]",
 		Short: "Get information of existing resources",
 		Long: `Get information of existing resources.
 
@@ -65,12 +67,32 @@ Resources like Agents will require a working Controller in the namespace to disp
              nats-accounts
              nats-users
              nats-account-rules
-             nats-user-rules`),
+             nats-user-rules
+             auth-groups
+             auth-group NAME`),
 		ValidArgs: validResources,
-		Args:      cobra.ExactArgs(1),
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 || len(args) > 2 {
+				return util.NewInputError("expected 'get RESOURCE' or 'get auth-group NAME'")
+			}
+			if args[0] == "auth-group" {
+				if len(args) != 2 {
+					return util.NewInputError("get auth-group requires a name")
+				}
+				return nil
+			}
+			if len(args) != 1 {
+				return util.NewInputError("get " + args[0] + " does not accept a name argument")
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get resource type arg
 			resource := args[0]
+			resourceName := ""
+			if len(args) == 2 {
+				resourceName = args[1]
+			}
 			namespace, err := cmd.Flags().GetString("namespace")
 			util.Check(err)
 			showDetached, err := cmd.Flags().GetBool("detached")
@@ -87,7 +109,7 @@ Resources like Agents will require a working Controller in the namespace to disp
 			}
 
 			// Get executor for get command
-			exe, err := get.NewExecutor(resource, namespace, showDetached)
+			exe, err := get.NewExecutor(resource, namespace, showDetached, resourceName)
 			util.Check(err)
 
 			// Execute the get command

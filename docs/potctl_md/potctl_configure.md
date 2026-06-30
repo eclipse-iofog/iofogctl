@@ -50,5 +50,6 @@ potctl configure controlplane --kube FILE
 ### SEE ALSO
 
 * [potctl](potctl.md)	 - 
+* [potctl configure auth-group](potctl_configure_auth-group.md)	 - Update an embedded auth group
 
 

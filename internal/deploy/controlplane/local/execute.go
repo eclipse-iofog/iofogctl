@@ -34,7 +34,7 @@ func (exe localControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 
-	edgelet, err := installHostEdgelet(exe.controlPlane, exe.name)
+	edgelet, err := installHostEdgelet(exe.controlPlane, exe.namespace, exe.name)
 	if err != nil {
 		return err
 	}

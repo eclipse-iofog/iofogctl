@@ -7,6 +7,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/common.sh"
 . "$SCRIPT_DIR/lib/container_engine.sh"
 . "$SCRIPT_DIR/lib/container_mounts.sh"
+. "$SCRIPT_DIR/lib/service.sh"
 EDGELET_DETECT_SOURCED=1
 . "$SCRIPT_DIR/detect_init.sh"
 init
@@ -16,6 +17,11 @@ EDGELET_INSTALL_MODE="${EDGELET_INSTALL_MODE:-native}"
 EDGELET_CONTAINER_IMAGE="${EDGELET_CONTAINER_IMAGE:-}"
 EDGELET_TZ="${EDGELET_TZ:-UTC}"
 EDGELET_CONTAINER_NAME="${EDGELET_CONTAINER_NAME:-edgelet}"
+EDGELET_SERVICE_ACTION="${EDGELET_SERVICE_ACTION:-start}"
+
+restart_native_linux() {
+	restart_edgelet_services "$CONTAINER_ENGINE"
+}
 
 start_native_linux() {
 	case "$INIT_SYSTEM" in
@@ -164,7 +170,13 @@ case "$EDGELET_INSTALL_MODE" in
 		;;
 	native|"")
 		case "$EDGELET_OS" in
-			linux) start_native_linux ;;
+			linux)
+				if [ "$EDGELET_SERVICE_ACTION" = "restart" ]; then
+					restart_native_linux
+				else
+					start_native_linux
+				fi
+				;;
 			darwin) start_edgelet_daemon_desktop ;;
 			windows)
 				echo "Error: windows native start must be handled by platform-specific tooling"

@@ -7,8 +7,24 @@ import (
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
+	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install/wasm"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
+
+func toInstallWasmPacks(wasmMap map[string]rsc.WasmPack) map[string]wasm.Pack {
+	if len(wasmMap) == 0 {
+		return nil
+	}
+	out := make(map[string]wasm.Pack, len(wasmMap))
+	for handler, pack := range wasmMap {
+		out[handler] = wasm.Pack{
+			URL:    pack.URL,
+			Path:   pack.Path,
+			SHA256: pack.SHA256,
+		}
+	}
+	return out
+}
 
 // EnsureAgentConfig returns a non-nil agent configuration struct.
 func EnsureAgentConfig(agent *rsc.AgentConfiguration) *rsc.AgentConfiguration {
@@ -81,6 +97,7 @@ func EdgeletInstallConfig(hostOS string, cfg *rsc.AgentConfiguration, pkg rsc.Pa
 		ContainerImage:  pkg.Container.Image,
 		TimeZone:        cfg.TimeZone,
 		Runtime:         edgeletRuntimeSpec(cfg),
+		Wasm:            toInstallWasmPacks(pkg.Wasm),
 	}
 	if pkg.Version != "" {
 		installCfg.Version = pkg.Version

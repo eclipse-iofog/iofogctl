@@ -67,5 +67,7 @@ If you would like to replace the host value of Remote Controllers or Agents, you
 	cmd.Flags().IntVar(&opt.Port, "port", 0, ex("Port number that %[1]s uses to SSH into remote hosts"))
 	cmd.Flags().Bool("detached", false, pkg.flagDescDetached)
 
+	cmd.AddCommand(newConfigureAuthGroupCommand())
+
 	return cmd
 }

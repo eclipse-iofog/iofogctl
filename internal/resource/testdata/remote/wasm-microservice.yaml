@@ -1,0 +1,42 @@
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: wasm2
+spec:
+  name: wasm2
+  agent:
+    name: edge-1
+  images:
+    registry: 1
+    amd64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+    arm64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+  container:
+    annotations: {}
+    hostNetworkMode: false
+    isPrivileged: false
+    runAsUser: ''
+    ipcMode: ''
+    pidMode: ''
+    platform: wasi/wasm
+    runtime: edgelet-wasmtime
+    cdiDevices: []
+    capAdd: []
+    capDrop: []
+    volumes: []
+    env: []
+    extraHosts: []
+    ports:
+      - internal: 8080
+        external: 8081
+        protocol: tcp
+    cpuSetCpus: ''
+    commands: []
+    healthCheck: {}
+  serviceAccount:
+    roleRef:
+      kind: Role
+      name: microservice
+  natsConfig:
+    natsAccess: false
+  config: {}
+  application: wasm

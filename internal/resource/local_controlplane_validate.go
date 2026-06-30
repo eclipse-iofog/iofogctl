@@ -151,6 +151,9 @@ func validateLocalSystemAgent(systemAgent *SystemAgentConfig) error {
 	if systemAgent == nil {
 		return util.NewInputError("Local Control Plane systemAgent is required")
 	}
+	if err := validateSystemAgentPackage(localControlPlaneLabel, systemAgent); err != nil {
+		return err
+	}
 	if systemAgent.AgentConfiguration == nil || systemAgent.AgentConfiguration.Arch == nil || *systemAgent.AgentConfiguration.Arch == "" {
 		return util.NewInputError("Local Control Plane systemAgent.config.arch is required")
 	}

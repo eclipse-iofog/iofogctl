@@ -258,6 +258,22 @@ func GetAirgapBinaryCachePath(namespace, osName, archName string) string {
 	return path.Join(pathElems...)
 }
 
+// GetAirgapWasmCacheDir returns the cache directory for a WASM shim handler and platform.
+func GetAirgapWasmCacheDir(namespace, handler, osName, archName string) string {
+	platform := osName + "-" + archName
+	pathElems := []string{configFolder, airgapBinariesDirname}
+	if namespace != "" {
+		pathElems = append(pathElems, namespace)
+	}
+	pathElems = append(pathElems, "wasm", handler, platform)
+	return path.Join(pathElems...)
+}
+
+// GetAirgapWasmArtifactPath returns the cached source artifact path for a WASM handler and platform.
+func GetAirgapWasmArtifactPath(namespace, handler, osName, archName string) string {
+	return path.Join(GetAirgapWasmCacheDir(namespace, handler, osName, archName), "source")
+}
+
 // GetAirgapImageCacheDir returns the directory path for a specific airgap image (namespace, imageRef, platform).
 // Image ref and platform are sanitized for use in the path (e.g. / and : replaced with _).
 func GetAirgapImageCacheDir(namespace, imageRef, platform string) string {

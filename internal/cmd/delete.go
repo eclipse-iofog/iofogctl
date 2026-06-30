@@ -59,6 +59,7 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteServiceCommand(),
 		newDeleteVolumeMountCommand(),
 		newDeleteCertificateCommand(),
+		newDeleteAuthGroupCommand(),
 	)
 
 	// Register flags

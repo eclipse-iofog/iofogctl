@@ -23,6 +23,7 @@ Create a component of an Edge Compute Network.
 ### SEE ALSO
 
 * [potctl](potctl.md)	 - 
+* [potctl create auth-group](potctl_create_auth-group.md)	 - Create a custom embedded auth group
 * [potctl create namespace](potctl_create_namespace.md)	 - Create a Namespace
 
 
