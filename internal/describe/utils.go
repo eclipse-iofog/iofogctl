@@ -8,6 +8,7 @@ import (
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	// "github.com/eclipse-iofog/iofogctl/pkg/iofog"
 	// "github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -155,7 +156,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		ARM64:     arm64Image,
 		RISCV64:   riscv64Image,
 		ARM:       armImage,
-		Registry:  client.RegistryTypeIDRegistryTypeDict[registryID],
+		Registry:  clientutil.FormatRegistryID(registryID),
 	}
 	for _, img := range imgArray {
 		switch img.ArchID {

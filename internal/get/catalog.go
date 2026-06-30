@@ -51,7 +51,7 @@ func generateCatalogOutput(namespace string) error {
 			ID:          item.ID,
 			Name:        item.Name,
 			Description: item.Description,
-			Registry:    client.RegistryTypeIDRegistryTypeDict[item.RegistryID],
+			Registry:    clientutil.FormatRegistryID(item.RegistryID),
 		}
 		for _, image := range item.Images {
 			switch client.ArchIDToName[image.ArchID] {
