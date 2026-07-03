@@ -29,7 +29,7 @@ wait_edgelet_api_running() {
 			_iter=$((_iter + 1))
 			continue
 		fi
-		if echo "$_out" | grep -q 'iofogDaemon: RUNNING'; then
+		if echo "$_out" | grep -q 'edgeletDaemon: RUNNING'; then
 			return 0
 		fi
 		if echo "$_out" | grep -q 'runtime.agentPhase: running'; then

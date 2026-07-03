@@ -64,6 +64,7 @@ func (facade *facadeExecutor) Execute() (err error) {
 
 	if agentConfig := facade.agent.GetConfig(); agentConfig != nil {
 		configExe := agentconfig.NewRemoteExecutor(facade.agent.GetName(), agentConfig, facade.namespace, facade.tags)
+		configExe.SetHost(agentconfig.ResolveAgentAPIHost(facade.agent.GetHost(), agentConfig))
 		if err := configExe.Execute(); err != nil {
 			return err
 		}
