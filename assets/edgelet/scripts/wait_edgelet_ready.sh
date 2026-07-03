@@ -1,5 +1,5 @@
 #!/bin/sh
-# Wait until edgelet init services and daemon API report iofogDaemon: RUNNING.
+# Wait until edgelet init services and daemon API report edgeletDaemon: RUNNING.
 set -e
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
@@ -45,7 +45,7 @@ edgelet_status_running() {
 	if echo "$_out" | grep -q 'Edgelet API is still initializing'; then
 		return 1
 	fi
-	if echo "$_out" | grep -q 'iofogDaemon: RUNNING'; then
+	if echo "$_out" | grep -q 'edgeletDaemon: RUNNING'; then
 		return 0
 	fi
 	if echo "$_out" | grep -q 'runtime.agentPhase: running'; then
@@ -128,7 +128,7 @@ wait_edgelet_api() {
 			wait_for_expected_daemon_version
 			return 0
 		fi
-		_status=$(echo "$_out" | awk -F': ' '/^iofogDaemon:/ {print $2; exit}' | tr -d '[:space:]')
+		_status=$(echo "$_out" | awk -F': ' '/^edgeletDaemon:/ {print $2; exit}' | tr -d '[:space:]')
 		echo "# waiting for edgelet RUNNING (${_iter}s) status=${_status:-unknown}"
 		sleep 1
 		_iter=$((_iter + 1))
