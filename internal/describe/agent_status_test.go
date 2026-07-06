@@ -35,7 +35,7 @@ func TestFormatAgentStatusGoldenV38Fields(t *testing.T) {
 		WarningMessage:        "HEALTHY",
 		SecurityViolationInfo: "No violation",
 		CPUUsage:              0.13,
-		DiskUsage:             0.00017833709716796875, // ~187 B as MiB input
+		DiskUsage:             0.000000187, // 187 B as GiB (decimal) from Edgelet status PUT
 		MemoryViolation:       "false",
 		DiskViolation:         "false",
 		CPUViolation:          "false",
@@ -73,6 +73,12 @@ func TestFormatAgentStatusV38FieldsAlwaysPresent(t *testing.T) {
 	require.Contains(t, got, "controlPlaneQuiesced")
 	require.Equal(t, "", got["runtimeAgentPhase"])
 	require.Equal(t, false, got["controlPlaneQuiesced"])
+}
+
+func TestFormatAgentStatusDiskUsageGiB(t *testing.T) {
+	got := FormatAgentStatus(rsc.AgentStatus{DiskUsage: 0.24})
+
+	require.Equal(t, "228.9 MB", got["diskUsage"])
 }
 
 func TestFormatAgentStatusUptimeAndTimestamps(t *testing.T) {

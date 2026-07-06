@@ -49,10 +49,10 @@ github.com/docker/go-connections v0.7.0 h1:6SsRfJddP22WMrCkj19x9WKjEDTB+ahsdiGYf
 github.com/docker/go-connections v0.7.0/go.mod h1:no1qkHdjq7kLMGUXYAduOhYPSJxxvgWBh7ogVvptn3Q=
 github.com/docker/go-units v0.5.0 h1:69rxXcBk27SvSaaxTtLh/8llcHD8vYHT7WSdRZ/jvr4=
 github.com/docker/go-units v0.5.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
-github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.10 h1:2Ndq+Th9mNBkTfz8OD53I6cXAEwrSK/tFDyvfpuRAwM=
-github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0-rc.10/go.mod h1:9ae5lnGma/LDsrW/25QOt4aQ3pC9aM0c3ut3N3BwDWM=
-github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.2 h1:AzHAFwpyMO17gxNY5UnBYTgniyQM4WLn4OY3DlCOjRU=
-github.com/eclipse-iofog/iofog-operator/v3 v3.8.0-rc.2/go.mod h1:YLlOt+AYhGuNEcUsAyD3QF7MQvLBtz4k025Zj65zdS8=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0 h1:35YxSBL/Lqr7pU+KHRFgAGSxfBz2Ptn/vsqlXXgm8b0=
+github.com/eclipse-iofog/iofog-go-sdk/v3 v3.8.0/go.mod h1:9ae5lnGma/LDsrW/25QOt4aQ3pC9aM0c3ut3N3BwDWM=
+github.com/eclipse-iofog/iofog-operator/v3 v3.8.0 h1:gPDLjq8eFAKbA3W2hYvqWRQ3rvZBHDYjEFT5pfuJPrQ=
+github.com/eclipse-iofog/iofog-operator/v3 v3.8.0/go.mod h1:KkCf72GSnHUf/VPiqotZeQJFjSTfPbpSDEMJYD4lwbo=
 github.com/emicklei/go-restful/v3 v3.11.0 h1:rAQeMHw1c7zTmncogyy8VvRZwtkmkZ4FxERmMY4rD+g=
 github.com/emicklei/go-restful/v3 v3.11.0/go.mod h1:6n3XBCmQQb25CM2LCACGz8ukIrRry+4bhvbpWn3mrbc=
 github.com/evanphx/json-patch/v5 v5.9.11 h1:/8HVnzMq13/3x9TPvjG08wUGqBTmZBsCWzjTM0wiaDU=

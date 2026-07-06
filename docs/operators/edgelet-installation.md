@@ -290,7 +290,7 @@ spec:
     user: ubuntu
     keyFile: ~/.ssh/id_rsa
   package:
-    version: 3.8.0-rc.2
+    version: 1.0.0
   config:
     arch: amd64
     deploymentType: native
@@ -300,7 +300,7 @@ spec:
     install:
       entrypoint: install.sh
       args:
-        - "--version=3.8.0-rc.2"
+        - "--version=1.0.0"
         - "--skip-config"
         - "--skip-start"
 ```
@@ -465,7 +465,7 @@ scripts:
   install:
     entrypoint: my_install.sh
     args:
-      - "--version=3.8.0-rc.2"
+      - "--version=1.0.0"
       - "--airgap"
       - "--bin-path=/opt/airgap/edgelet-linux-amd64"
 ```
@@ -529,7 +529,7 @@ scripts:
     args:
       - "--airgap"
       - "--bin-path=/tmp/edgelet-linux-amd64"
-      - "--version=3.8.0-rc.2"
+      - "--version=1.0.0"
       - "--skip-config"
       - "--skip-start"
 ```
@@ -544,7 +544,7 @@ spec:
     containerEngine: docker
   package:
     container:
-      image: ghcr.io/example/edgelet:3.8.0-rc.2
+      image: ghcr.io/example/edgelet:1.0.0
 ```
 
 Expect: no sudo, no host config materialization, no `bundled.sh` publish, desktop wait/configure paths. Docker must already be installed.
