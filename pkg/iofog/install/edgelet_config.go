@@ -175,22 +175,22 @@ func applyEdgeletProfileOverrides(profile map[string]interface{}, hostOS, arch s
 		profile["networkInterface"] = *cfg.NetworkInterface
 	}
 	if cfg.DiskLimit != nil {
-		profile["diskConsumptionLimit"] = formatInt(*cfg.DiskLimit)
+		profile["diskLimit"] = formatInt(*cfg.DiskLimit)
 	}
 	if cfg.DiskDirectory != nil && *cfg.DiskDirectory != "" {
 		profile["diskDirectory"] = *cfg.DiskDirectory
 	}
 	if cfg.MemoryLimit != nil {
-		profile["memoryConsumptionLimit"] = formatInt(*cfg.MemoryLimit)
+		profile["memoryLimit"] = formatInt(*cfg.MemoryLimit)
 	}
 	if cfg.CPULimit != nil {
-		profile["processorConsumptionLimit"] = formatInt(*cfg.CPULimit)
+		profile["cpuLimit"] = formatInt(*cfg.CPULimit)
 	}
 	if cfg.LogLimit != nil {
-		profile["logDiskConsumptionLimit"] = formatInt(*cfg.LogLimit)
+		profile["logLimit"] = formatInt(*cfg.LogLimit)
 	}
 	if cfg.LogDirectory != nil && *cfg.LogDirectory != "" {
-		profile["logDiskDirectory"] = *cfg.LogDirectory
+		profile["logDirectory"] = *cfg.LogDirectory
 	}
 	if cfg.LogFileCount != nil {
 		profile["logFileCount"] = formatInt(*cfg.LogFileCount)
@@ -220,7 +220,7 @@ func applyEdgeletProfileOverrides(profile map[string]interface{}, hostOS, arch s
 		profile["gpsScanFrequency"] = formatFloat(*cfg.GpsScanFrequency)
 	}
 	if cfg.EdgeGuardFrequency != nil {
-		profile["edgeGuardFreq"] = formatFloat(*cfg.EdgeGuardFrequency)
+		profile["edgeGuardFrequency"] = formatFloat(*cfg.EdgeGuardFrequency)
 	}
 	if cfg.PruningFrequency != nil {
 		profile["pruningFrequency"] = formatFloat(*cfg.PruningFrequency)
@@ -290,33 +290,33 @@ var edgeletBootstrapConfigSkipKeys = map[string]struct{}{
 // edgeletProfileKeyToConfigFlag maps edgelet-config.yaml profile keys to edgelet config CLI
 // short aliases (see edgelet/docs/cli/generated/edgelet_config.md).
 var edgeletProfileKeyToConfigFlag = map[string]string{
-	"arch":                      "--ft",
-	"availableDiskThreshold":    "--dt",
-	"changeFrequency":           "--cf",
-	"containerEngine":           "--ce",
-	"containerEngineUrl":        "--cu",
-	"devMode":                   "--dev",
-	"diskDirectory":             "--dl",
-	"diskConsumptionLimit":      "--d",
-	"edgeGuardFreq":             "--egf",
-	"gps":                       "--gps",
-	"gpsCoordinates":            "--gpsc",
-	"gpsDevice":                 "--gpsd",
-	"gpsScanFrequency":          "--gpsf",
-	"logDiskDirectory":          "--ld",
-	"logDiskConsumptionLimit":   "--l",
-	"logFileCount":              "--lc",
-	"logLevel":                  "--ll",
-	"memoryConsumptionLimit":    "--m",
-	"networkInterface":          "--n",
-	"pruningFrequency":          "--pf",
-	"processorConsumptionLimit": "--p",
-	"scanDevicesFreq":           "--sd",
-	"secureMode":                "--sec",
-	"statusFrequency":           "--sf",
-	"timeZone":                  "--tz",
-	"upgradeScanFrequency":      "--uf",
-	"watchdogEnabled":           "--wd",
+	"arch":                   "--ft",
+	"availableDiskThreshold": "--dt",
+	"changeFrequency":        "--cf",
+	"containerEngine":        "--ce",
+	"containerEngineUrl":     "--cu",
+	"devMode":                "--dev",
+	"diskDirectory":          "--dl",
+	"diskLimit":              "--d",
+	"edgeGuardFrequency":     "--egf",
+	"gps":                    "--gps",
+	"gpsCoordinates":         "--gpsc",
+	"gpsDevice":              "--gpsd",
+	"gpsScanFrequency":       "--gpsf",
+	"logDirectory":           "--ld",
+	"logLimit":               "--l",
+	"logFileCount":           "--lc",
+	"logLevel":               "--ll",
+	"memoryLimit":            "--m",
+	"networkInterface":       "--n",
+	"pruningFrequency":       "--pf",
+	"cpuLimit":               "--p",
+	"scanDevicesFreq":        "--sd",
+	"secureMode":             "--sec",
+	"statusFrequency":        "--sf",
+	"timeZone":               "--tz",
+	"upgradeScanFrequency":   "--uf",
+	"watchdogEnabled":        "--wd",
 }
 
 // buildBootstrapProfileFromAgentSpec collects only spec.config fields explicitly set in
@@ -350,22 +350,22 @@ func buildBootstrapProfileFromAgentSpec(arch string, latitude, longitude float64
 		profile["networkInterface"] = *cfg.NetworkInterface
 	}
 	if cfg.DiskLimit != nil {
-		profile["diskConsumptionLimit"] = formatInt(*cfg.DiskLimit)
+		profile["diskLimit"] = formatInt(*cfg.DiskLimit)
 	}
 	if cfg.DiskDirectory != nil && *cfg.DiskDirectory != "" {
 		profile["diskDirectory"] = *cfg.DiskDirectory
 	}
 	if cfg.MemoryLimit != nil {
-		profile["memoryConsumptionLimit"] = formatInt(*cfg.MemoryLimit)
+		profile["memoryLimit"] = formatInt(*cfg.MemoryLimit)
 	}
 	if cfg.CPULimit != nil {
-		profile["processorConsumptionLimit"] = formatInt(*cfg.CPULimit)
+		profile["cpuLimit"] = formatInt(*cfg.CPULimit)
 	}
 	if cfg.LogLimit != nil {
-		profile["logDiskConsumptionLimit"] = formatInt(*cfg.LogLimit)
+		profile["logLimit"] = formatInt(*cfg.LogLimit)
 	}
 	if cfg.LogDirectory != nil && *cfg.LogDirectory != "" {
-		profile["logDiskDirectory"] = *cfg.LogDirectory
+		profile["logDirectory"] = *cfg.LogDirectory
 	}
 	if cfg.LogFileCount != nil {
 		profile["logFileCount"] = formatInt(*cfg.LogFileCount)
@@ -392,7 +392,7 @@ func buildBootstrapProfileFromAgentSpec(arch string, latitude, longitude float64
 		profile["gpsScanFrequency"] = formatFloat(*cfg.GpsScanFrequency)
 	}
 	if cfg.EdgeGuardFrequency != nil {
-		profile["edgeGuardFreq"] = formatFloat(*cfg.EdgeGuardFrequency)
+		profile["edgeGuardFrequency"] = formatFloat(*cfg.EdgeGuardFrequency)
 	}
 	if cfg.PruningFrequency != nil {
 		profile["pruningFrequency"] = formatFloat(*cfg.PruningFrequency)

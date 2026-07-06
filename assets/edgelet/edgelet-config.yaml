@@ -5,7 +5,7 @@ profiles:
   production:
     controllerUrl: "http://localhost:54421/api/v3/"
     iofogUuid: ""
-    secureMode: "on"
+    secureMode: "off"
     devMode: "off"
     controllerCert: "/etc/edgelet/cert.crt"
     arch: "auto"
@@ -23,15 +23,15 @@ profiles:
     #             containerEngineUrl is ignored; the daemon always connects to its private
     #             socket at /run/edgelet/containerd.sock.
     #             Persistent data lives in /var/lib/edgelet-containerd/ and
-    #             is NOT counted against diskDirectory/diskConsumptionLimit.
+    #             is NOT counted against diskDirectory/diskLimit.
     containerEngine: "edgelet"
     containerEngineUrl: "unix:///run/edgelet/containerd.sock"
-    diskConsumptionLimit: "10"
+    diskLimit: "10"
     diskDirectory: "/var/lib/edgelet/"
-    memoryConsumptionLimit: "4096"
-    processorConsumptionLimit: "80.0"
-    logDiskConsumptionLimit: "10.0"
-    logDiskDirectory: "/var/log/edgelet/"
+    memoryLimit: "4096"
+    cpuLimit: "80.0"
+    logLimit: "10.0"
+    logDirectory: "/var/log/edgelet/"
     logFileCount: "10"
     logLevel: "INFO"
     statusFrequency: "10"
@@ -42,7 +42,7 @@ profiles:
     gpsDevice: ""
     gpsScanFrequency: "60"
     watchdogEnabled: "off"
-    edgeGuardFreq: "0"
+    edgeGuardFrequency: "0"
     pruningFrequency: "0"
     availableDiskThreshold: "20"
     upgradeScanFrequency: "24"
