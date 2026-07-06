@@ -199,11 +199,11 @@ type AgentStatus struct {
 	SecurityViolationInfo string  `json:"securityViolationInfo" yaml:"securityViolationInfo"`
 	WarningMessage        string  `json:"warningMessage" yaml:"warningMessage"`
 	UptimeMs              int64   `json:"daemonOperatingDuration" yaml:"uptime"`
-	MemoryUsage           float64 `json:"memoryUsage" yaml:"memoryUsage"`
-	DiskUsage             float64 `json:"diskUsage" yaml:"diskUsage"`
-	CPUUsage              float64 `json:"cpuUsage" yaml:"cpuUsage"`
-	SystemAvailableMemory float64 `json:"systemAvailableMemory" yaml:"systemAvailableMemory"`
-	SystemAvailableDisk   float64 `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`
+	MemoryUsage           float64 `json:"memoryUsage" yaml:"memoryUsage"`                     // MiB (binary) from agent status PUT
+	DiskUsage             float64 `json:"diskUsage" yaml:"diskUsage"`                         // GiB (decimal) from Edgelet status PUT
+	CPUUsage              float64 `json:"cpuUsage" yaml:"cpuUsage"`                           // percent
+	SystemAvailableMemory float64 `json:"systemAvailableMemory" yaml:"systemAvailableMemory"` // bytes
+	SystemAvailableDisk   float64 `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`     // bytes
 	SystemTotalCPU        float64 `json:"systemTotalCPU" yaml:"systemTotalCPU"`
 	MemoryViolation       string  `json:"memoryViolation" yaml:"memoryViolation"`
 	DiskViolation         string  `json:"diskViolation" yaml:"diskViolation"`

@@ -329,15 +329,13 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 		formatted["uptime"] = util.FormatDuration(uptime)
 	}
 
-	// Format usage - Memory/Disk are already in MiB, CPU is percentage
+	// Format usage — memoryUsage is MiB (binary); diskUsage is GiB (decimal); cpuUsage is percent.
 	if status.MemoryUsage > 0 {
-		// Convert from MiB to bytes for auto-scaling
 		memoryBytes := status.MemoryUsage * 1024 * 1024
 		formatted["memoryUsage"] = formatBytesAuto(memoryBytes)
 	}
 	if status.DiskUsage > 0 {
-		// Convert from MiB to bytes for auto-scaling
-		diskBytes := status.DiskUsage * 1024 * 1024
+		diskBytes := status.DiskUsage * 1_000_000_000
 		formatted["diskUsage"] = formatBytesAuto(diskBytes)
 	}
 	if status.CPUUsage > 0 {
