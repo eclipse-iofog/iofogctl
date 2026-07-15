@@ -14,12 +14,14 @@ iofogctl upgrade RESOURCE NAME [flags]
 
 ```
 iofogctl upgrade agent NAME
+iofogctl upgrade agent NAME --semver v1.0.0
 ```
 
 ### Options
 
 ```
-  -h, --help   help for upgrade
+  -h, --help            help for upgrade
+      --semver string   Target fog node version (semver.org; optional leading v)
 ```
 
 ### Options inherited from parent commands

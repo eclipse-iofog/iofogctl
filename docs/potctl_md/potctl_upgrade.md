@@ -14,12 +14,14 @@ potctl upgrade RESOURCE NAME [flags]
 
 ```
 potctl upgrade agent NAME
+potctl upgrade agent NAME --semver v1.0.0
 ```
 
 ### Options
 
 ```
-  -h, --help   help for upgrade
+  -h, --help            help for upgrade
+      --semver string   Target fog node version (semver.org; optional leading v)
 ```
 
 ### Options inherited from parent commands

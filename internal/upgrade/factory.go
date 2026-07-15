@@ -9,6 +9,7 @@ type Options struct {
 	ResourceType string
 	Namespace    string
 	Name         string
+	Semver       string
 }
 
 func NewExecutor(opt Options) (execute.Executor, error) {

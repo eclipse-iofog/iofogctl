@@ -2,18 +2,21 @@ package upgrade
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	"github.com/eclipse-iofog/iofogctl/internal/nodeversion"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 )
 
 type agentExecutor struct {
 	namespace string
 	name      string
+	semver    string
 }
 
 func newAgentExecutor(opt Options) *agentExecutor {
 	return &agentExecutor{
 		namespace: opt.Namespace,
 		name:      opt.Name,
+		semver:    opt.Semver,
 	}
 }
 
@@ -43,9 +46,8 @@ func (exe *agentExecutor) Execute() error {
 		return err
 	}
 
-	// Perform upgrade
-	if err := clt.UpgradeAgent(agent.GetName()); err != nil {
-		return err
+	if err := clt.UpgradeNode(agent.GetUUID(), nodeversion.SemverPtr(exe.semver)); err != nil {
+		return nodeversion.MapError("upgrade", err)
 	}
 
 	return nil
