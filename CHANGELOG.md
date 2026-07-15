@@ -5,7 +5,51 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.8.0-rc.1] — June 2026
+## [v3.8.1] — July 2026
+
+Stable v3.8 patch release. Bumps SDK, operator, and edgelet pins; adds fog node OTA semver targeting and hardens edgelet redeploy/containerd orchestration.
+
+### Added
+
+- `upgrade agent` / `rollback agent --semver` for targeted fog node version OTA via SDK `UpgradeNode` / `RollbackNode`
+- ConfigMap `useVault` in deploy, describe, and `get configmaps`
+- SSH keep-alive and streamed output for long-running remote edgelet installs
+- `version --ecn`: NATS and debugger component image lines
+
+### Changed
+
+- Bump Go to **1.26.5**; **iofog-go-sdk** and **iofog-operator** to **v3.8.1**
+- ConfigMap `immutable` is optional in YAML; updates preserve existing `immutable` / `useVault` when omitted
+- Edgelet install redeploy: detect active engine and installed version; defer and deduplicate `edgelet-containerd` restarts (WASM + OTA)
+- Edgelet readiness scripts: case-insensitive daemon status parsing and embedded-engine `runtime.engineReady` gate
+- Offline/airgap image transfer: shared container-engine handling via airgap package
+
+### Fixed
+
+- Redundant `edgelet-containerd` restart on redeploy/OTA when WASM install already restarted the engine
+- ConfigMap PATCH semantics when `immutable` or `useVault` are not set in deploy YAML
+
+### Security
+
+- Documented govulncheck exception **GO-2026-5932** (`golang.org/x/crypto/openpgp` via `go.podman.io/image/v5` image signature handling) until upstream migrates off the deprecated package; see `SECURITY.md`.
+
+### Known limitations
+
+- **GO-2026-5932**: CLI builds use `containers_image_openpgp` for cgo-free release binaries; `golang.org/x/crypto/openpgp` remains on the call path for airgap/offline image copy with no upstream fix available.
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.8.1` |
+| operator | `3.8.1` |
+| controller | `3.8.1` |
+| router | `3.8.1` |
+| nats | `2.14.3-1` |
+| edgelet binary | `v1.0.1` |
+| edgelet image | `ghcr.io/<registry>/edgelet:1.0.1` |
+
+## [v3.8.0] — June 2026
 
 
 First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl`) from a single codebase; no in-place upgrade from potctl- or v3.7.
