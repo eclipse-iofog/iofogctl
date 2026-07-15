@@ -182,6 +182,10 @@ if [ "$ACTION" = "upgrade" ]; then
 	[ "$AIRGAP" = true ] && _method="upgrade-airgap"
 	write_install_receipt "$EDGELET_VERSION" "$OS" "$ARCH" "$CONTAINER_ENGINE" "$(compute_source_url)" "$_sha" "$_method"
 	"$SCRIPT_DIR/bundled.sh" || true
+	if [ "$SKIP_START" = true ]; then
+		info "Skipping daemon start (--skip-start); use start_edgelet.sh"
+		exit 0
+	fi
 	_run_post_install
 	info "Upgrade to ${EDGELET_VERSION} complete."
 	exit 0

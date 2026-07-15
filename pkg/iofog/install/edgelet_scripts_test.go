@@ -78,10 +78,14 @@ func TestInstallScriptOTAParity(t *testing.T) {
 		"stop_edgelet_service",
 		"EDGELET_SERVICE_ACTION",
 		"edgelet_cli_version",
+		"--upgrade",
 	} {
 		if !strings.Contains(content, needle) {
 			t.Fatalf("install.sh missing OTA parity marker %q", needle)
 		}
+	}
+	if !strings.Contains(content, "Skipping daemon start (--skip-start); use start_edgelet.sh") {
+		t.Fatalf("install.sh missing --skip-start handling on upgrade path")
 	}
 
 	service, err := loadEdgeletScript("lib/service.sh")
@@ -92,6 +96,11 @@ func TestInstallScriptOTAParity(t *testing.T) {
 		"stop_edgelet_service",
 		"restart_edgelet_services",
 		"restart_edgelet_containerd_service",
+		"consume_containerd_restarted_marker",
+		"drain may take up to 120s",
+		"restart --no-block edgelet-containerd",
+		"wait_edgelet_containerd_ready",
+		"waiting for edgelet-containerd",
 	} {
 		if !strings.Contains(service, needle) {
 			t.Fatalf("lib/service.sh missing %q", needle)
@@ -111,6 +120,12 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	if !strings.Contains(start, "EDGELET_SERVICE_ACTION") || !strings.Contains(start, "restart_native_linux") {
 		t.Fatalf("start_edgelet.sh missing OTA restart handling")
 	}
+	if !strings.Contains(start, "redeploy_native_linux") || !strings.Contains(start, "start_embedded_systemd") {
+		t.Fatalf("start_edgelet.sh missing redeploy stop/start edgelet parity")
+	}
+	if !strings.Contains(start, "wait_edgelet_containerd_socket") {
+		t.Fatalf("start_edgelet.sh missing embedded systemd start parity")
+	}
 
 	waitReady, err := loadEdgeletScript(pkg.edgeletScriptWaitEdgeletReady)
 	if err != nil {
@@ -118,5 +133,94 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	}
 	if !strings.Contains(waitReady, "wait_for_expected_daemon_version") {
 		t.Fatalf("wait_edgelet_ready.sh missing daemon.version receipt check")
+	}
+	for _, needle := range []string{
+		"LOCAL_API_STARTING",
+		"Local API is starting",
+		"runtime.engineReady",
+		"edgelet_api_socket_ready",
+	} {
+		if !strings.Contains(waitReady, needle) {
+			t.Fatalf("wait_edgelet_ready.sh missing v1.0.1 readiness marker %q", needle)
+		}
+	}
+
+	wasmInstall, err := loadEdgeletScript(pkg.edgeletScriptInstallWasmRuntimes)
+	if err != nil {
+		t.Fatalf("load install_wasm_runtimes.sh: %v", err)
+	}
+	if !strings.Contains(wasmInstall, "restart_edgelet_containerd_service") {
+		t.Fatalf("install_wasm_runtimes.sh must use restart_edgelet_containerd_service")
+	}
+	if strings.Contains(wasmInstall, "systemctl restart edgelet-containerd") {
+		t.Fatalf("install_wasm_runtimes.sh must not call systemctl restart inline")
+	}
+	if !strings.Contains(wasmInstall, "EDGELET_WASM_DEFER_ENGINE_RESTART") {
+		t.Fatalf("install_wasm_runtimes.sh must honor deferred engine restart from potctl")
+	}
+}
+
+func TestEdgeletRedeployInstallFlags(t *testing.T) {
+	cfg := EdgeletInstallConfig{
+		HostOS:          "linux",
+		ContainerEngine: "edgelet",
+		Version:         "v1.0.1",
+	}
+	cfg.SetRedeployState(true, "v1.0.0")
+	flags, err := cfg.nativeInstallFlags()
+	if err != nil {
+		t.Fatalf("nativeInstallFlags: %v", err)
+	}
+	joined := strings.Join(flags, " ")
+	if !strings.Contains(joined, "--upgrade") {
+		t.Fatalf("expected --upgrade for version bump redeploy, got %v", flags)
+	}
+
+	cfg.SetRedeployState(true, "v1.0.1")
+	flags, err = cfg.nativeInstallFlags()
+	if err != nil {
+		t.Fatalf("nativeInstallFlags: %v", err)
+	}
+	joined = strings.Join(flags, " ")
+	if strings.Contains(joined, "--upgrade") {
+		t.Fatalf("did not expect --upgrade for same-version redeploy, got %v", flags)
+	}
+
+	cfg.SetRedeployState(true, "")
+	flags, err = cfg.nativeInstallFlags()
+	if err != nil {
+		t.Fatalf("nativeInstallFlags: %v", err)
+	}
+	joined = strings.Join(flags, " ")
+	if strings.Contains(joined, "--upgrade") {
+		t.Fatalf("did not expect --upgrade when installed version is unknown, got %v", flags)
+	}
+}
+
+func TestEdgeletRedeployBootstrapEnv(t *testing.T) {
+	cfg := EdgeletInstallConfig{
+		HostOS:          "linux",
+		ContainerEngine: "edgelet",
+		Version:         "v1.0.1",
+	}
+	cfg.SetRedeployState(true, "v1.0.1")
+	env := cfg.bootstrapEnv(true)
+	if !strings.Contains(env, "EDGELET_SERVICE_ACTION=restart") {
+		t.Fatalf("expected redeploy restart action in bootstrap env, got %q", env)
+	}
+	if strings.Contains(env, "EDGELET_SERVICE_ACTION=upgrade") {
+		t.Fatalf("did not expect upgrade action for same-version redeploy, got %q", env)
+	}
+
+	cfg.SetRedeployState(true, "v1.0.0")
+	env = cfg.bootstrapEnv(true)
+	if !strings.Contains(env, "EDGELET_SERVICE_ACTION=upgrade") {
+		t.Fatalf("expected upgrade action for version bump redeploy, got %q", env)
+	}
+
+	cfg.SetRedeployState(false, "")
+	env = cfg.bootstrapEnv(true)
+	if strings.Contains(env, "EDGELET_SERVICE_ACTION=restart") {
+		t.Fatalf("did not expect restart action on fresh install, got %q", env)
 	}
 }

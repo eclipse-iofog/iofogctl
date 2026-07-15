@@ -11,6 +11,8 @@ EDGELET_DETECT_SOURCED=1
 . "$SCRIPT_DIR/detect_init.sh"
 init
 
+CONTAINER_ENGINE="${CONTAINER_ENGINE:-edgelet}"
+
 wait_init_services() {
 	case "$INIT_SYSTEM" in
 		systemd)
@@ -37,20 +39,67 @@ wait_init_services() {
 	return 0
 }
 
+edgelet_api_starting() {
+	_out="$1"
+	echo "$_out" | grep -qi 'daemon is not running' && return 0
+	echo "$_out" | grep -q 'Edgelet API is still initializing' && return 0
+	echo "$_out" | grep -qi 'LOCAL_API_STARTING' && return 0
+	echo "$_out" | grep -qi 'Local API is starting' && return 0
+	echo "$_out" | grep -qi 'DAEMON_UNAVAILABLE' && return 0
+	return 1
+}
+
+edgelet_daemon_status_value() {
+	_out="$1"
+	echo "$_out" | awk -F': ' '/^edgeletDaemon:/ {print $2; exit}' | tr -d '[:space:]'
+}
+
+edgelet_daemon_status_running() {
+	_status=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+	[ "$_status" = "running" ]
+}
+
+edgelet_runtime_agent_running() {
+	_out="$1"
+	echo "$_out" | grep -qi 'runtime.agentPhase:[[:space:]]*running'
+}
+
+edgelet_runtime_engine_ready() {
+	_out="$1"
+	echo "$_out" | grep -qi 'runtime.engineReady:[[:space:]]*true'
+}
+
 edgelet_status_running() {
 	_out="$1"
-	if echo "$_out" | grep -qi 'daemon is not running'; then
+	if edgelet_api_starting "$_out"; then
 		return 1
 	fi
-	if echo "$_out" | grep -q 'Edgelet API is still initializing'; then
-		return 1
-	fi
-	if echo "$_out" | grep -q 'edgeletDaemon: RUNNING'; then
+	if edgelet_daemon_status_running "$(edgelet_daemon_status_value "$_out")"; then
+		if [ "$CONTAINER_ENGINE" = "edgelet" ] && ! edgelet_runtime_engine_ready "$_out"; then
+			return 1
+		fi
 		return 0
 	fi
-	if echo "$_out" | grep -q 'runtime.agentPhase: running'; then
+	if edgelet_runtime_agent_running "$_out"; then
 		return 0
 	fi
+	return 1
+}
+
+edgelet_api_socket_ready() {
+	[ -S /run/edgelet/edgelet.sock ] || [ -S /var/run/edgelet/edgelet.sock ]
+}
+
+wait_edgelet_api_socket() {
+	_iter=0
+	_max="${EDGELET_API_SOCKET_TIMEOUT:-180}"
+	while [ "$_iter" -lt "$_max" ]; do
+		if edgelet_api_socket_ready; then
+			return 0
+		fi
+		sleep 1
+		_iter=$((_iter + 1))
+	done
 	return 1
 }
 
@@ -112,6 +161,10 @@ wait_edgelet_api() {
 		return 0
 	fi
 
+	if ! wait_edgelet_api_socket; then
+		echo "# edgelet API socket not ready; continuing with process/API poll..."
+	fi
+
 	_iter=0
 	_max="${EDGELET_READY_TIMEOUT:-600}"
 	while [ "$_iter" -lt "$_max" ]; do
@@ -128,7 +181,10 @@ wait_edgelet_api() {
 			wait_for_expected_daemon_version
 			return 0
 		fi
-		_status=$(echo "$_out" | awk -F': ' '/^edgeletDaemon:/ {print $2; exit}' | tr -d '[:space:]')
+		_status=$(edgelet_daemon_status_value "$_out")
+		if edgelet_api_starting "$_out"; then
+			_status="starting"
+		fi
 		echo "# waiting for edgelet RUNNING (${_iter}s) status=${_status:-unknown}"
 		sleep 1
 		_iter=$((_iter + 1))

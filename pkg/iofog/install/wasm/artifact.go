@@ -202,17 +202,6 @@ func ensureSourceFromURL(ctx context.Context, namespace, handler, sourceURL, osN
 		}
 	}
 
-	if airgap {
-		if _, err := os.Stat(dest); err != nil {
-			return "", sourceMeta{}, fmt.Errorf("airgap WASM cache miss for %s: download %s or populate cache", handler, dest)
-		}
-		checksum, _, err := fileSHA256(dest)
-		if err != nil {
-			return "", sourceMeta{}, err
-		}
-		return dest, sourceMeta{url: sourceURL, checksum: checksum}, nil
-	}
-
 	util.PrintInfo(fmt.Sprintf("Downloading WASM artifact for %s", handler))
 	if err := downloadURL(ctx, sourceURL, dest); err != nil {
 		return "", sourceMeta{}, fmt.Errorf("download WASM artifact for %s: %w", handler, err)

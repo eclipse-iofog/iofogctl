@@ -29,10 +29,15 @@ wait_edgelet_api_running() {
 			_iter=$((_iter + 1))
 			continue
 		fi
-		if echo "$_out" | grep -q 'edgeletDaemon: RUNNING'; then
+		if echo "$_out" | grep -qi 'LOCAL_API_STARTING\|Local API is starting'; then
+			sleep 1
+			_iter=$((_iter + 1))
+			continue
+		fi
+		if echo "$_out" | grep -qi 'edgeletDaemon:[[:space:]]*RUNNING\|edgeletDaemon:[[:space:]]*running'; then
 			return 0
 		fi
-		if echo "$_out" | grep -q 'runtime.agentPhase: running'; then
+		if echo "$_out" | grep -qi 'runtime.agentPhase:[[:space:]]*running'; then
 			return 0
 		fi
 		sleep 1

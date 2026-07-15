@@ -28,7 +28,15 @@ type SecureShellClient struct {
 	privKeyFilename string
 	config          *ssh.ClientConfig
 	conn            *ssh.Client
+	keepAliveStop   chan struct{}
 }
+
+// SSHRunOptions configures remote command execution.
+type SSHRunOptions struct {
+	StreamOutput bool
+}
+
+const sshKeepAliveInterval = 30 * time.Second
 
 func NewSecureShellClient(user, host, privKeyFilename string) (*SecureShellClient, error) {
 	cl := &SecureShellClient{
@@ -78,12 +86,46 @@ func (cl *SecureShellClient) Connect() (err error) {
 	if err != nil {
 		return err
 	}
+	cl.startKeepAlive()
 
 	return nil
 }
 
+func (cl *SecureShellClient) startKeepAlive() {
+	if cl.conn == nil || cl.keepAliveStop != nil {
+		return
+	}
+	cl.keepAliveStop = make(chan struct{})
+	go func() {
+		ticker := time.NewTicker(sshKeepAliveInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-cl.keepAliveStop:
+				return
+			case <-ticker.C:
+				if cl.conn == nil {
+					return
+				}
+				if _, _, err := cl.conn.SendRequest("keepalive@openssh.com", true, nil); err != nil {
+					return
+				}
+			}
+		}
+	}()
+}
+
+func (cl *SecureShellClient) stopKeepAlive() {
+	if cl.keepAliveStop == nil {
+		return
+	}
+	close(cl.keepAliveStop)
+	cl.keepAliveStop = nil
+}
+
 func (cl *SecureShellClient) Disconnect() error {
 	SSHVerbose("Disconnecting...")
+	cl.stopKeepAlive()
 	if cl.conn == nil {
 		return nil
 	}
@@ -99,29 +141,61 @@ func (cl *SecureShellClient) Disconnect() error {
 }
 
 func (cl *SecureShellClient) Run(cmd string) (stdout bytes.Buffer, err error) {
-	// Establish the session
+	return cl.RunWithOptions(cmd, SSHRunOptions{})
+}
+
+func (cl *SecureShellClient) RunWithOptions(cmd string, opts SSHRunOptions) (stdout bytes.Buffer, err error) {
 	session, err := cl.conn.NewSession()
 	if err != nil {
 		return
 	}
 	defer session.Close()
 
-	// Connect pipes
-	session.Stdout = &stdout
-	stderr, err := session.StderrPipe()
+	stderrReader, err := session.StderrPipe()
 	if err != nil {
-		err = format(err, nil, readToBuffer(stderr))
+		err = format(err, nil, nil)
 		return
 	}
 
-	// Run the command
+	var stdoutWriters []io.Writer
+	stdoutWriters = append(stdoutWriters, &stdout)
+	if opts.StreamOutput {
+		stdoutWriters = append(stdoutWriters, os.Stdout)
+	}
+	session.Stdout = io.MultiWriter(stdoutWriters...)
+
+	var stderrBuf bytes.Buffer
+	var stderrWriters []io.Writer
+	stderrWriters = append(stderrWriters, &stderrBuf)
+	if opts.StreamOutput {
+		stderrWriters = append(stderrWriters, os.Stderr)
+	}
+	stderrDone := make(chan struct{})
+	go func() {
+		_, _ = io.Copy(io.MultiWriter(stderrWriters...), stderrReader)
+		close(stderrDone)
+	}()
+
 	SSHVerbose(fmt.Sprintf("Running: %s", cmd))
 	err = session.Run(cmd)
+	<-stderrDone
 	if err != nil {
-		err = format(err, &stdout, readToBuffer(stderr))
+		err = format(err, &stdout, &stderrBuf)
 		return
 	}
 	return
+}
+
+// IsSSHSignalTerminated reports SSH sessions killed by SIGTERM (exit 143).
+func IsSSHSignalTerminated(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "status 143") ||
+		strings.Contains(msg, "signal: killed") ||
+		strings.Contains(msg, "signal terminated") ||
+		strings.Contains(msg, "sigterm")
 }
 
 func format(err error, stdout, stderr fmt.Stringer) error {
