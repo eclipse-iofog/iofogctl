@@ -10,6 +10,7 @@ import (
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -155,14 +156,14 @@ func (exe *executor) buildAgentPlans(ns *rsc.Namespace) ([]agentPlan, error) {
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}
-		engine, err := resolveContainerEngine(cfg.ContainerEngine)
+		loadOpts, err := deployairgap.AirgapTransferOptionsFromConfig(&cfg)
 		if err != nil {
 			return nil, fmt.Errorf("agent %s: %w", agentName, err)
 		}
 		plans = append(plans, agentPlan{
 			agent:    remoteAgent,
 			platform: platform,
-			engine:   engine,
+			loadOpts: loadOpts,
 			imageRef: imageRef,
 		})
 	}

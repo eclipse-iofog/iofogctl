@@ -122,11 +122,7 @@ func PlatformToOSArch(platform string) (osName, archName string, err error) {
 // ImageLoadCommand builds the remote shell command used to import a transferred image archive.
 func ImageLoadCommand(opts AirgapTransferOptions, remoteArchivePath string) string {
 	if IsNativeDeployment(opts.DeploymentType) && opts.Engine == EngineEdgelet {
-		tarPath := strings.TrimSuffix(remoteArchivePath, ".gz")
-		return fmt.Sprintf(
-			`sudo sh -c 'gunzip -c %q > %q && edgelet image load -f %q && rm -f %q'`,
-			remoteArchivePath, tarPath, tarPath, tarPath,
-		)
+		return fmt.Sprintf("sudo edgelet image load -f %q", remoteArchivePath)
 	}
 	return fmt.Sprintf("sudo -S %s load -i %s", opts.Engine.Command(), remoteArchivePath)
 }
