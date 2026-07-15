@@ -327,14 +327,30 @@ func TestResolveWasmArtifactsRawELF(t *testing.T) {
 	require.False(t, staged[0].Changed)
 }
 
-func TestResolveWasmArtifactsAirgapCacheMiss(t *testing.T) {
+func TestResolveWasmArtifactsAirgapDownloadsFromURL(t *testing.T) {
+	payload := writeTarGzBytes(t, map[string][]byte{
+		"containerd-shim-spin-v2": []byte("airgap-downloaded-spin-shim"),
+	})
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(payload)))
+		_, _ = w.Write(payload)
+	}))
+	defer server.Close()
+
+	oldClient := httpClient
+	httpClient = server.Client()
+	t.Cleanup(func() { httpClient = oldClient })
+
 	initWasmTestCache(t)
 
-	_, err := ResolveWasmArtifacts(context.Background(), "default", "linux/amd64", map[string]Pack{
-		"spin": {URL: "https://example.invalid/spin.tar.gz"},
+	staged, err := ResolveWasmArtifacts(context.Background(), "default", "linux/amd64", map[string]Pack{
+		"spin": {URL: server.URL + "/spin.tar.gz"},
 	}, true)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "airgap WASM cache miss")
+	require.NoError(t, err)
+	require.Len(t, staged, 1)
+	require.Equal(t, "containerd-shim-spin-v2", staged[0].CanonicalName)
+	require.Equal(t, []byte("airgap-downloaded-spin-shim"), readFile(t, staged[0].LocalPath))
 }
 
 func TestResolveWasmArtifactsAirgapUsesCache(t *testing.T) {
@@ -343,12 +359,23 @@ func TestResolveWasmArtifactsAirgapUsesCache(t *testing.T) {
 	archive := writeTarGz(t, map[string][]byte{
 		"containerd-shim-spin-v2": []byte("airgap-spin-shim"),
 	})
+	sourceURL := "https://example.invalid/spin.tar.gz"
 	cacheSource := sourceCachePath("default", "spin", "linux", "amd64")
 	require.NoError(t, os.MkdirAll(filepath.Dir(cacheSource), 0o700))
 	require.NoError(t, copyFile(archive, cacheSource))
+	checksum, _, err := fileSHA256(cacheSource)
+	require.NoError(t, err)
+	require.NoError(t, saveCacheMetadata(metadataPath("default", "spin", "linux", "amd64"), cacheMetadata{
+		Handler:        "spin",
+		OS:             "linux",
+		Arch:           "amd64",
+		SourceURL:      sourceURL,
+		SourceChecksum: checksum,
+		CanonicalName:  "containerd-shim-spin-v2",
+	}))
 
 	staged, err := ResolveWasmArtifacts(context.Background(), "default", "linux/amd64", map[string]Pack{
-		"spin": {URL: "https://example.invalid/spin.tar.gz"},
+		"spin": {URL: sourceURL},
 	}, true)
 	require.NoError(t, err)
 	require.Len(t, staged, 1)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -45,7 +46,7 @@ func transferArtifact(plan agentPlan, artifact *imageArtifact) error {
 	}
 	remotePath := util.JoinAgentPath(agentDir, filename)
 
-	loadCmd := fmt.Sprintf("sudo -S %s load -i %s", plan.engine.command(), remotePath)
+	loadCmd := deployairgap.ImageLoadCommand(plan.loadOpts, remotePath)
 	if _, err := ssh.Run(loadCmd); err != nil {
 		return err
 	}

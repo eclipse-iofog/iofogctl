@@ -181,16 +181,25 @@ func (agent *LocalEdgelet) SetAirgap(binPath string) error {
 }
 
 func (agent *LocalEdgelet) PrepareWasm(ctx context.Context, namespace string) error {
-	freshInstall := !localEngineActive(agent.cfg)
+	if err := refreshLocalRedeployState(&agent.cfg, &agent.procs); err != nil {
+		return err
+	}
+	freshInstall := !agent.cfg.engineActive
 	return agent.cfg.PrepareWasm(ctx, namespace, freshInstall)
 }
 
 func (agent *LocalEdgelet) SetWasmStaged(staged []wasm.StagedBinary) error {
-	freshInstall := !localEngineActive(agent.cfg)
+	if err := refreshLocalRedeployState(&agent.cfg, &agent.procs); err != nil {
+		return err
+	}
+	freshInstall := !agent.cfg.engineActive
 	return agent.cfg.SetWasmStaged(staged, freshInstall, false)
 }
 
 func (agent *LocalEdgelet) Bootstrap() error {
+	if err := refreshLocalRedeployState(&agent.cfg, &agent.procs); err != nil {
+		return err
+	}
 	if err := agent.materializeScripts(); err != nil {
 		return err
 	}
@@ -200,6 +209,12 @@ func (agent *LocalEdgelet) Bootstrap() error {
 		if err := agent.runShell(cmd.cmd); err != nil {
 			return err
 		}
+	}
+	if err := agent.restartDeferredWasmEngine(); err != nil {
+		return err
+	}
+	if err := agent.finalizeDeferredWasmEngine(); err != nil {
+		return err
 	}
 	if ShouldMaterializeEdgeletRuntime(agent.cfg) {
 		if err := MaterializeEdgeletRuntime(agent.cfg.hostOS(), agent.cfg.Runtime); err != nil {

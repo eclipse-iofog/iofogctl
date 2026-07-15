@@ -18,13 +18,10 @@ func TestImageLoadCommand(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:   "native edgelet decompresses and loads",
-			opts:   AirgapTransferOptions{DeploymentType: DeploymentTypeNative, Engine: EngineEdgelet},
-			remote: "/tmp/iofogctl-airgap/host/router-linux_amd64.tar.gz",
-			contains: []string{
-				"gunzip -c",
-				"edgelet image load -f",
-			},
+			name:     "native edgelet loads archive directly",
+			opts:     AirgapTransferOptions{DeploymentType: DeploymentTypeNative, Engine: EngineEdgelet},
+			remote:   "/tmp/iofogctl-airgap/host/router-linux_amd64.tar.gz",
+			contains: []string{"sudo edgelet image load -f \"/tmp/iofogctl-airgap/host/router-linux_amd64.tar.gz\""},
 		},
 		{
 			name:     "native docker uses docker load",

@@ -14,12 +14,14 @@ potctl rollback RESOURCE NAME [flags]
 
 ```
 potctl rollback agent NAME
+potctl rollback agent NAME --semver v1.0.0
 ```
 
 ### Options
 
 ```
-  -h, --help   help for rollback
+  -h, --help            help for rollback
+      --semver string   Target fog node version (semver.org; optional leading v)
 ```
 
 ### Options inherited from parent commands

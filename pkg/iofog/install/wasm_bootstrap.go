@@ -50,6 +50,7 @@ func (cfg *EdgeletInstallConfig) PrepareWasm(ctx context.Context, namespace stri
 		return nil
 	}
 	cfg.wasmEnv = ""
+	cfg.wasmDeferEngineRestart = false
 	if !wasm.ShouldInstallWasm(cfg.wasmScope()) {
 		if len(cfg.Wasm) > 0 {
 			util.PrintInfo("Skipping WASM runtime install (scope gate)")
@@ -97,6 +98,7 @@ func (cfg *EdgeletInstallConfig) SetWasmStaged(staged []wasm.StagedBinary, fresh
 	if len(staged) == 0 {
 		return nil
 	}
+	cfg.wasmDeferEngineRestart = false
 
 	entries := make([]wasmManifestEntry, 0, len(staged))
 	for _, item := range staged {
@@ -154,7 +156,9 @@ func (cfg *EdgeletInstallConfig) applyWasmManifest(entries []wasmManifestEntry, 
 	if skipRestart {
 		parts = append(parts, "EDGELET_WASM_SKIP_RESTART=1")
 	} else if anyChanged {
-		util.PrintInfo("WASM shims changed; engine will restart before edgelet start")
+		cfg.wasmDeferEngineRestart = true
+		parts = append(parts, "EDGELET_WASM_DEFER_ENGINE_RESTART=1")
+		util.PrintInfo("WASM shims changed; edgelet-containerd restart may take up to 2 minutes — do not interrupt")
 	} else {
 		util.PrintInfo("WASM shims unchanged")
 	}
@@ -198,4 +202,25 @@ func localEngineActive(cfg EdgeletInstallConfig) bool {
 	default:
 		return false
 	}
+}
+
+func readInstalledEdgeletVersion() string {
+	out, err := util.Exec("", "sh", "-c", installedEdgeletVersionShell())
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(out.String())
+}
+
+func refreshLocalRedeployState(cfg *EdgeletInstallConfig, procs *EdgeletProcedures) error {
+	active := localEngineActive(*cfg)
+	version := ""
+	if active {
+		version = readInstalledEdgeletVersion()
+	}
+	cfg.SetRedeployState(active, version)
+	if procs != nil {
+		return procs.setInstallArgs(*cfg)
+	}
+	return nil
 }

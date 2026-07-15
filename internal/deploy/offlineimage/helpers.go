@@ -3,6 +3,7 @@ package deployofflineimage
 import (
 	"strings"
 
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
@@ -17,19 +18,8 @@ const (
 type agentPlan struct {
 	agent    *rsc.RemoteAgent
 	platform string
-	engine   containerEngine
+	loadOpts deployairgap.AirgapTransferOptions
 	imageRef string
-}
-
-type containerEngine string
-
-const (
-	engineDocker containerEngine = "docker"
-	enginePodman containerEngine = "podman"
-)
-
-func (e containerEngine) command() string {
-	return string(e)
 }
 
 func resolvePlatform(arch *string) (string, error) {
@@ -44,21 +34,6 @@ func resolvePlatform(arch *string) (string, error) {
 		return platformARM64, nil
 	default:
 		return "", util.NewInputError("Unsupported fog type " + *arch)
-	}
-}
-
-func resolveContainerEngine(engine *string) (containerEngine, error) {
-	if engine == nil {
-		return "", util.NewInputError("Agent container engine configuration is missing")
-	}
-	value := strings.ToLower(strings.TrimSpace(*engine))
-	switch value {
-	case "docker":
-		return engineDocker, nil
-	case "podman":
-		return enginePodman, nil
-	default:
-		return "", util.NewInputError("Unsupported container engine " + *engine)
 	}
 }
 

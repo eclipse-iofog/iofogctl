@@ -20,6 +20,12 @@ var remoteEdgeletRunHook func(agent *RemoteEdgelet, cmds []command) error
 // remoteEdgeletInstallFileHook is set by tests to mock remote config/cert writes.
 var remoteEdgeletInstallFileHook func(agent *RemoteEdgelet, destPath string, content []byte, perm string) error
 
+// remoteEngineActiveHook is set by tests to mock embedded engine detection.
+var remoteEngineActiveHook func(agent *RemoteEdgelet) bool
+
+// readInstalledVersionRemoteHook is set by tests to mock install receipt reads.
+var readInstalledVersionRemoteHook func(agent *RemoteEdgelet) string
+
 // RemoteEdgelet installs edgelet on a remote host over SSH using layered scripts.
 type RemoteEdgelet struct {
 	defaultAgent
@@ -221,6 +227,35 @@ func (agent *RemoteEdgelet) detectAndSetHostOS() error {
 	return agent.procs.setInstallArgs(agent.cfg)
 }
 
+func (agent *RemoteEdgelet) refreshRedeployState() error {
+	active := agent.remoteEngineActive()
+	version := ""
+	if active {
+		version = agent.readInstalledVersionRemote()
+	}
+	agent.cfg.SetRedeployState(active, version)
+	return agent.procs.setInstallArgs(agent.cfg)
+}
+
+func (agent *RemoteEdgelet) readInstalledVersionRemote() string {
+	if readInstalledVersionRemoteHook != nil {
+		return readInstalledVersionRemoteHook(agent)
+	}
+	if remoteEdgeletRunHook != nil {
+		return ""
+	}
+	if err := agent.ssh.Connect(); err != nil {
+		return ""
+	}
+	defer util.Log(agent.ssh.Disconnect)
+
+	out, err := agent.ssh.Run(installedEdgeletVersionShell())
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(out.String())
+}
+
 func (agent *RemoteEdgelet) PrepareWasm(ctx context.Context, namespace string) error {
 	if agent.cfg.wasmEnv != "" {
 		return nil
@@ -228,7 +263,10 @@ func (agent *RemoteEdgelet) PrepareWasm(ctx context.Context, namespace string) e
 	if err := agent.detectAndSetHostOS(); err != nil {
 		return err
 	}
-	freshInstall := !agent.remoteEngineActive()
+	if err := agent.refreshRedeployState(); err != nil {
+		return err
+	}
+	freshInstall := !agent.cfg.engineActive
 	if err := agent.cfg.PrepareWasm(ctx, namespace, freshInstall); err != nil {
 		return err
 	}
@@ -239,11 +277,17 @@ func (agent *RemoteEdgelet) SetWasmStaged(staged []wasm.StagedBinary) error {
 	if err := agent.detectAndSetHostOS(); err != nil {
 		return err
 	}
-	freshInstall := !agent.remoteEngineActive()
+	if err := agent.refreshRedeployState(); err != nil {
+		return err
+	}
+	freshInstall := !agent.cfg.engineActive
 	return agent.cfg.SetWasmStaged(staged, freshInstall, true)
 }
 
 func (agent *RemoteEdgelet) remoteEngineActive() bool {
+	if remoteEngineActiveHook != nil {
+		return remoteEngineActiveHook(agent)
+	}
 	if remoteEdgeletRunHook != nil {
 		return false
 	}
@@ -328,10 +372,16 @@ func (agent *RemoteEdgelet) Bootstrap() error {
 	if err := agent.detectAndSetHostOS(); err != nil {
 		return err
 	}
+	if err := agent.refreshRedeployState(); err != nil {
+		return err
+	}
 	if err := agent.copyInstallScripts(); err != nil {
 		return err
 	}
 	if err := agent.run(agent.procs.preInstallCommands(agent.name, agent.cfg, true)); err != nil {
+		return err
+	}
+	if err := agent.restartDeferredWasmEngine(); err != nil {
 		return err
 	}
 	if err := agent.materializeRuntimeConfig(); err != nil {
@@ -563,7 +613,7 @@ func (agent *RemoteEdgelet) run(cmds []command) error {
 
 	for _, cmd := range cmds {
 		Verbose(cmd.msg)
-		if _, err := agent.ssh.Run(cmd.cmd); err != nil {
+		if _, err := agent.ssh.RunWithOptions(cmd.cmd, util.SSHRunOptions{StreamOutput: true}); err != nil {
 			return err
 		}
 	}

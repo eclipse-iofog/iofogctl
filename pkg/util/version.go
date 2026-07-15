@@ -68,6 +68,8 @@ func GetOciSourceRepo() string   { return ociSourceRepo }
 
 func GetControllerVersion() string    { return controllerVersion }
 func GetEdgeletVersion() string       { return edgeletVersion }
+func GetNatsVersion() string          { return natsTag }
+func GetDebuggerVersion() string      { return debuggerTag }
 func GetEdgeletReleaseBase() string   { return edgeletReleaseBase }
 func GetEdgeletBinaryVersion() string { return edgeletBinaryVersion }
 func GetEdgeletGitHubRepo() string    { return edgeletGitHubRepo }

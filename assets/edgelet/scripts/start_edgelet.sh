@@ -23,17 +23,77 @@ restart_native_linux() {
 	restart_edgelet_services "$CONTAINER_ENGINE"
 }
 
+redeploy_native_linux() {
+	case "$INIT_SYSTEM" in
+		systemd)
+			if [ "$CONTAINER_ENGINE" = "edgelet" ]; then
+				if consume_containerd_restarted_marker; then
+					info "edgelet-containerd already restarted; restarting edgelet only (redeploy)"
+					restart_edgelet_daemon_service
+				else
+					start_embedded_systemd
+				fi
+			else
+				restart_edgelet_daemon_service
+			fi
+			;;
+		openrc)
+			if [ "$CONTAINER_ENGINE" = "edgelet" ]; then
+				maybe_sudo rc-update add edgelet-containerd default 2>/dev/null || true
+				if ! consume_containerd_restarted_marker; then
+					maybe_sudo rc-service edgelet-containerd start 2>/dev/null || true
+				fi
+			fi
+			maybe_sudo rc-service edgelet restart 2>/dev/null || maybe_sudo rc-service edgelet start
+			;;
+		procd)
+			maybe_sudo /etc/init.d/edgelet restart 2>/dev/null || maybe_sudo /etc/init.d/edgelet start
+			;;
+		sysvinit)
+			maybe_sudo /etc/init.d/edgelet restart 2>/dev/null || maybe_sudo /etc/init.d/edgelet start
+			;;
+		upstart)
+			maybe_sudo initctl restart edgelet 2>/dev/null || maybe_sudo initctl start edgelet
+			;;
+		s6)
+			if command -v s6-svc >/dev/null 2>&1 && [ -d /var/run/s6/services/edgelet ]; then
+				maybe_sudo s6-svc -d /var/run/s6/services/edgelet 2>/dev/null || true
+				maybe_sudo s6-svc -u /var/run/s6/services/edgelet 2>/dev/null || true
+			fi
+			;;
+		runit)
+			maybe_sudo sv restart edgelet 2>/dev/null || maybe_sudo sv start edgelet 2>/dev/null || true
+			;;
+		*)
+			echo "Error: cannot redeploy edgelet on init=$INIT_SYSTEM"
+			exit 1
+			;;
+	esac
+}
+
+start_embedded_systemd() {
+	maybe_sudo systemctl enable edgelet-containerd 2>/dev/null || true
+	maybe_sudo systemctl start edgelet-containerd 2>/dev/null || true
+	wait_edgelet_containerd_socket || true
+	maybe_sudo systemctl enable edgelet 2>/dev/null || true
+	maybe_sudo systemctl stop edgelet 2>/dev/null || true
+	maybe_sudo systemctl reset-failed edgelet 2>/dev/null || true
+	maybe_sudo systemctl start edgelet
+}
+
 start_native_linux() {
 	case "$INIT_SYSTEM" in
 		systemd)
 			if [ "$CONTAINER_ENGINE" = "edgelet" ]; then
-				maybe_sudo systemctl start edgelet-containerd 2>/dev/null || true
+				start_embedded_systemd
+			else
+				maybe_sudo systemctl reset-failed edgelet 2>/dev/null || true
+				maybe_sudo systemctl start edgelet
 			fi
-			maybe_sudo systemctl reset-failed edgelet 2>/dev/null || true
-			maybe_sudo systemctl start edgelet
 			;;
 		openrc)
 			if [ "$CONTAINER_ENGINE" = "edgelet" ]; then
+				maybe_sudo rc-update add edgelet-containerd default 2>/dev/null || true
 				maybe_sudo rc-service edgelet-containerd start 2>/dev/null || true
 			fi
 			maybe_sudo rc-service edgelet restart 2>/dev/null || maybe_sudo rc-service edgelet start
@@ -171,11 +231,11 @@ case "$EDGELET_INSTALL_MODE" in
 	native|"")
 		case "$EDGELET_OS" in
 			linux)
-				if [ "$EDGELET_SERVICE_ACTION" = "restart" ]; then
-					restart_native_linux
-				else
-					start_native_linux
-				fi
+				case "$EDGELET_SERVICE_ACTION" in
+					upgrade) restart_native_linux ;;
+					restart) redeploy_native_linux ;;
+					*) start_native_linux ;;
+				esac
 				;;
 			darwin) start_edgelet_daemon_desktop ;;
 			windows)

@@ -11,18 +11,46 @@ import (
 
 // EdgeletInstallConfig drives layered install script arguments.
 type EdgeletInstallConfig struct {
-	HostOS          string
-	Version         string
-	Arch            string
-	ContainerEngine string
-	DeploymentType  string
-	ContainerImage  string
-	TimeZone        string
-	BinPath         string
-	Airgap          bool
-	Wasm            map[string]wasm.Pack
-	Runtime         *EdgeletRuntimeSpec
-	wasmEnv         string
+	HostOS                 string
+	Version                string
+	Arch                   string
+	ContainerEngine        string
+	DeploymentType         string
+	ContainerImage         string
+	TimeZone               string
+	BinPath                string
+	Airgap                 bool
+	Wasm                   map[string]wasm.Pack
+	Runtime                *EdgeletRuntimeSpec
+	wasmEnv                string
+	engineActive           bool
+	installedVersion       string
+	wasmDeferEngineRestart bool
+}
+
+const edgeletInstallReceiptPath = "/var/backups/edgelet/install-receipt"
+
+// installedEdgeletVersionShell reads installed_version from receipt (sudo) with edgelet --version fallback.
+func installedEdgeletVersionShell() string {
+	return `v=$(sudo grep '^installed_version=' ` + edgeletInstallReceiptPath + ` 2>/dev/null | head -1 | sed 's/^installed_version=//'); if [ -z "$v" ]; then v=$(edgelet --version 2>/dev/null | awk -F': ' '$1 == "daemon.version" {print $2; exit}' | tr -d '[:space:]'); fi; printf '%s' "$v"`
+}
+
+// SetRedeployState records whether edgelet is already running on the host and the installed version from receipt.
+func (cfg *EdgeletInstallConfig) SetRedeployState(engineActive bool, installedVersion string) {
+	cfg.engineActive = engineActive
+	cfg.installedVersion = strings.TrimSpace(installedVersion)
+}
+
+func (cfg EdgeletInstallConfig) needsUpgradeInstall() bool {
+	if !cfg.engineActive {
+		return false
+	}
+	target := cfg.version()
+	if cfg.installedVersion == "" {
+		// Receipt unreadable or missing — do not stop edgelet for a spurious upgrade.
+		return false
+	}
+	return cfg.installedVersion != target
 }
 
 func (cfg EdgeletInstallConfig) native() bool {
@@ -124,6 +152,13 @@ func (cfg EdgeletInstallConfig) bootstrapEnv(localInstall bool) string {
 	if cfg.wasmEnv != "" {
 		parts = append(parts, cfg.wasmEnv)
 	}
+	if cfg.engineActive {
+		if cfg.needsUpgradeInstall() {
+			parts = append(parts, "EDGELET_SERVICE_ACTION=upgrade")
+		} else {
+			parts = append(parts, "EDGELET_SERVICE_ACTION=restart")
+		}
+	}
 	return strings.Join(parts, " ")
 }
 
@@ -133,6 +168,9 @@ func (cfg EdgeletInstallConfig) nativeInstallFlags() ([]string, error) {
 		fmt.Sprintf("--container-engine=%s", cfg.containerEngine()),
 		"--skip-config",
 		"--skip-start",
+	}
+	if cfg.needsUpgradeInstall() {
+		flags = append([]string{"--upgrade"}, flags...)
 	}
 	if cfg.Arch != "" && cfg.Arch != "auto" {
 		flags = append(flags, fmt.Sprintf("--arch=%s", cfg.Arch))

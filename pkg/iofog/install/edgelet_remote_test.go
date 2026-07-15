@@ -58,8 +58,125 @@ func TestRemoteEdgeletBootstrapUsesMockedSSH(t *testing.T) {
 	if !strings.Contains(joined, "wait_edgelet_ready.sh") {
 		t.Fatalf("expected wait_edgelet_ready.sh in bootstrap, got: %v", ran)
 	}
+	if !strings.Contains(joined, "start_edgelet.sh") {
+		t.Fatalf("expected start_edgelet.sh in bootstrap, got: %v", ran)
+	}
 	if !strings.Contains(joined, "/etc/edgelet") {
 		t.Fatalf("expected runtime config materialization, got: %v", ran)
+	}
+}
+
+func TestRemoteEdgeletBootstrapRedeployUsesUpgradeAndRestart(t *testing.T) {
+	util.SetEdgeletReleaseBaseForTest("https://example.com/download")
+	util.SetEdgeletBinaryVersionForTest("v1.0.1")
+	t.Cleanup(func() {
+		util.ResetEdgeletReleaseBaseForTest()
+		util.ResetEdgeletBinaryVersionForTest()
+	})
+
+	var ran []string
+	remoteEdgeletRunHook = func(agent *RemoteEdgelet, cmds []command) error {
+		for _, cmd := range cmds {
+			ran = append(ran, cmd.cmd)
+		}
+		return nil
+	}
+	t.Cleanup(func() { remoteEdgeletRunHook = nil })
+	remoteEdgeletInstallFileHook = func(*RemoteEdgelet, string, []byte, string) error { return nil }
+	t.Cleanup(func() { remoteEdgeletInstallFileHook = nil })
+
+	origRemoteEngineActive := remoteEngineActiveHook
+	remoteEngineActiveHook = func(*RemoteEdgelet) bool { return true }
+	t.Cleanup(func() { remoteEngineActiveHook = origRemoteEngineActive })
+
+	origReadInstalled := readInstalledVersionRemoteHook
+	readInstalledVersionRemoteHook = func(*RemoteEdgelet) string { return "v1.0.0" }
+	t.Cleanup(func() { readInstalledVersionRemoteHook = origReadInstalled })
+
+	cfg := EdgeletInstallConfig{
+		HostOS:          "linux",
+		Arch:            "amd64",
+		ContainerEngine: "edgelet",
+		DeploymentType:  "native",
+		Version:         "v1.0.1",
+	}
+	procs, err := newDefaultEdgeletProcedures(EdgeletScriptStageDir, cfg)
+	if err != nil {
+		t.Fatalf("newDefaultEdgeletProcedures: %v", err)
+	}
+	agent := &RemoteEdgelet{
+		defaultAgent: defaultAgent{name: "edge-node"},
+		dir:          EdgeletScriptStageDir,
+		procs:        procs,
+		cfg:          cfg,
+	}
+
+	if err := agent.Bootstrap(); err != nil {
+		t.Fatalf("Bootstrap: %v", err)
+	}
+	joined := strings.Join(ran, " ")
+	if !strings.Contains(joined, "--upgrade") {
+		t.Fatalf("expected --upgrade in redeploy bootstrap, got: %v", ran)
+	}
+	if !strings.Contains(joined, "EDGELET_SERVICE_ACTION=upgrade") {
+		t.Fatalf("expected redeploy upgrade action in bootstrap env, got: %v", ran)
+	}
+}
+
+func TestRemoteEdgeletBootstrapSameVersionRedeploySkipsUpgrade(t *testing.T) {
+	util.SetEdgeletReleaseBaseForTest("https://example.com/download")
+	util.SetEdgeletBinaryVersionForTest("v1.0.1")
+	t.Cleanup(func() {
+		util.ResetEdgeletReleaseBaseForTest()
+		util.ResetEdgeletBinaryVersionForTest()
+	})
+
+	var ran []string
+	remoteEdgeletRunHook = func(agent *RemoteEdgelet, cmds []command) error {
+		for _, cmd := range cmds {
+			ran = append(ran, cmd.cmd)
+		}
+		return nil
+	}
+	t.Cleanup(func() { remoteEdgeletRunHook = nil })
+	remoteEdgeletInstallFileHook = func(*RemoteEdgelet, string, []byte, string) error { return nil }
+	t.Cleanup(func() { remoteEdgeletInstallFileHook = nil })
+
+	origRemoteEngineActive := remoteEngineActiveHook
+	remoteEngineActiveHook = func(*RemoteEdgelet) bool { return true }
+	t.Cleanup(func() { remoteEngineActiveHook = origRemoteEngineActive })
+
+	origReadInstalled := readInstalledVersionRemoteHook
+	readInstalledVersionRemoteHook = func(*RemoteEdgelet) string { return "v1.0.1" }
+	t.Cleanup(func() { readInstalledVersionRemoteHook = origReadInstalled })
+
+	cfg := EdgeletInstallConfig{
+		HostOS:          "linux",
+		Arch:            "amd64",
+		ContainerEngine: "edgelet",
+		DeploymentType:  "native",
+		Version:         "v1.0.1",
+	}
+	procs, err := newDefaultEdgeletProcedures(EdgeletScriptStageDir, cfg)
+	if err != nil {
+		t.Fatalf("newDefaultEdgeletProcedures: %v", err)
+	}
+	agent := &RemoteEdgelet{
+		defaultAgent: defaultAgent{name: "edge-node"},
+		dir:          EdgeletScriptStageDir,
+		procs:        procs,
+		cfg:          cfg,
+	}
+
+	if err := agent.Bootstrap(); err != nil {
+		t.Fatalf("Bootstrap: %v", err)
+	}
+	joined := strings.Join(ran, " ")
+	if strings.Contains(joined, "--upgrade") {
+		t.Fatalf("did not expect --upgrade for same-version redeploy, got: %v", ran)
+	}
+	if !strings.Contains(joined, "EDGELET_SERVICE_ACTION=restart") {
+		t.Fatalf("expected redeploy restart in bootstrap env, got: %v", ran)
 	}
 }
 

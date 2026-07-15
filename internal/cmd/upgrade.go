@@ -10,36 +10,40 @@ import (
 )
 
 func newUpgradeCommand() *cobra.Command {
-	// Instantiate options
 	var opt upgrade.Options
 
 	cmd := &cobra.Command{
-		Use:     "upgrade RESOURCE NAME",
-		Short:   "Upgrade ioFog resources",
-		Long:    `Upgrade ioFog resources to latest versions available.`,
-		Example: ex(`%[1]s upgrade agent NAME`),
-		Args:    cobra.ExactArgs(2),
+		Use:   "upgrade RESOURCE NAME",
+		Short: "Upgrade ioFog resources",
+		Long:  `Upgrade ioFog resources to latest versions available.`,
+		Example: ex(`%[1]s upgrade agent NAME
+%[1]s upgrade agent NAME --semver v1.0.0`),
+		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get resource type and name
 			opt.ResourceType = args[0]
 			opt.Name = args[1]
 
 			var err error
-			// Get namespace option
 			opt.Namespace, err = cmd.Flags().GetString("namespace")
 			util.Check(err)
+			opt.Semver, err = cmd.Flags().GetString("semver")
+			util.Check(err)
 
-			// Get executor for upgrade command
 			exe, err := upgrade.NewExecutor(opt)
 			util.Check(err)
 
-			// Execute the command
 			err = exe.Execute()
 			util.Check(err)
 
-			util.PrintSuccess(fmt.Sprintf("Successfully scheduled upgrade for %s %s", strings.Title(opt.ResourceType), opt.Name))
+			msg := fmt.Sprintf("Successfully scheduled upgrade for %s %s", strings.Title(opt.ResourceType), opt.Name)
+			if opt.Semver != "" {
+				msg += fmt.Sprintf(" to %s", opt.Semver)
+			}
+			util.PrintSuccess(msg)
 		},
 	}
+
+	cmd.Flags().String("semver", "", "Target fog node version (semver.org; optional leading v)")
 
 	return cmd
 }

@@ -394,7 +394,8 @@ type Secret struct {
 
 type ConfigMap struct {
 	Name      string            `yaml:"name,omitempty"`
-	Immutable bool              `yaml:"immutable"`
+	Immutable *bool             `yaml:"immutable,omitempty"`
+	UseVault  *bool             `yaml:"useVault,omitempty"`
 	Data      map[string]string `yaml:"data,omitempty"`
 }
 

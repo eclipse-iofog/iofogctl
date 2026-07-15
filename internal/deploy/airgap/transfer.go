@@ -349,7 +349,7 @@ func transferAndLoadImage(plan transferPlan, artifact *imageArtifact) error {
 		return fmt.Errorf("failed to load image: %w", err)
 	}
 
-	// Clean up remote archive (decompressed tar removed by edgelet load command)
+	// Clean up remote archive after load
 	if _, err := ssh.Run("sudo rm -f " + remotePath); err != nil {
 		util.PrintNotify(fmt.Sprintf("Warning: Failed to remove remote file %s: %v", remotePath, err))
 	}

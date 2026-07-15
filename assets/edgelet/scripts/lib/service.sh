@@ -18,22 +18,44 @@ stop_edgelet_service() {
 	esac
 }
 
+edgelet_containerd_socket_ready() {
+	_sock="/run/edgelet/containerd.sock"
+	if [ ! -S "$_sock" ] && [ ! -S /var/run/edgelet/containerd.sock ]; then
+		return 1
+	fi
+	[ -S "$_sock" ] || _sock="/var/run/edgelet/containerd.sock"
+	_ctr=""
+	if [ -x /var/lib/edgelet/data/current/bin/ctr ]; then
+		_ctr=/var/lib/edgelet/data/current/bin/ctr
+	elif command -v ctr >/dev/null 2>&1; then
+		_ctr=ctr
+	fi
+	if [ -z "$_ctr" ]; then
+		return 0
+	fi
+	"$_ctr" --address "$_sock" version >/dev/null 2>&1
+}
+
+edgelet_containerd_unit_active() {
+	case "${INIT_SYSTEM:-unknown}" in
+		systemd)
+			maybe_sudo systemctl is-active --quiet edgelet-containerd 2>/dev/null
+			;;
+		openrc)
+			maybe_sudo rc-service edgelet-containerd status 2>/dev/null | grep -qi running
+			;;
+		*)
+			maybe_sudo systemctl is-active --quiet edgelet-containerd 2>/dev/null
+			;;
+	esac
+}
+
 wait_edgelet_containerd_socket() {
 	_timeout="${EDGELET_ATTACH_WAIT_SEC:-120}"
 	_elapsed=0
-	_sock="/run/edgelet/containerd.sock"
 	while [ "$_elapsed" -lt "$_timeout" ]; do
-		if [ -S "$_sock" ] || [ -S /var/run/edgelet/containerd.sock ]; then
-			[ -S "$_sock" ] || _sock="/var/run/edgelet/containerd.sock"
-			_ctr=""
-			if [ -x /var/lib/edgelet/data/current/bin/ctr ]; then
-				_ctr=/var/lib/edgelet/data/current/bin/ctr
-			elif command -v ctr >/dev/null 2>&1; then
-				_ctr=ctr
-			fi
-			if [ -z "$_ctr" ] || "$_ctr" --address "$_sock" version >/dev/null 2>&1; then
-				return 0
-			fi
+		if edgelet_containerd_socket_ready; then
+			return 0
 		fi
 		sleep 2
 		_elapsed=$(( _elapsed + 2 ))
@@ -42,16 +64,62 @@ wait_edgelet_containerd_socket() {
 	return 1
 }
 
+wait_edgelet_containerd_ready() {
+	_timeout="${EDGELET_CONTAINERD_READY_SEC:-150}"
+	_interval="${EDGELET_CONTAINERD_POLL_SEC:-10}"
+	_elapsed=0
+	while [ "$_elapsed" -lt "$_timeout" ]; do
+		if edgelet_containerd_unit_active && edgelet_containerd_socket_ready; then
+			return 0
+		fi
+		info "waiting for edgelet-containerd (${_elapsed}s / ${_timeout}s)"
+		sleep "$_interval"
+		_elapsed=$(( _elapsed + _interval ))
+	done
+	echo "ERROR: edgelet-containerd not ready after ${_timeout}s" >&2
+	return 1
+}
+
 restart_edgelet_containerd_service() {
+	info "Restarting edgelet-containerd (drain may take up to 120s; do not interrupt)"
 	case "${INIT_SYSTEM:-unknown}" in
-		systemd) maybe_sudo systemctl restart edgelet-containerd 2>/dev/null || true ;;
-		openrc) maybe_sudo rc-service edgelet-containerd restart 2>/dev/null || true ;;
+		systemd)
+			if ! maybe_sudo systemctl restart --no-block edgelet-containerd 2>/dev/null; then
+				maybe_sudo systemctl restart edgelet-containerd 2>/dev/null || true
+			fi
+			;;
+		openrc)
+			maybe_sudo rc-service edgelet-containerd restart 2>/dev/null || true
+			;;
 		*)
-			maybe_sudo systemctl restart edgelet-containerd 2>/dev/null || \
-				maybe_sudo service edgelet-containerd restart 2>/dev/null || true
+			if ! maybe_sudo systemctl restart --no-block edgelet-containerd 2>/dev/null; then
+				maybe_sudo systemctl restart edgelet-containerd 2>/dev/null || \
+					maybe_sudo service edgelet-containerd restart 2>/dev/null || true
+			fi
 			;;
 	esac
-	wait_edgelet_containerd_socket || true
+	wait_edgelet_containerd_ready
+	info "edgelet-containerd is ready"
+}
+
+containerd_restarted_marker() {
+	printf '%s' "${EDGELET_SCRIPT_STAGE_DIR:-/tmp/edgelet-scripts}/.containerd-restarted"
+}
+
+consume_containerd_restarted_marker() {
+	_marker=$(containerd_restarted_marker)
+	if [ -f "$_marker" ]; then
+		rm -f "$_marker"
+		return 0
+	fi
+	return 1
+}
+
+mark_containerd_restarted() {
+	_marker=$(containerd_restarted_marker)
+	_dir=$(dirname "$_marker")
+	maybe_sudo mkdir -p "$_dir" 2>/dev/null || mkdir -p "$_dir"
+	echo 1 > "$_marker"
 }
 
 restart_edgelet_daemon_service() {
@@ -97,8 +165,14 @@ restart_edgelet_daemon_service() {
 restart_edgelet_services() {
 	_eng="${1:-${CONTAINER_ENGINE:-edgelet}}"
 	if [ "$_eng" = "edgelet" ]; then
-		info "Restarting edgelet-containerd and edgelet (embedded engine OTA)"
-		restart_edgelet_containerd_service
+		if consume_containerd_restarted_marker; then
+			info "edgelet-containerd already restarted; restarting edgelet only (OTA)"
+		else
+			info "Restarting edgelet-containerd and edgelet (embedded engine OTA)"
+			restart_edgelet_containerd_service
+		fi
+	else
+		info "Restarting edgelet (containerEngine=${_eng})"
 	fi
 	restart_edgelet_daemon_service
 }

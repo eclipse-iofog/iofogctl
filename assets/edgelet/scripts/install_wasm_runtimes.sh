@@ -4,6 +4,7 @@ set -e
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/common.sh"
+. "$SCRIPT_DIR/lib/service.sh"
 
 if [ "${EDGELET_WASM_INSTALL:-}" != "1" ]; then
 	exit 0
@@ -79,30 +80,6 @@ install_from_env() {
 	done
 }
 
-wait_edgelet_containerd_socket() {
-	_timeout="${EDGELET_ATTACH_WAIT_SEC:-120}"
-	_elapsed=0
-	_sock="/run/edgelet/containerd.sock"
-	while [ "$_elapsed" -lt "$_timeout" ]; do
-		if [ -S "$_sock" ] || [ -S /var/run/edgelet/containerd.sock ]; then
-			[ -S "$_sock" ] || _sock="/var/run/edgelet/containerd.sock"
-			_ctr=""
-			if [ -x /var/lib/edgelet/data/current/bin/ctr ]; then
-				_ctr=/var/lib/edgelet/data/current/bin/ctr
-			elif command -v ctr >/dev/null 2>&1; then
-				_ctr=ctr
-			fi
-			if [ -z "$_ctr" ] || "$_ctr" --address "$_sock" version >/dev/null 2>&1; then
-				return 0
-			fi
-		fi
-		sleep 2
-		_elapsed=$(( _elapsed + 2 ))
-	done
-	echo "ERROR: edgelet-containerd socket not ready after ${_timeout}s" >&2
-	return 1
-}
-
 wait_docker_ready() {
 	_timeout="${EDGELET_DOCKER_WAIT_SEC:-120}"
 	_elapsed=0
@@ -132,15 +109,15 @@ restart_engine_if_needed() {
 		info "Skipping engine restart (fresh install or pre-start)"
 		return 0
 	fi
+	if [ "${EDGELET_WASM_DEFER_ENGINE_RESTART:-}" = "1" ]; then
+		info "Deferring engine restart to potctl (WASM shims installed)"
+		return 0
+	fi
 	case "$CONTAINER_ENGINE" in
 		edgelet)
 			info "Restarting edgelet-containerd after WASM shim update"
-			case "${INIT_SYSTEM:-unknown}" in
-				systemd) maybe_sudo systemctl restart edgelet-containerd ;;
-				openrc) maybe_sudo rc-service edgelet-containerd restart ;;
-				*) maybe_sudo systemctl restart edgelet-containerd 2>/dev/null || maybe_sudo service edgelet-containerd restart 2>/dev/null || true ;;
-			esac
-			wait_edgelet_containerd_socket
+			restart_edgelet_containerd_service
+			mark_containerd_restarted
 			;;
 		docker)
 			info "Restarting docker after WASM shim update"
