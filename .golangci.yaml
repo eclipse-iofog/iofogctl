@@ -1,4 +1,4 @@
-# golangci-lint v2 — Go 1.26.4, module github.com/eclipse-iofog/iofogctl
+# golangci-lint v2 — Go 1.26.5, module github.com/eclipse-iofog/iofogctl
 #
 # Layers:
 #   1. edgelet/.golangci.yaml parity (govet, revive, staticcheck, errcheck, misspell, errorlint)

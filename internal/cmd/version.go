@@ -18,13 +18,14 @@ func newVersionCommand() *cobra.Command {
 			_ = util.Print(util.GetVersion())
 			if ecnFlag {
 				fmt.Println("")
-				fmt.Println("controller@" + util.GetControllerVersion())
 				fmt.Println("edgelet@" + util.GetEdgeletVersion())
 				fmt.Println("")
 				fmt.Println(util.GetControllerImage())
 				fmt.Println(util.GetEdgeletImage())
 				fmt.Println(util.GetOperatorImage())
 				fmt.Println(util.GetRouterImage())
+				fmt.Println(util.GetNatsImage())
+				fmt.Println(util.GetDebuggerImage())
 			}
 		},
 	}
