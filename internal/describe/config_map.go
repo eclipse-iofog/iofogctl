@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -91,6 +92,15 @@ func printConfigMapWithLiteralStrings(header config.Header, writer io.Writer) er
 	return nil
 }
 
+func describeConfigMapSpec(configMap *client.ConfigMapInfo) rsc.ConfigMap {
+	immutable := configMap.Immutable
+	useVault := configMap.UseVault
+	return rsc.ConfigMap{
+		Immutable: &immutable,
+		UseVault:  &useVault,
+	}
+}
+
 func (exe *configMapExecutor) Execute() error {
 	// Init remote resources
 	clt, err := clientutil.NewControllerClient(exe.namespace)
@@ -111,9 +121,7 @@ func (exe *configMapExecutor) Execute() error {
 			Namespace: exe.namespace,
 			Name:      exe.name,
 		},
-		Spec: rsc.ConfigMap{
-			Immutable: configMap.Immutable,
-		},
+		Spec: describeConfigMapSpec(configMap),
 		Data: configMap.Data,
 	}
 

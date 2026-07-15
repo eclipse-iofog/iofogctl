@@ -29,8 +29,34 @@ func (exe *executor) GetName() string {
 	return exe.name
 }
 
+func immutableForCreate(configMap rsc.ConfigMap) *bool {
+	return configMap.Immutable
+}
+
+func immutableForUpdate(configMap rsc.ConfigMap, existing *client.ConfigMapInfo) *bool {
+	if configMap.Immutable != nil {
+		return configMap.Immutable
+	}
+	imm := existing.Immutable
+	return &imm
+}
+
+func useVaultForCreate(configMap rsc.ConfigMap) *bool {
+	return configMap.UseVault
+}
+
+func useVaultForUpdate(configMap rsc.ConfigMap, existing *client.ConfigMapInfo) *bool {
+	if configMap.UseVault == nil {
+		return nil
+	}
+	if *configMap.UseVault == existing.UseVault {
+		return nil
+	}
+	return configMap.UseVault
+}
+
 func (exe *executor) updateConfigMap(clt *client.Client) (err error) {
-	_, err = clt.GetConfigMap(exe.name)
+	existing, err := clt.GetConfigMap(exe.name)
 	if err != nil {
 		return err
 	}
@@ -38,7 +64,8 @@ func (exe *executor) updateConfigMap(clt *client.Client) (err error) {
 	request := client.ConfigMapUpdateRequest{
 		Name:      exe.name,
 		Data:      exe.configMap.Data,
-		Immutable: exe.configMap.Immutable,
+		Immutable: immutableForUpdate(exe.configMap, existing),
+		UseVault:  useVaultForUpdate(exe.configMap, existing),
 	}
 
 	if err = clt.UpdateConfigMap(exe.name, &request); err != nil {
@@ -52,7 +79,8 @@ func (exe *executor) createConfigMap(clt *client.Client) (err error) {
 	request := client.ConfigMapCreateRequest{
 		Name:      exe.name,
 		Data:      exe.configMap.Data,
-		Immutable: exe.configMap.Immutable,
+		Immutable: immutableForCreate(exe.configMap),
+		UseVault:  useVaultForCreate(exe.configMap),
 	}
 
 	if err = clt.CreateConfigMap(&request); err != nil {

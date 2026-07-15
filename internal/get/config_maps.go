@@ -51,6 +51,7 @@ func tabulateConfigmaps(configMaps []client.ConfigMapInfo) error {
 		"CONFIGMAP",
 		"ID",
 		"IMMUTABLE",
+		"USE_VAULT",
 	}
 	table[0] = append(table[0], headers...)
 
@@ -61,6 +62,7 @@ func tabulateConfigmaps(configMaps []client.ConfigMapInfo) error {
 			configMap.Name,
 			strconv.Itoa(configMap.ID),
 			strconv.FormatBool(configMap.Immutable),
+			strconv.FormatBool(configMap.UseVault),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
