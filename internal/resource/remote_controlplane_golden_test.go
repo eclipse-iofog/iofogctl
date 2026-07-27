@@ -188,3 +188,12 @@ func TestValidateRemoteControlPlaneAirgapRequiresArch(t *testing.T) {
 	err := ValidateRemoteControlPlane(cp)
 	requireRemoteInputError(t, err)
 }
+
+func TestValidateRemoteControlPlaneControllerAirgapRequiresArch(t *testing.T) {
+	cp := validRemoteControlPlane(t)
+	cp.Airgap = false
+	cp.Controllers[0].Airgap = true
+	cp.Controllers[0].SystemAgent = nil
+	err := ValidateRemoteControlPlane(cp)
+	requireRemoteInputError(t, err)
+}

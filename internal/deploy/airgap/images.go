@@ -178,8 +178,33 @@ func applyYAMLAndUtilFallbackForController(images *RequiredImages, controlPlane 
 	}
 }
 
+func applyDebuggerUtilFallbackForPlatform(images *RequiredImages, platform string) {
+	if images == nil || platform == "" {
+		return
+	}
+	ref := util.GetDebuggerImage()
+	switch platform {
+	case PlatformAMD64:
+		if images.DebuggerAMD64 == "" {
+			images.DebuggerAMD64 = ref
+		}
+	case PlatformARM64:
+		if images.DebuggerARM64 == "" {
+			images.DebuggerARM64 = ref
+		}
+	case PlatformRISCV64:
+		if images.DebuggerRISCV64 == "" {
+			images.DebuggerRISCV64 = ref
+		}
+	case PlatformARM:
+		if images.DebuggerARM == "" {
+			images.DebuggerARM = ref
+		}
+	}
+}
+
 // applyYAMLAndUtilFallbackForAgent fills any empty router/nats/debugger from controlPlane (if non-nil) then util.
-func applyYAMLAndUtilFallbackForAgent(images *RequiredImages, controlPlane *rsc.RemoteControlPlane) {
+func applyYAMLAndUtilFallbackForAgent(images *RequiredImages, controlPlane *rsc.RemoteControlPlane, platform string) {
 	if images.RouterAMD64 == "" {
 		if controlPlane != nil && controlPlane.SystemMicroservices.Router.AMD64 != "" {
 			images.RouterAMD64 = controlPlane.SystemMicroservices.Router.AMD64
@@ -208,19 +233,8 @@ func applyYAMLAndUtilFallbackForAgent(images *RequiredImages, controlPlane *rsc.
 			images.NatsAMD64 = util.GetNatsImage()
 		}
 	}
-	if images.DebuggerAMD64 == "" {
-		// RemoteSystemMicroservices has no Debugger field; use util as fallback
-		images.DebuggerAMD64 = util.GetDebuggerImage()
-	}
-	if images.DebuggerARM64 == "" {
-		images.DebuggerARM64 = util.GetDebuggerImage()
-	}
-	if images.DebuggerRISCV64 == "" {
-		images.DebuggerRISCV64 = util.GetDebuggerImage()
-	}
-	if images.DebuggerARM == "" {
-		images.DebuggerARM = util.GetDebuggerImage()
-	}
+	// RemoteSystemMicroservices has no Debugger field; backfill only the deploy target arch.
+	applyDebuggerUtilFallbackForPlatform(images, platform)
 }
 
 // CollectControllerImages collects required images for controller deployment.
@@ -260,7 +274,7 @@ func CollectControllerImages(namespace string, controlPlane *rsc.RemoteControlPl
 		util.PrintNotify("Warning: Could not fetch debugger catalog item from controller. Debugger image will not be transferred.")
 	}
 
-	natsItem, err := getCatalogItemByName(clt, "nats", "NATS")
+	natsItem, err := getCatalogItemByName(clt, "nats", "NATS", "NATs")
 	if err == nil {
 		applyNatsImageFromCatalog(images, natsItem)
 	}
@@ -273,6 +287,9 @@ func CollectControllerImages(namespace string, controlPlane *rsc.RemoteControlPl
 // When deploying an agent, a controller already exists; so we always try catalog first, then YAML, then util.
 // controlPlane can be nil for Kubernetes or other non-remote control planes (catalog + util still apply).
 func CollectAgentImages(namespace string, agent *rsc.RemoteAgent, controlPlane *rsc.RemoteControlPlane, _ bool) (*RequiredImages, error) {
+	if agent == nil || agent.Config == nil || agent.Config.Arch == nil {
+		return nil, util.NewInputError("agent configuration with arch is required to collect airgap images")
+	}
 	images := &RequiredImages{}
 
 	// Agent image
@@ -300,29 +317,56 @@ func CollectAgentImages(namespace string, agent *rsc.RemoteAgent, controlPlane *
 		util.PrintNotify("Warning: Could not fetch debugger catalog item from controller. Debugger image will not be transferred.")
 	}
 
-	natsItem, err := getCatalogItemByName(clt, "nats")
+	natsItem, err := getCatalogItemByName(clt, "nats", "NATS", "NATs")
 	if err == nil {
 		applyNatsImageFromCatalog(images, natsItem)
 	}
 
-	applyYAMLAndUtilFallbackForAgent(images, controlPlane)
+	platform, err := ResolvePlatform(agent.Config.Arch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve agent platform: %w", err)
+	}
+	applyYAMLAndUtilFallbackForAgent(images, controlPlane, platform)
 	return images, nil
 }
 
-// GetImageForPlatform returns the appropriate image based on platform
-func GetImageForPlatform(images *RequiredImages, platform string) (string, error) {
+func imageRefForPlatform(platform, amd64, arm64, riscv64, arm string) (string, error) {
 	switch platform {
 	case PlatformAMD64:
-		return images.RouterAMD64, nil
+		return amd64, nil
 	case PlatformARM64:
-		return images.RouterARM64, nil
+		return arm64, nil
 	case PlatformRISCV64:
-		return images.RouterRISCV64, nil
+		return riscv64, nil
 	case PlatformARM:
-		return images.RouterARM, nil
+		return arm, nil
 	default:
 		return "", util.NewInputError(fmt.Sprintf("unsupported platform %s", platform))
 	}
+}
+
+// GetImageForPlatform returns the router image for the given platform.
+func GetImageForPlatform(images *RequiredImages, platform string) (string, error) {
+	if images == nil {
+		return "", util.NewInternalError("required images are missing")
+	}
+	return imageRefForPlatform(platform, images.RouterAMD64, images.RouterARM64, images.RouterRISCV64, images.RouterARM)
+}
+
+// GetNatsForPlatform returns the NATS image for the given platform.
+func GetNatsForPlatform(images *RequiredImages, platform string) (string, error) {
+	if images == nil {
+		return "", util.NewInternalError("required images are missing")
+	}
+	return imageRefForPlatform(platform, images.NatsAMD64, images.NatsARM64, images.NatsRISCV64, images.NatsARM)
+}
+
+// GetDebuggerForPlatform returns the debugger image for the given platform.
+func GetDebuggerForPlatform(images *RequiredImages, platform string) (string, error) {
+	if images == nil {
+		return "", util.NewInternalError("required images are missing")
+	}
+	return imageRefForPlatform(platform, images.DebuggerAMD64, images.DebuggerARM64, images.DebuggerRISCV64, images.DebuggerARM)
 }
 
 // IsInitialDeployment checks if this is an initial control plane deployment

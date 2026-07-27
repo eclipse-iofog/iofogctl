@@ -45,8 +45,12 @@ func ValidateRemoteControlPlane(cp *RemoteControlPlane) error {
 	if err := validateRemoteControllers(cp.Controllers); err != nil {
 		return err
 	}
-	if cp.Airgap {
-		if err := validateRemoteControlPlaneAirgapArch(cp.Controllers); err != nil {
+	for idx := range cp.Controllers {
+		ctrl := &cp.Controllers[idx]
+		if !cp.Airgap && !ctrl.Airgap {
+			continue
+		}
+		if err := validateRemoteControlPlaneAirgapArch([]RemoteController{*ctrl}); err != nil {
 			return err
 		}
 	}

@@ -137,7 +137,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 		if deployairgap.IsNativeDeployment(airgapPlan.Options.DeploymentType) {
 			plan := airgapPlan
 			pendingNativeAirgap = &plan
-			remoteBinPath, err := deployairgap.TransferAgentAirgapBinary(ctx, exe.namespace, exe.agent.Host, &exe.agent.SSH, airgapPlan.Platform)
+			remoteBinPath, err := deployairgap.TransferAgentAirgapBinary(ctx, exe.namespace, exe.agent.Host, exe.agent.Package.Version, &exe.agent.SSH, airgapPlan.Platform)
 			if err != nil {
 				return fmt.Errorf("failed to transfer edgelet binary: %w", err)
 			}
