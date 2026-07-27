@@ -525,7 +525,7 @@ func (agent *RemoteEdgelet) WriteDeployManifest(data []byte, prefix string) (pat
 	}
 	cleanup = func() {
 		_ = agent.run([]command{{
-			cmd: fmt.Sprintf("rm -f %s", shellQuoteArg(remotePath)),
+			cmd: fmt.Sprintf("sudo rm -f %s", shellQuoteArg(remotePath)),
 			msg: "Removing edgelet manifest on " + agent.name,
 		}})
 	}
@@ -554,7 +554,7 @@ func (agent *RemoteEdgelet) copyLocalFileToRemote(localPath, remotePath string) 
 	if _, err := agent.ssh.Run(installCmd); err != nil {
 		return err
 	}
-	_, err = agent.ssh.Run(fmt.Sprintf("rm -f %s/%s", remoteEdgeletManifestDir, tmpName))
+	_, err = agent.ssh.Run(fmt.Sprintf("sudo rm -f %s/%s", remoteEdgeletManifestDir, tmpName))
 	return err
 }
 
