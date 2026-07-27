@@ -51,10 +51,12 @@ func (exe remoteControlPlaneExecutor) Execute() (err error) {
 		}
 	}
 
-	if exe.controlPlane.Airgap {
-		if err := deployairgap.ValidateControlPlaneAirgapRequirements(exe.controlPlane); err != nil {
-			return err
-		}
+	if err := deployairgap.ValidateControlPlaneAirgapRequirements(exe.controlPlane); err != nil {
+		return err
+	}
+
+	if err := preflightControlPlaneSSHHosts(exe.controlPlane); err != nil {
+		return err
 	}
 
 	hostExecutors := make([]execute.Executor, len(exe.controlPlane.Controllers))
