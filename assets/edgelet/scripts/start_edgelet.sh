@@ -7,6 +7,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/common.sh"
 . "$SCRIPT_DIR/lib/container_engine.sh"
 . "$SCRIPT_DIR/lib/container_mounts.sh"
+. "$SCRIPT_DIR/lib/embed.sh"
 . "$SCRIPT_DIR/lib/service.sh"
 EDGELET_DETECT_SOURCED=1
 . "$SCRIPT_DIR/detect_init.sh"
@@ -29,10 +30,12 @@ redeploy_native_linux() {
 			if [ "$CONTAINER_ENGINE" = "edgelet" ]; then
 				if consume_containerd_restarted_marker; then
 					info "edgelet-containerd already restarted; restarting edgelet only (redeploy)"
-					restart_edgelet_daemon_service
+				elif consume_restart_data_plane_marker; then
+					restart_edgelet_containerd_service
 				else
-					start_embedded_systemd
+					start_edgelet_containerd_unit "$INIT_SYSTEM" false
 				fi
+				restart_edgelet_daemon_service
 			else
 				restart_edgelet_daemon_service
 			fi
@@ -40,8 +43,12 @@ redeploy_native_linux() {
 		openrc)
 			if [ "$CONTAINER_ENGINE" = "edgelet" ]; then
 				maybe_sudo rc-update add edgelet-containerd default 2>/dev/null || true
-				if ! consume_containerd_restarted_marker; then
-					maybe_sudo rc-service edgelet-containerd start 2>/dev/null || true
+				if consume_containerd_restarted_marker; then
+					:
+				elif consume_restart_data_plane_marker; then
+					restart_edgelet_containerd_service
+				else
+					start_edgelet_containerd_unit "$INIT_SYSTEM" false
 				fi
 			fi
 			maybe_sudo rc-service edgelet restart 2>/dev/null || maybe_sudo rc-service edgelet start

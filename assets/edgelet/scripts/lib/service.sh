@@ -57,6 +57,7 @@ wait_edgelet_containerd_socket() {
 		if edgelet_containerd_socket_ready; then
 			return 0
 		fi
+		echo "Waiting for containerd socket... (${_elapsed}s / ${_timeout}s)"
 		sleep 2
 		_elapsed=$(( _elapsed + 2 ))
 	done
@@ -167,9 +168,12 @@ restart_edgelet_services() {
 	if [ "$_eng" = "edgelet" ]; then
 		if consume_containerd_restarted_marker; then
 			info "edgelet-containerd already restarted; restarting edgelet only (OTA)"
-		else
-			info "Restarting edgelet-containerd and edgelet (embedded engine OTA)"
+		elif consume_restart_data_plane_marker; then
+			info "Restarting edgelet-containerd and edgelet (embedded bundle OTA)"
 			restart_edgelet_containerd_service
+		else
+			info "Thin OTA (embed hash unchanged); restarting edgelet only"
+			start_edgelet_containerd_unit "${INIT_SYSTEM:-unknown}" false
 		fi
 	else
 		info "Restarting edgelet (containerEngine=${_eng})"

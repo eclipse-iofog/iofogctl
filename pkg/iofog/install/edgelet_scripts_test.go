@@ -79,6 +79,8 @@ func TestInstallScriptOTAParity(t *testing.T) {
 		"EDGELET_SERVICE_ACTION",
 		"edgelet_cli_version",
 		"--upgrade",
+		"installed_embed_hash",
+		"record_restart_data_plane_decision",
 	} {
 		if !strings.Contains(content, needle) {
 			t.Fatalf("install.sh missing OTA parity marker %q", needle)
@@ -86,6 +88,23 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	}
 	if !strings.Contains(content, "Skipping daemon start (--skip-start); use start_edgelet.sh") {
 		t.Fatalf("install.sh missing --skip-start handling on upgrade path")
+	}
+
+	embedLib, err := loadEdgeletScript("lib/embed.sh")
+	if err != nil {
+		t.Fatalf("load lib/embed.sh: %v", err)
+	}
+	for _, needle := range []string{
+		"installed_embed_hash",
+		"binary_embed_hash",
+		"should_restart_data_plane",
+		"start_edgelet_containerd_unit",
+		"write_restart_data_plane_marker",
+		"consume_restart_data_plane_marker",
+	} {
+		if !strings.Contains(embedLib, needle) {
+			t.Fatalf("lib/embed.sh missing %q", needle)
+		}
 	}
 
 	service, err := loadEdgeletScript("lib/service.sh")
@@ -97,6 +116,8 @@ func TestInstallScriptOTAParity(t *testing.T) {
 		"restart_edgelet_services",
 		"restart_edgelet_containerd_service",
 		"consume_containerd_restarted_marker",
+		"consume_restart_data_plane_marker",
+		"Thin OTA (embed hash unchanged)",
 		"drain may take up to 120s",
 		"restart --no-block edgelet-containerd",
 		"wait_edgelet_containerd_ready",
@@ -122,6 +143,9 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	}
 	if !strings.Contains(start, "redeploy_native_linux") || !strings.Contains(start, "start_embedded_systemd") {
 		t.Fatalf("start_edgelet.sh missing redeploy stop/start edgelet parity")
+	}
+	if !strings.Contains(start, "consume_restart_data_plane_marker") {
+		t.Fatalf("start_edgelet.sh missing embed-hash redeploy handling")
 	}
 	if !strings.Contains(start, "wait_edgelet_containerd_socket") {
 		t.Fatalf("start_edgelet.sh missing embedded systemd start parity")
