@@ -50,7 +50,7 @@ func TestEdgeletBinaryURL(t *testing.T) {
 	t.Cleanup(ResetEdgeletReleaseBaseForTest)
 	t.Cleanup(ResetEdgeletBinaryVersionForTest)
 
-	got, err := EdgeletBinaryURL("linux", "amd64")
+	got, err := EdgeletBinaryURL("linux", "amd64", "")
 	if err != nil {
 		t.Fatalf("EdgeletBinaryURL: %v", err)
 	}
@@ -58,7 +58,38 @@ func TestEdgeletBinaryURL(t *testing.T) {
 	if got != want {
 		t.Fatalf("EdgeletBinaryURL = %q, want %q", got, want)
 	}
-	if err := validateEdgeletDownloadURL(got); err != nil {
+	if err := validateEdgeletDownloadURL(got, ""); err != nil {
+		t.Fatalf("validateEdgeletDownloadURL(%q): %v", got, err)
+	}
+}
+
+func TestResolveEdgeletBinaryVersion(t *testing.T) {
+	SetEdgeletBinaryVersionForTest("v1.0.0-rc.8")
+	t.Cleanup(ResetEdgeletBinaryVersionForTest)
+
+	if got := ResolveEdgeletBinaryVersion(""); got != "v1.0.0-rc.8" {
+		t.Fatalf("ResolveEdgeletBinaryVersion(\"\") = %q, want %q", got, "v1.0.0-rc.8")
+	}
+	if got := ResolveEdgeletBinaryVersion("v1.0.2-rc.1"); got != "v1.0.2-rc.1" {
+		t.Fatalf("ResolveEdgeletBinaryVersion(package) = %q, want %q", got, "v1.0.2-rc.1")
+	}
+}
+
+func TestEdgeletBinaryURLPackageVersion(t *testing.T) {
+	SetEdgeletReleaseBaseForTest("https://github.com/Datasance/edgelet/releases/download")
+	SetEdgeletBinaryVersionForTest("v1.0.0-rc.8")
+	t.Cleanup(ResetEdgeletReleaseBaseForTest)
+	t.Cleanup(ResetEdgeletBinaryVersionForTest)
+
+	got, err := EdgeletBinaryURL("linux", "amd64", "v1.0.2-rc.1")
+	if err != nil {
+		t.Fatalf("EdgeletBinaryURL: %v", err)
+	}
+	want := "https://github.com/Datasance/edgelet/releases/download/v1.0.2-rc.1/edgelet-linux-amd64"
+	if got != want {
+		t.Fatalf("EdgeletBinaryURL = %q, want %q", got, want)
+	}
+	if err := validateEdgeletDownloadURL(got, "v1.0.2-rc.1"); err != nil {
 		t.Fatalf("validateEdgeletDownloadURL(%q): %v", got, err)
 	}
 }
@@ -102,7 +133,7 @@ func TestDownloadEdgeletBinaryGitHubReleasePath(t *testing.T) {
 	dir := t.TempDir()
 	dest := filepath.Join(dir, "edgelet-linux-arm64")
 
-	if err := DownloadEdgeletBinary("linux", "arm64", dest); err != nil {
+	if err := DownloadEdgeletBinary("linux", "arm64", dest, ""); err != nil {
 		t.Fatalf("DownloadEdgeletBinary: %v", err)
 	}
 }
@@ -125,7 +156,7 @@ func TestDownloadEdgeletBinary(t *testing.T) {
 	dir := t.TempDir()
 	dest := filepath.Join(dir, "edgelet-linux-amd64")
 
-	if err := DownloadEdgeletBinary("linux", "amd64", dest); err != nil {
+	if err := DownloadEdgeletBinary("linux", "amd64", dest, ""); err != nil {
 		t.Fatalf("DownloadEdgeletBinary: %v", err)
 	}
 

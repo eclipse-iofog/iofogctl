@@ -72,10 +72,7 @@ func (cfg EdgeletInstallConfig) deploymentType() string {
 }
 
 func (cfg EdgeletInstallConfig) version() string {
-	if cfg.Version != "" {
-		return cfg.Version
-	}
-	return util.GetEdgeletBinaryVersion()
+	return util.ResolveEdgeletBinaryVersion(cfg.Version)
 }
 
 func (cfg EdgeletInstallConfig) installModeEnv() string {
