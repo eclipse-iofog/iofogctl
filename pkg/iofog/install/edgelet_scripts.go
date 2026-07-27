@@ -23,6 +23,7 @@ type EdgeletInstallConfig struct {
 	Wasm                   map[string]wasm.Pack
 	Runtime                *EdgeletRuntimeSpec
 	wasmEnv                string
+	wasmLocalStageDir      string
 	engineActive           bool
 	installedVersion       string
 	wasmDeferEngineRestart bool
@@ -72,10 +73,7 @@ func (cfg EdgeletInstallConfig) deploymentType() string {
 }
 
 func (cfg EdgeletInstallConfig) version() string {
-	if cfg.Version != "" {
-		return cfg.Version
-	}
-	return util.GetEdgeletBinaryVersion()
+	return util.ResolveEdgeletBinaryVersion(cfg.Version)
 }
 
 func (cfg EdgeletInstallConfig) installModeEnv() string {
@@ -230,6 +228,9 @@ func edgeletScriptNames() []string {
 		pkg.edgeletScriptInstallContainer,
 		pkg.edgeletScriptInstallInitUnits,
 		pkg.edgeletScriptStartEdgelet,
+		pkg.edgeletScriptProbeContainerdReady,
+		pkg.edgeletScriptProbeEdgeletReady,
+		pkg.edgeletScriptRestartContainerd,
 		pkg.edgeletScriptConfigureContainerEdgelet,
 		pkg.edgeletScriptWaitEdgeletReady,
 		pkg.edgeletScriptBundled,
@@ -423,9 +424,13 @@ func (procs *EdgeletProcedures) postInstallCommandsBeforeBundled(name string, cf
 	withEnv := func(cmd string) string {
 		return wrapBootstrapCommand(cmd, env, useSudo)
 	}
+	startEdgelet := procs.StartEdgelet
+	if useSudo {
+		startEdgelet.Args = append([]string{"--no-wait"}, startEdgelet.Args...)
+	}
 	return []command{
 		{cmd: withEnv(prefix + procs.InstallInitUnits.getCommand()), msg: "Installing edgelet init units on " + name},
-		{cmd: withEnv(prefix + procs.StartEdgelet.getCommand()), msg: "Starting edgelet on " + name},
+		{cmd: withEnv(prefix + startEdgelet.getCommand()), msg: "Starting edgelet on " + name},
 		{cmd: withEnv(prefix + procs.ConfigureContainer.getCommand()), msg: "Configuring edgelet container on " + name},
 		{cmd: withEnv(prefix + procs.WaitEdgeletReady.getCommand()), msg: "Waiting for edgelet on " + name},
 	}

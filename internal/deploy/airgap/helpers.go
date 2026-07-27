@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -127,17 +128,13 @@ func ImageLoadCommand(opts AirgapTransferOptions, remoteArchivePath string) stri
 	return fmt.Sprintf("sudo -S %s load -i %s", opts.Engine.Command(), remoteArchivePath)
 }
 
-// CollectAgentAirgapImages returns image refs to transfer for an agent airgap deploy.
-// Native deployments skip the edgelet container image because the raw binary is transferred separately.
-func CollectAgentAirgapImages(images *RequiredImages, platform, deploymentType string) ([]string, error) {
+// CollectSystemMicroserviceAirgapImages returns router, NATS, and debugger refs for one platform.
+func CollectSystemMicroserviceAirgapImages(images *RequiredImages, platform string) ([]string, error) {
 	if images == nil {
 		return nil, util.NewInternalError("required images are missing")
 	}
 
-	imageList := make([]string, 0, 8)
-	if !IsNativeDeployment(deploymentType) && images.Agent != "" {
-		imageList = append(imageList, images.Agent)
-	}
+	imageList := make([]string, 0, 3)
 
 	routerImage, err := GetImageForPlatform(images, platform)
 	if err != nil {
@@ -147,21 +144,83 @@ func CollectAgentAirgapImages(images *RequiredImages, platform, deploymentType s
 		imageList = append(imageList, routerImage)
 	}
 
-	for _, ref := range []string{
-		images.NatsAMD64,
-		images.DebuggerAMD64,
-		images.NatsARM64,
-		images.DebuggerARM64,
-		images.NatsRISCV64,
-		images.DebuggerRISCV64,
-		images.NatsARM,
-		images.DebuggerARM,
-	} {
-		if ref != "" {
-			imageList = append(imageList, ref)
-		}
+	natsImage, err := GetNatsForPlatform(images, platform)
+	if err != nil {
+		return nil, err
 	}
-	return imageList, nil
+	if natsImage != "" {
+		imageList = append(imageList, natsImage)
+	}
+
+	debuggerImage, err := GetDebuggerForPlatform(images, platform)
+	if err != nil {
+		return nil, err
+	}
+	if debuggerImage != "" {
+		imageList = append(imageList, debuggerImage)
+	}
+
+	return dedupeNonEmpty(imageList), nil
+}
+
+// CollectAgentAirgapImages returns image refs to transfer for an agent airgap deploy.
+// Native deployments skip the edgelet container image because the raw binary is transferred separately.
+func CollectAgentAirgapImages(images *RequiredImages, platform, deploymentType string) ([]string, error) {
+	if images == nil {
+		return nil, util.NewInternalError("required images are missing")
+	}
+
+	imageList := make([]string, 0, 4)
+	if !IsNativeDeployment(deploymentType) && images.Agent != "" {
+		imageList = append(imageList, images.Agent)
+	}
+
+	sysImages, err := CollectSystemMicroserviceAirgapImages(images, platform)
+	if err != nil {
+		return nil, err
+	}
+	imageList = append(imageList, sysImages...)
+
+	return dedupeNonEmpty(imageList), nil
+}
+
+// CollectControllerHostAirgapImages returns image refs to transfer for a controller systemAgent host.
+func CollectControllerHostAirgapImages(images *RequiredImages, platform string) ([]string, error) {
+	if images == nil {
+		return nil, util.NewInternalError("required images are missing")
+	}
+
+	imageList := make([]string, 0, 4)
+	if images.Controller != "" {
+		imageList = append(imageList, images.Controller)
+	}
+
+	sysImages, err := CollectSystemMicroserviceAirgapImages(images, platform)
+	if err != nil {
+		return nil, err
+	}
+	imageList = append(imageList, sysImages...)
+
+	return dedupeNonEmpty(imageList), nil
+}
+
+func dedupeNonEmpty(refs []string) []string {
+	if len(refs) == 0 {
+		return refs
+	}
+	seen := make(map[string]struct{}, len(refs))
+	out := make([]string, 0, len(refs))
+	for _, ref := range refs {
+		if ref == "" {
+			continue
+		}
+		if _, ok := seen[ref]; ok {
+			continue
+		}
+		seen[ref] = struct{}{}
+		out = append(out, ref)
+	}
+	return out
 }
 
 // ControllerAirgapLoadOptions returns docker/podman load options for controller container images.
@@ -204,14 +263,46 @@ func SanitizeSegment(value string) string {
 	return result
 }
 
+func syncArchFromID(cfg *rsc.AgentConfiguration) {
+	if cfg == nil {
+		return
+	}
+	if cfg.Arch != nil && strings.TrimSpace(*cfg.Arch) != "" {
+		return
+	}
+	if cfg.ArchID == nil {
+		return
+	}
+	name, ok := rsc.ArchIDToString(int(*cfg.ArchID))
+	if !ok || name == "" || name == "auto" {
+		return
+	}
+	cfg.Arch = iutil.MakeStrPtr(name)
+}
+
+// NormalizeAgentArch ensures cfg.Arch is set, deriving it from cfg.ArchID when needed.
+func NormalizeAgentArch(cfg *rsc.AgentConfiguration) error {
+	if cfg == nil {
+		return util.NewInputError("Agent configuration is required for airgap deployment")
+	}
+	syncArchFromID(cfg)
+	if cfg.Arch == nil || strings.TrimSpace(*cfg.Arch) == "" {
+		if cfg.ArchID != nil {
+			return util.NewInputError(fmt.Sprintf("Unsupported archId %d for airgap deployment", *cfg.ArchID))
+		}
+		return util.NewInputError("Arch or archId is required for airgap deployment. Please specify the agent architecture (amd64, arm64, riscv64, arm)")
+	}
+	return nil
+}
+
 // ValidateAirgapRequirements validates that required configuration is present for airgap deployment.
 func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 	if agentConfig == nil {
 		return util.NewInputError("Agent configuration is required for airgap deployment")
 	}
 
-	if agentConfig.Arch == nil || *agentConfig.Arch == "" {
-		return util.NewInputError("Arch is required for airgap deployment. Please specify the agent architecture (x86 or arm)")
+	if err := NormalizeAgentArch(agentConfig); err != nil {
+		return err
 	}
 
 	deploymentType := ResolveDeploymentType(agentConfig.DeploymentType)
@@ -236,18 +327,41 @@ func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 	return util.NewInputError("Unsupported container engine " + engineStr + " for native airgap deployment")
 }
 
-// ValidateControlPlaneAirgapRequirements validates that each controller has system agent config with
-// agent type (Arch) and container engine when airgap is enabled. Router and debugger are transferred
-// only in the system agent phase, so system agent config is required to resolve platform.
+// ControllerAirgapEnabled reports whether airgap transfer should run for a controller host.
+func ControllerAirgapEnabled(cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteController) bool {
+	if cp != nil && cp.Airgap {
+		return true
+	}
+	if ctrl != nil && ctrl.Airgap {
+		return true
+	}
+	return false
+}
+
+// ValidateControllerAirgapRequirements validates system agent config for a single airgap controller.
+func ValidateControllerAirgapRequirements(ctrl *rsc.RemoteController) error {
+	if ctrl == nil {
+		return util.NewInputError("Controller is required for airgap deployment")
+	}
+	if ctrl.SystemAgent == nil || ctrl.SystemAgent.AgentConfiguration == nil {
+		return util.NewInputError("System agent configuration is required for airgap controller deployment. Please specify systemAgent with agent type (x86 or arm) and container engine for controller " + ctrl.Name)
+	}
+	return ValidateAirgapRequirements(ctrl.SystemAgent.AgentConfiguration)
+}
+
+// ValidateControlPlaneAirgapRequirements validates controllers that require airgap deployment.
+// Router, NATS, and debugger are transferred on the controller host during DeployHostEdgelet,
+// before the control plane manifest is applied.
 func ValidateControlPlaneAirgapRequirements(controlPlane *rsc.RemoteControlPlane) error {
 	if controlPlane == nil {
 		return util.NewInputError("Control plane is required for airgap deployment")
 	}
-	for _, ctrl := range controlPlane.Controllers {
-		if ctrl.SystemAgent == nil || ctrl.SystemAgent.AgentConfiguration == nil {
-			return util.NewInputError("System agent configuration is required for airgap control plane deployment. Please specify systemAgent with agent type (x86 or arm) and container engine for controller " + ctrl.Name)
+	for idx := range controlPlane.Controllers {
+		ctrl := &controlPlane.Controllers[idx]
+		if !ControllerAirgapEnabled(controlPlane, ctrl) {
+			continue
 		}
-		if err := ValidateAirgapRequirements(ctrl.SystemAgent.AgentConfiguration); err != nil {
+		if err := ValidateControllerAirgapRequirements(ctrl); err != nil {
 			return err
 		}
 	}

@@ -50,6 +50,23 @@ edgelet_containerd_unit_active() {
 	esac
 }
 
+# REMOTE BOOTSTRAP: Do not call from start_edgelet over SSH when potctl uses --no-wait.
+# Potctl polls via probe_containerd_ready.sh with reconnecting SSH.
+
+edgelet_unit_active() {
+	case "${INIT_SYSTEM:-unknown}" in
+		systemd)
+			maybe_sudo systemctl is-active --quiet edgelet 2>/dev/null
+			;;
+		openrc)
+			maybe_sudo rc-service edgelet status 2>/dev/null | grep -qi running
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
+
 wait_edgelet_containerd_socket() {
 	_timeout="${EDGELET_ATTACH_WAIT_SEC:-120}"
 	_elapsed=0
@@ -57,6 +74,7 @@ wait_edgelet_containerd_socket() {
 		if edgelet_containerd_socket_ready; then
 			return 0
 		fi
+		echo "Waiting for containerd socket... (${_elapsed}s / ${_timeout}s)"
 		sleep 2
 		_elapsed=$(( _elapsed + 2 ))
 	done
@@ -98,6 +116,9 @@ restart_edgelet_containerd_service() {
 			fi
 			;;
 	esac
+	if [ "${EDGELET_START_NO_WAIT:-0}" = "1" ]; then
+		return 0
+	fi
 	wait_edgelet_containerd_ready
 	info "edgelet-containerd is ready"
 }
@@ -167,9 +188,12 @@ restart_edgelet_services() {
 	if [ "$_eng" = "edgelet" ]; then
 		if consume_containerd_restarted_marker; then
 			info "edgelet-containerd already restarted; restarting edgelet only (OTA)"
-		else
-			info "Restarting edgelet-containerd and edgelet (embedded engine OTA)"
+		elif consume_restart_data_plane_marker; then
+			info "Restarting edgelet-containerd and edgelet (embedded bundle OTA)"
 			restart_edgelet_containerd_service
+		else
+			info "Thin OTA (embed hash unchanged); restarting edgelet only"
+			start_edgelet_containerd_unit "${INIT_SYSTEM:-unknown}" false
 		fi
 	else
 		info "Restarting edgelet (containerEngine=${_eng})"

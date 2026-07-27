@@ -18,6 +18,7 @@ type RemoteController struct {
 	SystemAgent *SystemAgentConfig `yaml:"systemAgent,omitempty"`
 	Endpoint    string             `yaml:"endpoint,omitempty"`
 	Created     string             `yaml:"created,omitempty"`
+	Airgap      bool               `yaml:"airgap,omitempty"`
 }
 
 func (ctrl *RemoteController) GetName() string {
@@ -60,6 +61,7 @@ func (ctrl *RemoteController) Clone() Controller {
 		SystemAgent: systemAgent,
 		Endpoint:    ctrl.Endpoint,
 		Created:     ctrl.Created,
+		Airgap:      ctrl.Airgap,
 	}
 }
 

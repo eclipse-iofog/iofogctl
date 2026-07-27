@@ -31,6 +31,7 @@ func EnsureAgentConfig(agent *rsc.AgentConfiguration) *rsc.AgentConfiguration {
 	if agent == nil {
 		return &rsc.AgentConfiguration{}
 	}
+	syncArchFromID(agent)
 	return agent
 }
 

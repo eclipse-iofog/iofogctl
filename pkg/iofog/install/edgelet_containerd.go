@@ -2,6 +2,7 @@ package install
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -13,17 +14,35 @@ const (
 	edgeletContainerdPollIntervalSec = 10
 )
 
-func edgeletContainerdReadyCheckShell() string {
-	return `systemctl is-active --quiet edgelet-containerd 2>/dev/null && ` +
-		`{ _sock=/run/edgelet/containerd.sock; [ -S "$_sock" ] || _sock=/var/run/edgelet/containerd.sock; ` +
-		`[ -S "$_sock" ] || exit 1; _ctr=""; ` +
-		`if [ -x /var/lib/edgelet/data/current/bin/ctr ]; then _ctr=/var/lib/edgelet/data/current/bin/ctr; ` +
-		`elif command -v ctr >/dev/null 2>&1; then _ctr=ctr; fi; ` +
-		`[ -z "$_ctr" ] || "$_ctr" --address "$_sock" version >/dev/null 2>&1; }`
+func edgeletScriptPath(stageDir, script string) string {
+	dir := strings.TrimSpace(stageDir)
+	if dir == "" {
+		dir = EdgeletScriptStageDir
+	}
+	return util.JoinAgentPath(dir, script)
 }
 
-func restartEdgeletContainerdNoBlockShell() string {
-	return "sudo systemctl restart --no-block edgelet-containerd"
+func runEmbeddedProbeScript(script string) error {
+	content, err := loadEdgeletScript(script)
+	if err != nil {
+		return err
+	}
+	_, err = util.Exec("", "sh", "-c", content)
+	return err
+}
+
+func containerdReadyProbe(stageDir string) (bool, error) {
+	path := edgeletScriptPath(stageDir, pkg.edgeletScriptProbeContainerdReady)
+	if _, err := os.Stat(path); err == nil {
+		_, err := util.Exec("", "sh", path)
+		return err == nil, nil
+	}
+	err := runEmbeddedProbeScript(pkg.edgeletScriptProbeContainerdReady)
+	return err == nil, nil
+}
+
+func restartEdgeletContainerdCommand(stageDir string) string {
+	return "sudo " + edgeletScriptPath(stageDir, pkg.edgeletScriptRestartContainerd)
 }
 
 func markContainerdRestartedShell(stageDir string) string {
@@ -57,4 +76,10 @@ func waitForEdgeletContainerdReady(check func() (bool, error)) error {
 		time.Sleep(edgeletContainerdPollIntervalSec * time.Second)
 	}
 	return fmt.Errorf("edgelet-containerd not ready after %ds", edgeletContainerdReadyTimeoutSec)
+}
+
+func pollContainerdReadyLocal(stageDir string) error {
+	return waitForEdgeletContainerdReady(func() (bool, error) {
+		return containerdReadyProbe(stageDir)
+	})
 }

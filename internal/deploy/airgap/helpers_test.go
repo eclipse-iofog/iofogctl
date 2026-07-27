@@ -113,6 +113,33 @@ func TestValidateAirgapRequirements(t *testing.T) {
 	if err := ValidateAirgapRequirements(nativeBadEngine); err == nil {
 		t.Fatal("expected unsupported native engine to fail validation")
 	}
+
+	archID := int64(2)
+	archIDOnly := &rsc.AgentConfiguration{
+		AgentConfiguration: client.AgentConfiguration{
+			ArchID:          &archID,
+			DeploymentType:  strPtr("native"),
+			ContainerEngine: strPtr("edgelet"),
+		},
+	}
+	if err := ValidateAirgapRequirements(archIDOnly); err != nil {
+		t.Fatalf("archId-only config should be valid: %v", err)
+	}
+	if archIDOnly.Arch == nil || *archIDOnly.Arch != "arm64" {
+		t.Fatalf("expected arch normalized to arm64, got %#v", archIDOnly.Arch)
+	}
+
+	autoArchID := int64(0)
+	autoOnly := &rsc.AgentConfiguration{
+		AgentConfiguration: client.AgentConfiguration{
+			ArchID:          &autoArchID,
+			DeploymentType:  strPtr("native"),
+			ContainerEngine: strPtr("edgelet"),
+		},
+	}
+	if err := ValidateAirgapRequirements(autoOnly); err == nil {
+		t.Fatal("expected archId auto to fail airgap validation")
+	}
 }
 
 func TestCollectAgentAirgapImages(t *testing.T) {
@@ -142,6 +169,152 @@ func TestCollectAgentAirgapImages(t *testing.T) {
 	}
 	if containerList[0] != images.Agent {
 		t.Fatalf("container list should include edgelet image first, got %v", containerList)
+	}
+}
+
+func TestCollectAgentAirgapImagesDedupesDuplicateDebuggerRefs(t *testing.T) {
+	sameDebugger := "ghcr.io/example/debugger:1.0"
+	images := &RequiredImages{
+		RouterAMD64:     "ghcr.io/example/router:1.0",
+		NatsAMD64:       "ghcr.io/example/nats:1.0",
+		DebuggerAMD64:   sameDebugger,
+		DebuggerARM64:   sameDebugger,
+		DebuggerRISCV64: sameDebugger,
+		DebuggerARM:     sameDebugger,
+	}
+
+	list, err := CollectAgentAirgapImages(images, PlatformAMD64, DeploymentTypeNative)
+	if err != nil {
+		t.Fatalf("CollectAgentAirgapImages: %v", err)
+	}
+	if len(list) != 3 {
+		t.Fatalf("list len = %d, want 3 (%v)", len(list), list)
+	}
+	debuggerCount := 0
+	for _, ref := range list {
+		if ref == sameDebugger {
+			debuggerCount++
+		}
+	}
+	if debuggerCount != 1 {
+		t.Fatalf("debugger ref count = %d, want 1 (%v)", debuggerCount, list)
+	}
+}
+
+func TestCollectAgentAirgapImagesUsesPlatformSpecificDebugger(t *testing.T) {
+	images := &RequiredImages{
+		RouterARM64:   "ghcr.io/example/router:arm64",
+		NatsARM64:     "ghcr.io/example/nats:arm64",
+		DebuggerAMD64: "ghcr.io/example/debugger:amd64",
+		DebuggerARM64: "ghcr.io/example/debugger:arm64",
+	}
+
+	list, err := CollectAgentAirgapImages(images, PlatformARM64, DeploymentTypeNative)
+	if err != nil {
+		t.Fatalf("CollectAgentAirgapImages: %v", err)
+	}
+	if len(list) != 3 {
+		t.Fatalf("list len = %d, want 3 (%v)", len(list), list)
+	}
+	if list[2] != images.DebuggerARM64 {
+		t.Fatalf("debugger = %q, want %q", list[2], images.DebuggerARM64)
+	}
+}
+
+func TestCollectSystemMicroserviceAirgapImages(t *testing.T) {
+	images := &RequiredImages{
+		RouterAMD64:   "ghcr.io/example/router:1.0",
+		NatsAMD64:     "ghcr.io/example/nats:1.0",
+		DebuggerAMD64: "ghcr.io/example/debugger:1.0",
+	}
+
+	list, err := CollectSystemMicroserviceAirgapImages(images, PlatformAMD64)
+	if err != nil {
+		t.Fatalf("CollectSystemMicroserviceAirgapImages: %v", err)
+	}
+	if len(list) != 3 {
+		t.Fatalf("list len = %d, want 3 (%v)", len(list), list)
+	}
+}
+
+func TestCollectControllerHostAirgapImagesIncludesSystemMicroservices(t *testing.T) {
+	images := &RequiredImages{
+		Controller:    "ghcr.io/example/controller:1.0",
+		RouterAMD64:   "ghcr.io/example/router:1.0",
+		NatsAMD64:     "ghcr.io/example/nats:1.0",
+		DebuggerAMD64: "ghcr.io/example/debugger:1.0",
+	}
+
+	list, err := CollectControllerHostAirgapImages(images, PlatformAMD64)
+	if err != nil {
+		t.Fatalf("CollectControllerHostAirgapImages: %v", err)
+	}
+	if len(list) != 4 {
+		t.Fatalf("list len = %d, want 4 (%v)", len(list), list)
+	}
+	if list[0] != images.Controller {
+		t.Fatalf("controller = %q, want %q", list[0], images.Controller)
+	}
+}
+
+func TestCollectControllerHostAirgapImagesDedupesDuplicateSystemRefs(t *testing.T) {
+	same := "ghcr.io/example/shared:1.0"
+	images := &RequiredImages{
+		Controller:      "ghcr.io/example/controller:1.0",
+		RouterAMD64:     same,
+		NatsAMD64:       same,
+		DebuggerAMD64:   same,
+		DebuggerARM64:   same,
+		DebuggerRISCV64: same,
+		DebuggerARM:     same,
+	}
+
+	list, err := CollectControllerHostAirgapImages(images, PlatformAMD64)
+	if err != nil {
+		t.Fatalf("CollectControllerHostAirgapImages: %v", err)
+	}
+	if len(list) != 2 {
+		t.Fatalf("list len = %d, want 2 (%v)", len(list), list)
+	}
+}
+
+func TestDedupeNonEmpty(t *testing.T) {
+	got := dedupeNonEmpty([]string{"a", "b", "a", "", "c", "b"})
+	want := []string{"a", "b", "c"}
+	if len(got) != len(want) {
+		t.Fatalf("dedupeNonEmpty = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("dedupeNonEmpty = %v, want %v", got, want)
+		}
+	}
+}
+
+func TestValidateControllerAirgapRequirementsRejectsMissingConfig(t *testing.T) {
+	ctrl := &rsc.RemoteController{Name: "remote-2"}
+	if err := ValidateControllerAirgapRequirements(ctrl); err == nil {
+		t.Fatal("expected error when systemAgent.config is missing")
+	}
+}
+
+func TestControllerAirgapEnabled(t *testing.T) {
+	cp := &rsc.RemoteControlPlane{Airgap: true}
+	ctrl := &rsc.RemoteController{Airgap: false}
+	if !ControllerAirgapEnabled(cp, ctrl) {
+		t.Fatal("expected airgap when control plane airgap is true")
+	}
+
+	cp = &rsc.RemoteControlPlane{Airgap: false}
+	ctrl = &rsc.RemoteController{Airgap: true}
+	if !ControllerAirgapEnabled(cp, ctrl) {
+		t.Fatal("expected airgap when controller airgap is true")
+	}
+
+	cp = &rsc.RemoteControlPlane{Airgap: false}
+	ctrl = &rsc.RemoteController{Airgap: false}
+	if ControllerAirgapEnabled(cp, ctrl) {
+		t.Fatal("expected no airgap when both flags are false")
 	}
 }
 

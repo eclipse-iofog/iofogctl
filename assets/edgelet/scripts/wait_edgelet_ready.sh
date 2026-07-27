@@ -1,5 +1,7 @@
 #!/bin/sh
 # Wait until edgelet init services and daemon API report edgeletDaemon: RUNNING.
+# Remote bootstrap uses Go reconnecting SSH + probe_edgelet_ready.sh (Phase 9).
+# Keep this script for local operator use and debugging.
 set -e
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"

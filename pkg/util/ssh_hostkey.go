@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh"
@@ -19,6 +20,7 @@ var (
 	sshIsTerminalFn    = term.IsTerminal
 	sshStdin           = os.Stdin
 	sshStdout          = os.Stdout
+	sshHostKeyPromptMu sync.Mutex
 )
 
 func knownHostsRoot() (string, error) {
@@ -86,6 +88,21 @@ func (cl *SecureShellClient) verifyHostKey() ssh.HostKeyCallback {
 		if !sshIsTerminalFn(int(sshStdin.Fd())) {
 			return fmt.Errorf("unknown SSH host key for %s:%d; run interactively to verify fingerprint", cl.host, cl.port)
 		}
+
+		sshHostKeyPromptMu.Lock()
+		defer sshHostKeyPromptMu.Unlock()
+
+		stored, err = loadKnownHostKey(path)
+		if err == nil {
+			if string(stored.Marshal()) != string(key.Marshal()) {
+				return fmt.Errorf("host key for %s:%d changed; remove %s to re-trust", cl.host, cl.port, path)
+			}
+			return nil
+		}
+		if !os.IsNotExist(err) {
+			return err
+		}
+
 		SpinHandlePrompt()
 		defer SpinHandlePromptComplete()
 

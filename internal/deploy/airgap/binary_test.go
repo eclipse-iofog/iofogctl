@@ -33,7 +33,7 @@ func TestEnsureEdgeletBinaryUsesCache(t *testing.T) {
 	config.Init(t.TempDir())
 	namespace := "default"
 
-	first, err := EnsureEdgeletBinary(context.Background(), namespace, "linux", "amd64")
+	first, err := EnsureEdgeletBinary(context.Background(), namespace, "linux", "amd64", "")
 	if err != nil {
 		t.Fatalf("EnsureEdgeletBinary first: %v", err)
 	}
@@ -45,7 +45,7 @@ func TestEnsureEdgeletBinaryUsesCache(t *testing.T) {
 		t.Fatalf("unexpected binary contents: %q", string(data))
 	}
 
-	second, err := EnsureEdgeletBinary(context.Background(), namespace, "linux", "amd64")
+	second, err := EnsureEdgeletBinary(context.Background(), namespace, "linux", "amd64", "")
 	if err != nil {
 		t.Fatalf("EnsureEdgeletBinary second: %v", err)
 	}
@@ -61,6 +61,51 @@ func TestEnsureEdgeletBinaryUsesCache(t *testing.T) {
 	metaPath := filepath.Join(filepath.Dir(first), binaryMetadataFilename)
 	if _, err := os.Stat(metaPath); err != nil {
 		t.Fatalf("metadata file missing: %v", err)
+	}
+}
+
+func TestEnsureEdgeletBinaryUsesPackageVersion(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1.0.0-rc.8/edgelet-linux-amd64":
+			http.NotFound(w, r)
+		case "/v1.0.2-rc.1/edgelet-linux-amd64":
+			_, _ = w.Write([]byte("package-version-binary"))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	util.SetEdgeletReleaseBaseForTest(server.URL)
+	util.SetEdgeletBinaryVersionForTest("v1.0.0-rc.8")
+	t.Cleanup(func() {
+		util.ResetEdgeletReleaseBaseForTest()
+		util.ResetEdgeletBinaryVersionForTest()
+	})
+
+	config.Init(t.TempDir())
+	namespace := "default"
+
+	path, err := EnsureEdgeletBinary(context.Background(), namespace, "linux", "amd64", "v1.0.2-rc.1")
+	if err != nil {
+		t.Fatalf("EnsureEdgeletBinary: %v", err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read cached binary: %v", err)
+	}
+	if string(data) != "package-version-binary" {
+		t.Fatalf("unexpected binary contents: %q", string(data))
+	}
+
+	metaPath := filepath.Join(filepath.Dir(path), binaryMetadataFilename)
+	meta, err := loadBinaryCacheMetadata(metaPath)
+	if err != nil {
+		t.Fatalf("load metadata: %v", err)
+	}
+	if meta.Version != "v1.0.2-rc.1" {
+		t.Fatalf("metadata version = %q, want %q", meta.Version, "v1.0.2-rc.1")
 	}
 }
 

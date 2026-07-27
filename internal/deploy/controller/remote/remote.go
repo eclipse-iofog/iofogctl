@@ -2,6 +2,7 @@ package deployremotecontroller
 
 import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/remote"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
@@ -92,6 +93,11 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 	if err = exe.controller.ValidateSSH(); err != nil {
 		return err
+	}
+	if deployairgap.ControllerAirgapEnabled(exe.controlPlane, exe.controller) {
+		if err = deployairgap.ValidateControllerAirgapRequirements(exe.controller); err != nil {
+			return err
+		}
 	}
 
 	applySystemMicroserviceDefaults(exe.controlPlane)

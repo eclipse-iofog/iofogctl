@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	deployairgap "github.com/eclipse-iofog/iofogctl/internal/deploy/airgap"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	"github.com/stretchr/testify/require"
@@ -57,4 +58,16 @@ func TestIsNonRoutableControllerHost(t *testing.T) {
 	require.True(t, isNonRoutableControllerHost("127.0.0.1"))
 	require.True(t, isNonRoutableControllerHost("localhost"))
 	require.False(t, isNonRoutableControllerHost("192.168.139.85"))
+}
+
+func TestControllerAirgapEnabledUsesControlPlaneOrControllerFlag(t *testing.T) {
+	cp := &rsc.RemoteControlPlane{Airgap: false}
+	ctrl := &rsc.RemoteController{Airgap: true}
+	require.True(t, deployairgap.ControllerAirgapEnabled(cp, ctrl))
+}
+
+func TestShouldDeferControllerAirgapImages(t *testing.T) {
+	require.True(t, shouldDeferControllerAirgapImages(deployairgap.DeploymentTypeNative, 1))
+	require.False(t, shouldDeferControllerAirgapImages(deployairgap.DeploymentTypeNative, 0))
+	require.False(t, shouldDeferControllerAirgapImages(deployairgap.DeploymentTypeContainer, 1))
 }

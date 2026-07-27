@@ -71,14 +71,23 @@ func EdgeletBinaryArtifact(osName, archName string) (string, error) {
 	return fmt.Sprintf("edgelet-%s-%s", osName, archName), nil
 }
 
+// ResolveEdgeletBinaryVersion returns packageVersion when set, otherwise the build-time pin.
+func ResolveEdgeletBinaryVersion(packageVersion string) string {
+	if strings.TrimSpace(packageVersion) != "" {
+		return strings.TrimSpace(packageVersion)
+	}
+	return GetEdgeletBinaryVersion()
+}
+
 // EdgeletBinaryURL builds the GitHub release download URL for a platform binary.
-func EdgeletBinaryURL(osName, archName string) (string, error) {
+// When version is empty, ResolveEdgeletBinaryVersion("") supplies the build-time pin.
+func EdgeletBinaryURL(osName, archName, version string) (string, error) {
 	artifact, err := EdgeletBinaryArtifact(osName, archName)
 	if err != nil {
 		return "", err
 	}
 	base := strings.TrimRight(GetEdgeletReleaseBase(), "/")
-	version := GetEdgeletBinaryVersion()
+	version = ResolveEdgeletBinaryVersion(version)
 	if base == "" || base == "undefined" {
 		return "", fmt.Errorf("edgelet release base is not configured")
 	}
@@ -111,7 +120,7 @@ func ShouldSkipInstallDeps(containerEngine, deploymentType string) bool {
 	return false
 }
 
-func validateEdgeletDownloadURL(downloadURL string) error {
+func validateEdgeletDownloadURL(downloadURL, version string) error {
 	download, err := url.Parse(downloadURL)
 	if err != nil {
 		return fmt.Errorf("parse download URL: %w", err)
@@ -137,7 +146,7 @@ func validateEdgeletDownloadURL(downloadURL string) error {
 		return fmt.Errorf("unsupported download scheme %q", download.Scheme)
 	}
 
-	version := GetEdgeletBinaryVersion()
+	version = ResolveEdgeletBinaryVersion(version)
 	wantPrefix := strings.TrimRight(base.Path, "/") + "/" + version + "/"
 	if !strings.HasPrefix(download.Path, wantPrefix) {
 		return fmt.Errorf("unexpected download path %q", download.Path)
@@ -146,16 +155,17 @@ func validateEdgeletDownloadURL(downloadURL string) error {
 }
 
 // DownloadEdgeletBinary fetches the release binary for os/arch into destPath.
-func DownloadEdgeletBinary(osName, archName, destPath string) error {
-	return downloadEdgeletBinary(context.Background(), osName, archName, destPath, edgeletHTTPClient)
+// When version is empty, ResolveEdgeletBinaryVersion("") supplies the build-time pin.
+func DownloadEdgeletBinary(osName, archName, destPath, version string) error {
+	return downloadEdgeletBinary(context.Background(), osName, archName, destPath, version, edgeletHTTPClient)
 }
 
-func downloadEdgeletBinary(ctx context.Context, osName, archName, destPath string, client *http.Client) error {
-	downloadURL, err := EdgeletBinaryURL(osName, archName)
+func downloadEdgeletBinary(ctx context.Context, osName, archName, destPath, version string, client *http.Client) error {
+	downloadURL, err := EdgeletBinaryURL(osName, archName, version)
 	if err != nil {
 		return err
 	}
-	if err := validateEdgeletDownloadURL(downloadURL); err != nil {
+	if err := validateEdgeletDownloadURL(downloadURL, version); err != nil {
 		return fmt.Errorf("validate edgelet download URL: %w", err)
 	}
 

@@ -267,7 +267,7 @@ func (agent *RemoteEdgelet) PrepareWasm(ctx context.Context, namespace string) e
 		return err
 	}
 	freshInstall := !agent.cfg.engineActive
-	if err := agent.cfg.PrepareWasm(ctx, namespace, freshInstall); err != nil {
+	if err := agent.cfg.PrepareWasm(ctx, namespace, agent.name, freshInstall); err != nil {
 		return err
 	}
 	return agent.copyWasmStagingToRemote()
@@ -292,40 +292,33 @@ func (agent *RemoteEdgelet) remoteEngineActive() bool {
 		return false
 	}
 	engine := agent.cfg.containerEngine()
-	var checkCmd string
-	switch engine {
-	case "edgelet":
-		checkCmd = "systemctl is-active edgelet-containerd 2>/dev/null"
-	case "docker":
-		checkCmd = "docker ps >/dev/null 2>&1"
-	default:
-		return false
-	}
 	if err := agent.ssh.Connect(); err != nil {
 		return false
 	}
 	defer util.Log(agent.ssh.Disconnect)
-	out, err := agent.ssh.Run(checkCmd)
-	if engine == "edgelet" {
-		return err == nil && strings.TrimSpace(out.String()) == "active"
+	switch engine {
+	case "edgelet":
+		ready, _ := agent.remoteContainerdReady()
+		return ready
+	case "docker":
+		_, err := agent.ssh.Run("docker ps >/dev/null 2>&1")
+		return err == nil
+	default:
+		return false
 	}
-	return err == nil
 }
 
 func (agent *RemoteEdgelet) copyWasmStagingToRemote() error {
-	if agent.cfg.wasmEnv == "" {
+	if agent.cfg.wasmEnv == "" || agent.cfg.wasmLocalStageDir == "" {
 		return nil
 	}
 	if remoteEdgeletRunHook != nil {
 		return nil
 	}
 
-	localDir := filepath.Join(EdgeletScriptStageDir, wasmRemoteStageSubdir)
-	entries, err := os.ReadDir(localDir)
+	manifestPath := filepath.Join(agent.cfg.wasmLocalStageDir, "manifest.json")
+	entries, err := readWasmManifest(manifestPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
 		return err
 	}
 
@@ -342,30 +335,34 @@ func (agent *RemoteEdgelet) copyWasmStagingToRemote() error {
 	}
 	defer util.Log(agent.ssh.Disconnect)
 
+	if err := agent.copyWasmFileToRemote(manifestPath, remoteDir, "manifest.json"); err != nil {
+		return err
+	}
 	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		localPath := filepath.Join(localDir, entry.Name())
-		content, err := util.ReadValidatedFile(localPath)
-		if err != nil {
-			return err
-		}
-		tmpName := "wasm-" + entry.Name() + ".upload"
-		reader := strings.NewReader(string(content))
-		if err := agent.ssh.CopyTo(reader, remoteEdgeletManifestDir, tmpName, "0755", int64(len(content))); err != nil {
-			return err
-		}
-		destPath := util.JoinAgentPath(remoteDir, entry.Name())
-		installCmd := fmt.Sprintf("sudo install -m 755 %s/%s %s", remoteEdgeletManifestDir, tmpName, destPath)
-		if _, err := agent.ssh.Run(installCmd); err != nil {
-			return err
-		}
-		if _, err := agent.ssh.Run(fmt.Sprintf("rm -f %s/%s", remoteEdgeletManifestDir, tmpName)); err != nil {
+		if err := agent.copyWasmFileToRemote(entry.Src, remoteDir, entry.Name); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (agent *RemoteEdgelet) copyWasmFileToRemote(localPath, remoteDir, remoteName string) error {
+	content, err := util.ReadValidatedFile(localPath)
+	if err != nil {
+		return err
+	}
+	tmpName := "wasm-" + remoteName + ".upload"
+	reader := strings.NewReader(string(content))
+	if err := agent.ssh.CopyTo(reader, remoteEdgeletManifestDir, tmpName, "0755", int64(len(content))); err != nil {
+		return err
+	}
+	destPath := util.JoinAgentPath(remoteDir, remoteName)
+	installCmd := fmt.Sprintf("sudo install -m 755 %s/%s %s", remoteEdgeletManifestDir, tmpName, destPath)
+	if _, err := agent.ssh.Run(installCmd); err != nil {
+		return err
+	}
+	_, err = agent.ssh.Run(fmt.Sprintf("rm -f %s/%s", remoteEdgeletManifestDir, tmpName))
+	return err
 }
 
 func (agent *RemoteEdgelet) Bootstrap() error {
@@ -387,7 +384,7 @@ func (agent *RemoteEdgelet) Bootstrap() error {
 	if err := agent.materializeRuntimeConfig(); err != nil {
 		return err
 	}
-	if err := agent.run(agent.procs.postInstallCommandsBeforeBundled(agent.name, agent.cfg, true)); err != nil {
+	if err := agent.postInstallRemote(context.Background()); err != nil {
 		return err
 	}
 	if err := agent.DeployWasmRuntimeClasses(); err != nil {
@@ -525,7 +522,7 @@ func (agent *RemoteEdgelet) WriteDeployManifest(data []byte, prefix string) (pat
 	}
 	cleanup = func() {
 		_ = agent.run([]command{{
-			cmd: fmt.Sprintf("rm -f %s", shellQuoteArg(remotePath)),
+			cmd: fmt.Sprintf("sudo rm -f %s", shellQuoteArg(remotePath)),
 			msg: "Removing edgelet manifest on " + agent.name,
 		}})
 	}
@@ -554,7 +551,7 @@ func (agent *RemoteEdgelet) copyLocalFileToRemote(localPath, remotePath string) 
 	if _, err := agent.ssh.Run(installCmd); err != nil {
 		return err
 	}
-	_, err = agent.ssh.Run(fmt.Sprintf("rm -f %s/%s", remoteEdgeletManifestDir, tmpName))
+	_, err = agent.ssh.Run(fmt.Sprintf("sudo rm -f %s/%s", remoteEdgeletManifestDir, tmpName))
 	return err
 }
 

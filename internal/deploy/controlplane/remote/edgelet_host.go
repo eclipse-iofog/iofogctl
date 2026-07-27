@@ -127,14 +127,26 @@ func ResolveControllerHostEndpoint(cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteC
 	return util.GetControllerEndpoint(apiHost, useHTTPS)
 }
 
+type pendingControllerNativeAirgap struct {
+	platform  string
+	opts      deployairgap.AirgapTransferOptions
+	imageList []string
+}
+
+func shouldDeferControllerAirgapImages(deploymentType string, imageCount int) bool {
+	return imageCount > 0 && deployairgap.IsNativeDeployment(deploymentType)
+}
+
 func DeployHostEdgelet(cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteController, namespace string) (*install.RemoteEdgelet, error) {
 	edgelet, err := BuildRemoteEdgelet(cp, ctrl, "")
 	if err != nil {
 		return nil, err
 	}
 
-	if cp.Airgap {
-		if err := transferControllerHostAirgap(context.Background(), namespace, cp, ctrl, edgelet); err != nil {
+	var pendingNative *pendingControllerNativeAirgap
+	if deployairgap.ControllerAirgapEnabled(cp, ctrl) {
+		pendingNative, err = transferControllerHostAirgap(context.Background(), namespace, cp, ctrl, edgelet)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -146,68 +158,90 @@ func DeployHostEdgelet(cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteController, n
 	if err := edgelet.Bootstrap(); err != nil {
 		return nil, err
 	}
+
+	if pendingNative != nil && len(pendingNative.imageList) > 0 {
+		if err := deployairgap.TransferAirgapImages(
+			context.Background(),
+			namespace,
+			ctrl.Host,
+			&ctrl.SSH,
+			pendingNative.platform,
+			pendingNative.opts,
+			pendingNative.imageList,
+		); err != nil {
+			return nil, fmt.Errorf("failed to transfer images to controller %s: %w", ctrl.Name, err)
+		}
+	}
+
 	return edgelet, nil
 }
 
-func transferControllerHostAirgap(ctx context.Context, namespace string, cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteController, edgelet *install.RemoteEdgelet) error {
+func transferControllerHostAirgap(ctx context.Context, namespace string, cp *rsc.RemoteControlPlane, ctrl *rsc.RemoteController, edgelet *install.RemoteEdgelet) (*pendingControllerNativeAirgap, error) {
 	if ctrl.SystemAgent == nil || ctrl.SystemAgent.AgentConfiguration == nil {
-		return util.NewInputError("systemAgent.config is required for airgap deployment on controller " + ctrl.Name)
+		return nil, util.NewInputError("systemAgent.config is required for airgap deployment on controller " + ctrl.Name)
 	}
 
 	isInitial, err := deployairgap.IsInitialDeployment(namespace)
 	if err != nil {
-		return fmt.Errorf("failed to determine deployment type: %w", err)
+		return nil, fmt.Errorf("failed to determine deployment type: %w", err)
 	}
 
 	images, err := deployairgap.CollectControllerImages(namespace, cp, isInitial)
 	if err != nil {
-		return fmt.Errorf("failed to collect controller images: %w", err)
+		return nil, fmt.Errorf("failed to collect controller images: %w", err)
 	}
 
 	platform, err := deployairgap.ResolvePlatform(ctrl.SystemAgent.AgentConfiguration.Arch)
 	if err != nil {
-		return fmt.Errorf("controller %s: %w", ctrl.Name, err)
+		return nil, fmt.Errorf("controller %s: %w", ctrl.Name, err)
 	}
-	opts, err := deployairgap.ControllerAirgapLoadOptions(ctrl.SystemAgent.AgentConfiguration)
+	opts, err := deployairgap.AirgapTransferOptionsFromConfig(ctrl.SystemAgent.AgentConfiguration)
 	if err != nil {
-		return fmt.Errorf("controller %s: %w", ctrl.Name, err)
+		return nil, fmt.Errorf("controller %s: %w", ctrl.Name, err)
 	}
 
-	imageList := []string{images.Controller}
-	for _, img := range []string{images.NatsAMD64, images.NatsARM64, images.NatsRISCV64, images.NatsARM} {
-		if img != "" {
-			imageList = append(imageList, img)
-		}
-	}
-
-	if deployairgap.IsNativeDeployment(opts.DeploymentType) {
-		remoteBinPath, err := deployairgap.TransferAgentAirgapBinary(ctx, namespace, ctrl.Host, &ctrl.SSH, platform)
+	deploymentType := deployairgap.ResolveDeploymentType(ctrl.SystemAgent.AgentConfiguration.DeploymentType)
+	if deployairgap.IsNativeDeployment(deploymentType) {
+		remoteBinPath, err := deployairgap.TransferAgentAirgapBinary(ctx, namespace, ctrl.Host, ctrl.SystemAgent.Package.Version, &ctrl.SSH, platform)
 		if err != nil {
-			return fmt.Errorf("failed to transfer edgelet binary to %s: %w", ctrl.Name, err)
+			return nil, fmt.Errorf("failed to transfer edgelet binary to %s: %w", ctrl.Name, err)
 		}
 		if err := edgelet.SetAirgap(remoteBinPath); err != nil {
-			return fmt.Errorf("failed to configure edgelet airgap binary on %s: %w", ctrl.Name, err)
-		}
-	}
-
-	if len(imageList) > 0 {
-		if err := deployairgap.TransferAirgapImages(ctx, namespace, ctrl.Host, &ctrl.SSH, platform, opts, imageList); err != nil {
-			return fmt.Errorf("failed to transfer images to controller %s: %w", ctrl.Name, err)
+			return nil, fmt.Errorf("failed to configure edgelet airgap binary on %s: %w", ctrl.Name, err)
 		}
 	}
 
 	if ctrl.SystemAgent != nil && len(ctrl.SystemAgent.Package.Wasm) > 0 {
 		staged, err := deployairgap.StageAgentWasmAirgap(ctx, namespace, ctrl.Host, platform, &ctrl.SSH, ctrl.SystemAgent.Package.Wasm)
 		if err != nil {
-			return fmt.Errorf("failed to transfer WASM shims to controller %s: %w", ctrl.Name, err)
+			return nil, fmt.Errorf("failed to transfer WASM shims to controller %s: %w", ctrl.Name, err)
 		}
 		if len(staged) > 0 {
 			if err := edgelet.SetWasmStaged(staged); err != nil {
-				return fmt.Errorf("failed to configure WASM shims on controller %s: %w", ctrl.Name, err)
+				return nil, fmt.Errorf("failed to configure WASM shims on controller %s: %w", ctrl.Name, err)
 			}
 		}
 	}
-	return nil
+
+	imageList, err := deployairgap.CollectControllerHostAirgapImages(images, platform)
+	if err != nil {
+		return nil, fmt.Errorf("controller %s: %w", ctrl.Name, err)
+	}
+	if len(imageList) == 0 {
+		return nil, nil
+	}
+	if shouldDeferControllerAirgapImages(deploymentType, len(imageList)) {
+		return &pendingControllerNativeAirgap{
+			platform:  platform,
+			opts:      opts,
+			imageList: imageList,
+		}, nil
+	}
+	if err := deployairgap.TransferAirgapImages(ctx, namespace, ctrl.Host, &ctrl.SSH, platform, opts, imageList); err != nil {
+		return nil, fmt.Errorf("failed to transfer images to controller %s: %w", ctrl.Name, err)
+	}
+
+	return nil, nil
 }
 
 func DeployPrivateEdgeletRegistry(cp *rsc.RemoteControlPlane, edgelet *install.RemoteEdgelet, opts TranslateOptions) (*int, error) {

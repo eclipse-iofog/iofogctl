@@ -7,21 +7,20 @@ import (
 )
 
 func (agent *LocalEdgelet) restartDeferredWasmEngine() error {
-	if !agent.cfg.wasmDeferEngineRestart || agent.cfg.containerEngine() != "edgelet" {
+	plan := PlanEngineRestart(agent.cfg, hostStateFromWasm(!agent.cfg.engineActive, agent.cfg.wasmDeferEngineRestart))
+	if !plan.Deferred || !plan.Needed {
 		return nil
 	}
 
 	util.PrintInfo("Restarting edgelet-containerd for WASM shim update (drain may take up to 120s)")
-	if _, err := util.Exec("", "sh", "-c", restartEdgeletContainerdNoBlockShell()); err != nil {
+	cmd := wrapBootstrapCommand(restartEdgeletContainerdCommand(agent.dir), agent.cfg.bootstrapEnv(true), true)
+	if _, err := util.Exec("", "sh", "-c", cmd); err != nil {
 		if !util.IsSSHSignalTerminated(err) {
 			return err
 		}
 	}
 
-	return waitForEdgeletContainerdReady(func() (bool, error) {
-		_, err := util.Exec("", "sh", "-c", edgeletContainerdReadyCheckShell())
-		return err == nil, nil
-	})
+	return pollContainerdReadyLocal(agent.dir)
 }
 
 func (agent *LocalEdgelet) markContainerdRestartedLocal() error {

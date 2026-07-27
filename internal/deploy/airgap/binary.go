@@ -25,14 +25,15 @@ type binaryCacheMetadata struct {
 }
 
 // EnsureEdgeletBinary downloads or reuses a cached edgelet release binary.
-func EnsureEdgeletBinary(_ context.Context, namespace, osName, archName string) (string, error) {
+// packageVersion selects the release tag when set; otherwise the build-time pin is used.
+func EnsureEdgeletBinary(_ context.Context, namespace, osName, archName, packageVersion string) (string, error) {
 	localPath := config.GetAirgapBinaryCachePath(namespace, osName, archName)
 	cacheDir := filepath.Dir(localPath)
 	if err := os.MkdirAll(cacheDir, util.DirPerm); err != nil {
 		return "", err
 	}
 
-	version := util.GetEdgeletBinaryVersion()
+	version := util.ResolveEdgeletBinaryVersion(packageVersion)
 	metaPath := filepath.Join(cacheDir, binaryMetadataFilename)
 	if cached, err := loadBinaryCacheMetadata(metaPath); err == nil {
 		if cached.Version == version && cached.OS == osName && cached.Arch == archName {
@@ -46,7 +47,7 @@ func EnsureEdgeletBinary(_ context.Context, namespace, osName, archName string) 
 	}
 
 	util.PrintInfo(fmt.Sprintf("Downloading edgelet binary for %s/%s", osName, archName))
-	if err := util.DownloadEdgeletBinary(osName, archName, localPath); err != nil {
+	if err := util.DownloadEdgeletBinary(osName, archName, localPath, packageVersion); err != nil {
 		return "", fmt.Errorf("failed to download edgelet binary: %w", err)
 	}
 
@@ -164,12 +165,12 @@ func TransferAirgapBinary(host string, ssh *rsc.SSH, osName, archName, localPath
 }
 
 // EnsureAndTransferEdgeletBinary caches, then SCPs, an edgelet binary for the given platform.
-func EnsureAndTransferEdgeletBinary(ctx context.Context, namespace, host, platform string, ssh *rsc.SSH) (string, error) {
+func EnsureAndTransferEdgeletBinary(ctx context.Context, namespace, host, platform, packageVersion string, ssh *rsc.SSH) (string, error) {
 	osName, archName, err := PlatformToOSArch(platform)
 	if err != nil {
 		return "", err
 	}
-	localPath, err := EnsureEdgeletBinary(ctx, namespace, osName, archName)
+	localPath, err := EnsureEdgeletBinary(ctx, namespace, osName, archName, packageVersion)
 	if err != nil {
 		return "", err
 	}

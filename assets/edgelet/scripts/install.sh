@@ -17,6 +17,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/paths.sh"
 . "$SCRIPT_DIR/lib/receipt.sh"
 . "$SCRIPT_DIR/lib/binary.sh"
+. "$SCRIPT_DIR/lib/embed.sh"
 . "$SCRIPT_DIR/lib/service.sh"
 
 EDGELET_VERSION="${EDGELET_VERSION:-latest}"
@@ -92,6 +93,8 @@ if [ "$AIRGAP" = false ] && [ "$EDGELET_VERSION" = "latest" ] && [ "$ACTION" != 
 fi
 info "Version: ${EDGELET_VERSION}"
 
+clear_restart_data_plane_marker
+
 _run_post_install() {
 	if [ "$SKIP_START" = true ]; then
 		info "Skipping daemon start (--skip-start); use start_edgelet.sh"
@@ -136,6 +139,10 @@ if [ "$ACTION" = "rollback" ]; then
 	else
 		curl -fsSL -o "$_staged" "$_purl" || die "Failed to download rollback binary"
 	fi
+	_old_embed=""
+	if [ "$OS" = "linux" ]; then
+		_old_embed=$(installed_embed_hash)
+	fi
 	[ "$OS" = "linux" ] && stop_edgelet_service "$INIT"
 	stop_edgelet_daemon_desktop "$OS"
 	install_binary_file "$_staged" "$BINARY_PATH"
@@ -143,6 +150,7 @@ if [ "$ACTION" = "rollback" ]; then
 	if [ "$FORCE_CONFIG" != true ] && [ -f "$_cfgbak" ]; then
 		maybe_sudo install -m 640 "$_cfgbak" "$CONFIG_FILE"
 	fi
+	record_restart_data_plane_decision "$_old_embed"
 	_sha=$(sha256_file "$BINARY_PATH")
 	write_install_receipt "$EDGELET_VERSION" "$_pos" "$_parch" "$CONTAINER_ENGINE" "$_purl" "$_sha" "rollback"
 	"$SCRIPT_DIR/bundled.sh" || true
@@ -170,6 +178,10 @@ if [ "$ACTION" = "upgrade" ]; then
 	cp "$CONFIG_FILE" "$_cfg_backup" 2>/dev/null || true
 	cache_binary "$_cur_ver" "$_cur_os" "$_cur_arch" "$BINARY_PATH"
 	write_previous_release "$_cur_ver" "$_cur_os" "$_cur_arch" "$_cur_eng" "$_cur_src" "$_cur_sha" "$_cfg_backup"
+	_old_embed=""
+	if [ "$OS" = "linux" ]; then
+		_old_embed=$(installed_embed_hash)
+	fi
 	[ "$OS" = "linux" ] && stop_edgelet_service "$INIT"
 	stop_edgelet_daemon_desktop "$OS"
 	_staged="${TMPDIR}/edgelet-bin"
@@ -182,6 +194,7 @@ if [ "$ACTION" = "upgrade" ]; then
 	[ "$AIRGAP" = true ] && _method="upgrade-airgap"
 	write_install_receipt "$EDGELET_VERSION" "$OS" "$ARCH" "$CONTAINER_ENGINE" "$(compute_source_url)" "$_sha" "$_method"
 	"$SCRIPT_DIR/bundled.sh" || true
+	record_restart_data_plane_decision "$_old_embed"
 	if [ "$SKIP_START" = true ]; then
 		info "Skipping daemon start (--skip-start); use start_edgelet.sh"
 		exit 0

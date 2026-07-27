@@ -38,6 +38,8 @@ for _script in \
 	install_init_units.sh \
 	install_container.sh \
 	start_edgelet.sh \
+	probe_containerd_ready.sh \
+	probe_edgelet_ready.sh \
 	wait_edgelet_ready.sh \
 	bundled.sh
 do

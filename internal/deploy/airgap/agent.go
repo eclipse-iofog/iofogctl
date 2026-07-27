@@ -52,8 +52,8 @@ func PrepareAgentAirgap(namespace string, agent *rsc.RemoteAgent, controlPlane *
 }
 
 // TransferAgentAirgapBinary caches and SCPs the edgelet binary when deploymentType is native.
-func TransferAgentAirgapBinary(ctx context.Context, namespace, host string, ssh *rsc.SSH, platform string) (string, error) {
-	return EnsureAndTransferEdgeletBinary(ctx, namespace, host, platform, ssh)
+func TransferAgentAirgapBinary(ctx context.Context, namespace, host, packageVersion string, ssh *rsc.SSH, platform string) (string, error) {
+	return EnsureAndTransferEdgeletBinary(ctx, namespace, host, platform, packageVersion, ssh)
 }
 
 // TransferAgentAirgapImages transfers and loads container images using the airgap load matrix.

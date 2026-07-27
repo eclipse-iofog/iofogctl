@@ -55,11 +55,14 @@ func TestRemoteEdgeletBootstrapUsesMockedSSH(t *testing.T) {
 	if !strings.Contains(joined, "install.sh") {
 		t.Fatalf("expected install.sh in bootstrap, got: %v", ran)
 	}
-	if !strings.Contains(joined, "wait_edgelet_ready.sh") {
-		t.Fatalf("expected wait_edgelet_ready.sh in bootstrap, got: %v", ran)
+	if strings.Contains(joined, "wait_edgelet_ready.sh") {
+		t.Fatalf("remote bootstrap must not invoke wait_edgelet_ready.sh, got: %v", ran)
 	}
 	if !strings.Contains(joined, "start_edgelet.sh") {
 		t.Fatalf("expected start_edgelet.sh in bootstrap, got: %v", ran)
+	}
+	if !strings.Contains(joined, "--no-wait") {
+		t.Fatalf("expected --no-wait in remote start_edgelet, got: %v", ran)
 	}
 	if !strings.Contains(joined, "/etc/edgelet") {
 		t.Fatalf("expected runtime config materialization, got: %v", ran)
@@ -217,5 +220,17 @@ func TestRemoteEdgeletConfigureUsesMockedSSH(t *testing.T) {
 		if !found {
 			t.Fatalf("missing %q in commands: %v", want, ran)
 		}
+	}
+}
+
+func TestCopyWasmStagingToRemoteSkipsWithoutLocalStageDir(t *testing.T) {
+	agent := &RemoteEdgelet{
+		defaultAgent: defaultAgent{name: "edge-node"},
+		cfg: EdgeletInstallConfig{
+			wasmEnv: "EDGELET_WASM_INSTALL=1 EDGELET_WASM_HANDLERS=spin",
+		},
+	}
+	if err := agent.copyWasmStagingToRemote(); err != nil {
+		t.Fatalf("copyWasmStagingToRemote: %v", err)
 	}
 }

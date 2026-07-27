@@ -185,7 +185,7 @@ func (agent *LocalEdgelet) PrepareWasm(ctx context.Context, namespace string) er
 		return err
 	}
 	freshInstall := !agent.cfg.engineActive
-	return agent.cfg.PrepareWasm(ctx, namespace, freshInstall)
+	return agent.cfg.PrepareWasm(ctx, namespace, agent.name, freshInstall)
 }
 
 func (agent *LocalEdgelet) SetWasmStaged(staged []wasm.StagedBinary) error {
@@ -222,6 +222,7 @@ func (agent *LocalEdgelet) Bootstrap() error {
 		}
 	}
 	for _, cmd := range agent.procs.postInstallCommandsBeforeBundled(agent.name, agent.cfg, useSudo) {
+		// P9-LOC-1: local bootstrap keeps wait_edgelet_ready.sh; remote uses Go reconnect polling (9C).
 		Verbose(cmd.msg)
 		if err := agent.runShell(cmd.cmd); err != nil {
 			return err
