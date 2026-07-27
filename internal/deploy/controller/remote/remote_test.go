@@ -54,13 +54,17 @@ func TestControllerAddOnRequiresSystemAgentWhenControllerAirgap(t *testing.T) {
 }
 
 func TestControllerAddOnAcceptsSystemAgentWhenControllerAirgap(t *testing.T) {
+	arch, found := rsc.ArchStringToID("amd64")
+	if !found {
+		arch = 0
+	}
 	ctrl := &rsc.RemoteController{
 		Name:   "remote-2",
 		Airgap: true,
 		SystemAgent: &rsc.SystemAgentConfig{
 			AgentConfiguration: &rsc.AgentConfiguration{
 				AgentConfiguration: client.AgentConfiguration{
-					Arch:            strPtr("amd64"),
+					ArchID:          &arch,
 					ContainerEngine: strPtr("edgelet"),
 				},
 			},

@@ -113,6 +113,33 @@ func TestValidateAirgapRequirements(t *testing.T) {
 	if err := ValidateAirgapRequirements(nativeBadEngine); err == nil {
 		t.Fatal("expected unsupported native engine to fail validation")
 	}
+
+	archID := int64(2)
+	archIDOnly := &rsc.AgentConfiguration{
+		AgentConfiguration: client.AgentConfiguration{
+			ArchID:          &archID,
+			DeploymentType:  strPtr("native"),
+			ContainerEngine: strPtr("edgelet"),
+		},
+	}
+	if err := ValidateAirgapRequirements(archIDOnly); err != nil {
+		t.Fatalf("archId-only config should be valid: %v", err)
+	}
+	if archIDOnly.Arch == nil || *archIDOnly.Arch != "arm64" {
+		t.Fatalf("expected arch normalized to arm64, got %#v", archIDOnly.Arch)
+	}
+
+	autoArchID := int64(0)
+	autoOnly := &rsc.AgentConfiguration{
+		AgentConfiguration: client.AgentConfiguration{
+			ArchID:          &autoArchID,
+			DeploymentType:  strPtr("native"),
+			ContainerEngine: strPtr("edgelet"),
+		},
+	}
+	if err := ValidateAirgapRequirements(autoOnly); err == nil {
+		t.Fatal("expected archId auto to fail airgap validation")
+	}
 }
 
 func TestCollectAgentAirgapImages(t *testing.T) {

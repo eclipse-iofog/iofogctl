@@ -287,8 +287,11 @@ func CollectControllerImages(namespace string, controlPlane *rsc.RemoteControlPl
 // When deploying an agent, a controller already exists; so we always try catalog first, then YAML, then util.
 // controlPlane can be nil for Kubernetes or other non-remote control planes (catalog + util still apply).
 func CollectAgentImages(namespace string, agent *rsc.RemoteAgent, controlPlane *rsc.RemoteControlPlane, _ bool) (*RequiredImages, error) {
-	if agent == nil || agent.Config == nil || agent.Config.Arch == nil {
-		return nil, util.NewInputError("agent configuration with arch is required to collect airgap images")
+	if agent == nil || agent.Config == nil {
+		return nil, util.NewInputError("agent configuration is required to collect airgap images")
+	}
+	if err := NormalizeAgentArch(agent.Config); err != nil {
+		return nil, err
 	}
 	images := &RequiredImages{}
 

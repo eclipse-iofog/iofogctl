@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
+	iutil "github.com/eclipse-iofog/iofogctl/internal/util"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
@@ -262,14 +263,46 @@ func SanitizeSegment(value string) string {
 	return result
 }
 
+func syncArchFromID(cfg *rsc.AgentConfiguration) {
+	if cfg == nil {
+		return
+	}
+	if cfg.Arch != nil && strings.TrimSpace(*cfg.Arch) != "" {
+		return
+	}
+	if cfg.ArchID == nil {
+		return
+	}
+	name, ok := rsc.ArchIDToString(int(*cfg.ArchID))
+	if !ok || name == "" || name == "auto" {
+		return
+	}
+	cfg.Arch = iutil.MakeStrPtr(name)
+}
+
+// NormalizeAgentArch ensures cfg.Arch is set, deriving it from cfg.ArchID when needed.
+func NormalizeAgentArch(cfg *rsc.AgentConfiguration) error {
+	if cfg == nil {
+		return util.NewInputError("Agent configuration is required for airgap deployment")
+	}
+	syncArchFromID(cfg)
+	if cfg.Arch == nil || strings.TrimSpace(*cfg.Arch) == "" {
+		if cfg.ArchID != nil {
+			return util.NewInputError(fmt.Sprintf("Unsupported archId %d for airgap deployment", *cfg.ArchID))
+		}
+		return util.NewInputError("Arch or archId is required for airgap deployment. Please specify the agent architecture (amd64, arm64, riscv64, arm)")
+	}
+	return nil
+}
+
 // ValidateAirgapRequirements validates that required configuration is present for airgap deployment.
 func ValidateAirgapRequirements(agentConfig *rsc.AgentConfiguration) error {
 	if agentConfig == nil {
 		return util.NewInputError("Agent configuration is required for airgap deployment")
 	}
 
-	if agentConfig.Arch == nil || *agentConfig.Arch == "" {
-		return util.NewInputError("Arch is required for airgap deployment. Please specify the agent architecture (x86 or arm)")
+	if err := NormalizeAgentArch(agentConfig); err != nil {
+		return err
 	}
 
 	deploymentType := ResolveDeploymentType(agentConfig.DeploymentType)
