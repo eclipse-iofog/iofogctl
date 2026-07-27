@@ -10,6 +10,9 @@ var pkg struct {
 	edgeletScriptInstallContainer          string
 	edgeletScriptInstallInitUnits          string
 	edgeletScriptStartEdgelet              string
+	edgeletScriptProbeContainerdReady      string
+	edgeletScriptProbeEdgeletReady         string
+	edgeletScriptRestartContainerd         string
 	edgeletScriptConfigureContainerEdgelet string
 	edgeletScriptWaitEdgeletReady          string
 	edgeletScriptBundled                   string
@@ -28,6 +31,9 @@ func init() {
 	pkg.edgeletScriptInstallContainer = "install_container.sh"
 	pkg.edgeletScriptInstallInitUnits = "install_init_units.sh"
 	pkg.edgeletScriptStartEdgelet = "start_edgelet.sh"
+	pkg.edgeletScriptProbeContainerdReady = "probe_containerd_ready.sh"
+	pkg.edgeletScriptProbeEdgeletReady = "probe_edgelet_ready.sh"
+	pkg.edgeletScriptRestartContainerd = "restart_edgelet_containerd.sh"
 	pkg.edgeletScriptConfigureContainerEdgelet = "configure_container_edgelet.sh"
 	pkg.edgeletScriptWaitEdgeletReady = "wait_edgelet_ready.sh"
 	pkg.edgeletScriptBundled = "bundled.sh"

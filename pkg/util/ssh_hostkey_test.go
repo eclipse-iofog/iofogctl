@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -104,6 +105,8 @@ func TestVerifyHostKeyPausesSpinnerDuringPrompt(t *testing.T) {
 func TestVerifyHostKeyPromptIsSerialized(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	homedir.Reset()
+	t.Cleanup(homedir.Reset)
 
 	prevTerminal := sshIsTerminalFn
 	sshIsTerminalFn = func(int) bool { return true }

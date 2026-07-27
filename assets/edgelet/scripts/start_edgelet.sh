@@ -13,6 +13,23 @@ EDGELET_DETECT_SOURCED=1
 . "$SCRIPT_DIR/detect_init.sh"
 init
 
+NO_WAIT=false
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--no-wait)
+			NO_WAIT=true
+			;;
+		*)
+			echo "Error: unknown argument: $1" >&2
+			exit 1
+			;;
+	esac
+	shift
+done
+if [ "$NO_WAIT" = true ]; then
+	export EDGELET_START_NO_WAIT=1
+fi
+
 CONTAINER_ENGINE="${CONTAINER_ENGINE:-edgelet}"
 EDGELET_INSTALL_MODE="${EDGELET_INSTALL_MODE:-native}"
 EDGELET_CONTAINER_IMAGE="${EDGELET_CONTAINER_IMAGE:-}"
@@ -81,7 +98,9 @@ redeploy_native_linux() {
 start_embedded_systemd() {
 	maybe_sudo systemctl enable edgelet-containerd 2>/dev/null || true
 	maybe_sudo systemctl start edgelet-containerd 2>/dev/null || true
-	wait_edgelet_containerd_socket || true
+	if [ "${EDGELET_START_NO_WAIT:-0}" != "1" ]; then
+		wait_edgelet_containerd_socket || true
+	fi
 	maybe_sudo systemctl enable edgelet 2>/dev/null || true
 	maybe_sudo systemctl stop edgelet 2>/dev/null || true
 	maybe_sudo systemctl reset-failed edgelet 2>/dev/null || true

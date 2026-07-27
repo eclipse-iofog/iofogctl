@@ -150,6 +150,45 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	if !strings.Contains(start, "wait_edgelet_containerd_socket") {
 		t.Fatalf("start_edgelet.sh missing embedded systemd start parity")
 	}
+	if !strings.Contains(start, "--no-wait") || !strings.Contains(start, "EDGELET_START_NO_WAIT") {
+		t.Fatalf("start_edgelet.sh missing --no-wait remote bootstrap flag")
+	}
+
+	for _, name := range []string{
+		pkg.edgeletScriptProbeContainerdReady,
+		pkg.edgeletScriptProbeEdgeletReady,
+	} {
+		content, err := loadEdgeletScript(name)
+		if err != nil {
+			t.Fatalf("load %s: %v", name, err)
+		}
+		if strings.Contains(content, "sleep ") {
+			t.Fatalf("%s must not contain sleep loops", name)
+		}
+	}
+	restartContainerd, err := loadEdgeletScript(pkg.edgeletScriptRestartContainerd)
+	if err != nil {
+		t.Fatalf("load restart_edgelet_containerd.sh: %v", err)
+	}
+	if !strings.Contains(restartContainerd, "EDGELET_START_NO_WAIT") {
+		t.Fatalf("restart_edgelet_containerd.sh must set EDGELET_START_NO_WAIT")
+	}
+	if !strings.Contains(restartContainerd, "restart_edgelet_containerd_service") {
+		t.Fatalf("restart_edgelet_containerd.sh must call restart_edgelet_containerd_service")
+	}
+	if strings.Contains(restartContainerd, "sleep ") {
+		t.Fatalf("restart_edgelet_containerd.sh must not contain sleep loops")
+	}
+	if probeContainerd, err := loadEdgeletScript(pkg.edgeletScriptProbeContainerdReady); err != nil {
+		t.Fatalf("load probe_containerd_ready.sh: %v", err)
+	} else if !strings.Contains(probeContainerd, "edgelet_containerd_socket_ready") {
+		t.Fatalf("probe_containerd_ready.sh missing socket ready check")
+	}
+	if probeEdgelet, err := loadEdgeletScript(pkg.edgeletScriptProbeEdgeletReady); err != nil {
+		t.Fatalf("load probe_edgelet_ready.sh: %v", err)
+	} else if !strings.Contains(probeEdgelet, "edgelet_unit_active") {
+		t.Fatalf("probe_edgelet_ready.sh missing unit active check")
+	}
 
 	waitReady, err := loadEdgeletScript(pkg.edgeletScriptWaitEdgeletReady)
 	if err != nil {
@@ -246,5 +285,54 @@ func TestEdgeletRedeployBootstrapEnv(t *testing.T) {
 	env = cfg.bootstrapEnv(true)
 	if strings.Contains(env, "EDGELET_SERVICE_ACTION=restart") {
 		t.Fatalf("did not expect restart action on fresh install, got %q", env)
+	}
+}
+
+func TestRemotePostInstallStartEdgeletNoWait(t *testing.T) {
+	cfg := EdgeletInstallConfig{
+		HostOS:          "linux",
+		Arch:            "amd64",
+		ContainerEngine: "edgelet",
+		DeploymentType:  "native",
+	}
+	procs, err := newDefaultEdgeletProcedures(EdgeletScriptStageDir, cfg)
+	if err != nil {
+		t.Fatalf("newDefaultEdgeletProcedures: %v", err)
+	}
+
+	remotePost := procs.postInstallCommandsBeforeBundled("edge-node", cfg, true)
+	if len(remotePost) < 2 {
+		t.Fatalf("expected post-install commands, got %d", len(remotePost))
+	}
+	if !strings.Contains(remotePost[1].cmd, pkg.edgeletScriptStartEdgelet) {
+		t.Fatalf("expected start_edgelet command, got %q", remotePost[1].cmd)
+	}
+	if !strings.Contains(remotePost[1].cmd, "--no-wait") {
+		t.Fatalf("remote start must pass --no-wait, got %q", remotePost[1].cmd)
+	}
+
+	localPost := procs.postInstallCommandsBeforeBundled("local", cfg, false)
+	if strings.Contains(localPost[1].cmd, "--no-wait") {
+		t.Fatalf("local start must not pass --no-wait, got %q", localPost[1].cmd)
+	}
+}
+
+func TestEdgeletScriptNamesIncludeProbeScripts(t *testing.T) {
+	names := edgeletScriptNames()
+	want := []string{
+		pkg.edgeletScriptProbeContainerdReady,
+		pkg.edgeletScriptProbeEdgeletReady,
+	}
+	for _, script := range want {
+		found := false
+		for _, name := range names {
+			if name == script {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("edgeletScriptNames missing %q in %v", script, names)
+		}
 	}
 }
