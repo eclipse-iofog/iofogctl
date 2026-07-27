@@ -201,7 +201,7 @@ func pruneWasmStageDir(stageDir string, keep map[string]struct{}) error {
 }
 
 func readWasmManifest(path string) ([]wasmManifestEntry, error) {
-	data, err := os.ReadFile(path)
+	data, err := util.ReadValidatedFile(path)
 	if err != nil {
 		return nil, err
 	}
