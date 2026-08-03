@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 # Documented upstream exceptions — see SECURITY.md § Known vulnerability exceptions.
-ALLOWED_VULNS="GO-2026-5932"
+ALLOWED_VULNS=""
 
 GOTAGS="${GOTAGS:-containers_image_openpgp,exclude_graphdriver_btrfs}"
 

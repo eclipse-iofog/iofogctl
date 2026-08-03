@@ -5,6 +5,48 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.8.2] — August 2026
+
+Stable v3.8 patch release. Bumps operator and edgelet pins; improves airgap scoping, remote edgelet install orchestration, and deploy SSH preflight; clears govulncheck findings from v3.8.1.
+
+### Added
+
+- Per-controller `airgap` flag and platform-scoped image transfer
+- SSH host-key preflight before parallel control plane deploy
+- Remote edgelet install: split service start from readiness polling; isolated WASM staging path
+- Edgelet release binary downloads honor `package.version`
+
+### Changed
+
+- Bump **iofog-operator** to **v3.8.2**; component pins: operator/controller/router **3.8.2**, NATS **2.14.3-2**, edgelet binary **v1.0.2** / image **1.0.2**
+- Edgelet OTA: restart embedded containerd only when embed bundle hash changes
+- Bump `go.podman.io/image/v5` to **v5.41.0** (`github.com/ProtonMail/go-crypto/openpgp` via `containers_image_openpgp` build tag)
+- Bump `google.golang.org/grpc` to **v1.82.1** and `golang.org/x/text` to **v0.39.0**
+
+### Fixed
+
+- Airgap: normalize `arch` from `archId` for validation and image collection
+- Remote edgelet manifest cleanup uses sudo on the target host
+- WASM manifest reads use `ReadValidatedFile` (gosec G304 path-traversal hardening)
+
+### Security
+
+- Resolve **GO-2026-5932** by upgrading `go.podman.io/image/v5` to v5.41.0; remove documented govulncheck exception
+- Bump `google.golang.org/grpc` for **GO-2026-6061**
+- Bump `golang.org/x/text` for **GO-2026-5970**
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.8.2` |
+| operator | `3.8.2` |
+| controller | `3.8.2` |
+| router | `3.8.2` |
+| nats | `2.14.3-2` |
+| edgelet binary | `v1.0.2` |
+| edgelet image | `ghcr.io/<registry>/edgelet:1.0.2` |
+
 ## [v3.8.1] — July 2026
 
 Stable v3.8 patch release. Bumps SDK, operator, and edgelet pins; adds fog node OTA semver targeting and hardens edgelet redeploy/containerd orchestration.
@@ -306,7 +348,9 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/Datasance/potctl/compare/v3.8.0-rc.1...HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.2...HEAD
+[v3.8.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.1...v3.8.2
+[v3.8.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.0...v3.8.1
 [3.8.0-rc.1]: https://github.com/Datasance/potctl/releases/tag/v3.8.0-rc.1
 [v3.0.0-beta8]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta7..v3.0.0-beta8
 [v3.0.0-beta7]: https://github.com/eclipse-iofog/iofogctl/compare/v3.0.0-beta6..v3.0.0-beta7
