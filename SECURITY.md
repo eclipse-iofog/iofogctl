@@ -41,9 +41,7 @@ Build, test, goreleaser, and govulncheck share the same Go build tags via `GOTAG
 
 ## Known vulnerability exceptions
 
-| GO ID | CVE | Component | Rationale | Fix timeline |
-|-------|-----|-----------|-----------|--------------|
-| GO-2026-5932 | — | `golang.org/x/crypto/openpgp` via `go.podman.io/image/v5` | Required by `containers_image_openpgp` build tag for cgo-free cross-platform builds (macOS, Windows, CI). Used for container image signature parsing in airgap/offline flows. Upstream `go.podman.io/image/v5` v5.40.0 explicitly retains deprecated openpgp; no patched version exists (`Fixed in: N/A`). | Remove when `go.podman.io/image` migrates to a maintained fork (e.g. `github.com/ProtonMail/go-crypto/openpgp`). |
+None at this time.
 
 `make vulncheck` must pass with zero undocumented findings affecting CLI call paths.
 
