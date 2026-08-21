@@ -5,6 +5,28 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.8.3-rc.1] — August 2026
+
+v3.8.3 release candidate. Bumps Go, SDK, operator, and component pins to the v3.8.3-rc.1 line.
+
+### Changed
+
+- Bump Go to **1.26.6**
+- Bump **iofog-go-sdk** and **iofog-operator** to **v3.8.3-rc.1**
+- Component pins: operator/controller/router **3.8.3-rc.1**, NATS **2.14.5-rc.1**, edgelet binary **v1.0.3-rc.1** / image **1.0.3-rc.1**
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.8.3-rc.1` |
+| operator | `3.8.3-rc.1` |
+| controller | `3.8.3-rc.1` |
+| router | `3.8.3-rc.1` |
+| nats | `2.14.5-rc.1` |
+| edgelet binary | `v1.0.3-rc.1` |
+| edgelet image | `ghcr.io/<registry>/edgelet:1.0.3-rc.1` |
+
 ## [v3.8.2] — August 2026
 
 Stable v3.8 patch release. Bumps operator and edgelet pins; improves airgap scoping, remote edgelet install orchestration, and deploy SSH preflight; clears govulncheck findings from v3.8.1.
@@ -348,7 +370,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.2...HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.3-rc.1...HEAD
+[v3.8.3-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.2...v3.8.3-rc.1
 [v3.8.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.1...v3.8.2
 [v3.8.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.0...v3.8.1
 [3.8.0-rc.1]: https://github.com/Datasance/potctl/releases/tag/v3.8.0-rc.1

@@ -1,6 +1,6 @@
 [![CLI CI](https://github.com/eclipse-iofog/iofogctl/actions/workflows/ci.yml/badge.svg)](https://github.com/eclipse-iofog/iofogctl/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/eclipse-iofog/iofogctl?include_prereleases)](https://github.com/eclipse-iofog/iofogctl/releases)
-[![Go](https://img.shields.io/badge/Go-1.26.5-blue.svg)](https://go.dev/)
+[![Go](https://img.shields.io/badge/Go-1.26.6-blue.svg)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-EPL--2.0-blue.svg)](LICENSE)
 [![govulncheck](https://github.com/eclipse-iofog/iofogctl/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/eclipse-iofog/iofogctl/actions/workflows/govulncheck.yml)
 [![CodeQL](https://github.com/eclipse-iofog/iofogctl/actions/workflows/codeql.yml/badge.svg)](https://github.com/eclipse-iofog/iofogctl/actions/workflows/codeql.yml)
@@ -18,7 +18,7 @@ Upstream: [eclipse-iofog/iofogctl](https://github.com/eclipse-iofog/iofogctl) ·
 
 **iofogctl** and **potctl** are dual-flavor CLIs for installing, configuring, and operating ioFog [Edge Compute Networks](https://iofog.org/docs/2/getting-started/core-concepts.html) (ECNs). v3.8 is a greenfield release: configuration lives under `~/.iofog/v3`, and there is no in-place upgrade path from legacy potctl- or v3.7 deployments.
 
-Release binaries ship for **linux** (amd64, arm64, armv6, armv7), **macOS** (amd64, arm64), and **Windows** (amd64). Built with **Go 1.26.5** (see `go.mod`).
+Release binaries ship for **linux** (amd64, arm64, armv6, armv7), **macOS** (amd64, arm64), and **Windows** (amd64). Built with **Go 1.26.6** (see `go.mod`).
 
 ## Install — iofogctl
 
@@ -90,7 +90,7 @@ Shell autocompletion: `iofogctl autocomplete bash` (or `zsh`), then follow the p
 
 ## Build from source
 
-Requires Go **1.26.5+** (matches the Go badge and `go.mod`). Build outside `$GOPATH` (Go modules):
+Requires Go **1.26.6+** (matches the Go badge and `go.mod`). Build outside `$GOPATH` (Go modules):
 
 ```bash
 make FLAVOR=iofog build       # iofogctl → bin/iofogctl
