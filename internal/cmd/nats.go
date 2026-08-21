@@ -319,7 +319,7 @@ func printNatsOutput(obj interface{}, output string, wide [][]string) error {
 }
 
 func printWideTable(table [][]string) error {
-	writer := tabwriter.NewWriter(os.Stdout, 16, 8, 1, '\t', 0)
+	writer := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
 	defer writer.Flush()
 	for _, row := range table {
 		for _, col := range row {
