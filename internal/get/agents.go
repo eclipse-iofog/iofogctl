@@ -106,6 +106,7 @@ func tabulateAgents(agentInfos []client.AgentInfo) (table [][]string, err error)
 				agent.IPAddressExternal,
 				"-",
 				"-",
+				"-",
 			}
 			table[idx+1] = append(table[idx+1], row...)
 		} else {

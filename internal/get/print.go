@@ -7,10 +7,8 @@ import (
 )
 
 func print(table [][]string) error {
-	minWidth := 16
-	tabWidth := 8
-	padding := 1
-	writer := tabwriter.NewWriter(os.Stdout, minWidth, tabWidth, padding, '\t', 0)
+	// Space padding so column alignment does not depend on the terminal tab width.
+	writer := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
 	defer writer.Flush()
 
 	for _, row := range table {

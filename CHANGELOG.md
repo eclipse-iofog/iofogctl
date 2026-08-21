@@ -5,6 +5,13 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `get` and NATS wide tables pad with spaces so headers such as AGENT `ENGINE` align regardless of terminal tab width
+- Unprovisioned agent rows include the ENGINE column
+
 ## [v3.8.3-rc.1] — August 2026
 
 v3.8.3 release candidate. Bumps Go, SDK, operator, and component pins to the v3.8.3-rc.1 line.
