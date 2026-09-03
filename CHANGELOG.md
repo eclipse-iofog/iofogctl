@@ -5,12 +5,16 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v3.8.3-rc.2] — September 2026
 
 ### Fixed
 
 - `get` and NATS wide tables pad with spaces so headers such as AGENT `ENGINE` align regardless of terminal tab width
 - Unprovisioned agent rows include the ENGINE column
+
+### Security
+
+- Bump `golang.org/x/crypto` to **v0.56.0** for **GO-2026-6354** and **GO-2026-6355** (SSH channel deadlock DoS)
 
 ## [v3.8.3-rc.1] — August 2026
 
