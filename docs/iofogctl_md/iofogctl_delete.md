@@ -39,12 +39,15 @@ iofogctl delete [flags]
 * [iofogctl delete configmap](iofogctl_delete_configmap.md)	 - Delete a ConfigMap
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
+* [iofogctl delete microservice-template](iofogctl_delete_microservice-template.md)	 - Delete a Microservice Template
+* [iofogctl delete model](iofogctl_delete_model.md)	 - Delete a Model
 * [iofogctl delete namespace](iofogctl_delete_namespace.md)	 - Delete a Namespace
 * [iofogctl delete nats-account-rule](iofogctl_delete_nats-account-rule.md)	 - Delete a NATS account rule
 * [iofogctl delete nats-user-rule](iofogctl_delete_nats-user-rule.md)	 - Delete a NATS user rule
 * [iofogctl delete registry](iofogctl_delete_registry.md)	 - Delete a Registry
 * [iofogctl delete role](iofogctl_delete_role.md)	 - Delete a Role
 * [iofogctl delete rolebinding](iofogctl_delete_rolebinding.md)	 - Delete a RoleBinding
+* [iofogctl delete runtimeclass](iofogctl_delete_runtimeclass.md)	 - Delete a RuntimeClass
 * [iofogctl delete secret](iofogctl_delete_secret.md)	 - Delete a Secret
 * [iofogctl delete service](iofogctl_delete_service.md)	 - Delete a Service
 * [iofogctl delete serviceaccount](iofogctl_delete_serviceaccount.md)	 - Delete a ServiceAccount

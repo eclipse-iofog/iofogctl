@@ -2,6 +2,7 @@ package deployregistry
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
@@ -10,6 +11,11 @@ import (
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
 	"gopkg.in/yaml.v2"
+)
+
+const (
+	registryTypeOCI = "oci"
+	registryTypeHF  = "hf"
 )
 
 type Options struct {
@@ -32,53 +38,20 @@ func (exe *remoteExecutor) GetName() string {
 
 func (exe *remoteExecutor) Execute() error {
 	util.SpinStart(fmt.Sprintf("Deploying registry %s", exe.GetName()))
-	// Init remote resources
 	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
 		return err
 	}
 
 	if exe.registry.ID > 0 {
-		var publicPtr *bool
-		if exe.registry.Private != nil {
-			public := !*exe.registry.Private
-			publicPtr = &public
-		}
-		return clt.UpdateRegistry(client.RegistryUpdateRequest{
-			URL:      exe.registry.URL,
-			IsPublic: publicPtr,
-			Username: exe.registry.Username,
-			Email:    exe.registry.Email,
-			Password: exe.registry.Password,
-			ID:       exe.registry.ID,
-		})
+		return clt.UpdateRegistry(toUpdateRequest(exe.registry))
 	}
 
-	createRequest := &client.RegistryCreateRequest{}
-	if exe.registry.URL != nil {
-		createRequest.URL = *exe.registry.URL
-	}
-	if exe.registry.Private != nil {
-		createRequest.IsPublic = !*exe.registry.Private
-	}
-	if exe.registry.Username != nil {
-		createRequest.Username = *exe.registry.Username
-	}
-	if exe.registry.Password != nil {
-		createRequest.Password = *exe.registry.Password
-	}
-	if exe.registry.Email != nil {
-		createRequest.Email = *exe.registry.Email
-	}
-	if _, err = clt.CreateRegistry(createRequest); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = clt.CreateRegistry(toCreateRequest(exe.registry))
+	return err
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
-	// Check the namespace exists
 	ns, err := config.GetNamespace(opt.Namespace)
 	if err != nil {
 		return
@@ -88,12 +61,10 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	// Check Controller exists
 	if len(controlPlane.GetControllers()) == 0 {
 		return exe, util.NewInputError("This namespace does not have a Controller. You must first deploy a Controller before deploying Applications")
 	}
 
-	// Unmarshal file
 	var registry rsc.Registry
 	if err = yaml.UnmarshalStrict(opt.Yaml, &registry); err != nil {
 		err = util.NewUnmarshalError(err.Error())
@@ -101,11 +72,18 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}
 
 	if registry.Private == nil {
-		Private := false
-		registry.Private = &Private
+		private := false
+		registry.Private = &private
+	}
+	if registry.Type == nil || strings.TrimSpace(*registry.Type) == "" {
+		t := registryTypeOCI
+		registry.Type = &t
+	} else {
+		t := strings.ToLower(strings.TrimSpace(*registry.Type))
+		registry.Type = &t
 	}
 
-	if err := validate(registry, true); err != nil {
+	if err := validate(registry); err != nil {
 		return nil, err
 	}
 
@@ -115,20 +93,82 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}, nil
 }
 
-func validate(opt rsc.Registry, create bool) error {
-	if create {
-		if opt.URL == nil || *opt.URL == "" {
-			return util.NewInputError("URL cannot be empty")
-		}
-		if opt.Email == nil || *opt.Email == "" {
-			return util.NewInputError("Email cannot be empty")
-		}
+func toCreateRequest(reg rsc.Registry) *client.RegistryCreateRequest {
+	req := &client.RegistryCreateRequest{
+		Type: derefString(reg.Type),
+		CA:   derefString(reg.CA),
 	}
-	if opt.RequiresCert != nil && *opt.RequiresCert && opt.Certificate != nil && *opt.Certificate == "" {
-		return util.NewInputError("Certificate cannot be empty if requiresCertificate is set to true")
+	if reg.URL != nil {
+		req.URL = *reg.URL
 	}
-	if !*opt.Private && ((opt.Password == nil || *opt.Password == "") || (opt.Username == nil || *opt.Username == "")) {
-		return util.NewInputError("Password and/or Username cannot be empty if Private is set to false")
+	if reg.Private != nil {
+		req.IsPublic = !*reg.Private
+	}
+	if reg.Username != nil {
+		req.Username = *reg.Username
+	}
+	if reg.Password != nil {
+		req.Password = *reg.Password
+	}
+	if reg.Email != nil {
+		req.Email = *reg.Email
+	}
+	if reg.Insecure != nil {
+		req.Insecure = *reg.Insecure
+	}
+	return req
+}
+
+func toUpdateRequest(reg rsc.Registry) client.RegistryUpdateRequest {
+	return client.RegistryUpdateRequest{
+		URL:      reg.URL,
+		IsPublic: invertBool(reg.Private),
+		Username: reg.Username,
+		Email:    reg.Email,
+		Password: reg.Password,
+		Type:     reg.Type,
+		CA:       reg.CA,
+		Insecure: reg.Insecure,
+		ID:       reg.ID,
+	}
+}
+
+func invertBool(p *bool) *bool {
+	if p == nil {
+		return nil
+	}
+	v := !*p
+	return &v
+}
+
+func derefString(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+func validate(opt rsc.Registry) error {
+	if opt.URL == nil || *opt.URL == "" {
+		return util.NewInputError("URL cannot be empty")
+	}
+
+	regType := derefString(opt.Type)
+	if regType != registryTypeOCI && regType != registryTypeHF {
+		return util.NewInputError("type must be oci or hf")
+	}
+
+	if opt.Private != nil && *opt.Private {
+		switch regType {
+		case registryTypeHF:
+			if opt.Password == nil || *opt.Password == "" {
+				return util.NewInputError("Password cannot be empty for private hf registry")
+			}
+		default:
+			if opt.Username == nil || *opt.Username == "" || opt.Password == nil || *opt.Password == "" {
+				return util.NewInputError("Username and password are required for private oci registry")
+			}
+		}
 	}
 
 	return nil

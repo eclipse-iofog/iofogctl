@@ -125,6 +125,17 @@ func TestGoldenRoundTripRemoteAgent(t *testing.T) {
 	require.Equal(t, *agent.Config.Arch, *round.Config.Arch)
 }
 
+func TestAgentConfigurationRejectsHALFields(t *testing.T) {
+	for _, field := range []string{
+		"deviceScanFrequency: 60\n",
+		"bluetoothEnabled: true\n",
+		"abstractedHardwareEnabled: false\n",
+	} {
+		_, err := UnmarshallAgentConfiguration([]byte(field))
+		require.Error(t, err, "expected HAL field %q to be rejected", field)
+	}
+}
+
 func TestArchStringToID(t *testing.T) {
 	id, ok := ArchStringToID("amd64")
 	require.True(t, ok)

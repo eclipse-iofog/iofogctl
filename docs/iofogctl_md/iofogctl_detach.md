@@ -31,6 +31,8 @@ iofogctl detach
 * [iofogctl](iofogctl.md)	 - 
 * [iofogctl detach agent](iofogctl_detach_agent.md)	 - Detaches an Agent
 * [iofogctl detach exec](iofogctl_detach_exec.md)	 - Remove fog debug exec from an Agent
+* [iofogctl detach model](iofogctl_detach_model.md)	 - Detach a Model from existing Agents
+* [iofogctl detach runtimeclass](iofogctl_detach_runtimeclass.md)	 - Detach a RuntimeClass from existing Agents
 * [iofogctl detach volume-mount](iofogctl_detach_volume-mount.md)	 - Detach a Volume Mount from existing Agents
 
 

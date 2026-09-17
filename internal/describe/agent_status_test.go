@@ -96,3 +96,38 @@ func TestFormatAgentStatusUptimeAndTimestamps(t *testing.T) {
 	require.Equal(t, "2026-05-07T12:21:10Z", got["lastStatusTime"])
 	require.Equal(t, "5h3m", got["uptime"])
 }
+
+func TestFormatAgentStatusV39ModelAndRuntimeBlobs(t *testing.T) {
+	got := FormatAgentStatus(rsc.AgentStatus{
+		RuntimeClasses:      `[{"name":"nvidia"}]`,
+		AvailableCdiDevices: `["nvidia.com/gpu=0"]`,
+		ModelStatus:         `[{"name":"llama","state":"Ready"}]`,
+		ActiveModels:        2,
+		ModelLastUpdate:     1710000000,
+	})
+
+	require.Equal(t, 2, got["activeModels"])
+	require.Equal(t, "2024-03-09T16:00:00Z", got["modelLastUpdate"])
+
+	runtimeClasses, ok := got["runtimeClasses"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, runtimeClasses, 1)
+	require.Equal(t, "nvidia", runtimeClasses[0].(map[string]interface{})["name"])
+
+	cdi, ok := got["availableCdiDevices"].([]interface{})
+	require.True(t, ok)
+	require.Equal(t, "nvidia.com/gpu=0", cdi[0])
+
+	models, ok := got["modelStatus"].([]interface{})
+	require.True(t, ok)
+	require.Equal(t, "llama", models[0].(map[string]interface{})["name"])
+}
+
+func TestFormatAgentStatusOmitsEmptyV39Blobs(t *testing.T) {
+	got := FormatAgentStatus(rsc.AgentStatus{})
+	require.NotContains(t, got, "runtimeClasses")
+	require.NotContains(t, got, "availableCdiDevices")
+	require.NotContains(t, got, "modelStatus")
+	require.NotContains(t, got, "modelLastUpdate")
+	require.Equal(t, 0, got["activeModels"])
+}

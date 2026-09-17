@@ -710,17 +710,40 @@ func (k8s *Kubernetes) GetControllerPods() (podNames []Pod, err error) {
 	if err != nil {
 		return
 	}
-	// Find Controller pods (label key follows build flavor: e.g. datasance.com/component or iofog.org/component)
+	// Find live Controller pods (label key follows build flavor: e.g. datasance.com/component or iofog.org/component)
 	componentLabel := util.GetCliCrdGroup() + "/component"
-	for idx := range pods.Items {
-		if controllerPodLabelsMatch(pods.Items[idx].Labels, componentLabel) {
-			podNames = append(podNames, Pod{
-				Name:   pods.Items[idx].Name,
-				Status: string(pods.Items[idx].Status.Phase),
-			})
-		}
-	}
+	podNames = selectControllerPods(pods.Items, componentLabel)
 	return
+}
+
+func selectControllerPods(pods []corev1.Pod, componentLabel string) []Pod {
+	selected := []Pod{}
+	for idx := range pods {
+		pod := pods[idx]
+		if !controllerPodLabelsMatch(pod.Labels, componentLabel) {
+			continue
+		}
+		if !isLiveControllerPod(pod) {
+			continue
+		}
+		selected = append(selected, Pod{
+			Name:   pod.Name,
+			Status: string(pod.Status.Phase),
+		})
+	}
+	return selected
+}
+
+func isLiveControllerPod(pod corev1.Pod) bool {
+	if pod.DeletionTimestamp != nil {
+		return false
+	}
+	switch pod.Status.Phase {
+	case corev1.PodRunning, corev1.PodPending:
+		return true
+	default:
+		return false
+	}
 }
 
 func controllerPodLabelsMatch(labels map[string]string, componentLabel string) bool {

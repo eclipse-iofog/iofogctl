@@ -5,6 +5,27 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.0-rc.1] - 17-09-2026
+
+### Breaking
+
+- Remove agent HAL/BLE fields `deviceScanFrequency`, `bluetoothEnabled`, and `abstractedHardwareEnabled`. Keep `edgeGuardFrequency`.
+- Registry YAML: drop `isSecure`, `requiresCert`, and `certificate`. Use `type` (`oci` or `hf`), `ca`, and `insecure`. Email is optional.
+
+### Added
+
+- `deploy -f` for `kind: Model`, `RuntimeClass`, and `MicroserviceTemplate`
+- `attach` / `detach` model and runtimeclass to agents by name
+- `get` / `describe` / `delete` for model, runtimeclass, and microservice-template
+- Microservice `spec.template` and `spec.models`; `deploy --patch-model` patches the catalog only (Controller decides rebuild)
+- Describe microservice: models catalog, `podId`, and container 3.9 fields (`runAsGroup`, `entrypoint`, `tmpfs`, `devices`, …)
+- Describe agent: parsed `runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, and `modelLastUpdate`
+- `get all` includes a models table
+
+### Fixed
+
+- `get controllers` lists Running/Pending Kubernetes controller pods only (skips Failed, Succeeded, and terminating) and no longer persists those pods in namespace config
+
 ## [v3.8.3-rc.2] — September 2026
 
 ### Fixed

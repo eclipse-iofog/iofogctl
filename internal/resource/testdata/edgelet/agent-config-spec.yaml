@@ -13,14 +13,11 @@ logDirectory: /var/log/edgelet/
 logFileCount: 10
 statusFrequency: 10
 changeFrequency: 10
-deviceScanFrequency: 60
-bluetoothEnabled: true
 watchdogEnabled: false
 gpsMode: auto
 gpsScanFrequency: 60
 gpsDevice: ''
 edgeGuardFrequency: 0
-abstractedHardwareEnabled: false
 upstreamRouters: ['default-router']
 routerConfig:
   routerMode: edge

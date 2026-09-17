@@ -35,6 +35,8 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [potctl describe controller](potctl_describe_controller.md)	 - Get detailed information about a Controller
 * [potctl describe controlplane](potctl_describe_controlplane.md)	 - Get detailed information about a Control Plane
 * [potctl describe microservice](potctl_describe_microservice.md)	 - Get detailed information about a Microservice
+* [potctl describe microservice-template](potctl_describe_microservice-template.md)	 - Get detailed information about a Microservice Template
+* [potctl describe model](potctl_describe_model.md)	 - Get detailed information about a Model
 * [potctl describe namespace](potctl_describe_namespace.md)	 - Get detailed information about a Namespace
 * [potctl describe nats-account](potctl_describe_nats-account.md)	 - Get detailed information about a NATS account
 * [potctl describe nats-account-rule](potctl_describe_nats-account-rule.md)	 - Get detailed information about a NATS account rule
@@ -43,6 +45,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [potctl describe registry](potctl_describe_registry.md)	 - Get detailed information about a Microservice Registry
 * [potctl describe role](potctl_describe_role.md)	 - Get detailed information about a Role
 * [potctl describe rolebinding](potctl_describe_rolebinding.md)	 - Get detailed information about a RoleBinding
+* [potctl describe runtimeclass](potctl_describe_runtimeclass.md)	 - Get detailed information about a RuntimeClass
 * [potctl describe secret](potctl_describe_secret.md)	 - Get detailed information about a Secret
 * [potctl describe service](potctl_describe_service.md)	 - Get detailed information about a Service
 * [potctl describe serviceaccount](potctl_describe_serviceaccount.md)	 - Get detailed information about a ServiceAccount

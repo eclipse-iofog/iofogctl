@@ -143,14 +143,15 @@ type Events struct {
 }
 
 type Registry struct {
-	URL          *string `yaml:"url"`
-	Private      *bool   `yaml:"private"`
-	Username     *string `yaml:"username"`
-	Password     *string `yaml:"password"`
-	Email        *string `yaml:"email"`
-	RequiresCert *bool   `yaml:"requiresCert"`
-	Certificate  *string `yaml:"certificate,omitempty"`
-	ID           int     `yaml:"id"`
+	URL      *string `yaml:"url"`
+	Private  *bool   `yaml:"private"`
+	Username *string `yaml:"username"`
+	Password *string `yaml:"password"`
+	Email    *string `yaml:"email,omitempty"`
+	Type     *string `yaml:"type"`
+	CA       *string `yaml:"ca,omitempty"`
+	Insecure *bool   `yaml:"insecure,omitempty"`
+	ID       int     `yaml:"id"`
 }
 
 type Volume struct {
@@ -225,6 +226,11 @@ type AgentStatus struct {
 	RuntimeAgentPhase     string                 `json:"runtimeAgentPhase" yaml:"runtimeAgentPhase"`
 	ControlPlaneQuiesced  bool                   `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
 	PlatformStatus        *client.PlatformStatus `json:"platformStatus,omitempty" yaml:"platformStatus,omitempty"`
+	RuntimeClasses        string                 `json:"runtimeClasses" yaml:"runtimeClasses"`
+	AvailableCdiDevices   string                 `json:"availableCdiDevices" yaml:"availableCdiDevices"`
+	ModelStatus           string                 `json:"modelStatus" yaml:"modelStatus"`
+	ActiveModels          int                    `json:"activeModels" yaml:"activeModels"`
+	ModelLastUpdate       int64                  `json:"modelLastUpdate" yaml:"modelLastUpdate"`
 }
 
 // ArchStringToID maps canonical architecture names to Controller archId values.

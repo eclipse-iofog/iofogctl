@@ -51,7 +51,7 @@ func generateCatalogOutput(namespace string) error {
 			ID:          item.ID,
 			Name:        item.Name,
 			Description: item.Description,
-			Registry:    clientutil.FormatRegistryID(item.RegistryID),
+			Registry:    apps.RegistryRef(item.RegistryID),
 		}
 		for _, image := range item.Images {
 			switch client.ArchIDToName[image.ArchID] {
@@ -93,7 +93,7 @@ func tabulateCatalogItems(catalogItems []apps.CatalogItem) error {
 			strconv.Itoa(item.ID),
 			item.Name,
 			item.Description,
-			item.Registry,
+			strconv.Itoa(item.Registry.Int()),
 			item.AMD64,
 			item.ARM64,
 			item.RISCV64,

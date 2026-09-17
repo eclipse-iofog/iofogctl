@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	"github.com/eclipse-iofog/iofogctl/internal/execute"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -13,15 +14,18 @@ import (
 )
 
 type Options struct {
-	Namespace string
-	Yaml      []byte
-	Name      string
+	Namespace  string
+	Yaml       []byte
+	Name       string
+	PatchModel bool
 }
 
 type remoteExecutor struct {
 	namespace    string
-	microservice interface{}
+	microservice apps.Microservice
 	name         string
+	patchModel   bool
+	catalog      client.MicroserviceCatalog
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -29,6 +33,10 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() error {
+	if exe.patchModel {
+		return exe.patchModels()
+	}
+
 	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.GetName()))
 	ns, err := config.GetNamespace(exe.namespace)
 	if err != nil {
@@ -66,7 +74,26 @@ func (exe *remoteExecutor) Execute() error {
 		return err
 	}
 
-	return apps.DeployMicroservice(controller, exe.microservice, appName, msvcName, apps.WithAPIVersion(util.GetCliApiVersion()))
+	return apps.DeployMicroservice(controller, &exe.microservice, appName, msvcName, apps.WithAPIVersion(util.GetCliApiVersion()))
+}
+
+func (exe *remoteExecutor) patchModels() error {
+	util.SpinStart(fmt.Sprintf("Patching models for microservice %s", exe.GetName()))
+	clt, err := clientutil.NewControllerClient(exe.namespace)
+	if err != nil {
+		return err
+	}
+
+	appName, msvcName, err := clientutil.ParseFQName(exe.name, "Microservice")
+	if err != nil {
+		return err
+	}
+
+	msvc, err := clt.GetMicroserviceByName(appName, msvcName)
+	if err != nil {
+		return err
+	}
+	return clt.PatchMicroserviceModels(msvc.UUID, exe.catalog)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -75,24 +102,76 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return exe, err
 	}
 	// Unmarshal file
-	var microservice interface{}
+	var microservice apps.Microservice
 	if err = yaml.UnmarshalStrict(opt.Yaml, &microservice); err != nil {
 		err = util.NewUnmarshalError(err.Error())
 		return
 	}
 
-	name := opt.Name
-	if !strings.Contains(name, "/") {
-		if m, ok := microservice.(map[interface{}]interface{}); ok {
-			if app, ok := m["application"].(string); ok && app != "" {
-				name = app + "/" + name
-			}
+	name := resolveMicroserviceName(opt.Name, opt.Yaml)
+
+	if opt.PatchModel {
+		catalog, err := parseMicroserviceModels(opt.Yaml)
+		if err != nil {
+			return nil, err
 		}
+		if catalog == nil {
+			return nil, util.NewInputError("--patch-model requires spec.models")
+		}
+		return &remoteExecutor{
+			namespace:    opt.Namespace,
+			microservice: microservice,
+			name:         name,
+			patchModel:   true,
+			catalog:      toClientCatalog(*catalog),
+		}, nil
 	}
 
 	return &remoteExecutor{
 		namespace:    opt.Namespace,
-		microservice: &microservice,
+		microservice: microservice,
 		name:         name,
 	}, nil
+}
+
+func resolveMicroserviceName(optName string, yamlBytes []byte) string {
+	name := optName
+	if strings.Contains(name, "/") {
+		return name
+	}
+	var spec struct {
+		Application string `yaml:"application,omitempty"`
+	}
+	if err := yaml.Unmarshal(yamlBytes, &spec); err != nil {
+		return name
+	}
+	if spec.Application != "" {
+		return spec.Application + "/" + name
+	}
+	return name
+}
+
+func parseMicroserviceModels(raw []byte) (*apps.MicroserviceCatalog, error) {
+	var spec struct {
+		Models *apps.MicroserviceCatalog `yaml:"models"`
+	}
+	if err := yaml.Unmarshal(raw, &spec); err != nil {
+		return nil, util.NewUnmarshalError(err.Error())
+	}
+	return spec.Models, nil
+}
+
+func toClientCatalog(in apps.MicroserviceCatalog) client.MicroserviceCatalog {
+	out := client.MicroserviceCatalog{
+		BindPath:    in.BindPath,
+		Permissions: in.Permissions,
+	}
+	if len(in.Items) == 0 {
+		return out
+	}
+	out.Items = make([]client.MicroserviceCatalogItem, len(in.Items))
+	for i, item := range in.Items {
+		out.Items[i] = client.MicroserviceCatalogItem{Name: item.Name}
+	}
+	return out
 }

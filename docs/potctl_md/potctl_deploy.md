@@ -19,6 +19,9 @@ potctl deploy -f ecn.yaml
           application.yaml
           microservice.yaml
           catalog.yaml
+          model.yaml
+          runtimeclass.yaml
+          microservice-template.yaml
           volume.yaml
           route.yaml
           secret.yaml
@@ -33,6 +36,7 @@ potctl deploy -f ecn.yaml
   -f, --file string         YAML file containing specifications for ioFog resources to deploy
   -h, --help                help for deploy
       --no-cache            Disable caching for OfflineImage images after download
+      --patch-model         Patch only spec.models on Microservice YAML (catalog PATCH). Controller decides whether the workload is rebuilt.
       --transfer-pool int   Maximum number of concurrent OfflineImage transfers (default 2)
 ```
 

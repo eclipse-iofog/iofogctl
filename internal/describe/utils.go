@@ -1,17 +1,16 @@
 package describe
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
-	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
-	// "github.com/eclipse-iofog/iofogctl/pkg/iofog"
-	// "github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (*apps.Microservice, *apps.MicroserviceStatusInfo, *apps.MicroserviceExecStatusInfo, error) {
@@ -79,6 +78,9 @@ func FormatMicroserviceStatus(status *apps.MicroserviceStatusInfo) map[string]in
 	formatted["ipAddress"] = status.IPAddress
 	formatted["execSessionIds"] = status.ExecSessionIDs
 	formatted["healthStatus"] = status.HealthStatus
+	if status.PodID != "" {
+		formatted["podId"] = status.PodID
+	}
 
 	// Format startTime as RFC3339 timestamp
 	if status.StartTime > 0 {
@@ -156,7 +158,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		ARM64:     arm64Image,
 		RISCV64:   riscv64Image,
 		ARM:       armImage,
-		Registry:  clientutil.FormatRegistryID(registryID),
+		Registry:  apps.RegistryRef(registryID),
 	}
 	for _, img := range imgArray {
 		switch img.ArchID {
@@ -218,19 +220,48 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	msvc.Container.Runtime = msvcInfo.Runtime
 	msvc.Container.Platform = msvcInfo.Platform
 	msvc.Container.RunAsUser = msvcInfo.RunAsUser
+	msvc.Container.RunAsGroup = msvcInfo.RunAsGroup
+	msvc.Container.ReadOnlyRootFilesystem = msvcInfo.ReadOnlyRootFilesystem
 	msvc.Container.CdiDevices = msvcInfo.CdiDevices
 	msvc.Container.CapAdd = msvcInfo.CapAdd
 	msvc.Container.CapDrop = msvcInfo.CapDrop
+	// Commands is the merged cmd/commands list from GET (commands wins when both are present).
 	msvc.Container.Commands = msvcInfo.Commands
+	if len(msvcInfo.CommandsAlias) > 0 {
+		msvc.Container.Commands = msvcInfo.CommandsAlias
+	}
+	msvc.Container.Entrypoint = msvcInfo.Entrypoint
+	msvc.Container.WorkingDir = msvcInfo.WorkingDir
 	msvc.Container.Ports = mapPorts(msvcInfo.Ports)
 	msvc.Container.Volumes = &volumes
 	msvc.Container.Env = &envs
 	msvc.Container.ExtraHosts = &extraHosts
 	msvc.Container.CPUSetCpus = msvcInfo.CPUSetCpus
 	msvc.Container.MemoryLimit = &msvcInfo.MemoryLimit
+	if msvcInfo.Cpus != 0 {
+		cpus := msvcInfo.Cpus
+		msvc.Container.CPUs = &cpus
+	}
+	if msvcInfo.MemoryReservation != 0 {
+		reservation := msvcInfo.MemoryReservation
+		msvc.Container.MemoryReservation = &reservation
+	}
+	if msvcInfo.MemorySwap != 0 {
+		swap := msvcInfo.MemorySwap
+		msvc.Container.MemorySwap = &swap
+	}
+	if msvcInfo.ShmSize != 0 {
+		shm := msvcInfo.ShmSize
+		msvc.Container.ShmSize = &shm
+	}
+	msvc.Container.Sysctls = msvcInfo.Sysctls
+	msvc.Container.Ulimits = mapUlimits(msvcInfo.Ulimits)
+	msvc.Container.Devices = mapDevices(msvcInfo.Devices)
+	msvc.Container.Tmpfs = mapTmpfs(msvcInfo.Tmpfs)
 	if hasHealthCheck {
 		msvc.Container.HealthCheck = &healthCheck
 	}
+	msvc.Models = mapMicroserviceCatalog(msvcInfo.Models)
 	if msvcInfo.NatsConfig != nil {
 		msvc.NatsConfig = &apps.MicroserviceNatsConfig{
 			NatsAccess: msvcInfo.NatsConfig.NatsAccess,
@@ -239,6 +270,15 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	}
 	msvc.Schedule = msvcInfo.Schedule
 	msvc.Application = appName
+	if msvcInfo.ServiceAccount != nil {
+		msvc.ServiceAccount = &apps.MicroserviceServiceAccountRef{
+			RoleRef: apps.RoleRef{
+				Kind:     msvcInfo.ServiceAccount.RoleRef.Kind,
+				Name:     msvcInfo.ServiceAccount.RoleRef.Name,
+				APIGroup: msvcInfo.ServiceAccount.RoleRef.APIGroup,
+			},
+		}
+	}
 	status = new(apps.MicroserviceStatusInfo)
 
 	status.Status = msvcInfo.Status.Status
@@ -252,6 +292,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	status.IPAddress = msvcInfo.Status.IPAddress
 	status.ExecSessionIDs = msvcInfo.Status.ExecSessionIDs
 	status.HealthStatus = msvcInfo.Status.HealthStatus
+	status.PodID = msvcInfo.Status.PodID
 	execStatus = new(apps.MicroserviceExecStatusInfo)
 	execStatus.Status = msvcInfo.ExecStatus.Status
 	execStatus.ExecSessionID = msvcInfo.ExecStatus.ExecSessionID
@@ -299,6 +340,67 @@ func mapExtraHosts(in []client.MicroserviceExtraHost) (out []apps.MicroserviceEx
 		out = append(out, apps.MicroserviceExtraHost(eH))
 	}
 	return
+}
+
+func mapMicroserviceCatalog(in *client.MicroserviceCatalog) *apps.MicroserviceCatalog {
+	if in == nil {
+		return nil
+	}
+	out := &apps.MicroserviceCatalog{
+		BindPath:    in.BindPath,
+		Permissions: in.Permissions,
+	}
+	if len(in.Items) > 0 {
+		out.Items = make([]apps.MicroserviceCatalogItem, len(in.Items))
+		for i, item := range in.Items {
+			out.Items[i] = apps.MicroserviceCatalogItem{Name: item.Name}
+		}
+	}
+	return out
+}
+
+func mapUlimits(in map[string]client.ContainerUlimit) map[string]apps.MicroserviceUlimit {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make(map[string]apps.MicroserviceUlimit, len(in))
+	for k, u := range in {
+		out[k] = apps.MicroserviceUlimit{Soft: u.Soft, Hard: u.Hard}
+	}
+	return out
+}
+
+func mapDevices(in []client.ContainerDevice) []apps.MicroserviceDevice {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]apps.MicroserviceDevice, len(in))
+	for i, d := range in {
+		out[i] = apps.MicroserviceDevice{
+			HostPath:      d.HostPath,
+			ContainerPath: d.ContainerPath,
+			Permissions:   d.Permissions,
+		}
+	}
+	return out
+}
+
+func mapTmpfs(in []client.ContainerTmpfs) []apps.MicroserviceTmpfs {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]apps.MicroserviceTmpfs, len(in))
+	for i, t := range in {
+		out[i] = apps.MicroserviceTmpfs{
+			ContainerPath: t.ContainerPath,
+			Mode:          t.Mode,
+		}
+		if t.Size != 0 {
+			size := t.Size
+			out[i].Size = &size
+		}
+	}
+	return out
 }
 
 // FormatAgentStatus formats agent status for human-readable output
@@ -394,8 +496,36 @@ func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
 	formatted["tunnel"] = status.Tunnel
 	formatted["volumeMounts"] = status.VolumeMounts
 	formatted["gpsStatus"] = status.GpsStatus
+	formatted["activeModels"] = status.ActiveModels
+	if parsed, ok := parseJSONBlob(status.RuntimeClasses); ok {
+		formatted["runtimeClasses"] = parsed
+	}
+	if parsed, ok := parseJSONBlob(status.AvailableCdiDevices); ok {
+		formatted["availableCdiDevices"] = parsed
+	}
+	if parsed, ok := parseJSONBlob(status.ModelStatus); ok {
+		formatted["modelStatus"] = parsed
+	}
+	if status.ModelLastUpdate > 0 {
+		formatted["modelLastUpdate"] = time.Unix(status.ModelLastUpdate, 0).UTC().Format(time.RFC3339)
+	}
 
 	return formatted
+}
+
+func parseJSONBlob(raw string) (interface{}, bool) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, false
+	}
+	var v interface{}
+	if err := json.Unmarshal([]byte(raw), &v); err != nil {
+		return raw, true
+	}
+	if v == nil {
+		return nil, false
+	}
+	return v, true
 }
 
 func formatPlatformStatus(ps *client.PlatformStatus) map[string]interface{} {

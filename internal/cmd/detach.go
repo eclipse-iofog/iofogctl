@@ -17,6 +17,8 @@ func newDetachCommand() *cobra.Command {
 		newDetachAgentCommand(),
 		newDetachVolumeMountCommand(),
 		newDetachExecCommand(),
+		newDetachModelCommand(),
+		newDetachRuntimeClassCommand(),
 	)
 
 	return cmd
