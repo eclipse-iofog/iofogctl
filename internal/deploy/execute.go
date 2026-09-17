@@ -19,12 +19,15 @@ import (
 	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/local"
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/remote"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
+	deploymicroservicetemplate "github.com/eclipse-iofog/iofogctl/internal/deploy/microservicetemplate"
+	deploymodel "github.com/eclipse-iofog/iofogctl/internal/deploy/model"
 	deploynatsaccountrule "github.com/eclipse-iofog/iofogctl/internal/deploy/natsaccountrule"
 	deploynatsuserrule "github.com/eclipse-iofog/iofogctl/internal/deploy/natsuserrule"
 	deployofflineimage "github.com/eclipse-iofog/iofogctl/internal/deploy/offlineimage"
 	deployregistry "github.com/eclipse-iofog/iofogctl/internal/deploy/registry"
 	deployrole "github.com/eclipse-iofog/iofogctl/internal/deploy/role"
 	deployrolebinding "github.com/eclipse-iofog/iofogctl/internal/deploy/rolebinding"
+	deployruntimeclass "github.com/eclipse-iofog/iofogctl/internal/deploy/runtimeclass"
 	deploysecret "github.com/eclipse-iofog/iofogctl/internal/deploy/secret"
 	deployservice "github.com/eclipse-iofog/iofogctl/internal/deploy/service"
 	deployserviceaccount "github.com/eclipse-iofog/iofogctl/internal/deploy/serviceaccount"
@@ -56,6 +59,9 @@ var kindOrder = []config.Kind{
 	config.OfflineImageKind,
 	config.VolumeMountKind,
 	config.RegistryKind,
+	config.ModelKind,
+	config.RuntimeClassKind,
+	config.MicroserviceTemplateKind,
 	config.CatalogItemKind,
 	config.ApplicationKind,
 	config.MicroserviceKind,
@@ -67,6 +73,7 @@ type Options struct {
 	InputFile    string
 	NoCache      bool
 	TransferPool int
+	PatchModel   bool
 }
 
 func deployCatalogItem(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -81,8 +88,15 @@ func deployApplication(opt *execute.KindHandlerOpt) (exe execute.Executor, err e
 	return deployapplication.NewExecutor(deployapplication.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployMicroservice(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
-	return deploymicroservice.NewExecutor(deploymicroservice.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+func deployMicroservice(patchModel bool) func(*execute.KindHandlerOpt) (execute.Executor, error) {
+	return func(opt *execute.KindHandlerOpt) (execute.Executor, error) {
+		return deploymicroservice.NewExecutor(deploymicroservice.Options{
+			Namespace:  opt.Namespace,
+			Yaml:       opt.YAML,
+			Name:       opt.Name,
+			PatchModel: patchModel,
+		})
+	}
 }
 
 func deployKubernetesControlPlane(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -119,6 +133,23 @@ func deployAgentConfig(opt *execute.KindHandlerOpt) (exe execute.Executor, err e
 
 func deployRegistry(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deployregistry.NewExecutor(deployregistry.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployModel(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploymodel.NewExecutor(deploymodel.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployRuntimeClass(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployruntimeclass.NewExecutor(deployruntimeclass.Options{
+		Namespace: opt.Namespace,
+		Yaml:      opt.YAML,
+		FullYAML:  opt.FullYAML,
+		Name:      opt.Name,
+	})
+}
+
+func deployMicroserviceTemplate(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deploymicroservicetemplate.NewExecutor(deploymicroservicetemplate.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployVolume(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -177,10 +208,15 @@ func deployNatsUserRule(opt *execute.KindHandlerOpt) (exe execute.Executor, err 
 
 // Execute deploy from yaml file
 func Execute(opt *Options) (err error) {
-	kindHandlers := buildKindHandlers(opt.NoCache, opt.TransferPool)
+	kindHandlers := buildKindHandlers(opt.NoCache, opt.TransferPool, opt.PatchModel)
 	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers, false)
 	if err != nil {
 		return err
+	}
+	if opt.PatchModel {
+		if err := validatePatchModelExecutors(executorsMap); err != nil {
+			return err
+		}
 	}
 
 	// Create any AgentConfig executor missing.
@@ -304,11 +340,11 @@ func Execute(opt *Options) (err error) {
 	return nil
 }
 
-func buildKindHandlers(noCache bool, transferPool int) map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error) {
+func buildKindHandlers(noCache bool, transferPool int, patchModel bool) map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error) {
 	handlers := map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
 		config.ApplicationKind:            deployApplication,
 		config.ApplicationTemplateKind:    deployApplicationTemplate,
-		config.MicroserviceKind:           deployMicroservice,
+		config.MicroserviceKind:           deployMicroservice(patchModel),
 		config.CatalogItemKind:            deployCatalogItem,
 		config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
 		config.RemoteControlPlaneKind:     deployRemoteControlPlane,
@@ -319,6 +355,9 @@ func buildKindHandlers(noCache bool, transferPool int) map[config.Kind]func(*exe
 		config.LocalAgentKind:             deployLocalAgent,
 		config.AgentConfigKind:            deployAgentConfig,
 		config.RegistryKind:               deployRegistry,
+		config.ModelKind:                  deployModel,
+		config.RuntimeClassKind:           deployRuntimeClass,
+		config.MicroserviceTemplateKind:   deployMicroserviceTemplate,
 		config.VolumeKind:                 deployVolume,
 		config.SecretKind:                 deploySecret,
 		config.ConfigMapKind:              deployConfigMap,
@@ -342,6 +381,19 @@ func buildKindHandlers(noCache bool, transferPool int) map[config.Kind]func(*exe
 		})
 	}
 	return handlers
+}
+
+func validatePatchModelExecutors(executorsMap map[config.Kind][]execute.Executor) error {
+	hasMicroservice := len(executorsMap[config.MicroserviceKind]) > 0
+	if !hasMicroservice {
+		return util.NewInputError("--patch-model requires a Microservice YAML file")
+	}
+	for kind, exes := range executorsMap {
+		if kind != config.MicroserviceKind && len(exes) > 0 {
+			return util.NewInputError("--patch-model requires a Microservice-only YAML file")
+		}
+	}
+	return nil
 }
 
 func deployAgentConfiguration(executors []execute.Executor) (err error) {
