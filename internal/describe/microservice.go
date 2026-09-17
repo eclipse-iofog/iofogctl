@@ -1,6 +1,8 @@
 package describe
 
 import (
+	"strings"
+
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
@@ -57,12 +59,17 @@ func (exe *microserviceExecutor) Execute() error {
 		return err
 	}
 
+	metadataName := exe.name
+	if _, msvcName, err := clientutil.ParseFQName(exe.name, "Microservice"); err == nil && strings.Contains(exe.name, "/") {
+		metadataName = msvcName
+	}
+
 	header := config.Header{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       config.MicroserviceKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
-			Name:      exe.name,
+			Name:      metadataName,
 		},
 		Spec: yamlMsvc,
 		Status: map[string]interface{}{
