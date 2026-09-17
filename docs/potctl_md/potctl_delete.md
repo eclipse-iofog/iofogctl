@@ -39,12 +39,15 @@ potctl delete [flags]
 * [potctl delete configmap](potctl_delete_configmap.md)	 - Delete a ConfigMap
 * [potctl delete controller](potctl_delete_controller.md)	 - Delete a Controller
 * [potctl delete microservice](potctl_delete_microservice.md)	 - Delete a Microservice
+* [potctl delete microservice-template](potctl_delete_microservice-template.md)	 - Delete a Microservice Template
+* [potctl delete model](potctl_delete_model.md)	 - Delete a Model
 * [potctl delete namespace](potctl_delete_namespace.md)	 - Delete a Namespace
 * [potctl delete nats-account-rule](potctl_delete_nats-account-rule.md)	 - Delete a NATS account rule
 * [potctl delete nats-user-rule](potctl_delete_nats-user-rule.md)	 - Delete a NATS user rule
 * [potctl delete registry](potctl_delete_registry.md)	 - Delete a Registry
 * [potctl delete role](potctl_delete_role.md)	 - Delete a Role
 * [potctl delete rolebinding](potctl_delete_rolebinding.md)	 - Delete a RoleBinding
+* [potctl delete runtimeclass](potctl_delete_runtimeclass.md)	 - Delete a RuntimeClass
 * [potctl delete secret](potctl_delete_secret.md)	 - Delete a Secret
 * [potctl delete service](potctl_delete_service.md)	 - Delete a Service
 * [potctl delete serviceaccount](potctl_delete_serviceaccount.md)	 - Delete a ServiceAccount

@@ -41,6 +41,9 @@ iofogctl get all
              nats-user-rules
              auth-groups
              auth-group NAME
+             models
+             runtimeclass
+             microservice-templates
 ```
 
 ### Options

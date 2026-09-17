@@ -35,6 +35,8 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [iofogctl describe controller](iofogctl_describe_controller.md)	 - Get detailed information about a Controller
 * [iofogctl describe controlplane](iofogctl_describe_controlplane.md)	 - Get detailed information about a Control Plane
 * [iofogctl describe microservice](iofogctl_describe_microservice.md)	 - Get detailed information about a Microservice
+* [iofogctl describe microservice-template](iofogctl_describe_microservice-template.md)	 - Get detailed information about a Microservice Template
+* [iofogctl describe model](iofogctl_describe_model.md)	 - Get detailed information about a Model
 * [iofogctl describe namespace](iofogctl_describe_namespace.md)	 - Get detailed information about a Namespace
 * [iofogctl describe nats-account](iofogctl_describe_nats-account.md)	 - Get detailed information about a NATS account
 * [iofogctl describe nats-account-rule](iofogctl_describe_nats-account-rule.md)	 - Get detailed information about a NATS account rule
@@ -43,6 +45,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [iofogctl describe registry](iofogctl_describe_registry.md)	 - Get detailed information about a Microservice Registry
 * [iofogctl describe role](iofogctl_describe_role.md)	 - Get detailed information about a Role
 * [iofogctl describe rolebinding](iofogctl_describe_rolebinding.md)	 - Get detailed information about a RoleBinding
+* [iofogctl describe runtimeclass](iofogctl_describe_runtimeclass.md)	 - Get detailed information about a RuntimeClass
 * [iofogctl describe secret](iofogctl_describe_secret.md)	 - Get detailed information about a Secret
 * [iofogctl describe service](iofogctl_describe_service.md)	 - Get detailed information about a Service
 * [iofogctl describe serviceaccount](iofogctl_describe_serviceaccount.md)	 - Get detailed information about a ServiceAccount
