@@ -254,9 +254,6 @@ function checkApplication() {
   DESC_MSVC=$(iofogctl -v -n "$NS_CHECK" describe microservice $APPLICATION_NAME/"${MSVC1_NAME}")
   echo "${DESC_MSVC}" | grep "test_mode: true"
   echo "${DESC_MSVC}" | grep "data_label: Anonymous_Person"
-  # Deploying an application should not update Agent config. This is a legacy overload of the functionality.
-  # Use a separate AgentConfig Kind to update the required config.
-  # [[ "bluetoothEnabled: true" == $(iofogctl -v -n "$NS_CHECK" describe agent-config "${NAME}-0" | grep bluetooth | awk '{$1=$1};1' ) ]]
   # Check ports
   msvcWithPorts=$(iofogctl -v -n "$NS_CHECK" get microservices | grep "$PORT_EXT:$PORT_INT")
   [[ "${MSVC2_NAME}" == $(echo "$msvcWithPorts" | awk '{print $1}') ]]
@@ -322,8 +319,6 @@ function checkAgent() {
   # Checks list taken from init.bash
   CHECKS=("name:.$AGENT_NAME"
 "description:.special.test.agent"
-"bluetoothEnabled:.true"
-"abstractedHardwareEnabled:.false"
 "latitude:.46\.464646"
 "longitude:.64\.646464"
 "memoryLimit:.8192"
@@ -333,8 +328,7 @@ function checkAgent() {
 "logLimit:.12"
 "logFileCount:.11"
 "statusFrequency:.9"
-"changeFrequency:.8"
-"deviceScanFrequency:.61")
+"changeFrequency:.8")
   for CHECK in ${CHECKS[@]}; do
     echo $CHECK
     [[ ! -z $(iofogctl -v -n "$NS_CHECK" describe agent "$AGENT_NAME" $OPTIONS | grep "$CHECK") ]]

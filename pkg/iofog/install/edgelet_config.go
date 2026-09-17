@@ -201,9 +201,6 @@ func applyEdgeletProfileOverrides(profile map[string]interface{}, hostOS, arch s
 	if cfg.ChangeFrequency != nil {
 		profile["changeFrequency"] = formatFloat(*cfg.ChangeFrequency)
 	}
-	if cfg.DeviceScanFrequency != nil {
-		profile["scanDevicesFreq"] = formatFloat(*cfg.DeviceScanFrequency)
-	}
 	if cfg.WatchdogEnabled != nil {
 		profile["watchdogEnabled"] = boolToOnOff(*cfg.WatchdogEnabled)
 	}
@@ -375,9 +372,6 @@ func buildBootstrapProfileFromAgentSpec(arch string, latitude, longitude float64
 	}
 	if cfg.ChangeFrequency != nil {
 		profile["changeFrequency"] = formatFloat(*cfg.ChangeFrequency)
-	}
-	if cfg.DeviceScanFrequency != nil {
-		profile["scanDevicesFreq"] = formatFloat(*cfg.DeviceScanFrequency)
 	}
 	if cfg.WatchdogEnabled != nil {
 		profile["watchdogEnabled"] = boolToOnOff(*cfg.WatchdogEnabled)
