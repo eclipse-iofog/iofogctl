@@ -75,6 +75,8 @@ func FormatMicroserviceStatus(status *apps.MicroserviceStatusInfo) map[string]in
 	formatted["containerId"] = status.ContainerID
 	formatted["percentage"] = status.Percentage
 	formatted["errorMessage"] = status.ErrorMessage
+	formatted["lastError"] = status.LastError
+	formatted["restartCount"] = status.RestartCount
 	formatted["ipAddress"] = status.IPAddress
 	formatted["execSessionIds"] = status.ExecSessionIDs
 	formatted["healthStatus"] = status.HealthStatus
@@ -85,6 +87,13 @@ func FormatMicroserviceStatus(status *apps.MicroserviceStatusInfo) map[string]in
 	// Format startTime as RFC3339 timestamp
 	if status.StartTime > 0 {
 		formatted["startTime"] = time.Unix(status.StartTime/1000, (status.StartTime%1000)*1000000).Format(time.RFC3339)
+	}
+
+	// lastErrorAt is Unix milliseconds; keep 0 when LastError is empty (older Controllers).
+	if status.LastErrorAt > 0 {
+		formatted["lastErrorAt"] = time.Unix(status.LastErrorAt/1000, (status.LastErrorAt%1000)*1000000).Format(time.RFC3339)
+	} else {
+		formatted["lastErrorAt"] = int64(0)
 	}
 
 	// Format operatingDuration as human-readable duration
@@ -289,6 +298,9 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	status.ContainerID = msvcInfo.Status.ContainerID
 	status.Percentage = msvcInfo.Status.Percentage
 	status.ErrorMessage = msvcInfo.Status.ErrorMessage
+	status.LastError = msvcInfo.Status.LastError
+	status.LastErrorAt = msvcInfo.Status.LastErrorAt
+	status.RestartCount = msvcInfo.Status.RestartCount
 	status.IPAddress = msvcInfo.Status.IPAddress
 	status.ExecSessionIDs = msvcInfo.Status.ExecSessionIDs
 	status.HealthStatus = msvcInfo.Status.HealthStatus

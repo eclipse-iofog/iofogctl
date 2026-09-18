@@ -2,8 +2,6 @@ package get
 
 import (
 	"fmt"
-	"math"
-	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
@@ -101,24 +99,7 @@ func (exe *systemMicroserviceExecutor) generateMicroserviceOutput() (table [][]s
 		} else {
 			agentName = agent.Name
 		}
-		status := ms.Status.Status
-		switch status {
-		case "":
-			status = "-"
-		case "PULLING":
-			if ms.Status.Percentage > 0 {
-				status = fmt.Sprintf("%s (%d%s)", ms.Status.Status, int(math.Round(ms.Status.Percentage)), "%")
-			}
-		}
-		if ms.Status.ErrorMessage != "" {
-			msg := ms.Status.ErrorMessage
-			if strings.Contains(msg, "invalid mount config for type \"bind\"") {
-				msg = "Volume missing"
-			} else if strings.Contains(msg, "runtime create failed") {
-				msg = "Error starting container"
-			}
-			status = fmt.Sprintf("%s (%s)", ms.Status.Status, msg)
-		}
+		status := formatMicroserviceGetStatus(ms.Status)
 
 		row := []string{
 			ms.Name,

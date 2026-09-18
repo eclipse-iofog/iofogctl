@@ -44,3 +44,50 @@ func TestNewExecutorV39Resources(t *testing.T) {
 		require.NotNil(t, exe, resource)
 	}
 }
+
+func TestFormatMicroserviceGetStatus(t *testing.T) {
+	require.Equal(t, "RUNNING", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{Status: "RUNNING"}))
+	require.Equal(t, "-", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{}))
+	require.Equal(t, "RUNNING (restarts: 2, lastError: OOMKilled)", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{
+		Status:       "RUNNING",
+		LastError:    "OOMKilled",
+		LastErrorAt:  1710000000123,
+		RestartCount: 2,
+	}))
+	require.Equal(t, "FAILED (crash loop) (restarts: 1)", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{
+		Status:       "FAILED",
+		ErrorMessage: "crash loop",
+		LastError:    "crash loop",
+		RestartCount: 1,
+	}))
+	require.Equal(t, "FAILED (Volume missing)", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{
+		Status:       "FAILED",
+		ErrorMessage: `invalid mount config for type "bind"`,
+	}))
+}
+
+func TestGenerateMicroserviceOutputCrashSummary(t *testing.T) {
+	exe := newMicroserviceExecutor("default")
+	exe.msvcPerID["healthy"] = &client.MicroserviceInfo{UUID: "healthy", Name: "healthy", Status: client.MicroserviceStatusInfo{Status: "RUNNING"}}
+	exe.msvcPerID["recovered"] = &client.MicroserviceInfo{
+		UUID: "recovered",
+		Name: "recovered",
+		Status: client.MicroserviceStatusInfo{
+			Status:       "RUNNING",
+			LastError:    "OOMKilled",
+			RestartCount: 2,
+		},
+	}
+	table := exe.generateMicroserviceOutput()
+	require.Equal(t, []string{"MICROSERVICE", "STATUS", "AGENT", "NATS ACCESS", "VOLUMES", "PORTS"}, table[0])
+
+	byName := map[string][]string{}
+	for _, row := range table[1:] {
+		if len(row) == 0 {
+			continue
+		}
+		byName[row[0]] = row
+	}
+	require.Equal(t, "RUNNING", byName["healthy"][1])
+	require.Equal(t, "RUNNING (restarts: 2, lastError: OOMKilled)", byName["recovered"][1])
+}

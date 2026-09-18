@@ -3,6 +3,7 @@ package describe
 import (
 	"strings"
 	"testing"
+	"time"
 
 	apps "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -135,6 +136,36 @@ func TestConstructMicroserviceV39Fields(t *testing.T) {
 
 	formatted := FormatMicroserviceStatus(status)
 	require.Equal(t, "pod-abc", formatted["podId"])
+	require.Equal(t, "", formatted["lastError"])
+	require.Equal(t, int64(0), formatted["lastErrorAt"])
+	require.Equal(t, 0, formatted["restartCount"])
+}
+
+func TestConstructMicroserviceStatusErrorExtras(t *testing.T) {
+	const lastErrorAt int64 = 1710000000123
+	_, status, _, err := constructMicroservice(&client.MicroserviceInfo{
+		Name:        "infer",
+		Config:      "{}",
+		Annotations: "{}",
+		Status: client.MicroserviceStatusInfo{
+			Status:       "RUNNING",
+			ErrorMessage: "",
+			LastError:    "OOMKilled",
+			LastErrorAt:  lastErrorAt,
+			RestartCount: 2,
+		},
+	}, "lima", "test-app", nil)
+	require.NoError(t, err)
+	require.Equal(t, "OOMKilled", status.LastError)
+	require.Equal(t, lastErrorAt, status.LastErrorAt)
+	require.Equal(t, 2, status.RestartCount)
+
+	formatted := FormatMicroserviceStatus(status)
+	require.Equal(t, "OOMKilled", formatted["lastError"])
+	require.Equal(t, 2, formatted["restartCount"])
+	require.Equal(t, "", formatted["errorMessage"])
+	wantAt := time.Unix(lastErrorAt/1000, (lastErrorAt%1000)*1000000).Format(time.RFC3339)
+	require.Equal(t, wantAt, formatted["lastErrorAt"])
 }
 
 func TestConstructMicroserviceRegistryAndServiceAccount(t *testing.T) {
