@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/briandowns/spinner v1.23.1
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.9.0-rc.3
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.9.0-rc.4
 	github.com/eclipse-iofog/iofog-operator/v3 v3.9.0-rc.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/moby/moby/api v1.55.0

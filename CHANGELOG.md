@@ -5,6 +5,18 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.0-rc.3] - 20-09-2026
+
+### Added
+
+- Microservice volume mapping `scope` (`private` default, or `shared`) when `type` is `volume`.
+  `deploy -f` accepts it; `describe` prints Controller’s value. Omit on write → Controller stores `private`.
+
+### Changed
+
+- Bump **iofog-go-sdk** to **v3.9.0-rc.4**
+- Component pins: controller **3.9.0-rc.5**, edgelet binary **v1.1.0-rc.3** / image **1.1.0-rc.3**
+
 ## [v3.9.0-rc.2] - 18-09-2026
 
 ### Added
