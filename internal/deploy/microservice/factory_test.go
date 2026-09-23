@@ -90,6 +90,73 @@ func TestParseMicroserviceModelsEmptyObjectPresent(t *testing.T) {
 	require.Empty(t, catalog.Items)
 }
 
+func TestUnmarshalMicroserviceSpecKeepsModelsAndKnowledge(t *testing.T) {
+	raw := []byte(`
+application: my-app
+models:
+  bindPath: /models
+  permissions: ro
+  items:
+    - name: smollm2-135m
+knowledge:
+  bindPath: /knowledge
+  permissions: ro
+  items:
+    - name: product-docs
+`)
+	var microservice apps.Microservice
+	require.NoError(t, yaml.UnmarshalStrict(raw, &microservice))
+	require.NotNil(t, microservice.Models)
+	require.Equal(t, "/models", microservice.Models.BindPath)
+	require.Equal(t, "smollm2-135m", microservice.Models.Items[0].Name)
+	require.NotNil(t, microservice.Knowledge)
+	require.Equal(t, "/knowledge", microservice.Knowledge.BindPath)
+	require.Equal(t, "ro", microservice.Knowledge.Permissions)
+	require.Equal(t, "product-docs", microservice.Knowledge.Items[0].Name)
+}
+
+func TestParseMicroserviceKnowledge(t *testing.T) {
+	raw := []byte(`
+application: my-app
+models:
+  bindPath: /models
+  permissions: ro
+  items:
+    - name: smollm2-135m
+knowledge:
+  bindPath: /knowledge
+  permissions: ro
+  items:
+    - name: product-docs
+`)
+	catalog, err := parseMicroserviceKnowledge(raw)
+	require.NoError(t, err)
+	require.NotNil(t, catalog)
+	require.Equal(t, "/knowledge", catalog.BindPath)
+	require.Equal(t, "ro", catalog.Permissions)
+	require.Len(t, catalog.Items, 1)
+	require.Equal(t, "product-docs", catalog.Items[0].Name)
+
+	clientCatalog := toClientKnowledgeCatalog(*catalog)
+	require.Equal(t, "/knowledge", clientCatalog.BindPath)
+	require.Equal(t, "ro", clientCatalog.Permissions)
+	require.Equal(t, "product-docs", clientCatalog.Items[0].Name)
+}
+
+func TestParseMicroserviceKnowledgeMissing(t *testing.T) {
+	catalog, err := parseMicroserviceKnowledge([]byte("application: test-app\n"))
+	require.NoError(t, err)
+	require.Nil(t, catalog)
+}
+
+func TestParseMicroserviceKnowledgeEmptyObjectPresent(t *testing.T) {
+	catalog, err := parseMicroserviceKnowledge([]byte("knowledge: {}\n"))
+	require.NoError(t, err)
+	require.NotNil(t, catalog)
+	require.Empty(t, catalog.BindPath)
+	require.Empty(t, catalog.Items)
+}
+
 func TestResolveMicroserviceNameFromApplication(t *testing.T) {
 	require.Equal(t, "test-app/tiny-gpt2-ms", resolveMicroserviceName("tiny-gpt2-ms", []byte("application: test-app\n")))
 	require.Equal(t, "other/ms", resolveMicroserviceName("other/ms", []byte("application: test-app\n")))
