@@ -139,22 +139,20 @@ if [ "$ACTION" = "rollback" ]; then
 	else
 		curl -fsSL -o "$_staged" "$_purl" || die "Failed to download rollback binary"
 	fi
-	_old_embed=""
-	if [ "$OS" = "linux" ]; then
-		_old_embed=$(installed_embed_hash)
-	fi
-	[ "$OS" = "linux" ] && stop_edgelet_service "$INIT"
-	stop_edgelet_daemon_desktop "$OS"
-	install_binary_file "$_staged" "$BINARY_PATH"
+	replace_staged_edgelet_binary "$_staged"
 	install_dirs_for_os "$OS"
 	if [ "$FORCE_CONFIG" != true ] && [ -f "$_cfgbak" ]; then
 		maybe_sudo install -m 640 "$_cfgbak" "$CONFIG_FILE"
 	fi
-	record_restart_data_plane_decision "$_old_embed"
 	_sha=$(sha256_file "$BINARY_PATH")
-	write_install_receipt "$EDGELET_VERSION" "$_pos" "$_parch" "$CONTAINER_ENGINE" "$_purl" "$_sha" "rollback"
 	"$SCRIPT_DIR/bundled.sh" || true
+	stage_pending_install_receipt "$EDGELET_VERSION" "$_pos" "$_parch" "$CONTAINER_ENGINE" "$_purl" "$_sha" "rollback"
+	if [ "$SKIP_START" = true ]; then
+		info "Skipping daemon start (--skip-start); use start_edgelet.sh"
+		exit 0
+	fi
 	_run_post_install
+	commit_pending_install_receipt
 	info "Rollback to ${EDGELET_VERSION} complete."
 	exit 0
 fi
@@ -177,29 +175,23 @@ if [ "$ACTION" = "upgrade" ]; then
 	_cfg_backup="${BACKUP_DIR}/config.yaml.$(date +%Y%m%d%H%M%S 2>/dev/null || date +%s)"
 	cp "$CONFIG_FILE" "$_cfg_backup" 2>/dev/null || true
 	cache_binary "$_cur_ver" "$_cur_os" "$_cur_arch" "$BINARY_PATH"
-	write_previous_release "$_cur_ver" "$_cur_os" "$_cur_arch" "$_cur_eng" "$_cur_src" "$_cur_sha" "$_cfg_backup"
-	_old_embed=""
-	if [ "$OS" = "linux" ]; then
-		_old_embed=$(installed_embed_hash)
-	fi
-	[ "$OS" = "linux" ] && stop_edgelet_service "$INIT"
-	stop_edgelet_daemon_desktop "$OS"
 	_staged="${TMPDIR}/edgelet-bin"
 	download_or_stage_binary "$_staged"
 	verify_binary_checksum "$_staged"
-	install_binary_file "$_staged" "$BINARY_PATH"
+	replace_staged_edgelet_binary "$_staged"
+	write_previous_release "$_cur_ver" "$_cur_os" "$_cur_arch" "$_cur_eng" "$_cur_src" "$_cur_sha" "$_cfg_backup"
 	install_dirs_for_os "$OS"
 	_sha=$(sha256_file "$BINARY_PATH")
 	_method="upgrade"
 	[ "$AIRGAP" = true ] && _method="upgrade-airgap"
-	write_install_receipt "$EDGELET_VERSION" "$OS" "$ARCH" "$CONTAINER_ENGINE" "$(compute_source_url)" "$_sha" "$_method"
 	"$SCRIPT_DIR/bundled.sh" || true
-	record_restart_data_plane_decision "$_old_embed"
+	stage_pending_install_receipt "$EDGELET_VERSION" "$OS" "$ARCH" "$CONTAINER_ENGINE" "$(compute_source_url)" "$_sha" "$_method"
 	if [ "$SKIP_START" = true ]; then
 		info "Skipping daemon start (--skip-start); use start_edgelet.sh"
 		exit 0
 	fi
 	_run_post_install
+	commit_pending_install_receipt
 	info "Upgrade to ${EDGELET_VERSION} complete."
 	exit 0
 fi

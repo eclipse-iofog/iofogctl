@@ -19,14 +19,17 @@ kv_get() {
 	echo "$_line" | sed "s/^${_key}=//"
 }
 
-write_install_receipt() {
-	_ver="$1"
-	_os="$2"
-	_arch="$3"
-	_eng="$4"
-	_url="$5"
-	_sha="$6"
-	_method="$7"
+PENDING_RECEIPT_FILE="${PENDING_RECEIPT_FILE:-${BACKUP_DIR}/pending-install-receipt}"
+
+_write_receipt_body() {
+	_dest="$1"
+	_ver="$2"
+	_os="$3"
+	_arch="$4"
+	_eng="$5"
+	_url="$6"
+	_sha="$7"
+	_method="$8"
 	maybe_sudo mkdir -p "$BACKUP_DIR"
 	_ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u)
 	{
@@ -38,8 +41,27 @@ write_install_receipt() {
 		printf 'installed_at=%s\n' "$_ts"
 		printf 'install_method=%s\n' "$_method"
 		printf 'binary_sha256=%s\n' "$_sha"
-	} | maybe_sudo tee "$RECEIPT_FILE" >/dev/null
+	} | maybe_sudo tee "$_dest" >/dev/null
+	maybe_sudo chmod 600 "$_dest" 2>/dev/null || true
+}
+
+write_install_receipt() {
+	_write_receipt_body "$RECEIPT_FILE" "$@"
+}
+
+# stage_pending_install_receipt records a receipt that becomes current only
+# after start_edgelet.sh brings the units back up.
+stage_pending_install_receipt() {
+	_write_receipt_body "$PENDING_RECEIPT_FILE" "$@"
+}
+
+commit_pending_install_receipt() {
+	[ -f "$PENDING_RECEIPT_FILE" ] || return 0
+	maybe_sudo mkdir -p "$BACKUP_DIR"
+	maybe_sudo cp "$PENDING_RECEIPT_FILE" "$RECEIPT_FILE"
 	maybe_sudo chmod 600 "$RECEIPT_FILE" 2>/dev/null || true
+	maybe_sudo rm -f "$PENDING_RECEIPT_FILE"
+	info "Install receipt written after services started"
 }
 
 write_previous_release() {

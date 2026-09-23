@@ -75,16 +75,21 @@ func TestInstallScriptOTAParity(t *testing.T) {
 		t.Fatalf("load install.sh: %v", err)
 	}
 	for _, needle := range []string{
-		"stop_edgelet_service",
+		"replace_staged_edgelet_binary",
+		"stage_pending_install_receipt",
+		"commit_pending_install_receipt",
+		"write_previous_release",
 		"EDGELET_SERVICE_ACTION",
 		"edgelet_cli_version",
 		"--upgrade",
-		"installed_embed_hash",
-		"record_restart_data_plane_decision",
+		"--rollback",
 	} {
 		if !strings.Contains(content, needle) {
 			t.Fatalf("install.sh missing OTA parity marker %q", needle)
 		}
+	}
+	if strings.Contains(content, "stop_edgelet_service") {
+		t.Fatalf("install.sh must not stop control itself; replace_staged_edgelet_binary drains first")
 	}
 	if !strings.Contains(content, "Skipping daemon start (--skip-start); use start_edgelet.sh") {
 		t.Fatalf("install.sh missing --skip-start handling on upgrade path")
@@ -95,9 +100,16 @@ func TestInstallScriptOTAParity(t *testing.T) {
 		t.Fatalf("load lib/embed.sh: %v", err)
 	}
 	for _, needle := range []string{
+		"embed_bundle_ready",
+		"7f454c46",
+		"containerd-shim-runc-v2",
 		"installed_embed_hash",
 		"binary_embed_hash",
 		"should_restart_data_plane",
+		"quiesce_data_plane_for_replace",
+		"runtime drain --direct",
+		"Data-plane drain did not verify; binary was not replaced",
+		"replace_staged_edgelet_binary",
 		"start_edgelet_containerd_unit",
 		"write_restart_data_plane_marker",
 		"consume_restart_data_plane_marker",
@@ -113,6 +125,9 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	}
 	for _, needle := range []string{
 		"stop_edgelet_service",
+		"stop_edgelet_containerd_unit",
+		"stop_edgelet_dataplane_processes",
+		"start_edgelet_containerd_after_drain",
 		"restart_edgelet_services",
 		"restart_edgelet_containerd_service",
 		"consume_containerd_restarted_marker",
@@ -146,6 +161,12 @@ func TestInstallScriptOTAParity(t *testing.T) {
 	}
 	if !strings.Contains(start, "consume_restart_data_plane_marker") {
 		t.Fatalf("start_edgelet.sh missing embed-hash redeploy handling")
+	}
+	if !strings.Contains(start, "start_edgelet_containerd_after_drain") {
+		t.Fatalf("start_edgelet.sh must start the data plane after a verified drain")
+	}
+	if !strings.Contains(start, "commit_pending_install_receipt") {
+		t.Fatalf("start_edgelet.sh must commit the install receipt after services start")
 	}
 	if !strings.Contains(start, "wait_edgelet_containerd_socket") {
 		t.Fatalf("start_edgelet.sh missing embedded systemd start parity")
