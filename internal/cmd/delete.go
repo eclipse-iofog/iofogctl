@@ -60,6 +60,7 @@ func newDeleteCommand() *cobra.Command {
 		newDeleteVolumeMountCommand(),
 		newDeleteCertificateCommand(),
 		newDeleteAuthGroupCommand(),
+		newDeleteKnowledgeCommand(),
 		newDeleteModelCommand(),
 		newDeleteRuntimeClassCommand(),
 		newDeleteMicroserviceTemplateCommand(),

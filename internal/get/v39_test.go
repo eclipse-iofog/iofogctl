@@ -21,6 +21,20 @@ func TestGenerateModelOutputEmpty(t *testing.T) {
 	require.Len(t, table, 1)
 }
 
+func TestGenerateKnowledgeOutput(t *testing.T) {
+	table := formatKnowledgeOutput([]client.Knowledge{
+		{Name: "product-docs", Repo: "docs/product", RegistryID: 3, Format: "jsonl", Revision: "sha256:def"},
+	})
+	require.Equal(t, []string{"NAME", "REPO", "REGISTRY_ID", "FORMAT", "REVISION"}, table[0])
+	require.Equal(t, []string{"product-docs", "docs/product", "3", "jsonl", "sha256:def"}, table[1])
+}
+
+func TestGenerateKnowledgeOutputEmpty(t *testing.T) {
+	table := formatKnowledgeOutput(nil)
+	require.Equal(t, []string{"NAME", "REPO", "REGISTRY_ID", "FORMAT", "REVISION"}, table[0])
+	require.Len(t, table, 1)
+}
+
 func TestGenerateRuntimeClassOutput(t *testing.T) {
 	table := generateRuntimeClassOutput([]client.RuntimeClass{
 		{Name: "spin", Handler: "spin"},
@@ -38,7 +52,7 @@ func TestGenerateMicroserviceTemplateOutput(t *testing.T) {
 }
 
 func TestNewExecutorV39Resources(t *testing.T) {
-	for _, resource := range []string{"models", "runtimeclass", "microservice-templates"} {
+	for _, resource := range []string{"knowledge", "models", "runtimeclass", "microservice-templates"} {
 		exe, err := NewExecutor(resource, "default", false, "")
 		require.NoError(t, err, resource)
 		require.NotNil(t, exe, resource)

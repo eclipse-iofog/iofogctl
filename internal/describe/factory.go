@@ -56,6 +56,8 @@ func NewExecutor(opt *Options) (execute.Executor, error) {
 		return newRoleBindingExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "serviceaccount":
 		return newServiceAccountExecutor(opt.Namespace, opt.Name, opt.Filename), nil
+	case "knowledge":
+		return newKnowledgeExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "model":
 		return newModelExecutor(opt.Namespace, opt.Name, opt.Filename), nil
 	case "runtimeclass":

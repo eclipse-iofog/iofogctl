@@ -37,6 +37,7 @@ func newGetCommand() *cobra.Command {
 		"nats-user-rules",
 		"auth-groups",
 		"auth-group",
+		"knowledge",
 		"models",
 		"runtimeclass",
 		"microservice-templates",
@@ -73,6 +74,7 @@ Resources like Agents will require a working Controller in the namespace to disp
              nats-user-rules
              auth-groups
              auth-group NAME
+             knowledge
              models
              runtimeclass
              microservice-templates`),
