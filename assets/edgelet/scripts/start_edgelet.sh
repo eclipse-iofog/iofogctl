@@ -5,6 +5,7 @@ set -x
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/common.sh"
+. "$SCRIPT_DIR/lib/receipt.sh"
 . "$SCRIPT_DIR/lib/container_engine.sh"
 . "$SCRIPT_DIR/lib/container_mounts.sh"
 . "$SCRIPT_DIR/lib/embed.sh"
@@ -48,7 +49,7 @@ redeploy_native_linux() {
 				if consume_containerd_restarted_marker; then
 					info "edgelet-containerd already restarted; restarting edgelet only (redeploy)"
 				elif consume_restart_data_plane_marker; then
-					restart_edgelet_containerd_service
+					start_edgelet_containerd_after_drain "$INIT_SYSTEM"
 				else
 					start_edgelet_containerd_unit "$INIT_SYSTEM" false
 				fi
@@ -63,7 +64,7 @@ redeploy_native_linux() {
 				if consume_containerd_restarted_marker; then
 					:
 				elif consume_restart_data_plane_marker; then
-					restart_edgelet_containerd_service
+					start_edgelet_containerd_after_drain "$INIT_SYSTEM"
 				else
 					start_edgelet_containerd_unit "$INIT_SYSTEM" false
 				fi
@@ -279,3 +280,5 @@ case "$EDGELET_INSTALL_MODE" in
 		exit 1
 		;;
 esac
+
+commit_pending_install_receipt

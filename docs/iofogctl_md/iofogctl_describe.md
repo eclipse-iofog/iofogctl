@@ -34,6 +34,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [iofogctl describe configmap](iofogctl_describe_configmap.md)	 - Get detailed information about a ConfigMap
 * [iofogctl describe controller](iofogctl_describe_controller.md)	 - Get detailed information about a Controller
 * [iofogctl describe controlplane](iofogctl_describe_controlplane.md)	 - Get detailed information about a Control Plane
+* [iofogctl describe knowledge](iofogctl_describe_knowledge.md)	 - Get detailed information about Knowledge
 * [iofogctl describe microservice](iofogctl_describe_microservice.md)	 - Get detailed information about a Microservice
 * [iofogctl describe microservice-template](iofogctl_describe_microservice-template.md)	 - Get detailed information about a Microservice Template
 * [iofogctl describe model](iofogctl_describe_model.md)	 - Get detailed information about a Model

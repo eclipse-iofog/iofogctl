@@ -14,18 +14,21 @@ import (
 )
 
 type Options struct {
-	Namespace  string
-	Yaml       []byte
-	Name       string
-	PatchModel bool
+	Namespace      string
+	Yaml           []byte
+	Name           string
+	PatchModel     bool
+	PatchKnowledge bool
 }
 
 type remoteExecutor struct {
-	namespace    string
-	microservice apps.Microservice
-	name         string
-	patchModel   bool
-	catalog      client.MicroserviceCatalog
+	namespace        string
+	microservice     apps.Microservice
+	name             string
+	patchModel       bool
+	patchKnowledge   bool
+	catalog          client.MicroserviceCatalog
+	knowledgeCatalog client.KnowledgeCatalog
 }
 
 func (exe *remoteExecutor) GetName() string {
@@ -33,8 +36,8 @@ func (exe *remoteExecutor) GetName() string {
 }
 
 func (exe *remoteExecutor) Execute() error {
-	if exe.patchModel {
-		return exe.patchModels()
+	if exe.patchModel || exe.patchKnowledge {
+		return exe.patchCatalogs()
 	}
 
 	util.SpinStart(fmt.Sprintf("Deploying microservice %s", exe.GetName()))
@@ -77,23 +80,49 @@ func (exe *remoteExecutor) Execute() error {
 	return apps.DeployMicroservice(controller, &exe.microservice, appName, msvcName, apps.WithAPIVersion(util.GetCliApiVersion()))
 }
 
-func (exe *remoteExecutor) patchModels() error {
-	util.SpinStart(fmt.Sprintf("Patching models for microservice %s", exe.GetName()))
+func (exe *remoteExecutor) patchCatalogs() error {
+	clt, uuid, err := exe.lookupMicroservice()
+	if err != nil {
+		return err
+	}
+	// Models first to match --patch-model then --patch-knowledge flag order.
+	if exe.patchModel {
+		if err := exe.patchModels(clt, uuid); err != nil {
+			return err
+		}
+	}
+	if exe.patchKnowledge {
+		if err := exe.patchKnowledgeCatalog(clt, uuid); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (exe *remoteExecutor) lookupMicroservice() (*client.Client, string, error) {
 	clt, err := clientutil.NewControllerClient(exe.namespace)
 	if err != nil {
-		return err
+		return nil, "", err
 	}
-
 	appName, msvcName, err := clientutil.ParseFQName(exe.name, "Microservice")
 	if err != nil {
-		return err
+		return nil, "", err
 	}
-
 	msvc, err := clt.GetMicroserviceByName(appName, msvcName)
 	if err != nil {
-		return err
+		return nil, "", err
 	}
-	return clt.PatchMicroserviceModels(msvc.UUID, exe.catalog)
+	return clt, msvc.UUID, nil
+}
+
+func (exe *remoteExecutor) patchModels(clt *client.Client, uuid string) error {
+	util.SpinStart(fmt.Sprintf("Patching models for microservice %s", exe.GetName()))
+	return clt.PatchMicroserviceModels(uuid, exe.catalog)
+}
+
+func (exe *remoteExecutor) patchKnowledgeCatalog(clt *client.Client, uuid string) error {
+	util.SpinStart(fmt.Sprintf("Patching knowledge for microservice %s", exe.GetName()))
+	return clt.PatchMicroserviceKnowledge(uuid, exe.knowledgeCatalog)
 }
 
 func NewExecutor(opt Options) (exe execute.Executor, err error) {
@@ -110,21 +139,35 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 
 	name := resolveMicroserviceName(opt.Name, opt.Yaml)
 
-	if opt.PatchModel {
-		catalog, err := parseMicroserviceModels(opt.Yaml)
-		if err != nil {
-			return nil, err
+	if opt.PatchModel || opt.PatchKnowledge {
+		remote := &remoteExecutor{
+			namespace:      opt.Namespace,
+			microservice:   microservice,
+			name:           name,
+			patchModel:     opt.PatchModel,
+			patchKnowledge: opt.PatchKnowledge,
 		}
-		if catalog == nil {
-			return nil, util.NewInputError("--patch-model requires spec.models")
+		if opt.PatchModel {
+			catalog, err := parseMicroserviceModels(opt.Yaml)
+			if err != nil {
+				return nil, err
+			}
+			if catalog == nil {
+				return nil, util.NewInputError("--patch-model requires spec.models")
+			}
+			remote.catalog = toClientCatalog(*catalog)
 		}
-		return &remoteExecutor{
-			namespace:    opt.Namespace,
-			microservice: microservice,
-			name:         name,
-			patchModel:   true,
-			catalog:      toClientCatalog(*catalog),
-		}, nil
+		if opt.PatchKnowledge {
+			catalog, err := parseMicroserviceKnowledge(opt.Yaml)
+			if err != nil {
+				return nil, err
+			}
+			if catalog == nil {
+				return nil, util.NewInputError("--patch-knowledge requires spec.knowledge")
+			}
+			remote.knowledgeCatalog = toClientKnowledgeCatalog(*catalog)
+		}
+		return remote, nil
 	}
 
 	return &remoteExecutor{
@@ -161,6 +204,16 @@ func parseMicroserviceModels(raw []byte) (*apps.MicroserviceCatalog, error) {
 	return spec.Models, nil
 }
 
+func parseMicroserviceKnowledge(raw []byte) (*apps.KnowledgeCatalog, error) {
+	var spec struct {
+		Knowledge *apps.KnowledgeCatalog `yaml:"knowledge"`
+	}
+	if err := yaml.Unmarshal(raw, &spec); err != nil {
+		return nil, util.NewUnmarshalError(err.Error())
+	}
+	return spec.Knowledge, nil
+}
+
 func toClientCatalog(in apps.MicroserviceCatalog) client.MicroserviceCatalog {
 	out := client.MicroserviceCatalog{
 		BindPath:    in.BindPath,
@@ -172,6 +225,21 @@ func toClientCatalog(in apps.MicroserviceCatalog) client.MicroserviceCatalog {
 	out.Items = make([]client.MicroserviceCatalogItem, len(in.Items))
 	for i, item := range in.Items {
 		out.Items[i] = client.MicroserviceCatalogItem{Name: item.Name}
+	}
+	return out
+}
+
+func toClientKnowledgeCatalog(in apps.KnowledgeCatalog) client.KnowledgeCatalog {
+	out := client.KnowledgeCatalog{
+		BindPath:    in.BindPath,
+		Permissions: in.Permissions,
+	}
+	if len(in.Items) == 0 {
+		return out
+	}
+	out.Items = make([]client.KnowledgeCatalogItem, len(in.Items))
+	for i, item := range in.Items {
+		out.Items[i] = client.KnowledgeCatalogItem{Name: item.Name}
 	}
 	return out
 }

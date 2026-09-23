@@ -34,6 +34,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 * [potctl describe configmap](potctl_describe_configmap.md)	 - Get detailed information about a ConfigMap
 * [potctl describe controller](potctl_describe_controller.md)	 - Get detailed information about a Controller
 * [potctl describe controlplane](potctl_describe_controlplane.md)	 - Get detailed information about a Control Plane
+* [potctl describe knowledge](potctl_describe_knowledge.md)	 - Get detailed information about Knowledge
 * [potctl describe microservice](potctl_describe_microservice.md)	 - Get detailed information about a Microservice
 * [potctl describe microservice-template](potctl_describe_microservice-template.md)	 - Get detailed information about a Microservice Template
 * [potctl describe model](potctl_describe_model.md)	 - Get detailed information about a Model

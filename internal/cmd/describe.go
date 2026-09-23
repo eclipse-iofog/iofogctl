@@ -40,6 +40,7 @@ Most resources require a working Controller in the Namespace in order to be desc
 		newDescribeNatsUserCommand(),
 		newDescribeNatsAccountRuleCommand(),
 		newDescribeNatsUserRuleCommand(),
+		newDescribeKnowledgeCommand(),
 		newDescribeModelCommand(),
 		newDescribeRuntimeClassCommand(),
 		newDescribeMicroserviceTemplateCommand(),

@@ -5,6 +5,23 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.0-rc.4] - 22-09-2026
+
+### Added
+
+- Fleet Knowledge: `deploy -f`, attach/detach, get/describe/delete
+- Microservice `spec.knowledge`; `deploy --patch-knowledge` (combinable with `--patch-model`)
+- Describe agent knowledge fields (`knowledgeStatus`, `activeKnowledge`, `knowledgeLastUpdate`); `get all` knowledge table
+
+### Fixed
+
+- Describe agent `modelLastUpdate` treated as Unix milliseconds (same RFC3339 conversion as `lastStatusTime`)
+
+### Changed
+
+- Pin **iofog-go-sdk** to **v3.9.0-rc.6**
+- Describe agent status uses a stable field order and prints host fog metrics (`systemCpus`, `systemTotalMemory`, `systemTotalDisk`, OS/kernel). `cpuUsage` is cores (100 = 1 core) for agent and microservice; `systemTotalCPU` stays host utilization %.
+
 ## [v3.9.0-rc.3] - 20-09-2026
 
 ### Added

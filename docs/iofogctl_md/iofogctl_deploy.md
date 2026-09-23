@@ -20,6 +20,7 @@ iofogctl deploy -f ecn.yaml
           microservice.yaml
           catalog.yaml
           model.yaml
+          knowledge.yaml
           runtimeclass.yaml
           microservice-template.yaml
           volume.yaml
@@ -36,6 +37,7 @@ iofogctl deploy -f ecn.yaml
   -f, --file string         YAML file containing specifications for ioFog resources to deploy
   -h, --help                help for deploy
       --no-cache            Disable caching for OfflineImage images after download
+      --patch-knowledge     Patch only spec.knowledge on Microservice YAML (catalog PATCH). Controller rebuilds on empty↔non-empty catalog or bindPath/permissions change; item-only changes do not rebuild. Combinable with --patch-model.
       --patch-model         Patch only spec.models on Microservice YAML (catalog PATCH). Controller decides whether the workload is rebuilt.
       --transfer-pool int   Maximum number of concurrent OfflineImage transfers (default 2)
 ```

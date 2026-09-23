@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAllRoutinesIncludeModelsOnly(t *testing.T) {
+func TestGetAllRoutinesIncludeModelsAndKnowledge(t *testing.T) {
 	t.Parallel()
 
 	names := make([]string, 0, len(routines))
@@ -18,6 +18,7 @@ func TestGetAllRoutinesIncludeModelsOnly(t *testing.T) {
 	}
 	joined := strings.Join(names, "\n")
 	require.Contains(t, joined, "getModelTable")
+	require.Contains(t, joined, "getKnowledgeTable")
 	require.NotContains(t, joined, "getRuntimeClass")
 	require.NotContains(t, joined, "getMicroserviceTemplate")
 }

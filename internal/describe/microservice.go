@@ -71,11 +71,8 @@ func (exe *microserviceExecutor) Execute() error {
 			Namespace: exe.namespace,
 			Name:      metadataName,
 		},
-		Spec: yamlMsvc,
-		Status: map[string]interface{}{
-			"status":     FormatMicroserviceStatus(status),
-			"execStatus": FormatMicroserviceExecStatus(execStatus),
-		},
+		Spec:   yamlMsvc,
+		Status: FormatMicroserviceDescribeStatus(status, execStatus),
 	}
 
 	if exe.filename == "" {
