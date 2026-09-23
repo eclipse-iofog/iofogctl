@@ -38,6 +38,7 @@ iofogctl delete [flags]
 * [iofogctl delete certificate](iofogctl_delete_certificate.md)	 - Delete a Certificate
 * [iofogctl delete configmap](iofogctl_delete_configmap.md)	 - Delete a ConfigMap
 * [iofogctl delete controller](iofogctl_delete_controller.md)	 - Delete a Controller
+* [iofogctl delete knowledge](iofogctl_delete_knowledge.md)	 - Delete Knowledge
 * [iofogctl delete microservice](iofogctl_delete_microservice.md)	 - Delete a Microservice
 * [iofogctl delete microservice-template](iofogctl_delete_microservice-template.md)	 - Delete a Microservice Template
 * [iofogctl delete model](iofogctl_delete_model.md)	 - Delete a Model

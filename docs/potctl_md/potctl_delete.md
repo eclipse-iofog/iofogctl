@@ -38,6 +38,7 @@ potctl delete [flags]
 * [potctl delete certificate](potctl_delete_certificate.md)	 - Delete a Certificate
 * [potctl delete configmap](potctl_delete_configmap.md)	 - Delete a ConfigMap
 * [potctl delete controller](potctl_delete_controller.md)	 - Delete a Controller
+* [potctl delete knowledge](potctl_delete_knowledge.md)	 - Delete Knowledge
 * [potctl delete microservice](potctl_delete_microservice.md)	 - Delete a Microservice
 * [potctl delete microservice-template](potctl_delete_microservice-template.md)	 - Delete a Microservice Template
 * [potctl delete model](potctl_delete_model.md)	 - Delete a Model
