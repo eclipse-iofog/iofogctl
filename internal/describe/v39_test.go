@@ -34,6 +34,30 @@ func TestModelHeaderYAML(t *testing.T) {
 	require.True(t, strings.Contains(text, "spec:"))
 }
 
+func TestKnowledgeHeaderYAML(t *testing.T) {
+	header := knowledgeHeader("default", "product-docs", &client.Knowledge{
+		UUID:       "knowledge-uuid",
+		Name:       "product-docs",
+		Repo:       "docs/product",
+		Revision:   "sha256:def",
+		RegistryID: 3,
+		Files:      []string{"guide.md"},
+		Format:     "jsonl",
+	}, []string{"lima"})
+
+	require.Equal(t, config.KnowledgeKind, header.Kind)
+	out, err := yaml.Marshal(header)
+	require.NoError(t, err)
+	text := string(out)
+	require.Contains(t, text, "kind: Knowledge")
+	require.Contains(t, text, "uuid: knowledge-uuid")
+	require.Contains(t, text, "registryId: 3")
+	require.Contains(t, text, "format: jsonl")
+	require.Contains(t, text, "linkedAgents:")
+	require.Contains(t, text, "- lima")
+	require.True(t, strings.Contains(text, "spec:"))
+}
+
 func TestRuntimeClassHeaderYAML(t *testing.T) {
 	header := runtimeClassHeader("default", "spin", "spin", []string{"lima"})
 	require.Equal(t, config.RuntimeClassKind, header.Kind)
@@ -72,7 +96,7 @@ func TestMicroserviceTemplateHeaderYAML(t *testing.T) {
 }
 
 func TestDescribeFactoryV39Resources(t *testing.T) {
-	for _, resource := range []string{"model", "runtimeclass", "microservice-template"} {
+	for _, resource := range []string{"knowledge", "model", "runtimeclass", "microservice-template"} {
 		exe, err := NewExecutor(&Options{Resource: resource, Name: "demo", Namespace: "default"})
 		require.NoError(t, err, resource)
 		require.NotNil(t, exe, resource)
@@ -106,6 +130,11 @@ func TestConstructMicroserviceV39Fields(t *testing.T) {
 			Permissions: "ro",
 			Items:       []client.MicroserviceCatalogItem{{Name: "llama"}},
 		},
+		Knowledge: &client.KnowledgeCatalog{
+			BindPath:    "/knowledge",
+			Permissions: "ro",
+			Items:       []client.KnowledgeCatalogItem{{Name: "product-docs"}},
+		},
 		Status: client.MicroserviceStatusInfo{Status: "RUNNING", PodID: "pod-abc"},
 	}, "lima", "test-app", nil)
 	require.NoError(t, err)
@@ -132,9 +161,17 @@ func TestConstructMicroserviceV39Fields(t *testing.T) {
 	require.NotNil(t, msvc.Models)
 	require.Equal(t, "/models", msvc.Models.BindPath)
 	require.Equal(t, "llama", msvc.Models.Items[0].Name)
+	require.NotNil(t, msvc.Knowledge)
+	require.Equal(t, "/knowledge", msvc.Knowledge.BindPath)
+	require.Equal(t, "ro", msvc.Knowledge.Permissions)
+	require.Equal(t, "product-docs", msvc.Knowledge.Items[0].Name)
+	msvcYAML, err := yaml.Marshal(msvc)
+	require.NoError(t, err)
+	require.Contains(t, string(msvcYAML), "knowledge:")
+	require.Contains(t, string(msvcYAML), "product-docs")
 	require.Equal(t, "pod-abc", status.PodID)
 
-	formatted := FormatMicroserviceStatus(status)
+	formatted := statusMap(FormatMicroserviceStatus(status))
 	require.Equal(t, "pod-abc", formatted["podId"])
 	require.Equal(t, "", formatted["lastError"])
 	require.Equal(t, int64(0), formatted["lastErrorAt"])
@@ -160,12 +197,37 @@ func TestConstructMicroserviceStatusErrorExtras(t *testing.T) {
 	require.Equal(t, lastErrorAt, status.LastErrorAt)
 	require.Equal(t, 2, status.RestartCount)
 
-	formatted := FormatMicroserviceStatus(status)
+	formatted := statusMap(FormatMicroserviceStatus(status))
 	require.Equal(t, "OOMKilled", formatted["lastError"])
 	require.Equal(t, 2, formatted["restartCount"])
 	require.Equal(t, "", formatted["errorMessage"])
 	wantAt := time.Unix(lastErrorAt/1000, (lastErrorAt%1000)*1000000).Format(time.RFC3339)
 	require.Equal(t, wantAt, formatted["lastErrorAt"])
+}
+
+func TestFormatMicroserviceStatusCPUCores(t *testing.T) {
+	formatted := statusMap(FormatMicroserviceStatus(&apps.MicroserviceStatusInfo{
+		Status:    "RUNNING",
+		CPUUsage:  32.97,
+		LastError: "",
+	}))
+	require.Equal(t, "0.33 cores", formatted["cpuUsage"])
+	require.Equal(t, []string{
+		"status",
+		"containerId",
+		"percentage",
+		"healthStatus",
+		"ipAddress",
+		"cpuUsage",
+		"restartCount",
+		"errorMessage",
+		"lastError",
+		"lastErrorAt",
+		"execSessionIds",
+	}, statusKeys(FormatMicroserviceStatus(&apps.MicroserviceStatusInfo{
+		Status:   "RUNNING",
+		CPUUsage: 32.97,
+	})))
 }
 
 func TestConstructMicroserviceRegistryAndServiceAccount(t *testing.T) {

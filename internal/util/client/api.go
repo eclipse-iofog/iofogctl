@@ -256,9 +256,15 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		MemoryUsage:           agentInfo.MemoryUsage,
 		DiskUsage:             agentInfo.DiskUsage,
 		CPUUsage:              agentInfo.CPUUsage,
+		SystemCpus:            agentInfo.SystemCpus,
+		SystemTotalMemory:     agentInfo.SystemTotalMemory,
 		SystemAvailableMemory: agentInfo.SystemAvailableMemory,
+		SystemTotalDisk:       agentInfo.SystemTotalDisk,
 		SystemAvailableDisk:   agentInfo.SystemAvailableDisk,
 		SystemTotalCPU:        agentInfo.SystemTotalCPU,
+		SystemOs:              agentInfo.SystemOs,
+		SystemOsVersion:       agentInfo.SystemOsVersion,
+		SystemKernelVersion:   agentInfo.SystemKernelVersion,
 		MemoryViolation:       agentInfo.MemoryViolation,
 		DiskViolation:         agentInfo.DiskViolation,
 		CPUViolation:          agentInfo.CPUViolation,
@@ -282,6 +288,9 @@ func GetAgentConfig(agentName, namespace string) (agentConfig rsc.AgentConfigura
 		ModelStatus:           agentInfo.ModelStatus,
 		ActiveModels:          agentInfo.ActiveModels,
 		ModelLastUpdate:       agentInfo.ModelLastUpdate,
+		KnowledgeStatus:       agentInfo.KnowledgeStatus,
+		ActiveKnowledge:       agentInfo.ActiveKnowledge,
+		KnowledgeLastUpdate:   agentInfo.KnowledgeLastUpdate,
 	}
 
 	return agentConfig, tags, agentStatus, err

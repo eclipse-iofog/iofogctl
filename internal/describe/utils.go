@@ -11,6 +11,7 @@ import (
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, clt *client.Client) (*apps.Microservice, *apps.MicroserviceStatusInfo, *apps.MicroserviceExecStatusInfo, error) {
@@ -66,63 +67,57 @@ func MapClientMicroserviceToDeployMicroservice(msvc *client.MicroserviceInfo, cl
 // 	return msvcStatus, msvcExecStatus, nil
 // }
 
-// FormatMicroserviceStatus formats microservice status for human-readable output
-func FormatMicroserviceStatus(status *apps.MicroserviceStatusInfo) map[string]interface{} {
-	formatted := make(map[string]interface{})
-
-	// Core status fields
-	formatted["status"] = status.Status
-	formatted["containerId"] = status.ContainerID
-	formatted["percentage"] = status.Percentage
-	formatted["errorMessage"] = status.ErrorMessage
-	formatted["lastError"] = status.LastError
-	formatted["restartCount"] = status.RestartCount
-	formatted["ipAddress"] = status.IPAddress
-	formatted["execSessionIds"] = status.ExecSessionIDs
-	formatted["healthStatus"] = status.HealthStatus
+// FormatMicroserviceStatus formats microservice status for human-readable output.
+func FormatMicroserviceStatus(status *apps.MicroserviceStatusInfo) yaml.MapSlice {
+	formatted := yaml.MapSlice{}
+	formatted = appendItem(formatted, "status", status.Status)
+	formatted = appendItem(formatted, "containerId", status.ContainerID)
 	if status.PodID != "" {
-		formatted["podId"] = status.PodID
+		formatted = appendItem(formatted, "podId", status.PodID)
 	}
-
-	// Format startTime as RFC3339 timestamp
+	formatted = appendItem(formatted, "percentage", status.Percentage)
+	formatted = appendItem(formatted, "healthStatus", status.HealthStatus)
+	formatted = appendItem(formatted, "ipAddress", status.IPAddress)
 	if status.StartTime > 0 {
-		formatted["startTime"] = time.Unix(status.StartTime/1000, (status.StartTime%1000)*1000000).Format(time.RFC3339)
+		formatted = appendItem(formatted, "startTime", time.Unix(status.StartTime/1000, (status.StartTime%1000)*1000000).Format(time.RFC3339))
 	}
-
-	// lastErrorAt is Unix milliseconds; keep 0 when LastError is empty (older Controllers).
-	if status.LastErrorAt > 0 {
-		formatted["lastErrorAt"] = time.Unix(status.LastErrorAt/1000, (status.LastErrorAt%1000)*1000000).Format(time.RFC3339)
-	} else {
-		formatted["lastErrorAt"] = int64(0)
-	}
-
-	// Format operatingDuration as human-readable duration
 	if status.OperatingDuration > 0 {
 		duration := time.Duration(status.OperatingDuration) * time.Millisecond
-		formatted["operatingDuration"] = util.FormatDuration(duration)
+		formatted = appendItem(formatted, "operatingDuration", util.FormatDuration(duration))
 	}
-
-	// Format memory usage
-	if status.MemoryUsage > 0 {
-		formatted["memoryUsage"] = formatBytesAuto(status.MemoryUsage)
-	}
-
-	// Format CPU usage
 	if status.CPUUsage > 0 {
-		formatted["cpuUsage"] = fmt.Sprintf("%.2f %%", status.CPUUsage)
+		formatted = appendItem(formatted, "cpuUsage", formatCPUCores(status.CPUUsage))
 	}
-
+	if status.MemoryUsage > 0 {
+		formatted = appendItem(formatted, "memoryUsage", formatBytesAuto(status.MemoryUsage))
+	}
+	formatted = appendItem(formatted, "restartCount", status.RestartCount)
+	formatted = appendItem(formatted, "errorMessage", status.ErrorMessage)
+	formatted = appendItem(formatted, "lastError", status.LastError)
+	// lastErrorAt is Unix milliseconds; keep 0 when LastError is empty (older Controllers).
+	if status.LastErrorAt > 0 {
+		formatted = appendItem(formatted, "lastErrorAt", time.Unix(status.LastErrorAt/1000, (status.LastErrorAt%1000)*1000000).Format(time.RFC3339))
+	} else {
+		formatted = appendItem(formatted, "lastErrorAt", int64(0))
+	}
+	formatted = appendItem(formatted, "execSessionIds", status.ExecSessionIDs)
 	return formatted
 }
 
-// FormatMicroserviceExecStatus formats microservice exec status for human-readable output
-func FormatMicroserviceExecStatus(execStatus *apps.MicroserviceExecStatusInfo) map[string]interface{} {
-	formatted := make(map[string]interface{})
+// FormatMicroserviceExecStatus formats microservice exec status for human-readable output.
+func FormatMicroserviceExecStatus(execStatus *apps.MicroserviceExecStatusInfo) yaml.MapSlice {
+	return yaml.MapSlice{
+		{Key: "status", Value: execStatus.Status},
+		{Key: "execSessionId", Value: execStatus.ExecSessionID},
+	}
+}
 
-	formatted["status"] = execStatus.Status
-	formatted["execSessionId"] = execStatus.ExecSessionID
-
-	return formatted
+// FormatMicroserviceDescribeStatus nests status and execStatus in stable order.
+func FormatMicroserviceDescribeStatus(status *apps.MicroserviceStatusInfo, execStatus *apps.MicroserviceExecStatusInfo) yaml.MapSlice {
+	return yaml.MapSlice{
+		{Key: "status", Value: FormatMicroserviceStatus(status)},
+		{Key: "execStatus", Value: FormatMicroserviceExecStatus(execStatus)},
+	}
 }
 
 func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName string, catalogItem *client.CatalogItemInfo) (msvc *apps.Microservice, status *apps.MicroserviceStatusInfo, execStatus *apps.MicroserviceExecStatusInfo, err error) {
@@ -271,6 +266,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 		msvc.Container.HealthCheck = &healthCheck
 	}
 	msvc.Models = mapMicroserviceCatalog(msvcInfo.Models)
+	msvc.Knowledge = mapMicroserviceKnowledgeCatalog(msvcInfo.Knowledge)
 	if msvcInfo.NatsConfig != nil {
 		msvc.NatsConfig = &apps.MicroserviceNatsConfig{
 			NatsAccess: msvcInfo.NatsConfig.NatsAccess,
@@ -371,6 +367,23 @@ func mapMicroserviceCatalog(in *client.MicroserviceCatalog) *apps.MicroserviceCa
 	return out
 }
 
+func mapMicroserviceKnowledgeCatalog(in *client.KnowledgeCatalog) *apps.KnowledgeCatalog {
+	if in == nil {
+		return nil
+	}
+	out := &apps.KnowledgeCatalog{
+		BindPath:    in.BindPath,
+		Permissions: in.Permissions,
+	}
+	if len(in.Items) > 0 {
+		out.Items = make([]apps.KnowledgeCatalogItem, len(in.Items))
+		for i, item := range in.Items {
+			out.Items[i] = apps.KnowledgeCatalogItem{Name: item.Name}
+		}
+	}
+	return out
+}
+
 func mapUlimits(in map[string]client.ContainerUlimit) map[string]apps.MicroserviceUlimit {
 	if len(in) == 0 {
 		return nil
@@ -415,114 +428,137 @@ func mapTmpfs(in []client.ContainerTmpfs) []apps.MicroserviceTmpfs {
 	return out
 }
 
-// FormatAgentStatus formats agent status for human-readable output
-func FormatAgentStatus(status rsc.AgentStatus) map[string]interface{} {
-	// Use ordered map to ensure consistent output order
-	formatted := make(map[string]interface{})
+// FormatAgentStatus formats agent status for human-readable output in a stable field order.
+func FormatAgentStatus(status rsc.AgentStatus) yaml.MapSlice {
+	formatted := yaml.MapSlice{}
 
-	// Core status fields (ordered for consistent output)
-	formatted["daemonStatus"] = status.DaemonStatus
-	formatted["securityStatus"] = status.SecurityStatus
-	formatted["warningMessage"] = status.WarningMessage
-	if status.PlatformStatus != nil {
-		formatted["platformStatus"] = formatPlatformStatus(status.PlatformStatus)
-	}
-	formatted["securityViolationInfo"] = status.SecurityViolationInfo
-	formatted["availableRuntimes"] = status.AvailableRuntimes
-	formatted["runtimeAgentPhase"] = status.RuntimeAgentPhase
-	formatted["controlPlaneQuiesced"] = status.ControlPlaneQuiesced
-
-	// Format timestamps
+	formatted = appendItem(formatted, "version", status.Version)
+	formatted = appendItem(formatted, "daemonStatus", status.DaemonStatus)
+	formatted = appendItem(formatted, "securityStatus", status.SecurityStatus)
+	formatted = appendItem(formatted, "securityViolationInfo", status.SecurityViolationInfo)
+	formatted = appendItem(formatted, "warningMessage", status.WarningMessage)
+	formatted = appendItem(formatted, "gpsStatus", status.GpsStatus)
+	formatted = appendItem(formatted, "ipAddress", status.IPAddress)
+	formatted = appendItem(formatted, "ipAddressExternal", status.IPAddressExternal)
 	if status.LastActive > 0 {
-		formatted["lastActive"] = time.Unix(status.LastActive/1000, (status.LastActive%1000)*1000000).UTC().Format(time.RFC3339)
+		formatted = appendItem(formatted, "lastActive", time.Unix(status.LastActive/1000, (status.LastActive%1000)*1000000).UTC().Format(time.RFC3339))
 	}
-
-	// Format uptime as duration
+	if status.LastStatusTimeMsUTC > 0 {
+		formatted = appendItem(formatted, "lastStatusTime", time.Unix(status.LastStatusTimeMsUTC/1000, (status.LastStatusTimeMsUTC%1000)*1000000).UTC().Format(time.RFC3339))
+	}
+	if status.LastCommandTimeMsUTC > 0 {
+		formatted = appendItem(formatted, "lastCommandTime", time.Unix(status.LastCommandTimeMsUTC/1000, (status.LastCommandTimeMsUTC%1000)*1000000).Format(time.RFC3339))
+	} else {
+		formatted = appendItem(formatted, "lastCommandTime", "Never")
+	}
 	if status.UptimeMs > 0 {
 		uptime := time.Duration(status.UptimeMs) * time.Millisecond
-		formatted["uptime"] = util.FormatDuration(uptime)
+		formatted = appendItem(formatted, "uptime", util.FormatDuration(uptime))
 	}
 
-	// Format usage — memoryUsage is MiB (binary); diskUsage is GiB (decimal); cpuUsage is percent.
+	// memoryUsage is MiB (binary); diskUsage is GiB (decimal); cpuUsage is 100 = 1 core.
+	if status.CPUUsage > 0 {
+		formatted = appendItem(formatted, "cpuUsage", formatCPUCores(status.CPUUsage))
+	}
 	if status.MemoryUsage > 0 {
-		memoryBytes := status.MemoryUsage * 1024 * 1024
-		formatted["memoryUsage"] = formatBytesAuto(memoryBytes)
+		formatted = appendItem(formatted, "memoryUsage", formatBytesAuto(status.MemoryUsage*1024*1024))
 	}
 	if status.DiskUsage > 0 {
-		diskBytes := status.DiskUsage * 1_000_000_000
-		formatted["diskUsage"] = formatBytesAuto(diskBytes)
+		formatted = appendItem(formatted, "diskUsage", formatBytesAuto(status.DiskUsage*1_000_000_000))
 	}
-	if status.CPUUsage > 0 {
-		formatted["cpuUsage"] = fmt.Sprintf("%.2f %%", status.CPUUsage)
-	}
+	formatted = appendItem(formatted, "cpuViolation", status.CPUViolation)
+	formatted = appendItem(formatted, "memoryViolation", status.MemoryViolation)
+	formatted = appendItem(formatted, "diskViolation", status.DiskViolation)
 
-	// Format system available resources
-	if status.SystemAvailableMemory > 0 {
-		// Convert from KB to bytes for auto-scaling
-		memoryBytes := status.SystemAvailableMemory
-		formatted["systemAvailableMemory"] = formatBytesAuto(memoryBytes)
-	}
-	if status.SystemAvailableDisk > 0 {
-		// Convert from bytes to bytes for auto-scaling (already in bytes)
-		formatted["systemAvailableDisk"] = formatBytesAuto(float64(status.SystemAvailableDisk))
-	}
-
-	// Add system total CPU (placeholder since not available from SDK)
-	if status.SystemTotalCPU > 0 {
-		formatted["systemTotalCPU"] = fmt.Sprintf("%.2f %%", status.SystemTotalCPU)
-	}
-
-	formatted["memoryViolation"] = status.MemoryViolation
-	formatted["diskViolation"] = status.DiskViolation
-	formatted["cpuViolation"] = status.CPUViolation
-	formatted["repositoryStatus"] = status.RepositoryStatus
-
-	// Format last status time
-	if status.LastStatusTimeMsUTC > 0 {
-		formatted["lastStatusTime"] = time.Unix(status.LastStatusTimeMsUTC/1000, (status.LastStatusTimeMsUTC%1000)*1000000).UTC().Format(time.RFC3339)
-	}
-
-	formatted["ipAddress"] = status.IPAddress
-	formatted["ipAddressExternal"] = status.IPAddressExternal
-
-	// Format processed messages
-	if status.ProcessedMessaged > 0 {
-		formatted["processedMessages"] = formatNumber(status.ProcessedMessaged)
+	if hostMetricsReported(status) {
+		if status.SystemOs != "" {
+			formatted = appendItem(formatted, "systemOs", status.SystemOs)
+		}
+		if status.SystemOsVersion != "" {
+			formatted = appendItem(formatted, "systemOsVersion", status.SystemOsVersion)
+		}
+		if status.SystemKernelVersion != "" {
+			formatted = appendItem(formatted, "systemKernelVersion", status.SystemKernelVersion)
+		}
+		if status.SystemCpus != 0 {
+			formatted = appendItem(formatted, "systemCpus", status.SystemCpus)
+		}
+		if status.SystemTotalCPU > 0 {
+			formatted = appendItem(formatted, "systemTotalCPU", fmt.Sprintf("%.2f %%", status.SystemTotalCPU))
+		}
+		if status.SystemTotalMemory > 0 {
+			formatted = appendItem(formatted, "systemTotalMemory", formatBytesAuto(float64(status.SystemTotalMemory)))
+		}
+		if status.SystemAvailableMemory > 0 {
+			formatted = appendItem(formatted, "systemAvailableMemory", formatBytesAuto(float64(status.SystemAvailableMemory)))
+		}
+		if status.SystemTotalDisk > 0 {
+			formatted = appendItem(formatted, "systemTotalDisk", formatBytesAuto(float64(status.SystemTotalDisk)))
+		}
+		if status.SystemAvailableDisk > 0 {
+			formatted = appendItem(formatted, "systemAvailableDisk", formatBytesAuto(float64(status.SystemAvailableDisk)))
+		}
 	}
 
-	// Format message speed
-	if status.MessageSpeed > 0 {
-		formatted["messageSpeed"] = fmt.Sprintf("%.1f msg/s", status.MessageSpeed)
-	}
-
-	// Format last command time
-	if status.LastCommandTimeMsUTC > 0 {
-		formatted["lastCommandTime"] = time.Unix(status.LastCommandTimeMsUTC/1000, (status.LastCommandTimeMsUTC%1000)*1000000).Format(time.RFC3339)
-	} else {
-		formatted["lastCommandTime"] = "Never"
-	}
-
-	formatted["version"] = status.Version
-	formatted["isReadyToUpgrade"] = status.IsReadyToUpgrade
-	formatted["isReadyToRollback"] = status.IsReadyToRollback
-	formatted["tunnel"] = status.Tunnel
-	formatted["volumeMounts"] = status.VolumeMounts
-	formatted["gpsStatus"] = status.GpsStatus
-	formatted["activeModels"] = status.ActiveModels
+	formatted = appendItem(formatted, "availableRuntimes", status.AvailableRuntimes)
 	if parsed, ok := parseJSONBlob(status.RuntimeClasses); ok {
-		formatted["runtimeClasses"] = parsed
+		formatted = appendItem(formatted, "runtimeClasses", parsed)
 	}
+	formatted = appendItem(formatted, "runtimeAgentPhase", status.RuntimeAgentPhase)
 	if parsed, ok := parseJSONBlob(status.AvailableCdiDevices); ok {
-		formatted["availableCdiDevices"] = parsed
+		formatted = appendItem(formatted, "availableCdiDevices", parsed)
 	}
+	formatted = appendItem(formatted, "controlPlaneQuiesced", status.ControlPlaneQuiesced)
+	if status.PlatformStatus != nil {
+		formatted = appendItem(formatted, "platformStatus", formatPlatformStatus(status.PlatformStatus))
+	}
+
+	formatted = appendItem(formatted, "activeModels", status.ActiveModels)
 	if parsed, ok := parseJSONBlob(status.ModelStatus); ok {
-		formatted["modelStatus"] = parsed
+		formatted = appendItem(formatted, "modelStatus", parsed)
 	}
 	if status.ModelLastUpdate > 0 {
-		formatted["modelLastUpdate"] = time.Unix(status.ModelLastUpdate, 0).UTC().Format(time.RFC3339)
+		formatted = appendItem(formatted, "modelLastUpdate", formatUnixMillisUTC(status.ModelLastUpdate))
+	}
+	formatted = appendItem(formatted, "activeKnowledge", status.ActiveKnowledge)
+	if parsed, ok := parseJSONBlob(status.KnowledgeStatus); ok {
+		formatted = appendItem(formatted, "knowledgeStatus", parsed)
+	}
+	if status.KnowledgeLastUpdate > 0 {
+		formatted = appendItem(formatted, "knowledgeLastUpdate", formatUnixMillisUTC(status.KnowledgeLastUpdate))
 	}
 
+	formatted = appendItem(formatted, "repositoryStatus", status.RepositoryStatus)
+	formatted = appendItem(formatted, "isReadyToUpgrade", status.IsReadyToUpgrade)
+	formatted = appendItem(formatted, "isReadyToRollback", status.IsReadyToRollback)
+	formatted = appendItem(formatted, "tunnel", status.Tunnel)
+	formatted = appendItem(formatted, "volumeMounts", status.VolumeMounts)
+
 	return formatted
+}
+
+func hostMetricsReported(status rsc.AgentStatus) bool {
+	return status.SystemCpus != 0 ||
+		status.SystemTotalMemory != 0 ||
+		status.SystemAvailableMemory != 0 ||
+		status.SystemTotalDisk != 0 ||
+		status.SystemAvailableDisk != 0 ||
+		status.SystemTotalCPU != 0 ||
+		status.SystemOs != "" ||
+		status.SystemOsVersion != "" ||
+		status.SystemKernelVersion != ""
+}
+
+func appendItem(dst yaml.MapSlice, key string, value interface{}) yaml.MapSlice {
+	return append(dst, yaml.MapItem{Key: key, Value: value})
+}
+
+func formatCPUCores(usage float64) string {
+	return fmt.Sprintf("%.2f cores", usage/100)
+}
+
+func formatUnixMillisUTC(ms int64) string {
+	return time.Unix(ms/1000, (ms%1000)*1_000_000).UTC().Format(time.RFC3339)
 }
 
 func parseJSONBlob(raw string) (interface{}, bool) {
@@ -589,17 +625,4 @@ func formatBytesAuto(bytes float64) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f %cB", bytes/float64(div), "KMGTPE"[exp])
-}
-
-func formatNumber(num int64) string {
-	if num < 1000 {
-		return fmt.Sprintf("%d", num)
-	}
-	if num < 1000000 {
-		return fmt.Sprintf("%.1fK", float64(num)/1000)
-	}
-	if num < 1000000000 {
-		return fmt.Sprintf("%.1fM", float64(num)/1000000)
-	}
-	return fmt.Sprintf("%.1fB", float64(num)/1000000000)
 }

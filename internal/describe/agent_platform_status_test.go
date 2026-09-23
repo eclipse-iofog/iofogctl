@@ -28,7 +28,7 @@ func TestFormatAgentStatusPlatformStatus(t *testing.T) {
 		},
 	}
 
-	got := FormatAgentStatus(status)
+	got := statusMap(FormatAgentStatus(status))
 	ps, ok := got["platformStatus"].(map[string]interface{})
 	require.True(t, ok, "platformStatus should be present")
 	require.Equal(t, "Ready", ps["phase"])
@@ -44,6 +44,6 @@ func TestFormatAgentStatusPlatformStatus(t *testing.T) {
 }
 
 func TestFormatAgentStatusOmitsNilPlatformStatus(t *testing.T) {
-	got := FormatAgentStatus(rsc.AgentStatus{})
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{}))
 	require.NotContains(t, got, "platformStatus")
 }
