@@ -18,6 +18,7 @@ import (
 	deployk8scontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/k8s"
 	deploylocalcontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/local"
 	deployremotecontrolplane "github.com/eclipse-iofog/iofogctl/internal/deploy/controlplane/remote"
+	deployknowledge "github.com/eclipse-iofog/iofogctl/internal/deploy/knowledge"
 	deploymicroservice "github.com/eclipse-iofog/iofogctl/internal/deploy/microservice"
 	deploymicroservicetemplate "github.com/eclipse-iofog/iofogctl/internal/deploy/microservicetemplate"
 	deploymodel "github.com/eclipse-iofog/iofogctl/internal/deploy/model"
@@ -60,6 +61,7 @@ var kindOrder = []config.Kind{
 	config.VolumeMountKind,
 	config.RegistryKind,
 	config.ModelKind,
+	config.KnowledgeKind,
 	config.RuntimeClassKind,
 	config.MicroserviceTemplateKind,
 	config.CatalogItemKind,
@@ -69,11 +71,12 @@ var kindOrder = []config.Kind{
 }
 
 type Options struct {
-	Namespace    string
-	InputFile    string
-	NoCache      bool
-	TransferPool int
-	PatchModel   bool
+	Namespace      string
+	InputFile      string
+	NoCache        bool
+	TransferPool   int
+	PatchModel     bool
+	PatchKnowledge bool
 }
 
 func deployCatalogItem(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -88,13 +91,14 @@ func deployApplication(opt *execute.KindHandlerOpt) (exe execute.Executor, err e
 	return deployapplication.NewExecutor(deployapplication.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
-func deployMicroservice(patchModel bool) func(*execute.KindHandlerOpt) (execute.Executor, error) {
+func deployMicroservice(patchModel, patchKnowledge bool) func(*execute.KindHandlerOpt) (execute.Executor, error) {
 	return func(opt *execute.KindHandlerOpt) (execute.Executor, error) {
 		return deploymicroservice.NewExecutor(deploymicroservice.Options{
-			Namespace:  opt.Namespace,
-			Yaml:       opt.YAML,
-			Name:       opt.Name,
-			PatchModel: patchModel,
+			Namespace:      opt.Namespace,
+			Yaml:           opt.YAML,
+			Name:           opt.Name,
+			PatchModel:     patchModel,
+			PatchKnowledge: patchKnowledge,
 		})
 	}
 }
@@ -137,6 +141,10 @@ func deployRegistry(opt *execute.KindHandlerOpt) (exe execute.Executor, err erro
 
 func deployModel(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
 	return deploymodel.NewExecutor(deploymodel.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
+}
+
+func deployKnowledge(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
+	return deployknowledge.NewExecutor(deployknowledge.Options{Namespace: opt.Namespace, Yaml: opt.YAML, Name: opt.Name})
 }
 
 func deployRuntimeClass(opt *execute.KindHandlerOpt) (exe execute.Executor, err error) {
@@ -208,13 +216,13 @@ func deployNatsUserRule(opt *execute.KindHandlerOpt) (exe execute.Executor, err 
 
 // Execute deploy from yaml file
 func Execute(opt *Options) (err error) {
-	kindHandlers := buildKindHandlers(opt.NoCache, opt.TransferPool, opt.PatchModel)
+	kindHandlers := buildKindHandlers(opt.NoCache, opt.TransferPool, opt.PatchModel, opt.PatchKnowledge)
 	executorsMap, err := execute.GetExecutorsFromYAML(opt.InputFile, opt.Namespace, kindHandlers, false)
 	if err != nil {
 		return err
 	}
-	if opt.PatchModel {
-		if err := validatePatchModelExecutors(executorsMap); err != nil {
+	if opt.PatchModel || opt.PatchKnowledge {
+		if err := validatePatchCatalogExecutors(executorsMap, opt.PatchModel, opt.PatchKnowledge); err != nil {
 			return err
 		}
 	}
@@ -340,11 +348,11 @@ func Execute(opt *Options) (err error) {
 	return nil
 }
 
-func buildKindHandlers(noCache bool, transferPool int, patchModel bool) map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error) {
+func buildKindHandlers(noCache bool, transferPool int, patchModel, patchKnowledge bool) map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error) {
 	handlers := map[config.Kind]func(*execute.KindHandlerOpt) (execute.Executor, error){
 		config.ApplicationKind:            deployApplication,
 		config.ApplicationTemplateKind:    deployApplicationTemplate,
-		config.MicroserviceKind:           deployMicroservice(patchModel),
+		config.MicroserviceKind:           deployMicroservice(patchModel, patchKnowledge),
 		config.CatalogItemKind:            deployCatalogItem,
 		config.KubernetesControlPlaneKind: deployKubernetesControlPlane,
 		config.RemoteControlPlaneKind:     deployRemoteControlPlane,
@@ -356,6 +364,7 @@ func buildKindHandlers(noCache bool, transferPool int, patchModel bool) map[conf
 		config.AgentConfigKind:            deployAgentConfig,
 		config.RegistryKind:               deployRegistry,
 		config.ModelKind:                  deployModel,
+		config.KnowledgeKind:              deployKnowledge,
 		config.RuntimeClassKind:           deployRuntimeClass,
 		config.MicroserviceTemplateKind:   deployMicroserviceTemplate,
 		config.VolumeKind:                 deployVolume,
@@ -383,17 +392,32 @@ func buildKindHandlers(noCache bool, transferPool int, patchModel bool) map[conf
 	return handlers
 }
 
-func validatePatchModelExecutors(executorsMap map[config.Kind][]execute.Executor) error {
+func validatePatchCatalogExecutors(executorsMap map[config.Kind][]execute.Executor, patchModel, patchKnowledge bool) error {
+	if !patchModel && !patchKnowledge {
+		return nil
+	}
+	flags := patchCatalogFlagNames(patchModel, patchKnowledge)
 	hasMicroservice := len(executorsMap[config.MicroserviceKind]) > 0
 	if !hasMicroservice {
-		return util.NewInputError("--patch-model requires a Microservice YAML file")
+		return util.NewInputError(fmt.Sprintf("%s requires a Microservice YAML file", flags))
 	}
 	for kind, exes := range executorsMap {
 		if kind != config.MicroserviceKind && len(exes) > 0 {
-			return util.NewInputError("--patch-model requires a Microservice-only YAML file")
+			return util.NewInputError(fmt.Sprintf("%s requires a Microservice-only YAML file", flags))
 		}
 	}
 	return nil
+}
+
+func patchCatalogFlagNames(patchModel, patchKnowledge bool) string {
+	switch {
+	case patchModel && patchKnowledge:
+		return "--patch-model / --patch-knowledge"
+	case patchKnowledge:
+		return "--patch-knowledge"
+	default:
+		return "--patch-model"
+	}
 }
 
 func deployAgentConfiguration(executors []execute.Executor) (err error) {

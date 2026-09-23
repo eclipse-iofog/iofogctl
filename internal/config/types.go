@@ -25,6 +25,7 @@ const (
 	ApplicationKind            Kind = Kind(apps.ApplicationKind)
 	ApplicationTemplateKind    Kind = Kind(apps.ApplicationTemplateKind)
 	ModelKind                  Kind = Kind(apps.ModelKind)
+	KnowledgeKind              Kind = Kind(apps.KnowledgeKind)
 	RuntimeClassKind           Kind = Kind(apps.RuntimeClassKind)
 	MicroserviceTemplateKind   Kind = Kind(apps.MicroserviceTemplateKind)
 	NatsAccountRuleKind        Kind = "NatsAccountRule"
