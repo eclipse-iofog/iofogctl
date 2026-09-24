@@ -94,6 +94,7 @@ StartLimitBurst=5
 Type=simple
 ExecStartPre=/bin/sh -c 'mountpoint -q /sys/fs/bpf || mount -t bpf bpf /sys/fs/bpf 2>/dev/null || true'
 ExecStart=/usr/local/bin/edgelet runtime-bootstrap
+# Reap only after a verified data-plane drain (receipt under /run/edgelet).
 ExecStopPost=-/usr/local/bin/edgelet runtime reap-orphans
 Restart=always
 RestartSec=5s
@@ -315,6 +316,7 @@ stop() {
  fi
  fi
  rm -f "${pidfile}" 2>/dev/null || true
+ # Reap only after a verified data-plane drain (receipt under /run/edgelet).
  /usr/local/bin/edgelet runtime reap-orphans || ewarn "orphan reap exited non-zero"
  eend 0
 }

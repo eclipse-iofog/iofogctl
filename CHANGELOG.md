@@ -5,6 +5,62 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.0-rc.4] - 22-09-2026
+
+### Added
+
+- Fleet Knowledge: `deploy -f`, attach/detach, get/describe/delete
+- Microservice `spec.knowledge`; `deploy --patch-knowledge` (combinable with `--patch-model`)
+- Describe agent knowledge fields (`knowledgeStatus`, `activeKnowledge`, `knowledgeLastUpdate`); `get all` knowledge table
+
+### Fixed
+
+- Describe agent `modelLastUpdate` treated as Unix milliseconds (same RFC3339 conversion as `lastStatusTime`)
+
+### Changed
+
+- Pin **iofog-go-sdk** to **v3.9.0-rc.6**
+- Describe agent status uses a stable field order and prints host fog metrics (`systemCpus`, `systemTotalMemory`, `systemTotalDisk`, OS/kernel). `cpuUsage` is cores (100 = 1 core) for agent and microservice; `systemTotalCPU` stays host utilization %.
+
+## [v3.9.0-rc.3] - 20-09-2026
+
+### Added
+
+- Microservice volume mapping `scope` (`private` default, or `shared`) when `type` is `volume`.
+  `deploy -f` accepts it; `describe` prints Controller’s value. Omit on write → Controller stores `private`.
+
+### Changed
+
+- Bump **iofog-go-sdk** to **v3.9.0-rc.4**
+- Component pins: controller **3.9.0-rc.5**, edgelet binary **v1.1.0-rc.3** / image **1.1.0-rc.3**
+
+## [v3.9.0-rc.2] - 18-09-2026
+
+### Added
+
+- `get` / `describe` microservice: print Controller `lastError`, `lastErrorAt`, and `restartCount`. `get` adds a compact crash summary when those fields are set; `describe` always prints them (`lastErrorAt` as a timestamp). Empty extras stay quiet on `get` for older Controllers. Distinct from current `errorMessage`.
+
+## [v3.9.0-rc.1] - 17-09-2026
+
+### Breaking
+
+- Remove agent HAL/BLE fields `deviceScanFrequency`, `bluetoothEnabled`, and `abstractedHardwareEnabled`. Keep `edgeGuardFrequency`.
+- Registry YAML: drop `isSecure`, `requiresCert`, and `certificate`. Use `type` (`oci` or `hf`), `ca`, and `insecure`. Email is optional.
+
+### Added
+
+- `deploy -f` for `kind: Model`, `RuntimeClass`, and `MicroserviceTemplate`
+- `attach` / `detach` model and runtimeclass to agents by name
+- `get` / `describe` / `delete` for model, runtimeclass, and microservice-template
+- Microservice `spec.template` and `spec.models`; `deploy --patch-model` patches the catalog only (Controller decides rebuild)
+- Describe microservice: models catalog, `podId`, and container 3.9 fields (`runAsGroup`, `entrypoint`, `tmpfs`, `devices`, …)
+- Describe agent: parsed `runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, and `modelLastUpdate`
+- `get all` includes a models table
+
+### Fixed
+
+- `get controllers` lists Running/Pending Kubernetes controller pods only (skips Failed, Succeeded, and terminating) and no longer persists those pods in namespace config
+
 ## [v3.8.3-rc.2] — September 2026
 
 ### Fixed

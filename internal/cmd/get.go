@@ -37,6 +37,10 @@ func newGetCommand() *cobra.Command {
 		"nats-user-rules",
 		"auth-groups",
 		"auth-group",
+		"knowledge",
+		"models",
+		"runtimeclass",
+		"microservice-templates",
 	}
 	cmd := &cobra.Command{
 		Use:   "get RESOURCE [NAME]",
@@ -69,7 +73,11 @@ Resources like Agents will require a working Controller in the namespace to disp
              nats-account-rules
              nats-user-rules
              auth-groups
-             auth-group NAME`),
+             auth-group NAME
+             knowledge
+             models
+             runtimeclass
+             microservice-templates`),
 		ValidArgs: validResources,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 || len(args) > 2 {

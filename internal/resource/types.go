@@ -143,14 +143,15 @@ type Events struct {
 }
 
 type Registry struct {
-	URL          *string `yaml:"url"`
-	Private      *bool   `yaml:"private"`
-	Username     *string `yaml:"username"`
-	Password     *string `yaml:"password"`
-	Email        *string `yaml:"email"`
-	RequiresCert *bool   `yaml:"requiresCert"`
-	Certificate  *string `yaml:"certificate,omitempty"`
-	ID           int     `yaml:"id"`
+	URL      *string `yaml:"url"`
+	Private  *bool   `yaml:"private"`
+	Username *string `yaml:"username"`
+	Password *string `yaml:"password"`
+	Email    *string `yaml:"email,omitempty"`
+	Type     *string `yaml:"type"`
+	CA       *string `yaml:"ca,omitempty"`
+	Insecure *bool   `yaml:"insecure,omitempty"`
+	ID       int     `yaml:"id"`
 }
 
 type Volume struct {
@@ -199,12 +200,18 @@ type AgentStatus struct {
 	SecurityViolationInfo string  `json:"securityViolationInfo" yaml:"securityViolationInfo"`
 	WarningMessage        string  `json:"warningMessage" yaml:"warningMessage"`
 	UptimeMs              int64   `json:"daemonOperatingDuration" yaml:"uptime"`
-	MemoryUsage           float64 `json:"memoryUsage" yaml:"memoryUsage"`                     // MiB (binary) from agent status PUT
-	DiskUsage             float64 `json:"diskUsage" yaml:"diskUsage"`                         // GiB (decimal) from Edgelet status PUT
-	CPUUsage              float64 `json:"cpuUsage" yaml:"cpuUsage"`                           // percent
-	SystemAvailableMemory float64 `json:"systemAvailableMemory" yaml:"systemAvailableMemory"` // bytes
-	SystemAvailableDisk   float64 `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`     // bytes
-	SystemTotalCPU        float64 `json:"systemTotalCPU" yaml:"systemTotalCPU"`
+	MemoryUsage           float64 `json:"memoryUsage" yaml:"memoryUsage"` // MiB (binary) from agent status PUT
+	DiskUsage             float64 `json:"diskUsage" yaml:"diskUsage"`     // GiB (decimal) from Edgelet status PUT
+	CPUUsage              float64 `json:"cpuUsage" yaml:"cpuUsage"`       // 100 = 1 core
+	SystemCpus            int     `json:"systemCpus,omitempty" yaml:"systemCpus,omitempty"`
+	SystemTotalMemory     int64   `json:"systemTotalMemory" yaml:"systemTotalMemory"`         // bytes
+	SystemAvailableMemory int64   `json:"systemAvailableMemory" yaml:"systemAvailableMemory"` // bytes
+	SystemTotalDisk       int64   `json:"systemTotalDisk" yaml:"systemTotalDisk"`             // bytes
+	SystemAvailableDisk   int64   `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`     // bytes
+	SystemTotalCPU        float64 `json:"systemTotalCPU" yaml:"systemTotalCPU"`               // host utilization 0–100%
+	SystemOs              string  `json:"systemOs" yaml:"systemOs"`
+	SystemOsVersion       string  `json:"systemOsVersion" yaml:"systemOsVersion"`
+	SystemKernelVersion   string  `json:"systemKernelVersion" yaml:"systemKernelVersion"`
 	MemoryViolation       string  `json:"memoryViolation" yaml:"memoryViolation"`
 	DiskViolation         string  `json:"diskViolation" yaml:"diskViolation"`
 	CPUViolation          string  `json:"cpuViolation" yaml:"cpuViolation"`
@@ -225,6 +232,14 @@ type AgentStatus struct {
 	RuntimeAgentPhase     string                 `json:"runtimeAgentPhase" yaml:"runtimeAgentPhase"`
 	ControlPlaneQuiesced  bool                   `json:"controlPlaneQuiesced" yaml:"controlPlaneQuiesced"`
 	PlatformStatus        *client.PlatformStatus `json:"platformStatus,omitempty" yaml:"platformStatus,omitempty"`
+	RuntimeClasses        string                 `json:"runtimeClasses" yaml:"runtimeClasses"`
+	AvailableCdiDevices   string                 `json:"availableCdiDevices" yaml:"availableCdiDevices"`
+	ModelStatus           string                 `json:"modelStatus" yaml:"modelStatus"`
+	ActiveModels          int                    `json:"activeModels" yaml:"activeModels"`
+	ModelLastUpdate       int64                  `json:"modelLastUpdate" yaml:"modelLastUpdate"`
+	KnowledgeStatus       string                 `json:"knowledgeStatus" yaml:"knowledgeStatus"`
+	ActiveKnowledge       int                    `json:"activeKnowledge" yaml:"activeKnowledge"`
+	KnowledgeLastUpdate   int64                  `json:"knowledgeLastUpdate" yaml:"knowledgeLastUpdate"`
 }
 
 // ArchStringToID maps canonical architecture names to Controller archId values.

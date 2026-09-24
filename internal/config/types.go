@@ -24,6 +24,10 @@ const (
 	MicroserviceKind           Kind = Kind(apps.MicroserviceKind)
 	ApplicationKind            Kind = Kind(apps.ApplicationKind)
 	ApplicationTemplateKind    Kind = Kind(apps.ApplicationTemplateKind)
+	ModelKind                  Kind = Kind(apps.ModelKind)
+	KnowledgeKind              Kind = Kind(apps.KnowledgeKind)
+	RuntimeClassKind           Kind = Kind(apps.RuntimeClassKind)
+	MicroserviceTemplateKind   Kind = Kind(apps.MicroserviceTemplateKind)
 	NatsAccountRuleKind        Kind = "NatsAccountRule"
 	NatsUserRuleKind           Kind = "NatsUserRule"
 	SecretKind                 Kind = "Secret"
@@ -43,6 +47,7 @@ type Header struct {
 	APIVersion string         `yaml:"apiVersion" json:"apiVersion"`
 	Kind       Kind           `yaml:"kind" json:"kind"`
 	Metadata   HeaderMetadata `yaml:"metadata" json:"metadata"`
+	Handler    string         `yaml:"handler,omitempty" json:"handler,omitempty"` // RuntimeClass root field
 	Spec       interface{}    `yaml:"spec,omitempty" json:"spec,omitempty"`
 	Data       interface{}    `yaml:"data,omitempty" json:"data,omitempty"`
 	Status     interface{}    `yaml:"status,omitempty" json:"status,omitempty"`

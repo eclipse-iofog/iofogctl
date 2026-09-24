@@ -9,7 +9,7 @@ daemonStatus: UNKNOWN
 securityStatus: OK
 warningMessage: HEALTHY
 securityViolationInfo: No violation
-cpuUsage: 0.13 %
+cpuUsage: 1.50 cores
 cpuViolation: "false"
 diskUsage: 187 B
 diskViolation: "false"

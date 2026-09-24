@@ -20,6 +20,7 @@ type headerDecode struct {
 	Spec       interface{}           `yaml:"spec,omitempty"`
 	Data       interface{}           `yaml:"data,omitempty"`
 	Status     interface{}           `yaml:"status,omitempty"`
+	Handler    string                `yaml:"handler,omitempty"`
 	Rules      interface{}           `yaml:"rules,omitempty"`
 	RoleRef    interface{}           `yaml:"roleRef,omitempty"`
 	Subjects   interface{}           `yaml:"subjects,omitempty"`
@@ -158,6 +159,7 @@ func headerDecodeToHeader(h *headerDecode) *config.Header {
 		Spec:       h.Spec,
 		Data:       h.Data,
 		Status:     h.Status,
+		Handler:    h.Handler,
 	}
 
 	switch kind {

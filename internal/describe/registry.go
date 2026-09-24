@@ -52,6 +52,11 @@ func (exe *registryExecutor) Execute() error {
 		Username: &r.Username,
 		Email:    &r.Email,
 		Password: &r.Password,
+		Type:     &r.Type,
+		Insecure: &r.Insecure,
+	}
+	if r.CA != "" {
+		registry.CA = &r.CA
 	}
 
 	header := config.Header{

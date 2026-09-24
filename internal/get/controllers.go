@@ -73,54 +73,50 @@ func generateControllerOutput(namespace string) (table [][]string, err error) {
 	headers := []string{"CONTROLLER", "STATUS", "AGE", "UPTIME", "VERSION", "ADDR", "PORT"}
 	table[0] = append(table[0], headers...)
 
-	// Populate rows
-	for idx, ctrlConfig := range controllers {
-		// Instantiate connection to controller
-		ctrl, err := clientutil.NewControllerClient(namespace)
-		if err != nil {
-			return table, err
-		}
+	if len(controllers) == 0 {
+		return table, nil
+	}
 
-		// Ping status
-		ctrlStatus, err := ctrl.GetStatus()
-		uptime := "-"
-		status := "Failing"
-		if err == nil {
-			uptime = util.FormatDuration(time.Duration(int64(ctrlStatus.UptimeSeconds)) * time.Second)
-			status = ctrlStatus.Status
-		}
-		// Handle k8s pod statuses
-		if len(podStatuses) != 0 && idx < len(podStatuses) {
+	uptime := "-"
+	version := "-"
+	apiStatus := "Failing"
+	ctrl, err := clientutil.NewControllerClient(namespace)
+	if err != nil {
+		return table, err
+	}
+	ctrlStatus, err := ctrl.GetStatus()
+	if err == nil {
+		uptime = util.FormatDuration(time.Duration(int64(ctrlStatus.UptimeSeconds)) * time.Second)
+		apiStatus = ctrlStatus.Status
+		version = ctrlStatus.Versions.Controller
+	}
+
+	// Populate rows — reuse ADDR/PORT from config and VERSION/UPTIME from a single GetStatus()
+	for idx, ctrlConfig := range controllers {
+		status := apiStatus
+		if idx < len(podStatuses) {
 			status = podStatuses[idx]
 		}
 
-		// Get age
 		age := "-"
 		if ctrlConfig.GetCreatedTime() != "" {
 			age, _ = util.ElapsedUTC(ctrlConfig.GetCreatedTime(), util.NowUTC())
 		}
 
 		addr, port := getAddressAndPort(ctrlConfig.GetEndpoint(), client.ControllerPortString)
-
-		if err != nil {
-			return nil, err
-		}
-
 		row := []string{
 			ctrlConfig.GetName(),
 			status,
 			age,
 			uptime,
-			ctrlStatus.Versions.Controller,
+			version,
 			addr,
 			port,
-			// expiryDate,
-			// agentSeats,
 		}
 		table[idx+1] = append(table[idx+1], row...)
 	}
 
-	return table, err
+	return table, nil
 }
 
 func updateControllerPods(controlPlane *rsc.KubernetesControlPlane, namespace string) (err error) {

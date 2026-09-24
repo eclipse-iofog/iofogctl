@@ -102,24 +102,7 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string)
 		} else {
 			agentName = agent.Name
 		}
-		status := ms.Status.Status
-		switch status {
-		case "":
-			status = "-"
-		case "PULLING":
-			if ms.Status.Percentage > 0 {
-				status = fmt.Sprintf("%s (%d%s)", ms.Status.Status, int(math.Round(ms.Status.Percentage)), "%")
-			}
-		}
-		if ms.Status.ErrorMessage != "" {
-			msg := ms.Status.ErrorMessage
-			if strings.Contains(msg, "invalid mount config for type \"bind\"") {
-				msg = "Volume missing"
-			} else if strings.Contains(msg, "runtime create failed") {
-				msg = "Error starting container"
-			}
-			status = fmt.Sprintf("%s (%s)", ms.Status.Status, msg)
-		}
+		status := formatMicroserviceGetStatus(ms.Status)
 		natsAccess := "false"
 		if ms.NatsConfig != nil && ms.NatsConfig.NatsAccess {
 			natsAccess = "true"
@@ -138,4 +121,39 @@ func (exe *microserviceExecutor) generateMicroserviceOutput() (table [][]string)
 	}
 
 	return table
+}
+
+// formatMicroserviceGetStatus builds the STATUS cell. lastErrorAt is omitted (describe only).
+// Empty lastError + restartCount 0 (healthy / older Controller) stays quiet.
+func formatMicroserviceGetStatus(st client.MicroserviceStatusInfo) string {
+	status := st.Status
+	switch status {
+	case "":
+		status = "-"
+	case "PULLING":
+		if st.Percentage > 0 {
+			status = fmt.Sprintf("%s (%d%s)", st.Status, int(math.Round(st.Percentage)), "%")
+		}
+	}
+	if st.ErrorMessage != "" {
+		msg := st.ErrorMessage
+		if strings.Contains(msg, "invalid mount config for type \"bind\"") {
+			msg = "Volume missing"
+		} else if strings.Contains(msg, "runtime create failed") {
+			msg = "Error starting container"
+		}
+		status = fmt.Sprintf("%s (%s)", st.Status, msg)
+	}
+
+	var extras []string
+	if st.RestartCount > 0 {
+		extras = append(extras, fmt.Sprintf("restarts: %d", st.RestartCount))
+	}
+	if st.LastError != "" && st.LastError != st.ErrorMessage {
+		extras = append(extras, fmt.Sprintf("lastError: %s", st.LastError))
+	}
+	if len(extras) > 0 {
+		status = fmt.Sprintf("%s (%s)", status, strings.Join(extras, ", "))
+	}
+	return status
 }

@@ -399,8 +399,6 @@ metadata:
   name: ${NAME}-0
 spec:
   config:
-    bluetoothEnabled: true
-    abstractedHardwareEnabled: false
     memoryLimit: 8192
     diskDirectory: /tmp/iofog-agent/
     description: special test agent
@@ -412,7 +410,6 @@ spec:
     logFileCount: 11
     statusFrequency: 9
     changeFrequency: 8
-    deviceScanFrequency: 61
   container:
     image: ${AGENT_IMAGE}" > test/conf/local-agent.yaml
 }
@@ -446,8 +443,6 @@ metadata:
   name: $AGENT_NAME
 spec:
   config:
-    bluetoothEnabled: true
-    abstractedHardwareEnabled: false
     memoryLimit: 8192
     diskDirectory: /tmp/iofog-agent/
     description: special test agent
@@ -459,7 +454,6 @@ spec:
     logFileCount: 11
     statusFrequency: 9
     changeFrequency: 8
-    deviceScanFrequency: 61
   host: ${HOSTS[$IDX]}
   ssh:
     user: ${USERS[$IDX]}
@@ -631,8 +625,7 @@ spec:
         agent:
           name: \"{{$APP_TEMPLATE_KEY}}\"
           config:
-            bluetoothEnabled: true # this will install the iofog/restblue microservice
-            abstractedHardwareEnabled: false
+            description: special test agent
         images:
           arm: edgeworx/healthcare-heart-rate:arm-v1
           x86: edgeworx/healthcare-heart-rate:x86-v1

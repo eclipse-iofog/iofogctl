@@ -34,7 +34,7 @@ func TestFormatAgentStatusGoldenV38Fields(t *testing.T) {
 		SecurityStatus:        "OK",
 		WarningMessage:        "HEALTHY",
 		SecurityViolationInfo: "No violation",
-		CPUUsage:              0.13,
+		CPUUsage:              150,
 		DiskUsage:             0.000000187, // 187 B as GiB (decimal) from Edgelet status PUT
 		MemoryViolation:       "false",
 		DiskViolation:         "false",
@@ -53,7 +53,7 @@ func TestFormatAgentStatusGoldenV38Fields(t *testing.T) {
 		ControlPlaneQuiesced:  false,
 	}
 
-	got := FormatAgentStatus(status)
+	got := statusMap(FormatAgentStatus(status))
 
 	for key, want := range expected {
 		require.Contains(t, got, key, "missing status field %q", key)
@@ -66,7 +66,7 @@ func TestFormatAgentStatusGoldenV38Fields(t *testing.T) {
 }
 
 func TestFormatAgentStatusV38FieldsAlwaysPresent(t *testing.T) {
-	got := FormatAgentStatus(rsc.AgentStatus{})
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{}))
 
 	require.Contains(t, got, "availableRuntimes")
 	require.Contains(t, got, "runtimeAgentPhase")
@@ -76,7 +76,7 @@ func TestFormatAgentStatusV38FieldsAlwaysPresent(t *testing.T) {
 }
 
 func TestFormatAgentStatusDiskUsageGiB(t *testing.T) {
-	got := FormatAgentStatus(rsc.AgentStatus{DiskUsage: 0.24})
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{DiskUsage: 0.24}))
 
 	require.Equal(t, "228.9 MB", got["diskUsage"])
 }
@@ -90,9 +90,149 @@ func TestFormatAgentStatusUptimeAndTimestamps(t *testing.T) {
 		UptimeMs:            (5*time.Hour + 3*time.Minute).Milliseconds(),
 	}
 
-	got := FormatAgentStatus(status)
+	got := statusMap(FormatAgentStatus(status))
 
 	require.Equal(t, "2026-05-07T12:21:10Z", got["lastActive"])
 	require.Equal(t, "2026-05-07T12:21:10Z", got["lastStatusTime"])
 	require.Equal(t, "5h3m", got["uptime"])
+}
+
+func TestFormatAgentStatusV39ModelAndRuntimeBlobs(t *testing.T) {
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{
+		RuntimeClasses:      `[{"name":"nvidia"}]`,
+		AvailableCdiDevices: `["nvidia.com/gpu=0"]`,
+		ModelStatus:         `[{"name":"llama","state":"Ready"}]`,
+		ActiveModels:        2,
+		ModelLastUpdate:     1710000000000,
+	}))
+
+	require.Equal(t, 2, got["activeModels"])
+	require.Equal(t, "2024-03-09T16:00:00Z", got["modelLastUpdate"])
+
+	runtimeClasses, ok := got["runtimeClasses"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, runtimeClasses, 1)
+	require.Equal(t, "nvidia", runtimeClasses[0].(map[string]interface{})["name"])
+
+	cdi, ok := got["availableCdiDevices"].([]interface{})
+	require.True(t, ok)
+	require.Equal(t, "nvidia.com/gpu=0", cdi[0])
+
+	models, ok := got["modelStatus"].([]interface{})
+	require.True(t, ok)
+	require.Equal(t, "llama", models[0].(map[string]interface{})["name"])
+}
+
+func TestFormatAgentStatusV39KnowledgeFields(t *testing.T) {
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{
+		KnowledgeStatus:     `[{"name":"wiki"}]`,
+		ActiveKnowledge:     3,
+		KnowledgeLastUpdate: 1710000000456,
+	}))
+
+	require.Equal(t, 3, got["activeKnowledge"])
+	require.Equal(t, "2024-03-09T16:00:00Z", got["knowledgeLastUpdate"])
+
+	knowledge, ok := got["knowledgeStatus"].([]interface{})
+	require.True(t, ok)
+	require.Equal(t, "wiki", knowledge[0].(map[string]interface{})["name"])
+}
+
+func TestFormatAgentStatusOmitsEmptyV39Blobs(t *testing.T) {
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{}))
+	require.NotContains(t, got, "runtimeClasses")
+	require.NotContains(t, got, "availableCdiDevices")
+	require.NotContains(t, got, "modelStatus")
+	require.NotContains(t, got, "modelLastUpdate")
+	require.NotContains(t, got, "knowledgeStatus")
+	require.NotContains(t, got, "knowledgeLastUpdate")
+	require.NotContains(t, got, "systemCpus")
+	require.NotContains(t, got, "systemTotalMemory")
+	require.NotContains(t, got, "systemAvailableMemory")
+	require.NotContains(t, got, "systemTotalDisk")
+	require.NotContains(t, got, "systemAvailableDisk")
+	require.NotContains(t, got, "systemTotalCPU")
+	require.NotContains(t, got, "systemOs")
+	require.NotContains(t, got, "processedMessages")
+	require.NotContains(t, got, "messageSpeed")
+	require.Equal(t, 0, got["activeModels"])
+	require.Equal(t, 0, got["activeKnowledge"])
+}
+
+func TestFormatAgentStatusHostMetrics(t *testing.T) {
+	got := statusMap(FormatAgentStatus(rsc.AgentStatus{
+		CPUUsage:              32.97,
+		SystemCpus:            4,
+		SystemTotalMemory:     8 * 1024 * 1024 * 1024,
+		SystemAvailableMemory: 3 * 1024 * 1024 * 1024,
+		SystemTotalDisk:       50 * 1024 * 1024 * 1024,
+		SystemAvailableDisk:   4 * 1024 * 1024 * 1024,
+		SystemTotalCPU:        21.03,
+		SystemOs:              "linux",
+		SystemOsVersion:       "6.8.0",
+		SystemKernelVersion:   "6.8.0-60-generic",
+	}))
+
+	require.Equal(t, "0.33 cores", got["cpuUsage"])
+	require.Equal(t, 4, got["systemCpus"])
+	require.Equal(t, "8.0 GB", got["systemTotalMemory"])
+	require.Equal(t, "3.0 GB", got["systemAvailableMemory"])
+	require.Equal(t, "50.0 GB", got["systemTotalDisk"])
+	require.Equal(t, "4.0 GB", got["systemAvailableDisk"])
+	require.Equal(t, "21.03 %", got["systemTotalCPU"])
+	require.Equal(t, "linux", got["systemOs"])
+	require.Equal(t, "6.8.0", got["systemOsVersion"])
+	require.Equal(t, "6.8.0-60-generic", got["systemKernelVersion"])
+}
+
+func TestFormatAgentStatusFieldOrder(t *testing.T) {
+	keys := statusKeys(FormatAgentStatus(rsc.AgentStatus{
+		Version:               "v1.1.0-rc.5",
+		DaemonStatus:          "RUNNING",
+		UptimeMs:              time.Hour.Milliseconds(),
+		CPUUsage:              150,
+		MemoryUsage:           152,
+		DiskUsage:             0.24,
+		SystemOs:              "linux",
+		SystemCpus:            4,
+		SystemTotalCPU:        21.03,
+		SystemTotalMemory:     8 * 1024 * 1024 * 1024,
+		SystemAvailableMemory: 3 * 1024 * 1024 * 1024,
+		ActiveModels:          1,
+		ActiveKnowledge:       2,
+	}))
+
+	require.Equal(t, []string{
+		"version",
+		"daemonStatus",
+		"securityStatus",
+		"securityViolationInfo",
+		"warningMessage",
+		"gpsStatus",
+		"ipAddress",
+		"ipAddressExternal",
+		"lastCommandTime",
+		"uptime",
+		"cpuUsage",
+		"memoryUsage",
+		"diskUsage",
+		"cpuViolation",
+		"memoryViolation",
+		"diskViolation",
+		"systemOs",
+		"systemCpus",
+		"systemTotalCPU",
+		"systemTotalMemory",
+		"systemAvailableMemory",
+		"availableRuntimes",
+		"runtimeAgentPhase",
+		"controlPlaneQuiesced",
+		"activeModels",
+		"activeKnowledge",
+		"repositoryStatus",
+		"isReadyToUpgrade",
+		"isReadyToRollback",
+		"tunnel",
+		"volumeMounts",
+	}, keys)
 }

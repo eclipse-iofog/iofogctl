@@ -15,6 +15,8 @@ var (
 		getVolumeTable,
 		getServiceTable,
 		getVolumeMountTable,
+		getModelTable,
+		getKnowledgeTable,
 	}
 )
 
@@ -130,6 +132,22 @@ func getServiceTable(namespace string, tableChan tableChannel) {
 
 func getVolumeMountTable(namespace string, tableChan tableChannel) {
 	table, err := generateVolumeMountsOutput(namespace)
+	tableChan <- tableQuery{
+		table: table,
+		err:   err,
+	}
+}
+
+func getModelTable(namespace string, tableChan tableChannel) {
+	table, err := generateModelsOutput(namespace)
+	tableChan <- tableQuery{
+		table: table,
+		err:   err,
+	}
+}
+
+func getKnowledgeTable(namespace string, tableChan tableChannel) {
+	table, err := generateKnowledgeOutput(namespace)
 	tableChan <- tableQuery{
 		table: table,
 		err:   err,
