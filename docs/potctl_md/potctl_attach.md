@@ -31,6 +31,9 @@ potctl attach
 * [potctl](potctl.md)	 - 
 * [potctl attach agent](potctl_attach_agent.md)	 - Attach an Agent to an existing Namespace
 * [potctl attach exec](potctl_attach_exec.md)	 - Provision fog debug exec on an Agent
+* [potctl attach knowledge](potctl_attach_knowledge.md)	 - Attach Knowledge to existing Agents
+* [potctl attach model](potctl_attach_model.md)	 - Attach a Model to existing Agents
+* [potctl attach runtimeclass](potctl_attach_runtimeclass.md)	 - Attach a RuntimeClass to existing Agents
 * [potctl attach volume-mount](potctl_attach_volume-mount.md)	 - Attach a Volume Mount to existing Agents
 
 

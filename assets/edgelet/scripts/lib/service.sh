@@ -1,6 +1,82 @@
 #!/bin/sh
 # Init-system service stop/restart helpers (OTA parity with upstream edgelet install.sh).
 
+# stop_edgelet_dataplane_processes stops runtime-bootstrap and its containerd
+# child. It does not stop the control daemon.
+stop_edgelet_dataplane_processes() {
+	_pids=$(pgrep -f '[e]dgelet runtime-bootstrap' 2>/dev/null || true)
+	_pids="${_pids} $(pgrep -f '[e]dgelet-containerd-child' 2>/dev/null || true)"
+	_pids=$(echo "${_pids}" | tr ' ' '\n' | awk 'NF && !seen[$0]++')
+	[ -n "${_pids}" ] || return 0
+	for _p in ${_pids}; do
+		maybe_sudo kill -TERM "${_p}" 2>/dev/null || true
+	done
+	sleep 1
+	for _p in ${_pids}; do
+		kill -0 "${_p}" 2>/dev/null || continue
+		maybe_sudo kill -KILL "${_p}" 2>/dev/null || true
+	done
+}
+
+# stop_edgelet_containerd_unit stops the data plane on every init.
+# Call it only after runtime drain --direct has verified.
+stop_edgelet_containerd_unit() {
+	_init="${1:-${INIT_SYSTEM:-unknown}}"
+	info "Stopping edgelet-containerd (data plane)"
+	case "${_init}" in
+		systemd)
+			maybe_sudo systemctl stop edgelet-containerd 2>/dev/null || true
+			maybe_sudo systemctl reset-failed edgelet-containerd 2>/dev/null || true
+			;;
+		openrc)
+			maybe_sudo rc-service edgelet-containerd stop 2>/dev/null || true
+			;;
+		*)
+			stop_edgelet_dataplane_processes
+			;;
+	esac
+}
+
+start_edgelet_dataplane_process() {
+	if pgrep -f '[e]dgelet runtime-bootstrap' >/dev/null 2>&1; then
+		return 0
+	fi
+	if pgrep -f '[e]dgelet-containerd-child' >/dev/null 2>&1; then
+		return 0
+	fi
+	maybe_sudo mkdir -p /var/log/edgelet
+	maybe_sudo sh -c '/usr/local/bin/edgelet runtime-bootstrap >>/var/log/edgelet/containerd.log 2>&1 &'
+}
+
+# start_edgelet_containerd_after_drain starts a data plane that install.sh
+# already stopped after a verified drain. It does not stop or restart the unit.
+start_edgelet_containerd_after_drain() {
+	_init="${1:-${INIT_SYSTEM:-unknown}}"
+	info "Starting edgelet-containerd after verified drain"
+	case "${_init}" in
+		systemd)
+			maybe_sudo systemctl enable edgelet-containerd 2>/dev/null || true
+			maybe_sudo systemctl reset-failed edgelet-containerd 2>/dev/null || true
+			maybe_sudo systemctl start edgelet-containerd
+			;;
+		openrc)
+			maybe_sudo rc-update add edgelet-containerd default 2>/dev/null || true
+			maybe_sudo rc-service edgelet-containerd start
+			;;
+		*)
+			start_edgelet_dataplane_process
+			;;
+	esac
+	case "${_init}" in
+		systemd|openrc)
+			if [ "${EDGELET_START_NO_WAIT:-0}" = "1" ]; then
+				return 0
+			fi
+			wait_edgelet_containerd_ready
+			;;
+	esac
+}
+
 stop_edgelet_service() {
 	_init="${1:-${INIT_SYSTEM:-unknown}}"
 	case "${_init}" in
@@ -182,15 +258,16 @@ restart_edgelet_daemon_service() {
 	esac
 }
 
-# restart_edgelet_services stops then starts edgelet (and edgelet-containerd when embedded).
+# restart_edgelet_services starts the data plane when a verified fat OTA stopped
+# it, then restarts control. Thin OTA and docker/podman restart control only.
 restart_edgelet_services() {
 	_eng="${1:-${CONTAINER_ENGINE:-edgelet}}"
 	if [ "$_eng" = "edgelet" ]; then
 		if consume_containerd_restarted_marker; then
 			info "edgelet-containerd already restarted; restarting edgelet only (OTA)"
 		elif consume_restart_data_plane_marker; then
-			info "Restarting edgelet-containerd and edgelet (embedded bundle OTA)"
-			restart_edgelet_containerd_service
+			info "Starting edgelet-containerd after verified drain, then edgelet"
+			start_edgelet_containerd_after_drain "${INIT_SYSTEM:-unknown}"
 		else
 			info "Thin OTA (embed hash unchanged); restarting edgelet only"
 			start_edgelet_containerd_unit "${INIT_SYSTEM:-unknown}" false

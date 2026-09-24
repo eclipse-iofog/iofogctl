@@ -62,6 +62,14 @@ func NewExecutor(resourceType, namespace string, showDetached bool, resourceName
 			return nil, util.NewInputError("get auth-group requires a name")
 		}
 		return newAuthGroupExecutor(namespace, resourceName), nil
+	case "knowledge":
+		return newKnowledgeExecutor(namespace), nil
+	case "models":
+		return newModelExecutor(namespace), nil
+	case "runtimeclass":
+		return newRuntimeClassExecutor(namespace), nil
+	case "microservice-templates":
+		return newMicroserviceTemplateExecutor(namespace), nil
 	default:
 		msg := "Unknown resource: '" + resourceType + "'"
 		return nil, util.NewInputError(msg)

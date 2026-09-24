@@ -64,12 +64,7 @@ func (exe *remoteExecutor) updateCatalogItem(clt *client.Client, existing *clien
 		Description: exe.catalogItem.Description,
 	}
 
-	if exe.catalogItem.Registry != "" {
-		request.RegistryID, err = clientutil.ResolveRegistryID(exe.catalogItem.Registry)
-		if err != nil {
-			return err
-		}
-	}
+	request.RegistryID = exe.catalogItem.Registry.Int()
 
 	if _, err = clt.UpdateCatalogItem(&request); err != nil {
 		return err
@@ -79,15 +74,10 @@ func (exe *remoteExecutor) updateCatalogItem(clt *client.Client, existing *clien
 }
 
 func (exe *remoteExecutor) createCatalogItem(clt *client.Client) (err error) {
-	registryID, err := clientutil.ResolveRegistryID(exe.catalogItem.Registry)
-	if err != nil {
-		return err
-	}
-
 	if _, err = clt.CreateCatalogItem(&client.CatalogItemCreateRequest{
 		Name:        exe.catalogItem.Name,
 		Images:      buildCatalogImages(exe.catalogItem),
-		RegistryID:  registryID,
+		RegistryID:  exe.catalogItem.Registry.Int(),
 		Description: exe.catalogItem.Description,
 	}); err != nil {
 		return err
@@ -152,10 +142,6 @@ func validate(opt *apps.CatalogItem) error {
 
 	if opt.AMD64 == "" && opt.ARM64 == "" && opt.RISCV64 == "" && opt.ARM == "" {
 		return util.NewInputError("At least one image must be specified")
-	}
-
-	if _, err := clientutil.ResolveRegistryID(opt.Registry); err != nil {
-		return err
 	}
 
 	return nil

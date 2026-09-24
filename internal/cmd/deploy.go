@@ -20,6 +20,10 @@ func newDeployCommand() *cobra.Command {
           application.yaml
           microservice.yaml
           catalog.yaml
+          model.yaml
+          knowledge.yaml
+          runtimeclass.yaml
+          microservice-template.yaml
           volume.yaml
           route.yaml
           secret.yaml
@@ -53,6 +57,8 @@ Visit %[2]s to view all YAML specifications usable with this command.`, util.Get
 	cmd.Flags().StringVarP(&opt.InputFile, "file", "f", "", pkg.flagDescYaml)
 	cmd.Flags().BoolVar(&opt.NoCache, "no-cache", false, "Disable caching for OfflineImage images after download")
 	cmd.Flags().IntVar(&opt.TransferPool, "transfer-pool", 2, "Maximum number of concurrent OfflineImage transfers")
+	cmd.Flags().BoolVar(&opt.PatchModel, "patch-model", false, "Patch only spec.models on Microservice YAML (catalog PATCH). Controller decides whether the workload is rebuilt.")
+	cmd.Flags().BoolVar(&opt.PatchKnowledge, "patch-knowledge", false, "Patch only spec.knowledge on Microservice YAML (catalog PATCH). Controller rebuilds on empty↔non-empty catalog or bindPath/permissions change; item-only changes do not rebuild. Combinable with --patch-model.")
 
 	return cmd
 }

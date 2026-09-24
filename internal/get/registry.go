@@ -52,7 +52,8 @@ func tabulateRegistries(catalogItems []client.RegistryInfo) error {
 		"URL",
 		"USERNAME",
 		"PRIVATE",
-		"SECURE",
+		"TYPE",
+		"INSECURE",
 	}
 	table[0] = append(table[0], headers...)
 	// Populate rows
@@ -63,7 +64,8 @@ func tabulateRegistries(catalogItems []client.RegistryInfo) error {
 			item.URL,
 			item.Username,
 			strconv.FormatBool(!item.IsPublic),
-			strconv.FormatBool(item.IsSecure),
+			item.Type,
+			strconv.FormatBool(item.Insecure),
 		}
 		table[idx+1] = append(table[idx+1], row...)
 		idx++
