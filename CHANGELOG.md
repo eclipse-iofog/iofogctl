@@ -5,6 +5,25 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.0] - 26-09-2026
+Stable v3.9 release. Promotes component and module pins from the v3.9.0-rc line to GA.
+### Fixed
+- Airgap controller image collection: resolve Router, Debug, and NATS from the Controller catalog using v3.9 display names first (`Router`, `Debug`, `NATS`), with lowercase fallbacks.
+### Changed
+- Bump **iofog-go-sdk** to **v3.9.0**
+- Bump **iofog-operator** to **v3.9.0**
+- Component pins: operator / controller / router **3.9.0**, NATS **2.15.0**, edgelet binary **v1.1.0** / image **1.1.0**
+### Component pairing
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.9.0` |
+| operator | `3.9.0` |
+| controller | `3.9.0` |
+| router | `3.9.0` |
+| nats | `2.15.0` |
+| edgelet binary | `v1.1.0` |
+| edgelet image | `ghcr.io/<registry>/edgelet:1.1.0` |
+
 ## [v3.9.0-rc.4] - 22-09-2026
 
 ### Added
@@ -16,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Describe agent `modelLastUpdate` treated as Unix milliseconds (same RFC3339 conversion as `lastStatusTime`)
+- Fat edgelet OTA: drain and verify the data plane before replacing the edgelet binary.
 
 ### Changed
 
@@ -437,7 +457,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.3-rc.1...HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...HEAD
+[v3.9.0]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.3-rc.1...v3.9.0
 [v3.8.3-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.2...v3.8.3-rc.1
 [v3.8.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.1...v3.8.2
 [v3.8.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.0...v3.8.1
