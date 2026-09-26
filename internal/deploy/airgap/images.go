@@ -262,19 +262,19 @@ func CollectControllerImages(namespace string, controlPlane *rsc.RemoteControlPl
 		return nil, fmt.Errorf("failed to connect to controller: %w", err)
 	}
 
-	routerItem, err := getCatalogItemByName(clt, "router", "Router")
+	routerItem, err := getCatalogItemByName(clt, "Router", "router")
 	if err == nil {
 		applyRouterImagesFromCatalog(images, routerItem)
 	}
 
-	debuggerItem, err := getCatalogItemByName(clt, "debugger", "Debug")
+	debuggerItem, err := getCatalogItemByName(clt, "Debug", "debugger")
 	if err == nil {
 		applyDebuggerImageFromCatalog(images, debuggerItem)
 	} else {
 		util.PrintNotify("Warning: Could not fetch debugger catalog item from controller. Debugger image will not be transferred.")
 	}
 
-	natsItem, err := getCatalogItemByName(clt, "nats", "NATS", "NATs")
+	natsItem, err := getCatalogItemByName(clt, "NATS", "NATs", "nats")
 	if err == nil {
 		applyNatsImageFromCatalog(images, natsItem)
 	}
