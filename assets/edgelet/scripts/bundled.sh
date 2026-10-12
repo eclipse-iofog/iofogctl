@@ -51,4 +51,19 @@ for _lib in "$SCRIPT_DIR"/lib/*.sh; do
 	_publish "$_lib" "lib/$(basename "$_lib")"
 done
 
+# Persist the installing CLI's release repo. A later edgelet --upgrade runs
+# these scripts with no EDGELET_GITHUB_REPO in the environment.
+if [ -n "${EDGELET_GITHUB_REPO:-}" ]; then
+	case "$EDGELET_GITHUB_REPO" in
+		*[!A-Za-z0-9._/-]*)
+			die "Invalid EDGELET_GITHUB_REPO"
+			;;
+	esac
+	_flavor_tmp=$(mktemp)
+	printf 'EDGELET_GITHUB_REPO=%s\n' "$EDGELET_GITHUB_REPO" > "$_flavor_tmp"
+	maybe_sudo install -m 644 "$_flavor_tmp" "$_share/flavor.env"
+	rm -f "$_flavor_tmp"
+	info "Pinned EDGELET_GITHUB_REPO=${EDGELET_GITHUB_REPO}"
+fi
+
 info "Bundled edgelet scripts at ${_share}/"

@@ -1,6 +1,15 @@
 #!/bin/sh
 # Binary download, verification, and install helpers.
 
+# Host-side install.sh --upgrade has no potctl environment. The repo pinned
+# at publish time (share dir flavor.env) wins over the Eclipse default.
+# An explicit EDGELET_GITHUB_REPO from the caller still wins.
+if [ -z "${EDGELET_GITHUB_REPO:-}" ] && [ -n "${SCRIPT_DIR:-}" ] && [ -f "${SCRIPT_DIR}/flavor.env" ]; then
+	_pinned=$(grep '^EDGELET_GITHUB_REPO=' "${SCRIPT_DIR}/flavor.env" 2>/dev/null | head -1 | sed 's/^EDGELET_GITHUB_REPO=//')
+	if [ -n "$_pinned" ]; then
+		EDGELET_GITHUB_REPO="$_pinned"
+	fi
+fi
 GITHUB_REPO="${EDGELET_GITHUB_REPO:-eclipse-iofog/edgelet}"
 
 release_download_url() {

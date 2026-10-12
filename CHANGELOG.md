@@ -14,6 +14,10 @@ Promotes the v3.9.1-rc.1 line to GA. The operator module moves from **v3.9.1-rc.
 - Bump **iofog-operator** to **v3.9.1** (same Go **1.26.9** and **golang.org/x/net v0.60.0** as the rc tag).
 - **iofog-go-sdk** stays at **v3.9.1**.
 
+### Fixed
+
+- Edgelet install now writes the CLI flavor's GitHub repo to `<share>/flavor.env`. A later host-side `install.sh --upgrade` keeps that repo (`Datasance/edgelet` for potctl) instead of falling back to `eclipse-iofog/edgelet`.
+
 ### Component pairing
 
 | Component | Pin |

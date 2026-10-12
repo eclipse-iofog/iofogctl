@@ -220,7 +220,7 @@ The CLI prefixes every script command with env from `EdgeletInstallConfig.bootst
 | `EDGELET_VERSION` | Binary/tag version (from ldflags or `package.version`) |
 | `EDGELET_CONTAINER_IMAGE` | Container image when `deploymentType: container` |
 | `EDGELET_TZ` | Timezone (default `UTC`) |
-| `EDGELET_GITHUB_REPO` | Release base for binary download |
+| `EDGELET_GITHUB_REPO` | Release repo for binary download. `bundled.sh` writes `<share>/flavor.env` so a later host-side `install.sh --upgrade` keeps the installing flavor |
 | `EDGELET_CONTAINER_ENGINE_URL` | Socket URL for docker/podman |
 | `LOCAL_INSTALL=1` | Set for local bootstrap (skips remote sudo check) |
 | `EDGELET_SCRIPT_STAGE_DIR` | Stage dir path (desktop container) |
