@@ -5,6 +5,40 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.1-rc.1] - 12-10-2026
+
+### Security
+
+- Bump Go to **1.26.9** and **golang.org/x/net** to **v0.60.0** (`x/crypto` v0.57.0, `x/sys` v0.48.0, `x/sync` v0.23.0, `x/text` v0.42.0, `x/term` v0.46.0). Clears the HTTP/2 findings govulncheck reported on v3.9.0 (Go 1.26.6): HPACK encoder race (CVE-2026-97032), Trailer-header memory exhaustion (CVE-2026-78659), `SETTINGS_INITIAL_WINDOW_SIZE` CPU burn (CVE-2026-78669), and HTTP/2 flow-control refund (CVE-2026-78663). Call paths were `docker.Client.Close`, `install.NewKubernetes`, SSH folder create, and password prompt via `net/http` and `golang.org/x/net/http2`.
+- Bump **iofog-go-sdk** to **v3.9.1** and the **iofog-operator** module to **v3.9.1-rc.1** (same Go and `x/net` pins). There is no `v3.9.1` operator module tag yet.
+
+### Added
+
+- Operator guides under `docs/operators/` for control plane (Kubernetes, local, remote), agents and edgelet bootstrap, workloads, RBAC, secrets, config maps, certificates, volumes, registries, catalog items, models, knowledge, runtime classes, NATS rules, services, and offline images. `docs/operators/edgelet-installation.md` now points at `docs/operators/agent/edgelet-bootstrap.md`.
+
+### Fixed
+
+- `describe` for Role, RoleBinding, and ServiceAccount prints Controller-style deploy YAML: `rules`, `roleRef`, and `subjects` at the document root, with ServiceAccount `applicationName` on metadata.
+
+### Changed
+
+- Component image pins: router **3.9.1**, NATS **2.15.1**. Operator image, controller image, and edgelet binary/image stay **3.9.0** / **v1.1.0** / **1.1.0** until those tags are published.
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.9.1` |
+| Go | `1.26.9` |
+| iofog-go-sdk | `v3.9.1` |
+| iofog-operator module | `v3.9.1-rc.1` |
+| operator image | `3.9.1-rc.1` |
+| controller | `3.9.0` |
+| router | `3.9.1` |
+| nats | `2.15.1` |
+| edgelet binary | `v1.1.0` |
+| edgelet image | `1.1.0` |
+
 ## [v3.9.0] - 26-09-2026
 Stable v3.9 release. Promotes component and module pins from the v3.9.0-rc line to GA.
 ### Fixed
@@ -457,7 +491,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.1...HEAD
+[v3.9.1-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1
 [v3.9.0]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.3-rc.1...v3.9.0
 [v3.8.3-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.2...v3.8.3-rc.1
 [v3.8.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.1...v3.8.2
