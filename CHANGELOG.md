@@ -5,6 +5,30 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.1] - 12-10-2026
+
+Promotes the v3.9.1-rc.1 line to GA. The operator module moves from **v3.9.1-rc.1** to **v3.9.1**.
+
+### Changed
+
+- Bump **iofog-operator** to **v3.9.1** (same Go **1.26.9** and **golang.org/x/net v0.60.0** as the rc tag).
+- **iofog-go-sdk** stays at **v3.9.1**.
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.9.1` |
+| Go | `1.26.9` |
+| iofog-go-sdk | `v3.9.1` |
+| iofog-operator module | `v3.9.1` |
+| operator image | `3.9.1` |
+| controller | `3.9.1` |
+| router | `3.9.1` |
+| nats | `2.15.1` |
+| edgelet binary | `v1.1.1` |
+| edgelet image | `1.1.1` |
+
 ## [v3.9.1-rc.1] - 12-10-2026
 
 ### Security
@@ -492,7 +516,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Re-organize the repo to maintain multiple packages
   
 [Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.1...HEAD
-[v3.9.1-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1
+[v3.9.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1
+[v3.9.1-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1-rc.1
 [v3.9.0]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.3-rc.1...v3.9.0
 [v3.8.3-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.2...v3.8.3-rc.1
 [v3.8.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.1...v3.8.2
