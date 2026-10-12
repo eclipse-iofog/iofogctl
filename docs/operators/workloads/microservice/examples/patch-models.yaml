@@ -1,0 +1,17 @@
+# Use: potctl deploy -f patch-models.yaml --patch-model -n my-ecn
+# File must contain ONLY kind: Microservice
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: inference
+  namespace: my-ecn
+spec:
+  application: myapp
+  agent:
+    name: edge-01
+  models:
+    bindPath: /models
+    permissions: ro
+    items:
+      - name: smollm2-135m
+      - name: org-llm

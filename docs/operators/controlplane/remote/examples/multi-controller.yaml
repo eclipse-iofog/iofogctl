@@ -1,0 +1,65 @@
+# Remote ControlPlane — multi-host HA (v3.9.x)
+# Requires external database when len(controllers) > 1.
+# Index 0: default router + NATS. Index 1+: interior system agents (upstream default-router / default-nats-hub).
+# Deploy: potctl deploy -f multi-controller.yaml -n prod
+
+apiVersion: datasance.com/v3
+kind: ControlPlane
+metadata:
+  name: edge-ha
+spec:
+  endpoint: https://controller.example.com
+  iofogUser:
+    email: ops@example.com
+  controller:
+    publicUrl: https://controller.example.com
+    consoleUrl: https://console.example.com
+    logLevel: info
+    package:
+      image: ghcr.io/datasance/controller:3.9.0
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "RemoteTest12!"
+  database:
+    provider: postgres
+    host: postgres.internal.example.com
+    port: 5432
+    user: controller
+    password: secret
+    databaseName: controller
+    ssl: true
+    # ca: <base64-pem-db-ca>
+  systemMicroservices:
+    router:
+      amd64: ghcr.io/datasance/router:3.9.0
+      arm64: ghcr.io/datasance/router:3.9.0
+      arm: ghcr.io/datasance/router:3.9.0
+      riscv64: ghcr.io/datasance/router:3.9.0
+    nats:
+      amd64: ghcr.io/datasance/nats:2.15.0
+      arm64: ghcr.io/datasance/nats:2.15.0
+      arm: ghcr.io/datasance/nats:2.15.0
+      riscv64: ghcr.io/datasance/nats:2.15.0
+  nats:
+    enabled: true
+  controllers:
+    - name: ctrl-primary
+      host: 10.0.1.10
+      ssh:
+        user: ubuntu
+        keyFile: ~/.ssh/prod.pem
+      systemAgent:
+        config:
+          arch: amd64
+          host: 10.0.1.10
+    - name: ctrl-secondary
+      host: 10.0.1.11
+      ssh:
+        user: ubuntu
+        keyFile: ~/.ssh/prod.pem
+      systemAgent:
+        config:
+          arch: amd64
+          host: 10.0.1.11

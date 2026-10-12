@@ -1,0 +1,74 @@
+# KubernetesControlPlane — Pattern B1: Ingress TLS, Controller HTTP
+# CLI requires ingresses.controller.host and secretName when controller Service is ClusterIP.
+# Operator creates Ingress named "controller". controller.https: false (no pod secretName).
+# Set spec.ca to the CA clients use to verify https://controller.example.com
+
+apiVersion: datasance.com/v3
+kind: KubernetesControlPlane
+metadata:
+  name: ingress-k8s-cp
+  namespace: iofog
+spec:
+  config: ~/.kube/config
+  # ca: <base64-pem>   # optional — CLI trust for Controller API
+  iofogUser:
+    email: admin@example.com
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "ChangeMe12!"
+  database:
+    provider: postgres
+    host: postgres.iofog.svc.cluster.local
+    port: 5432
+    user: controller
+    password: secret
+    databaseName: controller
+  replicas:
+    controller: 2
+    nats: 2
+  controller:
+    publicUrl: https://controller.example.com
+    trustProxy: true
+    https: false
+    consoleUrl: https://controller.example.com
+    logLevel: info
+  images:
+    operator: ghcr.io/datasance/operator:3.9.0
+    controller: ghcr.io/datasance/controller:3.9.0
+    router: ghcr.io/datasance/router:3.9.0
+    nats: ghcr.io/datasance/nats:2.15.0
+  services:
+    controller:
+      type: ClusterIP
+    router:
+      type: ClusterIP
+    nats:
+      type: ClusterIP
+    natsServer:
+      type: ClusterIP
+  ingresses:
+    controller:
+      host: controller.example.com
+      ingressClassName: nginx
+      secretName: controller-tls
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    router:
+      address: router.example.com
+      messagePort: 5671
+      interiorPort: 55671
+      edgePort: 45671
+    nats:
+      address: nats.example.com
+      serverPort: 4222
+      clusterPort: 6222
+      leafPort: 7422
+      mqttPort: 8883
+      httpPort: 8222
+  nats:
+    enabled: true
+    jetStream:
+      storageSize: 10Gi
+      memoryStoreSize: 1Gi

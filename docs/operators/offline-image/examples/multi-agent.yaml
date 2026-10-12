@@ -1,0 +1,14 @@
+apiVersion: datasance.com/v3
+kind: OfflineImage
+metadata:
+  name: private-api-bundle
+  namespace: my-ecn
+spec:
+  name: private-api-bundle
+  amd64: registry.example.com/team/api:2.1.0
+  agent:
+    - edge-node-1
+    - edge-node-2
+  auth:
+    username: ci-pull
+    password: replace-with-registry-token

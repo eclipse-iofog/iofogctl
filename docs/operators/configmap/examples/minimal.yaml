@@ -1,0 +1,8 @@
+apiVersion: datasance.com/v3
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: my-ecn
+data:
+  features: '{"darkMode":true}'
+  log_level: info

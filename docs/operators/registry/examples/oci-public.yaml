@@ -1,0 +1,8 @@
+apiVersion: datasance.com/v3
+kind: Registry
+metadata:
+  namespace: my-ecn
+spec:
+  url: registry-1.docker.io
+  private: false
+  type: oci

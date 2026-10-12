@@ -1,0 +1,25 @@
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: wasm2
+  namespace: my-ecn
+spec:
+  application: wasm
+  agent:
+    name: edge-01
+  images:
+    registry: remote
+    amd64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+    arm64: ghcr.io/containerd/runwasi/wasi-demo-app:latest
+  container:
+    hostNetworkMode: false
+    isPrivileged: false
+    platform: wasi/wasm
+    runtime: edgelet-wasmtime
+    ports:
+      - internal: 8080
+        external: 8081
+        protocol: tcp
+  natsConfig:
+    natsAccess: false
+  config: {}

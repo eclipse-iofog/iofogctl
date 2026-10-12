@@ -1,0 +1,20 @@
+---
+apiVersion: datasance.com/v3
+kind: Secret
+metadata:
+  name: my-import-ca
+  namespace: my-ecn
+spec:
+  type: tls
+data:
+  tls.crt: LS0tLS1CRUdJTi...base64-pem-one-line...
+  tls.key: LS0tLS1CRUdJTi...base64-pem-one-line...
+---
+apiVersion: datasance.com/v3
+kind: CertificateAuthority
+metadata:
+  name: my-import-ca
+  namespace: my-ecn
+spec:
+  subject: "CN=Imported CA,O=Example"
+  type: direct

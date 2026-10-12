@@ -56,13 +56,7 @@ func (exe *serviceAccountExecutor) Execute() error {
 		return err
 	}
 
-	spec := rsc.ServiceAccount{
-		Name:            sa.Name,
-		ApplicationName: sa.ApplicationName,
-		RoleRef:         convertRoleRef(sa.RoleRef),
-	}
-
-	header := config.Header{
+	return printDescribe(exe.filename, serviceAccountDocument{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       config.ServiceAccountKind,
 		Metadata: config.HeaderMetadata{
@@ -70,17 +64,14 @@ func (exe *serviceAccountExecutor) Execute() error {
 			Name:            exe.name,
 			ApplicationName: sa.ApplicationName,
 		},
-		Spec: spec,
-	}
+		RoleRef: convertRoleRef(sa.RoleRef),
+	})
+}
 
-	if exe.filename == "" {
-		if err := util.Print(header); err != nil {
-			return err
-		}
-	} else {
-		if err := util.FPrint(header, exe.filename); err != nil {
-			return err
-		}
-	}
-	return nil
+// serviceAccountDocument matches Controller-style deploy YAML: applicationName on metadata, roleRef at the root.
+type serviceAccountDocument struct {
+	APIVersion string                `yaml:"apiVersion"`
+	Kind       config.Kind           `yaml:"kind"`
+	Metadata   config.HeaderMetadata `yaml:"metadata"`
+	RoleRef    rsc.RoleRef           `yaml:"roleRef,omitempty"`
 }

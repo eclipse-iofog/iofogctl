@@ -1,0 +1,17 @@
+# Kubernetes control plane — servicePort and k8sType required for microservice, agent, external.
+apiVersion: datasance.com/v3
+kind: Service
+metadata:
+  name: checkout
+  namespace: my-ecn
+  tags:
+    - checkout
+    # Contains ":" — Kubernetes annotation only, not an Edgelet distribution tag
+    - "service.beta.kubernetes.io/aws-load-balancer-type: nlb"
+spec:
+  type: microservice
+  resource: orders/checkout
+  targetPort: 8080
+  servicePort: 80
+  k8sType: LoadBalancer
+  defaultBridge: default-router

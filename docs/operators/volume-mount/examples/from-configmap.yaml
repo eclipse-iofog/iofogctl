@@ -1,0 +1,7 @@
+apiVersion: datasance.com/v3
+kind: VolumeMount
+metadata:
+  name: router-config-vol
+  namespace: my-ecn
+spec:
+  configMapName: router-config

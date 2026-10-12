@@ -1,0 +1,34 @@
+apiVersion: datasance.com/v3
+kind: MicroserviceTemplate
+metadata:
+  name: inference-ms
+  namespace: my-ecn
+spec:
+  description: Template for inference microservice with fleet model bind
+  variables:
+    - key: application
+      description: Application name
+      defaultValue: myapp
+    - key: agent-name
+      description: Edge agent
+      defaultValue: edge-01
+    - key: model1
+      description: Fleet model metadata.name
+      defaultValue: smollm2-135m
+  microservice:
+    application: "{{application}}"
+    agent:
+      name: "{{agent-name}}"
+    images:
+      registry: remote
+      amd64: ghcr.io/datasance/inference:1.0.0
+    models:
+      bindPath: /models
+      permissions: ro
+      items:
+        - name: "{{model1}}"
+    container:
+      ports:
+        - internal: 8080
+          external: 8080
+          protocol: tcp

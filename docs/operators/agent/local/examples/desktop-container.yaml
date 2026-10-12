@@ -1,0 +1,20 @@
+apiVersion: datasance.com/v3
+kind: LocalAgent
+metadata:
+  name: desktop-edge
+spec:
+  package:
+    container:
+      image: ghcr.io/datasance/edgelet:1.1.0
+  config:
+    arch: amd64
+    deploymentType: container
+    containerEngine: docker
+    upstreamRouters:
+      - default-router
+    routerConfig:
+      routerMode: edge
+    upstreamNatsServers:
+      - default-nats-hub
+    natsConfig:
+      natsMode: leaf

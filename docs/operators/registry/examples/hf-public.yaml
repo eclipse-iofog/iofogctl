@@ -1,0 +1,8 @@
+apiVersion: datasance.com/v3
+kind: Registry
+metadata:
+  namespace: my-ecn
+spec:
+  url: https://huggingface.co
+  private: false
+  type: hf

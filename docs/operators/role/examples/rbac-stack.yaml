@@ -1,0 +1,35 @@
+# CLI kindOrder deploys Role → RoleBinding → ServiceAccount before Application.
+# Ensure metadata.applicationName matches an Application you deploy in the same or a later apply.
+---
+apiVersion: datasance.com/v3
+kind: Role
+metadata:
+  name: app-worker
+  namespace: my-ecn
+rules:
+  - apiGroups: [""]
+    resources: ["microservices"]
+    verbs: ["get", "list"]
+---
+apiVersion: datasance.com/v3
+kind: RoleBinding
+metadata:
+  name: app-worker-binding
+  namespace: my-ecn
+roleRef:
+  kind: Role
+  name: app-worker
+subjects:
+  - kind: ServiceAccount
+    name: worker
+    apiGroup: ""
+---
+apiVersion: datasance.com/v3
+kind: ServiceAccount
+metadata:
+  name: worker
+  namespace: my-ecn
+  applicationName: my-app
+roleRef:
+  kind: Role
+  name: app-worker

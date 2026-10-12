@@ -1,0 +1,11 @@
+apiVersion: datasance.com/v3
+kind: Registry
+metadata:
+  namespace: my-ecn
+spec:
+  url: gcr.io
+  private: true
+  type: oci
+  username: _json_key
+  password: "<service-account-json-or-token>"
+  email: ops@example.com

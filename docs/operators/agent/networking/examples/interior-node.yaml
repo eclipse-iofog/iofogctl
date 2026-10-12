@@ -1,0 +1,22 @@
+# Explicit interior router + NATS server (non-first node on remote CP, or dedicated fabric node).
+# edgeRouterPort and interRouterPort are required when you set routerMode: interior on create.
+apiVersion: datasance.com/v3
+kind: AgentConfig
+metadata:
+  name: fabric-1
+  namespace: my-ecn
+spec:
+  host: 203.0.113.1
+  arch: amd64
+  routerConfig:
+    routerMode: interior
+    messagingPort: 5671
+    edgeRouterPort: 45671
+    interRouterPort: 55671
+  natsConfig:
+    natsMode: server
+    natsServerPort: 4222
+    natsClusterPort: 6222
+    natsLeafPort: 7422
+    jsStorageSize: 10g
+    jsMemoryStoreSize: 1g

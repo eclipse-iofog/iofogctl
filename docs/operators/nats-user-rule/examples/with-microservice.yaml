@@ -1,0 +1,27 @@
+---
+apiVersion: datasance.com/v3
+kind: NatsUserRule
+metadata:
+  name: checkout-user
+  namespace: my-ecn
+spec:
+  description: Checkout service user
+  maxPayload: 1m
+  allowedConnectionTypes:
+    - STANDARD
+    - WEBSOCKET
+  pubAllow:
+    - "orders.>"
+  subAllow:
+    - "orders.>"
+---
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: checkout
+  namespace: my-ecn
+spec:
+  application: orders
+  natsConfig:
+    natsAccess: true
+    natsRule: checkout-user

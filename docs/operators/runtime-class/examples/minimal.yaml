@@ -1,0 +1,6 @@
+apiVersion: datasance.com/v3
+kind: RuntimeClass
+metadata:
+  name: spin
+  namespace: my-ecn
+handler: spin

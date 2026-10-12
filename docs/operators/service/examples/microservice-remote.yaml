@@ -1,0 +1,14 @@
+# Remote control plane — omit servicePort and k8sType.
+# Controller sets servicePort to the assigned bridgePort and serviceEndpoint to the hub router host.
+apiVersion: datasance.com/v3
+kind: Service
+metadata:
+  name: checkout
+  namespace: my-ecn
+  tags:
+    - checkout
+spec:
+  type: microservice
+  resource: orders/checkout
+  targetPort: 8080
+  defaultBridge: default-router

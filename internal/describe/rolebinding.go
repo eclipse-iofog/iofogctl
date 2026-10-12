@@ -5,7 +5,6 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type roleBindingExecutor struct {
@@ -37,33 +36,25 @@ func (exe *roleBindingExecutor) Execute() error {
 		return err
 	}
 
-	spec := rsc.RoleBinding{
-		Name:     binding.Name,
-		Kind:     binding.Kind,
-		RoleRef:  convertRoleRef(binding.RoleRef),
-		Subjects: convertSubjects(binding.Subjects),
-	}
-
-	header := config.Header{
+	return printDescribe(exe.filename, roleBindingDocument{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       config.RoleBindingKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,
 		},
-		Spec: spec,
-	}
+		RoleRef:  convertRoleRef(binding.RoleRef),
+		Subjects: convertSubjects(binding.Subjects),
+	})
+}
 
-	if exe.filename == "" {
-		if err := util.Print(header); err != nil {
-			return err
-		}
-	} else {
-		if err := util.FPrint(header, exe.filename); err != nil {
-			return err
-		}
-	}
-	return nil
+// roleBindingDocument matches Controller-style deploy YAML: roleRef and subjects at the document root.
+type roleBindingDocument struct {
+	APIVersion string                `yaml:"apiVersion"`
+	Kind       config.Kind           `yaml:"kind"`
+	Metadata   config.HeaderMetadata `yaml:"metadata"`
+	RoleRef    rsc.RoleRef           `yaml:"roleRef,omitempty"`
+	Subjects   []rsc.Subject         `yaml:"subjects,omitempty"`
 }
 
 func convertRoleRef(ref client.RoleRef) rsc.RoleRef {

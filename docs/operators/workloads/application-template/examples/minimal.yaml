@@ -1,0 +1,28 @@
+apiVersion: datasance.com/v3
+kind: ApplicationTemplate
+metadata:
+  name: edge-app-template
+  namespace: my-ecn
+spec:
+  description: Sample application template with one microservice slot
+  variables:
+    - key: agent-name
+      description: Target edge agent
+      defaultValue: edge-01
+    - key: external-port
+      description: Host port for HTTP
+      defaultValue: 8080
+  application:
+    name: "{{application-name}}"
+    microservices:
+      - name: web
+        agent:
+          name: "{{agent-name}}"
+        images:
+          registry: remote
+          amd64: ghcr.io/datasance/example/web:latest
+        container:
+          ports:
+            - internal: 80
+              external: 8080
+              protocol: tcp

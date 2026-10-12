@@ -1,0 +1,10 @@
+apiVersion: datasance.com/v3
+kind: Model
+metadata:
+  name: org-llm
+  namespace: my-ecn
+spec:
+  repo: org/models/llm
+  registry: remote
+  revision: main
+  format: gguf

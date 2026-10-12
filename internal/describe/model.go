@@ -89,8 +89,12 @@ func modelHeader(namespace, name string, model *client.Model, linkedAgents []str
 }
 
 func printDescribeHeader(filename string, header config.Header) error {
+	return printDescribe(filename, header)
+}
+
+func printDescribe(filename string, doc interface{}) error {
 	if filename == "" {
-		return util.Print(header)
+		return util.Print(doc)
 	}
-	return util.FPrint(header, filename)
+	return util.FPrint(doc, filename)
 }

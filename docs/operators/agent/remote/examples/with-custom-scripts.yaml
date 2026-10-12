@@ -1,0 +1,31 @@
+apiVersion: datasance.com/v3
+kind: Agent
+metadata:
+  name: edge-custom-scripts
+spec:
+  host: 10.0.0.52
+  ssh:
+    user: ubuntu
+    keyFile: ~/.ssh/id_rsa
+  package:
+    version: "1.1.0"
+  config:
+    arch: amd64
+    deploymentType: native
+    containerEngine: edgelet
+    upstreamRouters:
+      - default-router
+    routerConfig:
+      routerMode: edge
+    upstreamNatsServers:
+      - default-nats-hub
+    natsConfig:
+      natsMode: leaf
+  scripts:
+    dir: ./edgelet-scripts
+    install:
+      entrypoint: install.sh
+      args:
+        - "--version=1.1.0"
+        - "--skip-config"
+        - "--skip-start"

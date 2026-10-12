@@ -1,0 +1,35 @@
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: dashboard
+  namespace: my-ecn
+spec:
+  application: ops
+  agent:
+    name: edge-01
+  images:
+    registry: remote
+    amd64: ghcr.io/datasance/dashboard:1.0.0
+  container:
+    volumes:
+      - hostDestination: /tmp/dashboard-scratch
+        containerDestination: /scratch
+        accessMode: rw
+        type: bind
+      - hostDestination: nats-creds-operations-center-alert-dashboard
+        containerDestination: /etc/nats/creds
+        accessMode: ro
+        type: volumeMount
+      - hostDestination: config
+        containerDestination: /app/config
+        accessMode: rw
+        type: volume
+      - hostDestination: nodered-config
+        containerDestination: /data
+        accessMode: rw
+        type: volume
+        scope: shared
+    ports:
+      - internal: 8080
+        external: 8080
+        protocol: tcp

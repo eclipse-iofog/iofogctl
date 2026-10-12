@@ -1,0 +1,26 @@
+apiVersion: datasance.com/v3
+kind: NatsAccountRule
+metadata:
+  name: orders-account
+  namespace: my-ecn
+spec:
+  description: Orders application account
+  infoUrl: https://example.com/orders
+  maxConnections: -1
+  maxLeafNodeConnections: -1
+  maxSubscriptions: -1
+  maxData: -1
+  maxMsgPayload: 1m
+  maxImports: -1
+  maxExports: -1
+  exportsAllowWildcards: true
+  disallowBearer: false
+  pubAllow:
+    - "orders.>"
+  pubDeny:
+    - "orders.secret"
+  subAllow:
+    - "orders.>"
+  subDeny: []
+  respMax: 1
+  respTtl: 5000000000

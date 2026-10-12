@@ -1,0 +1,13 @@
+# Deploy kind: CertificateAuthority (ecn-root-ca, type self-signed) first — see certificate-authority/examples/self-signed-ca.yaml
+apiVersion: datasance.com/v3
+kind: Certificate
+metadata:
+  name: api-tls
+  namespace: my-ecn
+spec:
+  subject: "CN=api.edge.example.com,O=Example"
+  hosts: "api.edge.example.com"
+  expiration: 365
+  ca:
+    type: direct
+    secretName: ecn-root-ca

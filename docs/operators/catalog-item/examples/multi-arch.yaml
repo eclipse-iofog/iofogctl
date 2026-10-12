@@ -1,0 +1,10 @@
+apiVersion: datasance.com/v3
+kind: CatalogItem
+metadata:
+  name: my-service
+  namespace: my-ecn
+spec:
+  registry: 5
+  description: Multi-arch images via private registry id 3
+  amd64: registry.example.com/acme/my-service:1.0.0-amd64
+  arm64: registry.example.com/acme/my-service:1.0.0-arm64

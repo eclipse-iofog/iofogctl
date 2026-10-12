@@ -1,0 +1,59 @@
+# Deploy NatsAccountRule and NatsUserRule in the same file before this document,
+# or in a prior apply. See ../../README.md deploy order.
+---
+apiVersion: datasance.com/v3
+kind: NatsAccountRule
+metadata:
+  name: orders-account
+  namespace: my-ecn
+spec:
+  description: Orders application account
+  maxConnections: -1
+  maxMsgPayload: 1m
+  pubAllow:
+    - "orders.>"
+  subAllow:
+    - "orders.>"
+---
+apiVersion: datasance.com/v3
+kind: NatsUserRule
+metadata:
+  name: checkout-user
+  namespace: my-ecn
+spec:
+  description: Checkout microservice user
+  maxPayload: 1m
+  allowedConnectionTypes:
+    - STANDARD
+    - WEBSOCKET
+  pubAllow:
+    - "orders.>"
+  subAllow:
+    - "orders.>"
+---
+apiVersion: datasance.com/v3
+kind: Application
+metadata:
+  name: orders
+  namespace: my-ecn
+spec:
+  name: orders
+  natsConfig:
+    natsAccess: true
+    natsRule: orders-account
+  microservices:
+    - name: checkout
+      agent:
+        name: plant-a
+      images:
+        registry: remote
+        amd64: ghcr.io/datasance/example/checkout:1.0.0
+        arm64: ghcr.io/datasance/example/checkout:1.0.0
+      container:
+        ports:
+          - internal: 8080
+            external: 8080
+            protocol: tcp
+      natsConfig:
+        natsAccess: true
+        natsRule: checkout-user

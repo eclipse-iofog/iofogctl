@@ -1,0 +1,66 @@
+# KubernetesControlPlane — Pattern B2: Ingress + pod TLS (re-encrypt)
+# ingresses.controller.secretName and controller.secretName are the SAME Secret (controller-tls).
+# Requires nginx.ingress.kubernetes.io/backend-protocol: HTTPS (or equivalent on your ingress).
+# Create one kubernetes.io/tls Secret "controller-tls" used by Ingress spec.tls and pod mount.
+
+apiVersion: datasance.com/v3
+kind: KubernetesControlPlane
+metadata:
+  name: ingress-k8s-cp
+  namespace: iofog
+spec:
+  config: ~/.kube/config
+  # ca: <base64-pem>   # optional — CLI trust for Controller API
+  iofogUser:
+    email: admin@example.com
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "ChangeMe12!"
+  database:
+    provider: postgres
+    host: postgres.iofog.svc.cluster.local
+    port: 5432
+    user: controller
+    password: secret
+    databaseName: controller
+  replicas:
+    controller: 2
+    nats: 2
+  controller:
+    publicUrl: https://controller.example.com
+    trustProxy: true
+    https: true
+    secretName: controller-tls
+    consoleUrl: https://controller.example.com
+    logLevel: info
+  images:
+    operator: ghcr.io/datasance/operator:3.9.0
+    controller: ghcr.io/datasance/controller:3.9.0
+    router: ghcr.io/datasance/router:3.9.0
+    nats: ghcr.io/datasance/nats:2.15.0
+  services:
+    controller:
+      type: ClusterIP
+    router:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+    nats:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+    natsServer:
+      type: ClusterIP
+  ingresses:
+    controller:
+      host: controller.example.com
+      ingressClassName: nginx
+      secretName: controller-tls
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  nats:
+    enabled: true
+    jetStream:
+      storageSize: 10Gi
+      memoryStoreSize: 1Gi

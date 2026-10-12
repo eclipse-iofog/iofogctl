@@ -1,0 +1,26 @@
+# Typical production edge: interior/system hub already exists (or first agent becomes system agent on remote CP).
+# Omit upstream lists to attach to default-router and default-nats-hub plus system-agent fabrics.
+apiVersion: datasance.com/v3
+kind: Agent
+metadata:
+  name: plant-a
+  namespace: my-ecn
+spec:
+  host: 203.0.113.10
+  ssh:
+    user: ubuntu
+    keyFile: ~/.ssh/id_rsa
+  package:
+    version: "1.1.0"
+  config:
+    host: 203.0.113.10
+    arch: amd64
+    routerConfig:
+      routerMode: edge
+      messagingPort: 5671
+    natsConfig:
+      natsMode: leaf
+      natsServerPort: 4222
+      natsLeafPort: 7422
+      jsStorageSize: 10g
+      jsMemoryStoreSize: 1g

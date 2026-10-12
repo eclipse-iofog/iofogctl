@@ -1,0 +1,9 @@
+apiVersion: datasance.com/v3
+kind: Role
+metadata:
+  name: microservice
+  namespace: my-ecn
+rules:
+  - apiGroups: [""]
+    resources: ["microservices"]
+    verbs: ["get", "list", "watch"]

@@ -1,0 +1,42 @@
+# Deploy AgentConfig explicitly, then the host install in one file.
+# AgentConfig batch runs before Agent bootstrap. Names must match.
+---
+apiVersion: datasance.com/v3
+kind: AgentConfig
+metadata:
+  name: edge-node-2
+spec:
+  arch: amd64
+  host: 10.0.0.60
+  upstreamRouters:
+    - default-router
+  routerConfig:
+    routerMode: edge
+  upstreamNatsServers:
+    - default-nats-hub
+  natsConfig:
+    natsMode: leaf
+---
+apiVersion: datasance.com/v3
+kind: Agent
+metadata:
+  name: edge-node-2
+spec:
+  host: 10.0.0.60
+  ssh:
+    user: ubuntu
+    keyFile: ~/.ssh/id_rsa
+  package:
+    version: "1.1.0"
+  config:
+    arch: amd64
+    deploymentType: native
+    containerEngine: edgelet
+    upstreamRouters:
+      - default-router
+    routerConfig:
+      routerMode: edge
+    upstreamNatsServers:
+      - default-nats-hub
+    natsConfig:
+      natsMode: leaf

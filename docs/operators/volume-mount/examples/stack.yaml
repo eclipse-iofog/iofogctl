@@ -1,0 +1,20 @@
+---
+apiVersion: datasance.com/v3
+kind: Secret
+metadata:
+  name: nats-account-secret
+  namespace: my-ecn
+data:
+  user.jwt: eyJ...
+  user.seed: SUA...
+---
+apiVersion: datasance.com/v3
+kind: VolumeMount
+metadata:
+  name: nats-creds
+  namespace: my-ecn
+spec:
+  secretName: nats-account-secret
+# Link to edge-node-1 happens automatically when a Microservice on that agent
+# references type: volumeMount and hostDestination: nats-creds.
+# Or pre-link: potctl attach volume-mount nats-creds edge-node-1 -n my-ecn
