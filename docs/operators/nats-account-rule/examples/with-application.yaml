@@ -1,0 +1,47 @@
+---
+apiVersion: datasance.com/v3
+kind: NatsAccountRule
+metadata:
+  name: orders-account
+  namespace: my-ecn
+spec:
+  description: Orders application account
+  maxConnections: -1
+  maxMsgPayload: 1m
+  pubAllow:
+    - "orders.>"
+  subAllow:
+    - "orders.>"
+---
+apiVersion: datasance.com/v3
+kind: NatsUserRule
+metadata:
+  name: checkout-user
+  namespace: my-ecn
+spec:
+  description: Checkout service user
+  maxSubscriptions: -1
+  maxPayload: 1m
+  allowedConnectionTypes:
+    - STANDARD
+    - WEBSOCKET
+  pubAllow:
+    - "orders.>"
+  subAllow:
+    - "orders.>"
+---
+apiVersion: datasance.com/v3
+kind: Application
+metadata:
+  name: orders
+  namespace: my-ecn
+spec:
+  name: orders
+  natsConfig:
+    natsAccess: true
+    natsRule: orders-account
+  microservices:
+    - name: checkout
+      natsConfig:
+        natsAccess: true
+        natsRule: checkout-user

@@ -1,0 +1,61 @@
+# Remote ControlPlane — BYO Router/NATS CAs + controller listener TLS (v3.9.x)
+# Replace <base64-pem> placeholders with: base64 -i file.pem | tr -d '\n'
+# CLI uploads routerSiteCA / routerLocalCA / natsSiteCA / natsLocalCA to Controller API once per deploy.
+# See ../securing-cluster.md for secret names and upload order.
+
+apiVersion: datasance.com/v3
+kind: ControlPlane
+metadata:
+  name: edge-secure
+spec:
+  endpoint: https://203.0.113.10:51121
+  ca: <base64-pem>              # CLI trust for Controller API
+  iofogUser:
+    email: ops@example.com
+  controller:
+    publicUrl: https://203.0.113.10:51121
+    package:
+      image: ghcr.io/datasance/controller:3.9.0
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "RemoteTest12!"
+  tls:
+    cert: <base64-pem>
+    key: <base64-pem>
+    ca: <base64-pem>
+  routerSiteCA:
+    tlsCert: <base64-pem>
+    tlsKey: <base64-pem>
+  routerLocalCA:
+    tlsCert: <base64-pem>
+    tlsKey: <base64-pem>
+  natsSiteCA:
+    tlsCert: <base64-pem>
+    tlsKey: <base64-pem>
+  natsLocalCA:
+    tlsCert: <base64-pem>
+    tlsKey: <base64-pem>
+  systemMicroservices:
+    router:
+      amd64: ghcr.io/datasance/router:3.9.0
+      arm64: ghcr.io/datasance/router:3.9.0
+      arm: ghcr.io/datasance/router:3.9.0
+      riscv64: ghcr.io/datasance/router:3.9.0
+    nats:
+      amd64: ghcr.io/datasance/nats:2.15.0
+      arm64: ghcr.io/datasance/nats:2.15.0
+      arm: ghcr.io/datasance/nats:2.15.0
+      riscv64: ghcr.io/datasance/nats:2.15.0
+  nats:
+    enabled: true
+  controllers:
+    - name: ctrl-1
+      host: 203.0.113.10
+      ssh:
+        user: ubuntu
+        keyFile: ~/.ssh/prod.pem
+      systemAgent:
+        config:
+          arch: amd64

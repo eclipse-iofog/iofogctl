@@ -1,0 +1,9 @@
+apiVersion: datasance.com/v3
+kind: CertificateAuthority
+metadata:
+  name: ecn-root-ca
+  namespace: my-ecn
+spec:
+  subject: "CN=ECN Root CA,O=Example Corp"
+  type: self-signed
+  expiration: 3650

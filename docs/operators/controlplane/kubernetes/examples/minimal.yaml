@@ -1,0 +1,42 @@
+# KubernetesControlPlane — minimal embedded-auth example (v3.9.x)
+# Deploy: potctl deploy -f minimal.yaml -n iofog
+# Mirror: use apiVersion iofog.org/v3 and ghcr.io/eclipse-iofog/* for iofogctl
+
+apiVersion: datasance.com/v3
+kind: KubernetesControlPlane
+metadata:
+  name: minimal-k8s-cp
+  namespace: iofog
+spec:
+  config: ~/.kube/config
+  iofogUser:
+    name: Admin
+    surname: User
+    email: admin@example.com
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "ChangeMe12!"   # DEV ONLY — min 12 chars, 1 upper, 1 special
+  replicas:
+    controller: 1
+    nats: 2
+  controller:
+    publicUrl: https://controller.example.com
+    logLevel: info
+    https: true
+    secretName: controller-tls
+  images:
+    operator: ghcr.io/datasance/operator:3.9.0
+    controller: ghcr.io/datasance/controller:3.9.0
+    router: ghcr.io/datasance/router:3.9.0
+    nats: ghcr.io/datasance/nats:2.15.0
+  services:
+    controller:
+      type: LoadBalancer
+    router:
+      type: LoadBalancer
+  nats:
+    enabled: true
+    jetStream:
+      storageSize: 10Gi

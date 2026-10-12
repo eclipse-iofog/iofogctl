@@ -1,0 +1,27 @@
+apiVersion: datasance.com/v3
+kind: NatsUserRule
+metadata:
+  name: checkout-user
+  namespace: my-ecn
+spec:
+  description: Checkout service user
+  maxSubscriptions: -1
+  maxData: -1
+  maxPayload: 1m
+  bearerToken: false
+  allowedConnectionTypes:
+    - STANDARD
+    - WEBSOCKET
+  pubAllow:
+    - "orders.>"
+  pubDeny:
+    - "orders.secret"
+  subAllow:
+    - "orders.>"
+    - "orders.work workers"
+  subDeny: []
+  respMax: 100
+  respTtl: 5000000000
+  tags:
+    - checkout
+    - prod

@@ -1,0 +1,14 @@
+# Backend outside the cluster — connector on the default router.
+apiVersion: datasance.com/v3
+kind: Service
+metadata:
+  name: vendor
+  namespace: my-ecn
+  tags:
+    - vendor
+spec:
+  type: external
+  resource: 203.0.113.10
+  targetPort: 443
+  defaultBridge: default-router
+  # On Kubernetes control plane, also set servicePort and k8sType.

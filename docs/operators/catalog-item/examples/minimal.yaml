@@ -1,0 +1,9 @@
+apiVersion: datasance.com/v3
+kind: CatalogItem
+metadata:
+  name: my-service
+  namespace: my-ecn
+spec:
+  registry: remote
+  description: Single-arch catalog entry
+  amd64: ghcr.io/datasance/my-service:1.0.0

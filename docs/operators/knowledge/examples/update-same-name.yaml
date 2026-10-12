@@ -1,0 +1,14 @@
+# Re-deploy: same metadata.name updates revision and file list.
+apiVersion: datasance.com/v3
+kind: Knowledge
+metadata:
+  name: product-docs
+  namespace: my-ecn
+spec:
+  repo: acme/product-manuals
+  registryId: 1
+  revision: sha256:newdigest000000000000000000000000000000000000000000000000
+  format: jsonl
+  files:
+    - guides/quickstart.md
+    - guides/admin.md

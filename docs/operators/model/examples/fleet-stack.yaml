@@ -1,0 +1,32 @@
+# Multi-document fleet prep (registries must already exist — run `get registries` after
+# `kind: Registry` create, then set registryId in a second pass if you added a new registry).
+# Deploy Application / Microservice in a follow-on file.
+---
+apiVersion: datasance.com/v3
+kind: Model
+metadata:
+  name: smollm2-135m
+  namespace: my-ecn
+spec:
+  repo: ai/smollm2
+  registry: remote
+  format: gguf
+  revision: main
+---
+apiVersion: datasance.com/v3
+kind: Knowledge
+metadata:
+  name: product-docs
+  namespace: my-ecn
+spec:
+  repo: acme/product-manuals
+  registry: remote
+  format: jsonl
+  files: []
+---
+apiVersion: datasance.com/v3
+kind: RuntimeClass
+metadata:
+  name: spin
+  namespace: my-ecn
+handler: spin

@@ -1,0 +1,18 @@
+# Add a second controller host to an existing remote ControlPlane namespace.
+# Prerequisite: potctl deploy -f (full ControlPlane) or connect -f already done in namespace "prod".
+# Deploy: potctl deploy -f controller-add-on.yaml -n prod
+
+apiVersion: datasance.com/v3
+kind: Controller
+metadata:
+  name: ctrl-secondary
+spec:
+  host: 10.0.1.11
+  ssh:
+    user: ubuntu
+    keyFile: ~/.ssh/prod.pem
+    port: 22
+  systemAgent:
+    config:
+      arch: amd64
+      host: 10.0.1.11

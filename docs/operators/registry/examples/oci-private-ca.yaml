@@ -1,0 +1,14 @@
+# spec.ca is the registry CA certificate as a base64-encoded PEM string (not a file path).
+# Replace the placeholder below with: base64 -w0 < ca.pem   (or base64 on macOS)
+apiVersion: datasance.com/v3
+kind: Registry
+metadata:
+  namespace: my-ecn
+spec:
+  url: registry.example.com:443
+  private: true
+  type: oci
+  username: pull-user
+  password: "<secret>"
+  insecure: false
+  ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi4uLiByZXBsYWNlIHdpdGggYWN0dWFsIGJhc2U2NCBQRU0gLi4uCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K

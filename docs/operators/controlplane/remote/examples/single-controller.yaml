@@ -1,0 +1,49 @@
+# Remote ControlPlane — single host (v3.9.x)
+# Deploy: potctl deploy -f single-controller.yaml -n prod
+
+apiVersion: datasance.com/v3
+kind: ControlPlane
+metadata:
+  name: edge-prod
+spec:
+  endpoint: https://203.0.113.10:51121
+  iofogUser:
+    email: ops@example.com
+  controller:
+    publicUrl: https://203.0.113.10:51121
+    consoleUrl: https://203.0.113.10
+    logLevel: info
+    package:
+      image: ghcr.io/datasance/controller:3.9.0
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "RemoteTest12!"
+  systemMicroservices:
+    router:
+      amd64: ghcr.io/datasance/router:3.9.0
+      arm64: ghcr.io/datasance/router:3.9.0
+      arm: ghcr.io/datasance/router:3.9.0
+      riscv64: ghcr.io/datasance/router:3.9.0
+    nats:
+      amd64: ghcr.io/datasance/nats:2.15.0
+      arm64: ghcr.io/datasance/nats:2.15.0
+      arm: ghcr.io/datasance/nats:2.15.0
+      riscv64: ghcr.io/datasance/nats:2.15.0
+  nats:
+    enabled: true
+  events:
+    auditEnabled: true
+    retentionDays: 14
+  controllers:
+    - name: ctrl-1
+      host: 203.0.113.10
+      ssh:
+        user: ubuntu
+        keyFile: ~/.ssh/prod.pem
+        port: 22
+      systemAgent:
+        config:
+          arch: amd64
+          host: 203.0.113.10

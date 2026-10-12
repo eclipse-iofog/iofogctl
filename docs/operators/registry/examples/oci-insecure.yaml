@@ -1,0 +1,13 @@
+# Use only when you accept TLS verification being skipped for this registry endpoint.
+# Prefer spec.ca with a proper CA when you control the registry TLS chain.
+apiVersion: datasance.com/v3
+kind: Registry
+metadata:
+  namespace: my-ecn
+spec:
+  url: registry.internal.example.com:5000
+  private: true
+  type: oci
+  username: pull-user
+  password: "<secret>"
+  insecure: true

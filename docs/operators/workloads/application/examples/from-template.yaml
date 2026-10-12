@@ -1,0 +1,17 @@
+apiVersion: datasance.com/v3
+kind: Application
+metadata:
+  name: shop
+  namespace: my-ecn
+spec:
+  template:
+    name: edge-app-template
+    variables:
+      - key: agent-name
+        value: edge-01
+      - key: external-port
+        value: 9090
+      - key: application-name
+        value: shop
+  natsConfig:
+    natsAccess: false

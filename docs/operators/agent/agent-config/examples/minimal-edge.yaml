@@ -1,0 +1,24 @@
+apiVersion: datasance.com/v3
+kind: AgentConfig
+metadata:
+  name: edge-node-1
+spec:
+  description: Config-only update or pre-create
+  arch: amd64
+  host: 10.0.0.50
+  deploymentType: native
+  containerEngine: edgelet
+  upstreamRouters:
+    - default-router
+  routerConfig:
+    routerMode: edge
+    messagingPort: 5671
+  upstreamNatsServers:
+    - default-nats-hub
+  natsConfig:
+    natsMode: leaf
+    natsServerPort: 4222
+    natsLeafPort: 7422
+  memoryLimit: 4096
+  cpuLimit: 80
+  logLevel: INFO

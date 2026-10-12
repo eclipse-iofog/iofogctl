@@ -1,0 +1,11 @@
+apiVersion: datasance.com/v3
+kind: Knowledge
+metadata:
+  name: product-docs
+  namespace: my-ecn
+spec:
+  repo: acme/product-manuals
+  registry: remote
+  revision: 9f3c111122223333444455556666777788889999
+  format: jsonl
+  files: []

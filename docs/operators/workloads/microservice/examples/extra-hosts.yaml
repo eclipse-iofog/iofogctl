@@ -1,0 +1,20 @@
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: bar
+  namespace: my-ecn
+spec:
+  agent:
+    name: edge-node-1
+  application:
+    name: foo
+  container:
+    catalogItem:
+      name: my-image
+    extraHosts:
+      - name: literalHost
+        address: "192.168.0.120"
+      - name: agentHost
+        address: "${Agents.foo}"
+      - name: appHostLocal
+        address: "${Apps.foo.bar.local}"

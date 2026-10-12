@@ -1,0 +1,57 @@
+---
+apiVersion: datasance.com/v3
+kind: Application
+metadata:
+  name: my-app
+  namespace: my-ecn
+spec:
+  name: my-app
+---
+apiVersion: datasance.com/v3
+kind: Role
+metadata:
+  name: app-worker
+  namespace: my-ecn
+rules:
+  - apiGroups: [""]
+    resources: ["microservices"]
+    verbs: ["get", "list"]
+---
+apiVersion: datasance.com/v3
+kind: RoleBinding
+metadata:
+  name: worker-binding
+  namespace: my-ecn
+roleRef:
+  kind: Role
+  name: app-worker
+subjects:
+  - kind: ServiceAccount
+    name: worker
+---
+apiVersion: datasance.com/v3
+kind: ServiceAccount
+metadata:
+  name: worker
+  namespace: my-ecn
+  applicationName: my-app
+roleRef:
+  kind: Role
+  name: app-worker
+---
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: api
+  namespace: my-ecn
+spec:
+  application: my-app
+  agent:
+    name: edge-node-1
+  serviceAccount:
+    roleRef:
+      kind: Role
+      name: app-worker
+  container:
+    catalogItem:
+      name: my-api

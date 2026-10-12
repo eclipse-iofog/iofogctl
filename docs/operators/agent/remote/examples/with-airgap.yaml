@@ -1,0 +1,26 @@
+apiVersion: datasance.com/v3
+kind: Agent
+metadata:
+  name: edge-airgap-1
+spec:
+  host: 10.0.0.51
+  ssh:
+    user: ubuntu
+    keyFile: ~/.ssh/id_rsa
+  airgap: true
+  package:
+    version: "1.1.0"
+  config:
+    arch: amd64
+    deploymentType: native
+    containerEngine: edgelet
+    upstreamRouters:
+      - default-router
+    routerConfig:
+      routerMode: edge
+      messagingPort: 5671
+    upstreamNatsServers:
+      - default-nats-hub
+    natsConfig:
+      natsMode: leaf
+      natsServerPort: 4222

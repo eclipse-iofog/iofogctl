@@ -1,0 +1,41 @@
+# LocalControlPlane — dev/test single node (v3.9.x)
+# Deploy: potctl deploy -f minimal.yaml -n default
+
+apiVersion: datasance.com/v3
+kind: LocalControlPlane
+metadata:
+  name: local-cp
+spec:
+  endpoint: http://host-ip:51121
+  iofogUser:
+    email: dev@example.com
+  controller:
+    publicUrl: http://host-ip:51121
+    consoleUrl: http://host-ip:80
+    logLevel: info
+    package:
+      image: ghcr.io/datasance/controller:3.9.0
+  auth:
+    mode: embedded
+    bootstrap:
+      username: admin
+      password: "LocalTest12!"
+  systemMicroservices:
+    router:
+      amd64: ghcr.io/datasance/router:3.9.0
+      arm64: ghcr.io/datasance/router:3.9.0
+      arm: ghcr.io/datasance/router:3.9.0
+      riscv64: ghcr.io/datasance/router:3.9.0
+    nats:
+      amd64: ghcr.io/datasance/nats:2.15.0
+      arm64: ghcr.io/datasance/nats:2.15.0
+      arm: ghcr.io/datasance/nats:2.15.0
+      riscv64: ghcr.io/datasance/nats:2.15.0
+  nats:
+    enabled: true
+  systemAgent:
+    config:
+      arch: amd64
+  events:
+    auditEnabled: true
+    retentionDays: 14

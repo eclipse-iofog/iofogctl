@@ -1,0 +1,11 @@
+apiVersion: datasance.com/v3
+kind: Model
+metadata:
+  name: smollm2-135m
+  namespace: my-ecn
+spec:
+  repo: ai/smollm2
+  registryId: 1
+  revision: sha256:eb3483481647229668c7625b080c2d6a632bf49535e0714198de5c026d4f41a5
+  format: gguf
+  files: []

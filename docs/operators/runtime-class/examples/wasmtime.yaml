@@ -1,0 +1,6 @@
+apiVersion: datasance.com/v3
+kind: RuntimeClass
+metadata:
+  name: edgelet-wasmtime
+  namespace: my-ecn
+handler: edgelet-wasmtime

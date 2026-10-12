@@ -1,0 +1,13 @@
+# Re-deploy after create: set spec.id from `get registries`.
+apiVersion: datasance.com/v3
+kind: Registry
+metadata:
+  namespace: my-ecn
+spec:
+  id: 5
+  url: https://gcr.io
+  private: true
+  type: oci
+  username: _json_key
+  password: "<rotated-secret>"
+  email: ops@example.com

@@ -1,0 +1,31 @@
+apiVersion: datasance.com/v3
+kind: Microservice
+metadata:
+  name: inference
+  namespace: my-ecn
+spec:
+  application: myapp
+  template:
+    name: inference-ms
+    variables:
+      - key: agent-name
+        value: edge-01
+      - key: model1
+        value: smollm2-135m
+  agent:
+    name: edge-01
+  models:
+    bindPath: /models
+    permissions: ro
+    items:
+      - name: smollm2-135m
+  images:
+    registry: remote
+    amd64: ghcr.io/datasance/inference:1.0.0
+  container:
+    runtime: spin
+    platform: wasi/wasm
+    ports:
+      - internal: 8080
+        external: 8080
+        protocol: tcp

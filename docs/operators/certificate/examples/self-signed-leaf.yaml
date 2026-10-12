@@ -1,0 +1,12 @@
+# Issues a leaf cert using Controller self-signed CA semantics (no named CA catalog entry).
+apiVersion: datasance.com/v3
+kind: Certificate
+metadata:
+  name: api-tls-self
+  namespace: my-ecn
+spec:
+  subject: "CN=api.edge.example.com,O=Example"
+  hosts: "api.edge.example.com"
+  expiration: 365
+  ca:
+    type: self-signed

@@ -1,0 +1,25 @@
+apiVersion: datasance.com/v3
+kind: LocalAgent
+metadata:
+  name: local-edge
+spec:
+  package:
+    version: "1.1.0"
+  config:
+    description: Local edgelet on dev machine
+    arch: amd64
+    deploymentType: native
+    containerEngine: edgelet
+    containerEngineUrl: unix:///run/edgelet/containerd.sock
+    upstreamRouters:
+      - default-router
+    routerConfig:
+      routerMode: edge
+      messagingPort: 5671
+    upstreamNatsServers:
+      - default-nats-hub
+    natsConfig:
+      natsMode: leaf
+      natsServerPort: 4222
+      natsLeafPort: 7422
+    logLevel: INFO

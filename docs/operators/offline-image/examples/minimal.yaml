@@ -1,0 +1,11 @@
+apiVersion: datasance.com/v3
+kind: OfflineImage
+metadata:
+  name: my-api-bundle
+  namespace: my-ecn
+spec:
+  name: my-api-bundle
+  amd64: ghcr.io/datasance/example/api:1.0.0
+  arm64: ghcr.io/datasance/example/api:1.0.0-arm64
+  agent:
+    - edge-node-1

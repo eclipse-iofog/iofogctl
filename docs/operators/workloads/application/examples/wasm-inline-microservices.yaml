@@ -1,0 +1,25 @@
+apiVersion: datasance.com/v3
+kind: Application
+metadata:
+  name: wasm
+  namespace: my-ecn
+spec:
+  microservices:
+    - name: wasm
+      agent:
+        name: edge-01
+      images:
+        registry: remote
+        amd64: ghcr.io/spinframework/containerd-shim-spin/examples/spin-rust-hello:v0.22.0
+        arm64: ghcr.io/spinframework/containerd-shim-spin/examples/spin-rust-hello:v0.22.0
+      container:
+        hostNetworkMode: false
+        isPrivileged: false
+        platform: wasi/wasm
+        runtime: spin
+        ports:
+          - internal: 80
+            external: 8080
+            protocol: tcp
+        commands:
+          - "/"

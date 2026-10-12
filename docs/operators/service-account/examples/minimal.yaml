@@ -1,0 +1,9 @@
+apiVersion: datasance.com/v3
+kind: ServiceAccount
+metadata:
+  name: worker
+  namespace: my-ecn
+  applicationName: my-app
+roleRef:
+  kind: Role
+  name: app-worker

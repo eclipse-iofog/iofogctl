@@ -1,0 +1,14 @@
+# type: k8s — dial an existing in-cluster Service. Allowed only on Kubernetes control plane.
+# Controller does not create a Kubernetes Service for this type.
+apiVersion: datasance.com/v3
+kind: Service
+metadata:
+  name: payments
+  namespace: my-ecn
+  tags:
+    - payments
+spec:
+  type: k8s
+  resource: payments.payments.svc.cluster.local
+  targetPort: 8080
+  defaultBridge: default-router

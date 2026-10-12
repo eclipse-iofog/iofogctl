@@ -1,0 +1,10 @@
+apiVersion: datasance.com/v3
+kind: ConfigMap
+metadata:
+  name: release-metadata
+  namespace: my-ecn
+spec:
+  immutable: true
+data:
+  version: "1.4.2"
+  build: "20260406"

@@ -1,0 +1,26 @@
+# Deploy order in one file: Agent (with distribution tag) before Service.
+---
+apiVersion: datasance.com/v3
+kind: Agent
+metadata:
+  name: plant-a
+  namespace: my-ecn
+  tags:
+    - "service.iofog.org/tag: checkout"
+spec:
+  host: 203.0.113.50
+  config:
+    routerHost: 127.0.0.1
+---
+apiVersion: datasance.com/v3
+kind: Service
+metadata:
+  name: checkout
+  namespace: my-ecn
+  tags:
+    - checkout
+spec:
+  type: microservice
+  resource: orders/checkout
+  targetPort: 8080
+  defaultBridge: default-router

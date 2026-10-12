@@ -1,0 +1,13 @@
+# source must exist on the host where you run potctl deploy
+apiVersion: datasance.com/v3
+kind: Volume
+metadata:
+  name: model-weights
+  namespace: my-ecn
+spec:
+  name: model-weights
+  agents:
+    - edge-node-1
+  source: /data/models-src
+  destination: /var/lib/iofog/volumes/model-weights
+  permissions: "0755"

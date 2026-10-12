@@ -1,0 +1,69 @@
+# Cross-account messaging: deploy the export rule on the producer ECN/application
+# account, then the import rule on the consumer account. Replace ACCOUNT_PUBLIC_KEY
+# with the exporting account's public key from `describe nats-account <app>`.
+---
+apiVersion: datasance.com/v3
+kind: NatsAccountRule
+metadata:
+  name: production-monitoring-export
+  namespace: my-ecn
+spec:
+  description: Export live alerts and event journal streams
+  maxConnections: -1
+  maxLeafNodeConnections: -1
+  maxData: -1
+  maxExports: -1
+  maxImports: -1
+  maxMsgPayload: -1
+  maxSubscriptions: -1
+  exportsAllowWildcards: true
+  memStorage: -1
+  diskStorage: -1
+  streams: -1
+  consumer: -1
+  maxAckPending: -1
+  memMaxStreamBytes: -1
+  diskMaxStreamBytes: -1
+  exports:
+    - name: live-alerts
+      subject: notify.alerts.>
+      type: stream
+      description: Cross-account live anomaly notifications
+    - name: event-journal
+      subject: journal.events.>
+      type: stream
+      description: JetStream journal replay path
+---
+apiVersion: datasance.com/v3
+kind: NatsAccountRule
+metadata:
+  name: operations-center-import
+  namespace: my-ecn
+spec:
+  description: Import streams from production site
+  maxConnections: -1
+  maxLeafNodeConnections: -1
+  maxData: -1
+  maxExports: -1
+  maxImports: -1
+  maxMsgPayload: -1
+  maxSubscriptions: -1
+  exportsAllowWildcards: true
+  memStorage: -1
+  diskStorage: -1
+  streams: -1
+  consumer: -1
+  maxAckPending: -1
+  memMaxStreamBytes: -1
+  diskMaxStreamBytes: -1
+  imports:
+    - name: live-alerts
+      subject: notify.alerts.>
+      type: stream
+      account: ACCOUNT_PUBLIC_KEY
+      local_subject: notify.alerts.>
+    - name: event-journal
+      subject: journal.events.>
+      type: stream
+      account: ACCOUNT_PUBLIC_KEY
+      local_subject: journal.events.>

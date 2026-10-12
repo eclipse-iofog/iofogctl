@@ -1,0 +1,16 @@
+# Expose a TCP port on an agent (e.g. SSH). Requires a router on that agent (not mode none).
+apiVersion: datasance.com/v3
+kind: Service
+metadata:
+  name: ssh
+  namespace: my-ecn
+  tags:
+    - ops
+spec:
+  type: agent
+  resource: fog-a
+  targetPort: 22
+  defaultBridge: default-router
+  # On Kubernetes control plane, also set:
+  # servicePort: 22
+  # k8sType: LoadBalancer
