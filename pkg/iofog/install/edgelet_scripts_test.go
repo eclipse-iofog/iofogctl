@@ -1,6 +1,9 @@
 package install
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -336,6 +339,48 @@ func TestRemotePostInstallStartEdgeletNoWait(t *testing.T) {
 	if strings.Contains(localPost[1].cmd, "--no-wait") {
 		t.Fatalf("local start must not pass --no-wait, got %q", localPost[1].cmd)
 	}
+}
+
+func TestBinaryShUsesPinnedFlavorRepo(t *testing.T) {
+	script := filepath.Join("..", "..", "..", "assets", "edgelet", "scripts", "lib", "binary.sh")
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "flavor.env"), []byte("EDGELET_GITHUB_REPO=Datasance/edgelet\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := githubRepoFromBinarySh(t, script, dir, ""); got != "Datasance/edgelet" {
+		t.Fatalf("pinned repo = %q, want Datasance/edgelet", got)
+	}
+	if got := githubRepoFromBinarySh(t, script, dir, "other/edgelet"); got != "other/edgelet" {
+		t.Fatalf("explicit EDGELET_GITHUB_REPO = %q, want other/edgelet", got)
+	}
+
+	empty := t.TempDir()
+	if got := githubRepoFromBinarySh(t, script, empty, ""); got != "eclipse-iofog/edgelet" {
+		t.Fatalf("default repo = %q, want eclipse-iofog/edgelet", got)
+	}
+}
+
+func githubRepoFromBinarySh(t *testing.T, script, scriptDir, explicit string) string {
+	t.Helper()
+	cmd := exec.Command("sh", "-c", `. "$1"; printf '%s' "$GITHUB_REPO"`, "sh", script)
+	env := make([]string, 0, len(os.Environ())+2)
+	for _, kv := range os.Environ() {
+		if strings.HasPrefix(kv, "EDGELET_GITHUB_REPO=") {
+			continue
+		}
+		env = append(env, kv)
+	}
+	env = append(env, "SCRIPT_DIR="+scriptDir)
+	if explicit != "" {
+		env = append(env, "EDGELET_GITHUB_REPO="+explicit)
+	}
+	cmd.Env = env
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("source binary.sh: %v", err)
+	}
+	return string(out)
 }
 
 func TestEdgeletScriptNamesIncludeProbeScripts(t *testing.T) {
