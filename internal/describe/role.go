@@ -5,7 +5,6 @@ import (
 	"github.com/eclipse-iofog/iofogctl/internal/config"
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	clientutil "github.com/eclipse-iofog/iofogctl/internal/util/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
 )
 
 type roleExecutor struct {
@@ -37,32 +36,23 @@ func (exe *roleExecutor) Execute() error {
 		return err
 	}
 
-	spec := rsc.Role{
-		Name:  role.Name,
-		Kind:  role.Kind,
-		Rules: convertRules(role.Rules),
-	}
-
-	header := config.Header{
+	return printDescribe(exe.filename, roleDocument{
 		APIVersion: config.LatestAPIVersion,
 		Kind:       config.RoleKind,
 		Metadata: config.HeaderMetadata{
 			Namespace: exe.namespace,
 			Name:      exe.name,
 		},
-		Spec: spec,
-	}
+		Rules: convertRules(role.Rules),
+	})
+}
 
-	if exe.filename == "" {
-		if err := util.Print(header); err != nil {
-			return err
-		}
-	} else {
-		if err := util.FPrint(header, exe.filename); err != nil {
-			return err
-		}
-	}
-	return nil
+// roleDocument matches Controller-style deploy YAML: rules at the document root.
+type roleDocument struct {
+	APIVersion string                `yaml:"apiVersion"`
+	Kind       config.Kind           `yaml:"kind"`
+	Metadata   config.HeaderMetadata `yaml:"metadata"`
+	Rules      []rsc.RBACRule        `yaml:"rules,omitempty"`
 }
 
 func convertRules(rules []client.RBACRule) []rsc.RBACRule {
