@@ -75,6 +75,7 @@ Translated to Edgelet `spec.controller.image` and optional registry id.
 | `bootstrap.username` | string | Yes if embedded | |
 | `bootstrap.password` | string | Yes if embedded | Required **in YAML** at deploy; ≥12 chars, 1 upper, 1 special |
 | `issuerUrl` | string | Yes if external | |
+| `issuerCa` | string | No | Standard base64 of a PEM CA or a concatenated PEM bundle. Optional for an external HTTPS issuer signed by a private CA. Edgelet sets `OIDC_ISSUER_TLS_BASE64_CA`. Empty uses the system trust store. Embedded mode may include the field; the Controller ignores it |
 | `client.id` | string | Yes if external | |
 | `client.secret` | string | Yes if external | |
 | `consoleClient` | string | No | |

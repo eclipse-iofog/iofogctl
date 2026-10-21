@@ -81,6 +81,7 @@ type Auth struct {
 	InsecureAllowBootstrapLog *bool             `yaml:"insecureAllowBootstrapLog,omitempty"`
 	Bootstrap                 *AuthBootstrap    `yaml:"bootstrap,omitempty"`
 	IssuerUrl                 string            `yaml:"issuerUrl,omitempty"`
+	IssuerCa                  string            `yaml:"issuerCa,omitempty"`
 	Client                    *AuthClient       `yaml:"client,omitempty"`
 	ConsoleClient             string            `yaml:"consoleClient,omitempty"`
 	ConsoleClientEnabled      *bool             `yaml:"consoleClientEnabled,omitempty"`

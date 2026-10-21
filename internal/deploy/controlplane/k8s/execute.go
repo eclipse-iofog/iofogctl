@@ -2,7 +2,9 @@ package deployk8scontrolplane
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"strings"
 
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 	"github.com/eclipse-iofog/iofogctl/internal/auth"
@@ -158,6 +160,9 @@ func validateControlPlaneUser(controlPlane *rsc.KubernetesControlPlane) error {
 
 func validateControlPlaneAuth(controlPlane *rsc.KubernetesControlPlane) error {
 	auth := controlPlane.Auth
+	if err := validateIssuerCa(auth.IssuerCa); err != nil {
+		return err
+	}
 	switch auth.Mode {
 	case authModeEmbedded:
 		return validateEmbeddedAuth(auth)
@@ -182,6 +187,17 @@ func validateEmbeddedAuth(auth rsc.Auth) error {
 	}
 	if err := inputvalidate.ValidatePasswordComplexity(auth.Bootstrap.Password); err != nil {
 		return err
+	}
+	return nil
+}
+
+func validateIssuerCa(ca string) error {
+	trimmed := strings.TrimSpace(ca)
+	if trimmed == "" {
+		return nil
+	}
+	if _, err := base64.StdEncoding.DecodeString(trimmed); err != nil {
+		return util.NewInputError("Control Plane auth.issuerCa must be valid base64")
 	}
 	return nil
 }

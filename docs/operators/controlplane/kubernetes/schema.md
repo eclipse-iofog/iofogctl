@@ -66,6 +66,7 @@ CR name is fixed: **`pot`** (Datasance) or **`iofog`** (Eclipse). Deep operator 
 | `bootstrap.username` | string | Yes if embedded | |
 | `bootstrap.password` | string | Yes if embedded | Required **in YAML** at deploy; ≥12 chars, 1 upper, 1 special |
 | `issuerUrl` | string | Yes if external | |
+| `issuerCa` | string | No | Standard base64 of a PEM CA or a concatenated PEM bundle. External mode, when the issuer HTTPS certificate is signed by a private CA. Operator sets `OIDC_ISSUER_TLS_BASE64_CA`. Empty uses the system trust store. Ignored for embedded mode |
 | `client.id` | string | Yes if external | |
 | `client.secret` | string | Yes if external | |
 | `consoleClient` | string | No | |
@@ -240,6 +241,7 @@ Optional Controller secrets vault. If `provider` is set, matching provider block
 | `auth.mode` | Missing or invalid |
 | Embedded bootstrap | Missing username/password in YAML |
 | External auth | Missing issuer or client credentials |
+| `auth.issuerCa` | Set, but not valid standard base64 |
 | `replicas.controller > 1` | Incomplete external `database` |
 | ClusterIP controller | Missing ingress host/secretName |
 | ClusterIP router | Missing router ingress address/ports |

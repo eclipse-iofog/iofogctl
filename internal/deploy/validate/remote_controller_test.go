@@ -78,7 +78,7 @@ spec:
       password: "LocalTest12!"
   systemMicroservices:
     router:
-      amd64: ghcr.io/datasance/router:3.8.0-rc.1
+      amd64: ghcr.io/datasance/router:3.9.2
   nats:
     enabled: true
   controllers:

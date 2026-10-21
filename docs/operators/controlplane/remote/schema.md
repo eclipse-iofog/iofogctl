@@ -58,6 +58,7 @@ Global auth for the ECN (same block on every host’s translated Edgelet manifes
 | `bootstrap.username` | string | Yes if embedded | |
 | `bootstrap.password` | string | Yes if embedded | Required **in YAML** at deploy; ≥12 chars, 1 upper, 1 special |
 | `issuerUrl` | string | Yes if external | |
+| `issuerCa` | string | No | Standard base64 of a PEM CA or a concatenated PEM bundle. Optional for an external HTTPS issuer signed by a private CA. Edgelet sets `OIDC_ISSUER_TLS_BASE64_CA` on every host. Empty uses the system trust store. Embedded mode may include the field; the Controller ignores it |
 | `client.id` | string | Yes if external | |
 | `client.secret` | string | Yes if external | |
 | `consoleClient` | string | No | |
@@ -196,7 +197,7 @@ Env mapping: [Edgelet control-plane.md](https://github.com/Datasance/edgelet/blo
 | `endpoint` / `publicUrl` URL validity and match | |
 | Multi-controller ⇒ database | |
 | Private `controller.package` ⇒ registry + username + password | |
-| Base64 validity on `ca`, CA blocks, `tls` | |
+| Base64 validity on `ca`, CA blocks, `tls`, `auth.issuerCa` | |
 | Same-file **`ControlPlane`** + **`Controller`** name/host collision | Rejected |
 
 ---

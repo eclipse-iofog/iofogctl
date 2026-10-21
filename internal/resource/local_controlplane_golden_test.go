@@ -173,6 +173,33 @@ func TestValidateLocalControlPlaneExternalAuthValid(t *testing.T) {
 	require.NoError(t, ValidateLocalControlPlane(cp))
 }
 
+func TestValidateLocalControlPlaneIssuerCa(t *testing.T) {
+	valid := "cGVt"
+	cp := validLocalControlPlane(t)
+	cp.Auth = Auth{
+		Mode:      authModeExternal,
+		IssuerUrl: "https://auth.example.com/realms/myrealm",
+		IssuerCa:  "  " + valid + "  ",
+		Client: &AuthClient{
+			ID:     "controller",
+			Secret: "secret-value",
+		},
+	}
+	require.NoError(t, ValidateLocalControlPlane(cp))
+
+	cp.Auth.IssuerCa = "not-base64!!!"
+	err := ValidateLocalControlPlane(cp)
+	requireLocalInputError(t, err)
+	require.ErrorContains(t, err, "auth.issuerCa must be valid base64")
+
+	cp.Auth.IssuerCa = "   "
+	require.NoError(t, ValidateLocalControlPlane(cp))
+
+	embedded := validLocalControlPlane(t)
+	embedded.Auth.IssuerCa = valid
+	require.NoError(t, ValidateLocalControlPlane(embedded))
+}
+
 func TestValidateLocalControlPlaneDatabaseRequiresFields(t *testing.T) {
 	cp := validLocalControlPlane(t)
 	cp.Database = Database{Provider: "postgres"}

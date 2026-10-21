@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"strings"
+
 	cpv3 "github.com/eclipse-iofog/iofog-operator/v3/apis/controlplanes/v3"
 )
 
@@ -11,6 +13,7 @@ func AuthToCPV3(a Auth) cpv3.Auth {
 		InsecureAllowHttp:         a.InsecureAllowHttp,
 		InsecureAllowBootstrapLog: a.InsecureAllowBootstrapLog,
 		IssuerUrl:                 a.IssuerUrl,
+		IssuerCa:                  strings.TrimSpace(a.IssuerCa),
 		ConsoleClient:             a.ConsoleClient,
 		ConsoleClientEnabled:      a.ConsoleClientEnabled,
 	}

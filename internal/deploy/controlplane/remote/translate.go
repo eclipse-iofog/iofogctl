@@ -1,6 +1,8 @@
 package deployremotecontrolplane
 
 import (
+	"strings"
+
 	rsc "github.com/eclipse-iofog/iofogctl/internal/resource"
 	"github.com/eclipse-iofog/iofogctl/pkg/iofog/install"
 	"github.com/eclipse-iofog/iofogctl/pkg/util"
@@ -228,6 +230,7 @@ func authToEdgelet(a rsc.Auth) edgeletAuthSpec {
 		InsecureAllowHTTP:         a.InsecureAllowHttp,
 		InsecureAllowBootstrapLog: a.InsecureAllowBootstrapLog,
 		IssuerURL:                 a.IssuerUrl,
+		IssuerCA:                  strings.TrimSpace(a.IssuerCa),
 		ConsoleClient:             a.ConsoleClient,
 		ConsoleClientEnabled:      a.ConsoleClientEnabled,
 	}
