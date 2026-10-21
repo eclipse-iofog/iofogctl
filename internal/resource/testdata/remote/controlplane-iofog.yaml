@@ -8,7 +8,7 @@ controller:
   consoleUrl: https://controller.example.com
   logLevel: info
   package:
-    image: ghcr.io/eclipse-iofog/controller:3.8.0-rc.1
+    image: ghcr.io/eclipse-iofog/controller:3.9.2
 auth:
   mode: embedded
   insecureAllowHttp: false
@@ -25,15 +25,15 @@ database:
   databaseName: iofog
 systemMicroservices:
   router:
-    amd64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
-    arm64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
-    riscv64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
-    arm: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+    amd64: ghcr.io/eclipse-iofog/router:3.9.2
+    arm64: ghcr.io/eclipse-iofog/router:3.9.2
+    riscv64: ghcr.io/eclipse-iofog/router:3.9.2
+    arm: ghcr.io/eclipse-iofog/router:3.9.2
   nats:
-    amd64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
-    arm64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
-    riscv64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
-    arm: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
+    amd64: ghcr.io/eclipse-iofog/nats:2.15.1-1
+    arm64: ghcr.io/eclipse-iofog/nats:2.15.1-1
+    riscv64: ghcr.io/eclipse-iofog/nats:2.15.1-1
+    arm: ghcr.io/eclipse-iofog/nats:2.15.1-1
 nats:
   enabled: true
 events:

@@ -50,13 +50,14 @@ spec:
     #   idTokenTtlSeconds:
     # mode: external
     # issuerUrl: ""
+    # issuerCa: ""                 # optional — base64 PEM CA or PEM bundle; OIDC_ISSUER_TLS_BASE64_CA
     # client:
     #   id: controller
     #   secret: ""
   images:
     controller: emirhandurmus/controller:3.8.0-rc.7
-    router: ghcr.io/datasance/router:3.8.0-rc.1
-    nats: ghcr.io/datasance/nats:2.14.2-rc.2
+    router: ghcr.io/datasance/router:3.9.2
+    nats: ghcr.io/datasance/nats:2.15.1-1
   nats:
     enabled: true
     jetStream:

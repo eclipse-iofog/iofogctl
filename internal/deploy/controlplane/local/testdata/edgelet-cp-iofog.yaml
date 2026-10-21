@@ -5,7 +5,7 @@ metadata:
   namespace: test-ns
 spec:
   controller:
-    image: ghcr.io/eclipse-iofog/controller:3.8.0-rc.1
+    image: ghcr.io/eclipse-iofog/controller:3.9.2
     registry: 1
     publicUrl: https://controller.example.com
   console:
@@ -21,15 +21,15 @@ spec:
     captureIpAddress: true
   systemMicroservices:
     router:
-      amd64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
-      arm64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
-      riscv64: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
-      arm: ghcr.io/eclipse-iofog/router:3.8.0-rc.1
+      amd64: ghcr.io/eclipse-iofog/router:3.9.2
+      arm64: ghcr.io/eclipse-iofog/router:3.9.2
+      riscv64: ghcr.io/eclipse-iofog/router:3.9.2
+      arm: ghcr.io/eclipse-iofog/router:3.9.2
     nats:
-      amd64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
-      arm64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
-      riscv64: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
-      arm: ghcr.io/eclipse-iofog/nats:2.14.2-rc.2
+      amd64: ghcr.io/eclipse-iofog/nats:2.15.1-1
+      arm64: ghcr.io/eclipse-iofog/nats:2.15.1-1
+      riscv64: ghcr.io/eclipse-iofog/nats:2.15.1-1
+      arm: ghcr.io/eclipse-iofog/nats:2.15.1-1
   nats:
     enabled: true
   logLevel: info

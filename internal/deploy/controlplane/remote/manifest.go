@@ -67,6 +67,7 @@ type edgeletAuthSpec struct {
 	InsecureAllowBootstrapLog *bool                    `yaml:"insecureAllowBootstrapLog,omitempty"`
 	Bootstrap                 *edgeletAuthBootstrap    `yaml:"bootstrap,omitempty"`
 	IssuerURL                 string                   `yaml:"issuerUrl,omitempty"`
+	IssuerCA                  string                   `yaml:"issuerCa,omitempty"`
 	Client                    *edgeletAuthClient       `yaml:"client,omitempty"`
 	ConsoleClient             string                   `yaml:"consoleClient,omitempty"`
 	ConsoleClientEnabled      *bool                    `yaml:"consoleClientEnabled,omitempty"`

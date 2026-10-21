@@ -15,12 +15,12 @@ const testNamespace = "test-ns"
 
 const (
 	testControllerImage = "ghcr.io/datasance/controller:3.8.0-rc.5"
-	testRouterImage     = "ghcr.io/datasance/router:3.8.0-rc.1"
-	testNatsImage       = "ghcr.io/datasance/nats:2.14.2-rc.2"
+	testRouterImage     = "ghcr.io/datasance/router:3.9.2"
+	testNatsImage       = "ghcr.io/datasance/nats:2.15.1-1"
 
-	testIofogControllerImage = "ghcr.io/eclipse-iofog/controller:3.8.0-rc.1"
-	testIofogRouterImage     = "ghcr.io/eclipse-iofog/router:3.8.0-rc.1"
-	testIofogNatsImage       = "ghcr.io/eclipse-iofog/nats:2.14.2-rc.2"
+	testIofogControllerImage = "ghcr.io/eclipse-iofog/controller:3.9.2"
+	testIofogRouterImage     = "ghcr.io/eclipse-iofog/router:3.9.2"
+	testIofogNatsImage       = "ghcr.io/eclipse-iofog/nats:2.15.1-1"
 )
 
 func resourceFixturePath(name string) string {
@@ -203,6 +203,17 @@ func TestResolveEdgeletRegistryID_PrivateRegistry(t *testing.T) {
 	privateID := 3
 	got := ResolveEdgeletRegistryID(&cp, &privateID)
 	require.Equal(t, 3, *got)
+}
+
+func TestAuthToEdgeletIssuerCa(t *testing.T) {
+	got := authToEdgelet(rsc.Auth{
+		Mode:     "external",
+		IssuerCa: "  cGVt  ",
+	})
+	require.Equal(t, "cGVt", got.IssuerCA)
+
+	empty := authToEdgelet(rsc.Auth{Mode: "embedded"})
+	require.Empty(t, empty.IssuerCA)
 }
 
 func TestTranslateEdgeletControlPlane_AirgapRegistry(t *testing.T) {

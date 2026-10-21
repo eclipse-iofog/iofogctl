@@ -131,6 +131,17 @@ func TestAuthToCPV3(t *testing.T) {
 	require.Equal(t, "admin", out.Bootstrap.Username)
 }
 
+func TestAuthToCPV3IssuerCa(t *testing.T) {
+	out := AuthToCPV3(Auth{
+		Mode:      "external",
+		IssuerUrl: "https://auth.example.com/realms/myrealm",
+		IssuerCa:  "  cGVt  ",
+		Client:    &AuthClient{ID: "controller", Secret: "secret"},
+	})
+	require.Equal(t, "external", string(out.Mode))
+	require.Equal(t, "cGVt", out.IssuerCa)
+}
+
 func TestControllerConfigToCPV3(t *testing.T) {
 	trust := true
 	cfg := ControllerConfig{

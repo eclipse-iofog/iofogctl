@@ -93,13 +93,13 @@ func TestEdgeletProvisionCommands(t *testing.T) {
 	if len(withCert) != 3 {
 		t.Fatalf("expected 3 commands, got %d: %+v", len(withCert), withCert)
 	}
-	if withCert[0].cmd != "sudo edgelet config --a https://controller.example.com/api/v3" {
+	if withCert[0].cmd != "sudo edgelet config --a 'https://controller.example.com/api/v3'" {
 		t.Fatalf("unexpected config URL command: %q", withCert[0].cmd)
 	}
-	if withCert[1].cmd != "sudo edgelet config cert base64-ca" {
+	if withCert[1].cmd != "sudo edgelet config cert 'base64-ca'" {
 		t.Fatalf("unexpected cert command: %q", withCert[1].cmd)
 	}
-	if withCert[2].cmd != "sudo edgelet provision provision-key" {
+	if withCert[2].cmd != "sudo edgelet provision 'provision-key'" {
 		t.Fatalf("unexpected provision command: %q", withCert[2].cmd)
 	}
 
@@ -113,8 +113,43 @@ func TestEdgeletProvisionCommands(t *testing.T) {
 	if strings.Contains(withoutCert[0].cmd, "sudo") {
 		t.Fatalf("expected no sudo prefix for local commands: %q", withoutCert[0].cmd)
 	}
-	if withoutCert[0].cmd != "edgelet config --a http://localhost:51121/api/v3" {
+	if withoutCert[0].cmd != "edgelet config --a 'http://localhost:51121/api/v3'" {
 		t.Fatalf("unexpected local config command: %q", withoutCert[0].cmd)
+	}
+	if withoutCert[1].cmd != "edgelet provision 'key-only'" {
+		t.Fatalf("unexpected local provision command: %q", withoutCert[1].cmd)
+	}
+}
+
+func TestEdgeletProvisionCommandsQuotesShellMetacharacters(t *testing.T) {
+	cmds, err := EdgeletProvisionCommands("https://controller.example.com", "x; touch /tmp/pwned #", "y$(id)", true)
+	if err != nil {
+		t.Fatalf("EdgeletProvisionCommands: %v", err)
+	}
+	if len(cmds) != 3 {
+		t.Fatalf("expected 3 commands, got %d: %+v", len(cmds), cmds)
+	}
+	if cmds[1].cmd != "sudo edgelet config cert 'y$(id)'" {
+		t.Fatalf("unexpected cert command: %q", cmds[1].cmd)
+	}
+	if cmds[2].cmd != "sudo edgelet provision 'x; touch /tmp/pwned #'" {
+		t.Fatalf("unexpected provision command: %q", cmds[2].cmd)
+	}
+
+	quoted, err := EdgeletProvisionCommands("https://controller.example.com", "a'b", "", false)
+	if err != nil {
+		t.Fatalf("EdgeletProvisionCommands with quote: %v", err)
+	}
+	if len(quoted) != 2 {
+		t.Fatalf("expected 2 commands, got %d: %+v", len(quoted), quoted)
+	}
+	for _, cmd := range quoted {
+		if strings.Contains(cmd.cmd, "config cert") {
+			t.Fatalf("empty caCert should omit cert command: %q", cmd.cmd)
+		}
+	}
+	if quoted[1].cmd != `edgelet provision 'a'"'"'b'` {
+		t.Fatalf("unexpected quoted provision command: %q", quoted[1].cmd)
 	}
 }
 

@@ -85,6 +85,32 @@ func TestValidateExternalAuthValid(t *testing.T) {
 	require.NoError(t, validate(cp))
 }
 
+func TestValidateIssuerCa(t *testing.T) {
+	cp := validControlPlane()
+	cp.Auth = rsc.Auth{
+		Mode:      authModeExternal,
+		IssuerUrl: "https://auth.example.com/realms/myrealm",
+		IssuerCa:  "  cGVt  ",
+		Client: &rsc.AuthClient{
+			ID:     "controller",
+			Secret: "secret-value",
+		},
+	}
+	require.NoError(t, validate(cp))
+
+	cp.Auth.IssuerCa = "not-base64!!!"
+	err := validate(cp)
+	requireInputError(t, err)
+	require.ErrorContains(t, err, "auth.issuerCa must be valid base64")
+
+	cp.Auth.IssuerCa = "   "
+	require.NoError(t, validate(cp))
+
+	embedded := validControlPlane()
+	embedded.Auth.IssuerCa = "cGVt"
+	require.NoError(t, validate(embedded))
+}
+
 func TestValidateIofogUserWeakPassword(t *testing.T) {
 	cp := validControlPlane()
 	cp.IofogUser.Password = "weak"

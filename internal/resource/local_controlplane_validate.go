@@ -109,6 +109,9 @@ func validateIofogUser(label string, user IofogUser) error {
 }
 
 func validateAuth(label string, auth Auth) error {
+	if err := validateIssuerCa(label, auth.IssuerCa); err != nil {
+		return err
+	}
 	switch auth.Mode {
 	case authModeEmbedded:
 		return validateEmbeddedAuth(label, auth)
@@ -132,6 +135,17 @@ func validateEmbeddedAuth(label string, auth Auth) error {
 		return util.NewInputError(label + " auth.bootstrap.password is required in YAML when auth.mode is embedded")
 	}
 	return inputvalidate.ValidatePasswordComplexity(auth.Bootstrap.Password)
+}
+
+func validateIssuerCa(label, ca string) error {
+	trimmed := strings.TrimSpace(ca)
+	if trimmed == "" {
+		return nil
+	}
+	if _, err := base64.StdEncoding.DecodeString(trimmed); err != nil {
+		return util.NewInputError(label + " auth.issuerCa must be valid base64")
+	}
+	return nil
 }
 
 func validateExternalAuth(label string, auth Auth) error {
