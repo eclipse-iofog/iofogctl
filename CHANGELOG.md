@@ -5,6 +5,38 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.2] - 24-10-2026
+
+### Added
+
+- Optional `spec.auth.issuerCa` on Kubernetes, local, and remote control planes. Standard base64 of a PEM CA or a concatenated PEM bundle, for an external HTTPS issuer signed by a private CA. Empty uses the system trust store. The Kubernetes translator sets operator `Auth.IssuerCa` (`OIDC_ISSUER_TLS_BASE64_CA` in external mode). Local and remote deploy copy it to Edgelet `spec.auth.issuerCa`. A non-empty value that is not standard base64 is rejected.
+
+### Fixed
+
+- Edgelet provision commands quote the Controller URL, CA certificate, and provisioning key (`edgelet config --a`, `edgelet config cert`, `edgelet provision`), so values that contain spaces or shell metacharacters stay one argument.
+
+### Changed
+
+- Bump Go to **1.26.10** (`go.mod`, CI, CodeQL, govulncheck, release workflow, README).
+- Bump **iofog-go-sdk** to **v3.9.2** and the **iofog-operator** module to **v3.9.2-rc.1**.
+- Component image pins: operator, controller, and router **3.9.2**, NATS **2.15.1-1**, edgelet binary **v1.1.2** / image **1.1.2**.
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.9.2` |
+| Go | `1.26.10` |
+| iofog-go-sdk | `v3.9.2` |
+| iofog-operator module | `v3.9.2` |
+| operator image | `3.9.2` |
+| controller | `3.9.2` |
+| router | `3.9.2` |
+| nats | `2.15.1-1` |
+| edgelet binary | `v1.1.2` |
+| edgelet image | `1.1.2` |
+
+
 ## [v3.9.1] - 12-10-2026
 
 Promotes the v3.9.1-rc.1 line to GA. The operator module moves from **v3.9.1-rc.1** to **v3.9.1**.
@@ -519,7 +551,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.1...HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.2...HEAD
+[v3.9.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.1...v3.9.2
 [v3.9.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1
 [v3.9.1-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1-rc.1
 [v3.9.0]: https://github.com/eclipse-iofog/iofogctl/compare/v3.8.3-rc.1...v3.9.0
