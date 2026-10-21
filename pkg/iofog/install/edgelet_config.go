@@ -587,18 +587,18 @@ func EdgeletProvisionCommands(controllerEndpoint, key, caCert string, useSudo bo
 
 	cmds := []command{
 		{
-			cmd: prefix + "edgelet config --a " + controllerBaseURL.String(),
+			cmd: prefix + "edgelet config --a " + shellQuoteArg(controllerBaseURL.String()),
 			msg: "Configuring edgelet with Controller URL " + controllerBaseURL.String(),
 		},
 	}
 	if strings.TrimSpace(caCert) != "" {
 		cmds = append(cmds, command{
-			cmd: prefix + "edgelet config cert " + caCert,
+			cmd: prefix + "edgelet config cert " + shellQuoteArg(caCert),
 			msg: "Configuring edgelet with Controller CA certificate",
 		})
 	}
 	cmds = append(cmds, command{
-		cmd: prefix + "edgelet provision " + key,
+		cmd: prefix + "edgelet provision " + shellQuoteArg(key),
 		msg: "Provisioning edgelet with Controller",
 	})
 	return cmds, nil
