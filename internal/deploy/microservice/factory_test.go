@@ -53,6 +53,22 @@ application: test-app
 	require.Equal(t, apps.RegistryRef(1), microservice.Images.Registry)
 }
 
+func TestUnmarshalMicroserviceSupplementalGroups(t *testing.T) {
+	var missing apps.Microservice
+	require.NoError(t, yaml.UnmarshalStrict([]byte("application: test-app\ncontainer:\n  runAsGroup: \"1000\"\n"), &missing))
+	require.Nil(t, missing.Container.SupplementalGroups)
+
+	var cleared apps.Microservice
+	require.NoError(t, yaml.UnmarshalStrict([]byte("application: test-app\ncontainer:\n  supplementalGroups: []\n"), &cleared))
+	require.NotNil(t, cleared.Container.SupplementalGroups)
+	require.Empty(t, *cleared.Container.SupplementalGroups)
+
+	var microservice apps.Microservice
+	require.NoError(t, yaml.UnmarshalStrict([]byte("application: test-app\ncontainer:\n  supplementalGroups:\n    - 993\n    - 44\n"), &microservice))
+	require.NotNil(t, microservice.Container.SupplementalGroups)
+	require.Equal(t, []int{993, 44}, *microservice.Container.SupplementalGroups)
+}
+
 func TestParseMicroserviceModels(t *testing.T) {
 	raw := []byte(`
 application: test-app

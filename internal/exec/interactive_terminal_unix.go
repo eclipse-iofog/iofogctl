@@ -5,38 +5,25 @@ package exec
 
 import (
 	"os"
-
-	"golang.org/x/term"
+	"os/signal"
+	"syscall"
 )
 
-func (t *interactiveTerminal) run() error {
-	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if oldState != nil {
-			_ = term.Restore(int(os.Stdin.Fd()), oldState)
+// watchTerminalResize invokes send on SIGWINCH. The returned stop function
+// waits until the watcher has exited.
+func watchTerminalResize(send func()) func() {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGWINCH)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for range sigCh {
+			send()
 		}
 	}()
-
-	return t.runPlatform(func() {
-		go func() {
-			buf := make([]byte, 1)
-			for {
-				select {
-				case <-t.ctx.Done():
-					return
-				default:
-					n, readErr := os.Stdin.Read(buf)
-					if readErr != nil || n == 0 {
-						continue
-					}
-					if t.handleInput(buf[:n]) {
-						return
-					}
-				}
-			}
-		}()
-	})
+	return func() {
+		signal.Stop(sigCh)
+		close(sigCh)
+		<-done
+	}
 }

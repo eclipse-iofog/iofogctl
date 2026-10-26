@@ -6,17 +6,6 @@ import (
 	"strings"
 )
 
-func isShellExitInput(data, lineBuffer string) bool {
-	if strings.ContainsRune(data, '\x04') {
-		return true
-	}
-	if !strings.ContainsAny(data, "\r\n") {
-		return false
-	}
-	line := strings.TrimSpace(strings.NewReplacer("\r", "", "\n", "").Replace(lineBuffer))
-	return line == "exit" || line == "logout"
-}
-
 func parseExecWSCloseCode(err error) (int, bool) {
 	if err == nil {
 		return 0, false

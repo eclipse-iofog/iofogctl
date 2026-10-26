@@ -178,6 +178,43 @@ func TestConstructMicroserviceV39Fields(t *testing.T) {
 	require.Equal(t, 0, formatted["restartCount"])
 }
 
+func TestConstructMicroserviceSupplementalGroups(t *testing.T) {
+	msvc, _, _, err := constructMicroservice(&client.MicroserviceInfo{
+		Name:                   "infer",
+		Config:                 "{}",
+		Annotations:            "{}",
+		RunAsGroup:             "1000",
+		ReadOnlyRootFilesystem: true,
+		SupplementalGroups:     []int{44, 993},
+	}, "lima", "test-app", nil)
+	require.NoError(t, err)
+	require.NotNil(t, msvc.Container.SupplementalGroups)
+	require.Equal(t, []int{44, 993}, *msvc.Container.SupplementalGroups)
+
+	out, err := yaml.Marshal(msvc.Container)
+	require.NoError(t, err)
+	text := string(out)
+	require.Less(t, strings.Index(text, "runAsGroup:"), strings.Index(text, "supplementalGroups:"))
+	require.Less(t, strings.Index(text, "supplementalGroups:"), strings.Index(text, "readOnlyRootFilesystem:"))
+	require.Contains(t, text, "- 44")
+	require.Contains(t, text, "- 993")
+
+	for _, groups := range [][]int{nil, {}} {
+		described, _, _, err := constructMicroservice(&client.MicroserviceInfo{
+			Name:               "infer",
+			Config:             "{}",
+			Annotations:        "{}",
+			SupplementalGroups: groups,
+		}, "lima", "test-app", nil)
+		require.NoError(t, err)
+		require.NotNil(t, described.Container.SupplementalGroups)
+		require.Empty(t, *described.Container.SupplementalGroups)
+		emptyOut, err := yaml.Marshal(described.Container)
+		require.NoError(t, err)
+		require.Contains(t, string(emptyOut), "supplementalGroups: []")
+	}
+}
+
 func TestConstructMicroserviceStatusErrorExtras(t *testing.T) {
 	const lastErrorAt int64 = 1710000000123
 	_, status, _, err := constructMicroservice(&client.MicroserviceInfo{

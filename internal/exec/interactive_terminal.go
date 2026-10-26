@@ -2,27 +2,44 @@ package exec
 
 import (
 	"context"
-	"strings"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
 	"sync"
-	"time"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
-	"github.com/eclipse-iofog/iofogctl/pkg/util"
+	"golang.org/x/term"
 )
 
+const (
+	execStdinChunk       = 1024
+	minExecTermCols      = 2
+	minExecTermRows      = 1
+	maxExecTermDimension = 4096
+)
+
+// execSession is the controller exec socket. *client.ExecSession implements it.
+type execSession interface {
+	Read() (*client.ExecFrame, error)
+	WriteStdin([]byte) error
+	WriteControl([]byte) error
+	Close() error
+}
+
 type interactiveTerminal struct {
-	session             *client.ExecSession
+	session             execSession
 	ctx                 context.Context
 	cancel              context.CancelFunc
 	cleanupOnce         sync.Once
 	stdoutMutex         sync.Mutex
-	lastCtrlCTime       time.Time
-	lineBuffer          string
+	writeMu             sync.Mutex
 	userInitiatedClose  bool
 	userInitiatedCloseM sync.Mutex
 }
 
-func newInteractiveTerminal(session *client.ExecSession) *interactiveTerminal {
+func newInteractiveTerminal(session execSession) *interactiveTerminal {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &interactiveTerminal{
 		session: session,
@@ -34,13 +51,15 @@ func newInteractiveTerminal(session *client.ExecSession) *interactiveTerminal {
 func (t *interactiveTerminal) writeToStdout(data []byte) {
 	t.stdoutMutex.Lock()
 	defer t.stdoutMutex.Unlock()
-	util.WriteStdout(data)
+	_, _ = os.Stdout.Write(data)
 }
 
 func (t *interactiveTerminal) cleanup() {
 	t.cleanupOnce.Do(func() {
 		if t.session != nil {
+			t.writeMu.Lock()
 			_ = t.session.Close()
+			t.writeMu.Unlock()
 		}
 	})
 }
@@ -57,47 +76,61 @@ func (t *interactiveTerminal) isUserInitiatedClose() bool {
 	return t.userInitiatedClose
 }
 
-func (t *interactiveTerminal) sendExecClose() {
-	t.setUserInitiatedClose()
-	t.cancel()
-}
-
+// handleInput forwards one stdin chunk unchanged. The remote PTY echoes and
+// interprets keys, including Ctrl+C. A write error ends the local relay.
 func (t *interactiveTerminal) handleInput(data []byte) bool {
 	if len(data) == 0 {
 		return false
 	}
-
-	switch rune(data[0]) {
-	case 0x03: // Ctrl+C
-		if time.Since(t.lastCtrlCTime) < time.Second {
-			t.setUserInitiatedClose()
-			t.cancel()
-			t.cleanup()
-			t.writeToStdout([]byte("\nExiting...\n"))
-			return true
-		}
-		t.lastCtrlCTime = time.Now()
-		t.writeToStdout([]byte("^C\n"))
-	}
-
-	if err := t.session.WriteStdin(data); err != nil {
+	t.writeMu.Lock()
+	err := t.session.WriteStdin(data)
+	t.writeMu.Unlock()
+	if err != nil {
 		t.cancel()
 		return true
 	}
-
-	input := string(data)
-	t.lineBuffer += input
-	if isShellExitInput(input, t.lineBuffer) {
-		t.lineBuffer = ""
-		t.sendExecClose()
-		t.cancel()
-		return true
-	}
-	if strings.ContainsAny(input, "\r\n") {
-		t.lineBuffer = ""
-	}
-
 	return false
+}
+
+func (t *interactiveTerminal) sendResize() {
+	cols, rows, err := terminalSize()
+	if err != nil {
+		return
+	}
+	_ = t.writeResize(cols, rows)
+}
+
+func (t *interactiveTerminal) writeResize(cols, rows uint32) error {
+	payload, err := resizeControlPayload(cols, rows)
+	if err != nil {
+		return err
+	}
+	t.writeMu.Lock()
+	defer t.writeMu.Unlock()
+	return t.session.WriteControl(payload)
+}
+
+func (t *interactiveTerminal) copyStdin() {
+	buf := make([]byte, execStdinChunk)
+	for {
+		if t.ctx.Err() != nil {
+			return
+		}
+		n, readErr := os.Stdin.Read(buf)
+		if n > 0 {
+			chunk := append([]byte(nil), buf[:n]...)
+			if t.handleInput(chunk) {
+				return
+			}
+		}
+		if readErr != nil {
+			if errors.Is(readErr, io.EOF) {
+				t.setUserInitiatedClose()
+			}
+			t.cancel()
+			return
+		}
+	}
 }
 
 func (t *interactiveTerminal) shouldPrintFrame(frame *client.ExecFrame) bool {
@@ -109,6 +142,27 @@ func (t *interactiveTerminal) shouldPrintFrame(frame *client.ExecFrame) bool {
 	default:
 		return false
 	}
+}
+
+func (t *interactiveTerminal) run() error {
+	fd := int(os.Stdin.Fd())
+	oldState, err := term.MakeRaw(fd)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if oldState != nil {
+			_ = term.Restore(fd, oldState)
+		}
+	}()
+
+	t.sendResize()
+	stopResize := watchTerminalResize(t.sendResize)
+	defer stopResize()
+
+	return t.runPlatform(func() {
+		go t.copyStdin()
+	})
 }
 
 func (t *interactiveTerminal) runPlatform(startInput func()) error {
@@ -157,4 +211,37 @@ func (t *interactiveTerminal) runPlatform(startInput func()) error {
 		}
 		return err
 	}
+}
+
+func terminalSize() (uint32, uint32, error) {
+	fd := int(os.Stdout.Fd())
+	if !term.IsTerminal(fd) {
+		fd = int(os.Stdin.Fd())
+	}
+	if !term.IsTerminal(fd) {
+		return 0, 0, errors.New("stdout is not a terminal")
+	}
+	cols, rows, err := term.GetSize(fd)
+	if err != nil {
+		return 0, 0, err
+	}
+	if cols <= 0 || rows <= 0 {
+		return 0, 0, errors.New("terminal size is unset")
+	}
+	return uint32(cols), uint32(rows), nil // #nosec G115 -- terminal dimensions from term.GetSize are small positive ints
+}
+
+func resizeControlPayload(cols, rows uint32) ([]byte, error) {
+	if cols < minExecTermCols || rows < minExecTermRows || cols > maxExecTermDimension || rows > maxExecTermDimension {
+		return nil, fmt.Errorf("invalid terminal size %dx%d", cols, rows)
+	}
+	return json.Marshal(struct {
+		Type string `json:"type"`
+		Cols uint32 `json:"cols"`
+		Rows uint32 `json:"rows"`
+	}{
+		Type: "resize",
+		Cols: cols,
+		Rows: rows,
+	})
 }
