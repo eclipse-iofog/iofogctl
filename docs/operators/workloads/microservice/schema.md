@@ -94,7 +94,7 @@ See [Container appendix](#appendix-container-fields) for every field.
 
 | Group | Fields | Purpose |
 |-------|--------|---------|
-| Security | `isPrivileged`, `runAsUser`, `runAsGroup`, `readOnlyRootFilesystem`, `capAdd`, `capDrop` | Linux security |
+| Security | `isPrivileged`, `runAsUser`, `runAsGroup`, `supplementalGroups`, `readOnlyRootFilesystem`, `capAdd`, `capDrop` | Linux security |
 | Network | `hostNetworkMode`, `ports`, `extraHosts` | Exposure, DNS — [extraHosts](#container-extrahosts), [sysctls vs host network](#container-sysctls) |
 | WASM / runtime | `platform`, `runtime` | e.g. `wasi/wasm` + [RuntimeClass](../../runtime-class/README.md) handler name |
 | Resources | `cpus`, `memoryLimit`, `memoryReservation`, `memorySwap`, `shmSize`, `cpuSetCpus`, `ulimits` | [CPU/memory units](#container-resources-cpu-and-memory) |
@@ -444,6 +444,7 @@ Debugging: [debugging.md](../debugging.md).
 | `isPrivileged` | bool | Privileged container |
 | `runAsUser` | string | UID |
 | `runAsGroup` | string | GID |
+| `supplementalGroups` | []int | Extra host group IDs so a non-root process can join the group that owns a device node. Absent leaves the stored list; `[]` clears it |
 | `readOnlyRootFilesystem` | bool | Read-only root FS |
 | `ipcMode` | string | IPC mode (engine-specific) |
 | `pidMode` | string | PID namespace mode |

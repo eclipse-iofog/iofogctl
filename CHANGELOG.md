@@ -5,6 +5,38 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.9.3] - 
+
+### Added
+
+- `container.supplementalGroups` on Application, Microservice, and MicroserviceTemplate YAML. Extra host group IDs let a non-root process join the group that owns a device node. A missing key leaves the stored list; `[]` clears it. Describe prints the key, including an empty list, so the next apply matches the Controller.
+
+- Interactive `exec` sends the local terminal size when the session starts. On Unix it sends a new size when the window changes. Windows sends the size once at the start.
+
+### Fixed
+
+- Interactive `exec` forwards stdin to the remote PTY, including Ctrl+C, Ctrl+D, `exit`, and `logout`. The remote shell handles those keys. The local session ends when the remote side closes it, or when local stdin reaches EOF.
+
+### Changed
+
+- Bump **iofog-go-sdk** to **v3.9.3** and the **iofog-operator** module to **v3.9.3-rc.1**.
+- Component image pins: operator, controller, and router **3.9.3**, NATS **2.15.2**, edgelet binary **v1.1.3** / image **1.1.3**.
+
+### Component pairing
+
+| Component | Pin |
+|-----------|-----|
+| CLI | `v3.9.3` |
+| Go | `1.26.10` |
+| iofog-go-sdk | `v3.9.3` |
+| iofog-operator module | `v3.9.3-rc.1` |
+| operator image | `3.9.3` |
+| controller | `3.9.3` |
+| router | `3.9.3` |
+| nats | `2.15.2` |
+| edgelet binary | `v1.1.3` |
+| edgelet image | `1.1.3` |
+
 ## [v3.9.2] - 24-10-2026
 
 ### Added
@@ -551,7 +583,8 @@ First greenfield v3.8 release candidate. Dual-flavor build (`potctl` / `iofogctl
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.2...HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.3...HEAD
+[v3.9.3]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.2...v3.9.3
 [v3.9.2]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.1...v3.9.2
 [v3.9.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1
 [v3.9.1-rc.1]: https://github.com/eclipse-iofog/iofogctl/compare/v3.9.0...v3.9.1-rc.1

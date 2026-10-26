@@ -225,6 +225,13 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	msvc.Container.Platform = msvcInfo.Platform
 	msvc.Container.RunAsUser = msvcInfo.RunAsUser
 	msvc.Container.RunAsGroup = msvcInfo.RunAsGroup
+	// A nil GET slice (older Controller omitted the key) and [] both print supplementalGroups: [].
+	// A missing key on the next apply would leave the stored list.
+	groups := msvcInfo.SupplementalGroups
+	if groups == nil {
+		groups = []int{}
+	}
+	msvc.Container.SupplementalGroups = &groups
 	msvc.Container.ReadOnlyRootFilesystem = msvcInfo.ReadOnlyRootFilesystem
 	msvc.Container.CdiDevices = msvcInfo.CdiDevices
 	msvc.Container.CapAdd = msvcInfo.CapAdd
