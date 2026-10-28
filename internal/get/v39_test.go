@@ -78,6 +78,21 @@ func TestFormatMicroserviceGetStatus(t *testing.T) {
 		Status:       "FAILED",
 		ErrorMessage: `invalid mount config for type "bind"`,
 	}))
+	require.Equal(t, "RUNNING (unable to pull nginx: denied)", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{
+		Status:          "RUNNING",
+		ImagePullStatus: "failed",
+		ErrorMessage:    "unable to pull nginx: denied",
+	}))
+	require.Equal(t, "QUEUED (unable to pull nginx: denied)", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{
+		Status:          "QUEUED",
+		ImagePullStatus: "failed",
+		ErrorMessage:    "unable to pull nginx: denied",
+	}))
+	require.Equal(t, "RUNNING (lastError: unable to pull nginx: denied)", formatMicroserviceGetStatus(client.MicroserviceStatusInfo{
+		Status:          "RUNNING",
+		ImagePullStatus: "",
+		LastError:       "unable to pull nginx: denied",
+	}))
 }
 
 func TestGenerateMicroserviceOutputCrashSummary(t *testing.T) {

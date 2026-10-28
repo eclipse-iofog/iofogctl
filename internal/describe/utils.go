@@ -93,6 +93,8 @@ func FormatMicroserviceStatus(status *apps.MicroserviceStatusInfo) yaml.MapSlice
 	}
 	formatted = appendItem(formatted, "restartCount", status.RestartCount)
 	formatted = appendItem(formatted, "errorMessage", status.ErrorMessage)
+	// imagePullStatus is always printed, including "". An omitted key looks like an older Controller.
+	formatted = appendItem(formatted, "imagePullStatus", status.ImagePullStatus)
 	formatted = appendItem(formatted, "lastError", status.LastError)
 	// lastErrorAt is Unix milliseconds; keep 0 when LastError is empty (older Controllers).
 	if status.LastErrorAt > 0 {
@@ -301,6 +303,7 @@ func constructMicroservice(msvcInfo *client.MicroserviceInfo, agentName, appName
 	status.ContainerID = msvcInfo.Status.ContainerID
 	status.Percentage = msvcInfo.Status.Percentage
 	status.ErrorMessage = msvcInfo.Status.ErrorMessage
+	status.ImagePullStatus = msvcInfo.Status.ImagePullStatus
 	status.LastError = msvcInfo.Status.LastError
 	status.LastErrorAt = msvcInfo.Status.LastErrorAt
 	status.RestartCount = msvcInfo.Status.RestartCount

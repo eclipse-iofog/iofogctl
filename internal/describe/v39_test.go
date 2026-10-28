@@ -238,8 +238,29 @@ func TestConstructMicroserviceStatusErrorExtras(t *testing.T) {
 	require.Equal(t, "OOMKilled", formatted["lastError"])
 	require.Equal(t, 2, formatted["restartCount"])
 	require.Equal(t, "", formatted["errorMessage"])
+	require.Equal(t, "", formatted["imagePullStatus"])
 	wantAt := time.Unix(lastErrorAt/1000, (lastErrorAt%1000)*1000000).Format(time.RFC3339)
 	require.Equal(t, wantAt, formatted["lastErrorAt"])
+
+	msvc, failed, _, err := constructMicroservice(&client.MicroserviceInfo{
+		Name:        "infer",
+		Config:      "{}",
+		Annotations: "{}",
+		Status: client.MicroserviceStatusInfo{
+			Status:          "RUNNING",
+			ImagePullStatus: "failed",
+			ErrorMessage:    "unable to pull nginx: denied",
+		},
+	}, "lima", "test-app", nil)
+	require.NoError(t, err)
+	require.Equal(t, "RUNNING", failed.Status)
+	require.Equal(t, "failed", failed.ImagePullStatus)
+	failedFormatted := statusMap(FormatMicroserviceStatus(failed))
+	require.Equal(t, "failed", failedFormatted["imagePullStatus"])
+	require.Equal(t, "unable to pull nginx: denied", failedFormatted["errorMessage"])
+	spec, err := yaml.Marshal(msvc)
+	require.NoError(t, err)
+	require.NotContains(t, string(spec), "imagePullStatus")
 }
 
 func TestFormatMicroserviceStatusCPUCores(t *testing.T) {
@@ -249,6 +270,7 @@ func TestFormatMicroserviceStatusCPUCores(t *testing.T) {
 		LastError: "",
 	}))
 	require.Equal(t, "0.33 cores", formatted["cpuUsage"])
+	require.Equal(t, "", formatted["imagePullStatus"])
 	require.Equal(t, []string{
 		"status",
 		"containerId",
@@ -258,6 +280,7 @@ func TestFormatMicroserviceStatusCPUCores(t *testing.T) {
 		"cpuUsage",
 		"restartCount",
 		"errorMessage",
+		"imagePullStatus",
 		"lastError",
 		"lastErrorAt",
 		"execSessionIds",
