@@ -4,16 +4,34 @@ import (
 	"context"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+	"github.com/eclipse-iofog/iofogctl/internal/trust"
 )
 
+// ConnectSession is the iofog user session established while attaching to a control plane.
+type ConnectSession struct {
+	Agents       []client.AgentInfo
+	AccessToken  string
+	RefreshToken string
+}
+
 // ConnectLogin performs trust-aware iofogUser login and returns controller agents.
-func ConnectLogin(ctx context.Context, namespace, endpoint, caFile, email, password string) ([]client.AgentInfo, error) {
-	clt, err := newControllerAuthClient(ctx, namespace, endpoint, caFile)
+// An empty password or TOTP is prompted by the SDK, matching other user logins.
+func ConnectLogin(ctx context.Context, namespace, endpoint, email, password string) (ConnectSession, error) {
+	opt, err := trust.SDKOptions(ctx, namespace, endpoint)
 	if err != nil {
-		return nil, err
+		return ConnectSession{}, err
 	}
-	if err := clt.bootstrapLogin(email, password); err != nil {
-		return nil, err
+	clt, err := client.NewAndLogin(opt, email, password)
+	if err != nil {
+		return ConnectSession{}, err
 	}
-	return clt.listAgents()
+	agents, err := clt.ListAgents(client.ListAgentsRequest{})
+	if err != nil {
+		return ConnectSession{}, err
+	}
+	return ConnectSession{
+		Agents:       agents.Agents,
+		AccessToken:  clt.GetAccessToken(),
+		RefreshToken: clt.GetRefreshToken(),
+	}, nil
 }

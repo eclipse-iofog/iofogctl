@@ -5,7 +5,7 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v3.9.4] - 29-10-2026
+## [v3.9.4] - 05-11-2026
 
 ### Added
 
@@ -13,8 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bump **iofog-go-sdk** to **v3.9.4** and the **iofog-operator** module to **v3.9.4-rc.1**.
+- Bump **iofog-go-sdk** to **v3.9.4** and the **iofog-operator** module to **v3.9.4-rc.2**.
 - Component image pins: operator, controller, and router **3.9.3**, NATS unchanged**2.15.2**, edgelet binary **v1.1.3** / image **1.1.3**.
+
+### Security
+
+- Bump `google.golang.org/grpc` to **v1.83.2**. Clears **GO-2026-6443** (CVE-2026-84445): a gRPC server using xDS routing can panic on a request that has neither `:authority` nor `Host` (`http2Server.HandleStreams`, `http2Server.operateHeaders`, `RouteAndProcess`). gRPC comes in through airgap image copy (`internal/deploy/airgap` → `go.podman.io/image/v5/copy` → `github.com/containers/ocicrypt/keywrap/keyprovider`). Tidy against **iofog-operator v3.9.4-rc.2** selected v1.83.1 again; this pin holds v1.83.2. govulncheck then reports no findings in imported packages.
+- Bump `golang.org/x/net` to **v0.62.0** (`x/crypto` **v0.58.0**, `x/sys` **v0.49.0**, `x/sync` **v0.24.0**, `x/text` **v0.43.0**, `x/term` **v0.47.0**). Clears **GO-2026-6860** (CVE-2026-78661) and **GO-2026-6866** (CVE-2026-97045) in `golang.org/x/net/html`. The CLI reaches `golang.org/x/net` through `k8s.io/client-go/rest` → `golang.org/x/net/http2`.
 
 ### Component pairing
 

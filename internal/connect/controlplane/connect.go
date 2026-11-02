@@ -30,14 +30,15 @@ func PrepareTrust(namespace string, cp rsc.ControlPlane, caFile, caB64 string) e
 func Connect(ctrlPlane rsc.ControlPlane, endpoint, namespace string, ns *rsc.Namespace) error {
 	user := ctrlPlane.GetUser()
 	util.SpinHandlePrompt()
-	agents, err := auth.ConnectLogin(context.Background(), namespace, endpoint, "", user.Email, user.GetRawPassword())
+	session, err := auth.ConnectLogin(context.Background(), namespace, endpoint, user.Email, user.GetRawPassword())
+	util.SpinHandlePromptComplete()
 	if err != nil {
 		return err
 	}
-	util.SpinHandlePromptComplete()
+	ctrlPlane.UpdateUserTokens(session.AccessToken, session.RefreshToken)
 
-	for idx := range agents {
-		agent := &agents[idx]
+	for idx := range session.Agents {
+		agent := &session.Agents[idx]
 		agentConfig := rsc.RemoteAgent{
 			Name: agent.Name,
 			UUID: agent.UUID,
