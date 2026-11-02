@@ -111,18 +111,6 @@ func (c *controllerAuthClient) changePassword(req client.ChangePasswordRequest) 
 	return nil
 }
 
-func (c *controllerAuthClient) listAgents() ([]client.AgentInfo, error) {
-	body, err := c.doJSON(http.MethodGet, "/iofog-list", authHeaders(c.accessToken), nil)
-	if err != nil {
-		return nil, err
-	}
-	var response client.ListAgentsResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("parse agents response: %w", err)
-	}
-	return response.Agents, nil
-}
-
 type bootstrapLoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
