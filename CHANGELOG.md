@@ -5,11 +5,15 @@ All notable changes to potctl / iofogctl are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v3.9.4] - 05-11-2026
+## [v3.9.4] - 09-11-2026
 
 ### Added
 
 - Microservice and system microservice describe print `imagePullStatus` next to `errorMessage`, including an empty value. `failed` means the desired image is not on the device. `""` means no outstanding pull failure, which is also how an older Controller that omits the key decodes. Observed `status` stays as Controller sent it (`RUNNING` or `QUEUED`). `get` keeps that status word and still appends the registry text from `errorMessage`. After the pull succeeds, a leftover `lastError` suffix is history. Deploy YAML does not send this field.
+
+### Fixed
+
+- `deploy -f` of a Microservice whose name is only in `metadata.name` no longer sends `spec.name: ""`. Controller copies `spec.name` over `metadata.name`, so the empty string failed validation on both `POST /api/v3/microservices/yaml` and `PATCH /api/v3/microservices/yaml/{uuid}`. The CLI now writes the short microservice name into `spec.name`. A fully qualified `metadata.name` (`application/microservice`) with no `spec.application` also fills `spec.application`, because a short `spec.name` stops Controller from reading the application out of metadata. `metadata.name` may be `application/microservice` or the microservice name with `spec.application` set. An explicit `spec.name` that matches is kept. A conflicting `spec.name`, a conflicting `spec.application`, or a `spec.name` written as `application/name` is rejected before the Controller call.
 
 ### Changed
 
