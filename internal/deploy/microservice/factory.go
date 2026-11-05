@@ -137,7 +137,11 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 		return
 	}
 
-	name := resolveMicroserviceName(opt.Name, opt.Yaml)
+	appName, msvcName, err := reconcileMicroserviceIdentity(opt.Name, &microservice)
+	if err != nil {
+		return nil, err
+	}
+	name := appName + "/" + msvcName
 
 	if opt.PatchModel || opt.PatchKnowledge {
 		remote := &remoteExecutor{
@@ -177,21 +181,50 @@ func NewExecutor(opt Options) (exe execute.Executor, err error) {
 	}, nil
 }
 
-func resolveMicroserviceName(optName string, yamlBytes []byte) string {
-	name := optName
-	if strings.Contains(name, "/") {
-		return name
+// reconcileMicroserviceIdentity copies metadata identity onto the spec.
+// apps.Microservice.Name has no omitempty, so a missing spec.name is marshaled
+// as name: "". Controller replaces metadata.name with that empty string.
+// A short spec.name also stops Controller from reading the application out of
+// a fully qualified metadata.name, so an omitted spec.application is filled from that prefix.
+func reconcileMicroserviceIdentity(metadataName string, ms *apps.Microservice) (appName, msvcName string, err error) {
+	metaApp, metaMsvc, err := clientutil.ParseFQName(metadataName, "Microservice")
+	if err != nil {
+		return "", "", err
 	}
-	var spec struct {
-		Application string `yaml:"application,omitempty"`
+	if ms.Name != "" {
+		if strings.Contains(ms.Name, "/") {
+			return "", "", util.NewInputError(fmt.Sprintf("spec.name %q must be the microservice name", ms.Name))
+		}
+		if err := util.IsLowerAlphanumeric("Microservice", ms.Name); err != nil {
+			return "", "", err
+		}
+		if ms.Name != metaMsvc {
+			return "", "", util.NewInputError(fmt.Sprintf("spec.name %q does not match metadata.name %q", ms.Name, metadataName))
+		}
 	}
-	if err := yaml.Unmarshal(yamlBytes, &spec); err != nil {
-		return name
+	switch {
+	case metaApp != "" && ms.Application != "":
+		if metaApp != ms.Application {
+			return "", "", util.NewInputError(fmt.Sprintf("metadata.name application %q does not match spec.application %q", metaApp, ms.Application))
+		}
+		appName = metaApp
+	case metaApp != "":
+		appName = metaApp
+	case ms.Application != "":
+		if err := util.IsLowerAlphanumeric("application", ms.Application); err != nil {
+			return "", "", err
+		}
+		appName = ms.Application
+	default:
+		return "", "", util.NewInputError(fmt.Sprintf("Application name missing for microservice %s", metaMsvc))
 	}
-	if spec.Application != "" {
-		return spec.Application + "/" + name
+	if ms.Name == "" {
+		ms.Name = metaMsvc
 	}
-	return name
+	if ms.Application == "" {
+		ms.Application = appName
+	}
+	return appName, metaMsvc, nil
 }
 
 func parseMicroserviceModels(raw []byte) (*apps.MicroserviceCatalog, error) {
