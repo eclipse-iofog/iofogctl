@@ -9,7 +9,7 @@ on:
 permissions: read-all
 
 env:
-  GO_VERSION: '1.26.10'
+  GO_VERSION: '1.26.11'
 
 jobs:
   analyze:
