@@ -1,11 +1,11 @@
 module github.com/eclipse-iofog/iofogctl
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/briandowns/spinner v1.23.1
-	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.9.4
-	github.com/eclipse-iofog/iofog-operator/v3 v3.9.4-rc.2
+	github.com/eclipse-iofog/iofog-go-sdk/v3 v3.9.5
+	github.com/eclipse-iofog/iofog-operator/v3 v3.9.5-rc.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2
